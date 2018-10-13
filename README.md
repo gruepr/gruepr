@@ -79,6 +79,7 @@ Details on how the teams are optimized:
 
 ---------------
 A Note about genetic algorithm efficiency:
+
 	Unfortunately, there is redundancy in the array-based permutation-of-teammate-ID way that the teammates are
 	encoded into the genome. For example, if teams are of size 4, one genome that starts [1 5 18 9 x x x x ...]
 	and another that has [x x x x 9 5 1 18...] are encoding an identical team in two ways. Since every genome
