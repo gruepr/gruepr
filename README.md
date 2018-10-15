@@ -1,4 +1,4 @@
-grüpr
+gruepr
 
 V 7.0
 9/30/2018
@@ -6,9 +6,9 @@ V 7.0
 Written by: Joshua Hertz
 
 ---------------
-Description of grüpr:
+Description of gruepr:
 
-	Grüpr is a program for splitting a section of 4-200 students into optimized teams. It is originally based
+	Gruepr is a program for splitting a section of 4-200 students into optimized teams. It is originally based
 	on CATME's team forming routine as described in their paper. All the student data is read from a file,
 	and the students are split into teams of any desired size(s). A good distribution of students into teams
 	is determined by a numerical score. The score can be based on:
