@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////////////
 // gruepr
-// version 7.0
+// version 7.1
 // Joshua Hertz
-// 10/14/18
+// 10/25/18
 
 //  TO DO:	-Auto-determine from header whether URM data is included and, if so, allow lone URM prevention
 
@@ -27,7 +27,8 @@
 // - in each row, values are comma-separated, and the values cannot contain any commas (technically, the notes can contain commas...)
 // - values are, in order:
 //     Timestamp (ignored by the program, but must be present)
-//     name
+//     first name/preferred name
+//     last name
 //     email
 //     [optional] "Woman", "Man", and any number of additional gender categories ("Prefer not to say", "Non-binary", etc.)
 //     [0 to 9 values] attributes, each in own field, first numeric digit found in the value will be used, and any text before/after ignored
@@ -150,7 +151,8 @@ const string timeNames[dailyTimeBlocks] = {"8am", "9am", "10am", "11am", "noon",
 //struct defining survey data from one student, read from the input csv file
 struct studentrecord
 {
-	string name;
+	string firstname;
+	string lastname;
 	string email;
 	bool woman;
 	short attribute[maxAttributes] = {0};				// rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
@@ -216,13 +218,14 @@ int main()
     // Read past first few fields
     string field;
     getline(headerRow, field, ',');				// read past first field in header row ("Timestamp")
-    getline(headerRow, field, ',');				// read past second field in header row (the question text for "Name")
-    getline(headerRow, field, ',');				// read past third field in header row (the question text for "Email")
+    getline(headerRow, field, ',');				// read past second field in header row (the question text for "First Name/Preferred Name")
+    getline(headerRow, field, ',');				// read past third field in header row (the question text for "Last Name")
+    getline(headerRow, field, ',');				// read past fourth field in header row (the question text for "Email")
     // Read the optional questions gender/attribute questions
-	getline(headerRow, field, ',');										// read fourth field in header row
+	getline(headerRow, field, ',');										// read fifth field in header row
 	transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
     // See if gender data is included
-    bool genderQuestionIncluded=false;									// assume not and then test
+    bool genderQuestionIncluded=false;									// assume no gender question included and then test
 	if(field.find("gender") != string::npos)
 	{
 		genderQuestionIncluded = true;
@@ -284,7 +287,7 @@ int main()
     do
     {
         students[numStudents] = readOneRecordFromFile(file, genderQuestionIncluded, numAttributes, attributeLevel, sectionIncluded, notesIncluded);
-        //cout << students[numStudents].name << endl;
+        //cout << students[numStudents].firstname << " " << students[numStudents].lastname << endl;
         numStudents++;
         getline(file, field, ',');	// read timestamp for next row and throw away (also, in case of a newline character after last row, need this read to reach .eof())
     }
@@ -377,26 +380,31 @@ int main()
 		}
 		else
 		{
+			cout << endl;
 			Sleep(3000);	// just give some time for user to read info
 		}
 	}
 	else
 	{
+		cout << endl;
 		Sleep(3000);	// just give some time for user to read info
 	}
 
-    // Sort the students based on *email*, since that should be by last name if husky email was used
-    sort(students, students+numStudents, [](studentrecord a, studentrecord b){return a.email < b.email;});
+    // Sort the students based on first name then last name
+    sort(students, students+numStudents, [](studentrecord a, studentrecord b){return a.firstname < b.firstname;});
+    sort(students, students+numStudents, [](studentrecord a, studentrecord b){return a.lastname < b.lastname;});
     
     // Determine the size of the largest name
     short largestNameSize = 5;											// assume largest name is (at least) 5 characters--list formatting requires at least this
     for(short student = 0; student < numStudents; student++)
     {
-    	if(students[student].name.size() > largestNameSize)						//if we find a bigger name, save that value
+    	short nameSize = (students[student].firstname.size() + students[student].lastname.size() + 1); 	// adding 1 for the space between the first and last names
+    	if(nameSize > largestNameSize)									//if we find a bigger name, save that value
 		{
-			largestNameSize = students[student].name.size();
+			largestNameSize = nameSize;
 		}
 	}
+	largestNameSize = min((int)largestNameSize, 23);
 
 
     ////////////////////////////////////////////
@@ -922,13 +930,19 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 	studentrecord student;
 	string line;
 
-	// 2nd field in line; should be the name
+	// 2nd field in line; should be the first name/preferred name
 	getline(file, line, ',');
 	line.erase(remove(line.begin(), line.end(), '"'), line.end());	//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
-	student.name = line;
-	//cout << "--" << student.name << "  ";
+	student.firstname = line;
+	//cout << "--" << student.firstname << "  ";
 
-	// 3rd field in line; should be the email
+	// 3rd field in line; should be the last name
+	getline(file, line, ',');
+	line.erase(remove(line.begin(), line.end(), '"'), line.end());	//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
+	student.lastname = line;
+	//cout << "--" << student.lastname << "  ";
+
+	// 4th field in line; should be the email
 	getline(file, line, ',');
 	line.erase(remove(line.begin(), line.end(), '"'), line.end());				//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
 	//line = line.substr(0,line.find('@'));										// strips away address following the @
@@ -936,7 +950,7 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 	student.email = line;
 	//cout << "--" << student.email << "  ";
 
-	// optional 4th field in line; might be the gender
+	// optional 5th field in line; might be the gender
 	if(genderQuestionIncluded)
 	{
 		getline(file, line, ',');												// read gender
@@ -949,7 +963,7 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 		student.woman = false;
 	}
 
-	// optional 5th-14th fields in line; might be the attributes
+	// optional next 9 fields in line; might be the attributes
 	for(short attrib = 0; attrib < numAttributes; attrib++)
 	{
 		getline(file, line, ',');
@@ -1375,10 +1389,17 @@ void setTeamSizes(short numStudents, short teamSize[], short& numTeams)
 //////////////////
 void printStudentInfo(short ID, studentrecord student, short largestNameSize, short numStudents, short PrevOrReq)
 {
-	cout << " " << setw(3) << right;
+	cout << " [" << setw(3) << right;
 	coutBold(to_string(ID+1));
-	cout << ")  ";
-	cout << left << setfill((char)250) << setw(largestNameSize+2) << student.name;	// Align columns by padding with dots
+	cout << "] ";
+	string name = student.firstname + " " + student.lastname;
+	if((student.firstname.size()+student.lastname.size()) > 22)
+	{
+		name = name.substr(0,22) + (char)236;
+	}
+
+	cout << left << setfill((char)250) << setw(largestNameSize+2) << name;	// Align columns by padding with dots
+
 	string otherIDs;
 	for(short otherStudent = 0; otherStudent < numStudents; otherStudent++)
 	{
@@ -1475,8 +1496,10 @@ void printTeams(studentrecord students[], short teammates[], short teamSize[], s
 			{
 				output += to_string(students[teammates[ID]].attribute[attrib]) + "  ";
 			}
-			output += students[teammates[ID]].name;
-			output += string(largestNameSize+2-students[teammates[ID]].name.size(), ' ');		// Align columns by padding with spaces
+			output += students[teammates[ID]].firstname;
+			output += " " ;
+			output += students[teammates[ID]].lastname;
+			output += string(largestNameSize+2-students[teammates[ID]].firstname.size()-students[teammates[ID]].lastname.size(), ' ');		// Align columns by padding with spaces
 			output += students[teammates[ID]].email;
 			//output += "     ";
 			//output += students[teammates[ID]].notes;
@@ -1487,8 +1510,8 @@ void printTeams(studentrecord students[], short teammates[], short teamSize[], s
 			else
 			{
 				teamFile << output << endl;
-				studentsFile << "   " << students[teammates[ID]].name << string(largestNameSize+2-students[teammates[ID]].name.size(), ' ') << students[teammates[ID]].email << endl;
-				teammatesFile << sectionName << "\t" << (team+1) << "\t" << students[teammates[ID]].name << "\t" << students[teammates[ID]].email << endl;
+				studentsFile << "   " << students[teammates[ID]].firstname << " " << students[teammates[ID]].lastname << string(largestNameSize+2-students[teammates[ID]].firstname.size()-students[teammates[ID]].lastname.size(), ' ') << students[teammates[ID]].email << endl;
+				teammatesFile << sectionName << "\t" << (team+1) << "\t" << students[teammates[ID]].firstname << " " << students[teammates[ID]].lastname << "\t" << students[teammates[ID]].email << endl;
 			}
 			for(short day = 0; day < 7; day++)
 			{
@@ -1706,7 +1729,7 @@ float getTeamScores(studentrecord students[], short numStudents, short teammates
 				if(students[teammates[studentA]].preventedWith[teammates[studentB]])
 				{
 					prevTeammateAdj[team] = -numMetrics;
-					//cout << "Team " << team << "has prevented Teammates: " << students[teammates[studentA]].name << " & " << students[teammates[studentB]].name;
+					//cout << "Team " << team << "has prevented Teammates: " << students[teammates[studentA]].firstname << " " << students[teammates[studentA]].lastname << " & " << students[teammates[studentB]].firstname << " " << students[teammates[studentB]].lastname;
 				}
 			}
 		}
@@ -1742,7 +1765,7 @@ float getTeamScores(studentrecord students[], short numStudents, short teammates
 					if(!studentBOnTeam)
 					{
 						reqTeammateAdj[team] = -numMetrics;
-						//cout << students[teammates[studentA]].name << "is not paired with required teammate " << students[teammates[studentB]].name << endl;
+						//cout << students[teammates[studentA]].firstname << " " << students[teammates[studentA]].lastname << "is not paired with required teammate " << students[teammates[studentB]].firstname << " " << students[teammates[studentB]].lastname << endl;
 					}	
 				}                                                                                           
 			}
