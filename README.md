@@ -1,7 +1,7 @@
 gruepr
 
-V 7.0
-9/30/2018
+V 7.1
+10/25/2018
 
 Written by: Joshua Hertz
 
@@ -9,11 +9,12 @@ Written by: Joshua Hertz
 Description of gruepr:
 
 	Gruepr is a program for splitting a section of 4-200 students into optimized teams. It is originally based
-	on CATME's team forming routine as described in their paper. All the student data is read from a file,
-	and the students are split into teams of any desired size(s). A good distribution of students into teams
-	is determined by a numerical score. The score can be based on:
+	on CATME's team forming routine as described in their paper
+	[ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
+	All the student data is read from a file, and the students are split into teams of any desired size(s). A
+	good distribution of students into teams is determined by a numerical score. The score can be based on:
 	   1) Preventing lone women.
-	   2) Achieving  within each team either homogeneity or heterogeneity of up to 9 numerical "attribute
+	   2) Achieving within each team either homogeneity or heterogeneity of up to 9 numerical "attribute
 	      levels", which could be skills assessments, work preferences, or attitudes.
 	   3) Achieving a high degree of overlap in schedule freetime.
 	   4) Preventing any particular students from being on the same team.
@@ -48,7 +49,8 @@ Description of gruepr:
 	      notes can contain commas...)
 	   - values are, in order:	
 	       ~ Timestamp (not used by the program, but must be present)
-	       ~ name
+	       ~ first name or preferred name
+		   ~ last name
 	       ~ email
 	       ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
 		     "Non-binary", etc.)
