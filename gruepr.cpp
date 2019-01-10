@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////////////
 // gruepr
-// version 7.1
+// version 7.2
 // Joshua Hertz
-// 10/25/18
+// 01/09/19
 
 //  TO DO:	-Auto-determine from header whether URM data is included and, if so, allow lone URM prevention
 
@@ -180,6 +180,7 @@ HANDLE window = GetStdHandle(STD_OUTPUT_HANDLE);
 //utility functions
 void setWindowProps(string consoleTitle);
 string openFile(ifstream& file);
+string readCSVField(stringstream& row);	// move the next CSV field from row into the output string, either directly to the next comma or the comma after the entire quote-enclosed string 
 void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& loneWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize);
 studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded, short numAttributes, short attributeLevel[], bool sectionIncluded, bool notesIncluded);
 void setTeamSizes(short numStudents, short teamSize[], short& numTeams);
@@ -213,23 +214,23 @@ int main()
 
 	// Ask for the survey data filename and check that the file is valid
 	ifstream file;
-	stringstream headerRow(openFile(file));	// the first line of the file (the header) is returned by openFile, so put into a stringstream for processing
+	stringstream headerRow(openFile(file));			// the first line of the file (the header) is returned by openFile, so put into a stringstream for processing
 
     // Read past first few fields
     string field;
-    getline(headerRow, field, ',');				// read past first field in header row ("Timestamp")
-    getline(headerRow, field, ',');				// read past second field in header row (the question text for "First Name/Preferred Name")
-    getline(headerRow, field, ',');				// read past third field in header row (the question text for "Last Name")
-    getline(headerRow, field, ',');				// read past fourth field in header row (the question text for "Email")
+    field = readCSVField(headerRow);				// read past first field in header row ("Timestamp")
+    field = readCSVField(headerRow);				// read past second field in header row (the question text for "First Name/Preferred Name")
+    field = readCSVField(headerRow);				// read past third field in header row (the question text for "Last Name")
+    field = readCSVField(headerRow);				// read past fourth field in header row (the question text for "Email")
     // Read the optional questions gender/attribute questions
-	getline(headerRow, field, ',');										// read fifth field in header row
-	transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
+    field = readCSVField(headerRow);				// read fifth field in header row
+    transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
     // See if gender data is included
     bool genderQuestionIncluded=false;									// assume no gender question included and then test
-	if(field.find("gender") != string::npos)
+    if(field.find("gender") != string::npos)
 	{
 		genderQuestionIncluded = true;
-		getline(headerRow, field, ',');										// move on to next field
+		field = readCSVField(headerRow);									// move on to next field
 		transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
 	}
     // Count the number of attributes by counting number of questions from here until one includes "Check the times". Save attribute question texts, if any, into string array.
@@ -237,17 +238,16 @@ int main()
     string attribQuestionText[maxAttributes];
 	while(field.find("check the times") == string::npos)
 	{
-		field.erase(remove(field.begin(), field.end(), '"'), field.end());	//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
 		attribQuestionText[numAttributes] = field;
 		numAttributes++;
-		getline(headerRow, field, ',');										// read next field
+		field = readCSVField(headerRow);									// move on to next field
 		transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
 	}
 	short numMetrics = numAttributes + 1;									// total number of metrics to optimize: metrics = attributes + schedule
 	// Last read should be the first time question, so read five more times to get to the last schedule question + any remaining questions
 	for(short i=0; i<5; i++)
     {
-        getline(headerRow, field, ',');										// read next field
+    	field = readCSVField(headerRow);
     }
     // See if there is a comma in what's left, meaning there are additional field(s) after the last schedule question
     getline(headerRow, field);											    // read up to the next newline--this is the rest of the header row, including the last schedule question
@@ -925,37 +925,65 @@ string openFile(ifstream& file)
 //////////////////
 // Read from the datafile one student's info
 //////////////////
+string readCSVField(stringstream& row)
+{
+	char firstchar;
+	row >> firstchar;		// read the first character to see if this field is enclosed in quotation marks, indicating that commas might be found within the field
+
+	string field;
+	if(firstchar == '"')
+	{
+		getline(row, field, '"');	// put the text between quotation marks into field
+		row >> firstchar;	// read the stream one more character, past the comma at end of this field
+	}
+	else if(firstchar == ',')
+	{
+		field = "";			//empty field
+	}
+	else
+	{
+		getline(row, field, ',');
+		field = firstchar + field;
+	}
+
+	return(field);
+}
+
+
+//////////////////
+// Read from the datafile one student's info
+//////////////////
 studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded, short numAttributes, short attributeLevel[], bool sectionIncluded, bool notesIncluded)
 {
 	studentrecord student;
-	string line;
+	string entireRow, field;
+	getline(file, entireRow);
+	stringstream remainingRow(entireRow);
 
 	// 2nd field in line; should be the first name/preferred name
-	getline(file, line, ',');
-	line.erase(remove(line.begin(), line.end(), '"'), line.end());	//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
-	student.firstname = line;
+	student.firstname = readCSVField(remainingRow);
+	student.firstname[0] = toupper(student.firstname[0]);
 	//cout << "--" << student.firstname << "  ";
 
 	// 3rd field in line; should be the last name
-	getline(file, line, ',');
-	line.erase(remove(line.begin(), line.end(), '"'), line.end());	//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
-	student.lastname = line;
+	student.lastname = readCSVField(remainingRow);
+	student.lastname[0] = toupper(student.lastname[0]);							// for alphabetization, make sure first character is upper-case
 	//cout << "--" << student.lastname << "  ";
 
 	// 4th field in line; should be the email
-	getline(file, line, ',');
-	line.erase(remove(line.begin(), line.end(), '"'), line.end());				//remove any quotation marks (which are added if data file is directly downloaded from Google Form)
-	//line = line.substr(0,line.find('@'));										// strips away address following the @
-	transform(line.begin(), line.end(), line.begin(), ::tolower);				// convert to lower case
-	student.email = line;
+	field = readCSVField(remainingRow);
+	string user = field.substr(0,field.find('@'));
+	string domain = field.substr(field.find('@'));								// find the domain (all text from the @)
+	transform(domain.begin(), domain.end(), domain.begin(), ::tolower);			// convert the domain to lower case
+	student.email = user+domain;
 	//cout << "--" << student.email << "  ";
 
 	// optional 5th field in line; might be the gender
 	if(genderQuestionIncluded)
 	{
-		getline(file, line, ',');												// read gender
-		transform(line.begin(), line.end(), line.begin(), ::tolower);			// convert to lower case
-		student.woman = (line.find("woman") != string::npos);					// true if "woman" is found anywhere in text
+		field = readCSVField(remainingRow);
+		transform(field.begin(), field.end(), field.begin(), ::tolower);		// convert to lower case
+		student.woman = (field.find("woman") != string::npos);					// true if "woman" is found anywhere in text
 		//cout << student.woman << "  ";
 	}
 	else
@@ -966,15 +994,15 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 	// optional next 9 fields in line; might be the attributes
 	for(short attrib = 0; attrib < numAttributes; attrib++)
 	{
-		getline(file, line, ',');
+		field = readCSVField(remainingRow);
 		short chrctr = 0;
-		while((line[chrctr] < '0' || line[chrctr] > '9') && (chrctr < line.size()))	// search through this field character by character until we find a numeric digit (or reach the end)
+		while((field[chrctr] < '0' || field[chrctr] > '9') && (chrctr < field.size()))	// search through this field character by character until we find a numeric digit (or reach the end)
 		{
 			chrctr++;
 		}
-		if(line[chrctr] >= '0' && line[chrctr] <= '9')
+		if(field[chrctr] >= '0' && field[chrctr] <= '9')
 		{
-			student.attribute[attrib] = line[chrctr] - '0';							// converting number character to single digit
+			student.attribute[attrib] = field[chrctr] - '0';							// converting number character to single digit
 			//cout << "attribute " << attrib+1 << ": " << student.attribute[attrib] << "  ";
 			if(student.attribute[attrib] > attributeLevel[attrib])					// attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
 			{
@@ -989,16 +1017,16 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 	{
 		if(!(sectionIncluded || notesIncluded) && (day == 6))						// no section or notes and this is the last day, so read to end of line instead of to a comma
 		{
-			getline(file, line);
+			remainingRow >> field;
 		}
 		else
 		{
-			getline(file, line, ',');
-		}	
-		transform(line.begin(), line.end(), line.begin(), ::tolower);				// convert to lower case (so ambivalent to AM vs am vs Am)
+			field = readCSVField(remainingRow);
+		}
+		transform(field.begin(), field.end(), field.begin(), ::tolower);				// convert to lower case (so ambivalent to AM vs am vs Am)
 		for(short time = 0; time < dailyTimeBlocks; time++)
 		{
-			student.unavailable[(day*dailyTimeBlocks)+time] = (line.find(timeNames[time]) != string::npos);
+			student.unavailable[(day*dailyTimeBlocks)+time] = (field.find(timeNames[time]) != string::npos);
 			//cout << student.unavailable[(day*dailyTimeBlocks)+time] << "  ";
 		}
 	}
@@ -1009,21 +1037,21 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 		if(notesIncluded)
 		{
 			// read next field for section
-			getline(file, line, ',');
+			field = readCSVField(remainingRow);
 			// read to end of line and store as notes
-		    getline(file, student.notes);
+			remainingRow >> student.notes;
 		}
 		else
 		{
 			// read to end of line for section
-			getline(file, line);
+			remainingRow >> field;
 		}
-		student.section = line;
+		student.section = field;
 	}
 	else if(notesIncluded)
 	{
 		// read to end of line for notes
-		getline(file, student.notes);
+		remainingRow >> student.notes;
 	}
 	//cout << student.section << endl;
     //cout << student.notes << endl << endl;
