@@ -1,7 +1,7 @@
 gruepr
 
-V 7.1
-10/25/2018
+V 7.2
+01/09/2019
 
 Written by: Joshua Hertz
 
@@ -36,17 +36,15 @@ Description of gruepr:
 	The gender question can be removed, if desired. The attribute questions on the Google Form (Section 3 of
 	the form) can be modified, including reordering, adding, or removing questions. There can be anywhere
 	between 0 to 9 of these attribute questions. The only requirement is that the responses that the students
-	select CANNOT include a comma but MUST include one single digit number to indicate a quantitative measure
-	of the answer to the question. Do not remove or reorder any questions in any of the other sections of the
-	Google Form. A section question can be included so that multiple sections can all be sent the same form; if
-	more than one section is present in the data, you can select which section to team. Additional questions
-	for your own use can be added to the end of the form.
+	select MUST include one single digit number to indicate a quantitative measure of the answer to the question.
+	A section question can be included so that multiple sections can all be sent the same form; if more than one
+	section is present in the data, you can select which section to team. Additional questions for your own use
+	can be added to the end of the form.
 
 	The datafile must be a comma-separated-values (.csv) file with these contents:
 	   - header row, contains only the comma-separated question texts
 	   - each student on a separate row, starting at the row immediately after the header
-	   - in each row, values are comma-separated, and the values cannot contain any commas (technically, the
-	      notes can contain commas...)
+	   - in each row, values are comma-separated
 	   - values are, in order:	
 	       ~ Timestamp (not used by the program, but must be present)
 	       ~ first name or preferred name
