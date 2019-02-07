@@ -1,10 +1,22 @@
 //////////////////////////////////////////////////////////////////
 // gruepr
-// version 7.2
-// Joshua Hertz
-// 01/09/19
+// version 7.3
+// 02/07/19
+//////////////////////////////////////////////////////////////////
+// Copyright 2019, Joshua Hertz
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
 
-//  TO DO:	-Auto-determine from header whether URM data is included and, if so, allow lone URM prevention
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//////////////////////////////////////////////////////////////////
 
 // Program for splitting a set of 4-200 students into optimized teams.
 // Originally based on CATME's team forming routine as described in their paper:
@@ -14,7 +26,7 @@
 // The students are then split up into teams of the desired size.
 // An optimized distribution of students into teams is determined by a "compatibility score."
 // The compatability score can be based on:
-//    1) preventing lone women,
+//    1) preventing isolated women,
 //    2) between 0 - 9 numerical "attribute levels", which could be skills assessments or work preferences/attitudes, and
 //        can be individually chosen as to whether homogeneity or heterogeneity is desired within each team,
 //    3) preventing any particular students from being on the same team,
@@ -56,7 +68,8 @@
 // The net score is normalized to be roughly out of 100.
 // Teams with a large amount of schedule overlap can get "extra credit" resulting in scores over 100.
 // Teams that do not match required criteria can get penalized resulting in scores of 0 or below.
-// If any team(s) in the genome has/have a score less than or equal to zero, then the harmonic mean is mathematically problematic and the arithmetic mean is used instead.
+// If any team(s) in the genome has/have a score less than or equal to zero, then the harmonic mean is mathematically problematic. Instead, what is used is the
+// arithmetic mean punished by reducing it towards negative infinity by half the arithmetic mean.
 
 // Generations continue to be created--evolution proceeds--for at least minGenerations and at most maxGenerations,
 // displaying each time the generation number and the score of that generation's best genome.
@@ -135,7 +148,7 @@ const short numElites = 1;//populationSize/500;			// from each generation, this 
 const short numRandos = populationSize/500;				// this many completely random genomes are directly added into each new generation
 const short minGenerations = 50;						// will keep optimizing for at least minGenerations
 const short maxGenerations = 500;						// will keep optimizing for at most maxGenerations
-const short generationsOfStability = 40;				// after minGenerations, if score has not improved for generationsOfStability, stop optimizing
+const short generationsOfStability = 30;				// after minGenerations, if score has not improved for generationsOfStability, stop optimizing
 const short mutationLikelihood = 10 * (RAND_MAX/100);	// first number gives probability out of 100 for a mutation (when mutation occurs, another chance at mutation is given with same likelihood (iteratively))
 
 //schedule constants, *MUST* be coordinated with the Google Form question that collects this data
@@ -181,12 +194,12 @@ HANDLE window = GetStdHandle(STD_OUTPUT_HANDLE);
 void setWindowProps(string consoleTitle);
 string openFile(ifstream& file);
 string readCSVField(stringstream& row);	// move the next CSV field from row into the output string, either directly to the next comma or the comma after the entire quote-enclosed string 
-void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& loneWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize);
+void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& isolatedWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize);
 studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded, short numAttributes, short attributeLevel[], bool sectionIncluded, bool notesIncluded);
 void setTeamSizes(short numStudents, short teamSize[], short& numTeams);
 void printStudentInfo(short ID, studentrecord student, short largestNameSize, short numStudents, short PrevOrReq);
 void printTeams(studentrecord students[], short teammates[], short teamSize[], short numTeams, float teamScores[], string filename, short largestNameSize, short numAttributes, string sectionName);
-float getTeamScores(studentrecord students[], short numStudents, short teammates[], short teamSize[], short numTeams, float teamScores[], bool loneWomanPrevented, short attributeLevel[], short desiredTimeBlocksOverlap, short minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short meetingBlockSize);
+float getTeamScores(studentrecord students[], short numStudents, short teammates[], short teamSize[], short numTeams, float teamScores[], bool isolatedWomanPrevented, short attributeLevel[], short desiredTimeBlocksOverlap, short minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short meetingBlockSize);
 void coutBold(string s);
 void createWindow(string title);
 void printSeparator();
@@ -342,41 +355,53 @@ int main()
 				coutBold(to_string(sectionSizes[section]));
 				cout << " students]";
 			}
+			cout << "\n          (";
+			coutBold(to_string(numSections+1));
+			cout << ") all students regardless of section, [";
+			coutBold(to_string(numStudents));
+			cout << " students]";
 			cout << endl << endl;
 			do
 			{
 				cout << "          (";
-				for(short section = 0; section < numSections; section++)
+				for(short section = 0; section < (numSections+1); section++)
 				{
 					coutBold(to_string(section+1));
-					if(section < numSections-2)
+					if(section < numSections-1)
 					{
 						cout << ", ";
 					}
-					else if(section == numSections-2)
+					else if(section == numSections-1)
 					{
-						cout << " or ";
+						cout << ", or ";
 					}
 				}
 				cout << ") ? ";
 				cin >> desiredSection;
 			}
-			while((desiredSection < 1) || (desiredSection > numSections));
+			while((desiredSection < 1) || (desiredSection > (numSections+1)));
 
-			// Move students from desired section to the front of students[] and change numStudents accordingly
-			short numStudentsInSection = 0;
-			for(short student = 0; student < numStudents; student++)
+			if(desiredSection < (numSections+1))
 			{
-				if(students[student].section == sectionNames[desiredSection-1])
+				// Move students from desired section to the front of students[] and change numStudents accordingly
+				short numStudentsInSection = 0;
+				for(short student = 0; student < numStudents; student++)
 				{
-					students[numStudentsInSection] = students[student];
-					numStudentsInSection++;
+					if(students[student].section == sectionNames[desiredSection-1])
+					{
+						students[numStudentsInSection] = students[student];
+						numStudentsInSection++;
+					}
 				}
+				numStudents = numStudentsInSection;
+				sectionName = sectionNames[desiredSection-1];
+	
+				setWindowProps(" Section: [" + sectionName + "]  -  gruepr");
 			}
-			numStudents = numStudentsInSection;
-			sectionName = sectionNames[desiredSection-1];
-
-			setWindowProps(" Section: [" + sectionName + "]  -  gruepr");
+			else
+			{
+				setWindowProps("All Sections  -  gruepr");
+			}
 		}
 		else
 		{
@@ -411,13 +436,13 @@ int main()
 	// Set the teaming parameters (except team size, which comes after reading how many students are in the file)
 	////////////////////////////////////////////
 
-	bool loneWomanPrevented;											// if true, will prevent teams with a lone woman
+	bool isolatedWomanPrevented;											// if true, will prevent teams with a isolated woman
 	short desiredTimeBlocksOverlap;										// want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
 	short minTimeBlocksOverlap;											// a team is penalized if there are fewer than this many time blocks that overlap
 	float metricWeights[maxAttributes+1]={1};							// weights for each attribute plus schedule (first value defaults to 1 in case there are no attributes--need weight of 1 for schedule)
 	bool desireHomogeneous[maxAttributes]; 								// if true/false, tries to make all students on a team have similar/different levels of each attribute
 	short meetingBlockSize;												// count available meeting times in units of 1 hour or 2 hours long
-	setParameters(attribQuestionText, genderQuestionIncluded, loneWomanPrevented, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
+	setParameters(attribQuestionText, genderQuestionIncluded, isolatedWomanPrevented, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
 
 
 	////////////////////////////////////////////
@@ -564,7 +589,7 @@ int main()
 				//calculate all of this generation's scores
 				for(short i = 0; i < populationSize; i++)
 				{
-					scores[i] = getTeamScores(students, numStudents, &genePool[i][0], teamSize, numTeams, teamScores, loneWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
+					scores[i] = getTeamScores(students, numStudents, &genePool[i][0], teamSize, numTeams, teamScores, isolatedWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
 				}
 
 				//find the elites (best scores) in genePool, copy each to tempGen, then move it to the end of genePool so we don't find it again as an elite
@@ -631,7 +656,7 @@ int main()
 				//determine and display generation number and best score; save best score in historical record
 				for(short i = 0; i < populationSize; i++)
 				{
-					scores[i] = getTeamScores(students, numStudents, &genePool[i][0], teamSize, numTeams, teamScores, loneWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
+					scores[i] = getTeamScores(students, numStudents, &genePool[i][0], teamSize, numTeams, teamScores, isolatedWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
 				}
 				best = max_element(scores, scores+populationSize) - scores;
 				generation++;
@@ -684,82 +709,83 @@ int main()
 		}
 		while(keepOptimizing);
 
-		// Print final teams list on the screen
-		getTeamScores(students, numStudents, &genePool[best][0], teamSize, numTeams, teamScores, loneWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-		printTeams(students, &genePool[best][0], teamSize, numTeams, teamScores, "", largestNameSize, numAttributes, sectionName);
-
-		// Keep these teams or start over, if desired
-		char wantToSave;
-		printSeparator();
-		cout << "\n These are the current teams.";
-		startQuestion();
-		cout << "Would you like to";
+		// Print teams list on the screen and find out what the user wants to do
+		bool redisplay;
 		do
 		{
-			cout << " (";
-			coutBold("k");
-			cout << ")eep these teams, (";
-			coutBold("a");
-			cout << ")djust these teams, or (";
-			coutBold("s");
-			cout << ")huffle and try again? ";
-			cin >> wantToSave;
-		}
-		while(wantToSave != 'K' && wantToSave != 'k' && wantToSave != 'A' && wantToSave != 'a' && wantToSave != 'S' && wantToSave != 's');
-		dontLikeTeams = (wantToSave == 'S' || wantToSave == 's');
-		if(dontLikeTeams)
-		{
-			cout << "\n OK, we'll try again.\n";
+			getTeamScores(students, numStudents, &genePool[best][0], teamSize, numTeams, teamScores, isolatedWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
+			printTeams(students, &genePool[best][0], teamSize, numTeams, teamScores, "", largestNameSize, numAttributes, sectionName);
+	
+			// Keep these teams or start over, if desired
+			char wantToSave;
+			printSeparator();
+			cout << "\n These are the current teams.";
 			startQuestion();
-			cout << "Would you like to change the teaming parameters";
-			char changeWeights;
+			cout << "Would you like to";
 			do
 			{
 				cout << " (";
-				coutBold("y");
-				cout << "/";
-				coutBold("n");
-				cout << ")? ";
-				cin >> changeWeights;
+				coutBold("k");
+				cout << ")eep these teams, (";
+				coutBold("a");
+				cout << ")djust these teams, or (";
+				coutBold("s");
+				cout << ")huffle and try again? ";
+				cin >> wantToSave;
 			}
-			while(changeWeights != 'Y' && changeWeights != 'y' && changeWeights != 'N' && changeWeights != 'n');
-			startQuestion();
-			cout << "Would you like to change the team sizes";
-			char changeSizes;
-			do
+			while(wantToSave != 'K' && wantToSave != 'k' && wantToSave != 'A' && wantToSave != 'a' && wantToSave != 'S' && wantToSave != 's');
+			dontLikeTeams = (wantToSave == 'S' || wantToSave == 's');
+			redisplay = (wantToSave == 'A' || wantToSave == 'a');
+			if(dontLikeTeams)
 			{
-				cout << " (";
-				coutBold("y");
-				cout << "/";
-				coutBold("n");
-				cout << ")? ";
-				cin >> changeSizes;
+				cout << "\n OK, we'll try again.\n";
+				startQuestion();
+				cout << "Would you like to change the teaming parameters";
+				char changeWeights;
+				do
+				{
+					cout << " (";
+					coutBold("y");
+					cout << "/";
+					coutBold("n");
+					cout << ")? ";
+					cin >> changeWeights;
+				}
+				while(changeWeights != 'Y' && changeWeights != 'y' && changeWeights != 'N' && changeWeights != 'n');
+				startQuestion();
+				cout << "Would you like to change the team sizes";
+				char changeSizes;
+				do
+				{
+					cout << " (";
+					coutBold("y");
+					cout << "/";
+					coutBold("n");
+					cout << ")? ";
+					cin >> changeSizes;
+				}
+				while(changeSizes != 'Y' && changeSizes != 'y' && changeSizes != 'N' && changeSizes != 'n');
+				if((changeWeights == 'Y') || (changeWeights == 'y'))
+				{
+					setParameters(attribQuestionText, genderQuestionIncluded, isolatedWomanPrevented, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
+				}
+				if((changeSizes == 'Y') || (changeSizes == 'y'))
+				{
+					setTeamSizes(numStudents, teamSize, numTeams);
+				}
+	
+				createWindow("Optimizing the Teams");
+				cout << " The best score last time was ";
+				SetConsoleTextAttribute(window, 0x0F);	// bold
+				cout << fixed << setprecision(3) << bestScores[generation%generationsOfStability];
+				SetConsoleTextAttribute(window, 0x07);	// unbold
+				cout << ".\n";
 			}
-			while(changeSizes != 'Y' && changeSizes != 'y' && changeSizes != 'N' && changeSizes != 'n');
-			if((changeWeights == 'Y') || (changeWeights == 'y'))
+			else if(wantToSave == 'A' || wantToSave == 'a')
 			{
-				setParameters(attribQuestionText, genderQuestionIncluded, loneWomanPrevented, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-			}
-			if((changeSizes == 'Y') || (changeSizes == 'y'))
-			{
-				setTeamSizes(numStudents, teamSize, numTeams);
-			}
-
-			createWindow("Optimizing the Teams");
-			cout << " The best score last time was ";
-			SetConsoleTextAttribute(window, 0x0F);	// bold
-			cout << fixed << setprecision(3) << bestScores[generation%generationsOfStability];
-			SetConsoleTextAttribute(window, 0x07);	// unbold
-			cout << ".\n";
-		}
-		else if(wantToSave == 'A' || wantToSave == 'a')
-		{
-			// Allow swapping of teammates
-			cin.clear();
-			cin.ignore(100, '\n');
-			bool swappedTeammates;			// keep asking until there is empty entry from user
-			do
-			{
+				// Allow swapping of teammates
+				cin.clear();
+				cin.ignore(100, '\n');
 				// Ask which two IDs to swap places
 				startQuestion();
 				cout << "Enter the [";
@@ -771,7 +797,6 @@ int main()
 				string input;
 				getline(cin, input);
 				replace(input.begin(), input.end(), ',', ' ');	// replace any and all commas with spaces
-				swappedTeammates = (!input.empty());
 				stringstream stream(input);
 				short n[2]={0}, count=0;
 				while((count < 2) && (stream >> n[count]))		// process each entered ID, sending the value from the string into the array n
@@ -785,17 +810,10 @@ int main()
 				{
 					swap(*find(&genePool[best][0], &genePool[best][0]+numStudents, n[0]-1), *find(&genePool[best][0], &genePool[best][0]+numStudents, n[1]-1));
 				}
-				if(swappedTeammates)
-				{
-					// Redisplay teams
-					getTeamScores(students, numStudents, &genePool[best][0], teamSize, numTeams, teamScores, loneWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-					printTeams(students, &genePool[best][0], teamSize, numTeams, teamScores, "", largestNameSize, numAttributes, sectionName);
-					printSeparator();
-				}
+				cin.putback('\n');			// silly, but needed for correct user input in following code because assumption is coming from a "cin >>" operation
 			}
-			while(swappedTeammates);
-			cin.putback('\n');			// silly, but needed for correct user input in following code because assumption is coming from a "cin >>" operation
 		}
+		while(redisplay);
 	}
 	while(dontLikeTeams);
 
@@ -1063,12 +1081,12 @@ studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded,
 //////////////////
 // Set or change the teaming parameters
 //////////////////
-void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& loneWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize)
+void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& isolatedWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize)
 {
 	createWindow("Teaming Parameters");
 	if(genderQuestionIncluded)
 	{
-		char preventLoneWoman;
+		char preventIsolatedWoman;
 		printSectionHeader("Gender:");
 		startQuestion();
 		cout << "Should teams with one woman be";
@@ -1079,10 +1097,10 @@ void setParameters(string attribQuestionText[], bool genderQuestionIncluded, boo
 			cout << ")revented or (";
 			coutBold("a");
 			cout << ")llowed? ";
-			cin >> preventLoneWoman;
+			cin >> preventIsolatedWoman;
 		}
-		while(preventLoneWoman != 'P' && preventLoneWoman != 'p' && preventLoneWoman != 'A' && preventLoneWoman != 'a');
-		loneWomanPrevented = (preventLoneWoman == 'P' || preventLoneWoman == 'p');
+		while(preventIsolatedWoman != 'P' && preventIsolatedWoman != 'p' && preventIsolatedWoman != 'A' && preventIsolatedWoman != 'a');
+		isolatedWomanPrevented = (preventIsolatedWoman == 'P' || preventIsolatedWoman == 'p');
 		cout << endl;
 		printSeparator();
 	}
@@ -1618,7 +1636,7 @@ void printTeams(studentrecord students[], short teammates[], short teamSize[], s
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-float getTeamScores(studentrecord students[], short numStudents, short teammates[], short teamSize[], short numTeams, float teamScores[], bool loneWomanPrevented, short attributeLevel[], short desiredTimeBlocksOverlap, short minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short meetingBlockSize)
+float getTeamScores(studentrecord students[], short numStudents, short teammates[], short teamSize[], short numTeams, float teamScores[], bool isolatedWomanPrevented, short attributeLevel[], short desiredTimeBlocksOverlap, short minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short meetingBlockSize)
 {
 	// Loop through each attribute
 	float attributeScore[numAttributes][numTeams];
@@ -1628,7 +1646,7 @@ float getTeamScores(studentrecord students[], short numStudents, short teammates
 		ID = 0;
 		for(short team = 0; team < numTeams; team++)
 		{
-			short maxLevel = 1, minLevel = attributeLevel[attrib];	// baseline values so we can collect the max and min in this team
+			short maxLevel = students[teammates[ID]].attribute[attrib], minLevel = students[teammates[ID]].attribute[attrib];
 			for(short student = 0; student < teamSize[team]; student++)
 			{
 				if(students[teammates[ID]].attribute[attrib] > maxLevel)
@@ -1706,7 +1724,7 @@ float getTeamScores(studentrecord students[], short numStudents, short teammates
 			schedScore[team] = 1 + ((schedScore[team] - desiredTimeBlocksOverlap) / (4*desiredTimeBlocksOverlap));
 			schedScore[team] *= metricWeights[numMetrics-1];	// schedule weight is always the last entry in the weights array
 		}
-		else if(schedScore[team] > minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
+		else if(schedScore[team] >= minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
 		{
 			schedScore[team] /= desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
 			schedScore[team] *= metricWeights[numMetrics-1];	// schedule weight is always the last entry in the weights array
@@ -1718,7 +1736,7 @@ float getTeamScores(studentrecord students[], short numStudents, short teammates
 		//cout << schedScore[team] << endl;
 	}
 
-	// Determine adjustments for lone woman teams
+	// Determine adjustments for isolated woman teams
 	short genderAdj[numTeams]={0};
 	ID = 0;
 	for(short team = 0; team < numTeams; team++)
@@ -1731,7 +1749,7 @@ float getTeamScores(studentrecord students[], short numStudents, short teammates
 			}
 			ID++;
 		}
-		if((genderAdj[team] == 1) && loneWomanPrevented)
+		if((genderAdj[team] == 1) && isolatedWomanPrevented)
 		{
 			genderAdj[team] = -numMetrics;
 		}
