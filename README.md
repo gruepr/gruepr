@@ -13,7 +13,7 @@ Description of gruepr:
 	[ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
 	All the student data is read from a file, and the students are split into teams of any desired size(s). A
 	good distribution of students into teams is determined by a numerical score. The score can be based on:
-	   1) Preventing lone women.
+	   1) Preventing isolated women.
 	   2) Achieving within each team either homogeneity or heterogeneity of up to 9 numerical "attribute
 	      levels", which could be skills assessments, work preferences, or attitudes.
 	   3) Achieving a high degree of overlap in schedule freetime.
