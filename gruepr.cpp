@@ -1,1994 +1,1911 @@
-//////////////////////////////////////////////////////////////////
-// gruepr
-// version 7.3
-// 02/07/19
-//////////////////////////////////////////////////////////////////
-// Copyright 2019, Joshua Hertz
-//    This program is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation, either version 3 of the License, or
-//    (at your option) any later version.
-
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-
-//    You should have received a copy of the GNU General Public License
-//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-//////////////////////////////////////////////////////////////////
-
-// Program for splitting a set of 4-200 students into optimized teams.
-// Originally based on CATME's team forming routine as described in their paper:
-// [ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ]
-
-// All of the student data is read from a data file on the harddrive.
-// The students are then split up into teams of the desired size.
-// An optimized distribution of students into teams is determined by a "compatibility score."
-// The compatability score can be based on:
-//    1) preventing isolated women,
-//    2) between 0 - 9 numerical "attribute levels", which could be skills assessments or work preferences/attitudes, and
-//        can be individually chosen as to whether homogeneity or heterogeneity is desired within each team,
-//    3) preventing any particular students from being on the same team,
-//    4) requiring any particular students to be on the same team, and
-//    5) degree of overlap in schedule freetime.
-
-// ***REQUIRED FORMAT OF STUDENT DATAFILE***
-// - header row, contains column names, including attribute questions displayed to user
-// - each student on a separate row, starting at the second row immediately after the header
-// - in each row, values are comma-separated, and the values cannot contain any commas (technically, the notes can contain commas...)
-// - values are, in order:
-//     Timestamp (ignored by the program, but must be present)
-//     first name/preferred name
-//     last name
-//     email
-//     [optional] "Woman", "Man", and any number of additional gender categories ("Prefer not to say", "Non-binary", etc.)
-//     [0 to 9 values] attributes, each in own field, first numeric digit found in the value will be used, and any text before/after ignored
-//     [7 values] list of timeblocks student is unavailable to work, represented as whether or not the texts given in "timeNames[]" below are included
-//     [optional] section
-//     [optional] additional notes for student (any and all remaining values will get swallowed into this field)
-
-// COMPILING NOTES: Using gcc. Add C++11 compatibility and enable highest optimizations. Add linker options: "-static-libgcc  -Wl,--stack,33554432". 
-
-// The optimization problem is very difficult (NP-hard? NP-complete?). There are, for example, almost 6E19 ways to partition 32
-// students into 8 teams of 4. A genetic algorithm is used here to find a good set of teammates.
-// First, each student is given an internal ID number from 0 to N-1. A large population of random teamings is then created.
-// Each "genome" here represents one way to split the N students into n teams, and is represented as a permutation of the list {0, 2, 3...,N-1}.
-// The population of genomes is then refined over multiple generations.
-// From each generation a next generation is created.
-// First, a small number of the highest scoring genomes (the "elites") are directly cloned into the next generation,
-// then, the vast majority of the next generation are created by mating tournament-selected parents using order crossover (OX1),
-// and, finally, a small number of new, random genomes are added to the genepool.
-// Once the next generation's baseline genepool is created, mutations are allowed.
-// Each genome has 1 or more potential mutations, which is a swapping of two random locations on the genome.
-
-// Each genome is given a net score based on the compatability score of each team within the genome.
-// As long as every team in the genome has a positive score, the genome's net score is the harmonic mean of the score for each team in the genome.
-// The harmonic mean is used so that low scoring teams have more weight in determining the net score of the genome.
-// The net score is normalized to be roughly out of 100.
-// Teams with a large amount of schedule overlap can get "extra credit" resulting in scores over 100.
-// Teams that do not match required criteria can get penalized resulting in scores of 0 or below.
-// If any team(s) in the genome has/have a score less than or equal to zero, then the harmonic mean is mathematically problematic. Instead, what is used is the
-// arithmetic mean punished by reducing it towards negative infinity by half the arithmetic mean.
-
-// Generations continue to be created--evolution proceeds--for at least minGenerations and at most maxGenerations,
-// displaying each time the generation number and the score of that generation's best genome.
-// Evolution stops before maxGenerations if the best score over the last generationsOfStability generations has remained +/- 1% of the best score in the current generation.
-
-// Once evolution has stopped, the highest scoring genome--the best set of teams in the current genepool--is shown on the screen.
-// The teams are shown by listing the students' names, email addresses, indications of women students, and their attribute levels.
-// Each team's score is also shown along with a table of student availability at each time slot throughout the week.
-// The user can throw this away and find a new team set or, optionally, save to a file.
-// If saved to a file, the screen output is saved to one file and 2 additional files are also created.
-// One additional file lists the teams in the format needed to import into the TEAMMATES peer review website.
-// The other additional file removes the scores and attribute data, so is useful for distributing to the students.
-
-// Note about genetic algorithm efficiency:
-// There is redundancy in the permutation-of-teammate-ID way that the teammates are encoded into the genome.
-// For example, if teams are of size 4, one genome that starts [1 5 18 9 x x x x ...] and another that has
-// [x x x x 9 5 1 18...] are encoding an identical team in two ways. Since every genome has teams split at the
-// same locations in the array, the order crossover isn't so bad a method for creating children as long as
-// genomes are split at the team boundaries. Good parents create good children by passing on what's most likely
-// good about their genome--good team(s). If the crossover operation had been blind to the teammate
-// boundaries, it would be less efficient, potentially even splitting up a good team if the crossover occurred in the
-// middle of a preferred team. In that case, good parents would more likely lead to good children if either:
-// 1) the crossover split ocurred in the middle of a bad team (helpful), 2) the crossover split ocurred at a team
-// boundary (helpful, but unlikely), or 3) the crossover split a good team but other parent has exact same good team in 
-// exact same location of genome (unhelpful--leads to preference for a single good genome and thus premature
-// selection). Splitting always along team boundaries ensures primarily the second option happens, and thus good
-// parents pass along good teams, in general, wherever they occur along the genome. However, there still are
-// redundancies inherent in this encoding scheme, making it less efficient. Swapping the positions of two
-// teammates within a team or of two whole teams within the list is represented by two different genomes. Also,
-// teams from one parent will get split when different teams have different numbers of students.
-// If writing a paper about this, compare with more severe problems suggested by Genetic Grouping Algorithm (GGA).
-// WAYS THAT MIGHT IMPROVE ALGORITHM IN FUTURE:
-//	-use multiple genepools and allow limited cross-breeding
-//  -better memory management (arrays in heap, not stack?)
-//  -use parallel processing for faster operations--especially the breeding to next generation which can be completely done in parallel
-//  -use proper OOP--team is class and section is class, most functions are member functions
-//	-to get around redundancy of genome issue, store each genome as an unordered_set of unordered_sets. Each team is a set of IDs; each section is a set of teams.
-
-//////////////////////////////////////////////////////////////////
-
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <string>
-#include <sstream>
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
-#include <numeric>
-#include <windows.h>
-
-using namespace std;
+#include "ui_gruepr.h"
+#include "gruepr.h"
+#include <QList>
+#include <QFile>
+#include <QTextStream>
+#include <QTextBrowser>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QtConcurrent/QtConcurrent>
+#include <QDesktopServices>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 
 
-////////////////////////////////////////////
-// Declarations
-////////////////////////////////////////////
-
-//////////////////
-// Constants
-//////////////////
-
-//max sizes of various arrays
-const short maxStudents = 200;							// maximum number of students in a section (this might be changable, but program gets slower with >100 students)
-const short maxAttributes = 9;							// maximum number of skills/attitudes
-
-//console window size
-const short wWidth = 120;
-const short wHeight = 50;
-
-//genetic algorithm constants:
-const short populationSize = 30000;						// the number of genomes in each generation--larger size is slower, but arguably more optimized result. A size of 5000 works with the default stack size. For size of 20000, stack size was increased to 16 MB. For 30000, increased to 32 MB.
-const short tournamentSize = populationSize/500;		// most of the next generation is created by mating many pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
-const short topGenomeLikelihood = 33 * (RAND_MAX/100);	// first number gives probability out of 100 for selecting the best genome in the tournament as first parent to mate, then the best among the rest for second parent; if top is not selected, move to next best genome
-const short numElites = 1;//populationSize/500;			// from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having just 1 elite significantly stabilizes the high score to end optimization
-const short numRandos = populationSize/500;				// this many completely random genomes are directly added into each new generation
-const short minGenerations = 50;						// will keep optimizing for at least minGenerations
-const short maxGenerations = 500;						// will keep optimizing for at most maxGenerations
-const short generationsOfStability = 30;				// after minGenerations, if score has not improved for generationsOfStability, stop optimizing
-const short mutationLikelihood = 10 * (RAND_MAX/100);	// first number gives probability out of 100 for a mutation (when mutation occurs, another chance at mutation is given with same likelihood (iteratively))
-
-//schedule constants, *MUST* be coordinated with the Google Form question that collects this data
-const short dailyTimeBlocks = 14;						// how many blocks of time are in the day?
-const short numTimeBlocks = 7*dailyTimeBlocks;			// how many blocks of time are in the week?
-const string dayNames[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-const string timeNames[dailyTimeBlocks] = {"8am", "9am", "10am", "11am", "noon", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm"};
-
-//////////////////
-// Structs
-//////////////////
-
-//struct defining survey data from one student, read from the input csv file
-struct studentrecord
+gruepr::gruepr(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::gruepr)
 {
-	string firstname;
-	string lastname;
-	string email;
-	bool woman;
-	short attribute[maxAttributes] = {0};				// rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
-	bool unavailable[numTimeBlocks] = {false};			// true if this is a busy block during week
-	bool preventedWith[maxStudents] = {false};			// true if this student is prevented from working with the corresponding student
-	bool requiredWith[maxStudents] = {false};			// true if this student is required to work with the corresponding student
-	string section;										// section data stored as text
-	string notes;										// any special notes for this student
-};
+    //Setup the main window
+    ui->setupUi(this);
+    ui->statusBar->setSizeGripEnabled(false);
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
+    setWindowIcon(QIcon(":/icons/gruepr.png"));
 
-//struct used for tournament selection of parents to mate in genetic algorithm
-struct tourneyPlayer
+    //Remove register button if registered
+    QSettings savedSettings;
+    registeredUser = savedSettings.value("registeredUser", "").toString();
+    if(registeredUser.isEmpty())
+    {
+        ui->statusBar->showMessage(tr("This copy of gruepr is unregistered"));
+        ui->statusBar->setStyleSheet("background-color: rgb(255, 105, 105)");
+    }
+    else
+    {
+        ui->registerButton->hide();
+        ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
+        ui->statusBar->setStyleSheet("");
+    }
+
+    //Connect signals to slots
+    connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
+    connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress);
+    connect(this, &gruepr::optimizationMightBeComplete, this, &gruepr::askWhetherToContinueOptimizing);
+
+    // load all of the saved default values (if they exist)
+    on_loadSettingsButton_clicked();
+}
+
+gruepr::~gruepr()
 {
-	short genome[maxStudents];
-	short score;
-};
+    delete ui;
+}
 
-//handle to the output window
-HANDLE window = GetStdHandle(STD_OUTPUT_HANDLE);
 
-//////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Slots
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void gruepr::on_loadSurveyFileButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Survey Data File"), dataOptions.dataFile.canonicalPath(), tr("Survey Data File (*.csv *.txt);;All Files (*)"));
+
+    if (!fileName.isEmpty())
+    {
+        dataOptions.dataFile = QFileInfo(fileName);
+        // Reset the various UI components
+        ui->minMeetingTimes->setEnabled(false);
+        ui->desiredMeetingTimes->setEnabled(false);
+        ui->meetingLength->setEnabled(false);
+        ui->requiredTeammatesButton->setEnabled(false);
+        ui->preventedTeammatesButton->setEnabled(false);
+        ui->sectionSelectionBox->clear();
+        ui->sectionSelectionBox->setEnabled(false);
+        ui->attributeLabel->clear();
+        ui->attributeLabel->setEnabled(false);
+        ui->attributeScrollBar->setEnabled(false);
+        ui->attributeTextEdit->setPlainText("");
+        ui->attributeTextEdit->setEnabled(false);
+        ui->attributeWeight->setEnabled(false);
+        ui->attributeHomogeneousBox->setEnabled(false);
+        ui->scheduleWeight->setEnabled(false);
+        ui->studentTable->clear();
+        ui->studentTable->setRowCount(0);
+        ui->studentTable->setColumnCount(0);
+        ui->studentTable->setEnabled(false);
+        ui->addStudentFirstName->setEnabled(false);
+        ui->addStudentLastName->setEnabled(false);
+        ui->addStudentEmail->setEnabled(false);
+        ui->addStudentGenderComboBox->setEnabled(false);
+        ui->addStudentSectionComboBox->setEnabled(false);
+        ui->addStudentSectionComboBox->clear();
+        ui->addStudentPushButton->setEnabled(false);
+        ui->teamData->clear();
+        ui->teamData->setEnabled(false);
+        ui->tabWidget->setCurrentIndex(0);
+        ui->isolatedWomenCheckBox->setEnabled(false);
+        ui->isolatedWomenCheckBox->setChecked(false);
+        ui->teamSizeBox->clear();
+        ui->teamSizeBox->setEnabled(false);
+        ui->idealTeamSizeBox->setEnabled(false);
+        ui->letsDoItButton->setEnabled(false);
+        ui->saveTeamsButton->setEnabled(false);
+        ui->adjustTeamsButton->setEnabled(false);
+
+        if(loadSurveyData(fileName))
+        {
+            ui->saveSettingsButton->setEnabled(true);
+            ui->loadSettingsButton->setEnabled(true);
+            ui->statusBar->showMessage("File: " + dataOptions.dataFile.fileName());
+            ui->studentTable->setEnabled(true);
+            ui->addStudentFirstName->setEnabled(true);
+            ui->addStudentLastName->setEnabled(true);
+            ui->addStudentEmail->setEnabled(true);
+            ui->addStudentPushButton->setEnabled(true);
+            ui->teamData->setEnabled(true);
+            ui->teamData->setPlainText("No teams yet created.");
+            ui->minMeetingTimes->setEnabled(true);
+            ui->desiredMeetingTimes->setEnabled(true);
+            ui->meetingLength->setEnabled(true);
+            ui->requiredTeammatesButton->setEnabled(true);
+            ui->preventedTeammatesButton->setEnabled(true);
+
+            if(dataOptions.sectionIncluded)
+            {
+                //get number of sections
+                QStringList sectionNames;
+                for(int ID = 0; ID < numStudents; ID++)
+                {
+                    if(!sectionNames.contains(student[ID].section))
+                    {
+                        sectionNames.append(student[ID].section);
+                    }
+                }
+                if(sectionNames.size() > 1)
+                {
+                    sectionNames.sort();
+                    ui->sectionSelectionBox->setEnabled(true);
+                    ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
+                    ui->sectionSelectionBox->insertSeparator(1);
+                    ui->sectionSelectionBox->addItems(sectionNames);
+                    ui->addStudentSectionComboBox->show();
+                    ui->addStudentSectionComboBox->setEnabled(true);
+                    ui->addStudentSectionComboBox->addItems(sectionNames);
+                }
+                else
+                {
+                    ui->sectionSelectionBox->setEnabled(false);
+                    ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+                    ui->addStudentSectionComboBox->setEnabled(false);
+                    ui->addStudentSectionComboBox->hide();
+                }
+            }
+            else
+            {
+                ui->sectionSelectionBox->setEnabled(false);
+                ui->sectionSelectionBox->addItem("No section data.");
+                ui->addStudentSectionComboBox->setEnabled(false);
+                ui->addStudentSectionComboBox->hide();
+            }
+            on_sectionSelectionBox_currentIndexChanged(ui->sectionSelectionBox->currentText());
+
+            if(dataOptions.numAttributes > 0)
+            {
+                ui->attributeScrollBar->setMinimum(0);
+                ui->attributeScrollBar->setMaximum(dataOptions.numAttributes-1);
+                ui->attributeScrollBar->setEnabled(dataOptions.numAttributes > 1);
+                ui->attributeScrollBar->setValue(0);
+                on_attributeScrollBar_valueChanged(0);
+                ui->attributeLabel->setText(tr("1  of  ") + QString::number(dataOptions.numAttributes));
+                ui->attributeLabel->setEnabled(true);
+                ui->attributeTextEdit->setEnabled(true);
+                ui->attributeWeight->setEnabled(true);
+                ui->attributeHomogeneousBox->setEnabled(true);
+                ui->scheduleWeight->setEnabled(true);
+            }
+            else
+            {
+                ui->attributeScrollBar->setMaximum(-1);     // auto-sets the value and the minimum to all equal -1
+            }
+
+            if(dataOptions.genderIncluded)
+            {
+                ui->addStudentGenderComboBox->show();
+                ui->addStudentGenderComboBox->setEnabled(true);
+                ui->isolatedWomenCheckBox->setEnabled(true);
+            }
+            else
+            {
+                ui->addStudentGenderComboBox->hide();
+                ui->addStudentGenderComboBox->setEnabled(false);
+                ui->isolatedWomenCheckBox->setEnabled(false);
+            }
+
+            ui->idealTeamSizeBox->setEnabled(true);
+            ui->teamSizeBox->setEnabled(true);
+            on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+
+            ui->letsDoItButton->setEnabled(true);
+        }
+    }
+}
+
+
+void gruepr::on_loadSettingsButton_clicked()
+{
+    //Load default settings (from saved settings, if they exist)
+    QSettings savedSettings;
+    dataOptions.dataFile.setFile(savedSettings.value("dataFileLocation", "").toString());
+    teamingOptions.isolatedWomanPrevented = savedSettings.value("isolatedWomanPrevented", false).toBool();
+    ui->isolatedWomenCheckBox->setChecked(teamingOptions.isolatedWomanPrevented);
+    teamingOptions.desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
+    ui->desiredMeetingTimes->setValue(teamingOptions.desiredTimeBlocksOverlap);
+    teamingOptions.minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
+    ui->minMeetingTimes->setValue(teamingOptions.minTimeBlocksOverlap);
+    teamingOptions.meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toInt();
+    ui->meetingLength->setCurrentIndex(teamingOptions.meetingBlockSize-1);
+    ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", ui->idealTeamSizeBox->value()).toInt());
+    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    savedSettings.beginReadArray("Attributes");
+    for (int i = 0; i < maxAttributes; ++i)
+    {
+        savedSettings.setArrayIndex(i);
+        teamingOptions.desireHomogeneous[i] = savedSettings.value("desireHomogeneous", false).toBool();
+        teamingOptions.attributeWeights[i] = savedSettings.value("Weight", 1).toDouble();
+    }
+    savedSettings.endArray();
+    if(ui->attributeScrollBar->value() == 0)
+    {
+        on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
+    }
+    else
+    {
+        ui->attributeScrollBar->setValue(0);
+    }
+    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 1).toDouble();
+    ui->scheduleWeight->setValue(teamingOptions.scheduleWeight);
+
+    QStringList keys = savedSettings.allKeys();
+    keys.removeOne("registeredUser");
+    keys.removeOne("askToSaveDefaultsOnExit");
+    ui->clearSettingsButton->setEnabled(!keys.isEmpty());  // setting this value based on whether there ARE saved settings
+}
+
+
+void gruepr::on_saveSettingsButton_clicked()
+{
+    QSettings savedSettings;
+    savedSettings.setValue("dataFileLocation", dataOptions.dataFile.canonicalFilePath());
+    savedSettings.setValue("isolatedWomanPrevented", teamingOptions.isolatedWomanPrevented);
+    savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions.desiredTimeBlocksOverlap);
+    savedSettings.setValue("minTimeBlocksOverlap", teamingOptions.minTimeBlocksOverlap);
+    savedSettings.setValue("meetingBlockSize", teamingOptions.meetingBlockSize);
+    savedSettings.setValue("idealTeamSize", ui->idealTeamSizeBox->value());
+    savedSettings.beginWriteArray("Attributes");
+    for (int i = 0; i < maxAttributes; ++i)
+    {
+        savedSettings.setArrayIndex(i);
+        savedSettings.setValue("desireHomogeneous", teamingOptions.desireHomogeneous[i]);
+        savedSettings.setValue("Weight", teamingOptions.attributeWeights[i]);
+    }
+    savedSettings.endArray();
+    savedSettings.setValue("scheduleWeight", ui->scheduleWeight->value());
+
+    ui->clearSettingsButton->setEnabled(true);
+}
+
+
+void gruepr::on_clearSettingsButton_clicked()
+{
+    // Clear all settings
+    QSettings savedSettings;
+
+    //Uncomment the line below and the one two below in order to prevent clearing the setting about "don't show this box again" on app exit
+    //bool askToSave = savedSettings.value("askToSaveDefaultsOnExit",true).toBool();
+    savedSettings.clear();
+    //savedSettings.setValue("askToSaveDefaultsOnExit", askToSave);
+
+    //put the registered user name back in if it exists
+    if(!registeredUser.isEmpty())
+    {
+        savedSettings.setValue("registeredUser", registeredUser);
+    }
+
+    ui->clearSettingsButton->setEnabled(false);
+}
+
+
+void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection)
+{
+    if(desiredSection == "")
+    {
+        numStudents = 0;
+        return;
+    }
+
+    sectionName = desiredSection;
+
+    refreshStudentDisplay();
+
+    ui->idealTeamSizeBox->setMaximum(numStudents/2);
+    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+}
+
+
+void gruepr::removeAStudent()
+{
+    //Search through all the students and, once we found the one with the matching ID, move all remaining ones ahead by one and decrement numStudentsInSystem
+    bool foundIt = false;
+    for(int i = 0; i < dataOptions.numStudentsInSystem; i++)
+    {
+        if(sender()->property("StudentID").toInt() == student[i].ID)
+        {
+            foundIt = true;
+        }
+        if(foundIt)
+        {
+            student[i] = student[i+1];
+        }
+    }
+    dataOptions.numStudentsInSystem--;
+
+    refreshStudentDisplay();
+
+    ui->idealTeamSizeBox->setMaximum(numStudents/2);
+    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+}
+
+
+void gruepr::on_addStudentPushButton_clicked()
+{
+    if(dataOptions.numStudentsInSystem < maxStudents)
+    {
+
+        student[dataOptions.numStudentsInSystem].firstname = (ui->addStudentFirstName->text()).trimmed();
+        student[dataOptions.numStudentsInSystem].firstname[0] = student[dataOptions.numStudentsInSystem].firstname[0].toUpper();
+        student[dataOptions.numStudentsInSystem].lastname = (ui->addStudentLastName->text()).trimmed();
+        student[dataOptions.numStudentsInSystem].lastname[0] = student[dataOptions.numStudentsInSystem].lastname[0].toUpper();
+        student[dataOptions.numStudentsInSystem].email = (ui->addStudentEmail->text()).trimmed();
+        student[dataOptions.numStudentsInSystem].section = ui->addStudentSectionComboBox->currentText();
+        if(dataOptions.genderIncluded)
+        {
+            student[dataOptions.numStudentsInSystem].woman = (ui->addStudentGenderComboBox->currentText()==tr("woman"));
+        }
+        student[dataOptions.numStudentsInSystem].ID = numStudents + 1000;   //flag for added students is an ID > 1000
+        for(int i = 0; i < maxAttributes; i++)
+        {
+            student[dataOptions.numStudentsInSystem].attribute[i] = -1;     //set all attribute levels to -1 as a flag to ignore during the teaming
+        }
+        for(int time = 0; time < numTimeBlocks; time++)
+        {
+            student[dataOptions.numStudentsInSystem].unavailable[time] = false;
+        }
+        dataOptions.numStudentsInSystem++;
+
+        refreshStudentDisplay();
+
+        ui->idealTeamSizeBox->setMaximum(numStudents/2);
+        on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    }
+    else
+    {
+        QMessageBox::warning(this, tr("Cannot add student."), tr("Sorry, we cannot add another student.\nWe have reached the maximum number."), QMessageBox::Ok);
+    }
+}
+
+
+void gruepr::on_isolatedWomenCheckBox_stateChanged(int arg1)
+{
+    teamingOptions.isolatedWomanPrevented = arg1;
+}
+
+
+void gruepr::on_attributeScrollBar_valueChanged(int value)
+{
+    if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
+    {
+        ui->attributeTextEdit->setPlainText(dataOptions.attributeQuestionText[value]);
+        ui->attributeWeight->setValue(teamingOptions.attributeWeights[value]);
+        ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
+        ui->attributeLabel->setText(QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
+    }
+}
+
+
+void gruepr::on_attributeWeight_valueChanged(double arg1)
+{
+    teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = arg1;
+}
+
+
+void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
+{
+    teamingOptions.desireHomogeneous[ui->attributeScrollBar->value()] = arg1;
+}
+
+
+void gruepr::on_scheduleWeight_valueChanged(double arg1)
+{
+    teamingOptions.scheduleWeight = arg1;
+}
+
+
+void gruepr::on_minMeetingTimes_valueChanged(int arg1)
+{
+    teamingOptions.minTimeBlocksOverlap = arg1;
+    if(ui->desiredMeetingTimes->value() < (arg1+1))
+    {
+        ui->desiredMeetingTimes->setValue(arg1+1);
+    }
+}
+
+
+void gruepr::on_desiredMeetingTimes_valueChanged(int arg1)
+{
+    teamingOptions.desiredTimeBlocksOverlap = arg1;
+    if(ui->minMeetingTimes->value() > (arg1-1))
+    {
+        ui->minMeetingTimes->setValue(arg1-1);
+    }
+}
+
+
+void gruepr::on_meetingLength_currentIndexChanged(int index)
+{
+    teamingOptions.meetingBlockSize = (index + 1);
+}
+
+
+void gruepr::on_requiredTeammatesButton_clicked()
+{
+    //Open specialized dialog box to collect pairings that are required
+    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, numStudents, this);
+
+    //If user clicks OK, replace student database with copy that has had pairings added
+    int reply = window->exec();
+    if(reply == QDialog::Accepted)
+    {
+        for(int i = 0; i < numStudents; i++)
+        {
+            this->student[i] = window->student[i];
+        }
+    }
+
+    delete window;
+}
+
+
+void gruepr::on_preventedTeammatesButton_clicked()
+{
+    //Open specialized dialog box to collect pairings that are prevented
+    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, numStudents, this);
+
+    //If user clicks OK, replace student database with copy that has had pairings added
+    int reply = window->exec();
+    if(reply == QDialog::Accepted)
+    {
+        for(int i = 0; i < numStudents; i++)
+        {
+            this->student[i] = window->student[i];
+        }
+    }
+
+    delete window;
+}
+
+
+void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
+{
+    ui->teamSizeBox->clear();
+
+    numTeams = numStudents/arg1;
+    teamingOptions.smallerTeamsNumTeams = numTeams;
+    teamingOptions.largerTeamsNumTeams = numTeams;
+
+    if(numStudents%arg1 != 0)       //if teams can't be evenly divided into this size
+    {
+        int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
+
+        // reset the potential team sizes
+        for(int student = 0; student < maxStudents; student++)
+        {
+            teamingOptions.smallerTeamsSizes[student] = 0;
+            teamingOptions.largerTeamsSizes[student] = 0;
+        }
+
+        // What are the team sizes when desiredTeamSize represents a maximum size?
+        teamingOptions.smallerTeamsNumTeams = numTeams+1;
+        for(int student = 0; student < numStudents; student++)      // run through every student
+        {
+            (teamingOptions.smallerTeamsSizes[student%teamingOptions.smallerTeamsNumTeams])++;                      // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
+            smallerTeamsSizeA = teamingOptions.smallerTeamsSizes[student%teamingOptions.smallerTeamsNumTeams];      // the larger of the two (uneven) team sizes
+            numSmallerATeams = (student%teamingOptions.smallerTeamsNumTeams)+1;                                     // the number of larger teams
+        }
+        smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
+
+        // And what are the team sizes when desiredTeamSize represents a minimum size?
+        teamingOptions.largerTeamsNumTeams = numTeams;
+        for(int student = 0; student < numStudents; student++)	// run through every student
+        {
+            (teamingOptions.largerTeamsSizes[student%teamingOptions.largerTeamsNumTeams])++;                        // add one student to each team in turn until we run out of students
+            largerTeamsSizeA = teamingOptions.largerTeamsSizes[student%teamingOptions.largerTeamsNumTeams];         // the larger of the two (uneven) team sizes
+            numLargerATeams = (student%teamingOptions.largerTeamsNumTeams)+1;                                       // the number of larger teams
+        }
+        largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
+
+        // Add first option to selection box
+        QString smallerTeamOption;
+        if(numSmallerATeams > 0)
+        {
+            smallerTeamOption += QString::number(numSmallerATeams) + tr(" team");
+            if(numSmallerATeams > 1)
+            {
+                smallerTeamOption += "s";
+            }
+            smallerTeamOption += " of " + QString::number(smallerTeamsSizeA) + tr(" student");
+            if(smallerTeamsSizeA > 1)
+            {
+                smallerTeamOption += "s";
+            }
+        }
+        if((numSmallerATeams > 0) && ((numTeams+1-numSmallerATeams) > 0))
+        {
+            smallerTeamOption += " + ";
+        }
+        if((numTeams+1-numSmallerATeams) > 0)
+        {
+            smallerTeamOption += QString::number(numTeams+1-numSmallerATeams) + tr(" team");
+            if((numTeams+1-numSmallerATeams) > 1)
+            {
+                smallerTeamOption += "s";
+            }
+            smallerTeamOption += " of " + QString::number(smallerTeamsSizeB) + tr(" student");
+            if(smallerTeamsSizeB > 1)
+            {
+                smallerTeamOption += "s";
+            }
+        }
+
+        // Add second option to selection box
+        QString largerTeamOption;
+        if((numTeams-numLargerATeams) > 0)
+        {
+            largerTeamOption += QString::number(numTeams-numLargerATeams) + tr(" team");
+            if((numTeams-numLargerATeams) > 1)
+            {
+                largerTeamOption += "s";
+            }
+            largerTeamOption += " of " + QString::number(largerTeamsSizeB) + tr(" student");
+            if(largerTeamsSizeB > 1)
+            {
+                largerTeamOption += "s";
+            }
+        }
+        if(((numTeams-numLargerATeams) > 0) && (numLargerATeams > 0))
+        {
+            largerTeamOption += " + ";
+        }
+        if(numLargerATeams > 0)
+        {
+            largerTeamOption += QString::number(numLargerATeams) + tr(" team");
+            if(numLargerATeams > 1)
+            {
+                largerTeamOption += "s";
+            }
+            largerTeamOption += " of " + QString::number(largerTeamsSizeA) + tr(" student");
+            if(largerTeamsSizeA > 1)
+            {
+                largerTeamOption += "s";
+            }
+        }
+
+        ui->teamSizeBox->addItem(smallerTeamOption);
+        ui->teamSizeBox->addItem(largerTeamOption);
+    }
+    else
+    {
+        ui->teamSizeBox->addItem(QString::number(numTeams) + tr(" teams of ") + QString::number(arg1) + tr(" students"));
+    }
+    ui->teamSizeBox->insertSeparator(ui->teamSizeBox->count());
+    ui->teamSizeBox->addItem(tr("Custom team sizes"));
+}
+
+
+void gruepr::on_teamSizeBox_currentIndexChanged(int index)
+{
+    if(ui->teamSizeBox->currentText() == (QString::number(numTeams) + tr(" teams of ") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
+    {
+        // Evenly divisible teams, all same size
+        setTeamSizes(ui->idealTeamSizeBox->value());
+    }
+    else if(ui->teamSizeBox->currentText() == tr("Custom team sizes"))
+    {
+        //Open specialized dialog box to collect teamsizes
+        customTeamsizesDialog *window = new customTeamsizesDialog(numStudents, ui->idealTeamSizeBox->value(), this);
+
+        //If user clicks OK, use these team sizes, otherwise revert to option 1, smaller team sizes
+        int reply = window->exec();
+        if(reply == QDialog::Accepted)
+        {
+            numTeams = window->numTeams;
+            setTeamSizes(window->teamsizes);
+        }
+        else
+        {
+            // Set to smaller teams if cancelled
+            bool oldState = ui->teamSizeBox->blockSignals(true);
+            ui->teamSizeBox->setCurrentIndex(0);
+            numTeams = teamingOptions.smallerTeamsNumTeams;
+            setTeamSizes(teamingOptions.smallerTeamsSizes);
+            ui->teamSizeBox->blockSignals(oldState);
+        }
+
+        delete window;
+    }
+    else if(index == 0)
+    {
+        // Smaller teams desired
+        numTeams = teamingOptions.smallerTeamsNumTeams;
+        setTeamSizes(teamingOptions.smallerTeamsSizes);
+    }
+    else if (index == 1)
+    {
+        // Larger teams desired
+        numTeams = teamingOptions.largerTeamsNumTeams;
+        setTeamSizes(teamingOptions.largerTeamsSizes);
+    }
+}
+
+
+void gruepr::on_letsDoItButton_clicked()
+{
+    if(ui->sectionSelectionBox->currentIndex() != 0)
+    {
+        // Move students from desired section to the front of students[] and change numStudents accordingly
+        int numStudentsInSection = 0;
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+        {
+            if(student[ID].section == ui->sectionSelectionBox->currentText())
+            {
+                std::swap(student[numStudentsInSection], student[ID]);
+                numStudentsInSection++;
+            }
+        }
+        numStudents = numStudentsInSection;
+    }
+
+    // Trade out this button with the stop optimization button
+    ui->letsDoItButton->setEnabled(false);
+    ui->letsDoItButton->hide();
+    ui->cancelOptimizationButton->setEnabled(true);
+    ui->cancelOptimizationButton->show();
+
+    // Allow a stoppage
+    optimizationStopped = false;
+
+    // Update UI
+    ui->scoreBox->setEnabled(true);
+    ui->scoreBox->clear();
+    ui->label_11->setEnabled(true);
+    ui->generationsBox->setEnabled(true);
+    ui->generationsBox->clear();
+    ui->label_3->setEnabled(true);
+    ui->stabilityProgressBar->setEnabled(true);
+    ui->stabilityProgressBar->reset();
+    ui->label_12->setEnabled(true);
+    ui->teamData->clear();
+    ui->tabWidget->setCurrentIndex(1);
+
+    future = QtConcurrent::run(this, &gruepr::optimizeTeams);       // spin optimization off into a separate thread
+    futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
+}
+
+
+void gruepr::updateOptimizationProgress(double score, int generation, double scoreStability)
+{
+    ui->generationsBox->setValue(generation);
+    ui->scoreBox->setValue(score);
+    if(generation >= generationsOfStability)
+    {
+        ui->stabilityProgressBar->setValue((scoreStability<100)?int(scoreStability):100);
+    }
+    if(generation >= minGenerations)
+    {
+        ui->stabilityProgressBar->setEnabled(true);
+        ui->generationsBox->setStyleSheet("background-color:palegreen");
+    }
+    else
+    {
+        ui->stabilityProgressBar->setEnabled(false);
+        ui->generationsBox->setStyleSheet("background-color:lightcyan");
+    }
+}
+
+
+void gruepr::on_cancelOptimizationButton_clicked()
+{
+    optimizationStoppedmutex.lock();
+    optimizationStopped = true;
+    optimizationStoppedmutex.unlock();
+}
+
+
+void gruepr::askWhetherToContinueOptimizing(int generation)
+{
+    QApplication::beep();
+    QApplication::alert(this);
+
+    QMessageBox questionWindow(this);
+    questionWindow.setText(tr("Should we show the teams or continue optimizing?"));
+    questionWindow.setWindowTitle((generation < maxGenerations)?tr("The score seems to be stable."):(tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
+    questionWindow.setIcon(QMessageBox::Question);
+    questionWindow.setWindowModality(Qt::ApplicationModal);
+    questionWindow.addButton(tr("Show Teams"), QMessageBox::YesRole);
+    QPushButton *keepGoing = questionWindow.addButton(tr("Continue Optimizing"), QMessageBox::NoRole);
+
+    questionWindow.exec();
+
+    keepOptimizing = (questionWindow.clickedButton() == keepGoing);
+
+    emit haveOurKeepOptimizingValue();
+}
+
+
+void gruepr::optimizationComplete()
+{
+    // Disable the progress bars and enable the Save Teams button
+    ui->scoreBox->setEnabled(false);
+    ui->scoreBox->clear();
+    ui->label_11->setEnabled(false);
+    ui->generationsBox->setEnabled(false);
+    ui->generationsBox->clear();
+    ui->generationsBox->setStyleSheet("");
+    ui->label_3->setEnabled(false);
+    ui->stabilityProgressBar->setEnabled(false);
+    ui->stabilityProgressBar->reset();
+    ui->label_12->setEnabled(false);
+    ui->saveTeamsButton->setEnabled(true);
+    ui->adjustTeamsButton->setEnabled(true);
+
+    // Reshow the Create Teams button
+    ui->letsDoItButton->setEnabled(true);
+    ui->letsDoItButton->show();
+    ui->cancelOptimizationButton->setEnabled(false);
+    ui->cancelOptimizationButton->hide();
+
+    // Unpack the best team set and print teams list on the screen
+    QList<int> bestTeamSet = future.result();
+    for(int ID = 0; ID < numStudents; ID++)
+    {
+        bestGenome[ID] = bestTeamSet[ID];
+    }
+    double teamScores[maxStudents];
+    getTeamScores(bestGenome, teamScores);
+    printTeams(bestGenome, teamScores, "");
+}
+
+
+void gruepr::on_saveTeamsButton_clicked()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Results Files"), "", tr("Text File (*.txt);;All Files (*)"));
+
+    if (!fileName.isEmpty())
+    {
+        // Unpack the best team set
+        QList<int> bestTeamSet = future.result();
+        int genome[maxStudents];
+        for(int ID = 0; ID < numStudents; ID++)
+        {
+            genome[ID] = bestTeamSet[ID];
+        }
+
+        // Get the scores for each team
+        double teamScores[maxStudents];
+        getTeamScores(genome, teamScores);
+
+        //Save data to files.
+        printTeams(genome, teamScores, fileName);
+    }
+}
+
+
+void gruepr::on_adjustTeamsButton_clicked()
+{
+    //Open specialized dialog box to collect students to swap
+    swapTeammatesDialog *window = new swapTeammatesDialog(student, numStudents, this);
+
+    int reply = window->exec();
+
+    //If user clicks OK, swap chosen students
+    if(reply == QDialog::Accepted)
+    {
+        //swap them
+        int studentAIndex = static_cast<int>(std::distance(bestGenome, std::find(bestGenome, bestGenome+numStudents, window->studentA->currentIndex()-1)));
+        int studentBIndex = static_cast<int>(std::distance(bestGenome, std::find(bestGenome, bestGenome+numStudents, window->studentB->currentIndex()-1)));
+        std::swap(bestGenome[studentAIndex], bestGenome[studentBIndex]);
+    }
+
+    delete window;
+
+    // Reprint the teams list on the screen
+    double teamScores[maxStudents];
+    getTeamScores(bestGenome, teamScores);
+    printTeams(bestGenome, teamScores, "");
+}
+
+
+void gruepr::on_HelpButton_clicked()
+{
+    QFile helpFile(":/help.html");
+    if (!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+    QDialog helpWindow(this);
+    helpWindow.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    helpWindow.setSizeGripEnabled(true);
+    helpWindow.setWindowTitle("Help");
+    QGridLayout theGrid(&helpWindow);
+    QTextBrowser helpContents(&helpWindow);
+    helpContents.setHtml(tr("<h1>gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+                            "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+                            "<p>Joshua Hertz <a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
+                            "<p>Project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>"));
+    helpContents.append(helpFile.readAll());
+    helpFile.close();
+    helpContents.setOpenExternalLinks(true);
+    helpContents.setFrameShape(QFrame::NoFrame);
+    theGrid.addWidget(&helpContents, 0, 0, -1, -1);
+    helpWindow.resize(600,600);
+    helpWindow.exec();
+}
+
+
+void gruepr::on_AboutButton_clicked()
+{
+    QString user = registeredUser.isEmpty()?tr("UNREGISTERED"):(tr("registered to ") + registeredUser);
+    QMessageBox::about(this, tr("About gruepr"),
+                       tr("<h2>gruepr " GRUEPR_VERSION_NUMBER "</h2>"
+                          "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+                          "<br>Joshua Hertz<br><a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
+                          "<p>This copy of gruepr is ") + user + tr("."
+                          "<p>gruepr is an open source project. The source code is freely available at"
+                          "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
+                          "<p>gruepr incorporates code from the <a href = http://qt.io>open source Qt libraries, v 5.12.1</a>."
+                          "<br>The icons were created by (or modified from) the <a href = https://icons8.com>Icons8</a> library."
+                          "<h3>Disclaimer</h3>"
+                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
+                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."));
+}
+
+
+void gruepr::on_registerButton_clicked()
+{
+    //make sure we can connect to google
+    QNetworkAccessManager nam;
+    QNetworkReply *networkReply = nam.get(QNetworkRequest(QUrl("http://www.google.com")));
+    QEventLoop loop;
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    if(!(networkReply->bytesAvailable()))
+    {
+        //no internet right now
+        QMessageBox::critical(this, tr("No Internet Connection"), tr("You are not connected to the internet.\nPlease register at another time."));
+    }
+    else
+    {
+        //we can connect, so gather name, institution, and email address for submission
+        registerDialog *window = new registerDialog(this);
+        int reply = window->exec();
+        //If user clicks OK, email registration info and add to saved settings
+        if(reply == QDialog::Accepted)
+        {
+            QDesktopServices::openUrl(QUrl(USER_REGISTRATION_FORM_URL "/formResponse?usp=pp_url"
+                                           "&entry.1817313817="+window->name->text()+
+                                           "&entry.1128502893="+window->institution->text()+
+                                           "&entry.2127230564="+window->email->text()+
+                                           "&submit=Submit"));
+            registeredUser = window->name->text();
+            QSettings savedSettings;
+            savedSettings.setValue("registeredUser", registeredUser);
+            ui->registerButton->hide();
+            ui->statusBar->setStyleSheet("");
+            if(ui->statusBar->currentMessage()==tr("This copy of gruepr is unregistered"))
+            {
+                ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
+            }
+        }
+        delete window;
+    }
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 //////////////////
-
-//utility functions
-void setWindowProps(string consoleTitle);
-string openFile(ifstream& file);
-string readCSVField(stringstream& row);	// move the next CSV field from row into the output string, either directly to the next comma or the comma after the entire quote-enclosed string 
-void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& isolatedWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize);
-studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded, short numAttributes, short attributeLevel[], bool sectionIncluded, bool notesIncluded);
-void setTeamSizes(short numStudents, short teamSize[], short& numTeams);
-void printStudentInfo(short ID, studentrecord student, short largestNameSize, short numStudents, short PrevOrReq);
-void printTeams(studentrecord students[], short teammates[], short teamSize[], short numTeams, float teamScores[], string filename, short largestNameSize, short numAttributes, string sectionName);
-float getTeamScores(studentrecord students[], short numStudents, short teammates[], short teamSize[], short numTeams, float teamScores[], bool isolatedWomanPrevented, short attributeLevel[], short desiredTimeBlocksOverlap, short minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short meetingBlockSize);
-void coutBold(string s);
-void createWindow(string title);
-void printSeparator();
-void printSectionHeader(string headerText);
-void startQuestion();
-
-//genetic algorithm functions
-void mate(short mom[], short dad[], short teamSize[], short numTeams, short child[], short genomeSize);	//ordered crossover production of one child from two parents, splitting allele at random team boundaries
-void mutate(short genome[], short genomeSize); 			//randomly swap two elements in a genome
-
-
-////////////////////////////////////////////
-// Here we go.
-////////////////////////////////////////////
-
-int main()
+// Set the "official" team sizes using an array of different sizes or a single, constant size
+//////////////////
+void gruepr::setTeamSizes(int teamSizes[])
 {
-	srand(time(0));
+    for(int team = 0; team < numTeams; team++)	// run through every team
+    {
+        teamSize[team] = teamSizes[team];
+    }
+}
+void gruepr::setTeamSizes(int singleSize)
+{
+    for(int team = 0; team < numTeams; team++)	// run through every team
+    {
+        teamSize[team] = singleSize;
+    }
+}
 
-	setWindowProps(" gruepr");
+//////////////////
+// Read the survey datafile, setting the options and loading all of the student records, returning false if file is invalid
+//////////////////
+bool gruepr::loadSurveyData(QString fileName)
+{
+    QFile inputFile(fileName);
+    inputFile.open(QIODevice::ReadOnly);
+    QTextStream in(&inputFile);
 
-	////////////////////////////////////////////
-	// Get the file and read the header row information
-	////////////////////////////////////////////
+    // Read the header row to determine what data is included
+    QStringList fields = ReadCSVLine(in.readLine());
+    if(fields.empty())
+    {
+        inputFile.close();
+        return false;
+    }
 
-	// Ask for the survey data filename and check that the file is valid
-	ifstream file;
-	stringstream headerRow(openFile(file));			// the first line of the file (the header) is returned by openFile, so put into a stringstream for processing
-
-    // Read past first few fields
-    string field;
-    field = readCSVField(headerRow);				// read past first field in header row ("Timestamp")
-    field = readCSVField(headerRow);				// read past second field in header row (the question text for "First Name/Preferred Name")
-    field = readCSVField(headerRow);				// read past third field in header row (the question text for "Last Name")
-    field = readCSVField(headerRow);				// read past fourth field in header row (the question text for "Email")
-    // Read the optional questions gender/attribute questions
-    field = readCSVField(headerRow);				// read fifth field in header row
-    transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
+    // Read the optional gender/attribute questions
+    int fieldnum = 4;     // skipping past first fields: timestamp(0), first name(1), last name(2), email address(3)
+    QString field = fields.at(fieldnum).toLocal8Bit().constData();
     // See if gender data is included
-    bool genderQuestionIncluded=false;									// assume no gender question included and then test
-    if(field.find("gender") != string::npos)
-	{
-		genderQuestionIncluded = true;
-		field = readCSVField(headerRow);									// move on to next field
-		transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
-	}
-    // Count the number of attributes by counting number of questions from here until one includes "Check the times". Save attribute question texts, if any, into string array.
-    short numAttributes=0;													// how many skill/attitude rankings are there?
-    string attribQuestionText[maxAttributes];
-	while(field.find("check the times") == string::npos)
-	{
-		attribQuestionText[numAttributes] = field;
-		numAttributes++;
-		field = readCSVField(headerRow);									// move on to next field
-		transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
-	}
-	short numMetrics = numAttributes + 1;									// total number of metrics to optimize: metrics = attributes + schedule
-	// Last read should be the first time question, so read five more times to get to the last schedule question + any remaining questions
-	for(short i=0; i<5; i++)
+    if(field.contains("gender", Qt::CaseInsensitive))
     {
-    	field = readCSVField(headerRow);
+        dataOptions.genderIncluded = true;
+        fieldnum++;
+        field = fields.at(fieldnum).toLocal8Bit().constData();				// move on to next field
     }
-    // See if there is a comma in what's left, meaning there are additional field(s) after the last schedule question
-    getline(headerRow, field);											    // read up to the next newline--this is the rest of the header row, including the last schedule question
-    bool notesIncluded = false;
-    bool sectionIncluded = false;
-    if(field.find(",") != string::npos)                                  	// There is at least 1 additional field in header
+    else
     {
-    	field = field.substr(field.find(","));								// read past the final schedule question
-		transform(field.begin(), field.end(), field.begin(), ::tolower);	// convert to lower case
-		//cout << endl << "Remaining header after final time question: " << field << endl << endl;
-		if(field.find("section") != string::npos)							// next field is a section question
-		{
-    		//cout << "section field present." << endl << endl;
-    		sectionIncluded = true;
-	    	if(field.find(",", 1) != string::npos)							// if there are any more fields after section
-	    	{
-	    		//cout << "notes field present." << endl << endl;
-	    		notesIncluded = true;
-	    	}
-    	}
-    	else
-    	{
-    		//cout << "notes field present." << endl << endl;
-    		notesIncluded = true;
-    	}
+        dataOptions.genderIncluded = false;
     }
 
-
-    ////////////////////////////////////////////
-    // Read the student data from the file and store in array of studentrecord struct's
-    ////////////////////////////////////////////
-
-    studentrecord students[maxStudents];								// array holding each of the student's data as read from the file
-    short numStudents = 0;												// counter for the number of records in the file; used to set the number of students in the section for the rest of the program
-    short attributeLevel[maxAttributes]={0};							// how many levels are there in each skill/attitude ranking? Max possible is 9 due to how the values are read from the csv file (the first numeric character in field).
-    getline(file, field, ',');											// first read in each row is the timestamp, so read first timestamp into dummy variable
-    do
+    // Count the number of attributes by counting number of questions from here until one includes "Check the times". Save attribute question texts, if any, into string list.
+    dataOptions.numAttributes = 0;                                          // how many skill/attitude rankings are there?
+    while(!field.contains("check the times", Qt::CaseInsensitive))
     {
-        students[numStudents] = readOneRecordFromFile(file, genderQuestionIncluded, numAttributes, attributeLevel, sectionIncluded, notesIncluded);
-        //cout << students[numStudents].firstname << " " << students[numStudents].lastname << endl;
+        dataOptions.attributeQuestionText[dataOptions.numAttributes] = field;
+        dataOptions.numAttributes++;
+        fieldnum++;
+        field = fields.at(fieldnum).toLocal8Bit().constData();				// move on to next field
+    }
+
+    //Current field should be the first schedule question, so get past the last schedule question to any remaining questions
+    fieldnum += 7;
+    if(fields.size() > fieldnum)                                            // There is at least 1 additional field in header
+    {
+        field = fields.at(fieldnum).toLocal8Bit().constData();
+        if(field.contains("section", Qt::CaseInsensitive))					// next field is a section question
+        {
+            fieldnum++;
+            if(fields.size() > fieldnum)                                    // if there are any more fields after section
+            {
+                dataOptions.sectionIncluded = true;
+                dataOptions.notesIncluded = true;
+            }
+            else
+            {
+                dataOptions.sectionIncluded = true;
+                dataOptions.notesIncluded = false;
+            }
+        }
+        else
+        {
+            dataOptions.sectionIncluded = false;
+            dataOptions.notesIncluded = true;
+        }
+    }
+    else
+    {
+        dataOptions.notesIncluded = false;
+        dataOptions.sectionIncluded = false;
+    }
+
+    // Having read the header row, read each remaining row as a student record
+    numStudents = 0;                                                        // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    fields = ReadCSVLine(in.readLine());
+    if(fields.empty())
+    {
+        inputFile.close();
+        return false;
+    }
+    while(!fields.empty())
+    {
+        student[numStudents] = readOneRecordFromFile(fields);
+        student[numStudents].ID = numStudents;
         numStudents++;
-        getline(file, field, ',');	// read timestamp for next row and throw away (also, in case of a newline character after last row, need this read to reach .eof())
+        fields = ReadCSVLine(in.readLine());
     }
-    while(!file.eof());
-    file.close();
-	cout << "\n        Found ";
-	coutBold(to_string(numStudents));
-	cout << " students";
-	Beep(1568, 50); Beep(2352, 100);
-	string sectionName;
-	if(sectionIncluded)
-	{
-		// copy over all section values into sectionNames array
-	    string sectionNames[numStudents];
-	    short sectionSizes[numStudents];
-		for(short student = 0; student < numStudents; student++)
-		{
-			sectionNames[student] = students[student].section;
-		}
-		// count and keep only unique sectionNames
-		sort(sectionNames, sectionNames+numStudents);
-		short numSections = 0;
-		for(short student = 0; student < numStudents; student++)
-		{
-			//copy unique section name and increase count
-			sectionNames[numSections] = sectionNames[student];
-			sectionSizes[numSections] = 1;
-			while((student < (numStudents-1)) && (sectionNames[student] == sectionNames[student+1]))
-			{
-				// move index ahead for duplicates
-				student++;
-				sectionSizes[numSections]++;
-			}
-			numSections++;
-		}
-		cout << " in ";
-		coutBold(to_string(numSections));
-		cout << " section";
-		
-		if(numSections > 1)
-		{
-			cout << "s" << endl;
-			// Display section names and let user choose which section to team
-			short desiredSection;
-			startQuestion();
-			cout << "Which section would you like to form into teams:";
-			for(short section = 0; section < numSections; section++)
-			{
-				cout << "\n          (";
-				coutBold(to_string(section+1));
-				cout << ") " << sectionNames[section] << ", [";
-				coutBold(to_string(sectionSizes[section]));
-				cout << " students]";
-			}
-			cout << "\n          (";
-			coutBold(to_string(numSections+1));
-			cout << ") all students regardless of section, [";
-			coutBold(to_string(numStudents));
-			cout << " students]";
-			cout << endl << endl;
-			do
-			{
-				cout << "          (";
-				for(short section = 0; section < (numSections+1); section++)
-				{
-					coutBold(to_string(section+1));
-					if(section < numSections-1)
-					{
-						cout << ", ";
-					}
-					else if(section == numSections-1)
-					{
-						cout << ", or ";
-					}
-				}
-				cout << ") ? ";
-				cin >> desiredSection;
-			}
-			while((desiredSection < 1) || (desiredSection > (numSections+1)));
+    dataOptions.numStudentsInSystem = numStudents;
 
-			if(desiredSection < (numSections+1))
-			{
-				// Move students from desired section to the front of students[] and change numStudents accordingly
-				short numStudentsInSection = 0;
-				for(short student = 0; student < numStudents; student++)
-				{
-					if(students[student].section == sectionNames[desiredSection-1])
-					{
-						students[numStudentsInSection] = students[student];
-						numStudentsInSection++;
-					}
-				}
-				numStudents = numStudentsInSection;
-				sectionName = sectionNames[desiredSection-1];
-	
-				setWindowProps(" Section: [" + sectionName + "]  -  gruepr");
-			}
-			else
-			{
-				setWindowProps("All Sections  -  gruepr");
-			}
-		}
-		else
-		{
-			cout << endl;
-			Sleep(3000);	// just give some time for user to read info
-		}
-	}
-	else
-	{
-		cout << endl;
-		Sleep(3000);	// just give some time for user to read info
-	}
+    inputFile.close();
+    return true;
+}
 
-    // Sort the students based on first name then last name
-    sort(students, students+numStudents, [](studentrecord a, studentrecord b){return a.firstname < b.firstname;});
-    sort(students, students+numStudents, [](studentrecord a, studentrecord b){return a.lastname < b.lastname;});
-    
-    // Determine the size of the largest name
-    short largestNameSize = 5;											// assume largest name is (at least) 5 characters--list formatting requires at least this
-    for(short student = 0; student < numStudents; student++)
+
+//////////////////
+// Read one student's info from the survey datafile
+//////////////////
+studentRecord gruepr::readOneRecordFromFile(QStringList fields)
+{
+    studentRecord student;
+
+    // Append empty final field if needed (ReadCSVLine function trims off an empty last field)
+    if(fields.size() < (4+dataOptions.numAttributes+7+((dataOptions.genderIncluded)?1:0)+((dataOptions.sectionIncluded)?1:0)+((dataOptions.notesIncluded)?1:0)))
     {
-    	short nameSize = (students[student].firstname.size() + students[student].lastname.size() + 1); 	// adding 1 for the space between the first and last names
-    	if(nameSize > largestNameSize)									//if we find a bigger name, save that value
-		{
-			largestNameSize = nameSize;
-		}
-	}
-	largestNameSize = min((int)largestNameSize, 23);
+        fields.append(" ");
+    }
+
+    int fieldnum = 0;
+    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT1);
+    if(student.surveyTimestamp.isNull())
+    {
+        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT2);
+    }
+
+    fieldnum++;
+    student.firstname = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+    student.firstname[0] = student.firstname[0].toUpper();
+
+    fieldnum++;
+    student.lastname = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+    student.lastname[0] = student.lastname[0].toUpper();
+
+    fieldnum++;
+    student.email = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+
+    // optional 5th field in line; might be the gender
+    fieldnum++;
+    if(dataOptions.genderIncluded)
+    {
+        QString field = fields.at(fieldnum).toLocal8Bit().constData();
+        student.woman = field.contains(tr("woman"), Qt::CaseInsensitive);					// true if "woman" is found anywhere in text
+        fieldnum++;
+    }
+    else
+    {
+        student.woman = false;
+    }
+
+    // optional next 9 fields in line; might be the attributes
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        QString field = fields.at(fieldnum).toLocal8Bit().constData();
+        int chrctr = 0;
+        while((field[chrctr].digitValue() < 0 || field[chrctr].digitValue() > 9) && (chrctr < field.size()))	// search through this field character by character until we find a numeric digit (or reach the end)
+        {
+            chrctr++;
+        }
+        if(field[chrctr].digitValue() >= 0 && field[chrctr].digitValue() <= 9)
+        {
+            student.attribute[attribute] = field[chrctr].digitValue();
+            if(student.attribute[attribute] > dataOptions.attributeLevels[attribute])					// attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
+            {
+                dataOptions.attributeLevels[attribute] = student.attribute[attribute];
+            }
+        }
+        fieldnum++;
+    }
+
+    // next 7 fields; should be the schedule
+    for(int day = 0; day < 7; day++)
+    {
+        QString field = fields.at(fieldnum).toLocal8Bit().constData();
+        for(int time = 0; time < dailyTimeBlocks; time++)
+        {
+            student.unavailable[(day*dailyTimeBlocks)+time] = field.contains(timeNames[time], Qt::CaseInsensitive);
+        }
+        fieldnum++;
+    }
+
+    // optional last fields; might be section and/or additional notes
+    if(dataOptions.sectionIncluded)
+    {
+        student.section = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+        if(student.section.startsWith("section",Qt::CaseInsensitive))
+        {
+            student.section = student.section.right(student.section.size()-7).trimmed();    //removing as redundant the word "section" if at the start of the section name
+        }
+        fieldnum++;
+    }
+    if(dataOptions.notesIncluded)
+    {
+        student.notes = fields.at(fieldnum).toLocal8Bit().simplified().constData();     //.simplified() removes leading and trailing whitespace and converts all internal whitespaces to a single space each
+    }
+
+    return student;
+}
 
 
-    ////////////////////////////////////////////
-	// Set the teaming parameters (except team size, which comes after reading how many students are in the file)
-	////////////////////////////////////////////
+//////////////////
+// Read one line from a CSV file, smartly handling commas within fields that are enclosed by quotation marks
+//////////////////
+QStringList gruepr::ReadCSVLine(QString line)
+{
+    enum State {Normal, Quote} state = Normal;
+    QStringList fields;
+    QString value;
 
-	bool isolatedWomanPrevented;											// if true, will prevent teams with a isolated woman
-	short desiredTimeBlocksOverlap;										// want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
-	short minTimeBlocksOverlap;											// a team is penalized if there are fewer than this many time blocks that overlap
-	float metricWeights[maxAttributes+1]={1};							// weights for each attribute plus schedule (first value defaults to 1 in case there are no attributes--need weight of 1 for schedule)
-	bool desireHomogeneous[maxAttributes]; 								// if true/false, tries to make all students on a team have similar/different levels of each attribute
-	short meetingBlockSize;												// count available meeting times in units of 1 hour or 2 hours long
-	setParameters(attribQuestionText, genderQuestionIncluded, isolatedWomanPrevented, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
+    for(int i = 0; i < line.size(); i++)
+    {
+        QChar current=line.at(i);
 
+        // Normal state
+        if (state == Normal)
+        {
+            // Comma
+            if (current == ',')
+            {
+                // Save field
+                fields.append(value.trimmed());
+                value.clear();
+            }
 
-	////////////////////////////////////////////
-	// Determine the size, and therefore number, of teams
-	////////////////////////////////////////////
-	
-	short numTeams;
-	short teamSize[maxStudents]={0};		// max number of teams is one per student for the max number of students; initialize every team size to 0
-	setTeamSizes(numStudents, teamSize, numTeams);
+            // Double-quote
+            else if (current == '"')
+            {
+                state = Quote;
+                value += current;
+            }
 
+            // Other character
+            else
+                value += current;
+        }
 
-	////////////////////////////////////////////
-	// Get any prevented and/or required teammates from user
-	////////////////////////////////////////////
+        // In-quote state
+        else if (state == Quote)
+        {
+            // Another double-quote
+            if (current == '"')
+            {
+                if (i < line.size())
+                {
+                    // A double double-quote?
+                    if (i+1 < line.size() && line.at(i+1) == '"')
+                    {
+                        value += '"';
 
-	// Print out formatted list of students and ask user for prevented/required student IDs
-	// This runs twice - first for prevented teammates, then for required teammates
-	string PrevReqBold[2] = {"PREVENTED", "REQUIRED"}, PrevReqUp[2] = {"Prevented", "Required"};
-	cin.clear();
-	cin.ignore(100, '\n');
-	for(short PrevOrReq = 0; PrevOrReq < 2; PrevOrReq++)	// do this all twice, first to get prevented teammates and then to get required teammates
-	{
-		bool ask_again;				// flag for whether we will ask for another prevented/required teammate pair
-		string PrevOrReqBold = PrevReqBold[PrevOrReq], PrevOrReqUp = PrevReqUp[PrevOrReq];
-		short tableWidth = min((2 * largestNameSize) + 73, (int)wWidth);
-		do
-		{
-			ask_again = false;		//assume we are done asking; will set this flag to true if user enters in a prevented/required teammate pair
-			createWindow(PrevOrReqUp + " Teammates");
-			// print out the name of all students in a 2-column table
-			// first, print out a table header
-			cout << string((wWidth - tableWidth)/2, ' ');								// spaces to center the table
-			cout << left << setw(largestNameSize+9) << "  ID     Name";
-			cout << right << setw(9) << PrevOrReqUp;
-			cout << " Teammates        ";
-			cout << (char)186;																	// column divider line
-			cout << left << setw(largestNameSize+9) << "  ID     Name";
-			cout << right << setw(9) << PrevOrReqUp;
-			cout << " Teammates\n";
-			cout << string((wWidth - tableWidth)/2, ' ') << string(largestNameSize+36, 205) << (char)206 << string(largestNameSize+36, 205) << endl;	// horizontal line
-			// then, print the names in 2 columns
-			for(short ID = 0; ID < ((numStudents/2) + numStudents%2); ID++)
-			{
-				cout << string((wWidth - tableWidth)/2, ' ');									// spaces to center the table
-				printStudentInfo(ID, students[ID], largestNameSize, numStudents, PrevOrReq);	// column 1
-				cout << (char)186;																// column divider line
-				if((ID + (numStudents/2) + numStudents%2) < numStudents)						// column 2, unless blank last line because odd number of students
-				{
-					printStudentInfo(ID + (numStudents/2) + (numStudents%2), students[ID + (numStudents/2) + (numStudents%2)], largestNameSize, numStudents, PrevOrReq);
-				}
-				cout << endl;
-			}
-			cout << string((wWidth - tableWidth)/2, ' ') << string(largestNameSize+36, 205) << (char)202 << string(largestNameSize+36, 205) << endl;	// horizontal line
-			startQuestion();
-			cout << "Enter the ";
-			coutBold("IDs");
-			cout << " of a set of "<< PrevOrReqBold << " teammates, separated by spaces or commas. If none, hit [";
-			coutBold("enter");
-			cout << "]: ";
-			//get whole line input from user and parse into separate integers
-			string input;
-			getline(cin, input);
-			replace(input.begin(), input.end(), ',', ' ');	// replace any and all commas with spaces
-			ask_again = (!input.empty());
-			stringstream stream(input);
-			short n[8]={0}, count=0;
-			while((count < 8) && (stream >> n[count]))		// process each entered ID, sending the value from the string into the array n
-			{
-				if(n[count] > 0 && n[count] <= numStudents)	//if this is a valid ID, count it
-				{
-				  count++;
-				}
-			}
-			if(count != 0)
-			{
-				for(int ID1 = 0; ID1 < count; ID1++)
-				{
-					for(int ID2 = ID1+1; ID2 < count; ID2++)
-					{
-						if(n[ID1] != n[ID2])
-						{
-							if(PrevOrReq == 0)
-							{
-								students[n[ID1]-1].preventedWith[n[ID2]-1] = true;
-								students[n[ID2]-1].preventedWith[n[ID1]-1] = true;
-							}
-							else
-							{
-								students[n[ID1]-1].requiredWith[n[ID2]-1] = true;
-								students[n[ID2]-1].requiredWith[n[ID1]-1] = true;
-							}
-						}
-					}
-				}
-			}
-		}
-		while(ask_again);
-	}
+                        // Skip a second quote character in a row
+                        i++;
+                    }
+                    else
+                    {
+                        state = Normal;
+                        value += '"';
+                    }
+                }
+            }
+
+            // Other character
+            else
+                value += current;
+        }
+    }
+    if (!value.isEmpty())
+    {
+        fields.append(value.trimmed());
+    }
+
+    // Quotes are left in until here; so when fields are trimmed, only whitespace outside of
+    // quotes is removed.  The quotes are removed here.
+    for (int i=0; i<fields.size(); ++i)
+    {
+        if (fields[i].length()>=1 && fields[i].left(1)=='"')
+        {
+            fields[i]=fields[i].mid(1);
+            if (fields[i].length()>=1 && fields[i].right(1)=='"')
+            {
+                fields[i]=fields[i].left(fields[i].length()-1);
+            }
+        }
+    }
+
+    return fields;
+}
 
 
-	////////////////////////////////////////////
-	// Create and optimize teams using genetic algorithm
-	////////////////////////////////////////////
+//////////////////
+// Update current student info in table
+//////////////////
+void gruepr::refreshStudentDisplay()
+{
+    ui->tabWidget->setCurrentIndex(0);
+    ui->studentTable->clearContents();
+    ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
+    ui->studentTable->setColumnCount(dataOptions.sectionIncluded?5:4);
+    ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Survey\nSubmission\nTime")));
+    ui->studentTable->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("First Name")));
+    ui->studentTable->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Last Name")));
+    int i = 3;
+    if(dataOptions.sectionIncluded)
+    {
+        ui->studentTable->setHorizontalHeaderItem(i, new QTableWidgetItem(tr("Section")));
+        i++;
+    }
+    ui->studentTable->setHorizontalHeaderItem(i, new QTableWidgetItem(tr("Remove\nStudent")));
 
-	createWindow("Optimizing the Teams");
-	short genePool[populationSize][numStudents], best;
-	float teamScores[numTeams];
-	bool dontLikeTeams;							// allow user to reject and recreate teams after viewing
-	do
-	{
-		// Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
-		// Each genome in this generation stores (by permutation) which students are in which team.
-		// Array has one entry per student and lists, in order, the "ID number" of the
-		// student, referring to the order of the student in the students[] array.
-		// For example, if team 1 has 4 students, and genePool[0][] = [4, 9, 12, 1, 3, 6...], then the first genome places
-		// students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
+    ui->studentTable->setRowCount(dataOptions.numStudentsInSystem);
 
-		//start with randPerm as just the sorted array {0, 1, 2, 3,..., numStudents}
-		short randPerm[numStudents];
-		for(short i = 0; i < numStudents; i++)
-		{
-			randPerm[i] = i;
-		}
-		//then make "populationSize" number of random permutations for initial population, store in genePool
-		for(short i = 0; i < populationSize; i++)
-		{
-			random_shuffle(randPerm, randPerm+numStudents);
-			copy(randPerm, randPerm+numStudents, &genePool[i][0]);
-		}
+    numStudents = 0;
+    for(int i = 0; i < dataOptions.numStudentsInSystem; i++)
+    {
+        if((ui->sectionSelectionBox->currentIndex() == 0) || (student[i].section == ui->sectionSelectionBox->currentText()))
+        {
+            ui->studentTable->setItem(numStudents, 0, new TimestampTableWidgetItem(student[i].surveyTimestamp.toString("d-MMM. h:mm AP")));
+            ui->studentTable->setItem(numStudents, 1, new QTableWidgetItem(student[i].firstname));
+            ui->studentTable->setItem(numStudents, 2, new QTableWidgetItem(student[i].lastname));
+            int j = 3;
+            if(dataOptions.sectionIncluded)
+            {
+                ui->studentTable->setItem(numStudents, j, new QTableWidgetItem(student[i].section));
+                j++;
+            }
+            QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png") , "", this);
+            remover->setFlat(true);
+            remover->setIconSize(QSize(20,20));
+            remover->setProperty("StudentID", student[i].ID);
+            connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
+            ui->studentTable->setCellWidget(numStudents, j, remover);
+            numStudents++;
+        }
+    }
+    ui->studentTable->setRowCount(numStudents);
 
-		//now optimize
-		short temp[numStudents];
-		float scores[populationSize];					// total score for each genome in the gene pool
-		float bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
-		short generation = 0;
-		short extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
-		bool keepOptimizing;
-		do								// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
-		{
-			do							// keep optimizing until reach maxGenerations or stable
-			{
-				tourneyPlayer players[tournamentSize];
-				short tourneyPicks[tournamentSize], tempGen[populationSize][numStudents];
-				//calculate all of this generation's scores
-				for(short i = 0; i < populationSize; i++)
-				{
-					scores[i] = getTeamScores(students, numStudents, &genePool[i][0], teamSize, numTeams, teamScores, isolatedWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-				}
+    QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0?"All sections":" Section: " + sectionName);
+    ui->statusBar->showMessage(ui->statusBar->currentMessage().split("->")[0].trimmed() + "  -> " + sectiontext + "  [" + QString::number(numStudents) + " students]");
 
-				//find the elites (best scores) in genePool, copy each to tempGen, then move it to the end of genePool so we don't find it again as an elite
-				for(short i = 0; i < numElites; i++)
-				{
-					best = max_element(scores, scores+populationSize-i) - scores;	//subtract i from length because we move the best scores/genomes to the end. Thus we select the best, 2nd best, etc. by looking at one less value from end each time
-					copy(&genePool[best][0], &genePool[best][0]+numStudents, &tempGen[i][0]);
-					move_backward(&genePool[best][0], &genePool[best][0]+numStudents, &genePool[populationSize-i][0]);
-					short swap = scores[populationSize-i-1];
-					scores[populationSize-i-1] = scores[best];
-					scores[best] = swap;
-				}
-	
-				//create populationSize-numElites-numRandos children and place in tempGen
-				for(short i = numElites; i < populationSize-numRandos; i++)
-				{
-					//get tournamentSize random values from 0 -> populationSize and copy those index-valued genePool genomes and scores into players[]
-					for(short j = 0; j < tournamentSize; j++)
-					{
-						tourneyPicks[j] = rand()%populationSize;
-						copy(&genePool[tourneyPicks[j]][0], &genePool[tourneyPicks[j]][0]+numStudents, players[j].genome);
-						players[j].score = scores[tourneyPicks[j]];
-					}
-	
-					//sort tournament genomes so top genomes in tournament are at the beginning
-					sort(players, players+tournamentSize, [](tourneyPlayer i,tourneyPlayer j){return i.score>j.score;});
-					
-					//pick two genomes from tournament, most likely from the beginning so that best genomes are more likely have offspring
-					int parent[2], choice = 0, play = 0;
-					while(choice < 2)
-					{
-						if(rand() < topGenomeLikelihood)	//choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on; 2nd parent then chosen from remaining (lower) players in tournament
-						{
-							parent[choice] = play%tournamentSize;
-							choice++;
-						}
-						play++;
-					}
-	
-					//mate top two genomes and put child in tempGen
-					mate(players[parent[0]].genome, players[parent[1]].genome, teamSize, numTeams, temp, numStudents);
-					copy(temp, temp+numStudents, &tempGen[i][0]);
-				}
-	
-				//create numRandos and put in tempGen
-				for(short i = populationSize-numRandos; i < populationSize; i++)
-				{
-				random_shuffle(randPerm, randPerm+numStudents);
-				copy(randPerm, randPerm+numStudents, &tempGen[i][0]);
-				}
-	
-				//mutate genomes in tempGen with some probability--if a mutation occurs, mutate same genome again with same probability
-				for(short i = 0; i < populationSize; i++)
-				{
-					while(rand() < mutationLikelihood)
-					{
-						mutate(&tempGen[i][0], numStudents);
-					}
-				}
-	
-				//copy all of tempGen into genePool
-				copy(&tempGen[0][0], &tempGen[0][0]+populationSize*numStudents, &genePool[0][0]);
-	
-				//determine and display generation number and best score; save best score in historical record
-				for(short i = 0; i < populationSize; i++)
-				{
-					scores[i] = getTeamScores(students, numStudents, &genePool[i][0], teamSize, numTeams, teamScores, isolatedWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-				}
-				best = max_element(scores, scores+populationSize) - scores;
-				generation++;
-				bestScores[generation%generationsOfStability] = scores[best];	//array of the best scores from the last generationsOfStability generations, wrapping around the storage location
-				cout << " Generation: ";
-				SetConsoleTextAttribute(window, 0x0F);	// bold
-				cout  << right << setw(3) << generation+extraGenerations;
-				SetConsoleTextAttribute(window, 0x07);	// unbold
-				cout << ", Best score: ";
-				SetConsoleTextAttribute(window, 0x0F);	// bold
-				cout << fixed << setprecision(3) << scores[best];
-				SetConsoleTextAttribute(window, 0x07);	// unbold
-				cout << ".     \r";
-			}
-			while((generation < minGenerations) || ((generation < maxGenerations) && ((*max_element(bestScores,bestScores+generationsOfStability) - *min_element(bestScores,bestScores+generationsOfStability)) > (0.01*bestScores[generation%generationsOfStability]))));
-
-			// Notify that we have completed optimization
-			Beep(1568, 50); Beep(2352, 100);
-			
-			// Ask if user wants to keep trying to optimize
-			char wantToKeepGoing;
-			cout << "\n";
-			startQuestion(); 
-			if(generation < maxGenerations)
-			{
-				cout << "The score seems to be stable. Would you like to";
-			}
-			else
-			{
-				cout << "We have reached " << maxGenerations << " generations. Would you like to";
-			}
-			do
-			{
-				cout << " (";
-				coutBold("c");
-				cout << ")ontinue optimizing or (";
-				coutBold("s");
-				cout << ")how the teams? ";
-				cin >> wantToKeepGoing;
-			}
-			while(wantToKeepGoing != 'C' && wantToKeepGoing != 'c' && wantToKeepGoing != 'S' && wantToKeepGoing != 's');
-			keepOptimizing = (wantToKeepGoing == 'C' || wantToKeepGoing == 'c');
-			if(keepOptimizing)
-			{
-				extraGenerations += generation;
-				generation = 0;
-				printSeparator();
-				cout << "\n";
-			}
-		}
-		while(keepOptimizing);
-
-		// Print teams list on the screen and find out what the user wants to do
-		bool redisplay;
-		do
-		{
-			getTeamScores(students, numStudents, &genePool[best][0], teamSize, numTeams, teamScores, isolatedWomanPrevented, attributeLevel, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-			printTeams(students, &genePool[best][0], teamSize, numTeams, teamScores, "", largestNameSize, numAttributes, sectionName);
-	
-			// Keep these teams or start over, if desired
-			char wantToSave;
-			printSeparator();
-			cout << "\n These are the current teams.";
-			startQuestion();
-			cout << "Would you like to";
-			do
-			{
-				cout << " (";
-				coutBold("k");
-				cout << ")eep these teams, (";
-				coutBold("a");
-				cout << ")djust these teams, or (";
-				coutBold("s");
-				cout << ")huffle and try again? ";
-				cin >> wantToSave;
-			}
-			while(wantToSave != 'K' && wantToSave != 'k' && wantToSave != 'A' && wantToSave != 'a' && wantToSave != 'S' && wantToSave != 's');
-			dontLikeTeams = (wantToSave == 'S' || wantToSave == 's');
-			redisplay = (wantToSave == 'A' || wantToSave == 'a');
-			if(dontLikeTeams)
-			{
-				cout << "\n OK, we'll try again.\n";
-				startQuestion();
-				cout << "Would you like to change the teaming parameters";
-				char changeWeights;
-				do
-				{
-					cout << " (";
-					coutBold("y");
-					cout << "/";
-					coutBold("n");
-					cout << ")? ";
-					cin >> changeWeights;
-				}
-				while(changeWeights != 'Y' && changeWeights != 'y' && changeWeights != 'N' && changeWeights != 'n');
-				startQuestion();
-				cout << "Would you like to change the team sizes";
-				char changeSizes;
-				do
-				{
-					cout << " (";
-					coutBold("y");
-					cout << "/";
-					coutBold("n");
-					cout << ")? ";
-					cin >> changeSizes;
-				}
-				while(changeSizes != 'Y' && changeSizes != 'y' && changeSizes != 'N' && changeSizes != 'n');
-				if((changeWeights == 'Y') || (changeWeights == 'y'))
-				{
-					setParameters(attribQuestionText, genderQuestionIncluded, isolatedWomanPrevented, desiredTimeBlocksOverlap, minTimeBlocksOverlap, numAttributes, numMetrics, metricWeights, desireHomogeneous, meetingBlockSize);
-				}
-				if((changeSizes == 'Y') || (changeSizes == 'y'))
-				{
-					setTeamSizes(numStudents, teamSize, numTeams);
-				}
-	
-				createWindow("Optimizing the Teams");
-				cout << " The best score last time was ";
-				SetConsoleTextAttribute(window, 0x0F);	// bold
-				cout << fixed << setprecision(3) << bestScores[generation%generationsOfStability];
-				SetConsoleTextAttribute(window, 0x07);	// unbold
-				cout << ".\n";
-			}
-			else if(wantToSave == 'A' || wantToSave == 'a')
-			{
-				// Allow swapping of teammates
-				cin.clear();
-				cin.ignore(100, '\n');
-				// Ask which two IDs to swap places
-				startQuestion();
-				cout << "Enter the [";
-				coutBold("IDs");
-				cout << "] of two students to swap places, separated by spaces or commas. If none, hit [";
-				coutBold("enter");
-				cout << "]: ";
-				//get whole line input from user and parse into separate integers
-				string input;
-				getline(cin, input);
-				replace(input.begin(), input.end(), ',', ' ');	// replace any and all commas with spaces
-				stringstream stream(input);
-				short n[2]={0}, count=0;
-				while((count < 2) && (stream >> n[count]))		// process each entered ID, sending the value from the string into the array n
-				{
-					if(n[count] > 0 && n[count] <= numStudents)	//if this is a valid ID, count it
-					{
-					  count++;
-					}
-				}
-				if(count == 2)
-				{
-					swap(*find(&genePool[best][0], &genePool[best][0]+numStudents, n[0]-1), *find(&genePool[best][0], &genePool[best][0]+numStudents, n[1]-1));
-				}
-				cin.putback('\n');			// silly, but needed for correct user input in following code because assumption is coming from a "cin >>" operation
-			}
-		}
-		while(redisplay);
-	}
-	while(dontLikeTeams);
-
-
-	////////////////////////////////////////////
-	// Save teams list to text files, if desired, and end program
-	////////////////////////////////////////////
-
-	string filename;
-	cout << "\n You can save these teams to a file, if you'd like.\n";
-	startQuestion();
-	cout << "To save, enter a filename. Otherwise just hit [";
-	coutBold("enter");
-	cout << "]: ";
-	cin.clear();
-	cin.ignore(100, '\n');
-	getline(cin, filename);
-	if(!filename.empty())
-	{
-		if(filename.length() <5)
-		{
-			filename += ".txt";
-		}
-		else if(filename.substr(filename.length()-4) != ".txt")
-		{
-			filename += ".txt";
-		}
-		printTeams(students, &genePool[best][0], teamSize, numTeams, teamScores, filename, largestNameSize, numAttributes, sectionName);
-		cout << "        File \"" << filename << "\" saved.\n        Files for distributing to students and importing into the TEAMMATES peer review website also saved.\n";
-	}
-
-	cout << "\n\n";
-	startQuestion();
-	cout << "Press [";
-	coutBold("enter");
-	cout << "] to end the program.";
-	getline(cin, filename);	//just a dummy string input
-
-	return(0);
+    ui->studentTable->resizeColumnsToContents();
+    ui->studentTable->setSortingEnabled(true);
 }
 
 
 ////////////////////////////////////////////
-// Functions
+// Create and optimize teams using genetic algorithm
 ////////////////////////////////////////////
-
-
-//////////////////
-// Change the window title, size, and font color
-//////////////////
-void setWindowProps(string consoleTitle)
+QList<int> gruepr::optimizeTeams()
 {
-    COORD      c = {wWidth, wHeight*20};
-	SMALL_RECT r = {0, 0, wWidth-1, wHeight-1};
+    // seed the pRNG (need to specifically do it here because this is happening in a new thread)
+    srand(unsigned(time(nullptr)));
 
-	SetConsoleTitle(consoleTitle.c_str());
-	SetConsoleScreenBufferSize(window, c);
-    SetConsoleWindowInfo(window, true, &r);
-	SetConsoleTextAttribute(window, 0x07);	// "unbold" (grey) text
+    // allocate memory for genepool
+    int** genePool = new int*[populationSize];
+    for(int i = 0; i < populationSize; ++i)
+        genePool[i] = new int[numStudents];
 
-    return;
-}
+    // allocate memory for temporary genepool to hold each next generation before copying back into genepool
+    int** tempGen = new int*[populationSize];
+    for(int i = 0; i < populationSize; ++i)
+        tempGen[i] = new int[numStudents];
 
+    int best;
+    double teamScores[maxStudents];
+    // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
+    // Each genome in this generation stores (by permutation) which students are in which team.
+    // Array has one entry per student and lists, in order, the "ID number" of the
+    // student, referring to the order of the student in the students[] array.
+    // For example, if team 1 has 4 students, and genePool[0][] = [4, 9, 12, 1, 3, 6...], then the first genome places
+    // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
-//////////////////
-// Open the data file and check that it is not empty, returning the first line of data (the header row)
-//////////////////
-string openFile(ifstream& file)
-{
-	createWindow("Student Survey Data File");
-	string filename, headerRow;
-	bool badFile;	// if can't find file or file is empty, ask for new file
-	do
-	{
-		badFile = false;
-		startQuestion();
-		cout << "What is the student survey filename (include extension if not '.csv' or '.txt')? ";
-		string base_filename;
-		getline(cin, base_filename);
-		filename = base_filename;
-		file.open(filename.c_str());
-		if(file.fail())	//if a file with this exact filename cannot be found
-		{
-			filename = base_filename + ".csv";
-			file.open(filename.c_str());	//try "base_filename".csv
-			if(file.fail())					//still no?
-			{
-				filename = base_filename + ".txt";
-				file.open(filename.c_str());	//try "base_filename".txt
-				if(file.fail())
-				{
-					cout << "\n        ";
-					SetConsoleTextAttribute(window, 0x4F);	// bold, red background
-					cout << "Cannot find file!";
-					SetConsoleTextAttribute(window, 0x07);	// unbold
-					cout << "\n";
-					Beep(440, 100);
-					badFile = true;
-				}
-			}
-		}
-		if(file.is_open())
-		{
-			getline(file, headerRow);	// read first line (header row) and make sure file isn't empty
-			if(headerRow.empty())
-			{
-				cout << "\n        ";
-				SetConsoleTextAttribute(window, 0x4F);	// bold, red background
-				cout << "File \"" << filename << "\" is empty!\n";
-				SetConsoleTextAttribute(window, 0x07);	// unbold
-				cout << "\n";
-				Beep(440, 100);
-				badFile = true;
-				file.close();
-			}
-		}
-	}
-	while(badFile);
+    //start with randPerm as just the sorted array {0, 1, 2, 3,..., numStudents}
+    int randPerm[maxStudents];
+    for(int i = 0; i < numStudents; i++)
+    {
+        randPerm[i] = i;
+    }
+    //then make "populationSize" number of random permutations for initial population, store in genePool
+    for(int i = 0; i < populationSize; i++)
+    {
+        std::random_shuffle(randPerm, randPerm+numStudents);
+        for(int ID = 0; ID < numStudents; ID++)
+        {
+            genePool[i][ID] = randPerm[ID];
+        }
+    }
 
-	coutBold("\n        File \"" + filename + "\" found.\n");
-	setWindowProps(" File:[" + filename + "]  -  gruepr");
+    //now optimize
+    int temp[maxStudents];
+    double scores[populationSize], tempScores[populationSize];					// total score for each genome in the gene pool
+    double bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
+    int generation = 0;
+    int extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
+    double scoreStability;
+    bool localOptimizationStopped = false;
+    do								// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
+    {
+        do							// keep optimizing until reach maxGenerations or stable
+        {
+            tourneyPlayer players[tournamentSize];
+            int tourneyPicks[tournamentSize];
 
-	return(headerRow);
-}
+            //calculate all of this generation's scores
+            for(int i = 0; i < populationSize; i++)
+            {
+                scores[i] = getTeamScores(&genePool[i][0], teamScores);
+            }
 
+            //find the elites (best scores) in genePool and copy each to tempGen
+            //store and use a temporary scores array so we can manipulate
+            for(int i = 0; i < populationSize; i++)
+            {
+                tempScores[i] = scores[i];
+            }
+            for(int i = 0; i < numElites; i++)
+            {
+                best = static_cast<int>(std::distance(tempScores, std::max_element(tempScores, tempScores+populationSize)));
+                for(int ID = 0; ID < numStudents; ID++)
+                {
+                    tempGen[i][ID] = genePool[best][ID];
+                }
+                tempScores[best] = *std::min_element(tempScores, tempScores+populationSize);      // set this tempScores value to the minimum one, so we can find the next biggest one during the next time through the loop
+            }
 
-//////////////////
-// Read from the datafile one student's info
-//////////////////
-string readCSVField(stringstream& row)
-{
-	char firstchar;
-	row >> firstchar;		// read the first character to see if this field is enclosed in quotation marks, indicating that commas might be found within the field
+            //create populationSize-numElites children and place in tempGen
+            for(int i = numElites; i < populationSize; i++)
+            {
+                //get tournamentSize random values from 0 -> populationSize and copy those index-valued genePool genomes and scores into players[]
+                for(int j = 0; j < tournamentSize; j++)
+                {
+                    tourneyPicks[j] = rand()%populationSize;
+                    for(int ID = 0; ID < numStudents; ID++)
+                    {
+                        players[j].genome[ID] = genePool[tourneyPicks[j]][ID];
+                    }
+                    players[j].score = scores[tourneyPicks[j]];
+                }
 
-	string field;
-	if(firstchar == '"')
-	{
-		getline(row, field, '"');	// put the text between quotation marks into field
-		row >> firstchar;	// read the stream one more character, past the comma at end of this field
-	}
-	else if(firstchar == ',')
-	{
-		field = "";			//empty field
-	}
-	else
-	{
-		getline(row, field, ',');
-		field = firstchar + field;
-	}
+                //sort tournament genomes so top genomes in tournament are at the beginning
+                std::sort(players, players+tournamentSize, [](tourneyPlayer i,tourneyPlayer j){return i.score>j.score;});
 
-	return(field);
-}
+                //pick two genomes from tournament, most likely from the beginning so that best genomes are more likely have offspring
+                int parent[2], choice = 0, play = 0;
+                while(choice < 2)
+                {
+                    if(rand() < topGenomeLikelihood)	//choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on; 2nd parent then chosen from remaining (lower) players in tournament
+                    {
+                        parent[choice] = play%tournamentSize;       // using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
+                        choice++;
+                    }
+                    play++;
+                }
 
+                //mate top two genomes and put child in tempGen
+                GA::mate(players[parent[0]].genome, players[parent[1]].genome, teamSize, numTeams, temp, numStudents);
+                for(int ID = 0; ID < numStudents; ID++)
+                {
+                    tempGen[i][ID] = temp[ID];
+                }
+            }
 
-//////////////////
-// Read from the datafile one student's info
-//////////////////
-studentrecord readOneRecordFromFile(ifstream& file, bool genderQuestionIncluded, short numAttributes, short attributeLevel[], bool sectionIncluded, bool notesIncluded)
-{
-	studentrecord student;
-	string entireRow, field;
-	getline(file, entireRow);
-	stringstream remainingRow(entireRow);
+            //mutate genomes in tempGen with some probability--if a mutation occurs, mutate same genome again with same probability
+            for(int i = 0; i < populationSize; i++)
+            {
+                while(rand() < mutationLikelihood)
+                {
+                    GA::mutate(&tempGen[i][0], numStudents);
+                }
+            }
 
-	// 2nd field in line; should be the first name/preferred name
-	student.firstname = readCSVField(remainingRow);
-	student.firstname[0] = toupper(student.firstname[0]);
-	//cout << "--" << student.firstname << "  ";
+            //copy all of tempGen into genePool
+            for(int genome = 0; genome < populationSize; genome++)
+            {
+                for(int ID = 0; ID < numStudents; ID++)
+                {
+                    genePool[genome][ID] = tempGen[genome][ID];
+                }
+            }
 
-	// 3rd field in line; should be the last name
-	student.lastname = readCSVField(remainingRow);
-	student.lastname[0] = toupper(student.lastname[0]);							// for alphabetization, make sure first character is upper-case
-	//cout << "--" << student.lastname << "  ";
+            generation++;
 
-	// 4th field in line; should be the email
-	field = readCSVField(remainingRow);
-	string user = field.substr(0,field.find('@'));
-	string domain = field.substr(field.find('@'));								// find the domain (all text from the @)
-	transform(domain.begin(), domain.end(), domain.begin(), ::tolower);			// convert the domain to lower case
-	student.email = user+domain;
-	//cout << "--" << student.email << "  ";
+            //determine best score and save in historical record
+            for(int i = 0; i < populationSize; i++)
+            {
+                scores[i] = getTeamScores(&genePool[i][0], teamScores);
+            }
+            best = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));    //index of largest element in scores[]
+            bestScores[generation%generationsOfStability] = scores[best];	//array of the best scores from the last generationsOfStability generations, wrapping around the storage location
 
-	// optional 5th field in line; might be the gender
-	if(genderQuestionIncluded)
-	{
-		field = readCSVField(remainingRow);
-		transform(field.begin(), field.end(), field.begin(), ::tolower);		// convert to lower case
-		student.woman = (field.find("woman") != string::npos);					// true if "woman" is found anywhere in text
-		//cout << student.woman << "  ";
-	}
-	else
-	{
-		student.woman = false;
-	}
+            scoreStability = scores[best] / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
 
-	// optional next 9 fields in line; might be the attributes
-	for(short attrib = 0; attrib < numAttributes; attrib++)
-	{
-		field = readCSVField(remainingRow);
-		short chrctr = 0;
-		while((field[chrctr] < '0' || field[chrctr] > '9') && (chrctr < field.size()))	// search through this field character by character until we find a numeric digit (or reach the end)
-		{
-			chrctr++;
-		}
-		if(field[chrctr] >= '0' && field[chrctr] <= '9')
-		{
-			student.attribute[attrib] = field[chrctr] - '0';							// converting number character to single digit
-			//cout << "attribute " << attrib+1 << ": " << student.attribute[attrib] << "  ";
-			if(student.attribute[attrib] > attributeLevel[attrib])					// attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
-			{
-				attributeLevel[attrib] = student.attribute[attrib];
-				//cout << "Attribute " << attrib << ": now max level is " << attributeLevel[attrib] << endl;
-			}
-		}
-	}
+            emit generationComplete(scores[best], generation+extraGenerations, scoreStability);
 
-	// next 7 fields; should be the schedule
-	for(short day = 0; day < 7; day++)
-	{
-		if(!(sectionIncluded || notesIncluded) && (day == 6))						// no section or notes and this is the last day, so read to end of line instead of to a comma
-		{
-			remainingRow >> field;
-		}
-		else
-		{
-			field = readCSVField(remainingRow);
-		}
-		transform(field.begin(), field.end(), field.begin(), ::tolower);				// convert to lower case (so ambivalent to AM vs am vs Am)
-		for(short time = 0; time < dailyTimeBlocks; time++)
-		{
-			student.unavailable[(day*dailyTimeBlocks)+time] = (field.find(timeNames[time]) != string::npos);
-			//cout << student.unavailable[(day*dailyTimeBlocks)+time] << "  ";
-		}
-	}
+            optimizationStoppedmutex.lock();
+            localOptimizationStopped = optimizationStopped;
+            optimizationStoppedmutex.unlock();
+        }
+        while(!localOptimizationStopped && ((generation < minGenerations) || ((generation < maxGenerations) && (scoreStability < 100))));
 
-	// optional last fields; might be section and/or additional notes
-	if(sectionIncluded)
-	{
-		if(notesIncluded)
-		{
-			// read next field for section
-			field = readCSVField(remainingRow);
-			// read to end of line and store as notes
-			remainingRow >> student.notes;
-		}
-		else
-		{
-			// read to end of line for section
-			remainingRow >> field;
-		}
-		student.section = field;
-	}
-	else if(notesIncluded)
-	{
-		// read to end of line for notes
-		remainingRow >> student.notes;
-	}
-	//cout << student.section << endl;
-    //cout << student.notes << endl << endl;
+        if(localOptimizationStopped)
+        {
+            keepOptimizing = false;
+        }
+        else
+        {
+            emit optimizationMightBeComplete(generation);
 
-	return student;
-}
+            // wait for user to enter their choice in the dialogbox
+            QEventLoop waitForUserToChoose;
+            connect(this, &gruepr::haveOurKeepOptimizingValue, &waitForUserToChoose, &QEventLoop::quit);
+            waitForUserToChoose.exec();
 
+            if(keepOptimizing)
+            {
+                extraGenerations += generation;
+                generation = 0;
+            }
+        }
+    }
+    while(keepOptimizing);
 
-//////////////////
-// Set or change the teaming parameters
-//////////////////
-void setParameters(string attribQuestionText[], bool genderQuestionIncluded, bool& isolatedWomanPrevented, short& desiredTimeBlocksOverlap, short& minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short& meetingBlockSize)
-{
-	createWindow("Teaming Parameters");
-	if(genderQuestionIncluded)
-	{
-		char preventIsolatedWoman;
-		printSectionHeader("Gender:");
-		startQuestion();
-		cout << "Should teams with one woman be";
-		do
-		{
-			cout << " (";
-			coutBold("p");
-			cout << ")revented or (";
-			coutBold("a");
-			cout << ")llowed? ";
-			cin >> preventIsolatedWoman;
-		}
-		while(preventIsolatedWoman != 'P' && preventIsolatedWoman != 'p' && preventIsolatedWoman != 'A' && preventIsolatedWoman != 'a');
-		isolatedWomanPrevented = (preventIsolatedWoman == 'P' || preventIsolatedWoman == 'p');
-		cout << endl;
-		printSeparator();
-	}
-	bool attributesThatMatter = false;	// will only ask for the weight of schedule overlap if there is one or more attributes with a non-zero weight
-	for(short attrib = 0; attrib < numAttributes; attrib++)
-	{
-		printSectionHeader("Skill/attitude " + to_string(attrib+1) + ":  \"" + attribQuestionText[attrib] + "\"");
-		// Get weight of attribute
-		startQuestion();
-		cout << "What is the relative weight or importance"; 
-		do
-		{
-			cout << " (min 0, max 100)? ";
-			cin >> metricWeights[attrib];
-		}
-		while(metricWeights[attrib] < 0 || metricWeights[attrib] > 100);
-		if(metricWeights[attrib] != 0)
-		{
-			// Distribution so this attribute is homogeneous or heterogeneous?
-			attributesThatMatter = true;
-			char diffOrSame;
-			startQuestion();
-			cout << "Do you prefer that all the students on a team have";
-			do
-			{
-				cout << " (";
-				coutBold("d");
-				cout << ")ifferent levels or the (";
-				coutBold("s");
-				cout << ")ame level? ";
-				cin >> diffOrSame;
-			}
-			while(diffOrSame != 'D' && diffOrSame != 'd' && diffOrSame != 'S' && diffOrSame != 's');
-			desireHomogeneous[attrib] = (diffOrSame == 'S' || diffOrSame == 's');
-		}
-		cout << endl;
-		printSeparator();
-	}
-	bool scheduleMatters = false;	// will only ask for the desired amounts schedule overlap if schedule has non-zero weight
-	printSectionHeader("Schedule:");
-	if(attributesThatMatter)		// if no attributes matter, then schedule is only thing that matters and we do not have to ask for its weight
-	{
-		startQuestion();
-		cout << "What is the relative weight or importance";
-		do
-		{
-			cout << " (min 0, max 100)? ";
-			cin >> metricWeights[numMetrics-1];
-		}
-		while(metricWeights[numMetrics-1] < 0 || metricWeights[numMetrics-1] > 100);
-		if(metricWeights[numMetrics-1] != 0)
-		{
-			scheduleMatters = true;
-		}
-		//normalization, so sum of all weights = numMetrics; note: accumulate is from <numeric> header and will sum an array
-		float totalWeight = accumulate(metricWeights, metricWeights+numMetrics, 0.0)/numMetrics;
-		//cout << endl << "totalWeight: " << totalWeight << endl;
-		for(short metric = 0; metric < numMetrics; metric++)
-		{
-			metricWeights[metric] /= totalWeight;
-			//cout << "Metric" << metric << ": " << metricWeights[metric] << endl;
-		}
-	}
-	else		// all attribute weights were set to 0, so set schedule weight to full weight
-	{
-		metricWeights[numMetrics-1] = numMetrics;
-		scheduleMatters = true;
-	}
-	if(scheduleMatters)
-	{
-//		cout << "\n We will maximize available meeting times but first:\n  -try to get all teams up to a ";
-//		coutBold("desired");
-//		cout << " number of meeting times and\n  -reject any teams below a ";
-//		coutBold("minimum");
-//		cout << " number of meeting times.\n";
-		startQuestion();
-		cout << "Should the length of a team meeting be at least";
-		do
-		{
-			cout << " (";
-			coutBold("1");
-			cout << ") hour or (";
-			coutBold("2");
-			cout << ") hours? ";
-			cin >> meetingBlockSize;
-		}
-		while(meetingBlockSize < 1 || meetingBlockSize > 2);
-		startQuestion();
-		cout << "What is the ";
-		coutBold("desired");
-		cout << " number of meeting times";
-		do
-		{
-			cout << " (min 1, max " << numTimeBlocks << ")? ";
-			cin >> desiredTimeBlocksOverlap;
-		}
-		while(desiredTimeBlocksOverlap < 1 || desiredTimeBlocksOverlap > numTimeBlocks);
-		if(desiredTimeBlocksOverlap > 1)
-		{
-			startQuestion();
-			cout << "What is the ";
-			coutBold("minimum");
-			cout << " number of meeting times";
-			do
-			{
-				cout << " (min 0, max " << desiredTimeBlocksOverlap-1 << ")? ";
-				cin >> minTimeBlocksOverlap;
-			}
-			while(minTimeBlocksOverlap < 0 || minTimeBlocksOverlap >= desiredTimeBlocksOverlap);
-		}
-		else
-		{
-			minTimeBlocksOverlap = 0;
-		}
-	}
-	else
-	{
-		desiredTimeBlocksOverlap = numTimeBlocks;
-		minTimeBlocksOverlap = 0;
-	}
-	
-	return;
-}
+    finalGeneration = QString::number(generation + extraGenerations);
+    finalTeamSetScore = QString::number(bestScores[generation%generationsOfStability]);
 
+    //copy best team set into a QList to return
+    QList<int> bestTeamSet;
+    for(int ID = 0; ID < numStudents; ID++)
+    {
+        bestTeamSet << genePool[best][ID];
+    }
 
-//////////////////
-// Set or change the team sizes
-//////////////////
-void setTeamSizes(short numStudents, short teamSize[], short& numTeams)
-{
-	createWindow("Team Size");
-	printSectionHeader("There are " + to_string(numStudents) + " students in this section.");
+    // free memory for genepool
+    for(int i = 0; i < populationSize; ++i)
+        delete [] genePool[i];
+    delete[] genePool;
 
-	// Ask user for the ideal team size
-	short desiredTeamSize;					// how many students on the ideal team
-	startQuestion();
-	cout << "What is the ideal number of students on each team"; 
-	do
-	{
-		cout << " (min 2, max " << numStudents/2 << "; enter 0 for custom team sizes)? ";
-		cin >> desiredTeamSize;
-	}
-	while((desiredTeamSize < 2 || desiredTeamSize > numStudents/2) && (desiredTeamSize != 0));
-	
-	if(desiredTeamSize == 0)
-	{
-		// Well la-di-da, the user wants to select their own team sizes
-		startQuestion();
-		cout << "OK. How many students would you like on team: " << endl;
-		short team = 0;
-		do
-		{
-			do
-			{
-				cout << "          " << team+1 << " (students remaining = " << numStudents << "): ";
-				cin >> teamSize[team];
-			}
-			while((teamSize[team] > numStudents) || (teamSize[team] <= 0));
-			numStudents -= teamSize[team];
-			team++;
-		}
-		while(numStudents > 0);
-		numTeams = team;	
-	}
-	else
-	{
-		// Get first guess about how many teams there should be (this may be off by -1 if the number of students do not divide evenly)
-		numTeams = numStudents/desiredTeamSize;
-	
-		// Figure out what to do if we can't evenly split the students into the desired size
-		if(numStudents%desiredTeamSize != 0)
-		{
-			short smallerTeamSizes[maxStudents]={0}, smallerTeamsSizeA, smallerTeamsSizeB, numSmallerATeams, largerTeamSizes[maxStudents]={0}, largerTeamsSizeA, largerTeamsSizeB, numLargerATeams;
-	
-			// What are the team sizes when desiredTeamSize represents a maximum size?
-			for(short student = 0; student < numStudents; student++)	// run through every student
-			{
-				(smallerTeamSizes[student%(numTeams + 1)])++;			// add one student to each team (with 1 additional team relative to before) in turn until we run out of students
-				smallerTeamsSizeA = smallerTeamSizes[student%(numTeams + 1)];	// the larger of the two (uneven) team sizes
-				numSmallerATeams = (student%(numTeams + 1))+1;			// the number of larger teams
-			}
-			smallerTeamsSizeB = smallerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
-	
-			// And what are the team sizes when desiredTeamSize represents a minimum size?
-			for(short student = 0; student < numStudents; student++)	// run through every student
-			{
-				(largerTeamSizes[student%numTeams])++;					// add one student to each team in turn until we run out of students
-				largerTeamsSizeA = largerTeamSizes[student%numTeams];	// the larger of the two (uneven) team sizes
-				numLargerATeams = (student%numTeams)+1;					// the number of larger teams
-			}
-			largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
-	
-			// Ask user which team sizes to choose (or let them enter custom sizes)
-			char teamSizeChoice;
-			startQuestion();
-			cout << "Since we can't evenly split teams of that size, should we have:";
-			// display the sizes of the smaller teams 
-			cout << "\n          (";
-			coutBold("a");
-			cout << ") ";
-			if(numSmallerATeams > 0)
-			{
-				cout << numSmallerATeams << " team";
-				if(numSmallerATeams > 1)
-				{
-					cout << "s";
-				}
-				cout << " of " << smallerTeamsSizeA << " student";
-				if(smallerTeamsSizeA > 1)
-				{
-					cout << "s";
-				}
-			}
-			if((numSmallerATeams > 0) && ((numTeams+1-numSmallerATeams) > 0))
-			{
-				cout << " + ";
-			}
-			if((numTeams+1-numSmallerATeams) > 0)
-			{
-				cout << numTeams+1-numSmallerATeams << " team";
-				if((numTeams+1-numSmallerATeams) > 1)
-				{
-					cout << "s";
-				}
-				cout << " of " << smallerTeamsSizeB << " student";
-				if(smallerTeamsSizeB > 1)
-				{
-					cout << "s";
-				}
-			}
-			// display the sizes of the larger teams 
-			cout << "\n          (";
-			coutBold("b");
-			cout << ") ";
-			if((numTeams-numLargerATeams) > 0)
-			{
-				cout << numTeams-numLargerATeams << " team";
-				if((numTeams-numLargerATeams) > 1)
-				{
-					cout << "s";
-				}
-				cout << " of " << largerTeamsSizeB << " student";
-				if(largerTeamsSizeB > 1)
-				{
-					cout << "s";
-				}
-			}
-			if(((numTeams-numLargerATeams) > 0) && (numLargerATeams > 0))
-			{
-				cout << " + ";
-			}
-			if(numLargerATeams > 0)
-			{
-				cout << numLargerATeams << " team";
-				if(numLargerATeams > 1)
-				{
-					cout << "s";
-				}
-				cout << " of " << largerTeamsSizeA << " student";
-				if(largerTeamsSizeA > 1)
-				{
-					cout << "s";
-				}
-			}
-			// offer custom option
-			cout << "\n          (";
-			coutBold("c");
-			cout << ") custom team sizes";
-			cout << endl << endl;
-			do
-			{
-			cout << "          (";
-			coutBold("a");
-			cout << ", ";
-			coutBold("b");
-			cout << ", or ";
-			coutBold("c");
-			cout << ") ? ";
-				cin >> teamSizeChoice;
-			}
-			while(teamSizeChoice != 'A' && teamSizeChoice != 'a' && teamSizeChoice != 'B' && teamSizeChoice != 'b' && teamSizeChoice != 'C' && teamSizeChoice != 'c');
-			if(teamSizeChoice == 'A' || teamSizeChoice == 'a')			// the user wants the smaller teams
-			{
-				numTeams++;										// increase the number of teams "officially"
-				for(short team = 0; team < numTeams; team++)	// run through every team 
-				{
-					teamSize[team] = smallerTeamSizes[team];	// set the size to the smaller sizes
-				}
-			}
-			else if(teamSizeChoice == 'B' || teamSizeChoice == 'b')		// the user wants the larger teams
-			{
-				for(short team = 0; team < numTeams; team++)	// run through every team
-				{
-					teamSize[team] = largerTeamSizes[team];		// set the size to the larger sizes
-				}
-			}
-			else									// Well la-di-da, the user wants to select their own team sizes
-			{
-				startQuestion();
-				cout << "OK. How many students would you like on team: " << endl;
-				short team = 0;
-				do
-				{
-					do
-					{
-						cout << "          " << team+1 << " (students remaining = " << numStudents << "): ";
-						cin >> teamSize[team];
-					}
-					while((teamSize[team] > numStudents) || (teamSize[team] <= 0));
-					numStudents -= teamSize[team];
-					team++;
-				}
-				while(numStudents > 0);
-				numTeams = team;	
-			}
-		}
-		else		//students divide evenly into teams--it's the simple case
-		{
-			for(short team = 0; team < numTeams; team++)	// run through every team
-			{
-				teamSize[team] = desiredTeamSize;			// all teams are the desired size
-			}
-		}
-	}
+    // free memory for tempGen
+    for(int i = 0; i < populationSize; ++i)
+        delete [] tempGen[i];
+    delete[] tempGen;
 
-	return;
-}
-
-
-//////////////////
-// Print a student's ID #, name, and any students with whom they are prevented from being/required to be teammates
-//////////////////
-void printStudentInfo(short ID, studentrecord student, short largestNameSize, short numStudents, short PrevOrReq)
-{
-	cout << " [" << setw(3) << right;
-	coutBold(to_string(ID+1));
-	cout << "] ";
-	string name = student.firstname + " " + student.lastname;
-	if((student.firstname.size()+student.lastname.size()) > 22)
-	{
-		name = name.substr(0,22) + (char)236;
-	}
-
-	cout << left << setfill((char)250) << setw(largestNameSize+2) << name;	// Align columns by padding with dots
-
-	string otherIDs;
-	for(short otherStudent = 0; otherStudent < numStudents; otherStudent++)
-	{
-		if((PrevOrReq == 0) && student.preventedWith[otherStudent])
-		{
-			otherIDs += (to_string(otherStudent+1) + ",");
-		}
-		else if((PrevOrReq == 1) && student.requiredWith[otherStudent])
-		{
-			otherIDs += (to_string(otherStudent+1) + ",");
-		}
-	}
-	// if any prevented/required teammates were printed, get rid of the trailing comma
-	if(!otherIDs.empty())
-	{
-		otherIDs.pop_back();
-	}
-	cout << setfill(' ') << setw(27) << otherIDs;
-	return;
-}
-
-
-//////////////////
-// Print teams (to screen or text file), including names, emails, genders, attribute scores, and notes of each student plus table of weekly availability
-//////////////////
-void printTeams(studentrecord students[], short teammates[], short teamSize[], short numTeams, float teamScores[], string filename, short largestNameSize, short numAttributes, string sectionName)
-{
-	if(filename == "")
-	{
-		createWindow("The Teams");
-	}
-
-	//open the output file if writing this to file
-	ofstream teamFile, studentsFile, teammatesFile;
-	if(filename != "")
-	{
-		teamFile.open(filename.c_str());
-		string filename2=filename;
-		filename2.insert(filename2.size()-4, "_students");
-		studentsFile.open(filename2.c_str());
-		filename2=filename;
-		filename2.insert(filename2.size()-4, "_TEAMMATES");
-		teammatesFile.open(filename2.c_str());
-		teammatesFile << "Section\tTeam\tName\tEmail" << endl;
-	}
-
-	//loop through every team
-	short ID = 0;
-	for(short team = 0; team < numTeams; team++)
-	{
-		short canMeetAt[7][dailyTimeBlocks]={0};
-		string output;	//text to be output to either screen or file
-		output = "Team " + to_string(team+1) + "\n";
-		if(filename == "")
-		{
-			coutBold(output);
-		}
-		else
-		{
-			teamFile << output;
-			studentsFile << output;
-		}
-		//loop through each teammate in the team
-		for(short student = 0; student < teamSize[team]; student++)
-		{
-			if(filename == "")
-			{
-				if((teammates[ID]+1) < 100)
-				{
-					cout << " ";
-				}
-				if((teammates[ID]+1) < 10)
-				{
-					cout << " ";
-				}
-				cout << " [";
-				coutBold(to_string(teammates[ID]+1));
-				cout <<  "]";
-				output = "";
-			}
-			else
-			{
-				output = "   ";
-			}
-			if(students[teammates[ID]].woman)
-			{
-				output += "  W  ";
-			}
-			else
-			{
-				output += "     ";
-			}
-			for(short attrib = 0; attrib < numAttributes; attrib++)
-			{
-				output += to_string(students[teammates[ID]].attribute[attrib]) + "  ";
-			}
-			output += students[teammates[ID]].firstname;
-			output += " " ;
-			output += students[teammates[ID]].lastname;
-			output += string(largestNameSize+2-students[teammates[ID]].firstname.size()-students[teammates[ID]].lastname.size(), ' ');		// Align columns by padding with spaces
-			output += students[teammates[ID]].email;
-			//output += "     ";
-			//output += students[teammates[ID]].notes;
-			if(filename == "")
-			{
-				cout << output << endl;
-			}
-			else
-			{
-				teamFile << output << endl;
-				studentsFile << "   " << students[teammates[ID]].firstname << " " << students[teammates[ID]].lastname << string(largestNameSize+2-students[teammates[ID]].firstname.size()-students[teammates[ID]].lastname.size(), ' ') << students[teammates[ID]].email << endl;
-				teammatesFile << sectionName << "\t" << (team+1) << "\t" << students[teammates[ID]].firstname << " " << students[teammates[ID]].lastname << "\t" << students[teammates[ID]].email << endl;
-			}
-			for(short day = 0; day < 7; day++)
-			{
-				for(short time = 0; time < dailyTimeBlocks; time++)
-				{
-					if(!students[teammates[ID]].unavailable[(day*dailyTimeBlocks)+time])
-					{
-						canMeetAt[day][time]++;
-					}
-				}
-			}
-			ID++;
-		}
-		if(filename == "")
-		{
-			cout << "Score = " << fixed << setprecision(2) << teamScores[team] << endl << "Availability:" << endl;
-		}
-		else
-		{
-			teamFile << "Score = " << fixed << setprecision(2) << teamScores[team] << endl << "Availability:" << endl;
-			studentsFile << endl << "Availability:" << endl;
-		}
-		output = string(15, ' ');
-		for(short day = 0; day < 7; day++)
-		{
-			output += string(2, ' ') + dayNames[day] + string(2, ' ');
-		}
-		if(filename == "")
-		{
-			cout << output << endl;
-		}
-		else
-		{
-			teamFile << output << endl;
-			studentsFile << output << endl;
-		}
-		for(short time = 0; time < dailyTimeBlocks; time++)
-		{
-			output = timeNames[time] + string((14-timeNames[time].size()), ' ');
-			for(short day = 0; day < 7; day++)
-			{
-				string percentage = to_string((100*canMeetAt[day][time])/teamSize[team]);
-				output += string(5-percentage.size(), ' ') + percentage + "% ";
-			}
-			if(filename == "")
-			{
-				cout << output << endl;
-			}
-			else
-			{
-				teamFile << output << endl;
-				studentsFile << output << endl;
-			}
-		}
-		if(filename == "")
-		{
-			cout << endl << endl;
-		}
-		else
-		{
-			teamFile << endl <<endl;
-			studentsFile << endl << endl;
-		}
-	}
-
-	if(filename != "")
-	{
-		teamFile.close();
-		studentsFile.close();
-		teammatesFile.close();
-	}
-	return;
+    return bestTeamSet;
 }
 
 
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-float getTeamScores(studentrecord students[], short numStudents, short teammates[], short teamSize[], short numTeams, float teamScores[], bool isolatedWomanPrevented, short attributeLevel[], short desiredTimeBlocksOverlap, short minTimeBlocksOverlap, short numAttributes, short numMetrics, float metricWeights[], bool desireHomogeneous[], short meetingBlockSize)
+double gruepr::getTeamScores(int teammates[], double teamScores[])
 {
-	// Loop through each attribute
-	float attributeScore[numAttributes][numTeams];
-	short ID;
-	for(short attrib = 0; attrib < numAttributes; attrib++)
-	{
-		ID = 0;
-		for(short team = 0; team < numTeams; team++)
-		{
-			short maxLevel = students[teammates[ID]].attribute[attrib], minLevel = students[teammates[ID]].attribute[attrib];
-			for(short student = 0; student < teamSize[team]; student++)
-			{
-				if(students[teammates[ID]].attribute[attrib] > maxLevel)
-				{
-					maxLevel = students[teammates[ID]].attribute[attrib];
-				}
-				if(students[teammates[ID]].attribute[attrib] < minLevel)
-				{
-					minLevel = students[teammates[ID]].attribute[attrib];
-				}
-				ID++;
-			}
-			attributeScore[attrib][team] = (maxLevel - minLevel) / (attributeLevel[attrib] - 1.0);	// range in team's values divided by total possible range
-			if(desireHomogeneous[attrib])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
-			{
-				attributeScore[attrib][team] = 1 - attributeScore[attrib][team];
-			}
-			attributeScore[attrib][team] *= metricWeights[attrib];
-			//cout << " attribute " << attrib+1 << " score = " << attributeScore[attrib][team];
-		}
-	}
+    // Normalize attribute and schedule weights such that the sum of all weights = numAttributes + 1 (the +1 is for schedule)
+    double realAttributeWeights[maxAttributes];
+    double totalWeight = teamingOptions.scheduleWeight + std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, 0.0);
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
+    }
+    double realScheduleWeight = teamingOptions.scheduleWeight * (dataOptions.numAttributes + 1) / totalWeight;
 
-	// Schedule scores
-	float schedScore[numTeams]={0};
-	ID = 0;
-	for(short team = 0; team < numTeams; team++)
-	{
-		short firstStudentInTeam = ID;
-		//cout << endl << "Team " << team+1 << ": " << endl;
-		// combine each student's schedule array into a team schedule array
-		bool teamAvailability[numTimeBlocks];
-		for(short time = 0; time < numTimeBlocks; time++)
-		{
-			ID = firstStudentInTeam;
-			teamAvailability[time] = true;
-			for(short student = 0; student < teamSize[team]; student++)
-			{
-				teamAvailability[time] = teamAvailability[time] && !students[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
-				ID++;
-			}
-		}
-		// count how many free time blocks there are
-		if(meetingBlockSize == 1)
-		{
-			for(short time = 0; time < numTimeBlocks; time++)
-			{
-				if(teamAvailability[time])
-				{
-					schedScore[team]++;
-					//cout << "free hour: " << time;
-				}
-			}
-		}
-		else
-		{
-			for(short day = 0; day < 7; day++)
-			{
-				for(short time = 0; time < dailyTimeBlocks-1; time++)
-				{
-					if(teamAvailability[(day*dailyTimeBlocks)+time])
-					{
-						time++;
-						if(teamAvailability[(day*dailyTimeBlocks)+time])
-						{
-							schedScore[team]++;
-							//cout << "free block: " << (day*dailyTimeBlocks)+time-1];
-						}
-					}
-				}
-			}
-		}
-		// convert counts to a schedule score
-		if(schedScore[team] > desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
-		{
-			schedScore[team] = 1 + ((schedScore[team] - desiredTimeBlocksOverlap) / (4*desiredTimeBlocksOverlap));
-			schedScore[team] *= metricWeights[numMetrics-1];	// schedule weight is always the last entry in the weights array
-		}
-		else if(schedScore[team] >= minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
-		{
-			schedScore[team] /= desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
-			schedScore[team] *= metricWeights[numMetrics-1];	// schedule weight is always the last entry in the weights array
-		}
-		else													// if team has fewer than minTimeBlocksOverlap, apply penalty
-		{
-			schedScore[team] = -numMetrics;
-		}
-		//cout << schedScore[team] << endl;
-	}
+    // Create and initialize each component score
+    double attributeScore[maxAttributes][maxStudents];
+    double schedScore[maxStudents];
+    int genderAdj[maxStudents];
+    double prevTeammateAdj[maxStudents];
+    double reqTeammateAdj[maxStudents];
+    for(int team = 0; team < numTeams; team++)
+    {
+        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+        {
+            attributeScore[attribute][team] = 0;
+        }
+        schedScore[team] = 0;
+        genderAdj[team] = 0;
+        prevTeammateAdj[team] = 0;
+        reqTeammateAdj[team] = 0;
+    }
+    int ID;
 
-	// Determine adjustments for isolated woman teams
-	short genderAdj[numTeams]={0};
-	ID = 0;
-	for(short team = 0; team < numTeams; team++)
-	{
-		for(short student = 0; student < teamSize[team]; student++)
-		{
-			if(students[teammates[ID]].woman)
-			{
-				genderAdj[team]++;
-			}
-			ID++;
-		}
-		if((genderAdj[team] == 1) && isolatedWomanPrevented)
-		{
-			genderAdj[team] = -numMetrics;
-		}
-		else
-		{
-			genderAdj[team] = 0;
-		}
-	}
+    // Calculate each component score:
 
-	// Determine adjustments for prevented teammates on same team
-	float prevTeammateAdj[numTeams]={0};
-	short firstStudentInTeam=0;
-	// Loop through each team
-	for(short team = 0; team < numTeams; team++)
-	{
-		//loop studentA from first student in team to 2nd-to-last student in team
-		for(short studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSize[team]-1)); studentA++)
-		{
-			//loop studentB from studentA+1 to last student in team
-			for(short studentB = (studentA+1); studentB < (firstStudentInTeam + teamSize[team]); studentB++)
-			{
-				//if pairing prevented, adjustment = -numMetrics
-				if(students[teammates[studentA]].preventedWith[teammates[studentB]])
-				{
-					prevTeammateAdj[team] = -numMetrics;
-					//cout << "Team " << team << "has prevented Teammates: " << students[teammates[studentA]].firstname << " " << students[teammates[studentA]].lastname << " & " << students[teammates[studentB]].firstname << " " << students[teammates[studentB]].lastname;
-				}
-			}
-		}
-		firstStudentInTeam += teamSize[team];
-	}
+    // Calculate attribute scores for each attribute for each team:
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        ID = 0;
+        for(int team = 0; team < numTeams; team++)
+        {
+            int maxLevel = student[teammates[ID]].attribute[attribute], minLevel = student[teammates[ID]].attribute[attribute];
+            for(int teammate = 0; teammate < teamSize[team]; teammate++)
+            {
+                if(student[teammates[ID]].attribute[attribute] != -1)       // students added manually have attribute levels of -1, so don't consider their "score"
+                {
+                    if(student[teammates[ID]].attribute[attribute] > maxLevel)
+                    {
+                        maxLevel = student[teammates[ID]].attribute[attribute];
+                    }
+                    if(student[teammates[ID]].attribute[attribute] < minLevel)
+                    {
+                        minLevel = student[teammates[ID]].attribute[attribute];
+                    }
+                }
+                ID++;
+            }
+            attributeScore[attribute][team] = (maxLevel - minLevel) / (dataOptions.attributeLevels[attribute] - 1.0);	// range in team's values divided by total possible range
+            if(teamingOptions.desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
+            {
+                attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
+            }
+            attributeScore[attribute][team] *= realAttributeWeights[attribute];
+        }
+    }
 
-	// Determine adjustments for required teammates NOT on same team
-	float reqTeammateAdj[numTeams]={0};
-	firstStudentInTeam=0;
-	// Loop through each team
-	for(short team = 0; team < numTeams; team++)
-	{
-		//loop through all students in team
-		for(short studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize[team]); studentA++)
-		{
-			//loop through ALL other students
-			for(short studentB = 0; studentB < numStudents; studentB++)
-			{
-				//if this pairing is required
-				if(students[teammates[studentA]].requiredWith[teammates[studentB]])
-				{
-					bool studentBOnTeam = false;
-					//loop through all of studentA's current teammates
-					for(short currMates = firstStudentInTeam; currMates < (firstStudentInTeam + teamSize[team]); currMates++)
-					{
-						//if this pairing is found, then the required teammate is on the team!
-						if(teammates[currMates] == teammates[studentB])
-						{
-							studentBOnTeam = true;
-						}
-					}
-					//if the pairing was not found, then adjustment = -numMetrics
-					if(!studentBOnTeam)
-					{
-						reqTeammateAdj[team] = -numMetrics;
-						//cout << students[teammates[studentA]].firstname << " " << students[teammates[studentA]].lastname << "is not paired with required teammate " << students[teammates[studentB]].firstname << " " << students[teammates[studentB]].lastname << endl;
-					}	
-				}                                                                                           
-			}
-		}
-		firstStudentInTeam += teamSize[team];
-	}
+    // Calculate schedule scores for each team:
+    ID = 0;
+    for(int team = 0; team < numTeams; team++)
+    {
+        int firstStudentInTeam = ID;
+        // combine each student's schedule array into a team schedule array
+        bool teamAvailability[numTimeBlocks];
+        for(int time = 0; time < numTimeBlocks; time++)
+        {
+            ID = firstStudentInTeam;
+            teamAvailability[time] = true;
+            for(int teammate = 0; teammate < teamSize[team]; teammate++)
+            {
+                teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
+                ID++;
+            }
+        }
+        // count how many free time blocks there are
+        if(teamingOptions.meetingBlockSize == 1)
+        {
+            for(int time = 0; time < numTimeBlocks; time++)
+            {
+                if(teamAvailability[time])
+                {
+                    schedScore[team]++;
+                }
+            }
+        }
+        else
+        {
+            for(int day = 0; day < 7; day++)
+            {
+                for(int time = 0; time < dailyTimeBlocks-1; time++)
+                {
+                    if(teamAvailability[(day*dailyTimeBlocks)+time])
+                    {
+                        time++;
+                        if(teamAvailability[(day*dailyTimeBlocks)+time])
+                        {
+                            schedScore[team]++;
+                        }
+                    }
+                }
+            }
+        }
+        // convert counts to a schedule score
+        if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
+        {
+            schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
+            schedScore[team] *= realScheduleWeight;
+        }
+        else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
+        {
+            schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
+            schedScore[team] *= realScheduleWeight;
+        }
+        else													// if team has fewer than minTimeBlocksOverlap, apply penalty
+        {
+            schedScore[team] = -(dataOptions.numAttributes + 1);
+        }
+    }
 
-	//final team scores are normalized to be out of 100 (but with "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability
-	for(short team = 0; team < numTeams; team++)
-	{
-		teamScores[team] = schedScore[team] + prevTeammateAdj[team] + reqTeammateAdj[team] + genderAdj[team];
-		//cout << "Team " << team+1 << ": gender = " << genderAdj[team] << ", sched = " << schedScore[team] << ", teammates = " << prevTeammateAdj[team] + reqTeammateAdj[team];
-		for(short attrib = 0; attrib < numAttributes; attrib++)
-		{
-			teamScores[team] += attributeScore[attrib][team];
-			//cout << " Attribute " << attrib+1 << " = " << attributeScore[attrib][team];
-		}
-		//  cout << endl;
-		teamScores[team] = 100*teamScores[team] / numMetrics;
-	}
+    // Determine adjustments for isolated woman teams
+    ID = 0;
+    for(int team = 0; team < numTeams; team++)
+    {
+        for(int teammate = 0; teammate < teamSize[team]; teammate++)
+        {
+            if(student[teammates[ID]].woman)
+            {
+                genderAdj[team]++;
+            }
+            ID++;
+        }
+        if((genderAdj[team] == 1) && teamingOptions.isolatedWomanPrevented)
+        {
+            genderAdj[team] = -(dataOptions.numAttributes + 1);
+        }
+        else
+        {
+            genderAdj[team] = 0;
+        }
+    }
 
-	//Use the harmonic mean for the "total score"
-	//This value, the inverse of the average of the inverses, is skewed towards the smaller members so that we optimize for better values of the worse teams
-	float harmonicSum = 0;
-	for(short team = 0; team < numTeams; team++)
-	{
-		//very poor teams have 0 or negative scores, and this makes the harmonic mean meaningless
-		//if any teamScore is <= 0, return the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean
-		if(teamScores[team] <= 0)
-		{
-			float mean = accumulate(teamScores, teamScores+numTeams, 0.0)/numTeams;		// accumulate() is from <numeric>, and it sums an array
-			if(mean < 0)
-			{
-				return(mean + (mean/2));
-			}
-			else
-			{
-				return(mean - (mean/2));
-			}
-		}
-		harmonicSum += 1/teamScores[team];
-	}
-	return(numTeams/harmonicSum);
+    // Determine adjustments for prevented teammates on same team
+    int firstStudentInTeam=0;
+    // Loop through each team
+    for(int team = 0; team < numTeams; team++)
+    {
+        //loop studentA from first student in team to 2nd-to-last student in team
+        for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSize[team]-1)); studentA++)
+        {
+            //loop studentB from studentA+1 to last student in team
+            for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSize[team]); studentB++)
+            {
+                //if pairing prevented, adjustment = -(numAttributes + 1)
+                if(student[teammates[studentA]].preventedWith[teammates[studentB]])
+                {
+                    prevTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                }
+            }
+        }
+        firstStudentInTeam += teamSize[team];
+    }
+
+    // Determine adjustments for required teammates NOT on same team
+    firstStudentInTeam=0;
+    // Loop through each team
+    for(int team = 0; team < numTeams; team++)
+    {
+        //loop through all students in team
+        for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize[team]); studentA++)
+        {
+            //loop through ALL other students
+            for(int studentB = 0; studentB < numStudents; studentB++)
+            {
+                //if this pairing is required
+                if(student[teammates[studentA]].requiredWith[teammates[studentB]])
+                {
+                    bool studentBOnTeam = false;
+                    //loop through all of studentA's current teammates
+                    for(int currMates = firstStudentInTeam; currMates < (firstStudentInTeam + teamSize[team]); currMates++)
+                    {
+                        //if this pairing is found, then the required teammate is on the team!
+                        if(teammates[currMates] == teammates[studentB])
+                        {
+                            studentBOnTeam = true;
+                        }
+                    }
+                    //if the pairing was not found, then adjustment = -(numAttributes + 1)
+                    if(!studentBOnTeam)
+                    {
+                        reqTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                    }
+                }
+            }
+        }
+        firstStudentInTeam += teamSize[team];
+    }
+
+    //Bring component scores together for final team scores and, ultimately, a net score:
+
+    //final team scores are normalized to be out of 100 (but with "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability
+    for(int team = 0; team < numTeams; team++)
+    {
+        teamScores[team] = schedScore[team] + prevTeammateAdj[team] + reqTeammateAdj[team] + genderAdj[team];
+        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+        {
+            teamScores[team] += attributeScore[attribute][team];
+        }
+        teamScores[team] = 100*teamScores[team] / (dataOptions.numAttributes + 1);
+    }
+
+    //Use the harmonic mean for the "total score"
+    //This value, the inverse of the average of the inverses, is skewed towards the smaller members so that we optimize for better values of the worse teams
+    double harmonicSum = 0;
+    for(int team = 0; team < numTeams; team++)
+    {
+        //very poor teams have 0 or negative scores, and this makes the harmonic mean meaningless
+        //if any teamScore is <= 0, return the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean
+        if(teamScores[team] <= 0)
+        {
+            double mean = std::accumulate(teamScores, teamScores+numTeams, 0.0)/numTeams;		// accumulate() is from <numeric>, and it sums an array
+            if(mean < 0)
+            {
+                return(mean + (mean/2));
+            }
+            else
+            {
+                return(mean - (mean/2));
+            }
+        }
+        harmonicSum += 1/teamScores[team];
+    }
+    return(numTeams/harmonicSum);
 }
 
 
 //////////////////
-// Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
+// Print teams (to screen or text file), including names, emails, genders, attribute scores, and notes of each student plus table of weekly availability
 //////////////////
-void mate(short mom[], short dad[], short teamSize[], short numTeams, short child[], short genomeSize)
+void gruepr::printTeams(int teammates[], double teamScores[], QString filename)
 {
-	//randomly choose two team boundaries in the genome from which to cut an allele
-	short endTeam = 1+rand()%numTeams, startTeam = rand()%endTeam;	//endTeam is between 1 and number of teams, startTeam is between 0 and endTeam-1
+    // create a fileobject and textstream for each of the three files
+    QFile instructorsFile(filename);
+    QTextStream instructorsFileContents;
+    QFile studentsFile(QFileInfo(filename).path() + "/" + QFileInfo(filename).completeBaseName() + "_students." + QFileInfo(filename).suffix());
+    QTextStream studentsFileContents;
+    QFile teammatesFile(QFileInfo(filename).path() + "/" + QFileInfo(filename).completeBaseName() + "_TEAMMATES." + QFileInfo(filename).suffix());
+    QTextStream teammatesFileContents;
 
-	//Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
-	short end, start, team=0, position=0;
-	while(team < endTeam)
-	{
-		if(startTeam == team)
-		{
-			start = position;
-		}
-		//increase position by number of students in this team
-		position += teamSize[team];
-		end = position;
-		//go to next team
-		team++;
-	}
+    // if writing this to file, open the output files, associate the textstream to each, and add appropriate headers
+    if(filename != "")
+    {
+        instructorsFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        instructorsFileContents.setDevice(&instructorsFile);
+        studentsFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        studentsFileContents.setDevice(&studentsFile);
+        teammatesFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        teammatesFileContents.setDevice(&teammatesFile);
+        teammatesFileContents << tr("Section\tTeam\tName\tEmail\n");
+        instructorsFileContents << tr("  File: ") << dataOptions.dataFile.fileName() << tr("\n  Section: ") << sectionName << tr("\n  Optimized over ") << finalGeneration << tr(" generations\n  Net score: ") << finalTeamSetScore << "\n----------------\n";
+    }
 
-	//copy all of dad into child
-	copy(dad, dad + genomeSize, child);
+    // create a string for screen output
+    QString screenOutput; //= filename section generation teamsetscore;
+    screenOutput = tr("  File: ") + dataOptions.dataFile.fileName() + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") + finalGeneration + tr(" generations\n  Net score: ") + finalTeamSetScore + "\n----------------\n";
 
-	//remove from the child each value in mom's allele
-	for(short i = 0; i < (end-start); i++)
-	{
-		remove(child, child + genomeSize, mom[start+i]);
-	}
+    //loop through every team
+    int ID = 0;
+    for(int team = 0; team < numTeams; team++)
+    {
+        int canMeetAt[7][dailyTimeBlocks]={{0}};
+        screenOutput += tr("\nTeam ") + QString::number(team+1) + tr("  -  Score = ") + QString::number(teamScores[team]) + "\n\n";
+        if(filename != "")
+        {
+            instructorsFileContents << tr("\nTeam ") << QString::number(team+1) << tr("  -  Score = ") << QString::number(teamScores[team]) << "\n\n";
+            studentsFileContents << tr("\nTeam ") << QString::number(team+1) << "\n\n";
+        }
 
-	//make room for mom's allele
-	move_backward(child + start, child + start + genomeSize - end, child + genomeSize);
+        //loop through each teammate in the team
+        for(int teammate = 0; teammate < teamSize[team]; teammate++)
+        {
+            screenOutput += "  ";
+            if(filename != "")
+            {
+                instructorsFileContents << "  ";
+                studentsFileContents << "  ";
+            }
+            if(student[teammates[ID]].woman)
+            {
+                screenOutput += "  W  ";
+                if(filename != "")
+                {
+                    instructorsFileContents << "  W  ";
+                }
+            }
+            else
+            {
+                screenOutput += "     ";
+                if(filename != "")
+                {
+                    instructorsFileContents << "     ";
+                }
+            }
+            for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+            {
+                if(student[teammates[ID]].attribute[attribute] != -1)
+                {
+                    screenOutput += QString::number(student[teammates[ID]].attribute[attribute]) + "  ";
+                    if(filename != "")
+                    {
+                        instructorsFileContents << QString::number(student[teammates[ID]].attribute[attribute]) + "  ";
+                    }
+                }
+                else
+                {
+                    screenOutput += "X  ";
+                    if(filename != "")
+                    {
+                        instructorsFileContents << "X  ";
+                    }
+                }
+            }
+            screenOutput += student[teammates[ID]].firstname + " " + student[teammates[ID]].lastname + "\t" + student[teammates[ID]].email + "\n";
+            if(filename != "")
+            {
+                instructorsFileContents << student[teammates[ID]].firstname << " " << student[teammates[ID]].lastname << "\t\t" << student[teammates[ID]].email << "\n";
+                studentsFileContents << student[teammates[ID]].firstname << " " << student[teammates[ID]].lastname << "\t\t" << student[teammates[ID]].email << "\n";
+                teammatesFileContents << student[teammates[ID]].section << "\t" << QString::number(team+1) << "\t" << student[teammates[ID]].firstname << " " << student[teammates[ID]].lastname << "\t" << student[teammates[ID]].email << endl;
+            }
+            for(int day = 0; day < 7; day++)
+            {
+                for(int time = 0; time < dailyTimeBlocks; time++)
+                {
+                    if(!student[teammates[ID]].unavailable[(day*dailyTimeBlocks)+time])
+                    {
+                        canMeetAt[day][time]++;
+                    }
+                }
+            }
+            ID++;
+        }
 
-	//copy mom's allele into child
-	copy(mom + start, mom + end, child + start);
+        screenOutput += tr("Availability:\n");
+        if(filename != "")
+        {
+            instructorsFileContents << tr("Availability:\n");
+            studentsFileContents << tr("Availability:\n");
+        }
 
-	return;
+        screenOutput += "               ";
+        if(filename != "")
+        {
+            instructorsFileContents << "               ";
+            studentsFileContents << "               ";
+        }
+        for(int day = 0; day < 7; day++)
+        {
+            screenOutput += "  " + dayNames[day] + "  ";
+            if(filename != "")
+            {
+                instructorsFileContents << "  " << dayNames[day] << "  ";
+                studentsFileContents << "  " << dayNames[day] << "  ";
+            }
+        }
+        screenOutput += "\n";
+        if(filename != "")
+        {
+            instructorsFileContents << "\n";
+            studentsFileContents << "\n";
+        }
+        for(int time = 0; time < dailyTimeBlocks; time++)
+        {
+            screenOutput += timeNames[time] + QString((14-timeNames[time].size()), ' ');
+            if(filename != "")
+            {
+                instructorsFileContents << timeNames[time] + QString((14-timeNames[time].size()), ' ');
+                studentsFileContents << timeNames[time] + QString((14-timeNames[time].size()), ' ');
+            }
+            for(int day = 0; day < 7; day++)
+            {
+                QString percentage = QString::number((100*canMeetAt[day][time])/teamSize[team]);
+                screenOutput += QString(5-percentage.size(), ' ') + percentage + "% ";
+                if(filename != "")
+                {
+                    instructorsFileContents << QString(5-percentage.size(), ' ') + percentage + "% ";
+                    studentsFileContents << QString(5-percentage.size(), ' ') + percentage + "% ";
+                }
+            }
+            screenOutput += "\n";
+            if(filename != "")
+            {
+                instructorsFileContents << "\n";
+                studentsFileContents << "\n";
+            }
+        }
+        screenOutput += "\n\n";
+        if(filename != "")
+        {
+            instructorsFileContents << "\n\n";
+            studentsFileContents << "\n\n";
+        }
+    }
+
+    if(filename != "")
+    {
+        instructorsFile.close();
+        studentsFile.close();
+        teammatesFile.close();
+    }
+    else
+    {
+        ui->teamData->setPlainText(screenOutput);
+        ui->tabWidget->setCurrentIndex(1);
+    }
 }
 
 
 //////////////////
-// Randomly swap two sites in given genome
+// Before closing the main application window, see if we want to save the current settings as defaults
 //////////////////
-void mutate(short genome[], short genomeSize)
+void gruepr::closeEvent(QCloseEvent *event)
 {
-	short site1, site2;
-	do
-	{
-		site1 = rand();
-	}
-	while(site1 >= genomeSize);
-	do
-	{
-		site2 = rand();
-	}
-	while((site2 >= genomeSize) || (site2 == site1));
-	
-	swap(genome[site1], genome[site2]);
-	
-	return;
-}
+    QSettings savedSettings;
 
+    if(savedSettings.value("askToSaveDefaultsOnExit",true).toBool() && ui->saveSettingsButton->isEnabled())
+    {
+        QApplication::beep();
+        QMessageBox saveOptionsOnClose(this);
+        saveOptionsOnClose.setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
+        QCheckBox neverShowAgain(tr("Don't ask me again."), &saveOptionsOnClose);
 
-//////////////////
-// Output stuff in bold
-//////////////////
-void coutBold(string s)
-{
-	SetConsoleTextAttribute(window, 0x0F);	// bold white
-	cout << s;
-	SetConsoleTextAttribute(window, 0x07);	// unbold
-	return;
-}
+        saveOptionsOnClose.setIcon(QMessageBox::Question);
+        saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
+        saveOptionsOnClose.setText(tr("Should we save all of the current options as the defaults?"));
+        saveOptionsOnClose.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        saveOptionsOnClose.setCheckBox(&neverShowAgain);
 
+        int reply = saveOptionsOnClose.exec();
+        if(reply == QMessageBox::Yes)
+        {
+            on_saveSettingsButton_clicked();
+        }
 
-//////////////////
-// Output the "window" title
-//////////////////
-void createWindow(string title)
-{
-	system("CLS");
-	// prints the title in yellow, inside a cyan box with a cyan window-spanning horizontal below
-	SetConsoleTextAttribute(window, 0x0B);	// bright cyan
-	cout << "\n" << string((wWidth-4-title.size())/2, ' ') << (char)218 << string(title.size()+2, (char)196) << (char)191;	// top bar
-	cout << "\n" << string((wWidth-4-title.size())/2, ' ') << (char)179;													// left pip
-	SetConsoleTextAttribute(window, 0x0E);	// bright yellow
-	cout << " " << title << " ";
-	SetConsoleTextAttribute(window, 0x0B);	// bright cyan
-	cout << (char)179;																										// right pip
-	cout << "\n" << string((wWidth-4-title.size())/2, ' ') << (char)192 << string(title.size()+2, (char)196) << (char)217;	// bottom bar
-	cout << "\n\n" << string(wWidth, 196);
-	SetConsoleTextAttribute(window, 0x07);	// regular
-	cout << "\n";
+        if(neverShowAgain.checkState() == Qt::Checked)
+        {
+            savedSettings.setValue("askToSaveDefaultsOnExit", false);
+        }
+    }
 
-	return;
-}
-
-
-//////////////////
-// Output a separator line
-//////////////////
-void printSeparator()
-{
-	SetConsoleTextAttribute(window, 0x0B);	// bright cyan
-	cout << "\n" << string(19, 196);
-	SetConsoleTextAttribute(window, 0x07);	// regular
-	return;
-}
-
-
-//////////////////
-// Output a header in bright yellow text
-//////////////////
-void printSectionHeader(string headerText)
-{
-	SetConsoleTextAttribute(window, 0x0E);	// bright yellow
-	cout << "\n " << string(1,250) << headerText << "\n";
-	SetConsoleTextAttribute(window, 0x07);	// regular
-	return;
-}
-
-
-//////////////////
-// Output the "start" of a question to the user
-//////////////////
-void startQuestion()
-{
-	cout << "\n     ";
-	coutBold(string(1,175));
-	cout << " ";
-	return;
+    event->accept();
 }

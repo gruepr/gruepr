@@ -1,9 +1,9 @@
 gruepr
 
-V 7.3
-02/07/2019
+V 8.1
+04/04/2019
 
-Written by: Joshua Hertz
+Written by: Joshua Hertz <j.hertz@neu.edu>
 
 ---------------
 Description of gruepr:
@@ -48,7 +48,7 @@ Description of gruepr:
 	   - values are, in order:	
 	       ~ Timestamp (not used by the program, but must be present)
 	       ~ first name or preferred name
-		   ~ last name
+	       ~ last name
 	       ~ email
 	       ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
 		     "Non-binary", etc.)

@@ -1,0 +1,44 @@
+<h3>About gruepr</h3>
+<p>&nbsp; &nbsp;Gruepr is a program for splitting a section of 4-200 students into optimized teams. It is originally based on CATME's team forming routine as described in <a href="http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf">this paper</a>. All the student data is read from a file, and the students are split into teams of any desired size(s).</p>
+<h3>Obtaining student data</h3>
+<p>&nbsp; &nbsp;A Google Form is generally used to collect data from the students. You can copy a model Google Form into your own Google Drive by <a href="http://bit.ly/TeamFormSurv">clicking here</a>. After collecting responses, go to the Google Form and, in the "Responses" tab, click the three-dot icon and select "Download responses (.csv)".</p>
+<p>&nbsp; &nbsp;The model Google Form can be edited so that you collect data relevant to your needs. The gender question can be removed, if desired. The attribute questions are optional and completely customizable. Found on Section 3 of the form, they can be modified, reordered, added to, or removed. There can be from 0 to 9 of these attribute questions. The only requirement is that the responses that the students select MUST include one single digit number to indicate a quantitative measure of the answer to the question. The Form can optionally include a question asking students which course section they are in so that multiple sections can all use the same form. Additional questions of any number or kind for your own use can be added to the end of the form.</p>
+<h3>How the teams are optimized and displayed</h3>
+<p>&nbsp; &nbsp;A good distribution of students into teams is determined by a numerical score. The score can be based on:</p>
+<ul>
+<li>Preventing isolated women</li>
+<li>Achieving within each team either homogeneity or heterogeneity of up to 9 numerical "attribute levels", which could be skills assessments, work preferences, or any other question with categorical/Likert scale response</li>
+<li>Achieving a high degree of overlap in schedule free time</li>
+<li>Preventing any particular students from being on the same team</li>
+<li>Requiring any particular students to be on the same team</li>
+</ul>
+<p>&nbsp; &nbsp;After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams are displayed showing the students names, emails, indications of women students (if that data is included), and each student's attribute levels. Each team's score is also shown along with a table of student availability at each time slot throughout the week. You can choose whether to save this teamset, adjust this teamset by indicating pairs of students whose positions should be swapped, or throw away the teamset entirely and start over. If you save the teamset, three files can be saved: 1) the output shown on the screen, which is for your use; 2) the same screen output but without listing any of the team scores or student attributes, which is useful for distributing to the students; and 3) the team and student info in the format needed to import into the TEAMMATES peer review website.</p>
+<p>&nbsp;</p>
+<hr />
+<h3>Further details on the optimization algorithm</h3>
+<p>&nbsp; &nbsp;To optimize the teams, a genetic algorithm is used. First, a large population of 30,000 random teamings (each is a "genome") is created and then refined over multiple generations. In each generation, the highest scoring "elite" genome is directly copied (cloned) into the next generation, the vast majority are created by mating tournament-selected parents using ordered crossover, and, finally, a last set of new, randomized genomes are added to the genepool. Once the next generation's genepool is created, each genome has 1 or more potential mutations, which is a swapping of two random locations on the genome. A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low scoring teams have more weight. Evolution proceeds for at least minGenerations and at most maxGenerations, displaying generation number and the score of that generation's best genome. Evolution stops (user can choose to keep it going) when the best score has remained +/- 1% for generationsOfStability generations or when maxGenerations is reached.</p>
+<p>&nbsp;</p>
+<hr />
+<h3>Further details on the data file format</h3>
+<p>&nbsp; &nbsp;The datafile of student information has a specific required format. Using the Google Form allows you to download the data into exactly this file format without modification. The datafile must be a comma-separated-values (.csv) file with these contents:</p>
+<ul>
+<li>first a header row that contains the question texts</li>
+<li>next, each student on a separate row, starting at the row immediately after the header</li>
+<li>values within each row are, in order:</li>
+<ul>
+<li>timestamp</li>
+<li>first name or preferred name</li>
+<li>last name</li>
+<li>email</li>
+<li>[optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say", "Non-binary", etc.)</li>
+<li>[0 to 9 values] text responses to "attribute" questions, each in own field; the first numeric digit found in the text will be used by gruepr</li>
+<li>[7 values] list of times the student is unavailable to work, represented as whether the texts given in "timeNames[]" array are included or not</li>
+<li>[optional] section</li>
+<li>[optional] any additional notes for student (all remaining columns will get swallowed into this field)</li>
+</ul>
+</ul>
+<p>&nbsp;</p>
+<hr />
+<h3>Disclaimer</h3>
+<p>&nbsp; &nbsp;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+<p>&nbsp; &nbsp;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
