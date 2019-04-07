@@ -90,7 +90,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>45</y>
+       <y>35</y>
        <width>147</width>
        <height>17</height>
       </rect>
@@ -1065,6 +1065,34 @@ background-color: rgb(193, 193, 193);</string>
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
+    <widget class="QCheckBox" name="isolatedMenCheckBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>60</y>
+       <width>147</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+       <strikeout>false</strikeout>
+       <kerning>true</kerning>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string>If selected, teams will not be produced that have one man on them</string>
+     </property>
+     <property name="text">
+      <string>Prevent Isolated Men?</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="saveTeamsButton">
     <property name="enabled">
@@ -1483,7 +1511,7 @@ background-color: rgb(193, 193, 193);</string>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="usesScrollButtons">
      <bool>false</bool>

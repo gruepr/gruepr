@@ -97,6 +97,8 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->tabWidget->setCurrentIndex(0);
         ui->isolatedWomenCheckBox->setEnabled(false);
         ui->isolatedWomenCheckBox->setChecked(false);
+        ui->isolatedMenCheckBox->setEnabled(false);
+        ui->isolatedMenCheckBox->setChecked(false);
         ui->teamSizeBox->clear();
         ui->teamSizeBox->setEnabled(false);
         ui->idealTeamSizeBox->setEnabled(false);
@@ -185,12 +187,14 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->addStudentGenderComboBox->show();
                 ui->addStudentGenderComboBox->setEnabled(true);
                 ui->isolatedWomenCheckBox->setEnabled(true);
+                ui->isolatedMenCheckBox->setEnabled(true);
             }
             else
             {
                 ui->addStudentGenderComboBox->hide();
                 ui->addStudentGenderComboBox->setEnabled(false);
                 ui->isolatedWomenCheckBox->setEnabled(false);
+                ui->isolatedMenCheckBox->setEnabled(false);
             }
 
             ui->idealTeamSizeBox->setEnabled(true);
@@ -208,8 +212,10 @@ void gruepr::on_loadSettingsButton_clicked()
     //Load default settings (from saved settings, if they exist)
     QSettings savedSettings;
     dataOptions.dataFile.setFile(savedSettings.value("dataFileLocation", "").toString());
-    teamingOptions.isolatedWomanPrevented = savedSettings.value("isolatedWomanPrevented", false).toBool();
-    ui->isolatedWomenCheckBox->setChecked(teamingOptions.isolatedWomanPrevented);
+    teamingOptions.isolatedWomenPrevented = savedSettings.value("isolatedWomenPrevented", false).toBool();
+    ui->isolatedWomenCheckBox->setChecked(teamingOptions.isolatedWomenPrevented);
+    teamingOptions.isolatedMenPrevented = savedSettings.value("isolatedMenPrevented", false).toBool();
+    ui->isolatedMenCheckBox->setChecked(teamingOptions.isolatedMenPrevented);
     teamingOptions.desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
     ui->desiredMeetingTimes->setValue(teamingOptions.desiredTimeBlocksOverlap);
     teamingOptions.minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
@@ -234,7 +240,7 @@ void gruepr::on_loadSettingsButton_clicked()
     {
         ui->attributeScrollBar->setValue(0);
     }
-    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 1).toDouble();
+    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 4).toDouble();
     ui->scheduleWeight->setValue(teamingOptions.scheduleWeight);
 
     QStringList keys = savedSettings.allKeys();
@@ -248,7 +254,8 @@ void gruepr::on_saveSettingsButton_clicked()
 {
     QSettings savedSettings;
     savedSettings.setValue("dataFileLocation", dataOptions.dataFile.canonicalFilePath());
-    savedSettings.setValue("isolatedWomanPrevented", teamingOptions.isolatedWomanPrevented);
+    savedSettings.setValue("isolatedWomenPrevented", teamingOptions.isolatedWomenPrevented);
+    savedSettings.setValue("isolatedMenPrevented", teamingOptions.isolatedMenPrevented);
     savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions.desiredTimeBlocksOverlap);
     savedSettings.setValue("minTimeBlocksOverlap", teamingOptions.minTimeBlocksOverlap);
     savedSettings.setValue("meetingBlockSize", teamingOptions.meetingBlockSize);
@@ -368,7 +375,13 @@ void gruepr::on_addStudentPushButton_clicked()
 
 void gruepr::on_isolatedWomenCheckBox_stateChanged(int arg1)
 {
-    teamingOptions.isolatedWomanPrevented = arg1;
+    teamingOptions.isolatedWomenPrevented = arg1;
+}
+
+
+void gruepr::on_isolatedMenCheckBox_stateChanged(int arg1)
+{
+    teamingOptions.isolatedMenPrevented = arg1;
 }
 
 
@@ -646,15 +659,6 @@ void gruepr::on_letsDoItButton_clicked()
         numStudents = numStudentsInSection;
     }
 
-    // Trade out this button with the stop optimization button
-    ui->letsDoItButton->setEnabled(false);
-    ui->letsDoItButton->hide();
-    ui->cancelOptimizationButton->setEnabled(true);
-    ui->cancelOptimizationButton->show();
-
-    // Allow a stoppage
-    optimizationStopped = false;
-
     // Update UI
     ui->scoreBox->setEnabled(true);
     ui->scoreBox->clear();
@@ -665,9 +669,16 @@ void gruepr::on_letsDoItButton_clicked()
     ui->stabilityProgressBar->setEnabled(true);
     ui->stabilityProgressBar->reset();
     ui->label_12->setEnabled(true);
-    ui->teamData->clear();
-    ui->tabWidget->setCurrentIndex(1);
+    ui->teamData->setPlainText("Now creating teams.");
+    ui->sectionSelectionBox->setEnabled(false);
+    ui->loadSurveyFileButton->setEnabled(false);
+    ui->letsDoItButton->setEnabled(false);
+    ui->letsDoItButton->hide();
+    ui->cancelOptimizationButton->setEnabled(true);
+    ui->cancelOptimizationButton->show();
 
+    // Allow a stoppage and set up futureWatcher to grab results
+    optimizationStopped = false;
     future = QtConcurrent::run(this, &gruepr::optimizeTeams);       // spin optimization off into a separate thread
     futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
 }
@@ -696,6 +707,8 @@ void gruepr::updateOptimizationProgress(double score, int generation, double sco
 
 void gruepr::on_cancelOptimizationButton_clicked()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
     optimizationStoppedmutex.lock();
     optimizationStopped = true;
     optimizationStoppedmutex.unlock();
@@ -725,7 +738,7 @@ void gruepr::askWhetherToContinueOptimizing(int generation)
 
 void gruepr::optimizationComplete()
 {
-    // Disable the progress bars and enable the Save Teams button
+    // update UI
     ui->scoreBox->setEnabled(false);
     ui->scoreBox->clear();
     ui->label_11->setEnabled(false);
@@ -736,10 +749,11 @@ void gruepr::optimizationComplete()
     ui->stabilityProgressBar->setEnabled(false);
     ui->stabilityProgressBar->reset();
     ui->label_12->setEnabled(false);
+    ui->sectionSelectionBox->setEnabled(true);
+    ui->loadSurveyFileButton->setEnabled(true);
+    ui->tabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->adjustTeamsButton->setEnabled(true);
-
-    // Reshow the Create Teams button
     ui->letsDoItButton->setEnabled(true);
     ui->letsDoItButton->show();
     ui->cancelOptimizationButton->setEnabled(false);
@@ -754,6 +768,7 @@ void gruepr::optimizationComplete()
     double teamScores[maxStudents];
     getTeamScores(bestGenome, teamScores);
     printTeams(bestGenome, teamScores, "");
+    ui->teamData->setFocus();
 }
 
 
@@ -1407,6 +1422,7 @@ QList<int> gruepr::optimizeTeams()
         if(localOptimizationStopped)
         {
             keepOptimizing = false;
+            emit turnOffBusyCursor();
         }
         else
         {
@@ -1582,21 +1598,37 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
     ID = 0;
     for(int team = 0; team < numTeams; team++)
     {
+        int numWomen = 0;
         for(int teammate = 0; teammate < teamSize[team]; teammate++)
         {
             if(student[teammates[ID]].woman)
             {
-                genderAdj[team]++;
+                numWomen++;
             }
             ID++;
         }
-        if((genderAdj[team] == 1) && teamingOptions.isolatedWomanPrevented)
+        if((numWomen == 1) && teamingOptions.isolatedWomenPrevented)
         {
-            genderAdj[team] = -(dataOptions.numAttributes + 1);
+            genderAdj[team] -= (dataOptions.numAttributes + 1);
         }
-        else
+    }
+
+    // Determine adjustments for isolated man teams
+    ID = 0;
+    for(int team = 0; team < numTeams; team++)
+    {
+        int numMen = 0;
+        for(int teammate = 0; teammate < teamSize[team]; teammate++)
         {
-            genderAdj[team] = 0;
+            if(!student[teammates[ID]].woman)
+            {
+                numMen++;
+            }
+            ID++;
+        }
+        if((numMen == 1) && teamingOptions.isolatedMenPrevented)
+        {
+            genderAdj[team] -= (dataOptions.numAttributes + 1);
         }
     }
 
@@ -1881,24 +1913,31 @@ void gruepr::printTeams(int teammates[], double teamScores[], QString filename)
 void gruepr::closeEvent(QCloseEvent *event)
 {
     QSettings savedSettings;
+    bool dontActuallyExit = false;
 
     if(savedSettings.value("askToSaveDefaultsOnExit",true).toBool() && ui->saveSettingsButton->isEnabled())
     {
         QApplication::beep();
         QMessageBox saveOptionsOnClose(this);
         saveOptionsOnClose.setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-        QCheckBox neverShowAgain(tr("Don't ask me again."), &saveOptionsOnClose);
+        QCheckBox neverShowAgain(tr("Don't ask me this again."), &saveOptionsOnClose);
 
         saveOptionsOnClose.setIcon(QMessageBox::Question);
         saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
-        saveOptionsOnClose.setText(tr("Should we save all of the current options as the defaults?"));
-        saveOptionsOnClose.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        saveOptionsOnClose.setText(tr("Before exiting, should we save all of the current options as defaults?"));
         saveOptionsOnClose.setCheckBox(&neverShowAgain);
+        QAbstractButton *yes = saveOptionsOnClose.addButton(tr("Save"), QMessageBox::YesRole);
+        saveOptionsOnClose.addButton(tr("Don't save"), QMessageBox::NoRole);
+        QAbstractButton *cancel = saveOptionsOnClose.addButton(tr("Cancel exit"), QMessageBox::RejectRole);
 
-        int reply = saveOptionsOnClose.exec();
-        if(reply == QMessageBox::Yes)
+        saveOptionsOnClose.exec();
+        if(saveOptionsOnClose.clickedButton() == yes)
         {
             on_saveSettingsButton_clicked();
+        }
+        else if(saveOptionsOnClose.clickedButton() == cancel)
+        {
+            dontActuallyExit = true;
         }
 
         if(neverShowAgain.checkState() == Qt::Checked)
@@ -1907,5 +1946,12 @@ void gruepr::closeEvent(QCloseEvent *event)
         }
     }
 
-    event->accept();
+    if(dontActuallyExit)
+    {
+        event->ignore();
+    }
+    else
+    {
+        event->accept();
+    }
 }

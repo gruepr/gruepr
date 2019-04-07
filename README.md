@@ -1,7 +1,7 @@
 gruepr
 
-V 8.1
-04/04/2019
+V 8.2
+04/06/2019
 
 Written by: Joshua Hertz <j.hertz@neu.edu>
 

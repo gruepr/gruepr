@@ -7,7 +7,7 @@
 #include <QDateTime>
 #include "GA.h"
 
-#define GRUEPR_VERSION_NUMBER "8.1"
+#define GRUEPR_VERSION_NUMBER "8.2"
 #define GRUEPR_COPYRIGHT_YEAR "2019"
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
@@ -59,7 +59,8 @@ struct DataOptions
 //struct defining the teaming options set by the user
 struct TeamingOptions
 {
-    bool isolatedWomanPrevented;                        // if true, will prevent teams with a isolated woman
+    bool isolatedWomenPrevented;                        // if true, will prevent teams with an isolated woman
+    bool isolatedMenPrevented;                          // if true, will prevent teams with an isolated man
     int desiredTimeBlocksOverlap=8;                     // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap=4;                         // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize=1;                             // count available meeting times in units of 1 hour or 2 hours long

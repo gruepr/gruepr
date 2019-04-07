@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
-// version 8.1
-// 04/04/19
+// version 8.2
+// 04/06/19
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2019
 // Joshua Hertz
@@ -38,7 +38,7 @@
 // The students are then split up into teams of the desired size.
 // An optimized distribution of students into teams is determined by a "compatibility score."
 // The compatability score can be based on:
-//    1) preventing isolated women,
+//    1) preventing an isolated woman and/or isolated man,
 //    2) between 0 - 9 numerical "attribute levels", which could be skills assessments or work preferences/attitudes, and
 //        can be individually chosen as to whether homogeneity or heterogeneity is desired within each team,
 //    3) preventing any particular students from being on the same team,
@@ -120,7 +120,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // FUTURE WORK:
-// - expand gender isolation penalty idea
+// - more fully account for non-binary gender
+// - expand gender isolation penalty idea to isolation along other personal attributes
 // - improve appearance of adjust teammate dialog (instant feedback on swap results before "OK" adjusts or "Cancel" cancels the adjustment of the actual array)
 // - if reached stability, continue with added mutation probability
 // - change stability metric? (convergence = median or mean score relative to max)

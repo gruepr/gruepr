@@ -43,6 +43,8 @@ private slots:
 
     void on_isolatedWomenCheckBox_stateChanged(int arg1);
 
+    void on_isolatedMenCheckBox_stateChanged(int arg1);
+
     void on_minMeetingTimes_valueChanged(int arg1);
 
     void on_desiredMeetingTimes_valueChanged(int arg1);
@@ -91,6 +93,8 @@ signals:
     void optimizationMightBeComplete(int generation);
 
     void haveOurKeepOptimizingValue();
+
+    void turnOffBusyCursor();
 
 private:
     Ui::gruepr *ui;

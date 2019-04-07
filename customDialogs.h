@@ -104,37 +104,4 @@ private:
 };
 
 
-/*
-class addRemoveStudentsDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-
-    addRemoveStudentsDialog(const studentRecord student[], const int totalNumStudents, const bool genderIncluded, QWidget *parent = nullptr);
-    ~addRemoveStudentsDialog();
-
-    studentRecord *student;
-    int numStudents;
-
-private slots:
-
-    void addAStudent();
-
-    void removeAStudent();
-
-private:
-    QGridLayout *theGrid;
-    QTableWidget *currentListOfStudentsTable;
-    QLineEdit firstname;
-    QLineEdit lastname;
-    QLineEdit email;
-    QComboBox gender;
-    QComboBox section;
-    QPushButton *addStudent;
-    QDialogButtonBox *buttonBox;
-    void refreshDisplay();
-};
-*/
-
 #endif // CUSTOMDIALOGS
