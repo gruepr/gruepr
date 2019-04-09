@@ -96,9 +96,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->teamData->setEnabled(false);
         ui->tabWidget->setCurrentIndex(0);
         ui->isolatedWomenCheckBox->setEnabled(false);
-        ui->isolatedWomenCheckBox->setChecked(false);
         ui->isolatedMenCheckBox->setEnabled(false);
-        ui->isolatedMenCheckBox->setChecked(false);
         ui->teamSizeBox->clear();
         ui->teamSizeBox->setEnabled(false);
         ui->idealTeamSizeBox->setEnabled(false);
@@ -444,13 +442,13 @@ void gruepr::on_meetingLength_currentIndexChanged(int index)
 void gruepr::on_requiredTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are required
-    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, numStudents, this);
+    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)?"":sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = window->exec();
     if(reply == QDialog::Accepted)
     {
-        for(int i = 0; i < numStudents; i++)
+        for(int i = 0; i < dataOptions.numStudentsInSystem; i++)
         {
             this->student[i] = window->student[i];
         }
@@ -463,7 +461,7 @@ void gruepr::on_requiredTeammatesButton_clicked()
 void gruepr::on_preventedTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are prevented
-    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, numStudents, this);
+    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)?"":sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = window->exec();

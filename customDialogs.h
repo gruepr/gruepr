@@ -22,7 +22,7 @@ class gatherTeammatesDialog : public QDialog
 public:
     enum typeOfTeammates{required, prevented};
 
-    gatherTeammatesDialog(const typeOfTeammates requiredOrPrevented, const studentRecord student[], int numStudents, QWidget *parent = nullptr);
+    gatherTeammatesDialog(const typeOfTeammates requiredOrPrevented, const studentRecord student[], int numStudentsInSystem, const QString &sectionName, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
 
     studentRecord *student;
@@ -33,6 +33,7 @@ private slots:
 
 private:
     typeOfTeammates requiredOrPrevented;
+    QString sectionName;
     int numStudents;
     QGridLayout *theGrid;
     QTableWidget *currentListOfTeammatesTable;

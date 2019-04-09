@@ -121,7 +121,7 @@
 
 // FUTURE WORK:
 // - more fully account for non-binary gender
-// - expand gender isolation penalty idea to isolation along other personal attributes
+// - expand gender isolation penalty to prevent isolation along other personal attributes
 // - improve appearance of adjust teammate dialog (instant feedback on swap results before "OK" adjusts or "Cancel" cancels the adjustment of the actual array)
 // - if reached stability, continue with added mutation probability
 // - change stability metric? (convergence = median or mean score relative to max)
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     QPixmap pic(":/icons/splash.png");
     splash->setPixmap(pic);
     splash->show();
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\n<j.hertz@neu.edu>", Qt::AlignCenter);
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\nj.hertz@neu.edu", Qt::AlignCenter);
     QThread::sleep(4);
     w.show();
     splash->finish(&w);

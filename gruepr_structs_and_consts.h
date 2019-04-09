@@ -50,7 +50,7 @@ struct DataOptions
     bool notesIncluded;                                 // are notes (or other additional info) included in the survey?
     int numAttributes;                                  // how many attribute questions are in the survey?
     int attributeLevels[maxAttributes]={0};             // what is the maximum value for each attribute? Max possible value is 9, due to how the value is read from the file.
-    int numStudentsInSystem;                              // total number of students in the file
+    int numStudentsInSystem;                            // total number of students in the file
     QString attributeQuestionText[maxAttributes];       // the actual attribute questions asked of the students
     QFileInfo dataFile;
 };

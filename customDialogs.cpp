@@ -5,13 +5,14 @@
 // A dialog window to select sets of required or prevented teammates
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPrevented, const studentRecord student[], int numStudents, QWidget *parent)
+gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPrevented, const studentRecord student[], int numStudentsInSystem, const QString &sectionName, QWidget *parent)
     : QDialog(parent)
 {
     //copy data into local versions, including full database of students
-    this->numStudents = numStudents;
-    this->student = new studentRecord[this->numStudents];
-    for(int i = 0; i < this->numStudents; i++)
+    numStudents = numStudentsInSystem;
+    this->sectionName = sectionName;
+    this->student = new studentRecord[numStudentsInSystem];
+    for(int i = 0; i < numStudentsInSystem; i++)
     {
         this->student[i] = student[i];
     }
@@ -52,14 +53,20 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPre
     for(int i = 0; i < 8; i++)
     {
         possibleTeammates[i].addItem("");
-        //Create list of all the student names
-        for(int j = 0; j < numStudents; j++)
+        int indexInComboBox = 0;
+        //Add to combobox a list of all the student names (in this section)
+        for(int ID = 0; ID < numStudentsInSystem; ID++)
         {
-            possibleTeammates[i].addItem(student[j].firstname + " " + student[j].lastname);
+            if((sectionName == "") || (sectionName == student[ID].section))
+            {
+                indexInComboBox++;
+                possibleTeammates[i].insertItem(indexInComboBox, student[ID].firstname + " " + student[ID].lastname);
+                possibleTeammates[i].setItemData(indexInComboBox, ID);
+            }
         }
         theGrid->addWidget(&possibleTeammates[i], 1+(i/4), i%4);
     }
-    theGrid->setColumnMinimumWidth(4,20);
+    theGrid->setColumnMinimumWidth(4,15);
     loadTeammates = new QPushButton(this);
     loadTeammates->setText(tr("&Add set of\n") + QString(requiredOrPrevented==gatherTeammatesDialog::required?tr(" required"):tr(" prevented")) + tr(" teammates "));
     connect(loadTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::addOneTeammateSet);
@@ -97,10 +104,10 @@ void gatherTeammatesDialog::addOneTeammateSet()
     int count = 0;
     for(int i = 0; i < possibleNumIDs; i++)
     {
-        //If a student is selected in this combobox, load the ID into an array of all selections
+        //If a student is selected in this combobox, load their ID into an array that holds all the selections
         if(possibleTeammates[i].currentIndex() >= 1)
         {
-            IDs[count] = possibleTeammates[i].currentIndex()-1;
+            IDs[count] = possibleTeammates[i].itemData(possibleTeammates[i].currentIndex()).toInt();
             count++;
         }
 
@@ -136,15 +143,18 @@ void gatherTeammatesDialog::clearAllTeammateSets()
 {
     for(int ID1 = 0; ID1 < numStudents; ID1++)
     {
-        for(int ID2 = 0; ID2 < numStudents; ID2++)
+        if((sectionName == "") || (sectionName == student[ID1].section))
         {
-            if(requiredOrPrevented == gatherTeammatesDialog::required)
+            for(int ID2 = 0; ID2 < numStudents; ID2++)
             {
-                student[ID1].requiredWith[ID2] = false;
-            }
-            else
-            {
-                student[ID1].preventedWith[ID2] = false;
+                if(requiredOrPrevented == gatherTeammatesDialog::required)
+                {
+                    student[ID1].requiredWith[ID2] = false;
+                }
+                else
+                {
+                    student[ID1].preventedWith[ID2] = false;
+                }
             }
         }
     }
@@ -161,50 +171,53 @@ void gatherTeammatesDialog::refreshDisplay()
     int row=0, column;
     for(int ID1 = 0; ID1 < numStudents; ID1++)
     {
-        column = 0;
-        for(int ID2 = 0; ID2 < numStudents; ID2++)
+        if((sectionName == "") || (sectionName == student[ID1].section))
         {
-            if(requiredOrPrevented == gatherTeammatesDialog::required)
+            column = 0;
+            for(int ID2 = 0; ID2 < numStudents; ID2++)
             {
-                if(student[ID1].requiredWith[ID2])
+                if(requiredOrPrevented == gatherTeammatesDialog::required)
                 {
-                    if(currentListOfTeammatesTable->columnCount() < column+1)
+                    if(student[ID1].requiredWith[ID2])
                     {
-                        currentListOfTeammatesTable->setColumnCount(column+1);
-                        currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem("Required Teammate #" + QString::number(column+1)));
+                        if(currentListOfTeammatesTable->columnCount() < column+1)
+                        {
+                            currentListOfTeammatesTable->setColumnCount(column+1);
+                            currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem("Required Teammate #" + QString::number(column+1)));
+                        }
+                        if(currentListOfTeammatesTable->rowCount() < row+1)
+                        {
+                            currentListOfTeammatesTable->setRowCount(row+1);
+                            currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(student[ID1].firstname + " " + student[ID1].lastname));
+                        }
+                        currentListOfTeammatesTable->setItem(row, column, new QTableWidgetItem(student[ID2].firstname + " " + student[ID2].lastname));
+                        column++;
                     }
-                    if(currentListOfTeammatesTable->rowCount() < row+1)
+                }
+                else
+                {
+                    if(student[ID1].preventedWith[ID2])
                     {
-                        currentListOfTeammatesTable->setRowCount(row+1);
-                        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(student[ID1].firstname + " " + student[ID1].lastname));
+                        if(currentListOfTeammatesTable->columnCount() < column+1)
+                        {
+                            currentListOfTeammatesTable->setColumnCount(column+1);
+                            currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem("Prevented Teammate #" + QString::number(column+1)));
+                        }
+                        if(currentListOfTeammatesTable->rowCount() < row+1)
+                        {
+                            currentListOfTeammatesTable->setRowCount(row+1);
+                            currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(student[ID1].firstname + " " + student[ID1].lastname));
+                        }
+                        currentListOfTeammatesTable->setItem(row, column, new QTableWidgetItem(student[ID2].firstname + " " + student[ID2].lastname));
+                        column++;
                     }
-                    currentListOfTeammatesTable->setItem(row, column, new QTableWidgetItem(student[ID2].firstname + " " + student[ID2].lastname));
-                    column++;
                 }
             }
-            else
+            if(column != 0)
             {
-                if(student[ID1].preventedWith[ID2])
-                {
-                    if(currentListOfTeammatesTable->columnCount() < column+1)
-                    {
-                        currentListOfTeammatesTable->setColumnCount(column+1);
-                        currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem("Prevented Teammate #" + QString::number(column+1)));
-                    }
-                    if(currentListOfTeammatesTable->rowCount() < row+1)
-                    {
-                        currentListOfTeammatesTable->setRowCount(row+1);
-                        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(student[ID1].firstname + " " + student[ID1].lastname));
-                    }
-                    currentListOfTeammatesTable->setItem(row, column, new QTableWidgetItem(student[ID2].firstname + " " + student[ID2].lastname));
-                    column++;
-                }
+                //there was at least one required/prevented teammate listed
+                row++;
             }
-        }
-        if(column != 0)
-        {
-            //there was at least one required/prevented teammate listed
-            row++;
         }
     }
 
@@ -388,7 +401,7 @@ registerDialog::registerDialog(QWidget *parent)
     theGrid = new QGridLayout(this);
 
     explanation = new QLabel(this);
-    explanation->setText(tr("\n\nThank you for registering your copy of gruepr.\nDoing so enables me to best support\nthe community of educators that uses it.\n\tThanks!\n\t  --Josh\n\t    j.hertz@neu.edu"));
+    explanation->setText(tr("\nThank you for registering your copy of gruepr.\nDoing so enables me to best support\nthe community of educators that uses it.\n\t-Josh\n\t j.hertz@neu.edu\n"));
     theGrid->addWidget(explanation, 0, 0);
 
     name = new QLineEdit(this);
