@@ -31,6 +31,8 @@ private slots:
 
     void on_sectionSelectionBox_currentIndexChanged(const QString &arg1);
 
+    void on_studentTable_cellEntered(int row, int column);
+
     void removeAStudent();
 
     void on_addStudentPushButton_clicked();
@@ -72,6 +74,8 @@ private slots:
     void optimizationComplete();
 
     void on_saveTeamsButton_clicked();
+
+    void on_printTeamsButton_clicked();
 
     void on_loadSettingsButton_clicked();
 

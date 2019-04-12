@@ -1,17 +1,16 @@
 #ifndef GRUEPR_STRUCTS_AND_CONSTS
 #define GRUEPR_STRUCTS_AND_CONSTS
 
-
-#include <QString>
-#include <QFileInfo>
-#include <QDateTime>
-#include "GA.h"
-
-#define GRUEPR_VERSION_NUMBER "8.2"
+#define GRUEPR_VERSION_NUMBER "8.3"
 #define GRUEPR_COPYRIGHT_YEAR "2019"
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
 #define USER_REGISTRATION_FORM_URL "https://docs.google.com/forms/d/e/1FAIpQLSdQubiN30uS7J1V4zWGz2gcLJjMHWyDFt34PBImoHh680gJTg"
+
+#include <QString>
+#include <QDateTime>
+#include <QFileInfo>
+#include "GA.h"
 
 //schedule constants, *MUST* be coordinated with the Google Form question that collects this data
 const int dailyTimeBlocks = 14;                         // how many blocks of time are in the day?
@@ -28,7 +27,8 @@ const int maxStudents = maxRecords;                     // each student is a "re
 struct studentRecord
 {
     int ID;                                             // ID is assigned in order of appearance in the data file
-    bool woman;
+    enum {woman, man, neither} gender;
+    bool URM;                                           // true if this student is from an underrepresented minority group
     bool unavailable[numTimeBlocks] = {false};			// true if this is a busy block during week
     bool preventedWith[maxStudents] = {false};			// true if this student is prevented from working with the corresponding student
     bool requiredWith[maxStudents] = {false};			// true if this student is required to work with the corresponding student
@@ -46,6 +46,7 @@ struct studentRecord
 struct DataOptions
 {
     bool genderIncluded;                                // is gender data included in the survey?
+    bool URMIncluded;                                   // is URM data included in the survey?
     bool sectionIncluded;                               // is section data included in the survey?
     bool notesIncluded;                                 // are notes (or other additional info) included in the survey?
     int numAttributes;                                  // how many attribute questions are in the survey?

@@ -611,9 +611,9 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>140</y>
+       <y>135</y>
        <width>261</width>
-       <height>51</height>
+       <height>56</height>
       </rect>
      </property>
      <property name="font">
@@ -633,6 +633,12 @@
      </property>
      <property name="inputMethodHints">
       <set>Qt::ImhNone</set>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -1100,10 +1106,10 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>50</y>
-      <width>144</width>
-      <height>31</height>
+      <x>494</x>
+      <y>48</y>
+      <width>113</width>
+      <height>35</height>
      </rect>
     </property>
     <property name="font">
@@ -1115,7 +1121,7 @@ background-color: rgb(193, 193, 193);</string>
      <string>Save the set of teams to text files</string>
     </property>
     <property name="text">
-     <string>Save Teams</string>
+     <string>Save</string>
     </property>
     <property name="icon">
      <iconset resource="gruepr.qrc">
@@ -1137,7 +1143,7 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>785</x>
+      <x>801</x>
       <y>54</y>
       <width>111</width>
       <height>16</height>
@@ -1156,9 +1162,9 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>380</x>
       <y>5</y>
-      <width>291</width>
+      <width>341</width>
       <height>41</height>
      </rect>
     </property>
@@ -1193,7 +1199,7 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>785</x>
+      <x>801</x>
       <y>10</y>
       <width>51</width>
       <height>16</height>
@@ -1221,7 +1227,7 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>785</x>
+      <x>801</x>
       <y>32</y>
       <width>51</width>
       <height>16</height>
@@ -1252,7 +1258,7 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>715</x>
+      <x>731</x>
       <y>10</y>
       <width>61</width>
       <height>16</height>
@@ -1268,7 +1274,7 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>726</x>
+      <x>742</x>
       <y>32</y>
       <width>61</width>
       <height>16</height>
@@ -1284,7 +1290,7 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>726</x>
       <y>54</y>
       <width>81</width>
       <height>16</height>
@@ -1297,9 +1303,9 @@ background-color: rgb(193, 193, 193);</string>
    <widget class="QToolButton" name="AboutButton">
     <property name="geometry">
      <rect>
-      <x>960</x>
+      <x>962</x>
       <y>5</y>
-      <width>47</width>
+      <width>45</width>
       <height>61</height>
      </rect>
     </property>
@@ -1441,10 +1447,10 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>557</x>
-      <y>50</y>
-      <width>144</width>
-      <height>31</height>
+      <x>380</x>
+      <y>48</y>
+      <width>113</width>
+      <height>35</height>
      </rect>
     </property>
     <property name="font">
@@ -1456,7 +1462,7 @@ background-color: rgb(193, 193, 193);</string>
      <string>Switch the positions of two students</string>
     </property>
     <property name="text">
-     <string>Adjust Teams</string>
+     <string>Adjust</string>
     </property>
     <property name="icon">
      <iconset resource="gruepr.qrc">
@@ -1477,7 +1483,7 @@ background-color: rgb(193, 193, 193);</string>
      <rect>
       <x>911</x>
       <y>5</y>
-      <width>47</width>
+      <width>45</width>
       <height>61</height>
      </rect>
     </property>
@@ -1511,7 +1517,7 @@ background-color: rgb(193, 193, 193);</string>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="usesScrollButtons">
      <bool>false</bool>
@@ -1550,6 +1556,12 @@ background-color: rgb(193, 193, 193);</string>
         <height>16777215</height>
        </size>
       </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::NoContextMenu</enum>
+      </property>
       <property name="styleSheet">
        <string notr="true">QTableView{gridline-color: black;}
             QHeaderView::section{
@@ -1564,8 +1576,12 @@ background-color: rgb(193, 193, 193);</string>
                 border-top:0px solid #D8D8D8;
                 border-left:0px solid #D8D8D8;
                 border-right:1px solid black;
-            border-bottom: 1px solid black;
-            background-color:white;}</string>
+                border-bottom: 1px solid black;
+                background-color:white;}
+			QTableView::item{ selection-background-color: #85cbf8}</string>
+      </property>
+      <property name="autoScroll">
+       <bool>false</bool>
       </property>
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
@@ -1578,6 +1594,12 @@ background-color: rgb(193, 193, 193);</string>
       </property>
       <property name="alternatingRowColors">
        <bool>true</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SingleSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
       </property>
       <property name="sortingEnabled">
        <bool>true</bool>
@@ -1766,9 +1788,9 @@ background-color: rgb(193, 193, 193);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>380</x>
       <y>5</y>
-      <width>291</width>
+      <width>341</width>
       <height>41</height>
      </rect>
     </property>
@@ -1820,7 +1842,45 @@ background-color: rgb(193, 193, 193);</string>
 copy of gruepr!</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="printTeamsButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>608</x>
+      <y>48</y>
+      <width>113</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="toolTip">
+     <string>Send the set of teams to the printer</string>
+    </property>
+    <property name="text">
+     <string>Print</string>
+    </property>
+    <property name="icon">
+     <iconset resource="gruepr.qrc">
+      <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>30</width>
+      <height>30</height>
+     </size>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
    <zorder>cancelOptimizationButton</zorder>
+   <zorder>letsDoItButton</zorder>
    <zorder>label_2</zorder>
    <zorder>sectionSelectionBox</zorder>
    <zorder>groupBox</zorder>
@@ -1840,9 +1900,9 @@ copy of gruepr!</string>
    <zorder>adjustTeamsButton</zorder>
    <zorder>HelpButton</zorder>
    <zorder>tabWidget</zorder>
-   <zorder>letsDoItButton</zorder>
    <zorder>loadSurveyFileButton</zorder>
    <zorder>registerButton</zorder>
+   <zorder>printTeamsButton</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoad_Survey_Data">

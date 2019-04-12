@@ -18,8 +18,10 @@
         <file>icons/exchange.png</file>
         <file>icons/add.png</file>
         <file>icons/delete.png</file>
+        <file>help.html</file>
+        <file>icons/print.png</file>
         <file>icons/help.png</file>
         <file>icons/splash.png</file>
-        <file>help.html</file>
+        <file>LICENSE.txt</file>
     </qresource>
 </RCC>

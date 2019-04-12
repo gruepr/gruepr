@@ -11,6 +11,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QPrinter>
+#include <QPrintDialog>
 
 
 gruepr::gruepr(QWidget *parent) :
@@ -38,10 +40,10 @@ gruepr::gruepr(QWidget *parent) :
         ui->statusBar->setStyleSheet("");
     }
 
-    //Connect signals to slots
-    connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
+    //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress);
     connect(this, &gruepr::optimizationMightBeComplete, this, &gruepr::askWhetherToContinueOptimizing);
+    connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
     // load all of the saved default values (if they exist)
     on_loadSettingsButton_clicked();
@@ -102,6 +104,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->idealTeamSizeBox->setEnabled(false);
         ui->letsDoItButton->setEnabled(false);
         ui->saveTeamsButton->setEnabled(false);
+        ui->printTeamsButton->setEnabled(false);
         ui->adjustTeamsButton->setEnabled(false);
 
         if(loadSurveyData(fileName))
@@ -309,6 +312,12 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 }
 
 
+void gruepr::on_studentTable_cellEntered(int row, int column)
+{
+    ui->studentTable->selectRow(row);
+}
+
+
 void gruepr::removeAStudent()
 {
     //Search through all the students and, once we found the one with the matching ID, move all remaining ones ahead by one and decrement numStudentsInSystem
@@ -346,7 +355,18 @@ void gruepr::on_addStudentPushButton_clicked()
         student[dataOptions.numStudentsInSystem].section = ui->addStudentSectionComboBox->currentText();
         if(dataOptions.genderIncluded)
         {
-            student[dataOptions.numStudentsInSystem].woman = (ui->addStudentGenderComboBox->currentText()==tr("woman"));
+            if(ui->addStudentGenderComboBox->currentText()==tr("woman"))
+            {
+                student[dataOptions.numStudentsInSystem].gender = studentRecord::woman;
+            }
+            else if(ui->addStudentGenderComboBox->currentText()==tr("man"))
+            {
+                student[dataOptions.numStudentsInSystem].gender = studentRecord::man;
+            }
+            else
+            {
+                student[dataOptions.numStudentsInSystem].gender = studentRecord::neither;
+            }
         }
         student[dataOptions.numStudentsInSystem].ID = numStudents + 1000;   //flag for added students is an ID > 1000
         for(int i = 0; i < maxAttributes; i++)
@@ -366,7 +386,7 @@ void gruepr::on_addStudentPushButton_clicked()
     }
     else
     {
-        QMessageBox::warning(this, tr("Cannot add student."), tr("Sorry, we cannot add another student.\nWe have reached the maximum number."), QMessageBox::Ok);
+        QMessageBox::warning(this, tr("Cannot add student."), tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
     }
 }
 
@@ -670,6 +690,9 @@ void gruepr::on_letsDoItButton_clicked()
     ui->teamData->setPlainText("Now creating teams.");
     ui->sectionSelectionBox->setEnabled(false);
     ui->loadSurveyFileButton->setEnabled(false);
+    ui->saveTeamsButton->setEnabled(false);
+    ui->printTeamsButton->setEnabled(false);
+    ui->adjustTeamsButton->setEnabled(false);
     ui->letsDoItButton->setEnabled(false);
     ui->letsDoItButton->hide();
     ui->cancelOptimizationButton->setEnabled(true);
@@ -751,6 +774,7 @@ void gruepr::optimizationComplete()
     ui->loadSurveyFileButton->setEnabled(true);
     ui->tabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
+    ui->printTeamsButton->setEnabled(true);
     ui->adjustTeamsButton->setEnabled(true);
     ui->letsDoItButton->setEnabled(true);
     ui->letsDoItButton->show();
@@ -790,6 +814,18 @@ void gruepr::on_saveTeamsButton_clicked()
 
         //Save data to files.
         printTeams(genome, teamScores, fileName);
+    }
+}
+
+
+void gruepr::on_printTeamsButton_clicked()
+{
+    QPrinter printer(QPrinter::HighResolution);
+    QPrintDialog printDialog(&printer);
+    printDialog.setWindowTitle(tr("Printer"));
+    if (printDialog.exec() == QDialog::Accepted)
+    {
+        ui->teamData->print(&printer);
     }
 }
 
@@ -947,7 +983,7 @@ bool gruepr::loadSurveyData(QString fileName)
         return false;
     }
 
-    // Read the optional gender/attribute questions
+    // Read the optional gender/URM/attribute questions
     int fieldnum = 4;     // skipping past first fields: timestamp(0), first name(1), last name(2), email address(3)
     QString field = fields.at(fieldnum).toLocal8Bit().constData();
     // See if gender data is included
@@ -961,6 +997,9 @@ bool gruepr::loadSurveyData(QString fileName)
     {
         dataOptions.genderIncluded = false;
     }
+
+    // UNIMPLEMENTED: see if URM data is included
+    dataOptions.URMIncluded = false;
 
     // Count the number of attributes by counting number of questions from here until one includes "Check the times". Save attribute question texts, if any, into string list.
     dataOptions.numAttributes = 0;                                          // how many skill/attitude rankings are there?
@@ -1038,6 +1077,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         fields.append(" ");
     }
 
+    // first 4 fields: timestamp, first or preferred name, last name, email address
     int fieldnum = 0;
     student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT1);
     if(student.surveyTimestamp.isNull())
@@ -1061,12 +1101,33 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     if(dataOptions.genderIncluded)
     {
         QString field = fields.at(fieldnum).toLocal8Bit().constData();
-        student.woman = field.contains(tr("woman"), Qt::CaseInsensitive);					// true if "woman" is found anywhere in text
+        if(field.contains(tr("woman"), Qt::CaseInsensitive))
+        {
+            student.gender = studentRecord::woman;
+        }
+        else if(field.contains(tr("man"), Qt::CaseInsensitive))
+        {
+            student.gender = studentRecord::man;
+        }
+        else
+        {
+            student.gender = studentRecord::neither;
+        }
         fieldnum++;
     }
     else
     {
-        student.woman = false;
+        student.gender = studentRecord::neither;
+    }
+
+    // UNIMPLEMENTED: optional next field in line; might be underrpresented minority status?
+    if(dataOptions.URMIncluded)
+    {
+
+    }
+    else
+    {
+        student.URM = false;
     }
 
     // optional next 9 fields in line; might be the attributes
@@ -1232,23 +1293,86 @@ void gruepr::refreshStudentDisplay()
     numStudents = 0;
     for(int i = 0; i < dataOptions.numStudentsInSystem; i++)
     {
+        QString studentToolTip;
         if((ui->sectionSelectionBox->currentIndex() == 0) || (student[i].section == ui->sectionSelectionBox->currentText()))
         {
-            ui->studentTable->setItem(numStudents, 0, new TimestampTableWidgetItem(student[i].surveyTimestamp.toString("d-MMM. h:mm AP")));
-            ui->studentTable->setItem(numStudents, 1, new QTableWidgetItem(student[i].firstname));
-            ui->studentTable->setItem(numStudents, 2, new QTableWidgetItem(student[i].lastname));
+            studentToolTip = student[i].firstname + " " + student[i].lastname + "  <" + student[i].email + ">";
+            if(dataOptions.genderIncluded)
+            {
+                studentToolTip += "\n" + tr("Gender:  ");
+                if(student[i].gender == studentRecord::woman)
+                {
+                    studentToolTip += tr("woman");
+                }
+                else if(student[i].gender == studentRecord::man)
+                {
+                    studentToolTip += tr("man");
+                }
+                else
+                {
+                    studentToolTip += tr("nonbinary/unknown");
+                }
+            }
+            for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+            {
+                studentToolTip += "\n" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+                if(student[i].attribute[attribute] != -1)
+                {
+                    studentToolTip += QString::number(student[i].attribute[attribute]);
+                }
+                else
+                {
+                    studentToolTip += "x";
+                }
+            }
+            studentToolTip += tr("\nAvailability:\n");
+            studentToolTip += "           ";
+            for(int day = 0; day < 7; day++)
+            {
+                studentToolTip += "\t" + dayNames[day];
+            }
+            for(int time = 0; time < dailyTimeBlocks; time++)
+            {
+                studentToolTip += "\n " + timeNames[time];
+                if(timeNames[time].size() < 6)
+                {
+                    studentToolTip += QString((6-timeNames[time].size()), ' ');
+                }
+                for(int day = 0; day < 7; day++)
+                {
+                    studentToolTip += "\t  " + QString(student[i].unavailable[(day*dailyTimeBlocks)+time]?" ":"√") + "  ";
+                }
+            }
+
+            TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[i].surveyTimestamp.toString("d-MMM. h:mm AP"));
+            timestamp->setToolTip(studentToolTip);
+            ui->studentTable->setItem(numStudents, 0, timestamp);
+
+            QTableWidgetItem *firstName = new QTableWidgetItem(student[i].firstname);
+            firstName->setToolTip(studentToolTip);
+            ui->studentTable->setItem(numStudents, 1, firstName);
+
+            QTableWidgetItem *lastName = new QTableWidgetItem(student[i].lastname);
+            lastName->setToolTip(studentToolTip);
+            ui->studentTable->setItem(numStudents, 2, lastName);
+
             int j = 3;
             if(dataOptions.sectionIncluded)
             {
-                ui->studentTable->setItem(numStudents, j, new QTableWidgetItem(student[i].section));
+                QTableWidgetItem *section = new QTableWidgetItem(student[i].section);
+                section->setToolTip(studentToolTip);
+                ui->studentTable->setItem(numStudents, j, section);
                 j++;
             }
+
             QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png") , "", this);
             remover->setFlat(true);
             remover->setIconSize(QSize(20,20));
+            remover->setToolTip(tr("Remove this record from the current dataset"));
             remover->setProperty("StudentID", student[i].ID);
             connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
             ui->studentTable->setCellWidget(numStudents, j, remover);
+
             numStudents++;
         }
     }
@@ -1502,131 +1626,143 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
     // Calculate attribute scores for each attribute for each team:
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
-        ID = 0;
-        for(int team = 0; team < numTeams; team++)
+        if(realAttributeWeights[attribute] > 0)
         {
-            int maxLevel = student[teammates[ID]].attribute[attribute], minLevel = student[teammates[ID]].attribute[attribute];
-            for(int teammate = 0; teammate < teamSize[team]; teammate++)
+            ID = 0;
+            for(int team = 0; team < numTeams; team++)
             {
-                if(student[teammates[ID]].attribute[attribute] != -1)       // students added manually have attribute levels of -1, so don't consider their "score"
+                int maxLevel = student[teammates[ID]].attribute[attribute], minLevel = student[teammates[ID]].attribute[attribute];
+                for(int teammate = 0; teammate < teamSize[team]; teammate++)
                 {
-                    if(student[teammates[ID]].attribute[attribute] > maxLevel)
+                    if(student[teammates[ID]].attribute[attribute] != -1)       // students added manually have attribute levels of -1, so don't consider their "score"
                     {
-                        maxLevel = student[teammates[ID]].attribute[attribute];
+                        if(student[teammates[ID]].attribute[attribute] > maxLevel)
+                        {
+                            maxLevel = student[teammates[ID]].attribute[attribute];
+                        }
+                        if(student[teammates[ID]].attribute[attribute] < minLevel)
+                        {
+                            minLevel = student[teammates[ID]].attribute[attribute];
+                        }
                     }
-                    if(student[teammates[ID]].attribute[attribute] < minLevel)
-                    {
-                        minLevel = student[teammates[ID]].attribute[attribute];
-                    }
+                    ID++;
                 }
-                ID++;
+                attributeScore[attribute][team] = (maxLevel - minLevel) / (dataOptions.attributeLevels[attribute] - 1.0);	// range in team's values divided by total possible range
+                if(teamingOptions.desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
+                {
+                    attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
+                }
+                attributeScore[attribute][team] *= realAttributeWeights[attribute];
             }
-            attributeScore[attribute][team] = (maxLevel - minLevel) / (dataOptions.attributeLevels[attribute] - 1.0);	// range in team's values divided by total possible range
-            if(teamingOptions.desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
-            {
-                attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
-            }
-            attributeScore[attribute][team] *= realAttributeWeights[attribute];
         }
     }
 
     // Calculate schedule scores for each team:
-    ID = 0;
-    for(int team = 0; team < numTeams; team++)
+    if(realScheduleWeight > 0)
     {
-        int firstStudentInTeam = ID;
-        // combine each student's schedule array into a team schedule array
-        bool teamAvailability[numTimeBlocks];
-        for(int time = 0; time < numTimeBlocks; time++)
+        ID = 0;
+        for(int team = 0; team < numTeams; team++)
         {
-            ID = firstStudentInTeam;
-            teamAvailability[time] = true;
-            for(int teammate = 0; teammate < teamSize[team]; teammate++)
-            {
-                teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
-                ID++;
-            }
-        }
-        // count how many free time blocks there are
-        if(teamingOptions.meetingBlockSize == 1)
-        {
+            int firstStudentInTeam = ID;
+            // combine each student's schedule array into a team schedule array
+            bool teamAvailability[numTimeBlocks];
             for(int time = 0; time < numTimeBlocks; time++)
             {
-                if(teamAvailability[time])
+                ID = firstStudentInTeam;
+                teamAvailability[time] = true;
+                for(int teammate = 0; teammate < teamSize[team]; teammate++)
                 {
-                    schedScore[team]++;
+                    teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
+                    ID++;
                 }
             }
-        }
-        else
-        {
-            for(int day = 0; day < 7; day++)
+            // count how many free time blocks there are
+            if(teamingOptions.meetingBlockSize == 1)
             {
-                for(int time = 0; time < dailyTimeBlocks-1; time++)
+                for(int time = 0; time < numTimeBlocks; time++)
                 {
-                    if(teamAvailability[(day*dailyTimeBlocks)+time])
+                    if(teamAvailability[time])
                     {
-                        time++;
+                        schedScore[team]++;
+                    }
+                }
+            }
+            else
+            {
+                for(int day = 0; day < 7; day++)
+                {
+                    for(int time = 0; time < dailyTimeBlocks-1; time++)
+                    {
                         if(teamAvailability[(day*dailyTimeBlocks)+time])
                         {
-                            schedScore[team]++;
+                            time++;
+                            if(teamAvailability[(day*dailyTimeBlocks)+time])
+                            {
+                                schedScore[team]++;
+                            }
                         }
                     }
                 }
             }
-        }
-        // convert counts to a schedule score
-        if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
-        {
-            schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
-            schedScore[team] *= realScheduleWeight;
-        }
-        else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
-        {
-            schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
-            schedScore[team] *= realScheduleWeight;
-        }
-        else													// if team has fewer than minTimeBlocksOverlap, apply penalty
-        {
-            schedScore[team] = -(dataOptions.numAttributes + 1);
+            // convert counts to a schedule score
+            if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
+            {
+                schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
+                schedScore[team] *= realScheduleWeight;
+            }
+            else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
+            {
+                schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
+                schedScore[team] *= realScheduleWeight;
+            }
+            else													// if team has fewer than minTimeBlocksOverlap, apply penalty
+            {
+                schedScore[team] = -(dataOptions.numAttributes + 1);
+            }
         }
     }
 
     // Determine adjustments for isolated woman teams
-    ID = 0;
-    for(int team = 0; team < numTeams; team++)
+    if(teamingOptions.isolatedWomenPrevented && dataOptions.genderIncluded)
     {
-        int numWomen = 0;
-        for(int teammate = 0; teammate < teamSize[team]; teammate++)
+        ID = 0;
+        for(int team = 0; team < numTeams; team++)
         {
-            if(student[teammates[ID]].woman)
+            int numWomen = 0;
+            for(int teammate = 0; teammate < teamSize[team]; teammate++)
             {
-                numWomen++;
+                if(student[teammates[ID]].gender == studentRecord::woman)
+                {
+                    numWomen++;
+                }
+                ID++;
             }
-            ID++;
-        }
-        if((numWomen == 1) && teamingOptions.isolatedWomenPrevented)
-        {
-            genderAdj[team] -= (dataOptions.numAttributes + 1);
+            if(numWomen == 1)
+            {
+                genderAdj[team] -= (dataOptions.numAttributes + 1);
+            }
         }
     }
 
     // Determine adjustments for isolated man teams
-    ID = 0;
-    for(int team = 0; team < numTeams; team++)
+    if(teamingOptions.isolatedMenPrevented && dataOptions.genderIncluded)
     {
-        int numMen = 0;
-        for(int teammate = 0; teammate < teamSize[team]; teammate++)
+        ID = 0;
+        for(int team = 0; team < numTeams; team++)
         {
-            if(!student[teammates[ID]].woman)
+            int numMen = 0;
+            for(int teammate = 0; teammate < teamSize[team]; teammate++)
             {
-                numMen++;
+                if(student[teammates[ID]].gender == studentRecord::man)
+                {
+                    numMen++;
+                }
+                ID++;
             }
-            ID++;
-        }
-        if((numMen == 1) && teamingOptions.isolatedMenPrevented)
-        {
-            genderAdj[team] -= (dataOptions.numAttributes + 1);
+            if(numMen == 1)
+            {
+                genderAdj[team] -= (dataOptions.numAttributes + 1);
+            }
         }
     }
 
@@ -1775,22 +1911,29 @@ void gruepr::printTeams(int teammates[], double teamScores[], QString filename)
                 instructorsFileContents << "  ";
                 studentsFileContents << "  ";
             }
-            if(student[teammates[ID]].woman)
+            if(student[teammates[ID]].gender == studentRecord::woman)
             {
-                screenOutput += "  W  ";
+                screenOutput += "  f  ";
                 if(filename != "")
                 {
-                    instructorsFileContents << "  W  ";
+                    instructorsFileContents << "  f  ";
+                }
+            }
+            else if(student[teammates[ID]].gender == studentRecord::man)
+            {
+                screenOutput += "  m  ";
+                if(filename != "")
+                {
+                    instructorsFileContents << "  m  ";
                 }
             }
             else
             {
-                screenOutput += "     ";
+                screenOutput += "  x  ";
                 if(filename != "")
                 {
-                    instructorsFileContents << "     ";
-                }
-            }
+                    instructorsFileContents << "  x  ";
+                }            }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
                 if(student[teammates[ID]].attribute[attribute] != -1)
@@ -1924,16 +2067,15 @@ void gruepr::closeEvent(QCloseEvent *event)
         saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
         saveOptionsOnClose.setText(tr("Before exiting, should we save all of the current options as defaults?"));
         saveOptionsOnClose.setCheckBox(&neverShowAgain);
-        QAbstractButton *yes = saveOptionsOnClose.addButton(tr("Save"), QMessageBox::YesRole);
-        saveOptionsOnClose.addButton(tr("Don't save"), QMessageBox::NoRole);
-        QAbstractButton *cancel = saveOptionsOnClose.addButton(tr("Cancel exit"), QMessageBox::RejectRole);
+        saveOptionsOnClose.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        saveOptionsOnClose.setButtonText(QMessageBox::Discard, tr("Don't Save"));
 
         saveOptionsOnClose.exec();
-        if(saveOptionsOnClose.clickedButton() == yes)
+        if(saveOptionsOnClose.result() == QMessageBox::Save)
         {
             on_saveSettingsButton_clicked();
         }
-        else if(saveOptionsOnClose.clickedButton() == cancel)
+        else if(saveOptionsOnClose.result() == QMessageBox::Cancel)
         {
             dontActuallyExit = true;
         }

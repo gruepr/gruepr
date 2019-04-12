@@ -1,9 +1,9 @@
 gruepr
 
-V 8.2
-04/06/2019
+V 8.3
+04/11/2019
 
-Written by: Joshua Hertz <j.hertz@neu.edu>
+Written by: Joshua Hertz < j.hertz@neu.edu >
 
 ---------------
 Description of gruepr:
@@ -60,6 +60,9 @@ Description of gruepr:
 	       ~ [optional] any additional notes for student (all remaining columns will get swallowed into this
 		     field)
 
+	COMPILING NOTES: Need C++11 compatibility. Using gcc/mingw, enabling the highest speed optimizations
+	with -O3 seems to offer significant speed boost.
+
 
 ---------------
 Details on how the teams are optimized:
@@ -95,4 +98,25 @@ A Note about genetic algorithm efficiency:
 	and thus good parents pass along good teams, in general, wherever they occur along the genome. However,
 	there still are redundancies inherent in this encoding scheme, making it less efficient. Swapping the
 	positions of two teammates within a team or of two whole teams within the list is represented by two
-	different genomes.
+	different genomes. Additional inefficiencies are suggested by the Genetic Grouping Algorithm (GGA).
+
+
+---------------
+DISCLAIMER:
+
+	This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
+	Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+	option) any later version.
+
+	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+	for more details.
+
+	You should have received a copy of the GNU General Public License along with this program.  If not, see 
+	< https://www.gnu.org/licenses/ >.
+
+	This software incorporates code from the open source Qt libraries, using version 5.12.1. These can be freely
+	downloaded from < http://qt.io/download >.
+
+	Icons were created by or modified from < https://icons8.com >. These icons have been made available under a
+	creative commons license.
