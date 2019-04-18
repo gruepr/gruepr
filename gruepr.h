@@ -2,10 +2,9 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
-#include <QString>
 #include <QFuture>
 #include <QFutureWatcher>
-#include "GA.h"
+#include <QTreeWidget>
 #include "customDialogs.h"
 #include "gruepr_structs_and_consts.h"
 
@@ -13,6 +12,34 @@
 namespace Ui {
 class gruepr;
 }
+
+
+class TimestampTableWidgetItem : public QTableWidgetItem
+{
+public:
+    TimestampTableWidgetItem(const QString txt = "");
+    bool operator <(const QTableWidgetItem &other) const;
+};
+
+
+class TeamTreeWidget : public QTreeWidget
+{
+    Q_OBJECT
+
+public:
+    TeamTreeWidget(QWidget *parent = nullptr);
+
+protected:
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
+
+signals:
+    void swapPlaces(int studentAID, int studentBID);
+
+private:
+    QTreeWidgetItem* draggedItem;
+    QTreeWidgetItem* droppedItem;
+};
 
 
 class gruepr : public QMainWindow
@@ -31,7 +58,7 @@ private slots:
 
     void on_sectionSelectionBox_currentIndexChanged(const QString &arg1);
 
-    void on_studentTable_cellEntered(int row, int column);
+    void on_studentTable_cellEntered(int row, int /*unused column value*/);
 
     void removeAStudent();
 
@@ -83,7 +110,7 @@ private slots:
 
     void on_clearSettingsButton_clicked();
 
-    void on_adjustTeamsButton_clicked();
+    void swapTeammates(int studentAID, int studentBID);
 
     void on_HelpButton_clicked();
 
@@ -115,7 +142,7 @@ private:
     bool loadSurveyData(QString fileName);              // returns false if file is invalid
     studentRecord readOneRecordFromFile(QStringList fields);
     QStringList ReadCSVLine(QString line);
-    QList<int> optimizeTeams();                         // returns a single permutation-of-IDs
+    QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     int bestGenome[maxStudents];
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
@@ -124,26 +151,10 @@ private:
     bool keepOptimizing;
     double getTeamScores(int teammates[], double teamScores[]);
     void printTeams(int teammates[], double teamScores[], QString filename);
-    // four strings used to show various values in the top row of teams printout
     QString sectionName;
-    QString finalGeneration;
-    QString finalTeamSetScore;
+    int finalGeneration;
+    double teamSetScore;
+    TeamTreeWidget *teamDataTree;
 };
-
-
-class TimestampTableWidgetItem : public QTableWidgetItem
-{
-public:
-    TimestampTableWidgetItem(const QString txt = "")
-        :QTableWidgetItem(txt)
-    {
-    }
-
-    bool operator <(const QTableWidgetItem &other) const
-    {
-        return QDateTime::fromString(text(), "d-MMM. h:mm AP") < QDateTime::fromString(other.text(), "d-MMM. h:mm AP");
-    }
-};
-
 
 #endif // GRUEPR_H

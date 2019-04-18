@@ -4,7 +4,6 @@
 // Code related to the Genetic Algorithm used in gruepr
 
 #include <cstdlib>
-#include <algorithm>
 
 const int maxRecords = 200;                             // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow with >100 records)
 const int populationSize = 30000;						// the number of genomes in each generation--larger size is slower, but arguably more optimized result. A size of 5000 works with the default stack size. For size of 20000, stack size was increased to 16 MB. For 30000, increased to 32 MB.

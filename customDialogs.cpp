@@ -61,7 +61,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPre
             {
                 indexInComboBox++;
                 possibleTeammates[i].insertItem(indexInComboBox, student[ID].firstname + " " + student[ID].lastname);
-                possibleTeammates[i].setItemData(indexInComboBox, ID);
+                possibleTeammates[i].setItemData(indexInComboBox, student[ID].ID);
             }
         }
         theGrid->addWidget(&possibleTeammates[i], 1+(i/4), i%4);
@@ -341,51 +341,6 @@ void customTeamsizesDialog::teamsizeChanged(int)
 
     refreshDisplay(numTeamsBox.currentIndex());
 }
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to swap the place (i.e., team assignment) of two selected students
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-swapTeammatesDialog::swapTeammatesDialog(const studentRecord student[], int numStudents, QWidget *parent)
-    :QDialog (parent)
-{
-    //Set up window with a grid layout
-    setWindowTitle(tr("Choose two students to swap teams"));
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    theGrid = new QGridLayout(this);
-
-    //First row and second row - the teammate choice boxes
-    studentA = new QComboBox(this);
-    studentB = new QComboBox(this);
-    studentA->addItem("");
-    studentB->addItem("");
-    //Create list of all the student names
-    for(int j = 0; j < numStudents; j++)
-    {
-        studentA->addItem(student[j].firstname + " " + student[j].lastname);
-        studentB->addItem(student[j].firstname + " " + student[j].lastname);
-    }
-    theGrid->addWidget(studentA, 0, 0);
-    theGrid->addWidget(studentB, 1, 0);
-
-    //Third and fourth row - a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(2, 20);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, 3, 0);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-    adjustSize();
-}
-
-
-void swapTeammatesDialog::refreshDisplay()
-{
-    //function held for later use
-}
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

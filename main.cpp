@@ -26,15 +26,16 @@
 //    These icons have been made available under a creative commons license.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
-// - improve printing (pagination and give option to print instructor and/or student version)
+// - improve printing (print preview, pagination, give option to print instructor and/or student version)
 // - allow non-inclusion of schedule question
 // - expand gender isolation penalty to prevent isolation along other personal attributes
-// - improve appearance of team display on screen (tooltip on each student to show their attributes and schedule?)
-// - improve appearance of adjust teammate dialog (instant feedback on swap results before "OK" adjusts or "Cancel" cancels the adjustment of the actual array)
-// - if reached stability, continue with added mutation probability
-// - change stability metric? (convergence = median or mean score relative to max)
+// - integrate with Google Drive: create form, download survey results from within the application
+// - register without desktopservices use of external browser (might need to update Qt to 5.12.2!)
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
+// - if reached stability, continue with added mutation probability
+// - change stability metric? (base the convergence metric on the population median score relative to population max)
+// - maintain population diversity through prevention of inbreeding (store parent and grandparent of each genome and disallow tournament selection from genomes with a match)
 // - use multiple genepools and allow limited cross-breeding
 // - use parallel processing for faster operations--especially the breeding to next generation which can be completely done in parallel
 // - to get around the redundancy-of-genome issue, store each genome as an unordered_set of unordered_sets. Each team is a set of IDs; each section is a set of teams.
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
     splash->setPixmap(pic);
     splash->show();
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\nj.hertz@neu.edu", Qt::AlignCenter);
-    QThread::sleep(4);
+    QThread::sleep(3);
     w.show();
     splash->finish(&w);
     delete splash;

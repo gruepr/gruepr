@@ -1,11 +1,11 @@
 #ifndef GRUEPR_STRUCTS_AND_CONSTS
 #define GRUEPR_STRUCTS_AND_CONSTS
 
-#define GRUEPR_VERSION_NUMBER "8.3"
+#define GRUEPR_VERSION_NUMBER "8.5"
 #define GRUEPR_COPYRIGHT_YEAR "2019"
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
-#define USER_REGISTRATION_FORM_URL "https://docs.google.com/forms/d/e/1FAIpQLSdQubiN30uS7J1V4zWGz2gcLJjMHWyDFt34PBImoHh680gJTg"
+#define USER_REGISTRATION_URL "https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"
 
 #include <QString>
 #include <QDateTime>

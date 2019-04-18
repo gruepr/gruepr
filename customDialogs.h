@@ -72,21 +72,6 @@ private:
 };
 
 
-class swapTeammatesDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    swapTeammatesDialog(const studentRecord student[], int numStudents, QWidget *parent = nullptr);
-    QComboBox *studentA, *studentB;
-
-private:
-    QGridLayout *theGrid;
-    QDialogButtonBox *buttonBox;
-    void refreshDisplay();
-};
-
-
 class registerDialog : public QDialog
 {
     Q_OBJECT

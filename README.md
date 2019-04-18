@@ -27,8 +27,8 @@ Description of gruepr:
 	this teamset by indicating pairs of students whose positions should be swapped, or throw away the teamset
 	entirely and start over. If you save the teamset, three files can be saved: 1) the output shown on the
 	screen, which is for your use; 2) the same screen output but without listing any of the team scores or
-	student attributes, which is useful for distributing to the students; and 3) the team and student info in
-	the format needed to import into the TEAMMATES peer review website.
+	student attributes, which is useful for distributing to the students; and 3) the section, team, and student
+	info in a spreadsheet format.
 
 	The datafile of student information has a specific required format. Using the Google Form allows you to
 	download the data into exactly this file format without modification. After collecting responses, go to the
