@@ -37,6 +37,8 @@ protected:
 
 signals:
     void swapPlaces(int studentAID, int studentBID);
+    void swapPlaces(int teamA, int teamAsize, int teamB, int teamBsize);
+    void teamInfoChanged();
 
 private:
     QTreeWidgetItem* draggedItem;
@@ -108,6 +110,8 @@ private slots:
 
     void on_collapseAllButton_clicked();
 
+    void on_sortTeamsButton_clicked();
+
     void on_teamNamesComboBox_currentIndexChanged(int index);
 
     void on_saveTeamsButton_clicked();
@@ -121,6 +125,10 @@ private slots:
     void on_clearSettingsButton_clicked();
 
     void swapTeammates(int studentAID, int studentBID);
+
+    void swapTeams(int teamA, int teamAsize, int teamB, int teamBsize);
+
+    void refreshTeamInfo();
 
     void on_HelpButton_clicked();
 
@@ -163,7 +171,6 @@ private:
     bool optimizationStopped;
     bool keepOptimizing;
     double getTeamScores(int teammates[], double teamScores[]);
-    void refreshTeamInfo();
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;

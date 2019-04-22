@@ -446,18 +446,15 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, QWidget *parent)
     theGrid->addWidget(explanation, 0, 0);
 
     studentFile = new QCheckBox(this);
-    studentFile->setText(tr("Student's file"));
-    studentFile->setToolTip(tr("The student's file contains only names, email addresses, and availability schedules."));
+    studentFile->setText(tr("Student's file - contains names, email addresses, and team availability schedule."));
     theGrid->addWidget(studentFile, 1, 0);
 
     instructorFile = new QCheckBox(this);
-    instructorFile->setText(tr("Instructor's file"));
-    instructorFile->setToolTip(tr("The instructor's file contains names, email addresses, demographic and attribute data, and availability schedules."));
+    instructorFile->setText(tr("Instructor's file - contains names, email addresses, demographic and attribute data, and team availability schedule."));
     theGrid->addWidget(instructorFile, 2, 0);
 
     spreadsheetFile = new QCheckBox(this);
-    spreadsheetFile->setText(tr("Spreadsheet file"));
-    spreadsheetFile->setToolTip(tr("The spreadsheet file contains sections, teams, names, and email addresses in a condensed, tab-separated value format."));
+    spreadsheetFile->setText(tr("Spreadsheet file - contains sections, teams, names, and email addresses in a columnar (tab-separated-value) format."));
     theGrid->addWidget(spreadsheetFile, 3, 0);
 
     //a spacer then ok/cancel buttons

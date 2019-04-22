@@ -28,10 +28,11 @@
 // FUTURE WORK:
 // - improve printing (print preview, pagination)
 // - allow non-inclusion of schedule question
-// - implement reading of URM status from data
-// - allow swapping of teams
-// - integrate with Google Drive: create form, download survey results from within the application
-// - register without desktopservices use of external browser (might need to update Qt to 5.12.2!)
+// - allow inclusion of URM status from data
+// - bug in swapteams? (maybe only when combined with sortteams and/or different teamsizes)
+// - integrate with Google Drive: create form and/or download survey results from within the application
+// - register without desktopservice's use of external browser (might need to update Qt to 5.12.2!)
+// - compile for OSX
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - if reached stability, continue with added mutation probability

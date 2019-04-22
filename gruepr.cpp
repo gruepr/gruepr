@@ -35,7 +35,9 @@ gruepr::gruepr(QWidget *parent) :
     teamDataTree->setSortingEnabled(false);
     teamDataTree->setAlternatingRowColors(true);
     ui->teamDataLayout->insertWidget(1, teamDataTree);
-    connect(teamDataTree, &TeamTreeWidget::swapPlaces, this, &gruepr::swapTeammates);
+    connect(teamDataTree, QOverload<int, int>::of(&TeamTreeWidget::swapPlaces), this, &gruepr::swapTeammates);
+    connect(teamDataTree, QOverload<int, int, int, int>::of(&TeamTreeWidget::swapPlaces), this, &gruepr::swapTeams);
+    connect(teamDataTree, &TeamTreeWidget::teamInfoChanged, this, &gruepr::refreshTeamInfo);
     connect(teamDataTree, &QTreeWidget::itemCollapsed, teamDataTree, &TeamTreeWidget::collapseItem);
     connect(teamDataTree, &QTreeWidget::itemExpanded, teamDataTree, &TeamTreeWidget::expandItem);
 
@@ -131,6 +133,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->teamDataLayout->setEnabled(false);
         ui->expandAllButton->setEnabled(false);
         ui->collapseAllButton->setEnabled(false);
+        ui->sortTeamsButton->setEnabled(false);
         ui->label_14->setEnabled(false);
         ui->teamNamesComboBox->setEnabled(false);
         ui->tabWidget->setCurrentIndex(0);
@@ -144,7 +147,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->letsDoItButton->setEnabled(false);
         ui->saveTeamsButton->setEnabled(false);
         ui->printTeamsButton->setEnabled(false);
-        //ui->adjustTeamsButton->setEnabled(false);
 
         if(loadSurveyData(fileName))
         {
@@ -240,7 +242,8 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->isolatedMenCheckBox->setEnabled(false);
                 ui->isolatedMenCheckBox->setChecked(false);
                 ui->mixedGenderCheckBox->setEnabled(false);
-                ui->mixedGenderCheckBox->setChecked(false);            }
+                ui->mixedGenderCheckBox->setChecked(false);
+            }
 
             if(dataOptions.URMIncluded)
             {
@@ -319,6 +322,7 @@ void gruepr::on_saveSettingsButton_clicked()
     savedSettings.setValue("dataFileLocation", dataOptions.dataFile.canonicalFilePath());
     savedSettings.setValue("isolatedWomenPrevented", teamingOptions.isolatedWomenPrevented);
     savedSettings.setValue("isolatedMenPrevented", teamingOptions.isolatedMenPrevented);
+    savedSettings.setValue("mixedGenderPreferred", teamingOptions.mixedGenderPreferred);
     savedSettings.setValue("isolatedURMPrevented", teamingOptions.isolatedURMPrevented);
     savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions.desiredTimeBlocksOverlap);
     savedSettings.setValue("minTimeBlocksOverlap", teamingOptions.minTimeBlocksOverlap);
@@ -756,7 +760,6 @@ void gruepr::on_letsDoItButton_clicked()
     ui->loadSurveyFileButton->setEnabled(false);
     ui->saveTeamsButton->setEnabled(false);
     ui->printTeamsButton->setEnabled(false);
-    //ui->adjustTeamsButton->setEnabled(false);
     ui->letsDoItButton->setEnabled(false);
     ui->letsDoItButton->hide();
     ui->cancelOptimizationButton->setEnabled(true);
@@ -853,7 +856,6 @@ void gruepr::optimizationComplete()
     ui->tabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->printTeamsButton->setEnabled(true);
-    //ui->adjustTeamsButton->setEnabled(true);
     ui->letsDoItButton->setEnabled(true);
     ui->letsDoItButton->show();
     ui->cancelOptimizationButton->setEnabled(false);
@@ -861,6 +863,7 @@ void gruepr::optimizationComplete()
     ui->teamDataText->setEnabled(true);
     ui->expandAllButton->setEnabled(true);
     ui->collapseAllButton->setEnabled(true);
+    ui->sortTeamsButton->setEnabled(true);
     ui->label_14->setEnabled(true);
     ui->teamNamesComboBox->setEnabled(true);
 
@@ -890,15 +893,33 @@ void gruepr::on_collapseAllButton_clicked()
 }
 
 
+void gruepr::on_sortTeamsButton_clicked()
+{
+    double teamScores[maxStudents];
+    teamSetScore = getTeamScores(bestGenome, teamScores);
+    for (int i = 0; i < numTeams-1; i++)
+        for (int j = 0; j < numTeams-i-1; j++)
+            if (teamScores[j] > teamScores[j+1])
+            {
+                swapTeams(j, teamSize[j], j+1, teamSize[j+1]);
+                std::swap(teamScores[j], teamScores[j+1]);
+            }
+    refreshTeamInfo();
+}
+
+
 void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
 {
+    static int prevIndex = 0;
+    //set team names to:
     if(index == 0)
     {
-        // arabic numbers for teamNames
+        // arabic numbers
         for(int team = 0; team < numTeams; team++)
         {
             teamNames[team] = QString::number(team+1);
         }
+        prevIndex = 0;
     }
     else if(index == 1)
     {
@@ -911,39 +932,52 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         {
             teamNames[team] = M[(team+1)/1000]+C[((team+1)%1000)/100]+X[((team+1)%100)/10]+I[((team+1)%10)];
         }
+        prevIndex = 1;
     }
     else if(index == 2)
     {
-        // English letters for teamNames
+        // hexadecimal numbers
+        for(int team = 0; team < numTeams; team++)
+        {
+            teamNames[team] = QString::number(team, 16).toUpper();
+        }
+        prevIndex = 2;
+    }
+    else if(index == 3)
+    {
+        // English letters
         for(int team = 0; team < numTeams; team++)
         {
             teamNames[team] = QString((team/26)+1, char((team%26)+65));
         }
+        prevIndex = 3;
     }
-    else if(index == 3)
+    else if(index == 4)
     {
-        // Greek letters for teamNames
+        // Greek letters
         QStringList Greekletter = (QString("Alpha,Beta,Gamma,Delta,Epsilon,Zeta,Eta,Theta,Iota,Kappa,Lambda,Mu,Nu,Xi,Omicron,Pi,Rho,Sigma,Tau,Upsilon,Phi,Chi,Psi,Omega").split(","));
         for(int team = 0; team < numTeams; team++)
         {
             teamNames[team] = (Greekletter[team%(Greekletter.size())]+" ").repeated((team/Greekletter.size())+1).trimmed();    //Cycle through list as often as needed, adding a repetition every time through the list
         }
+        prevIndex = 4;
     }
-    else if(index == 4)
+    else if(index == 5)
     {
-        // use NATO phonetic alphabet for teamNames
+        // NATO phonetic alphabet
         QStringList NATOletter = (QString("Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,Lima,Mike,November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu").split(","));
         for(int team = 0; team < numTeams; team++)
         {
             teamNames[team] = (NATOletter[team%(NATOletter.size())]+" ").repeated((team/NATOletter.size())+1).trimmed();    //Cycle through list as often as needed, adding a repetition every time through the list
         }
+        prevIndex = 5;
     }
     else
     {
         //Open specialized dialog box to collect teamnames
         customTeamnamesDialog *window = new customTeamnamesDialog(numTeams, teamNames, this);
 
-        //If user clicks OK, use these team sizes, otherwise revert to option 1, smaller team sizes
+        //If user clicks OK, use these team sizes, otherwise revert to previous option
         int reply = window->exec();
         if(reply == QDialog::Accepted)
         {
@@ -951,6 +985,13 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
             {
                 teamNames[team] = window->teamName[team].text();
             }
+            prevIndex = 6;
+        }
+        else
+        {
+            bool currentValue = ui->teamNamesComboBox->blockSignals(true);
+            ui->teamNamesComboBox->setCurrentIndex(prevIndex);
+            ui->teamNamesComboBox->blockSignals(currentValue);
         }
 
         delete window;
@@ -1023,18 +1064,8 @@ void gruepr::on_printTeamsButton_clicked()
         QPrintDialog printDialog(&printer);
         printDialog.setWindowTitle(tr("Print"));
 
-        if (printDialog.exec() == QDialog::Accepted)
+        if(printDialog.exec() == QDialog::Accepted)
         {
-            /*
-         * add QPrintPreview, and set lines between teams to get 1/2/etc. teams per page?
-        QPainter painter(&printer);
-        painter.setWindow(0, 0, 100, 100);
-        painter.setViewport(0, 0, printer.width(), printer.height());
-
-        QFont font("Courier", 0, QFont::Normal, QFont::StyleNormal);
-        font.setPointSizeF(static_cast<double>(12) / printer.width() * 100);
-        */
-
             if(window->instructorFile->isChecked())
             {
                 QTextDocument textDocument(instructorsFileContents, this);
@@ -1058,13 +1089,89 @@ void gruepr::on_printTeamsButton_clicked()
 
 void gruepr::swapTeammates(int studentAID, int studentBID)
 {
-    //swap them
+    if(studentAID == studentBID)
+    {
+        return;
+    }
+
+    //find them then swap them
     int studentAIndex = static_cast<int>(std::distance(bestGenome, std::find(bestGenome, bestGenome+numStudents, studentAID)));
     int studentBIndex = static_cast<int>(std::distance(bestGenome, std::find(bestGenome, bestGenome+numStudents, studentBID)));
     std::swap(bestGenome[studentAIndex], bestGenome[studentBIndex]);
-
-    refreshTeamInfo();
 }
+
+
+void gruepr::swapTeams(int teamA, int teamAsize, int teamB, int teamBsize)
+{
+    if(teamA == teamB)
+    {
+        return;
+    }
+
+    // make sure teamA is the first one in the genome
+    if(teamA > teamB)
+    {
+        std::swap(teamA, teamB);
+        std::swap(teamAsize, teamBsize);
+    }
+
+    // get ID of first element in teamA and teamB
+    int ID = 0, teamAID = 0, teamBID = 0, team;
+    for(team = 0; team < numTeams; team++)
+    {
+        if(team == teamA)
+        {
+            teamAID = ID;
+        }
+        if(team == teamB)
+        {
+            teamBID = ID;
+        }
+        ID += teamSize[team];
+    }
+
+    int *newGenome = new int[maxStudents];
+    int oldID = 0, newID = 0;
+
+    // not at first team yet
+    for(team = 0; team < teamA; team++)
+    {
+        std::copy(bestGenome + oldID, bestGenome + oldID + teamSize[team], newGenome + newID);
+        newID += teamSize[team];
+        oldID += teamSize[team];
+    }
+
+    // at first team
+    std::copy(bestGenome + teamBID, bestGenome + teamBID + teamBsize, newGenome + newID);
+    newID += teamBsize;
+    oldID += teamAsize;
+
+    // beyond first team but not at second team yet
+    for(team = teamA + 1; team < teamB; team++)
+    {
+        std::copy(bestGenome + oldID, bestGenome + oldID + teamSize[team], newGenome + newID);
+        newID += teamSize[team];
+        oldID += teamSize[team];
+    }
+
+    // at second team
+    std::copy(bestGenome + teamAID, bestGenome + teamAID + teamAsize, newGenome + newID);
+    newID += teamAsize;
+    oldID += teamBsize;
+
+    // beyond second team
+    for(team = teamB + 1; team < numTeams; team++)
+    {
+        std::copy(bestGenome + oldID, bestGenome + oldID + teamSize[team], newGenome + newID);
+        newID += teamSize[team];
+        oldID += teamSize[team];
+    }
+
+    std::copy(newGenome, newGenome+maxStudents, bestGenome);
+    delete [] newGenome;
+    std::swap(teamSize[teamA], teamSize[teamB]);
+}
+
 
 
 void gruepr::on_HelpButton_clicked()
@@ -2002,7 +2109,7 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
             }
             if(numMen == 0 || numWomen == 0)
             {
-                genderAdj[team] -= ((dataOptions.numAttributes + 1)/2);
+                genderAdj[team] -= (dataOptions.numAttributes + 1);
             }
         }
     }
@@ -2152,7 +2259,7 @@ void gruepr::refreshTeamInfo()
     for(int team = 0; team < numTeams; team++)
     {
         QString teamToolTip;
-        instructorsFileContents += tr("\nTeam ") + teamNames[team] + tr("  -  Score = ") + QString::number(teamScores[team]) + "\n\n";
+        instructorsFileContents += tr("\nTeam ") + teamNames[team] + tr("  -  Score = ") + QString::number(teamScores[team], 'f', 2) + "\n\n";
         studentsFileContents += tr("\nTeam ") + teamNames[team] + "\n\n";
 
         //loop through each teammate in the team
@@ -2244,7 +2351,7 @@ void gruepr::refreshTeamInfo()
     ui->studentsOutputTextEdit->setPlainText(studentsFileContents);
 
     ui->tabWidget->setCurrentIndex(1);
-    ui->teamDataText->setText(tr("  File: ") + elidedDataFileName + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") + QString::number(finalGeneration) + tr(" generations to a net score of ") + QString::number(teamSetScore));
+    ui->teamDataText->setText(tr("  File: ") + elidedDataFileName + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") + QString::number(finalGeneration) + tr(" generations to a net score of ") + QString::number(teamSetScore, 'f', 2));
     teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded?1:0) + dataOptions.numAttributes + 1);          // name, gender?, each attribute, schedule
     QStringList headerLabels;
     headerLabels << tr("name");
@@ -2258,8 +2365,22 @@ void gruepr::refreshTeamInfo()
     }
     headerLabels << tr("available times");
     teamDataTree->setHeaderLabels(headerLabels);
-    teamDataTree->clear();
     teamDataTree->setFocus();
+
+    // clear table, but remember which teams are shown expanded and which are collapsed
+    bool *expanded = new bool[numTeams];
+    for(int team = 0; team < numTeams; team++)
+    {
+        if(teamDataTree->topLevelItem(team))    //can't get value if it doesn't exist
+        {
+            expanded[team] = teamDataTree->topLevelItem(team)->isExpanded();
+        }
+        else
+        {
+            expanded[team] = false;
+        }
+    }
+    teamDataTree->clear();
 
     // build a tree map of the teams: key = team number, value = list of studentrecords
     QMap<int, QList<studentRecord>> treeMap;
@@ -2285,7 +2406,7 @@ void gruepr::refreshTeamInfo()
         //create team items
         i.next();
         parentItem = new QTreeWidgetItem(teamDataTree);
-        parentItem->setText(0, tr("Team ") + teamNames[i.key()] + tr("  -  Score = ") + QString::number(teamScores[i.key()]));
+        parentItem->setText(0, tr("Team ") + teamNames[i.key()] + tr("  -  Score = ") + QString::number(teamScores[i.key()], 'f', 2));
         parentItem->setData(0, Qt::UserRole, teamnum);
         parentItem->setToolTip(0, teamToolTips.at(teamnum));
         parentItem->setExpanded(true);
@@ -2343,7 +2464,13 @@ void gruepr::refreshTeamInfo()
             parentItem->addChild(childItem);
         }
     }
-    teamDataTree->collapseAll();
+
+    // restore expanded/collapsed teams
+    for(int team = 0; team < numTeams; team++)
+    {
+         teamDataTree->topLevelItem(team)->setExpanded(expanded[team]);
+    }
+    delete [] expanded;
 
     QApplication::restoreOverrideCursor();
 }
@@ -2445,12 +2572,12 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     {
         // UserRole data stored in the item is the studentRecord.ID
         emit swapPlaces((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
+        emit teamInfoChanged();
     }
     else if(!(draggedItem->parent()) && !(droppedItem->parent()))
     {
-        // UNIMPLEMENTED: SWAPPING TWO TEAMS--INSTEAD OF IGNORE, SWAP THE ENTRIES IN TEAMSIZE[] AND SWAPPLACES EACH CHILD??
-        event->setDropAction(Qt::IgnoreAction);
-        event->ignore();
+        emit swapPlaces((draggedItem->data(0,Qt::UserRole)).toInt(), draggedItem->childCount(), (droppedItem->data(0,Qt::UserRole)).toInt(), draggedItem->childCount());
+        emit teamInfoChanged();
     }
     else
     {

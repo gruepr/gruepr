@@ -108,7 +108,7 @@
       <string>If selected, teams will not be produced that have one woman on them</string>
      </property>
      <property name="text">
-      <string>Prevent Isolated Women?</string>
+      <string>Prevent Isolated Women</string>
      </property>
     </widget>
     <widget class="QSpinBox" name="desiredMeetingTimes">
@@ -747,7 +747,7 @@ background-color: rgb(193, 193, 193);</string>
       <string>If selected, every student on a team will have similar responses to this question; otherwise, the students on a team will have a wide range of responses to this question.</string>
      </property>
      <property name="text">
-      <string>Prefer Homogeneous?</string>
+      <string>Prefer Homogeneous</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_5">
@@ -1096,7 +1096,7 @@ background-color: rgb(193, 193, 193);</string>
       <string>If selected, teams will not be produced that have one man on them</string>
      </property>
      <property name="text">
-      <string>Prevent Isolated Men?</string>
+      <string>Prevent Isolated Men</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="isolatedURMCheckBox">
@@ -1105,8 +1105,8 @@ background-color: rgb(193, 193, 193);</string>
      </property>
      <property name="geometry">
       <rect>
-       <x>240</x>
-       <y>30</y>
+       <x>250</x>
+       <y>20</y>
        <width>101</width>
        <height>41</height>
       </rect>
@@ -1125,7 +1125,7 @@ background-color: rgb(193, 193, 193);</string>
      </property>
      <property name="text">
       <string>Prevent Isolated
-URM students?</string>
+URM students</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="mixedGenderCheckBox">
@@ -1153,7 +1153,7 @@ URM students?</string>
       <string>If selected, teams will have a preference towards being mixed gender</string>
      </property>
      <property name="text">
-      <string>Prefer Mixed Gender Teams?</string>
+      <string>Prevent Single Gender Teams</string>
      </property>
     </widget>
    </widget>
@@ -1836,6 +1836,26 @@ URM students?</string>
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="sortTeamsButton">
+           <property name="text">
+            <string>Sort Teams by Score</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QLabel" name="label_14">
            <property name="enabled">
             <bool>false</bool>
@@ -1870,6 +1890,11 @@ URM students?</string>
            <item>
             <property name="text">
              <string>Roman numerals</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hexadecimal numerals</string>
             </property>
            </item>
            <item>
