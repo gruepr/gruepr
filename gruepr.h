@@ -28,6 +28,8 @@ class TeamTreeWidget : public QTreeWidget
 
 public:
     TeamTreeWidget(QWidget *parent = nullptr);
+    void collapseItem(QTreeWidgetItem *item);
+    void expandItem(QTreeWidgetItem *item);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
@@ -74,6 +76,8 @@ private slots:
 
     void on_isolatedMenCheckBox_stateChanged(int arg1);
 
+    void on_isolatedURMCheckBox_stateChanged(int arg1);
+
     void on_minMeetingTimes_valueChanged(int arg1);
 
     void on_desiredMeetingTimes_valueChanged(int arg1);
@@ -100,6 +104,12 @@ private slots:
 
     void optimizationComplete();
 
+    void on_expandAllButton_clicked();
+
+    void on_collapseAllButton_clicked();
+
+    void on_teamNamesComboBox_currentIndexChanged(int index);
+
     void on_saveTeamsButton_clicked();
 
     void on_printTeamsButton_clicked();
@@ -118,6 +128,8 @@ private slots:
 
     void on_registerButton_clicked();
 
+    void on_mixedGenderCheckBox_stateChanged(int arg1);
+
 signals:
     void generationComplete(double score, int generation, double scoreStability);
 
@@ -132,8 +144,8 @@ private:
     QString registeredUser;
     DataOptions dataOptions;
     TeamingOptions teamingOptions;
-    studentRecord student[maxStudents];                 // array to hold the students' data
-    int numStudents;
+    studentRecord *student;                             // array to hold the students' data
+    int numStudents = maxStudents;
     int numTeams;
     void refreshStudentDisplay();
     int teamSize[maxStudents]={0};
@@ -142,6 +154,7 @@ private:
     bool loadSurveyData(QString fileName);              // returns false if file is invalid
     studentRecord readOneRecordFromFile(QStringList fields);
     QStringList ReadCSVLine(QString line);
+    int *studentIDs;                                    // array of the IDs of students to be placed on teams
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     int bestGenome[maxStudents];
@@ -150,11 +163,15 @@ private:
     bool optimizationStopped;
     bool keepOptimizing;
     double getTeamScores(int teammates[], double teamScores[]);
-    void printTeams(int teammates[], double teamScores[], QString filename);
+    void refreshTeamInfo();
+    QString instructorsFileContents;
+    QString studentsFileContents;
+    QString spreadsheetFileContents;
     QString sectionName;
     int finalGeneration;
     double teamSetScore;
     TeamTreeWidget *teamDataTree;
+    QStringList teamNames;
 };
 
 #endif // GRUEPR_H

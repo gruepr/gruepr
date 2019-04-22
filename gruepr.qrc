@@ -23,5 +23,6 @@
         <file>icons/help.png</file>
         <file>icons/splash.png</file>
         <file>LICENSE.txt</file>
+        <file>README.md</file>
     </qresource>
 </RCC>

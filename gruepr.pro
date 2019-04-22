@@ -30,7 +30,7 @@ QMAKE_CXXFLAGS_RELEASE -= -O1
 QMAKE_CXXFLAGS_RELEASE -= -O2
 
 # add the desired -O3 if not present
-QMAKE_CXXFLAGS_RELEASE *= -O3
+QMAKE_CXXFLAGS_RELEASE += -O3
 
 SOURCES += \
         main.cpp \

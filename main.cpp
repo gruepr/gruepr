@@ -26,9 +26,10 @@
 //    These icons have been made available under a creative commons license.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
-// - improve printing (print preview, pagination, give option to print instructor and/or student version)
+// - improve printing (print preview, pagination)
 // - allow non-inclusion of schedule question
-// - expand gender isolation penalty to prevent isolation along other personal attributes
+// - implement reading of URM status from data
+// - allow swapping of teams
 // - integrate with Google Drive: create form, download survey results from within the application
 // - register without desktopservices use of external browser (might need to update Qt to 5.12.2!)
 
@@ -53,15 +54,16 @@ int main(int argc, char *argv[])
     a.setApplicationName("gruepr");
     a.setApplicationVersion(GRUEPR_VERSION_NUMBER);
 
-    gruepr w;
-
     QSplashScreen *splash = new QSplashScreen;
     QPixmap pic(":/icons/splash.png");
     splash->setPixmap(pic);
-    splash->show();
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\nj.hertz@neu.edu", Qt::AlignCenter);
+    splash->show();
     QThread::sleep(3);
+
+    gruepr w;
     w.show();
+
     splash->finish(&w);
     delete splash;
 

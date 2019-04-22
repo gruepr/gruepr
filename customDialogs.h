@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QLineEdit>
+#include <QCheckBox>
 #include "gruepr_structs_and_consts.h"
 
 
@@ -72,6 +73,23 @@ private:
 };
 
 
+class customTeamnamesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    customTeamnamesDialog(int numTeams = 1, QStringList teamNames = {}, QWidget *parent = nullptr);
+    ~customTeamnamesDialog();
+
+    QLineEdit *teamName;
+
+private:
+    QGridLayout *theGrid;
+    QLabel *teamNumberLabel;
+    QDialogButtonBox *buttonBox;
+};
+
+
 class registerDialog : public QDialog
 {
     Q_OBJECT
@@ -82,6 +100,26 @@ public:
     QLineEdit *name;
     QLineEdit *institution;
     QLineEdit *email;
+
+private:
+    QGridLayout *theGrid;
+    QLabel *explanation;
+    QDialogButtonBox *buttonBox;
+};
+
+
+class whichFilesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    enum action{save, print};
+
+    whichFilesDialog(const action saveOrPrint, QWidget *parent = nullptr);
+
+    QCheckBox *studentFile;
+    QCheckBox *instructorFile;
+    QCheckBox *spreadsheetFile;
 
 private:
     QGridLayout *theGrid;

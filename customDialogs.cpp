@@ -225,7 +225,6 @@ void gatherTeammatesDialog::refreshDisplay()
 }
 
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to choose custom team sizes
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,6 +343,53 @@ void customTeamsizesDialog::teamsizeChanged(int)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to choose custom team names
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+customTeamnamesDialog::customTeamnamesDialog(int numTeams, QStringList teamNames, QWidget *parent)
+    :QDialog (parent)
+{
+    teamNumberLabel = new QLabel[numTeams];
+    teamName = new QLineEdit[numTeams];
+
+    //Set up window with a grid layout
+    setWindowTitle(tr("Choose custom team names"));
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    theGrid = new QGridLayout(this);
+
+    //Row 1 through (numTeams/4) - the team names
+    for(int i = 0; i < numTeams; i++)
+    {
+        teamNumberLabel[i].setText(tr("Team ") + QString::number(i+1));
+        theGrid->addWidget(&teamNumberLabel[i], (i/4), 2*(i%4));
+        theGrid->setColumnStretch(2*(i%4), 1);
+        teamName[i].setPlaceholderText(tr("Custom name"));
+        teamName[i].setText((teamNames.size() > i)?teamNames[i]:"");
+        theGrid->addWidget(&teamName[i], (i/4), 2*(i%4)+1);
+        theGrid->setColumnStretch(2*(i%4)+1, 1);
+    }
+
+    //Rows (numTeams/4)+1 and (numTeams/4)+2 - a spacer then ok/cancel buttons
+    theGrid->setRowMinimumHeight((numTeams/4)+1, 20);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    theGrid->addWidget(buttonBox, (numTeams/4)+2, 3, 1, -1);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    adjustSize();
+}
+
+
+customTeamnamesDialog::~customTeamnamesDialog()
+{
+    //delete dynamically allocated arrays created in class constructor
+    delete [] teamNumberLabel;
+    delete [] teamName;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to register the software
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -370,6 +416,49 @@ registerDialog::registerDialog(QWidget *parent)
     email = new QLineEdit(this);
     email->setPlaceholderText(tr("email address"));
     theGrid->addWidget(email, 3, 0);
+
+    //a spacer then ok/cancel buttons
+    theGrid->setRowMinimumHeight(4, 20);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    theGrid->addWidget(buttonBox, 5, 0);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    adjustSize();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to choose which item(s) to save or print
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+whichFilesDialog::whichFilesDialog(const action saveOrPrint, QWidget *parent)
+    :QDialog (parent)
+{
+    QString saveOrPrintString = (saveOrPrint==whichFilesDialog::save?tr("save"):tr("print"));
+    //Set up window with a grid layout
+    setWindowTitle(tr("Choose files to ") + saveOrPrintString);
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    theGrid = new QGridLayout(this);
+
+    explanation = new QLabel(this);
+    explanation->setText(tr("\nYou can ") + saveOrPrintString + tr(" the following files:"));
+    theGrid->addWidget(explanation, 0, 0);
+
+    studentFile = new QCheckBox(this);
+    studentFile->setText(tr("Student's file"));
+    studentFile->setToolTip(tr("The student's file contains only names, email addresses, and availability schedules."));
+    theGrid->addWidget(studentFile, 1, 0);
+
+    instructorFile = new QCheckBox(this);
+    instructorFile->setText(tr("Instructor's file"));
+    instructorFile->setToolTip(tr("The instructor's file contains names, email addresses, demographic and attribute data, and availability schedules."));
+    theGrid->addWidget(instructorFile, 2, 0);
+
+    spreadsheetFile = new QCheckBox(this);
+    spreadsheetFile->setText(tr("Spreadsheet file"));
+    spreadsheetFile->setToolTip(tr("The spreadsheet file contains sections, teams, names, and email addresses in a condensed, tab-separated value format."));
+    theGrid->addWidget(spreadsheetFile, 3, 0);
 
     //a spacer then ok/cancel buttons
     theGrid->setRowMinimumHeight(4, 20);

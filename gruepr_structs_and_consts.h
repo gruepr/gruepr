@@ -1,7 +1,7 @@
 #ifndef GRUEPR_STRUCTS_AND_CONSTS
 #define GRUEPR_STRUCTS_AND_CONSTS
 
-#define GRUEPR_VERSION_NUMBER "8.5"
+#define GRUEPR_VERSION_NUMBER "8.6"
 #define GRUEPR_COPYRIGHT_YEAR "2019"
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
@@ -39,6 +39,7 @@ struct studentRecord
     QString email;
     QString section;									// section data stored as text
     QString notes;										// any special notes for this student
+    QString availabilityChart;
 };
 
 
@@ -62,6 +63,8 @@ struct TeamingOptions
 {
     bool isolatedWomenPrevented;                        // if true, will prevent teams with an isolated woman
     bool isolatedMenPrevented;                          // if true, will prevent teams with an isolated man
+    bool mixedGenderPreferred;                          // if true, will penalize teams with all men or all women
+    bool isolatedURMPrevented;                          // if true, will prevent teams with an isolated URM student
     int desiredTimeBlocksOverlap=8;                     // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap=4;                         // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize=1;                             // count available meeting times in units of 1 hour or 2 hours long
