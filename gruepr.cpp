@@ -7,14 +7,10 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrent>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <QtNetwork>
 #include <QDesktopServices>
 #include <QCryptographicHash>
-#include <QPrinter>
 #include <QPrintDialog>
-#include <QPrintPreviewDialog>
 #include <QPainter>
 #include <QFont>
 
@@ -28,12 +24,10 @@ gruepr::gruepr(QWidget *parent) :
     ui->statusBar->setSizeGripEnabled(false);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
     setWindowIcon(QIcon(":/icons/gruepr.png"));
+
+    //Add the teamDataTree widget
     teamDataTree = new TeamTreeWidget(this);
     teamDataTree->setGeometry(0,0,624,626);
-    teamDataTree->setStyleSheet("QTreeWidget::item{selection-background-color: #85cbf8;}");
-    teamDataTree->setDragDropMode(QAbstractItemView::InternalMove);
-    teamDataTree->setSortingEnabled(false);
-    teamDataTree->setAlternatingRowColors(true);
     ui->teamDataLayout->insertWidget(1, teamDataTree);
     connect(teamDataTree, QOverload<int, int>::of(&TeamTreeWidget::swapPlaces), this, &gruepr::swapTeammates);
     connect(teamDataTree, QOverload<int, int, int, int>::of(&TeamTreeWidget::swapPlaces), this, &gruepr::swapTeams);
@@ -125,12 +119,11 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->addStudentSectionComboBox->setEnabled(false);
         ui->addStudentSectionComboBox->clear();
         ui->addStudentPushButton->setEnabled(false);
-        ui->instructorsOutputTextEdit->clear();
-        ui->instructorsOutputTextEdit->setEnabled(false);
-        ui->studentsOutputTextEdit->clear();
-        ui->studentsOutputTextEdit->setEnabled(false);
-        ui->teamDataText->clear();
         ui->teamDataLayout->setEnabled(false);
+        ui->teamDataText->clear();
+        ui->teamDataText->setEnabled(false);
+        teamDataTree->setEnabled(false);
+        ui->label_23->setEnabled(false);
         ui->expandAllButton->setEnabled(false);
         ui->collapseAllButton->setEnabled(false);
         ui->sortTeamsButton->setEnabled(false);
@@ -158,8 +151,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->addStudentLastName->setEnabled(true);
             ui->addStudentEmail->setEnabled(true);
             ui->addStudentPushButton->setEnabled(true);
-            ui->instructorsOutputTextEdit->setEnabled(true);
-            ui->studentsOutputTextEdit->setEnabled(true);
             ui->teamDataLayout->setEnabled(true);
             ui->minMeetingTimes->setEnabled(true);
             ui->desiredMeetingTimes->setEnabled(true);
@@ -457,7 +448,8 @@ void gruepr::on_addStudentPushButton_clicked()
     }
     else
     {
-        QMessageBox::warning(this, tr("Cannot add student."), tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
+        QMessageBox::warning(this, tr("Cannot add student."),
+                             tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
     }
 }
 
@@ -545,7 +537,8 @@ void gruepr::on_meetingLength_currentIndexChanged(int index)
 void gruepr::on_requiredTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are required
-    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)?"":sectionName, this);
+    gatherTeammatesDialog *window =
+            new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = window->exec();
@@ -564,7 +557,8 @@ void gruepr::on_requiredTeammatesButton_clicked()
 void gruepr::on_preventedTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are prevented
-    gatherTeammatesDialog *window = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)?"":sectionName, this);
+    gatherTeammatesDialog *window =
+            new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = window->exec();
@@ -603,9 +597,10 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
         teamingOptions.smallerTeamsNumTeams = numTeams+1;
         for(int student = 0; student < numStudents; student++)      // run through every student
         {
-            (teamingOptions.smallerTeamsSizes[student%teamingOptions.smallerTeamsNumTeams])++;                      // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
-            smallerTeamsSizeA = teamingOptions.smallerTeamsSizes[student%teamingOptions.smallerTeamsNumTeams];      // the larger of the two (uneven) team sizes
-            numSmallerATeams = (student%teamingOptions.smallerTeamsNumTeams)+1;                                     // the number of larger teams
+            // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
+            (teamingOptions.smallerTeamsSizes[student%teamingOptions.smallerTeamsNumTeams])++;
+            smallerTeamsSizeA = teamingOptions.smallerTeamsSizes[student%teamingOptions.smallerTeamsNumTeams];  // the larger of the two (uneven) team sizes
+            numSmallerATeams = (student%teamingOptions.smallerTeamsNumTeams)+1;                                 // the number of larger teams
         }
         smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
 
@@ -613,9 +608,10 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
         teamingOptions.largerTeamsNumTeams = numTeams;
         for(int student = 0; student < numStudents; student++)	// run through every student
         {
-            (teamingOptions.largerTeamsSizes[student%teamingOptions.largerTeamsNumTeams])++;                        // add one student to each team in turn until we run out of students
-            largerTeamsSizeA = teamingOptions.largerTeamsSizes[student%teamingOptions.largerTeamsNumTeams];         // the larger of the two (uneven) team sizes
-            numLargerATeams = (student%teamingOptions.largerTeamsNumTeams)+1;                                       // the number of larger teams
+            // add one student to each team in turn until we run out of students
+            (teamingOptions.largerTeamsSizes[student%teamingOptions.largerTeamsNumTeams])++;
+            largerTeamsSizeA = teamingOptions.largerTeamsSizes[student%teamingOptions.largerTeamsNumTeams];     // the larger of the two (uneven) team sizes
+            numLargerATeams = (student%teamingOptions.largerTeamsNumTeams)+1;                                   // the number of larger teams
         }
         largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
 
@@ -765,6 +761,13 @@ void gruepr::on_letsDoItButton_clicked()
     ui->cancelOptimizationButton->setEnabled(true);
     ui->cancelOptimizationButton->show();
 
+    // Set up to show progess on windows taskbar
+    taskbarButton = new QWinTaskbarButton(this);
+    taskbarButton->setWindow(windowHandle());
+    taskbarProgress = taskbarButton->progress();
+    taskbarProgress->show();
+    taskbarProgress->setMaximum(0);
+
     // Get the IDs of students from desired section and change numStudents accordingly
     int numStudentsInSection = 0;
     studentIDs = new int[dataOptions.numStudentsInSystem];
@@ -791,17 +794,19 @@ void gruepr::updateOptimizationProgress(double score, int generation, double sco
     ui->scoreBox->setValue(score);
     if(generation >= generationsOfStability)
     {
-        ui->stabilityProgressBar->setValue((scoreStability<100)?int(scoreStability):100);
+        ui->stabilityProgressBar->setValue((scoreStability<100)? int(scoreStability) : 100);
+        taskbarProgress->setMaximum(100);
+        taskbarProgress->setValue((scoreStability<100)? int(scoreStability) : 100);
     }
     if(generation >= minGenerations)
     {
         ui->stabilityProgressBar->setEnabled(true);
-        ui->generationsBox->setStyleSheet("background-color:palegreen");
+        ui->generationsBox->setStyleSheet("");
     }
     else
     {
         ui->stabilityProgressBar->setEnabled(false);
-        ui->generationsBox->setStyleSheet("background-color:lightcyan");
+        ui->generationsBox->setStyleSheet("background-color: #f283a5");
     }
 }
 
@@ -823,7 +828,7 @@ void gruepr::askWhetherToContinueOptimizing(int generation)
 
     QMessageBox questionWindow(this);
     questionWindow.setText(tr("Should we show the teams or continue optimizing?"));
-    questionWindow.setWindowTitle((generation < maxGenerations)?tr("The score seems to be stable."):(tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
+    questionWindow.setWindowTitle((generation < maxGenerations)? tr("The score seems to be stable.") : (tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
     questionWindow.setIcon(QMessageBox::Question);
     questionWindow.setWindowModality(Qt::ApplicationModal);
     questionWindow.addButton(tr("Show Teams"), QMessageBox::YesRole);
@@ -860,12 +865,17 @@ void gruepr::optimizationComplete()
     ui->letsDoItButton->show();
     ui->cancelOptimizationButton->setEnabled(false);
     ui->cancelOptimizationButton->hide();
+    ui->teamDataLayout->setEnabled(true);
     ui->teamDataText->setEnabled(true);
+    teamDataTree->setEnabled(true);
+    teamDataTree->setHeaderHidden(false);
     ui->expandAllButton->setEnabled(true);
     ui->collapseAllButton->setEnabled(true);
     ui->sortTeamsButton->setEnabled(true);
     ui->label_14->setEnabled(true);
+    ui->label_23->setEnabled(true);
     ui->teamNamesComboBox->setEnabled(true);
+    taskbarProgress->hide();
 
     // free memory used to save array of IDs of students being teamed
     delete[] studentIDs;
@@ -955,20 +965,24 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
     else if(index == 4)
     {
         // Greek letters
-        QStringList Greekletter = (QString("Alpha,Beta,Gamma,Delta,Epsilon,Zeta,Eta,Theta,Iota,Kappa,Lambda,Mu,Nu,Xi,Omicron,Pi,Rho,Sigma,Tau,Upsilon,Phi,Chi,Psi,Omega").split(","));
+        QStringList Greekletter = (QString("Alpha,Beta,Gamma,Delta,Epsilon,Zeta,Eta,Theta,Iota,Kappa,"
+                                           "Lambda,Mu,Nu,Xi,Omicron,Pi,Rho,Sigma,Tau,Upsilon,Phi,Chi,Psi,Omega").split(","));
+        //Cycle through list as often as needed, adding a repetition every time through the list
         for(int team = 0; team < numTeams; team++)
         {
-            teamNames[team] = (Greekletter[team%(Greekletter.size())]+" ").repeated((team/Greekletter.size())+1).trimmed();    //Cycle through list as often as needed, adding a repetition every time through the list
+            teamNames[team] = (Greekletter[team%(Greekletter.size())]+" ").repeated((team/Greekletter.size())+1).trimmed();
         }
         prevIndex = 4;
     }
     else if(index == 5)
     {
         // NATO phonetic alphabet
-        QStringList NATOletter = (QString("Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,Lima,Mike,November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu").split(","));
+        QStringList NATOletter = (QString("Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,"
+                                          "Lima,Mike,November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu").split(","));
+        //Cycle through list as often as needed, adding a repetition every time through the list
         for(int team = 0; team < numTeams; team++)
         {
-            teamNames[team] = (NATOletter[team%(NATOletter.size())]+" ").repeated((team/NATOletter.size())+1).trimmed();    //Cycle through list as often as needed, adding a repetition every time through the list
+            teamNames[team] = (NATOletter[team%(NATOletter.size())]+" ").repeated((team/NATOletter.size())+1).trimmed();
         }
         prevIndex = 5;
     }
@@ -983,9 +997,15 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         {
             for(int team = 0; team < numTeams; team++)
             {
-                teamNames[team] = window->teamName[team].text();
+                teamNames[team] = (window->teamName[team].text().isEmpty()? QString::number(team+1) : window->teamName[team].text());
             }
             prevIndex = 6;
+            bool currentValue = ui->teamNamesComboBox->blockSignals(true);
+            ui->teamNamesComboBox->setCurrentIndex(prevIndex);
+            ui->teamNamesComboBox->setItemText(6, tr("Current names"));
+            ui->teamNamesComboBox->removeItem(7);
+            ui->teamNamesComboBox->addItem(tr("Custom names"));
+            ui->teamNamesComboBox->blockSignals(currentValue);
         }
         else
         {
@@ -997,40 +1017,58 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         delete window;
     }
 
+    if(ui->teamNamesComboBox->currentIndex() < 6)
+    {
+        ui->teamNamesComboBox->removeItem(7);
+        ui->teamNamesComboBox->removeItem(6);
+        ui->teamNamesComboBox->addItem(tr("Custom names"));
+    }
+
     refreshTeamInfo();
 }
 
 
 void gruepr::on_saveTeamsButton_clicked()
-{    
-    //Open specialized dialog box to choose which file(s) to save
-    whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::save, this);
+{
+    QStringList previews = {studentsFileContents.left(1000) + "...", instructorsFileContents.left(1000) + "...", spreadsheetFileContents.left(1000) + "..."};
 
-    //If user clicks OK, use these team sizes, otherwise revert to option 1, smaller team sizes
-    int reply = window->exec();
-    if(reply == QDialog::Accepted)
+    //Open specialized dialog box to choose which file(s) to save
+    whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::save, previews, this);
+    int result = window->exec();
+
+    if(result == QDialogButtonBox::Save && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
     {
+        //save to text files
         QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename"), "", tr("Text File (*.txt);;All Files (*)"));
         if ( !(baseFileName.isEmpty()) )
         {
+            bool problemSaving = false;
             if(window->instructorFile->isChecked())
             {
-                QFile instructorsFile(baseFileName);
+                QFile instructorsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix());
                 if(instructorsFile.open(QIODevice::WriteOnly | QIODevice::Text))
                 {
                     QTextStream out(&instructorsFile);
                     out << instructorsFileContents;
                     instructorsFile.close();
                 }
+                else
+                {
+                    problemSaving = true;
+                }
             }
             if(window->studentFile->isChecked())
             {
-                QFile studentsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_students." + QFileInfo(baseFileName).suffix());
+                QFile studentsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix());
                 if(studentsFile.open(QIODevice::WriteOnly | QIODevice::Text))
                 {
                     QTextStream out(&studentsFile);
                     out << studentsFileContents;
                     studentsFile.close();
+                }
+                else
+                {
+                    problemSaving = true;
                 }
             }
             if(window->spreadsheetFile->isChecked())
@@ -1042,8 +1080,21 @@ void gruepr::on_saveTeamsButton_clicked()
                     out << spreadsheetFileContents;
                     spreadsheetFile.close();
                 }
+                else
+                {
+                    problemSaving = true;
+                }
+            }
+            if(problemSaving)
+            {
+                QMessageBox::critical(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
             }
         }
+    }
+    else if(result == QDialogButtonBox::SaveAll && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
+    {
+        //save as formatted pdf files
+        printFiles(window->instructorFile->isChecked(), window->studentFile->isChecked(), window->spreadsheetFile->isChecked(), true);
     }
     delete window;
 }
@@ -1051,37 +1102,15 @@ void gruepr::on_saveTeamsButton_clicked()
 
 void gruepr::on_printTeamsButton_clicked()
 {
+    QStringList previews = {studentsFileContents.left(1000) + "...", instructorsFileContents.left(1000) + "...", spreadsheetFileContents.left(1000) + "..."};
+
     //Open specialized dialog box to choose which file(s) to print
-    whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::print, this);
+    whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::print, previews, this);
+    int result = window->exec();
 
-    //If user clicks OK, use these team sizes, otherwise revert to option 1, smaller team sizes
-    int reply = window->exec();
-    if(reply == QDialog::Accepted)
+    if(result == QDialogButtonBox::Ok && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
     {
-        QPrinter printer(QPrinter::HighResolution);
-        printer.setOrientation(QPrinter::Portrait);
-
-        QPrintDialog printDialog(&printer);
-        printDialog.setWindowTitle(tr("Print"));
-
-        if(printDialog.exec() == QDialog::Accepted)
-        {
-            if(window->instructorFile->isChecked())
-            {
-                QTextDocument textDocument(instructorsFileContents, this);
-                textDocument.print(&printer);
-            }
-            if(window->studentFile->isChecked())
-            {
-                QTextDocument textDocument(studentsFileContents, this);
-                textDocument.print(&printer);
-            }
-            if(window->spreadsheetFile->isChecked())
-            {
-                QTextDocument textDocument(spreadsheetFileContents, this);
-                textDocument.print(&printer);
-            }
-        }
+        printFiles(window->instructorFile->isChecked(), window->studentFile->isChecked(), false, false);
     }
     delete window;
 }
@@ -1203,7 +1232,7 @@ void gruepr::on_HelpButton_clicked()
 
 void gruepr::on_AboutButton_clicked()
 {
-    QString user = registeredUser.isEmpty()?tr("UNREGISTERED"):(tr("registered to ") + registeredUser);
+    QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
     QMessageBox::about(this, tr("About gruepr"),
                        tr("<h2>gruepr " GRUEPR_VERSION_NUMBER "</h2>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
@@ -1211,11 +1240,15 @@ void gruepr::on_AboutButton_clicked()
                           "<p>This copy of gruepr is ") + user + tr("."
                           "<p>gruepr is an open source project. The source code is freely available at"
                           "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
-                          "<p>gruepr incorporates code from the <a href = http://qt.io>open source Qt libraries, v 5.12.1</a>."
-                          "<br>The icons were created by (or modified from) the <a href = https://icons8.com>Icons8</a> library."
+                          "<p>gruepr incorporates:"
+                              "<ul><li>Code from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the  GNU Lesser General Public License version 3;</li>"
+                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"; and</li>"
+                              "<li>The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk), released under SIL OPEN FONT LICENSE V1.1.</li></ul>"
                           "<h3>Disclaimer</h3>"
-                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
-                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."));
+                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
+                          "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
+                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>"
+                          "GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
 }
 
 
@@ -1223,15 +1256,17 @@ void gruepr::on_registerButton_clicked()
 {
     //make sure we can connect to google
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
     QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
     connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-
     if(!(networkReply->bytesAvailable()))
     {
         //no internet right now
-        QMessageBox::critical(this, tr("No Internet Connection"), tr("You are not connected to the internet.\nPlease register at another time."));
+        QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));
+        delete networkReply;
+        delete manager;
+        return;
     }
     else
     {
@@ -1241,21 +1276,30 @@ void gruepr::on_registerButton_clicked()
         //If user clicks OK, email registration info and add to saved settings
         if(reply == QDialog::Accepted)
         {
-            QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
-                                           "?name="+window->name->text()+
-                                           "&institution="+window->institution->text()+
-                                           "&email="+window->email->text()));
-            registeredUser = window->name->text();
-            QSettings savedSettings;
-            savedSettings.setValue("registeredUser", registeredUser);
-            savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
-            ui->registerButton->hide();
-            ui->statusBar->setStyleSheet("");
-            if(ui->statusBar->currentMessage()==tr("This copy of gruepr is unregistered"))
+            if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
+                                              "?name="+window->name->text()+
+                                              "&institution="+window->institution->text()+
+                                              "&email="+window->email->text())))
             {
-                ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
+                registeredUser = window->name->text();
+                QSettings savedSettings;
+                savedSettings.setValue("registeredUser", registeredUser);
+                savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+                ui->registerButton->hide();
+                ui->statusBar->setStyleSheet("");
+                if(ui->statusBar->currentMessage()==tr("This copy of gruepr is unregistered"))
+                {
+                    ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
+                }
+            }
+            else
+            {
+                QMessageBox::critical(this, tr("No Connection"),
+                                      tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <j.hertz@neu.edu>."));
             }
         }
+        delete networkReply;
+        delete manager;
         delete window;
     }
 }
@@ -1362,7 +1406,7 @@ bool gruepr::loadSurveyData(QString fileName)
     }
 
     // Having read the header row, read each remaining row as a student record
-    numStudents = 0;                                                        // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    numStudents = 0;    // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     fields = ReadCSVLine(in.readLine());
     if(fields.empty())
     {
@@ -1391,7 +1435,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     studentRecord student;
 
     // Append empty final field if needed (ReadCSVLine function trims off an empty last field)
-    if(fields.size() < (4+dataOptions.numAttributes+7+((dataOptions.genderIncluded)?1:0)+((dataOptions.sectionIncluded)?1:0)+((dataOptions.notesIncluded)?1:0)))
+    if(fields.size() < (4+dataOptions.numAttributes+7+((dataOptions.genderIncluded)? 1 : 0)+((dataOptions.sectionIncluded)? 1 : 0)+((dataOptions.notesIncluded)? 1 : 0)))
     {
         fields.append(" ");
     }
@@ -1454,14 +1498,16 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     {
         QString field = fields.at(fieldnum).toLocal8Bit().constData();
         int chrctr = 0;
-        while((field[chrctr].digitValue() < 0 || field[chrctr].digitValue() > 9) && (chrctr < field.size()))	// search through this field character by character until we find a numeric digit (or reach the end)
+        // search through this field character by character until we find a numeric digit (or reach the end)
+        while((field[chrctr].digitValue() < 0 || field[chrctr].digitValue() > 9) && (chrctr < field.size()))
         {
             chrctr++;
         }
         if(field[chrctr].digitValue() >= 0 && field[chrctr].digitValue() <= 9)
         {
             student.attribute[attribute] = field[chrctr].digitValue();
-            if(student.attribute[attribute] > dataOptions.attributeLevels[attribute])					// attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
+            // attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
+            if(student.attribute[attribute] > dataOptions.attributeLevels[attribute])
             {
                 dataOptions.attributeLevels[attribute] = student.attribute[attribute];
             }
@@ -1493,7 +1539,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         }
         for(int day = 0; day < 7; day++)
         {
-            student.availabilityChart += "\t  " + QString(student.unavailable[(day*dailyTimeBlocks)+time]?" ":"√") + "  ";
+            student.availabilityChart += "\t  " + QString(student.unavailable[(day*dailyTimeBlocks)+time]? " " : "√") + "  ";
         }
     }
 
@@ -1612,7 +1658,7 @@ void gruepr::refreshStudentDisplay()
     ui->tabWidget->setCurrentIndex(0);
     ui->studentTable->clearContents();
     ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
-    ui->studentTable->setColumnCount(dataOptions.sectionIncluded?5:4);
+    ui->studentTable->setColumnCount(dataOptions.sectionIncluded? 5 : 4);
     ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Survey\nSubmission\nTime")));
     ui->studentTable->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("First Name")));
     ui->studentTable->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Last Name")));
@@ -1697,7 +1743,7 @@ void gruepr::refreshStudentDisplay()
     }
     ui->studentTable->setRowCount(numStudents);
 
-    QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0?"All sections":" Section: " + sectionName);
+    QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0? "All sections" : " Section: " + sectionName);
     ui->statusBar->showMessage(ui->statusBar->currentMessage().split("->")[0].trimmed() + "  -> " + sectiontext + "  [" + QString::number(numStudents) + " students]");
 
     ui->studentTable->resizeColumnsToContents();
@@ -1783,7 +1829,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
                 {
                     tempGen[i][ID] = genePool[indexOfBestTeamset][ID];
                 }
-                tempScores[indexOfBestTeamset] = *std::min_element(tempScores, tempScores+populationSize);      // set this tempScores value to the minimum one, so we can find the next biggest one during the next time through the loop
+                // set this tempScores value to the minimum one, so we can find the next biggest one during the next time through the loop
+                tempScores[indexOfBestTeamset] = *std::min_element(tempScores, tempScores+populationSize);
             }
 
             //create populationSize-numElites children and place in tempGen
@@ -1807,7 +1854,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
                 int parent[2], choice = 0, play = 0;
                 while(choice < 2)
                 {
-                    if(rand() < topGenomeLikelihood)	//choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on; 2nd parent then chosen from remaining (lower) players in tournament
+                    //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on; 2nd parent then chosen from remaining (lower) players in tournament
+                    if(rand() < topGenomeLikelihood)
                     {
                         parent[choice] = play%tournamentSize;       // using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
                         choice++;
@@ -2168,8 +2216,8 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
             //loop through ALL other students
             for(int studentB = 0; studentB < numStudents; studentB++)
             {
-                //if this pairing is required
-                if(student[teammates[studentA]].requiredWith[teammates[studentB]])
+                //if this pairing is required and studentB is in a/the section being teamed
+                if(student[teammates[studentA]].requiredWith[teammates[studentB]] && (ui->sectionSelectionBox->currentIndex() == 0 || student[teammates[studentB]].section == sectionName))
                 {
                     bool studentBOnTeam = false;
                     //loop through all of studentA's current teammates
@@ -2248,10 +2296,12 @@ void gruepr::refreshTeamInfo()
 
     QStringList teamToolTips;
 
-    QString elidedDataFileName = (dataOptions.dataFile.filePath().size()>90)?(dataOptions.dataFile.filePath().left(27)+"..."+dataOptions.dataFile.filePath().right(60)):dataOptions.dataFile.filePath();
+    QString elidedDataFileName = (dataOptions.dataFile.filePath().size()>90)?
+                (dataOptions.dataFile.filePath().left(27)+"..."+dataOptions.dataFile.filePath().right(60)) : dataOptions.dataFile.filePath();
 
     spreadsheetFileContents = tr("Section\tTeam\tName\tEmail\n");
-    instructorsFileContents = tr(" File: ") + elidedDataFileName + tr("\n Section: ") + sectionName + tr("\n Optimized over ") + QString::number(finalGeneration) + tr(" generations\n Net score: ") + QString::number(teamSetScore) + "\n----------------\n";
+    instructorsFileContents = tr("File: ") + dataOptions.dataFile.filePath() + "\n" + tr("Section: ") + sectionName + "\n" + tr("Optimized over ") +
+            QString::number(finalGeneration) + tr(" generations") + "\n" + tr("Net score: ") + QString::number(teamSetScore) + "\n\n\n";
     studentsFileContents = "";
 
     //loop through every team
@@ -2259,8 +2309,8 @@ void gruepr::refreshTeamInfo()
     for(int team = 0; team < numTeams; team++)
     {
         QString teamToolTip;
-        instructorsFileContents += tr("\nTeam ") + teamNames[team] + tr("  -  Score = ") + QString::number(teamScores[team], 'f', 2) + "\n\n";
-        studentsFileContents += tr("\nTeam ") + teamNames[team] + "\n\n";
+        instructorsFileContents += tr("Team ") + teamNames[team] + tr("  -  Score = ") + QString::number(teamScores[team], 'f', 2) + "\n\n";
+        studentsFileContents += tr("Team ") + teamNames[team] + "\n\n";
 
         //loop through each teammate in the team
         int canMeetAt[7][dailyTimeBlocks]={{0}};
@@ -2291,9 +2341,13 @@ void gruepr::refreshTeamInfo()
                     instructorsFileContents += "x  ";
                 }
             }
-            instructorsFileContents += student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname + "\t\t" + student[bestGenome[ID]].email + "\n";
-            studentsFileContents += student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname + "\t\t" + student[bestGenome[ID]].email + "\n";
-            spreadsheetFileContents += student[bestGenome[ID]].section + "\t" + teamNames[team] + "\t" + student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname + "\t" + student[bestGenome[ID]].email + "\n";
+            int nameSize = (student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname).size();
+            instructorsFileContents += student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname +
+                    QString(std::max(2,30-nameSize), ' ') + student[bestGenome[ID]].email + "\n";
+            studentsFileContents += student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname +
+                    QString(std::max(2,30-nameSize), ' ') + student[bestGenome[ID]].email + "\n";
+            spreadsheetFileContents += student[bestGenome[ID]].section + "\t" + teamNames[team] + "\t" + student[bestGenome[ID]].firstname +
+                    " " + student[bestGenome[ID]].lastname + "\t" + student[bestGenome[ID]].email + "\n";
 
             for(int day = 0; day < 7; day++)
             {
@@ -2308,9 +2362,9 @@ void gruepr::refreshTeamInfo()
             ID++;
         }
 
-        teamToolTip = tr("Team availability:\n");
-        instructorsFileContents += tr("Availability:\n");
-        studentsFileContents += tr("Availability:\n");
+        teamToolTip = tr("Team availability:") + "\n";
+        instructorsFileContents += ("\n" + tr("Availability:") + "\n");
+        studentsFileContents += ("\n" + tr("Availability:") + "\n");
 
         teamToolTip += "              ";
         instructorsFileContents += "            ";
@@ -2347,12 +2401,10 @@ void gruepr::refreshTeamInfo()
         teamToolTips += teamToolTip;
     }
 
-    ui->instructorsOutputTextEdit->setPlainText(instructorsFileContents);
-    ui->studentsOutputTextEdit->setPlainText(studentsFileContents);
-
     ui->tabWidget->setCurrentIndex(1);
-    ui->teamDataText->setText(tr("  File: ") + elidedDataFileName + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") + QString::number(finalGeneration) + tr(" generations to a net score of ") + QString::number(teamSetScore, 'f', 2));
-    teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded?1:0) + dataOptions.numAttributes + 1);          // name, gender?, each attribute, schedule
+    ui->teamDataText->setText(tr("  File: ") + elidedDataFileName + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") +
+                              QString::number(finalGeneration) + tr(" generations to a net score of ") + QString::number(teamSetScore, 'f', 2));
+    teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded? 1 : 0) + dataOptions.numAttributes + 1);          // name, gender?, each attribute, schedule
     QStringList headerLabels;
     headerLabels << tr("name");
     if(dataOptions.genderIncluded)
@@ -2475,6 +2527,171 @@ void gruepr::refreshTeamInfo()
     QApplication::restoreOverrideCursor();
 }
 
+
+//////////////////
+//Setup printer and then print paginated file(s) in boxes
+//////////////////
+void gruepr::printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF)
+{
+    // connecting to the printer is spun off into a separate thread because sometimes it causes ~30 second hang
+    // message box explains what's happening
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setIcon(QMessageBox::Information);
+    msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
+    msgBox->setStandardButtons(nullptr);        // no buttons
+    msgBox->setModal(false);
+    msgBox->show();
+    QEventLoop loop;
+    connect(this, &gruepr::connectedToPrinter, &loop, &QEventLoop::quit);
+    QPrinter *printer = nullptr;
+    QFuture<QPrinter*> future = QtConcurrent::run(this, &gruepr::setupPrinter);
+    loop.exec();
+    printer = future.result();
+    msgBox->close();
+    msgBox->deleteLater();
+    QApplication::restoreOverrideCursor();
+
+    bool doIt;
+    QString baseFileName;
+    if(printToPDF)
+    {
+        printer->setOutputFormat(QPrinter::PdfFormat);
+        baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename"), "", tr("PDF File (*.pdf);;All Files (*)"));
+        doIt = !(baseFileName.isEmpty());
+    }
+    else
+    {
+        printer->setOutputFormat(QPrinter::NativeFormat);
+        QPrintDialog printDialog(printer);
+        printDialog.setWindowTitle(tr("Print"));
+        doIt = (printDialog.exec() == QDialog::Accepted);
+    }
+
+    if(doIt)
+    {
+        QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
+        QFont printFont = QFont("Oxygen Mono", 10, QFont::Normal);
+
+        if(printInstructorsFile)
+        {
+            if(printToPDF)
+            {
+                QString fileName = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix();
+                printer->setOutputFileName(fileName);
+            }
+            printOneFile(instructorsFileContents, "\n\n\n", printFont, printer);
+        }
+        if(printStudentsFile)
+        {
+            if(printToPDF)
+            {
+                QString fileName = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix();
+                printer->setOutputFileName(fileName);
+            }
+            printOneFile(studentsFileContents, "\n\n\n", printFont, printer);
+
+        }
+        if(printSpreadsheetFile)
+        {
+            if(printToPDF)
+            {
+                QString fileName = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_spreadsheet." + QFileInfo(baseFileName).suffix();
+                printer->setOutputFileName(fileName);
+            }
+            QTextDocument textDocument(spreadsheetFileContents, this);
+            printFont.setPointSize(9);
+            textDocument.setDefaultFont(printFont);
+            printer->setOrientation(QPrinter::Landscape);
+            textDocument.print(printer);
+        }
+    }
+    delete printer;
+}
+
+QPrinter* gruepr::setupPrinter()
+{
+    QPrinter *printer = new QPrinter(QPrinter::HighResolution);
+    printer->setOrientation(QPrinter::Portrait);
+    emit connectedToPrinter();
+    return printer;
+}
+
+void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter* printer)
+{
+    QPainter painter(printer);
+    painter.setFont(font);
+    QFont titleFont = font;
+    titleFont.setBold(true);
+    int LargeGap = printer->logicalDpiY()/2, MediumGap = LargeGap/2, SmallGap = MediumGap/2;
+    int pageHeight = painter.window().height() - 2*LargeGap;
+
+    QStringList eachTeam = file.split(delimiter, QString::SkipEmptyParts);
+
+    //paginate the output
+    QStringList currentPage;
+    QList<QStringList> pages;
+    int y = 0;
+    QStringList::const_iterator it = eachTeam.begin();
+    while (it != eachTeam.end())
+    {
+        //calculate height on page of this team text
+        int textWidth = painter.window().width() - 2*LargeGap - 2*SmallGap;
+        int maxHeight = painter.window().height();
+        QRect textRect = painter.boundingRect(0, 0, textWidth, maxHeight, Qt::TextWordWrap, *it);
+        int height = textRect.height() + 2*SmallGap;
+        if (y + height > pageHeight && !currentPage.empty())
+        {
+            pages.push_back(currentPage);
+            currentPage.clear();
+            y = 0;
+        }
+        currentPage.push_back(*it);
+        y += height + MediumGap;
+        ++it;
+    }
+    if (!currentPage.empty())
+    {
+        pages.push_back(currentPage);
+    }
+
+    //print each page, 1 at a time
+    for (int pagenum = 0; pagenum < pages.size(); pagenum++)
+    {
+        if (pagenum > 0)
+        {
+            printer->newPage();
+        }
+        QTransform savedTransform = painter.worldTransform();
+        painter.translate(0, LargeGap);
+        QStringList::const_iterator it = pages[pagenum].begin();
+        while (it != pages[pagenum].end())
+        {
+            QString title = it->left(it->indexOf('\n')) + " ";
+            QString body = it->right(it->size() - (it->indexOf('\n')+1));
+            int boxWidth = painter.window().width() - 2*LargeGap;
+            int textWidth = boxWidth - 2*SmallGap;
+            int maxHeight = painter.window().height();
+            QRect titleRect = painter.boundingRect(LargeGap+SmallGap, SmallGap, textWidth, maxHeight, Qt::TextWordWrap, title);
+            QRect bodyRect = painter.boundingRect(LargeGap+SmallGap, SmallGap+titleRect.height(), textWidth, maxHeight, Qt::TextWordWrap, body);
+            int boxHeight = titleRect.height() + bodyRect.height() + 2 * SmallGap;
+            painter.setPen(QPen(Qt::black, 2, Qt::SolidLine));
+            painter.setBrush(Qt::white);
+            painter.drawRect(LargeGap, 0, boxWidth, boxHeight);
+            painter.setFont(titleFont);
+            painter.drawText(titleRect, Qt::TextWordWrap, title);
+            painter.setFont(font);
+            painter.drawText(bodyRect, Qt::TextWordWrap, body);
+            painter.translate(0, boxHeight);
+            painter.translate(0, MediumGap);
+            ++it;
+        }
+        painter.setWorldTransform(savedTransform);
+        painter.drawText(painter.window(), Qt::AlignHCenter | Qt::AlignBottom, QString::number(pagenum + 1));
+    }
+}
+
+
 //////////////////
 // Before closing the main application window, see if we want to save the current settings as defaults
 //////////////////
@@ -2521,183 +2738,4 @@ void gruepr::closeEvent(QCloseEvent *event)
     {
         event->accept();
     }
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Subclassed widgets
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////
-// Table Widget Item for timestamps, allowing to sort correctly
-//////////////////
-TimestampTableWidgetItem::TimestampTableWidgetItem(const QString txt)
-    :QTableWidgetItem(txt)
-{
-}
-
-bool TimestampTableWidgetItem::operator <(const QTableWidgetItem &other) const
-{
-    return QDateTime::fromString(text(), "d-MMM. h:mm AP") < QDateTime::fromString(other.text(), "d-MMM. h:mm AP");
-}
-
-
-//////////////////
-// Tree display for teammates with swappable positions
-//////////////////
-TeamTreeWidget::TeamTreeWidget(QWidget *parent)
-    :QTreeWidget(parent)
-{
-}
-
-void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
-{
-    draggedItem = currentItem();
-    QTreeWidget::dragEnterEvent(event);
-}
-
-void TeamTreeWidget::dropEvent(QDropEvent *event)
-{
-    droppedItem = itemAt(event->pos());
-    QModelIndex droppedIndex = indexFromItem(droppedItem);
-    if( !droppedIndex.isValid() )
-    {
-        return;
-    }
-
-    // students have a parent (the team number) but teams do not in the tree view. Iff dragged and dropped items are both students or both teams, then swap their places.
-    if(draggedItem->parent() && droppedItem->parent())
-    {
-        // UserRole data stored in the item is the studentRecord.ID
-        emit swapPlaces((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
-        emit teamInfoChanged();
-    }
-    else if(!(draggedItem->parent()) && !(droppedItem->parent()))
-    {
-        emit swapPlaces((draggedItem->data(0,Qt::UserRole)).toInt(), draggedItem->childCount(), (droppedItem->data(0,Qt::UserRole)).toInt(), draggedItem->childCount());
-        emit teamInfoChanged();
-    }
-    else
-    {
-        event->setDropAction(Qt::IgnoreAction);
-        event->ignore();
-    }
-}
-
-void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
-{
-    if(item->parent())    // only expand the top level items (teams, not students on the team)
-    {
-        return;
-    }
-
-    int numWomen=0, numMen=0, numNonbinary=0, attributeMin[maxAttributes], attributeMax[maxAttributes], column;
-    for (int i = 0; i < item->childCount(); i++)
-    {
-        QTreeWidgetItem *child = item->child(i);
-        column = 0;
-        column++;
-        if(headerItem()->text(column) == tr("gender"))
-        {
-            QString gendr;
-            if(child->text(column) == tr("woman"))
-            {
-                numWomen++;
-
-            }
-            else if(child->text(column) == tr("man"))
-            {
-                numMen++;
-
-            }
-            else
-            {
-                numNonbinary++;
-            }
-            column++;
-        }
-        int numAttributes = (columnCount()-column)-1;
-        for(int attribute = 0; attribute < numAttributes; attribute++)
-        {
-            int value = (child->text(column)).toInt();
-            if(value != -1)
-            {
-                if(i==0)
-                {
-                    attributeMax[attribute] = value;
-                    attributeMin[attribute] = value;
-                }
-                if(value > attributeMax[attribute])
-                {
-                    attributeMax[attribute] = value;
-                }
-                if(value < attributeMin[attribute])
-                {
-                    attributeMin[attribute] = value;
-                }
-            }
-            column++;
-        }
-    }
-    column = 0;
-    column++;
-    if(headerItem()->text(column) == tr("gender"))
-    {
-        QString genderText;
-        if(numWomen > 0)
-        {
-            genderText += QString::number(numWomen) + tr("W");
-        }
-        if(numWomen > 0 && (numMen > 0 || numNonbinary > 0))
-        {
-            genderText += ", ";
-        }
-        if(numMen > 0)
-        {
-            genderText += QString::number(numMen) + tr("M");
-        }
-        if(numMen > 0 && numNonbinary > 0)
-        {
-            genderText += ", ";
-        }
-        if(numNonbinary > 0)
-        {
-            genderText += QString::number(numNonbinary) + tr("X");
-        }
-        item->setText(column, genderText);
-        resizeColumnToContents(column);
-        column++;
-    }
-    int numAttributes = (columnCount()-column)-1;
-    for(int attribute = 0; attribute < numAttributes; attribute++)
-    {
-        QString attributeText = QString::number(attributeMin[attribute]);
-        if(attributeMin[attribute] != attributeMax[attribute])
-        {
-            attributeText += " - " + QString::number(attributeMax[attribute]);
-        }
-        item->setText(column, attributeText);
-        resizeColumnToContents(column);
-        column++;
-    }
-    item->setText(column, QString::number(item->toolTip(0).count("100%")));
-
-    QTreeWidget::collapseItem(item);
-}
-
-void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
-{
-    if(item->parent())    // only expand the top level items (teams, not students on the team)
-    {
-        return;
-    }
-    for(int column = 1; column < columnCount(); column++)
-    {
-        item->setText(column, "");
-        resizeColumnToContents(column);
-    }
-
-    QTreeWidget::expandItem(item);
 }

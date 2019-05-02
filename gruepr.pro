@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network printsupport
+QT       += core gui network printsupport winextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -33,12 +33,14 @@ QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3
 
 SOURCES += \
+        customWidgets.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
         customDialogs.cpp
 
 HEADERS += \
+        customWidgets.h \
         gruepr.h \
         GA.h \
         customDialogs.h \

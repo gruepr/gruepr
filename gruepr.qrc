@@ -24,5 +24,6 @@
         <file>icons/splash.png</file>
         <file>LICENSE.txt</file>
         <file>README.md</file>
+        <file>fonts/OxygenMono-Regular.otf</file>
     </qresource>
 </RCC>

@@ -1,7 +1,7 @@
 gruepr
 
-V 8.6
-04/22/2019
+V 8.7
+04/30/2019
 
 Written by: Joshua Hertz < j.hertz@neu.edu >
 
@@ -13,7 +13,7 @@ Description of gruepr:
 	[ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
 	All the student data is read from a file, and the students are split into teams of any desired size(s). A
 	good distribution of students into teams is determined by a numerical score. The score can be based on:
-	   1) Preventing isolated women and/or men.
+	   1) Preventing isolated women, isolated men, and/or single-gender teams.
 	   2) Achieving within each team either homogeneity or heterogeneity of up to 9 numerical "attribute
 	      levels", which could be skills assessments, work preferences, or attitudes.
 	   3) Achieving a high degree of overlap in schedule freetime.
@@ -118,5 +118,8 @@ DISCLAIMER:
 	This software incorporates code from the open source Qt libraries, using version 5.12.1. These can be freely
 	downloaded from < http://qt.io/download >.
 
-	Icons were created by or modified from < https://icons8.com >. These icons have been made available under a
-	creative commons license.
+        Icons were originally created by Icons8 < https://icons8.com >. These icons have been made available under
+        the creative commons license: Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
+
+        An embedded font is used: Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk),
+        released under the SIL OPEN FONT LICENSE Version 1.1.

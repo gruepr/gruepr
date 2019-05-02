@@ -22,17 +22,20 @@
 //    using version 5.12.1. These can be freely downloaded from
 //    < http://qt.io/download >.
 
-//    Icons were created by or modified from < https://icons8.com >.
-//    These icons have been made available under a creative commons license.
+//    Icons were originally created by Icons8 < https://icons8.com >.
+//    These icons have been made available under the creative commons license:
+//    Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
+
+//    An embedded font is used for pdf and printer output:
+//    Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk)
+//    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
-// - improve printing (print preview, pagination)
 // - allow non-inclusion of schedule question
 // - allow inclusion of URM status from data
-// - bug in swapteams? (maybe only when combined with sortteams and/or different teamsizes)
 // - integrate with Google Drive: create form and/or download survey results from within the application
-// - register without desktopservice's use of external browser (might need to update Qt to 5.12.2!)
 // - compile for OSX
+// - bug in swapteams? (maybe only when combined with sortteams and/or different teamsizes)
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - if reached stability, continue with added mutation probability

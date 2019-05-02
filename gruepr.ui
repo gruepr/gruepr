@@ -1175,7 +1175,7 @@ URM students</string>
      </font>
     </property>
     <property name="toolTip">
-     <string>Save the set of teams to text files</string>
+     <string>Save the set of teams to text or pdf files</string>
     </property>
     <property name="text">
      <string>Save</string>
@@ -1539,15 +1539,20 @@ URM students</string>
       <height>652</height>
      </rect>
     </property>
-    <property name="tabShape">
-     <enum>QTabWidget::Rounded</enum>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="currentIndex">
      <number>0</number>
     </property>
+    <property name="usesScrollButtons">
+     <bool>false</bool>
+    </property>
     <widget class="QWidget" name="studentsTab">
      <attribute name="title">
-      <string>Students</string>
+      <string>  Students  </string>
      </attribute>
      <widget class="QTableWidget" name="studentTable">
       <property name="enabled">
@@ -1578,6 +1583,11 @@ URM students</string>
         <width>624</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
       </property>
       <property name="mouseTracking">
        <bool>true</bool>
@@ -1624,6 +1634,12 @@ URM students</string>
       <property name="selectionBehavior">
        <enum>QAbstractItemView::SelectRows</enum>
       </property>
+      <property name="showGrid">
+       <bool>false</bool>
+      </property>
+      <property name="gridStyle">
+       <enum>Qt::NoPen</enum>
+      </property>
       <property name="sortingEnabled">
        <bool>true</bool>
       </property>
@@ -1633,6 +1649,9 @@ URM students</string>
       <attribute name="horizontalHeaderMinimumSectionSize">
        <number>20</number>
       </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>true</bool>
+      </attribute>
      </widget>
      <widget class="QWidget" name="horizontalLayoutWidget">
       <property name="geometry">
@@ -1640,7 +1659,7 @@ URM students</string>
         <x>1</x>
         <y>591</y>
         <width>621</width>
-        <height>38</height>
+        <height>31</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -1654,6 +1673,11 @@ URM students</string>
            <horstretch>1</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
          </property>
          <property name="placeholderText">
           <string>first name</string>
@@ -1671,6 +1695,11 @@ URM students</string>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
          <property name="placeholderText">
           <string>last name</string>
          </property>
@@ -1687,6 +1716,11 @@ URM students</string>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
          <property name="placeholderText">
           <string>email address</string>
          </property>
@@ -1702,6 +1736,11 @@ URM students</string>
            <horstretch>1</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
          </property>
          <item>
           <property name="text">
@@ -1731,6 +1770,11 @@ URM students</string>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
          <item>
           <property name="text">
            <string>URM</string>
@@ -1754,6 +1798,11 @@ URM students</string>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
         </widget>
        </item>
        <item>
@@ -1766,6 +1815,11 @@ URM students</string>
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
          </property>
          <property name="text">
           <string>Add Student</string>
@@ -1787,7 +1841,7 @@ URM students</string>
     </widget>
     <widget class="QWidget" name="teamsTab">
      <attribute name="title">
-      <string>Teams</string>
+      <string>  Teams  </string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
@@ -1804,12 +1858,40 @@ URM students</string>
          <property name="enabled">
           <bool>false</bool>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_23">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>NOTE: You can swap the position of two students or two teams using drag-and-drop.</string>
+         </property>
         </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QPushButton" name="expandAllButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Expand All</string>
            </property>
@@ -1817,6 +1899,14 @@ URM students</string>
          </item>
          <item>
           <widget class="QPushButton" name="collapseAllButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Collapse All</string>
            </property>
@@ -1837,6 +1927,14 @@ URM students</string>
          </item>
          <item>
           <widget class="QPushButton" name="sortTeamsButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Sort Teams by Score</string>
            </property>
@@ -1866,6 +1964,11 @@ URM students</string>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Team names:</string>
            </property>
@@ -1881,6 +1984,11 @@ URM students</string>
              <horstretch>2</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
            </property>
            <item>
             <property name="text">
@@ -1922,90 +2030,6 @@ URM students</string>
         </layout>
        </item>
       </layout>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="instructorsOutputTab">
-     <attribute name="title">
-      <string>Instructor's Output</string>
-     </attribute>
-     <widget class="QPlainTextEdit" name="instructorsOutputTextEdit">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>624</width>
-        <height>626</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Courier New</family>
-        <pointsize>9</pointsize>
-       </font>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::NoContextMenu</enum>
-      </property>
-      <property name="acceptDrops">
-       <bool>false</bool>
-      </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhNone</set>
-      </property>
-      <property name="lineWrapMode">
-       <enum>QPlainTextEdit::NoWrap</enum>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-      <property name="textInteractionFlags">
-       <set>Qt::TextSelectableByMouse</set>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="studentsOutputTab">
-     <attribute name="title">
-      <string>Student's Output</string>
-     </attribute>
-     <widget class="QPlainTextEdit" name="studentsOutputTextEdit">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>624</width>
-        <height>626</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Courier New</family>
-        <pointsize>9</pointsize>
-       </font>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::NoContextMenu</enum>
-      </property>
-      <property name="acceptDrops">
-       <bool>false</bool>
-      </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhNone</set>
-      </property>
-      <property name="lineWrapMode">
-       <enum>QPlainTextEdit::NoWrap</enum>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-      <property name="textInteractionFlags">
-       <set>Qt::TextSelectableByMouse</set>
-      </property>
      </widget>
     </widget>
    </widget>

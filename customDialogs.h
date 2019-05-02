@@ -83,9 +83,14 @@ public:
 
     QLineEdit *teamName;
 
+private slots:
+    void clearAllNames();
+
 private:
+    int numTeams;
     QGridLayout *theGrid;
     QLabel *teamNumberLabel;
+    QPushButton *resetNamesButton;
     QDialogButtonBox *buttonBox;
 };
 
@@ -114,8 +119,9 @@ class whichFilesDialog : public QDialog
 
 public:
     enum action{save, print};
+    enum saveFormat{txt, pdf};
 
-    whichFilesDialog(const action saveOrPrint, QWidget *parent = nullptr);
+    whichFilesDialog(const action saveOrPrint, const QStringList previews = {}, QWidget *parent = nullptr);
 
     QCheckBox *studentFile;
     QCheckBox *instructorFile;

@@ -4,46 +4,17 @@
 #include <QMainWindow>
 #include <QFuture>
 #include <QFutureWatcher>
-#include <QTreeWidget>
+#include <QPrinter>
+#include <QWinTaskbarButton>
+#include <QWinTaskbarProgress>
 #include "customDialogs.h"
+#include "customWidgets.h"
 #include "gruepr_structs_and_consts.h"
 
 
 namespace Ui {
 class gruepr;
 }
-
-
-class TimestampTableWidgetItem : public QTableWidgetItem
-{
-public:
-    TimestampTableWidgetItem(const QString txt = "");
-    bool operator <(const QTableWidgetItem &other) const;
-};
-
-
-class TeamTreeWidget : public QTreeWidget
-{
-    Q_OBJECT
-
-public:
-    TeamTreeWidget(QWidget *parent = nullptr);
-    void collapseItem(QTreeWidgetItem *item);
-    void expandItem(QTreeWidgetItem *item);
-
-protected:
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dropEvent(QDropEvent *event);
-
-signals:
-    void swapPlaces(int studentAID, int studentBID);
-    void swapPlaces(int teamA, int teamAsize, int teamB, int teamBsize);
-    void teamInfoChanged();
-
-private:
-    QTreeWidgetItem* draggedItem;
-    QTreeWidgetItem* droppedItem;
-};
 
 
 class gruepr : public QMainWindow
@@ -147,6 +118,8 @@ signals:
 
     void turnOffBusyCursor();
 
+    void connectedToPrinter();
+
 private:
     Ui::gruepr *ui;
     QString registeredUser;
@@ -167,6 +140,8 @@ private:
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     int bestGenome[maxStudents];
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
+    QWinTaskbarButton *taskbarButton = nullptr;
+    QWinTaskbarProgress *taskbarProgress = nullptr;
     QMutex optimizationStoppedmutex;
     bool optimizationStopped;
     bool keepOptimizing;
@@ -179,6 +154,9 @@ private:
     double teamSetScore;
     TeamTreeWidget *teamDataTree;
     QStringList teamNames;
+    void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
+    QPrinter* setupPrinter();
+    void printOneFile(QString file, QString delimiter, QFont &font, QPrinter *printer);
 };
 
 #endif // GRUEPR_H
