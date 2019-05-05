@@ -125,7 +125,7 @@ private:
     QString registeredUser;
     DataOptions dataOptions;
     TeamingOptions teamingOptions;
-    studentRecord *student;                             // array to hold the students' data
+    studentRecord *student = nullptr;                   // array to hold the students' data
     int numStudents = maxStudents;
     int numTeams;
     void refreshStudentDisplay();

@@ -1,7 +1,7 @@
 gruepr
 
-V 8.7
-04/30/2019
+V 8.8
+5/5/2019
 
 Written by: Joshua Hertz < j.hertz@neu.edu >
 
@@ -21,14 +21,13 @@ Description of gruepr:
 	   5) Requiring any particular students to be on the same team.
 
 	After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams
-	are displayed showing the students names, emails, indications of women students (if that data is included),
-	and each student's attribute levels. Each team's score is also shown along with a table of student
-	availability at each time slot throughout the week. You can choose whether to save this teamset, adjust
-	this teamset by indicating pairs of students whose positions should be swapped, or throw away the teamset
-	entirely and start over. If you save the teamset, three files can be saved: 1) the output shown on the
-	screen, which is for your use; 2) the same screen output but without listing any of the team scores or
-	student attributes, which is useful for distributing to the students; and 3) the section, team, and student
-	info in a spreadsheet format.
+        are displayed showing the students names, emails, gender, and attribute levels. Each team's score is
+        also shown along with a table of student availability at each time slot throughout the week. You can
+        choose whether to save this teamset, adjust this teamset by swapping pairs of students, or throw away
+        the teamset entirely and start over. If you save the teamset, three files can be saved: 1) an instructor's
+        file containing all the student information; 2) a student's file showing the same but without listing team
+        scores or student demographics/attributes; and 3) the section, team, and student info in a spreadsheet
+        format.
 
 	The datafile of student information has a specific required format. Using the Google Form allows you to
 	download the data into exactly this file format without modification. After collecting responses, go to the
@@ -37,25 +36,28 @@ Description of gruepr:
 	the form) can be modified, including reordering, adding, or removing questions. There can be anywhere
 	between 0 to 9 of these attribute questions. The only requirement is that the responses that the students
 	select MUST include one single digit number to indicate a quantitative measure of the answer to the question.
-	A section question can be included so that multiple sections can all be sent the same form; if more than one
-	section is present in the data, you can select which section to team. Additional questions for your own use
-	can be added to the end of the form.
+        The schedule section can be removed, or the numbers and names of the days and times can be altered. The only
+        requirement here is to have 7 or fewer days and 24 or fewer hours in the matrix. A section question can be
+        included so that multiple sections can all be sent the same form; if more than one section is present in the
+        data, you can select which section to team. Additional questions for your own use can be added to the end of
+        the form.
 
 	The datafile must be a comma-separated-values (.csv) file with these contents:
 	   - header row, contains only the comma-separated question texts
 	   - each student on a separate row, starting at the row immediately after the header
 	   - in each row, values are comma-separated
 	   - values are, in order:	
-	       ~ Timestamp (not used by the program, but must be present)
+               ~ Timestamp
 	       ~ first name or preferred name
 	       ~ last name
 	       ~ email
 	       ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
 		     "Non-binary", etc.)
+               - [optional] "yes" or "no", to indicate whether the student comes from an underrepresented minority
+                     group
 	       ~ [0 to 9 values] text responses to "attribute" questions, each in own field; first numeric digit
 		     found in the text is used by the program
-	       ~ [7 values] list of times the student is unavailable to work, represented as whether the texts
-		     given in "timeNames[]" array are included or not
+               ~ [0 to 7 values] semicolon-separated list of times each day that the student is unavailable to work
 	       ~ [optional] section
 	       ~ [optional] any additional notes for student (all remaining columns will get swallowed into this
 		     field)
@@ -68,16 +70,17 @@ Description of gruepr:
 Details on how the teams are optimized:
 
 	To optimize the teams, a genetic algorithm is used. First, a large population of 30,000 random teamings
-	(each is a "genome") is created and then refined over multiple generations. In each generation, the highest
-	scoring "elite" genome is directly copied (cloned) into the next generation, the vast majority are created
-	by mating tournament-selected parents using ordered crossover, and, finally, a last set of new, randomized
-	genomes are added to the genepool. Once the next generation's genepool is created, each genome has 1 or
-	more potential mutations, which is a swapping of two random locations on the genome. A genome's net score
-	is the harmonic mean of the score for each team. Harmonic mean is used so that low scoring teams have more
-	weight. Evolution proceeds for at least minGenerations and at most maxGenerations, displaying generation
-	number and the score of that generation's best genome. Evolution stops (user can choose to keep it going)
-	when the best score has remained +/- 1% for generationsOfStability generations or when maxGenerations is
-	reached.
+        (each is a "genome") is created and then refined over multiple generations. In each generation, a small
+        number of the highest scoring "elite" genomes are directly copied (cloned) into the next generation, and
+        the rest are created by mating tournament-selected parents using ordered crossover. Once the next
+        generation's genepool is created, each genome has 1 or more potential mutations, which is a swapping of
+        two random locations on the genome.
+
+        A genome's net score is the harmonic mean of the score for each team. Harmonic mean is used so that low
+        scoring teams have more weight. Evolution proceeds for at least minGenerations and at most maxGenerations,
+        displaying generation number and the score of that generation's best genome. Evolution stops (user can
+        choose to keep it going) when the best score has remained +/- 1% for generationsOfStability generations or
+        when maxGenerations is reached.
 
 
 ---------------

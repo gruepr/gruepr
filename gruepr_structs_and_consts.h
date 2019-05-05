@@ -1,7 +1,7 @@
 #ifndef GRUEPR_STRUCTS_AND_CONSTS
 #define GRUEPR_STRUCTS_AND_CONSTS
 
-#define GRUEPR_VERSION_NUMBER "8.7"
+#define GRUEPR_VERSION_NUMBER "8.8"
 #define GRUEPR_COPYRIGHT_YEAR "2019"
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
@@ -10,17 +10,21 @@
 #include <QString>
 #include <QDateTime>
 #include <QFileInfo>
+#include <QMap>
 #include "GA.h"
 
-//schedule constants, *MUST* be coordinated with the Google Form question that collects this data
-const int dailyTimeBlocks = 14;                         // how many blocks of time are in the day?
-const int numTimeBlocks = 7*dailyTimeBlocks;			// how many blocks of time are in the week?
-const QString dayNames[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-const QString timeNames[dailyTimeBlocks] = {"8am", "9am", "10am", "11am", "noon", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm"};
-
+//map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
+const QMap<QString, int> meaningOfTimeNames{ {"1am",1}, {"2am",2}, {"3am",3}, {"4am",4}, {"5am",5}, {"6am",6}, {"7am",7}, {"8am",8}, {"9am",9}, {"10am",10}, {"11am",11}, {"12pm",12},
+                                           {"1pm",13}, {"2pm",14}, {"3pm",15}, {"4pm",16}, {"5pm",17}, {"6pm",18}, {"7pm",19}, {"8pm",20}, {"9pm",21}, {"10pm",22}, {"11pm",23}, {"12am",0},
+                                           {"1:00",1}, {"2:00",2}, {"3:00",3}, {"4:00",4}, {"5:00",5}, {"6:00",6}, {"7:00",7}, {"8:00",8}, {"9:00",9}, {"10:00",10}, {"11:00",11}, {"12:00",12},
+                                           {"13:00",13}, {"14:00",14}, {"15:00",15}, {"16:00",16}, {"17:00",17}, {"18:00",18}, {"19:00",19}, {"20:00",20}, {"21:00",21}, {"22:00",22}, {"23:00",23}, {"0:00",0},
+                                           {"1 am",1}, {"2 am",2}, {"3 am",3}, {"4 am",4}, {"5 am",5}, {"6 am",6}, {"7 am",7}, {"8 am",8}, {"9 am",9}, {"10 am",10}, {"11 am",11}, {"12 pm",12},
+                                           {"1 pm",13}, {"2 pm",14}, {"3 pm",15}, {"4 pm",16}, {"5 pm",17}, {"6 pm",18}, {"7 pm",19}, {"8 pm",20}, {"9 pm",21}, {"10 pm",22}, {"11 pm",23}, {"12 am",0},
+                                           {"noon",12}, {"midnight", 0} };
 
 const int maxAttributes = 9;							// maximum number of skills/attitudes
 const int maxStudents = maxRecords;                     // each student is a "record" in the genetic algorithm
+const int maxTimeBlocks = 7*24;                         // resolution of scheduling is 1 hr, and scope is weekly
 
 
 //struct defining survey data from one student
@@ -29,7 +33,7 @@ struct studentRecord
     int ID;                                             // ID is assigned in order of appearance in the data file
     enum {woman, man, neither} gender;
     bool URM;                                           // true if this student is from an underrepresented minority group
-    bool unavailable[numTimeBlocks] = {false};			// true if this is a busy block during week
+    bool unavailable[maxTimeBlocks] = {false};			// true if this is a busy block during week
     bool preventedWith[maxStudents] = {false};			// true if this student is prevented from working with the corresponding student
     bool requiredWith[maxStudents] = {false};			// true if this student is required to work with the corresponding student
     int attribute[maxAttributes] = {0};                 // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
@@ -53,8 +57,10 @@ struct DataOptions
     int numAttributes;                                  // how many attribute questions are in the survey?
     int attributeLevels[maxAttributes]={0};             // what is the maximum value for each attribute? Max possible value is 9, due to how the value is read from the file.
     int numStudentsInSystem;                            // total number of students in the file
-    QString attributeQuestionText[maxAttributes];       // the actual attribute questions asked of the students
+    QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
     QFileInfo dataFile;
+    QStringList dayNames;
+    QStringList timeNames;
 };
 
 

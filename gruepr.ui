@@ -1234,7 +1234,7 @@ URM students</string>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 rgba(226, 120, 142, 255), stop:1 rgba(251, 138, 152, 255))</string>
+     <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 #f283a5, stop:1 #d26385)</string>
     </property>
     <property name="text">
      <string>Stop Optimization</string>
@@ -2050,9 +2050,6 @@ URM students</string>
       <pointsize>12</pointsize>
      </font>
     </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 rgb(120, 206, 182), stop:1 rgb(138, 241, 182))</string>
-    </property>
     <property name="text">
      <string>Create Teams</string>
     </property>
@@ -2086,7 +2083,7 @@ URM students</string>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 105, 105)</string>
+     <string notr="true">background-color: #f283a5</string>
     </property>
     <property name="text">
      <string>Register my

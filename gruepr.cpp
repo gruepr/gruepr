@@ -45,7 +45,7 @@ gruepr::gruepr(QWidget *parent) :
     if(registeredUser.isEmpty() || UserID != QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()))
     {
         ui->statusBar->showMessage(tr("This copy of gruepr is unregistered"));
-        ui->statusBar->setStyleSheet("background-color: rgb(255, 105, 105)");
+        ui->statusBar->setStyleSheet("background-color: #f283a5");
     }
     else
     {
@@ -67,8 +67,6 @@ gruepr::gruepr(QWidget *parent) :
     {
         teamNames << QString::number(team+1);
     }
-
-    student = new studentRecord[maxStudents];
 }
 
 gruepr::~gruepr()
@@ -90,7 +88,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
     if (!fileName.isEmpty())
     {
-        dataOptions.dataFile = QFileInfo(fileName);
         // Reset the various UI components
         ui->minMeetingTimes->setEnabled(false);
         ui->desiredMeetingTimes->setEnabled(false);
@@ -141,6 +138,19 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->saveTeamsButton->setEnabled(false);
         ui->printTeamsButton->setEnabled(false);
 
+        //reset the data
+        delete [] student;
+        student = new studentRecord[maxStudents];
+        dataOptions.dataFile = QFileInfo(fileName);
+        dataOptions.numStudentsInSystem = 0;
+        dataOptions.attributeQuestionText.clear();
+        dataOptions.dayNames.clear();
+        dataOptions.timeNames.clear();
+        for(int i = 0; i < maxAttributes; i++)
+        {
+            dataOptions.attributeLevels[i] = 0;
+        }
+
         if(loadSurveyData(fileName))
         {
             ui->saveSettingsButton->setEnabled(true);
@@ -152,9 +162,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->addStudentEmail->setEnabled(true);
             ui->addStudentPushButton->setEnabled(true);
             ui->teamDataLayout->setEnabled(true);
-            ui->minMeetingTimes->setEnabled(true);
-            ui->desiredMeetingTimes->setEnabled(true);
-            ui->meetingLength->setEnabled(true);
             ui->requiredTeammatesButton->setEnabled(true);
             ui->preventedTeammatesButton->setEnabled(true);
 
@@ -209,7 +216,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->attributeTextEdit->setEnabled(true);
                 ui->attributeWeight->setEnabled(true);
                 ui->attributeHomogeneousBox->setEnabled(true);
-                ui->scheduleWeight->setEnabled(true);
             }
             else
             {
@@ -234,6 +240,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->isolatedMenCheckBox->setChecked(false);
                 ui->mixedGenderCheckBox->setEnabled(false);
                 ui->mixedGenderCheckBox->setChecked(false);
+
             }
 
             if(dataOptions.URMIncluded)
@@ -248,6 +255,21 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->addStudentURMComboBox->setEnabled(false);
                 ui->isolatedURMCheckBox->setEnabled(false);
                 ui->isolatedURMCheckBox->setChecked(false);
+            }
+
+            if(dataOptions.dayNames.size() > 0)
+            {
+                ui->minMeetingTimes->setEnabled(true);
+                ui->desiredMeetingTimes->setEnabled(true);
+                ui->meetingLength->setEnabled(true);
+                ui->scheduleWeight->setEnabled(true);
+            }
+            else
+            {
+                ui->minMeetingTimes->setEnabled(false);
+                ui->desiredMeetingTimes->setEnabled(false);
+                ui->meetingLength->setEnabled(false);
+                ui->scheduleWeight->setEnabled(false);
             }
 
             ui->idealTeamSizeBox->setEnabled(true);
@@ -435,7 +457,7 @@ void gruepr::on_addStudentPushButton_clicked()
         {
             student[dataOptions.numStudentsInSystem].attribute[i] = -1;     //set all attribute levels to -1 as a flag to ignore during the teaming
         }
-        for(int time = 0; time < numTimeBlocks; time++)
+        for(int time = 0; time < maxTimeBlocks; time++)
         {
             student[dataOptions.numStudentsInSystem].unavailable[time] = false;
         }
@@ -482,7 +504,7 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 {
     if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
     {
-        ui->attributeTextEdit->setPlainText(dataOptions.attributeQuestionText[value]);
+        ui->attributeTextEdit->setPlainText(dataOptions.attributeQuestionText.at(value));
         ui->attributeWeight->setValue(teamingOptions.attributeWeights[value]);
         ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
         ui->attributeLabel->setText(QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
@@ -1276,6 +1298,7 @@ void gruepr::on_registerButton_clicked()
         //If user clicks OK, email registration info and add to saved settings
         if(reply == QDialog::Accepted)
         {
+            // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
             if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
                                               "?name="+window->name->text()+
                                               "&institution="+window->institution->text()+
@@ -1329,8 +1352,9 @@ void gruepr::setTeamSizes(int singleSize)
     }
 }
 
+
 //////////////////
-// Read the survey datafile, setting the options and loading all of the student records, returning false if file is invalid
+// Read the survey datafile, setting the data options and loading all of the student records, returning true if successful and false if file is invalid
 //////////////////
 bool gruepr::loadSurveyData(QString fileName)
 {
@@ -1347,39 +1371,69 @@ bool gruepr::loadSurveyData(QString fileName)
     }
 
     // Read the optional gender/URM/attribute questions
-    int fieldnum = 4;     // skipping past first fields: timestamp(0), first name(1), last name(2), email address(3)
+    int fieldnum = 4;     // skipping past required first fields: timestamp(0), first name(1), last name(2), email address(3)
     QString field = fields.at(fieldnum).toLocal8Bit().constData();
     // See if gender data is included
     if(field.contains("gender", Qt::CaseInsensitive))
     {
         dataOptions.genderIncluded = true;
         fieldnum++;
-        field = fields.at(fieldnum).toLocal8Bit().constData();				// move on to next field
+        field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
     }
     else
     {
         dataOptions.genderIncluded = false;
     }
 
-    // UNIMPLEMENTED: see if URM data is included
-    dataOptions.URMIncluded = false;
-
-    // Count the number of attributes by counting number of questions from here until one includes "Check the times". Save attribute question texts, if any, into string list.
-    dataOptions.numAttributes = 0;                                          // how many skill/attitude rankings are there?
-    while(!field.contains("check the times", Qt::CaseInsensitive))
+    // See if URM data is included
+    if(field.contains("minority", Qt::CaseInsensitive))
     {
-        dataOptions.attributeQuestionText[dataOptions.numAttributes] = field;
-        dataOptions.numAttributes++;
+        dataOptions.URMIncluded = true;
         fieldnum++;
-        field = fields.at(fieldnum).toLocal8Bit().constData();				// move on to next field
+        field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+    }
+    else
+    {
+        dataOptions.URMIncluded = false;
     }
 
-    //Current field should be the first schedule question, so get past the last schedule question to any remaining questions
-    fieldnum += 7;
+    // Count the number of attributes by counting number of questions from here until one includes "check the times," "which section", or the end of the line is reached.
+    // Save these attribute question texts, if any, into string list.
+    dataOptions.numAttributes = 0;                              // how many skill/attitude rankings are there?
+    while( !(field.contains("check the times", Qt::CaseInsensitive)) && !(field.contains("which section", Qt::CaseInsensitive)) && (fieldnum < fields.size()) )
+    {
+        dataOptions.attributeQuestionText << field;
+        dataOptions.numAttributes++;
+        fieldnum++;
+        if(fieldnum < fields.size())
+            field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+    }
+
+    // Count the number of days in the schedule by counting number of questions that includes "Check the times".
+    // Save the day names and save which fields they are for use later in getting the time names
+    QVector<int> scheduleFields;
+    while(field.contains("check the times", Qt::CaseInsensitive) && fieldnum < fields.size())
+    {
+        QRegExp dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts a column title in checkbox matrix questions)
+        int pos = dayNameFinder.indexIn(field);
+        if(pos > -1)
+        {
+            dataOptions.dayNames << dayNameFinder.cap(1);
+        }
+        else
+        {
+            dataOptions.dayNames << " " + QString::number(scheduleFields.size()+1) + " ";
+        }
+        scheduleFields << fieldnum;
+        fieldnum++;
+        field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+    }
+
+    // Look for any remaining questions
     if(fields.size() > fieldnum)                                            // There is at least 1 additional field in header
     {
-        field = fields.at(fieldnum).toLocal8Bit().constData();
-        if(field.contains("section", Qt::CaseInsensitive))					// next field is a section question
+        field = fields.at(fieldnum).toLocal8Bit();
+        if(field.contains("which section", Qt::CaseInsensitive))			// next field is a section question
         {
             fieldnum++;
             if(fields.size() > fieldnum)                                    // if there are any more fields after section
@@ -1405,14 +1459,41 @@ bool gruepr::loadSurveyData(QString fileName)
         dataOptions.sectionIncluded = false;
     }
 
-    // Having read the header row, read each remaining row as a student record
-    numStudents = 0;    // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    // remember where we are and read one line of data
+    qint64 endOfHeaderRow = in.pos();
     fields = ReadCSVLine(in.readLine());
     if(fields.empty())
     {
+        // no data after header row--file is invalid
         inputFile.close();
         return false;
     }
+
+    // If there is schedule info, read through the schedule fields in all of the responses to compile a list of time names, save as dataOptions.TimeNames
+    if(dataOptions.dayNames.size() != 0)
+    {
+
+        QStringList allTimeNames;
+        while(!fields.empty())
+        {
+            for(auto i : scheduleFields)
+            {
+                allTimeNames << QString(fields.at(i).toLocal8Bit()).toLower().split(';');
+            }
+            fields = ReadCSVLine(in.readLine());
+        }
+        allTimeNames.removeDuplicates();
+        allTimeNames.removeOne("");
+        //sort allTimeNames smartly, using mapped string -> hour of day integer
+        std::sort(allTimeNames.begin(), allTimeNames.end(), [](const QString a, const QString b) -> bool{return meaningOfTimeNames.value(a) < meaningOfTimeNames.value(b);} );
+        dataOptions.timeNames = allTimeNames;
+    }
+
+    in.seek(endOfHeaderRow);    // put cursor back to end of header row
+
+    // Having read the header row and determined time names, if any, read each remaining row as a student record
+    numStudents = 0;    // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    fields = ReadCSVLine(in.readLine());
     while(!fields.empty())
     {
         student[numStudents] = readOneRecordFromFile(fields);
@@ -1435,7 +1516,8 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     studentRecord student;
 
     // Append empty final field if needed (ReadCSVLine function trims off an empty last field)
-    if(fields.size() < (4+dataOptions.numAttributes+7+((dataOptions.genderIncluded)? 1 : 0)+((dataOptions.sectionIncluded)? 1 : 0)+((dataOptions.notesIncluded)? 1 : 0)))
+    // fields are: 1) timestamp, 2) firstname, 3) lastname, 4) email, 5) gender, 5-6) URM, 5-15) attributes, 5-22) days in schedule, 5-23) section, 5-24) notes
+    if(fields.size() < (4 + ((dataOptions.genderIncluded)? 1 : 0) + ((dataOptions.URMIncluded)? 1 : 0) + dataOptions.numAttributes + dataOptions.dayNames.size() + ((dataOptions.sectionIncluded)? 1 : 0) + ((dataOptions.notesIncluded)? 1 : 0)))
     {
         fields.append(" ");
     }
@@ -1449,21 +1531,21 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     }
 
     fieldnum++;
-    student.firstname = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+    student.firstname = fields.at(fieldnum).toLocal8Bit().trimmed();
     student.firstname[0] = student.firstname[0].toUpper();
 
     fieldnum++;
-    student.lastname = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+    student.lastname = fields.at(fieldnum).toLocal8Bit().trimmed();
     student.lastname[0] = student.lastname[0].toUpper();
 
     fieldnum++;
-    student.email = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+    student.email = fields.at(fieldnum).toLocal8Bit().trimmed();
 
     // optional 5th field in line; might be the gender
     fieldnum++;
     if(dataOptions.genderIncluded)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit().constData();
+        QString field = fields.at(fieldnum).toLocal8Bit();
         if(field.contains(tr("woman"), Qt::CaseInsensitive))
         {
             student.gender = studentRecord::woman;
@@ -1483,10 +1565,12 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         student.gender = studentRecord::neither;
     }
 
-    // UNIMPLEMENTED: optional next field in line; might be underrpresented minority status?
+    // optional next field in line; might be underrpresented minority status?
     if(dataOptions.URMIncluded)
     {
-
+        QString field = fields.at(fieldnum).toLocal8Bit();
+        student.URM = (field.contains(tr("yes"), Qt::CaseInsensitive));
+        fieldnum++;
     }
     else
     {
@@ -1496,7 +1580,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     // optional next 9 fields in line; might be the attributes
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit().constData();
+        QString field = fields.at(fieldnum).toLocal8Bit();
         int chrctr = 0;
         // search through this field character by character until we find a numeric digit (or reach the end)
         while((field[chrctr].digitValue() < 0 || field[chrctr].digitValue() > 9) && (chrctr < field.size()))
@@ -1515,31 +1599,31 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         fieldnum++;
     }
 
-    // next 7 fields; should be the schedule
-    for(int day = 0; day < 7; day++)
+    // next 0-7 fields; might be the schedule
+    for(int day = 0; day < dataOptions.dayNames.size(); day++)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit().constData();
-        for(int time = 0; time < dailyTimeBlocks; time++)
+        QString field = fields.at(fieldnum).toLocal8Bit();
+        for(int time = 0; time < dataOptions.timeNames.size(); time++)
         {
-            student.unavailable[(day*dailyTimeBlocks)+time] = field.contains(timeNames[time], Qt::CaseInsensitive);
+            student.unavailable[(day*dataOptions.timeNames.size())+time] = field.contains(dataOptions.timeNames.at(time).toLocal8Bit(), Qt::CaseInsensitive);
         }
         fieldnum++;
     }
-    student.availabilityChart = tr("Availability:\n           ");
-    for(int day = 0; day < 7; day++)
+    student.availabilityChart = (dataOptions.dayNames.size() > 0? tr("Availability:\n           ") : "");
+    for(int day = 0; day < dataOptions.dayNames.size(); day++)
     {
-        student.availabilityChart += "\t" + dayNames[day];
+        student.availabilityChart += "\t" + dataOptions.dayNames.at(day).toLocal8Bit().left(3);     // using first three characters in day name as abbreviation
     }
-    for(int time = 0; time < dailyTimeBlocks; time++)
+    for(int time = 0; time < dataOptions.timeNames.size(); time++)
     {
-        student.availabilityChart += "\n " + timeNames[time];
-        if(timeNames[time].size() < 6)
+        student.availabilityChart += "\n " + dataOptions.timeNames.at(time).toLocal8Bit();
+        if(dataOptions.timeNames.at(time).toLocal8Bit().size() < 6)
         {
-            student.availabilityChart += QString((6-timeNames[time].size()), ' ');
+            student.availabilityChart += QString((6-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
         }
-        for(int day = 0; day < 7; day++)
+        for(int day = 0; day < dataOptions.dayNames.size(); day++)
         {
-            student.availabilityChart += "\t  " + QString(student.unavailable[(day*dailyTimeBlocks)+time]? " " : "√") + "  ";
+            student.availabilityChart += "\t  " + QString(student.unavailable[(day*dataOptions.timeNames.size())+time]? " " : "√") + "  ";
         }
     }
 
@@ -1553,9 +1637,10 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         }
         fieldnum++;
     }
+
     if(dataOptions.notesIncluded)
     {
-        student.notes = fields.at(fieldnum).toLocal8Bit().simplified().constData();     //.simplified() removes leading and trailing whitespace and converts all internal whitespaces to a single space each
+        student.notes = fields.at(fieldnum).toLocal8Bit().simplified();     //.simplified() removes leading and trailing whitespace and converts all internal whitespaces to a single space each
     }
 
     return student;
@@ -1693,6 +1778,18 @@ void gruepr::refreshStudentDisplay()
                 else
                 {
                     studentToolTip += tr("nonbinary/unknown");
+                }
+            }
+            if(dataOptions.URMIncluded)
+            {
+                studentToolTip += "\n" + tr("URM:  ");
+                if(student[i].URM)
+                {
+                    studentToolTip += tr("yes");
+                }
+                else
+                {
+                    studentToolTip += tr("no");
                 }
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
@@ -1963,12 +2060,16 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
 {
     // Normalize attribute and schedule weights such that the sum of all weights = numAttributes + 1 (the +1 is for schedule)
     double realAttributeWeights[maxAttributes];
-    double totalWeight = teamingOptions.scheduleWeight + std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, 0.0);
+    double totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) + std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, 0.0);
+    if(totalWeight <= 0)
+    {
+        return(0);
+    }
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
     }
-    double realScheduleWeight = teamingOptions.scheduleWeight * (dataOptions.numAttributes + 1) / totalWeight;
+    double realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 
     // Create and initialize each component score
     double attributeScore[maxAttributes][maxStudents];
@@ -2034,8 +2135,8 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
         {
             int firstStudentInTeam = ID;
             // combine each student's schedule array into a team schedule array
-            bool teamAvailability[numTimeBlocks];
-            for(int time = 0; time < numTimeBlocks; time++)
+            QVector<bool> teamAvailability(dataOptions.dayNames.size()*dataOptions.timeNames.size());
+            for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
             {
                 ID = firstStudentInTeam;
                 teamAvailability[time] = true;
@@ -2048,7 +2149,7 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
             // count how many free time blocks there are
             if(teamingOptions.meetingBlockSize == 1)
             {
-                for(int time = 0; time < numTimeBlocks; time++)
+                for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
                 {
                     if(teamAvailability[time])
                     {
@@ -2056,16 +2157,16 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
                     }
                 }
             }
-            else
+            else    //user wants to count only 2-hr time blocks, but don't count wrap-around block from end of 1 day to beginning of next!
             {
-                for(int day = 0; day < 7; day++)
+                for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
-                    for(int time = 0; time < dailyTimeBlocks-1; time++)
+                    for(int time = 0; time < dataOptions.timeNames.size()-1; time++)
                     {
-                        if(teamAvailability[(day*dailyTimeBlocks)+time])
+                        if(teamAvailability[(day*dataOptions.timeNames.size())+time])
                         {
                             time++;
-                            if(teamAvailability[(day*dailyTimeBlocks)+time])
+                            if(teamAvailability[(day*dataOptions.timeNames.size())+time])
                             {
                                 schedScore[team]++;
                             }
@@ -2313,7 +2414,7 @@ void gruepr::refreshTeamInfo()
         studentsFileContents += tr("Team ") + teamNames[team] + "\n\n";
 
         //loop through each teammate in the team
-        int canMeetAt[7][dailyTimeBlocks]={{0}};
+        QVector<QVector<int>> canMeetAt(dataOptions.dayNames.size(), QVector<int>(dataOptions.timeNames.size(), 0));
         for(int teammate = 0; teammate < teamSize[team]; teammate++)
         {
             instructorsFileContents += "  ";
@@ -2349,11 +2450,11 @@ void gruepr::refreshTeamInfo()
             spreadsheetFileContents += student[bestGenome[ID]].section + "\t" + teamNames[team] + "\t" + student[bestGenome[ID]].firstname +
                     " " + student[bestGenome[ID]].lastname + "\t" + student[bestGenome[ID]].email + "\n";
 
-            for(int day = 0; day < 7; day++)
+            for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
-                for(int time = 0; time < dailyTimeBlocks; time++)
+                for(int time = 0; time < dataOptions.timeNames.size(); time++)
                 {
-                    if(!student[bestGenome[ID]].unavailable[(day*dailyTimeBlocks)+time])
+                    if(!student[bestGenome[ID]].unavailable[(day*dataOptions.timeNames.size())+time])
                     {
                         canMeetAt[day][time]++;
                     }
@@ -2362,39 +2463,42 @@ void gruepr::refreshTeamInfo()
             ID++;
         }
 
-        teamToolTip = tr("Team availability:") + "\n";
-        instructorsFileContents += ("\n" + tr("Availability:") + "\n");
-        studentsFileContents += ("\n" + tr("Availability:") + "\n");
-
-        teamToolTip += "              ";
-        instructorsFileContents += "            ";
-        studentsFileContents += "            ";
-
-        for(int day = 0; day < 7; day++)
+        if(dataOptions.dayNames.size() > 0)
         {
-            teamToolTip += dayNames[day] + "\t";
-            instructorsFileContents += "  " + dayNames[day] + "  ";
-            studentsFileContents += "  " + dayNames[day] + "  ";
-        }
-        teamToolTip += "\n";
-        instructorsFileContents += "\n";
-        studentsFileContents += "\n";
+            teamToolTip = tr("Team availability:") + "\n";
+            instructorsFileContents += ("\n" + tr("Availability:") + "\n");
+            studentsFileContents += ("\n" + tr("Availability:") + "\n");
 
-        for(int time = 0; time < dailyTimeBlocks; time++)
-        {
-            teamToolTip += timeNames[time] + "\t";
-            instructorsFileContents += timeNames[time] + QString((11-timeNames[time].size()), ' ');
-            studentsFileContents += timeNames[time] + QString((11-timeNames[time].size()), ' ');
-            for(int day = 0; day < 7; day++)
+            teamToolTip += "              ";
+            instructorsFileContents += "            ";
+            studentsFileContents += "            ";
+
+            for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
-                QString percentage = QString::number((100*canMeetAt[day][time])/teamSize[team]) + "% ";
-                teamToolTip += percentage + "\t";
-                instructorsFileContents += QString((4+dayNames[day].size())-percentage.size(), ' ') + percentage;
-                studentsFileContents += QString((4+dayNames[day].size())-percentage.size(), ' ') + percentage;
+                teamToolTip += dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "\t";
+                instructorsFileContents += "  " + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "  ";
+                studentsFileContents += "  " + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "  ";
             }
             teamToolTip += "\n";
             instructorsFileContents += "\n";
             studentsFileContents += "\n";
+
+            for(int time = 0; time < dataOptions.timeNames.size(); time++)
+            {
+                teamToolTip += dataOptions.timeNames.at(time).toLocal8Bit() + "\t";
+                instructorsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
+                studentsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
+                for(int day = 0; day < dataOptions.dayNames.size(); day++)
+                {
+                    QString percentage = QString::number((100*canMeetAt[day][time])/teamSize[team]) + "% ";
+                    teamToolTip += percentage + "\t";
+                    instructorsFileContents += QString((4+dataOptions.dayNames.at(day).toLocal8Bit().left(3).size())-percentage.size(), ' ') + percentage;
+                    studentsFileContents += QString((4+dataOptions.dayNames.at(day).toLocal8Bit().left(3).size())-percentage.size(), ' ') + percentage;
+                }
+                teamToolTip += "\n";
+                instructorsFileContents += "\n";
+                studentsFileContents += "\n";
+            }
         }
         instructorsFileContents += "\n\n";
         studentsFileContents += "\n\n";

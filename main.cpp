@@ -31,11 +31,9 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
-// - allow non-inclusion of schedule question
-// - allow inclusion of URM status from data
 // - integrate with Google Drive: create form and/or download survey results from within the application
 // - compile for OSX
-// - bug in swapteams? (maybe only when combined with sortteams and/or different teamsizes)
+// - bug in swapteams with different teamsizes)
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - if reached stability, continue with added mutation probability
@@ -63,7 +61,7 @@ int main(int argc, char *argv[])
     splash->setPixmap(pic);
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\nj.hertz@neu.edu", Qt::AlignCenter);
     splash->show();
-    QThread::sleep(3);
+    QThread::sleep(2);
 
     gruepr w;
     w.show();
