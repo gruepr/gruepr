@@ -1,7 +1,7 @@
 gruepr
 
-V 8.8
-5/5/2019
+V 8.9
+5/7/2019
 
 Written by: Joshua Hertz < j.hertz@neu.edu >
 
@@ -14,6 +14,7 @@ Description of gruepr:
 	All the student data is read from a file, and the students are split into teams of any desired size(s). A
 	good distribution of students into teams is determined by a numerical score. The score can be based on:
 	   1) Preventing isolated women, isolated men, and/or single-gender teams.
+           2) Preventing isolated URM students.
 	   2) Achieving within each team either homogeneity or heterogeneity of up to 9 numerical "attribute
 	      levels", which could be skills assessments, work preferences, or attitudes.
 	   3) Achieving a high degree of overlap in schedule freetime.

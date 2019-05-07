@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/friends.png</file>
-        <file>icons/gender.png</file>
         <file>icons/notfriends.png</file>
         <file>icons/ruler.png</file>
         <file>icons/schedule.png</file>
@@ -25,5 +24,6 @@
         <file>LICENSE.txt</file>
         <file>README.md</file>
         <file>fonts/OxygenMono-Regular.otf</file>
+        <file>icons/gender.png</file>
     </qresource>
 </RCC>

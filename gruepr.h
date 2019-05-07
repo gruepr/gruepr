@@ -33,7 +33,7 @@ private slots:
 
     void on_sectionSelectionBox_currentIndexChanged(const QString &arg1);
 
-    void on_studentTable_cellEntered(int row, int /*unused column value*/);
+    void on_studentTable_cellEntered(int row, int column);
 
     void removeAStudent();
 
@@ -97,7 +97,7 @@ private slots:
 
     void swapTeammates(int studentAID, int studentBID);
 
-    void swapTeams(int teamA, int teamAsize, int teamB, int teamBsize);
+    void swapTeams(int teamA, int teamB);
 
     void refreshTeamInfo();
 
@@ -130,8 +130,8 @@ private:
     int numTeams;
     void refreshStudentDisplay();
     int teamSize[maxStudents]={0};
-    void setTeamSizes(int teamSizes[]);
-    void setTeamSizes(int singleSize);
+    void setTeamSizes(const int teamSizes[]);
+    void setTeamSizes(const int singleSize);
     bool loadSurveyData(QString fileName);              // returns false if file is invalid
     studentRecord readOneRecordFromFile(QStringList fields);
     QStringList ReadCSVLine(QString line);
@@ -145,7 +145,7 @@ private:
     QMutex optimizationStoppedmutex;
     bool optimizationStopped;
     bool keepOptimizing;
-    double getTeamScores(int teammates[], double teamScores[]);
+    double getTeamScores(const int teammates[], double teamScores[]);
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;

@@ -29,14 +29,11 @@ gruepr::gruepr(QWidget *parent) :
     teamDataTree = new TeamTreeWidget(this);
     teamDataTree->setGeometry(0,0,624,626);
     ui->teamDataLayout->insertWidget(1, teamDataTree);
-    connect(teamDataTree, QOverload<int, int>::of(&TeamTreeWidget::swapPlaces), this, &gruepr::swapTeammates);
-    connect(teamDataTree, QOverload<int, int, int, int>::of(&TeamTreeWidget::swapPlaces), this, &gruepr::swapTeams);
+    connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
+    connect(teamDataTree, &TeamTreeWidget::swapParents, this, &gruepr::swapTeams);
     connect(teamDataTree, &TeamTreeWidget::teamInfoChanged, this, &gruepr::refreshTeamInfo);
     connect(teamDataTree, &QTreeWidget::itemCollapsed, teamDataTree, &TeamTreeWidget::collapseItem);
     connect(teamDataTree, &QTreeWidget::itemExpanded, teamDataTree, &TeamTreeWidget::expandItem);
-
-    //UNIMPLEMENTED: URM isolation; for now, hiding checkbox
-    ui->isolatedURMCheckBox->hide();
 
     //Remove register button if registered
     QSettings savedSettings;
@@ -88,6 +85,8 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
     if (!fileName.isEmpty())
     {
+        QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
         // Reset the various UI components
         ui->minMeetingTimes->setEnabled(false);
         ui->desiredMeetingTimes->setEnabled(false);
@@ -143,6 +142,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         student = new studentRecord[maxStudents];
         dataOptions.dataFile = QFileInfo(fileName);
         dataOptions.numStudentsInSystem = 0;
+        dataOptions.numAttributes = 0;
         dataOptions.attributeQuestionText.clear();
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
@@ -278,6 +278,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
             ui->letsDoItButton->setEnabled(true);
         }
+        QApplication::restoreOverrideCursor();
     }
 }
 
@@ -411,6 +412,7 @@ void gruepr::removeAStudent()
         if(foundIt)
         {
             student[i] = student[i+1];
+            student[i].ID = i;
         }
     }
     dataOptions.numStudentsInSystem--;
@@ -452,7 +454,7 @@ void gruepr::on_addStudentPushButton_clicked()
         {
             student[dataOptions.numStudentsInSystem].URM = (ui->addStudentURMComboBox->currentText()==tr("URM"));
         }
-        student[dataOptions.numStudentsInSystem].ID = dataOptions.numStudentsInSystem + maxStudents;   //flag for added students is an ID > maxStudents
+        student[dataOptions.numStudentsInSystem].ID = dataOptions.numStudentsInSystem;
         for(int i = 0; i < maxAttributes; i++)
         {
             student[dataOptions.numStudentsInSystem].attribute[i] = -1;     //set all attribute levels to -1 as a flag to ignore during the teaming
@@ -793,11 +795,11 @@ void gruepr::on_letsDoItButton_clicked()
     // Get the IDs of students from desired section and change numStudents accordingly
     int numStudentsInSection = 0;
     studentIDs = new int[dataOptions.numStudentsInSystem];
-    for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+    for(int recordNum = 0; recordNum < dataOptions.numStudentsInSystem; recordNum++)
     {
-        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == student[ID].section)
+        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == student[recordNum].section)
         {
-            studentIDs[numStudentsInSection] = ID;
+            studentIDs[numStudentsInSection] = student[recordNum].ID;
             numStudentsInSection++;
         }
     }
@@ -933,7 +935,7 @@ void gruepr::on_sortTeamsButton_clicked()
         for (int j = 0; j < numTeams-i-1; j++)
             if (teamScores[j] > teamScores[j+1])
             {
-                swapTeams(j, teamSize[j], j+1, teamSize[j+1]);
+                swapTeams(j, j+1);
                 std::swap(teamScores[j], teamScores[j+1]);
             }
     refreshTeamInfo();
@@ -1008,6 +1010,27 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         }
         prevIndex = 5;
     }
+    else if(index == 6)
+    {
+        //chemical elements
+        QStringList elements = (QString("Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
+                                        " Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
+                                        "Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,"
+                                        "Rubidium,Strontium,Yttrium,Zirconium,Niobium,Molybdenum,Technetium,Ruthenium,Rhodium,Palladium,Silver,"
+                                        "Cadmium,Indium,Tin,Antimony,Tellurium,Iodine,Xenon,Cesium,Barium,Lanthanum,Cerium,Praseodymium,Neodymium,"
+                                        "Promethium,Samarium,Europium,Gadolinium,Terbium,Dysprosium,Holmium,Erbium,Thulium,Ytterbium,Lutetium,"
+                                        "Hafnium,Tantalum,Tungsten,Rhenium,Osmium,Iridium,Platinum,Gold,Mercury,Thallium,Lead,Bismuth,Polonium,"
+                                        "Astatine,Radon,Francium,Radium,Actinium,Thorium,Protactinium,Uranium,Neptunium,Plutonium,Americium,Curium,"
+                                        "Berkelium,Californium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Dubnium,Seaborgium,"
+                                        "Bohrium,Hassium,Meitnerium,Darmstadtium,Roentgenium,Copernicium,Nihonium,Flerovium,Moscovium,Livermorium,"
+                                        "Tennessine,Oganesson").split(","));
+        //Cycle through list as often as needed, adding a repetition every time through the list
+        for(int team = 0; team < numTeams; team++)
+        {
+            teamNames[team] = (elements[team%(elements.size())]+" ").repeated((team/elements.size())+1).trimmed();
+        }
+        prevIndex = 6;
+    }
     else
     {
         //Open specialized dialog box to collect teamnames
@@ -1021,11 +1044,11 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
             {
                 teamNames[team] = (window->teamName[team].text().isEmpty()? QString::number(team+1) : window->teamName[team].text());
             }
-            prevIndex = 6;
+            prevIndex = 7;
             bool currentValue = ui->teamNamesComboBox->blockSignals(true);
             ui->teamNamesComboBox->setCurrentIndex(prevIndex);
-            ui->teamNamesComboBox->setItemText(6, tr("Current names"));
-            ui->teamNamesComboBox->removeItem(7);
+            ui->teamNamesComboBox->setItemText(7, tr("Current names"));
+            ui->teamNamesComboBox->removeItem(8);
             ui->teamNamesComboBox->addItem(tr("Custom names"));
             ui->teamNamesComboBox->blockSignals(currentValue);
         }
@@ -1039,10 +1062,10 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         delete window;
     }
 
-    if(ui->teamNamesComboBox->currentIndex() < 6)
+    if(ui->teamNamesComboBox->currentIndex() < 7)
     {
+        ui->teamNamesComboBox->removeItem(8);
         ui->teamNamesComboBox->removeItem(7);
-        ui->teamNamesComboBox->removeItem(6);
         ui->teamNamesComboBox->addItem(tr("Custom names"));
     }
 
@@ -1145,6 +1168,12 @@ void gruepr::swapTeammates(int studentAID, int studentBID)
         return;
     }
 
+    QString out;
+    for(int i = 0; i < numStudents; i++)
+    {
+        out += QString::number(bestGenome[i]) + ", ";
+    }
+
     //find them then swap them
     int studentAIndex = static_cast<int>(std::distance(bestGenome, std::find(bestGenome, bestGenome+numStudents, studentAID)));
     int studentBIndex = static_cast<int>(std::distance(bestGenome, std::find(bestGenome, bestGenome+numStudents, studentBID)));
@@ -1152,75 +1181,64 @@ void gruepr::swapTeammates(int studentAID, int studentBID)
 }
 
 
-void gruepr::swapTeams(int teamA, int teamAsize, int teamB, int teamBsize)
+void gruepr::swapTeams(int teamA, int teamB)
 {
     if(teamA == teamB)
     {
         return;
     }
 
-    // make sure teamA is the first one in the genome
-    if(teamA > teamB)
+    bool teamAExpanded = teamDataTree->topLevelItem(teamA)->isExpanded();
+    bool teamBExpanded = teamDataTree->topLevelItem(teamB)->isExpanded();
+
+    // create a map of each team in their current order
+    QMap< int, QList<int> > oldTeamMap;  // key is the teamnumber, value is the list of studentIDs in that team
+    int ID = 0;
+    for(int team = 0; team < numTeams; team++)
     {
-        std::swap(teamA, teamB);
-        std::swap(teamAsize, teamBsize);
+        QList<int> teammates;
+        for(int teammate = 0; teammate < teamSize[team]; teammate++)
+        {
+            teammates << bestGenome[ID];
+            ID++;
+        }
+        oldTeamMap.insert(team, teammates);
     }
 
-    // get ID of first element in teamA and teamB
-    int ID = 0, teamAID = 0, teamBID = 0, team;
-    for(team = 0; team < numTeams; team++)
+    // create a new map, swapping the order of teamA and teamB
+    QMap< int, QList<int> > newTeamMap;
+    for(int team = 0; team < numTeams; team++)
     {
         if(team == teamA)
         {
-            teamAID = ID;
+            newTeamMap.insert(team, oldTeamMap.value(teamB));
         }
-        if(team == teamB)
+        else if(team == teamB)
         {
-            teamBID = ID;
+            newTeamMap.insert(team, oldTeamMap.value(teamA));
         }
-        ID += teamSize[team];
+        else
+        {
+            newTeamMap.insert(team, oldTeamMap.value(team));
+        }
     }
 
-    int *newGenome = new int[maxStudents];
-    int oldID = 0, newID = 0;
-
-    // not at first team yet
-    for(team = 0; team < teamA; team++)
+    // put the new map back in bestGenome
+    ID = 0;
+    for(int team = 0; team < numTeams; team++)
     {
-        std::copy(bestGenome + oldID, bestGenome + oldID + teamSize[team], newGenome + newID);
-        newID += teamSize[team];
-        oldID += teamSize[team];
+        QList<int> teammates = newTeamMap.value(team);
+        for(int teammate = 0; teammate < teammates.size(); teammate++)
+        {
+            bestGenome[ID] = teammates[teammate];
+            ID++;
+        }
     }
 
-    // at first team
-    std::copy(bestGenome + teamBID, bestGenome + teamBID + teamBsize, newGenome + newID);
-    newID += teamBsize;
-    oldID += teamAsize;
-
-    // beyond first team but not at second team yet
-    for(team = teamA + 1; team < teamB; team++)
-    {
-        std::copy(bestGenome + oldID, bestGenome + oldID + teamSize[team], newGenome + newID);
-        newID += teamSize[team];
-        oldID += teamSize[team];
-    }
-
-    // at second team
-    std::copy(bestGenome + teamAID, bestGenome + teamAID + teamAsize, newGenome + newID);
-    newID += teamAsize;
-    oldID += teamBsize;
-
-    // beyond second team
-    for(team = teamB + 1; team < numTeams; team++)
-    {
-        std::copy(bestGenome + oldID, bestGenome + oldID + teamSize[team], newGenome + newID);
-        newID += teamSize[team];
-        oldID += teamSize[team];
-    }
-
-    std::copy(newGenome, newGenome+maxStudents, bestGenome);
-    delete [] newGenome;
     std::swap(teamSize[teamA], teamSize[teamB]);
+    std::swap(teamAExpanded, teamBExpanded);
+    teamDataTree->topLevelItem(teamA)->setExpanded(teamAExpanded);
+    teamDataTree->topLevelItem(teamB)->setExpanded(teamBExpanded);
 }
 
 
@@ -1265,7 +1283,8 @@ void gruepr::on_AboutButton_clicked()
                           "<p>gruepr incorporates:"
                               "<ul><li>Code from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the  GNU Lesser General Public License version 3;</li>"
                               "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"; and</li>"
-                              "<li>The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk), released under SIL OPEN FONT LICENSE V1.1.</li></ul>"
+                              "<li>The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams"
+                                                                    "(vern@newtypography.co.uk), released under SIL OPEN FONT LICENSE V1.1.</li></ul>"
                           "<h3>Disclaimer</h3>"
                           "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
                           "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
@@ -1337,14 +1356,14 @@ void gruepr::on_registerButton_clicked()
 //////////////////
 // Set the "official" team sizes using an array of different sizes or a single, constant size
 //////////////////
-void gruepr::setTeamSizes(int teamSizes[])
+void gruepr::setTeamSizes(const int teamSizes[])
 {
     for(int team = 0; team < numTeams; team++)	// run through every team
     {
         teamSize[team] = teamSizes[team];
     }
 }
-void gruepr::setTeamSizes(int singleSize)
+void gruepr::setTeamSizes(const int singleSize)
 {
     for(int team = 0; team < numTeams; team++)	// run through every team
     {
@@ -1517,7 +1536,8 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 
     // Append empty final field if needed (ReadCSVLine function trims off an empty last field)
     // fields are: 1) timestamp, 2) firstname, 3) lastname, 4) email, 5) gender, 5-6) URM, 5-15) attributes, 5-22) days in schedule, 5-23) section, 5-24) notes
-    if(fields.size() < (4 + ((dataOptions.genderIncluded)? 1 : 0) + ((dataOptions.URMIncluded)? 1 : 0) + dataOptions.numAttributes + dataOptions.dayNames.size() + ((dataOptions.sectionIncluded)? 1 : 0) + ((dataOptions.notesIncluded)? 1 : 0)))
+    if(fields.size() < (4 + (dataOptions.genderIncluded? 1 : 0) + (dataOptions.URMIncluded? 1 : 0) + dataOptions.numAttributes +
+                              dataOptions.dayNames.size() + (dataOptions.sectionIncluded? 1 : 0) + (dataOptions.notesIncluded? 1 : 0)))
     {
         fields.append(" ");
     }
@@ -2056,11 +2076,12 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-double gruepr::getTeamScores(int teammates[], double teamScores[])
+double gruepr::getTeamScores(const int teammates[], double teamScores[])
 {
     // Normalize attribute and schedule weights such that the sum of all weights = numAttributes + 1 (the +1 is for schedule)
     double realAttributeWeights[maxAttributes];
-    double totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) + std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, 0.0);
+    double totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
+                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, 0.0);
     if(totalWeight <= 0)
     {
         return(0);
@@ -2072,12 +2093,14 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
     double realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 
     // Create and initialize each component score
-    double attributeScore[maxAttributes][maxStudents];
-    double schedScore[maxStudents];
-    int genderAdj[maxStudents];
-    int URMAdj[maxStudents];
-    double prevTeammateAdj[maxStudents];
-    double reqTeammateAdj[maxStudents];
+    double** attributeScore = new double*[dataOptions.numAttributes];
+    for(int i = 0; i < dataOptions.numAttributes; ++i)
+        attributeScore[i] = new double[numTeams];
+    double *schedScore = new double[numTeams];
+    int *genderAdj = new int[numTeams];
+    int *URMAdj = new int[numTeams];
+    int *prevTeammateAdj = new int[numTeams];
+    int *reqTeammateAdj = new int[numTeams];
     for(int team = 0; team < numTeams; team++)
     {
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
@@ -2086,6 +2109,7 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
         }
         schedScore[team] = 0;
         genderAdj[team] = 0;
+        URMAdj[team] = 0;
         prevTeammateAdj[team] = 0;
         reqTeammateAdj[team] = 0;
     }
@@ -2352,7 +2376,7 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
             schedScore[team] = 1;
         }
 
-        teamScores[team] = schedScore[team] + prevTeammateAdj[team] + reqTeammateAdj[team] + genderAdj[team];
+        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team] + reqTeammateAdj[team];
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             teamScores[team] += attributeScore[attribute][team];
@@ -2381,6 +2405,18 @@ double gruepr::getTeamScores(int teammates[], double teamScores[])
         }
         harmonicSum += 1/teamScores[team];
     }
+
+
+    // free memory for genepool
+    for(int i = 0; i < dataOptions.numAttributes; ++i)
+        delete [] attributeScore[i];
+    delete [] attributeScore;
+    delete [] schedScore;
+    delete [] genderAdj;
+    delete [] URMAdj;
+    delete [] prevTeammateAdj;
+    delete [] reqTeammateAdj;
+
     return(numTeams/harmonicSum);
 }
 
@@ -2508,7 +2544,7 @@ void gruepr::refreshTeamInfo()
     ui->tabWidget->setCurrentIndex(1);
     ui->teamDataText->setText(tr("  File: ") + elidedDataFileName + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") +
                               QString::number(finalGeneration) + tr(" generations to a net score of ") + QString::number(teamSetScore, 'f', 2));
-    teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded? 1 : 0) + dataOptions.numAttributes + 1);          // name, gender?, each attribute, schedule
+    teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded? 1 : 0) + dataOptions.numAttributes + (dataOptions.dayNames.size() > 0? 1 : 0) );          // name, gender?, each attribute, schedule
     QStringList headerLabels;
     headerLabels << tr("name");
     if(dataOptions.genderIncluded)
@@ -2519,7 +2555,10 @@ void gruepr::refreshTeamInfo()
     {
         headerLabels << tr("attribute ") + QString::number(attribute+1);
     }
-    headerLabels << tr("available times");
+    if(dataOptions.dayNames.size() > 0)
+    {
+        headerLabels << tr("available times");
+    }
     teamDataTree->setHeaderLabels(headerLabels);
     teamDataTree->setFocus();
 
@@ -2580,21 +2619,19 @@ void gruepr::refreshTeamInfo()
             if(dataOptions.genderIncluded)
             {
                 j++;
-                QString gendr;
                 if(studentOnThisTeam.gender == studentRecord::woman)
                 {
-                    gendr = tr("woman");
+                   childItem->setText(j,tr("woman"));
 
                 }
                 else if(studentOnThisTeam.gender == studentRecord::man)
                 {
-                    gendr = tr("man");
+                    childItem->setText(j,tr("man"));
                 }
                 else
                 {
-                    gendr = tr("non-binary/unknown");
+                    childItem->setText(j,tr("non-binary/unknown"));
                 }
-                childItem->setText(j, gendr);
                 childItem->setToolTip(j, studentOnThisTeam.availabilityChart);
                 teamDataTree->resizeColumnToContents(j);
             }
@@ -2604,18 +2641,21 @@ void gruepr::refreshTeamInfo()
                 QString att;
                 if(studentOnThisTeam.attribute[attribute] != -1)
                 {
-                    att += QString::number(studentOnThisTeam.attribute[attribute]);
+                    childItem->setText(j, QString::number(studentOnThisTeam.attribute[attribute]));
                 }
                 else
                 {
-                    att += "X";
+                   childItem->setText(j, "X");
                 }
-                childItem->setText(j, att);
                 childItem->setToolTip(j, studentOnThisTeam.availabilityChart);
                 teamDataTree->resizeColumnToContents(j);
             }
-            j++;
-            childItem->setText(j, QString::number(studentOnThisTeam.availabilityChart.count("√")));
+            if(dataOptions.dayNames.size() > 0)
+            {
+                j++;
+                int availableTimes = studentOnThisTeam.availabilityChart.count("√");
+                childItem->setText(j, availableTimes == 0? "--" : QString::number(availableTimes));
+            }
 
             parentItem->addChild(childItem);
         }
@@ -2744,7 +2784,7 @@ void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter
         int maxHeight = painter.window().height();
         QRect textRect = painter.boundingRect(0, 0, textWidth, maxHeight, Qt::TextWordWrap, *it);
         int height = textRect.height() + 2*SmallGap;
-        if (y + height > pageHeight && !currentPage.empty())
+        if(y + height > pageHeight && !currentPage.empty())
         {
             pages.push_back(currentPage);
             currentPage.clear();

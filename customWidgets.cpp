@@ -53,13 +53,13 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     if(draggedItem->parent() && droppedItem->parent())  // two students
     {
         // UserRole data stored in the item is the studentRecord.ID
-        emit swapPlaces((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
+        emit swapChildren((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
         emit teamInfoChanged();
     }
     else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
     {
         // UserRole data stored in the item is the team number
-        emit swapPlaces((draggedItem->data(0,Qt::UserRole)).toInt(), draggedItem->childCount(), (droppedItem->data(0,Qt::UserRole)).toInt(), draggedItem->childCount());
+        emit swapParents((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
         emit teamInfoChanged();
     }
     else
@@ -101,8 +101,8 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
             }
             column++;
         }
-        int numAttributes = (columnCount()-column)-1;
-        for(int attribute = 0; attribute < numAttributes; attribute++)
+        int attribute = 0;
+        while(headerItem()->text(column).contains(tr("attribute"), Qt::CaseInsensitive))
         {
             int value = (child->text(column)).toInt();
             if(value != -1)
@@ -122,6 +122,7 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
                 }
             }
             column++;
+            attribute++;
         }
     }
     column = 0;
@@ -153,8 +154,8 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         resizeColumnToContents(column);
         column++;
     }
-    int numAttributes = (columnCount()-column)-1;
-    for(int attribute = 0; attribute < numAttributes; attribute++)
+    int attribute = 0;
+    while(headerItem()->text(column).contains(tr("attribute"), Qt::CaseInsensitive))
     {
         QString attributeText = QString::number(attributeMin[attribute]);
         if(attributeMin[attribute] != attributeMax[attribute])
@@ -164,6 +165,7 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         item->setText(column, attributeText);
         resizeColumnToContents(column);
         column++;
+        attribute++;
     }
     item->setText(column, QString::number(item->toolTip(0).count("100%")));
 

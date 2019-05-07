@@ -33,7 +33,7 @@
 // FUTURE WORK:
 // - integrate with Google Drive: create form and/or download survey results from within the application
 // - compile for OSX
-// - bug in swapteams with different teamsizes)
+// - bug in loading file with no section or notes
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - if reached stability, continue with added mutation probability

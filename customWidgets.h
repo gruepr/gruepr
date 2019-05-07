@@ -29,8 +29,8 @@ protected:
     void dropEvent(QDropEvent *event);
 
 signals:
-    void swapPlaces(int studentAID, int studentBID);
-    void swapPlaces(int teamA, int teamAsize, int teamB, int teamBsize);
+    void swapChildren(int studentAID, int studentBID);
+    void swapParents(int teamA, int teamB);
     void teamInfoChanged();
 
 private:
