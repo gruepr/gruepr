@@ -208,7 +208,10 @@
       </property>
      </item>
     </widget>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_0">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -231,6 +234,9 @@
      </property>
     </widget>
     <widget class="QLabel" name="label_7">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -256,6 +262,9 @@
      </property>
     </widget>
     <widget class="QLabel" name="label_8">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>250</x>
@@ -278,6 +287,9 @@
      </property>
     </widget>
     <widget class="QLabel" name="label_9">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>300</x>
@@ -299,7 +311,7 @@
       <string>Desired</string>
      </property>
     </widget>
-    <widget class="Line" name="line">
+    <widget class="Line" name="line_3">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -325,7 +337,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="Line" name="line_3">
+    <widget class="Line" name="line_4">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -389,6 +401,9 @@
      </property>
     </widget>
     <widget class="QLabel" name="label_10">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>88</x>
@@ -460,7 +475,7 @@
       <string>Prevented Teammates</string>
      </property>
     </widget>
-    <widget class="Line" name="line_4">
+    <widget class="Line" name="line_5">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -591,7 +606,7 @@
       <string>Reset All</string>
      </property>
     </widget>
-    <widget class="Line" name="line_5">
+    <widget class="Line" name="line_6">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -751,6 +766,9 @@ background-color: rgb(193, 193, 193);</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_5">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -807,6 +825,9 @@ background-color: rgb(193, 193, 193);</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_6">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -1173,7 +1194,7 @@ background-color: rgb(193, 193, 193);</string>
       <string>Prevent Single Gender Teams</string>
      </property>
     </widget>
-    <widget class="Line" name="line_11">
+    <widget class="Line" name="line_1">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1209,6 +1230,19 @@ background-color: rgb(193, 193, 193);</string>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="Line" name="line_11">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>10</y>
+       <width>115</width>
+       <height>3</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </widget>
@@ -1370,7 +1404,7 @@ background-color: rgb(193, 193, 193);</string>
      <double>0.010000000000000</double>
     </property>
    </widget>
-   <widget class="QLabel" name="label_3">
+   <widget class="QLabel" name="label_32">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -1386,7 +1420,7 @@ background-color: rgb(193, 193, 193);</string>
      <string>Generations:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_11">
+   <widget class="QLabel" name="label_33">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -1402,7 +1436,7 @@ background-color: rgb(193, 193, 193);</string>
      <string>Top Score:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_12">
+   <widget class="QLabel" name="label_34">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -1448,6 +1482,9 @@ background-color: rgb(193, 193, 193);</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_22">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -1479,6 +1516,9 @@ background-color: rgb(193, 193, 193);</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>81</x>
@@ -1507,7 +1547,7 @@ background-color: rgb(193, 193, 193);</string>
      <string>Choose which section of students found in the data</string>
     </property>
    </widget>
-   <widget class="Line" name="line_6">
+   <widget class="Line" name="line_14">
     <property name="geometry">
      <rect>
       <x>362</x>
@@ -1520,7 +1560,7 @@ background-color: rgb(193, 193, 193);</string>
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="Line" name="line_7">
+   <widget class="Line" name="line_12">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -1533,26 +1573,13 @@ background-color: rgb(193, 193, 193);</string>
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="Line" name="line_8">
+   <widget class="Line" name="line_13">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>728</y>
       <width>361</width>
       <height>16</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="Line" name="line_9">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>110</y>
-      <width>115</width>
-      <height>3</height>
      </rect>
     </property>
     <property name="orientation">
@@ -2173,7 +2200,7 @@ copy of gruepr!</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="label_13">
+   <widget class="QLabel" name="label_31">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -2198,21 +2225,20 @@ copy of gruepr!</string>
    <zorder>stabilityProgressBar</zorder>
    <zorder>generationsBox</zorder>
    <zorder>scoreBox</zorder>
-   <zorder>label_3</zorder>
-   <zorder>label_11</zorder>
-   <zorder>label_12</zorder>
+   <zorder>label_32</zorder>
+   <zorder>label_33</zorder>
+   <zorder>label_34</zorder>
    <zorder>AboutButton</zorder>
    <zorder>label_22</zorder>
-   <zorder>line_6</zorder>
-   <zorder>line_7</zorder>
-   <zorder>line_8</zorder>
-   <zorder>line_9</zorder>
+   <zorder>line_14</zorder>
+   <zorder>line_12</zorder>
+   <zorder>line_13</zorder>
    <zorder>HelpButton</zorder>
    <zorder>tabWidget</zorder>
    <zorder>loadSurveyFileButton</zorder>
    <zorder>registerButton</zorder>
    <zorder>printTeamsButton</zorder>
-   <zorder>label_13</zorder>
+   <zorder>label_31</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoad_Survey_Data">

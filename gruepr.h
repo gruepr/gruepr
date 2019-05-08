@@ -134,7 +134,8 @@ private:
     void setTeamSizes(const int singleSize);
     bool loadSurveyData(QString fileName);              // returns false if file is invalid
     studentRecord readOneRecordFromFile(QStringList fields);
-    QStringList ReadCSVLine(QString line);
+    QStringList ReadCSVLine(QString line);              // read one line from a CSV file, smartly handling commas inside quotation mark-encased fields, and returning fields as QStringList
+    QStringList ReadCSVLine(QString line, int minFields); // as above, but (unless line is empty) append empty fields so that always return QStringList with at least minFields entries
     int *studentIDs;                                    // array of the IDs of students to be placed on teams
     // pre-allocated arrays for calculating scores (which happens a lot during optimization)
     float realAttributeWeights[maxAttributes];

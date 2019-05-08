@@ -36,6 +36,8 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setSelectionMode(QAbstractItemView::SingleSelection);
     setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(this, &QAbstractItemView::entered, this, &TeamTreeWidget::itemEntered);
+    connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::collapseItem);
+    connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::expandItem);
 }
 
 void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
