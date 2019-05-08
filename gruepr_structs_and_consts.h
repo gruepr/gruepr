@@ -24,6 +24,7 @@ const QMap<QString, int> meaningOfTimeNames{ {"1am",1}, {"2am",2}, {"3am",3}, {"
 
 const int maxAttributes = 9;							// maximum number of skills/attitudes
 const int maxStudents = maxRecords;                     // each student is a "record" in the genetic algorithm
+const int maxTeams = maxStudents/2;
 const int maxTimeBlocks = 7*24;                         // resolution of scheduling is 1 hr, and scope is weekly
 
 
@@ -75,8 +76,8 @@ struct TeamingOptions
     int minTimeBlocksOverlap=4;                         // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize=1;                             // count available meeting times in units of 1 hour or 2 hours long
     bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
-    double attributeWeights[maxAttributes]={1,1,1,1,1,1,1,1,1};         // weights for each attribute as displayed to the user
-    double scheduleWeight = 1;
+    float attributeWeights[maxAttributes]={1,1,1,1,1,1,1,1,1};         // weights for each attribute as displayed to the user
+    float scheduleWeight = 1;
     int smallerTeamsSizes[maxStudents]={0};
     int smallerTeamsNumTeams;
     int largerTeamsSizes[maxStudents]={0};

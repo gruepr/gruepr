@@ -20,7 +20,7 @@ const int mutationLikelihood = 50 * (RAND_MAX/100);     // first number gives pr
 struct tourneyPlayer
 {
     int genome[maxRecords];
-    double score;
+    float score;
 };
 
 

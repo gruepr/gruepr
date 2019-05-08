@@ -25,5 +25,6 @@
         <file>README.md</file>
         <file>fonts/OxygenMono-Regular.otf</file>
         <file>icons/gender.png</file>
+        <file>icons/allkinds.png</file>
     </qresource>
 </RCC>

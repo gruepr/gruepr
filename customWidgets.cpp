@@ -5,7 +5,7 @@
 #include "gruepr_structs_and_consts.h"
 
 //////////////////
-// Table Widget Item for timestamps, allowing to sort correctly
+// Table Widget Item for timestamps, allowing to sort chronologically
 //////////////////
 TimestampTableWidgetItem::TimestampTableWidgetItem(const QString txt)
     :QTableWidgetItem(txt)
@@ -26,47 +26,16 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 {
     setStyleSheet("QHeaderView::section{border-top:0px solid #D8D8D8;border-left:0px solid #D8D8D8;border-right:1px solid black;"
                   "border-bottom: 1px solid black;background-color:Gainsboro;padding:4px;font-weight:bold;}"
-                  "QTreeWidget::item:selected{background-color: #85cbf8}"
-                  "QTreeWidget::item:hover{background-color: #85cbf8}");
+                  "QTreeWidget::item:selected{color: black;background-color: #85cbf8}"
+                  "QTreeWidget::item:hover{color: black;background-color: #85cbf8}");
     setDragDropMode(QAbstractItemView::InternalMove);
     setSortingEnabled(false);
     setAlternatingRowColors(true);
     setHeaderHidden(true);
-}
-
-void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
-{
-    draggedItem = currentItem();
-    QTreeWidget::dragEnterEvent(event);
-}
-
-void TeamTreeWidget::dropEvent(QDropEvent *event)
-{
-    droppedItem = itemAt(event->pos());
-    QModelIndex droppedIndex = indexFromItem(droppedItem);
-    if( !droppedIndex.isValid() )
-    {
-        return;
-    }
-
-    // in the tree view, students have a parent (the team number) but teams do not. Iff dragged and dropped items are both students or both teams, then swap their places.
-    if(draggedItem->parent() && droppedItem->parent())  // two students
-    {
-        // UserRole data stored in the item is the studentRecord.ID
-        emit swapChildren((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
-        emit teamInfoChanged();
-    }
-    else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
-    {
-        // UserRole data stored in the item is the team number
-        emit swapParents((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
-        emit teamInfoChanged();
-    }
-    else
-    {
-        event->setDropAction(Qt::IgnoreAction);
-        event->ignore();
-    }
+    setMouseTracking(true);
+    setSelectionMode(QAbstractItemView::SingleSelection);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+    connect(this, &QAbstractItemView::entered, this, &TeamTreeWidget::itemEntered);
 }
 
 void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
@@ -76,7 +45,7 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         return;
     }
 
-    int numWomen=0, numMen=0, numNonbinary=0, attributeMin[maxAttributes], attributeMax[maxAttributes], column;
+    int numWomen=0, numMen=0, numNonbinary=0, numURM = 0, numNonURM = 0, attributeMin[maxAttributes], attributeMax[maxAttributes], column;
     for (int i = 0; i < item->childCount(); i++)
     {
         QTreeWidgetItem *child = item->child(i);
@@ -84,7 +53,6 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         column++;
         if(headerItem()->text(column) == tr("gender"))
         {
-            QString gendr;
             if(child->text(column) == tr("woman"))
             {
                 numWomen++;
@@ -98,6 +66,19 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
             else
             {
                 numNonbinary++;
+            }
+            column++;
+        }
+        if(headerItem()->text(column) == tr("URM"))
+        {
+            if(child->text(column) == tr("yes"))
+            {
+                numURM++;
+
+            }
+            else
+            {
+                numNonURM++;
             }
             column++;
         }
@@ -154,6 +135,12 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         resizeColumnToContents(column);
         column++;
     }
+    if(headerItem()->text(column) == tr("URM"))
+    {
+        item->setText(column, QString::number(numURM));
+        resizeColumnToContents(column);
+        column++;
+    }
     int attribute = 0;
     while(headerItem()->text(column).contains(tr("attribute"), Qt::CaseInsensitive))
     {
@@ -185,4 +172,44 @@ void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
     }
 
     QTreeWidget::expandItem(item);
+}
+
+void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    draggedItem = currentItem();
+    QTreeWidget::dragEnterEvent(event);
+}
+
+void TeamTreeWidget::dropEvent(QDropEvent *event)
+{
+    droppedItem = itemAt(event->pos());
+    QModelIndex droppedIndex = indexFromItem(droppedItem);
+    if( !droppedIndex.isValid() )
+    {
+        return;
+    }
+
+    // in the tree view, students have a parent (the team number) but teams do not. Iff dragged and dropped items are both students or both teams, then swap their places.
+    if(draggedItem->parent() && droppedItem->parent())  // two students
+    {
+        // UserRole data stored in the item is the studentRecord.ID
+        emit swapChildren((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
+        emit teamInfoChanged();
+    }
+    else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
+    {
+        // UserRole data stored in the item is the team number
+        emit swapParents((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
+        emit teamInfoChanged();
+    }
+    else
+    {
+        event->setDropAction(Qt::IgnoreAction);
+        event->ignore();
+    }
+}
+
+void TeamTreeWidget::itemEntered(const QModelIndex &index)
+{
+    setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }

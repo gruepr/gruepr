@@ -71,7 +71,7 @@ private slots:
 
     void on_cancelOptimizationButton_clicked();
 
-    void updateOptimizationProgress(double score, int generation, double scoreStability);
+    void updateOptimizationProgress(float score, int generation, float scoreStability);
 
     void askWhetherToContinueOptimizing(int generation);
 
@@ -110,7 +110,7 @@ private slots:
     void on_mixedGenderCheckBox_stateChanged(int arg1);
 
 signals:
-    void generationComplete(double score, int generation, double scoreStability);
+    void generationComplete(float score, int generation, float scoreStability);
 
     void optimizationMightBeComplete(int generation);
 
@@ -129,13 +129,22 @@ private:
     int numStudents = maxStudents;
     int numTeams;
     void refreshStudentDisplay();
-    int teamSize[maxStudents]={0};
+    int teamSize[maxTeams]={0};
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
     bool loadSurveyData(QString fileName);              // returns false if file is invalid
     studentRecord readOneRecordFromFile(QStringList fields);
     QStringList ReadCSVLine(QString line);
     int *studentIDs;                                    // array of the IDs of students to be placed on teams
+    // pre-allocated arrays for calculating scores (which happens a lot during optimization)
+    float realAttributeWeights[maxAttributes];
+    float realScheduleWeight;
+    float attributeScore[maxAttributes][maxTeams];
+    float schedScore[maxTeams];
+    int genderAdj[maxTeams];
+    int URMAdj[maxTeams];
+    int prevTeammateAdj[maxTeams];
+    int reqTeammateAdj[maxTeams];
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     int bestGenome[maxStudents];
@@ -145,13 +154,13 @@ private:
     QMutex optimizationStoppedmutex;
     bool optimizationStopped;
     bool keepOptimizing;
-    double getTeamScores(const int teammates[], double teamScores[]);
+    float getTeamScores(const int teammates[], float teamScores[]);
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;
     QString sectionName;
     int finalGeneration;
-    double teamSetScore;
+    float teamSetScore;
     TeamTreeWidget *teamDataTree;
     QStringList teamNames;
     void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);

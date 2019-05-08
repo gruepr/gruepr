@@ -28,7 +28,7 @@ gruepr::gruepr(QWidget *parent) :
     //Add the teamDataTree widget
     teamDataTree = new TeamTreeWidget(this);
     teamDataTree->setGeometry(0,0,624,626);
-    ui->teamDataLayout->insertWidget(1, teamDataTree);
+    ui->teamDataLayout->insertWidget(0, teamDataTree);
     connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
     connect(teamDataTree, &TeamTreeWidget::swapParents, this, &gruepr::swapTeams);
     connect(teamDataTree, &TeamTreeWidget::teamInfoChanged, this, &gruepr::refreshTeamInfo);
@@ -91,8 +91,12 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->minMeetingTimes->setEnabled(false);
         ui->desiredMeetingTimes->setEnabled(false);
         ui->meetingLength->setEnabled(false);
+        ui->scheduleWeight->setEnabled(false);
+        ui->label_16->setEnabled(false);
         ui->requiredTeammatesButton->setEnabled(false);
+        ui->label_18->setEnabled(false);
         ui->preventedTeammatesButton->setEnabled(false);
+        ui->label_19->setEnabled(false);
         ui->sectionSelectionBox->clear();
         ui->sectionSelectionBox->setEnabled(false);
         ui->attributeLabel->clear();
@@ -102,7 +106,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->attributeTextEdit->setEnabled(false);
         ui->attributeWeight->setEnabled(false);
         ui->attributeHomogeneousBox->setEnabled(false);
-        ui->scheduleWeight->setEnabled(false);
+        ui->label_21->setEnabled(false);
         ui->studentTable->clear();
         ui->studentTable->setRowCount(0);
         ui->studentTable->setColumnCount(0);
@@ -116,8 +120,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->addStudentSectionComboBox->clear();
         ui->addStudentPushButton->setEnabled(false);
         ui->teamDataLayout->setEnabled(false);
-        ui->teamDataText->clear();
-        ui->teamDataText->setEnabled(false);
         teamDataTree->setEnabled(false);
         ui->label_23->setEnabled(false);
         ui->expandAllButton->setEnabled(false);
@@ -129,9 +131,12 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->isolatedWomenCheckBox->setEnabled(false);
         ui->isolatedMenCheckBox->setEnabled(false);
         ui->mixedGenderCheckBox->setEnabled(false);
+        ui->label_15->setEnabled(false);
         ui->isolatedURMCheckBox->setEnabled(false);
+        ui->label_24->setEnabled(false);
         ui->teamSizeBox->clear();
         ui->teamSizeBox->setEnabled(false);
+        ui->label_20->setEnabled(false);
         ui->idealTeamSizeBox->setEnabled(false);
         ui->letsDoItButton->setEnabled(false);
         ui->saveTeamsButton->setEnabled(false);
@@ -163,7 +168,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->addStudentPushButton->setEnabled(true);
             ui->teamDataLayout->setEnabled(true);
             ui->requiredTeammatesButton->setEnabled(true);
+            ui->label_18->setEnabled(true);
             ui->preventedTeammatesButton->setEnabled(true);
+            ui->label_19->setEnabled(true);
 
             if(dataOptions.sectionIncluded)
             {
@@ -216,6 +223,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->attributeTextEdit->setEnabled(true);
                 ui->attributeWeight->setEnabled(true);
                 ui->attributeHomogeneousBox->setEnabled(true);
+                ui->label_21->setEnabled(true);
             }
             else
             {
@@ -229,16 +237,13 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->isolatedWomenCheckBox->setEnabled(true);
                 ui->isolatedMenCheckBox->setEnabled(true);
                 ui->mixedGenderCheckBox->setEnabled(true);
+                ui->label_15->setEnabled(true);
             }
             else
             {
                 ui->addStudentGenderComboBox->hide();
-                ui->addStudentGenderComboBox->setEnabled(false);
-                ui->isolatedWomenCheckBox->setEnabled(false);
                 ui->isolatedWomenCheckBox->setChecked(false);
-                ui->isolatedMenCheckBox->setEnabled(false);
                 ui->isolatedMenCheckBox->setChecked(false);
-                ui->mixedGenderCheckBox->setEnabled(false);
                 ui->mixedGenderCheckBox->setChecked(false);
 
             }
@@ -248,12 +253,11 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->addStudentURMComboBox->show();
                 ui->addStudentURMComboBox->setEnabled(true);
                 ui->isolatedURMCheckBox->setEnabled(true);
+                ui->label_24->setEnabled(true);
             }
             else
             {
                 ui->addStudentURMComboBox->hide();
-                ui->addStudentURMComboBox->setEnabled(false);
-                ui->isolatedURMCheckBox->setEnabled(false);
                 ui->isolatedURMCheckBox->setChecked(false);
             }
 
@@ -263,17 +267,12 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->desiredMeetingTimes->setEnabled(true);
                 ui->meetingLength->setEnabled(true);
                 ui->scheduleWeight->setEnabled(true);
-            }
-            else
-            {
-                ui->minMeetingTimes->setEnabled(false);
-                ui->desiredMeetingTimes->setEnabled(false);
-                ui->meetingLength->setEnabled(false);
-                ui->scheduleWeight->setEnabled(false);
+                ui->label_16->setEnabled(true);
             }
 
             ui->idealTeamSizeBox->setEnabled(true);
             ui->teamSizeBox->setEnabled(true);
+            ui->label_20->setEnabled(true);
             on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 
             ui->letsDoItButton->setEnabled(true);
@@ -309,7 +308,7 @@ void gruepr::on_loadSettingsButton_clicked()
     {
         savedSettings.setArrayIndex(i);
         teamingOptions.desireHomogeneous[i] = savedSettings.value("desireHomogeneous", false).toBool();
-        teamingOptions.attributeWeights[i] = savedSettings.value("Weight", 1).toDouble();
+        teamingOptions.attributeWeights[i] = savedSettings.value("Weight", 1).toFloat();
     }
     savedSettings.endArray();
     if(ui->attributeScrollBar->value() == 0)
@@ -320,8 +319,8 @@ void gruepr::on_loadSettingsButton_clicked()
     {
         ui->attributeScrollBar->setValue(0);
     }
-    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 4).toDouble();
-    ui->scheduleWeight->setValue(teamingOptions.scheduleWeight);
+    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
+    ui->scheduleWeight->setValue(double(teamingOptions.scheduleWeight));
 
     QStringList keys = savedSettings.allKeys();
     keys.removeOne("registeredUser");
@@ -507,7 +506,7 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
     if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
     {
         ui->attributeTextEdit->setPlainText(dataOptions.attributeQuestionText.at(value));
-        ui->attributeWeight->setValue(teamingOptions.attributeWeights[value]);
+        ui->attributeWeight->setValue(double(teamingOptions.attributeWeights[value]));
         ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
         ui->attributeLabel->setText(QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
     }
@@ -516,7 +515,7 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 
 void gruepr::on_attributeWeight_valueChanged(double arg1)
 {
-    teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = arg1;
+    teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = float(arg1);
 }
 
 
@@ -528,7 +527,7 @@ void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
 
 void gruepr::on_scheduleWeight_valueChanged(double arg1)
 {
-    teamingOptions.scheduleWeight = arg1;
+    teamingOptions.scheduleWeight = float(arg1);
 }
 
 
@@ -812,10 +811,10 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(double score, int generation, double scoreStability)
+void gruepr::updateOptimizationProgress(float score, int generation, float scoreStability)
 {
     ui->generationsBox->setValue(generation);
-    ui->scoreBox->setValue(score);
+    ui->scoreBox->setValue(double(score));
     if(generation >= generationsOfStability)
     {
         ui->stabilityProgressBar->setValue((scoreStability<100)? int(scoreStability) : 100);
@@ -869,13 +868,7 @@ void gruepr::askWhetherToContinueOptimizing(int generation)
 void gruepr::optimizationComplete()
 {
     // update UI
-    ui->scoreBox->setEnabled(false);
-    ui->scoreBox->clear();
-    ui->label_11->setEnabled(false);
-    ui->generationsBox->setEnabled(false);
-    ui->generationsBox->clear();
     ui->generationsBox->setStyleSheet("");
-    ui->label_3->setEnabled(false);
     ui->stabilityProgressBar->setEnabled(false);
     ui->stabilityProgressBar->reset();
     ui->label_12->setEnabled(false);
@@ -890,7 +883,6 @@ void gruepr::optimizationComplete()
     ui->cancelOptimizationButton->setEnabled(false);
     ui->cancelOptimizationButton->hide();
     ui->teamDataLayout->setEnabled(true);
-    ui->teamDataText->setEnabled(true);
     teamDataTree->setEnabled(true);
     teamDataTree->setHeaderHidden(false);
     ui->expandAllButton->setEnabled(true);
@@ -929,7 +921,7 @@ void gruepr::on_collapseAllButton_clicked()
 
 void gruepr::on_sortTeamsButton_clicked()
 {
-    double teamScores[maxStudents];
+    float teamScores[maxStudents];
     teamSetScore = getTeamScores(bestGenome, teamScores);
     for (int i = 0; i < numTeams-1; i++)
         for (int j = 0; j < numTeams-i-1; j++)
@@ -1660,7 +1652,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 
     if(dataOptions.notesIncluded)
     {
-        student.notes = fields.at(fieldnum).toLocal8Bit().simplified();     //.simplified() removes leading and trailing whitespace and converts all internal whitespaces to a single space each
+        student.notes = fields.at(fieldnum).toLocal8Bit().simplified();     //.simplified() removes leading & trailing whitespace, converts each internal whitespace to just a single space
     }
 
     return student;
@@ -1911,14 +1903,14 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         tempGen[i] = new int[numStudents];
 
     //now optimize
-    double teamScores[maxStudents];
+    float teamScores[maxStudents];
     int temp[maxStudents];
-    double scores[populationSize], tempScores[populationSize];					// total score for each genome in the gene pool
+    float scores[populationSize], tempScores[populationSize];					// total score for each genome in the gene pool
     int indexOfBestTeamset;                         // holds index of best teamset in the genome
-    double bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
+    float bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     int generation = 0;
     int extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
-    double scoreStability;
+    float scoreStability;
     bool localOptimizationStopped = false;
     do								// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
     {
@@ -1926,6 +1918,15 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         {
             tourneyPlayer players[tournamentSize];
             int tourneyPicks[tournamentSize];
+
+            // Normalize attribute and schedule weights such that the sum of all weights = numAttributes + 1 (the +1 is for schedule)
+            float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
+                                   std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
+            for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+            {
+                realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
+            }
+            realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 
             //calculate all of this generation's scores
             for(int i = 0; i < populationSize; i++)
@@ -2014,7 +2015,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
                 scores[i] = getTeamScores(&genePool[i][0], teamScores);
             }
             indexOfBestTeamset = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));    //index of largest element in scores[]
-            bestScores[generation%generationsOfStability] = scores[indexOfBestTeamset];	//array of the best scores from the last generationsOfStability generations, wrapping around the storage location
+            bestScores[generation%generationsOfStability] = scores[indexOfBestTeamset];	//the best scores from the most recent generationsOfStability, wrapping around the storage location
 
             scoreStability = scores[indexOfBestTeamset] / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
 
@@ -2076,31 +2077,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-double gruepr::getTeamScores(const int teammates[], double teamScores[])
+float gruepr::getTeamScores(const int teammates[], float teamScores[])
 {
-    // Normalize attribute and schedule weights such that the sum of all weights = numAttributes + 1 (the +1 is for schedule)
-    double realAttributeWeights[maxAttributes];
-    double totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
-                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, 0.0);
-    if(totalWeight <= 0)
-    {
-        return(0);
-    }
-    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-    {
-        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
-    }
-    double realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
-
-    // Create and initialize each component score
-    double** attributeScore = new double*[dataOptions.numAttributes];
-    for(int i = 0; i < dataOptions.numAttributes; ++i)
-        attributeScore[i] = new double[numTeams];
-    double *schedScore = new double[numTeams];
-    int *genderAdj = new int[numTeams];
-    int *URMAdj = new int[numTeams];
-    int *prevTeammateAdj = new int[numTeams];
-    int *reqTeammateAdj = new int[numTeams];
+    // Initialize each component score
     for(int team = 0; team < numTeams; team++)
     {
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
@@ -2128,7 +2107,7 @@ double gruepr::getTeamScores(const int teammates[], double teamScores[])
                 int maxLevel = student[teammates[ID]].attribute[attribute], minLevel = student[teammates[ID]].attribute[attribute];
                 for(int teammate = 0; teammate < teamSize[team]; teammate++)
                 {
-                    if(student[teammates[ID]].attribute[attribute] != -1)       // students added manually have attribute levels of -1, so don't consider their "score"
+                    if(student[teammates[ID]].attribute[attribute] != -1)       //students added manually have attribute levels of -1, so don't consider their "score"
                     {
                         if(student[teammates[ID]].attribute[attribute] > maxLevel)
                         {
@@ -2141,7 +2120,7 @@ double gruepr::getTeamScores(const int teammates[], double teamScores[])
                     }
                     ID++;
                 }
-                attributeScore[attribute][team] = (maxLevel - minLevel) / (dataOptions.attributeLevels[attribute] - 1.0);	// range in team's values divided by total possible range
+                attributeScore[attribute][team] = (maxLevel - minLevel) / (dataOptions.attributeLevels[attribute] - float(1.0));    //range in team's values divided by total possible range
                 if(teamingOptions.desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
                 {
                     attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
@@ -2386,14 +2365,14 @@ double gruepr::getTeamScores(const int teammates[], double teamScores[])
 
     //Use the harmonic mean for the "total score"
     //This value, the inverse of the average of the inverses, is skewed towards the smaller members so that we optimize for better values of the worse teams
-    double harmonicSum = 0;
+    float harmonicSum = 0;
     for(int team = 0; team < numTeams; team++)
     {
         //very poor teams have 0 or negative scores, and this makes the harmonic mean meaningless
         //if any teamScore is <= 0, return the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean
         if(teamScores[team] <= 0)
         {
-            double mean = std::accumulate(teamScores, teamScores+numTeams, 0.0)/numTeams;		// accumulate() is from <numeric>, and it sums an array
+            float mean = std::accumulate(teamScores, teamScores+numTeams, float(0.0))/numTeams;		// accumulate() is from <numeric>, and it sums an array
             if(mean < 0)
             {
                 return(mean + (mean/2));
@@ -2406,17 +2385,6 @@ double gruepr::getTeamScores(const int teammates[], double teamScores[])
         harmonicSum += 1/teamScores[team];
     }
 
-
-    // free memory for genepool
-    for(int i = 0; i < dataOptions.numAttributes; ++i)
-        delete [] attributeScore[i];
-    delete [] attributeScore;
-    delete [] schedScore;
-    delete [] genderAdj;
-    delete [] URMAdj;
-    delete [] prevTeammateAdj;
-    delete [] reqTeammateAdj;
-
     return(numTeams/harmonicSum);
 }
 
@@ -2428,7 +2396,7 @@ void gruepr::refreshTeamInfo()
 {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    double teamScores[maxStudents];
+    float teamScores[maxStudents];
     teamSetScore = getTeamScores(bestGenome, teamScores);
 
     QStringList teamToolTips;
@@ -2438,7 +2406,7 @@ void gruepr::refreshTeamInfo()
 
     spreadsheetFileContents = tr("Section\tTeam\tName\tEmail\n");
     instructorsFileContents = tr("File: ") + dataOptions.dataFile.filePath() + "\n" + tr("Section: ") + sectionName + "\n" + tr("Optimized over ") +
-            QString::number(finalGeneration) + tr(" generations") + "\n" + tr("Net score: ") + QString::number(teamSetScore) + "\n\n\n";
+            QString::number(finalGeneration) + tr(" generations") + "\n" + tr("Net score: ") + QString::number(double(teamSetScore)) + "\n\n\n";
     studentsFileContents = "";
 
     //loop through every team
@@ -2446,7 +2414,7 @@ void gruepr::refreshTeamInfo()
     for(int team = 0; team < numTeams; team++)
     {
         QString teamToolTip;
-        instructorsFileContents += tr("Team ") + teamNames[team] + tr("  -  Score = ") + QString::number(teamScores[team], 'f', 2) + "\n\n";
+        instructorsFileContents += tr("Team ") + teamNames[team] + tr("  -  Score = ") + QString::number(double(teamScores[team]), 'f', 2) + "\n\n";
         studentsFileContents += tr("Team ") + teamNames[team] + "\n\n";
 
         //loop through each teammate in the team
@@ -2455,17 +2423,31 @@ void gruepr::refreshTeamInfo()
         {
             instructorsFileContents += "  ";
             studentsFileContents += "  ";
-            if(student[bestGenome[ID]].gender == studentRecord::woman)
+            if(dataOptions.genderIncluded)
             {
-                instructorsFileContents += " woman ";
+                if(student[bestGenome[ID]].gender == studentRecord::woman)
+                {
+                    instructorsFileContents += " woman ";
+                }
+                else if(student[bestGenome[ID]].gender == studentRecord::man)
+                {
+                    instructorsFileContents += "  man  ";
+                }
+                else
+                {
+                    instructorsFileContents += "   x   ";
+                }
             }
-            else if(student[bestGenome[ID]].gender == studentRecord::man)
+            if(dataOptions.URMIncluded)
             {
-                instructorsFileContents += "  man  ";
-            }
-            else
-            {
-                instructorsFileContents += "   x   ";
+                if(student[bestGenome[ID]].URM)
+                {
+                    instructorsFileContents += " URM ";
+                }
+                else
+                {
+                    instructorsFileContents += "     ";
+                }
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
@@ -2542,14 +2524,17 @@ void gruepr::refreshTeamInfo()
     }
 
     ui->tabWidget->setCurrentIndex(1);
-    ui->teamDataText->setText(tr("  File: ") + elidedDataFileName + tr("\n  Section: ") + sectionName + tr("\n  Optimized over ") +
-                              QString::number(finalGeneration) + tr(" generations to a net score of ") + QString::number(teamSetScore, 'f', 2));
-    teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded? 1 : 0) + dataOptions.numAttributes + (dataOptions.dayNames.size() > 0? 1 : 0) );          // name, gender?, each attribute, schedule
+    teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded? 1 : 0) + (dataOptions.URMIncluded? 1 : 0) +
+                                      dataOptions.numAttributes + (dataOptions.dayNames.size() > 0? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
     QStringList headerLabels;
     headerLabels << tr("name");
     if(dataOptions.genderIncluded)
     {
         headerLabels << tr("gender");
+    }
+    if(dataOptions.URMIncluded)
+    {
+        headerLabels << tr("URM");
     }
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
@@ -2601,7 +2586,7 @@ void gruepr::refreshTeamInfo()
         //create team items
         i.next();
         parentItem = new QTreeWidgetItem(teamDataTree);
-        parentItem->setText(0, tr("Team ") + teamNames[i.key()] + tr("  -  Score = ") + QString::number(teamScores[i.key()], 'f', 2));
+        parentItem->setText(0, tr("Team ") + teamNames[i.key()] + tr("  -  Score = ") + QString::number(double(teamScores[i.key()]), 'f', 2));
         parentItem->setData(0, Qt::UserRole, teamnum);
         parentItem->setToolTip(0, teamToolTips.at(teamnum));
         parentItem->setExpanded(true);
@@ -2631,6 +2616,21 @@ void gruepr::refreshTeamInfo()
                 else
                 {
                     childItem->setText(j,tr("non-binary/unknown"));
+                }
+                childItem->setToolTip(j, studentOnThisTeam.availabilityChart);
+                teamDataTree->resizeColumnToContents(j);
+            }
+            if(dataOptions.URMIncluded)
+            {
+                j++;
+                if(studentOnThisTeam.URM)
+                {
+                   childItem->setText(j,tr("yes"));
+
+                }
+                else
+                {
+                    childItem->setText(j,"");
                 }
                 childItem->setToolTip(j, studentOnThisTeam.availabilityChart);
                 teamDataTree->resizeColumnToContents(j);
