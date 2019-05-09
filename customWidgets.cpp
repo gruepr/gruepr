@@ -47,10 +47,10 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         return;
     }
 
-    int numWomen=0, numMen=0, numNonbinary=0, numURM = 0, numNonURM = 0, attributeMin[maxAttributes], attributeMax[maxAttributes], column;
-    for (int i = 0; i < item->childCount(); i++)
+    int numWomen=0, numMen=0, numNonbinary=0, numURM = 0, numNonURM = 0, attributeMin[maxAttributes]={0}, attributeMax[maxAttributes]={0}, column;
+    for (int teammate = 0; teammate < item->childCount(); teammate++)
     {
-        QTreeWidgetItem *child = item->child(i);
+        QTreeWidgetItem *child = item->child(teammate);
         column = 0;
         column++;
         if(headerItem()->text(column) == tr("gender"))
@@ -87,19 +87,14 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
         int attribute = 0;
         while(headerItem()->text(column).contains(tr("attribute"), Qt::CaseInsensitive))
         {
-            int value = (child->text(column)).toInt();
-            if(value != -1)
+            if(!child->text(column).contains("X"))
             {
-                if(i==0)
-                {
-                    attributeMax[attribute] = value;
-                    attributeMin[attribute] = value;
-                }
-                if(value > attributeMax[attribute])
+                int value = (child->text(column)).toInt();
+                if(value > attributeMax[attribute] || attributeMax[attribute] == 0)
                 {
                     attributeMax[attribute] = value;
                 }
-                if(value < attributeMin[attribute])
+                if(value < attributeMin[attribute] || attributeMin[attribute] == 0)
                 {
                     attributeMin[attribute] = value;
                 }

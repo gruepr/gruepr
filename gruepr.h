@@ -12,7 +12,8 @@
 #include "gruepr_structs_and_consts.h"
 
 
-namespace Ui {
+namespace Ui
+{
 class gruepr;
 }
 

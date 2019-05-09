@@ -21,8 +21,9 @@ gruepr::gruepr(QWidget *parent) :
 {
     //Setup the main window
     ui->setupUi(this);
-    ui->statusBar->setSizeGripEnabled(false);
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
+    //ui->statusBar->setSizeGripEnabled(false);
+    //setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
+    setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/gruepr.png"));
 
     //Add the teamDataTree widget
@@ -437,7 +438,8 @@ void gruepr::on_addStudentPushButton_clicked()
 {
     if(dataOptions.numStudentsInSystem < maxStudents)
     {
-
+        student[dataOptions.numStudentsInSystem].ID = dataOptions.numStudentsInSystem;
+        student[dataOptions.numStudentsInSystem].addedManually = true;
         student[dataOptions.numStudentsInSystem].firstname = (ui->addStudentFirstName->text()).trimmed();
         student[dataOptions.numStudentsInSystem].firstname[0] = student[dataOptions.numStudentsInSystem].firstname[0].toUpper();
         student[dataOptions.numStudentsInSystem].lastname = (ui->addStudentLastName->text()).trimmed();
@@ -463,7 +465,6 @@ void gruepr::on_addStudentPushButton_clicked()
         {
             student[dataOptions.numStudentsInSystem].URM = (ui->addStudentURMComboBox->currentText()==tr("URM"));
         }
-        student[dataOptions.numStudentsInSystem].ID = dataOptions.numStudentsInSystem;
         for(int attributeNum = 0; attributeNum < maxAttributes; attributeNum++)
         {
             student[dataOptions.numStudentsInSystem].attribute[attributeNum] = -1;     //set all attribute levels to -1 as a flag to ignore during the teaming
@@ -526,6 +527,15 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 void gruepr::on_attributeWeight_valueChanged(double arg1)
 {
     teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = float(arg1);
+
+    // Normalize all attribute and schedule weights
+    float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
+                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
+    }
+    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 }
 
 
@@ -538,6 +548,15 @@ void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
 void gruepr::on_scheduleWeight_valueChanged(double arg1)
 {
     teamingOptions.scheduleWeight = float(arg1);
+
+    // Normalize all attribute and schedule weights
+    float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
+                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
+    }
+    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 }
 
 
@@ -794,6 +813,15 @@ void gruepr::on_letsDoItButton_clicked()
     ui->cancelOptimizationButton->setEnabled(true);
     ui->cancelOptimizationButton->show();
 
+    // Normalize all attribute and schedule weights
+    float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
+                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
+    }
+    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
+
     // Set up to show progess on windows taskbar
     taskbarButton = new QWinTaskbarButton(this);
     taskbarButton->setWindow(windowHandle());
@@ -824,22 +852,16 @@ void gruepr::on_letsDoItButton_clicked()
 void gruepr::updateOptimizationProgress(float score, int generation, float scoreStability)
 {
     ui->generationsBox->setValue(generation);
-    ui->scoreBox->setValue(double(score));
+    ui->generationsBox->setStyleSheet(generation >= minGenerations? "" : "background-color: #fbdae4");
+
+    ui->scoreBox->setValue(static_cast<double>(score));
+
     if(generation >= generationsOfStability)
     {
-        ui->stabilityProgressBar->setValue((scoreStability<100)? int(scoreStability) : 100);
-        taskbarProgress->setMaximum(100);
-        taskbarProgress->setValue((scoreStability<100)? int(scoreStability) : 100);
-    }
-    if(generation >= minGenerations)
-    {
         ui->stabilityProgressBar->setEnabled(true);
-        ui->generationsBox->setStyleSheet("");
-    }
-    else
-    {
-        ui->stabilityProgressBar->setEnabled(false);
-        ui->generationsBox->setStyleSheet("background-color: #f283a5");
+        ui->stabilityProgressBar->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
+        taskbarProgress->setMaximum(100);
+        taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
     }
 }
 
@@ -864,6 +886,7 @@ void gruepr::askWhetherToContinueOptimizing(int generation)
     questionWindow.setWindowTitle((generation < maxGenerations)? tr("The score seems to be stable.") : (tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
     questionWindow.setIcon(QMessageBox::Question);
     questionWindow.setWindowModality(Qt::ApplicationModal);
+    questionWindow.setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
     questionWindow.addButton(tr("Show Teams"), QMessageBox::YesRole);
     QPushButton *keepGoing = questionWindow.addButton(tr("Continue Optimizing"), QMessageBox::NoRole);
 
@@ -1907,7 +1930,15 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     for(int genome = 0; genome < populationSize; ++genome)
         genePool[genome] = new int[numStudents];
 
-    //start with randPerm as just the array of student.IDs
+    // allocate memory for temporary genepool to hold each next generation before copying back into genepool
+    int** tempGen = new int*[populationSize];
+    for(int genome = 0; genome < populationSize; ++genome)
+        tempGen[genome] = new int[numStudents];
+
+    // allocate memory to hold all the tournament-selected genomes
+    tourneyPlayer *players = new tourneyPlayer[tournamentSize];
+
+    //start with an array of all the student IDs
     int randPerm[maxStudents];
     for(int i = 0; i < numStudents; i++)
     {
@@ -1924,92 +1955,58 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         }
     }
 
-    // allocate memory for temporary genepool to hold each next generation before copying back into genepool
-    int** tempGen = new int*[populationSize];
-    for(int genome = 0; genome < populationSize; ++genome)
-        tempGen[genome] = new int[numStudents];
+    //calculate this first generation's scores
+    float scores[populationSize], teamScores[maxTeams];
+    for(int genome = 0; genome < populationSize; genome++)
+    {
+        scores[genome] = getTeamScores(&genePool[genome][0], teamScores);
+    }
 
-    //now optimize
-    float teamScores[maxStudents];
     int temp[maxStudents];
-    float scores[populationSize], tempScores[populationSize];					// total score for each genome in the gene pool
-    int indexOfBestTeamset;                         // holds index of best teamset in the genome
+    int *mom=nullptr, *dad=nullptr;                 // pointer to genome of mom and dad
+    float minScore;
+    float tempScores[numElites];                    // temp storage for the score of each elite
+    int indexOfBestTeamset[numElites];              // holds indexes of elites
     float bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     int generation = 0;
     int extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
     float scoreStability;
     bool localOptimizationStopped = false;
+
+    //now optimize
     do								// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
     {
-        do							// keep optimizing until reach maxGenerations or stable
+
+        do							// keep optimizing until reach stability or maxGenerations
         {
-            tourneyPlayer players[tournamentSize];
-            int tourneyPicks[tournamentSize];
-
-            // Normalize attribute and schedule weights such that the sum of all weights = numAttributes + 1 (the +1 is for schedule)
-            float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
-                                   std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
-            for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-            {
-                realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
-            }
-            realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
-
-            //calculate all of this generation's scores
-            for(int genome = 0; genome < populationSize; genome++)
-            {
-                scores[genome] = getTeamScores(&genePool[genome][0], teamScores);
-            }
+            minScore = *std::min_element(scores, scores+populationSize);
 
             //find the elites (best scores) in genePool and copy each to tempGen
-            //store and use a temporary scores array so we can manipulate
-            for(int genome = 0; genome < populationSize; genome++)
-            {
-                tempScores[genome] = scores[genome];
-            }
             for(int genome = 0; genome < numElites; genome++)
             {
-                indexOfBestTeamset = static_cast<int>(std::distance(tempScores, std::max_element(tempScores, tempScores+populationSize)));
+                indexOfBestTeamset[genome] = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));
                 for(int ID = 0; ID < numStudents; ID++)
                 {
-                    tempGen[genome][ID] = genePool[indexOfBestTeamset][ID];
+                    tempGen[genome][ID] = genePool[indexOfBestTeamset[genome]][ID];
                 }
-                // set this tempScores value to the minimum one, so we can find the next biggest one during the next time through the loop
-                tempScores[indexOfBestTeamset] = *std::min_element(tempScores, tempScores+populationSize);
+                // save this scores value then set it to the minimum one, so we can find the next biggest one during the next time through the loop
+                tempScores[genome] = scores[indexOfBestTeamset[genome]];
+                scores[indexOfBestTeamset[genome]] = minScore;
+            }
+            //reset the altered scores of the elites
+            for(int genome = 0; genome < numElites; genome++)
+            {
+                scores[indexOfBestTeamset[genome]] = tempScores[genome];
             }
 
             //create populationSize-numElites children and place in tempGen
             for(int genome = numElites; genome < populationSize; genome++)
             {
-                //get tournamentSize random values from 0 -> populationSize and copy those index-valued genePool genomes and scores into players[]
-                for(int player = 0; player < tournamentSize; player++)
-                {
-                    tourneyPicks[player] = rand()%populationSize;
-                    for(int ID = 0; ID < numStudents; ID++)
-                    {
-                        players[player].genome[ID] = genePool[tourneyPicks[player]][ID];
-                    }
-                    players[player].score = scores[tourneyPicks[player]];
-                }
+                //get a couple of parents
+                GA::tournamentSelectParents(players, genePool, scores, mom, dad);
 
-                //sort tournament genomes so top genomes in tournament are at the beginning
-                std::sort(players, players+tournamentSize, [](tourneyPlayer i,tourneyPlayer j){return i.score>j.score;});
-
-                //pick two genomes from tournament, most likely from the beginning so that best genomes are more likely have offspring
-                int parent[2], choice = 0, play = 0;
-                while(choice < 2)
-                {
-                    //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on; 2nd parent then chosen from remaining (lower) players in tournament
-                    if(rand() < topGenomeLikelihood)
-                    {
-                        parent[choice] = play%tournamentSize;       // using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
-                        choice++;
-                    }
-                    play++;
-                }
-
-                //mate top two genomes and put child in tempGen
-                GA::mate(players[parent[0]].genome, players[parent[1]].genome, teamSize, numTeams, temp, numStudents);
+                //mate them and put child in tempGen
+                GA::mate(mom, dad, teamSize, numTeams, temp, numStudents);
                 for(int ID = 0; ID < numStudents; ID++)
                 {
                     tempGen[genome][ID] = temp[ID];
@@ -2036,17 +2033,18 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 
             generation++;
 
-            //determine best score and save in historical record
+            //calculate new generation's scores
             for(int genome = 0; genome < populationSize; genome++)
             {
                 scores[genome] = getTeamScores(&genePool[genome][0], teamScores);
             }
-            indexOfBestTeamset = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));    //index of largest element in scores[]
-            bestScores[generation%generationsOfStability] = scores[indexOfBestTeamset];	//the best scores from the most recent generationsOfStability, wrapping around the storage location
 
-            scoreStability = scores[indexOfBestTeamset] / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
+            //determine best score, save in historical record, and calculate score stability
+            indexOfBestTeamset[0] = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));    //index of largest element in scores[]
+            bestScores[generation%generationsOfStability] = scores[indexOfBestTeamset[0]];	//the best scores from the most recent generationsOfStability, wrapping around the storage location
+            scoreStability = scores[indexOfBestTeamset[0]] / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
 
-            emit generationComplete(scores[indexOfBestTeamset], generation+extraGenerations, scoreStability);
+            emit generationComplete(scores[indexOfBestTeamset[0]], generation+extraGenerations, scoreStability);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;
@@ -2084,18 +2082,17 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     QList<int> bestTeamSet;
     for(int ID = 0; ID < numStudents; ID++)
     {
-        bestTeamSet << genePool[indexOfBestTeamset][ID];
+        bestTeamSet << genePool[indexOfBestTeamset[0]][ID];
     }
 
-    // free memory for genepool
+    // free memory for genepool, tempGen, and players
     for(int genome = 0; genome < populationSize; ++genome)
         delete [] genePool[genome];
     delete[] genePool;
-
-    // free memory for tempGen
     for(int genome = 0; genome < populationSize; ++genome)
         delete [] tempGen[genome];
     delete[] tempGen;
+    delete[] players;
 
     return bestTeamSet;
 }
@@ -2164,6 +2161,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         for(int team = 0; team < numTeams; team++)
         {
             int firstStudentInTeam = ID;
+            bool allStudentsAddedManually = true;
             // combine each student's schedule array into a team schedule array
             QVector<bool> teamAvailability(dataOptions.dayNames.size()*dataOptions.timeNames.size());
             for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
@@ -2173,107 +2171,67 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                 for(int teammate = 0; teammate < teamSize[team]; teammate++)
                 {
                     teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
+                    allStudentsAddedManually &= student[teammates[ID]].addedManually;                               // logical "and" whether each student was manually added
                     ID++;
                 }
             }
-            // count how many free time blocks there are
-            if(teamingOptions.meetingBlockSize == 1)
+            if(!allStudentsAddedManually)   // keep schedule score at 0 if all students added manually, to avoid runaway huge score by grouping them all together
             {
-                for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
+                // count how many free time blocks there are
+                if(teamingOptions.meetingBlockSize == 1)
                 {
-                    if(teamAvailability[time])
+                    for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
                     {
-                        schedScore[team]++;
+                        if(teamAvailability[time])
+                        {
+                            schedScore[team]++;
+                        }
                     }
                 }
-            }
-            else    //user wants to count only 2-hr time blocks, but don't count wrap-around block from end of 1 day to beginning of next!
-            {
-                for(int day = 0; day < dataOptions.dayNames.size(); day++)
+                else    //user wants to count only 2-hr time blocks, but don't count wrap-around block from end of 1 day to beginning of next!
                 {
-                    for(int time = 0; time < dataOptions.timeNames.size()-1; time++)
+                    for(int day = 0; day < dataOptions.dayNames.size(); day++)
                     {
-                        if(teamAvailability[(day*dataOptions.timeNames.size())+time])
+                        for(int time = 0; time < dataOptions.timeNames.size()-1; time++)
                         {
-                            time++;
                             if(teamAvailability[(day*dataOptions.timeNames.size())+time])
                             {
-                                schedScore[team]++;
+                                time++;
+                                if(teamAvailability[(day*dataOptions.timeNames.size())+time])
+                                {
+                                    schedScore[team]++;
+                                }
                             }
                         }
                     }
                 }
-            }
-            // convert counts to a schedule score
-            if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
-            {
-                schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
-                schedScore[team] *= realScheduleWeight;
-            }
-            else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
-            {
-                schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
-                schedScore[team] *= realScheduleWeight;
-            }
-            else													// if team has fewer than minTimeBlocksOverlap, apply penalty
-            {
-                schedScore[team] = -(dataOptions.numAttributes + 1);
+                // convert counts to a schedule score
+                if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
+                {
+                    schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
+                    schedScore[team] *= realScheduleWeight;
+                }
+                else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
+                {
+                    schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
+                    schedScore[team] *= realScheduleWeight;
+                }
+                else													// if team has fewer than minTimeBlocksOverlap, apply penalty
+                {
+                    schedScore[team] = -(dataOptions.numAttributes + 1);
+                }
             }
         }
     }
 
-    // Determine adjustments for isolated woman teams
-    if(teamingOptions.isolatedWomenPrevented && dataOptions.genderIncluded)
+    // Determine gender adjustments for isolated woman teams
+    if(dataOptions.genderIncluded)
     {
         ID = 0;
         for(int team = 0; team < numTeams; team++)
         {
             int numWomen = 0;
-            for(int teammate = 0; teammate < teamSize[team]; teammate++)
-            {
-                if(student[teammates[ID]].gender == studentRecord::woman)
-                {
-                    numWomen++;
-                }
-                ID++;
-            }
-            if(numWomen == 1)
-            {
-                genderAdj[team] -= (dataOptions.numAttributes + 1);
-            }
-        }
-    }
-
-    // Determine adjustments for isolated man teams
-    if(teamingOptions.isolatedMenPrevented && dataOptions.genderIncluded)
-    {
-        ID = 0;
-        for(int team = 0; team < numTeams; team++)
-        {
             int numMen = 0;
-            for(int teammate = 0; teammate < teamSize[team]; teammate++)
-            {
-                if(student[teammates[ID]].gender == studentRecord::man)
-                {
-                    numMen++;
-                }
-                ID++;
-            }
-            if(numMen == 1)
-            {
-                genderAdj[team] -= (dataOptions.numAttributes + 1);
-            }
-        }
-    }
-
-    // Determine adjustments for single gender teams
-    if(teamingOptions.mixedGenderPreferred && dataOptions.genderIncluded)
-    {
-        ID = 0;
-        for(int team = 0; team < numTeams; team++)
-        {
-            int numMen = 0;
-            int numWomen = 0;
             for(int teammate = 0; teammate < teamSize[team]; teammate++)
             {
                 if(student[teammates[ID]].gender == studentRecord::man)
@@ -2286,7 +2244,15 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                 }
                 ID++;
             }
-            if(numMen == 0 || numWomen == 0)
+            if(teamingOptions.isolatedWomenPrevented && numWomen == 1)
+            {
+                genderAdj[team] -= (dataOptions.numAttributes + 1);
+            }
+            if(teamingOptions.isolatedMenPrevented && numMen == 1)
+            {
+                genderAdj[team] -= (dataOptions.numAttributes + 1);
+            }
+            if(teamingOptions.mixedGenderPreferred && (numMen == 0 || numWomen == 0))
             {
                 genderAdj[team] -= (dataOptions.numAttributes + 1);
             }

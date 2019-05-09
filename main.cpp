@@ -31,11 +31,11 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
-// - integrate with Google Drive: create form and/or download survey results from within the application
+// - integrate with Google Drive: download survey results from within the application
+// - allow for smart main window resizing
 // - compile for OSX
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
-// - if reached stability, continue with added mutation probability
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
 // - maintain population diversity through prevention of inbreeding (store parent and grandparent of each genome and disallow tournament selection from genomes with a match)
 // - use multiple genepools and allow limited cross-breeding

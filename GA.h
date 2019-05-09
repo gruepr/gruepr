@@ -19,13 +19,15 @@ const int mutationLikelihood = 50 * (RAND_MAX/100);     // first number gives pr
 //struct used for tournament selection of parents to mate in genetic algorithm
 struct tourneyPlayer
 {
-    int genome[maxRecords];
+    int *genome;
     float score;
 };
 
 
-namespace GA {
-    void mate(int mom[], int dad[], int teamSize[], int numTeams, int child[], int genomeSize);
+namespace GA
+{
+    void tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int *&mom, int *&dad);
+    void mate(int *mom, int *dad, int teamSize[], int numTeams, int child[], int genomeSize);
     void mutate(int genome[], int genomeSize);
 };
 

@@ -11,19 +11,23 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1000</width>
+    <width>1015</width>
     <height>770</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>gruepr</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QGroupBox { border: 1px solid gray; border-radius: 5px; margin-top:2ex}
+QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5px;}</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="loadSurveyFileButton">
@@ -64,10 +68,16 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>100</y>
+      <y>105</y>
       <width>361</width>
       <height>636</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="font">
      <font>
@@ -90,7 +100,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>30</y>
+       <y>25</y>
        <width>147</width>
        <height>17</height>
       </rect>
@@ -118,7 +128,7 @@
      <property name="geometry">
       <rect>
        <x>300</x>
-       <y>315</y>
+       <y>310</y>
        <width>37</width>
        <height>20</height>
       </rect>
@@ -149,7 +159,7 @@
      <property name="geometry">
       <rect>
        <x>250</x>
-       <y>315</y>
+       <y>310</y>
        <width>37</width>
        <height>20</height>
       </rect>
@@ -177,7 +187,7 @@
      <property name="geometry">
       <rect>
        <x>210</x>
-       <y>280</y>
+       <y>275</y>
        <width>61</width>
        <height>20</height>
       </rect>
@@ -215,7 +225,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>280</y>
+       <y>275</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -240,7 +250,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>315</y>
+       <y>310</y>
        <width>171</width>
        <height>21</height>
       </rect>
@@ -268,7 +278,7 @@
      <property name="geometry">
       <rect>
        <x>250</x>
-       <y>335</y>
+       <y>330</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -293,7 +303,7 @@
      <property name="geometry">
       <rect>
        <x>300</x>
-       <y>335</y>
+       <y>330</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -315,7 +325,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>260</y>
+       <y>255</y>
        <width>331</width>
        <height>20</height>
       </rect>
@@ -328,7 +338,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>140</y>
+       <y>135</y>
        <width>331</width>
        <height>20</height>
       </rect>
@@ -341,7 +351,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>370</y>
+       <y>365</y>
        <width>331</width>
        <height>20</height>
       </rect>
@@ -357,7 +367,7 @@
      <property name="geometry">
       <rect>
        <x>85</x>
-       <y>545</y>
+       <y>540</y>
        <width>261</width>
        <height>22</height>
       </rect>
@@ -379,7 +389,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>510</y>
+       <y>505</y>
        <width>41</width>
        <height>22</height>
       </rect>
@@ -407,7 +417,7 @@
      <property name="geometry">
       <rect>
        <x>88</x>
-       <y>510</y>
+       <y>505</y>
        <width>91</width>
        <height>21</height>
       </rect>
@@ -432,7 +442,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>395</y>
+       <y>390</y>
        <width>121</width>
        <height>31</height>
       </rect>
@@ -457,7 +467,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>450</y>
+       <y>445</y>
        <width>121</width>
        <height>31</height>
       </rect>
@@ -479,7 +489,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>490</y>
+       <y>485</y>
        <width>331</width>
        <height>20</height>
       </rect>
@@ -495,7 +505,7 @@
      <property name="geometry">
       <rect>
        <x>200</x>
-       <y>156</y>
+       <y>151</y>
        <width>51</width>
        <height>20</height>
       </rect>
@@ -529,7 +539,7 @@
      <property name="geometry">
       <rect>
        <x>158</x>
-       <y>601</y>
+       <y>596</y>
        <width>41</width>
        <height>23</height>
       </rect>
@@ -557,7 +567,7 @@
      <property name="geometry">
       <rect>
        <x>208</x>
-       <y>601</y>
+       <y>596</y>
        <width>41</width>
        <height>23</height>
       </rect>
@@ -585,7 +595,7 @@
      <property name="geometry">
       <rect>
        <x>258</x>
-       <y>601</y>
+       <y>596</y>
        <width>51</width>
        <height>23</height>
       </rect>
@@ -610,7 +620,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>570</y>
+       <y>565</y>
        <width>331</width>
        <height>20</height>
       </rect>
@@ -626,7 +636,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>179</y>
+       <y>174</y>
        <width>261</width>
        <height>56</height>
       </rect>
@@ -669,7 +679,7 @@
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>160</y>
+       <y>155</y>
        <width>111</width>
        <height>15</height>
       </rect>
@@ -710,7 +720,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>239</y>
+       <y>234</y>
        <width>33</width>
        <height>20</height>
       </rect>
@@ -744,7 +754,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>239</y>
+       <y>234</y>
        <width>129</width>
        <height>17</height>
       </rect>
@@ -772,7 +782,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>240</y>
+       <y>235</y>
        <width>38</width>
        <height>16</height>
       </rect>
@@ -797,7 +807,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>350</y>
+       <y>345</y>
        <width>33</width>
        <height>20</height>
       </rect>
@@ -831,7 +841,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>350</y>
+       <y>345</y>
        <width>38</width>
        <height>16</height>
       </rect>
@@ -856,7 +866,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>33</y>
+       <y>28</y>
        <width>48</width>
        <height>48</height>
       </rect>
@@ -881,7 +891,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>280</y>
+       <y>275</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -912,7 +922,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>586</y>
+       <y>581</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -946,7 +956,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>380</y>
+       <y>375</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -980,7 +990,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>510</y>
+       <y>505</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -1014,7 +1024,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>440</y>
+       <y>435</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -1045,7 +1055,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>603</y>
+       <y>598</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -1070,7 +1080,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>160</y>
+       <y>155</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -1097,19 +1107,6 @@ background-color: rgb(193, 193, 193);</string>
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="Line" name="line_10">
-     <property name="geometry">
-      <rect>
-       <x>246</x>
-       <y>10</y>
-       <width>115</width>
-       <height>3</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
     <widget class="QCheckBox" name="isolatedMenCheckBox">
      <property name="enabled">
       <bool>false</bool>
@@ -1117,7 +1114,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>50</y>
+       <y>45</y>
        <width>147</width>
        <height>17</height>
       </rect>
@@ -1145,7 +1142,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>105</y>
+       <y>100</y>
        <width>201</width>
        <height>31</height>
       </rect>
@@ -1173,7 +1170,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>70</y>
+       <y>65</y>
        <width>161</width>
        <height>17</height>
       </rect>
@@ -1198,7 +1195,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>83</y>
+       <y>78</y>
        <width>331</width>
        <height>20</height>
       </rect>
@@ -1214,7 +1211,7 @@ background-color: rgb(193, 193, 193);</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>97</y>
+       <y>92</y>
        <width>51</width>
        <height>51</height>
       </rect>
@@ -1230,19 +1227,6 @@ background-color: rgb(193, 193, 193);</string>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="Line" name="line_11">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>10</y>
-       <width>115</width>
-       <height>3</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </widget>
@@ -1547,45 +1531,6 @@ background-color: rgb(193, 193, 193);</string>
      <string>Choose which section of students found in the data</string>
     </property>
    </widget>
-   <widget class="Line" name="line_14">
-    <property name="geometry">
-     <rect>
-      <x>362</x>
-      <y>109</y>
-      <width>20</width>
-      <height>626</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
-   <widget class="Line" name="line_12">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>110</y>
-      <width>20</width>
-      <height>626</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
-   <widget class="Line" name="line_13">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>728</y>
-      <width>361</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
    <widget class="QToolButton" name="HelpButton">
     <property name="geometry">
      <rect>
@@ -1621,7 +1566,7 @@ background-color: rgb(193, 193, 193);</string>
       <x>380</x>
       <y>85</y>
       <width>631</width>
-      <height>652</height>
+      <height>657</height>
      </rect>
     </property>
     <property name="font">
@@ -1652,7 +1597,7 @@ background-color: rgb(193, 193, 193);</string>
        </rect>
       </property>
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -1737,7 +1682,7 @@ background-color: rgb(193, 193, 193);</string>
       <property name="geometry">
        <rect>
         <x>1</x>
-        <y>591</y>
+        <y>594</y>
         <width>621</width>
         <height>31</height>
        </rect>
@@ -2230,9 +2175,6 @@ copy of gruepr!</string>
    <zorder>label_34</zorder>
    <zorder>AboutButton</zorder>
    <zorder>label_22</zorder>
-   <zorder>line_14</zorder>
-   <zorder>line_12</zorder>
-   <zorder>line_13</zorder>
    <zorder>HelpButton</zorder>
    <zorder>tabWidget</zorder>
    <zorder>loadSurveyFileButton</zorder>

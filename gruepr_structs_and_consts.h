@@ -32,6 +32,7 @@ const int maxTimeBlocks = 7*24;                         // resolution of schedul
 struct studentRecord
 {
     int ID;                                             // ID is assigned in order of appearance in the data file
+    bool addedManually = false;                         // true if added during program run (not from file);
     enum {woman, man, neither} gender;
     bool URM;                                           // true if this student is from an underrepresented minority group
     bool unavailable[maxTimeBlocks] = {false};			// true if this is a busy block during week
