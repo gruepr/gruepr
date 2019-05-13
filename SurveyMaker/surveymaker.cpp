@@ -1,0 +1,449 @@
+#include "surveymaker.h"
+#include "ui_surveymaker.h"
+#include <QRegExp>
+#include <QMessageBox>
+#include <QDesktopServices>
+#include <QtNetwork>
+#include <QFont>
+
+SurveyMaker::SurveyMaker(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::SurveyMaker)
+{
+    ui->setupUi(this);
+    setWindowIcon(QIcon(":/surveymaker.png"));
+
+    QFontDatabase::addApplicationFont(":/OxygenMono-Regular.otf");
+    ui->previewBrowser->setFont(QFont("Oxygen Mono", 10, QFont::Normal));
+
+    refreshPreview();
+
+    QRegExp nc("[^,&<>]*");
+    noCommas = new QRegExpValidator(nc, this);
+    ui->surveyTitleLineEdit->setValidator(noCommas);
+    ui->day1LineEdit->setValidator(noCommas);
+    ui->day2LineEdit->setValidator(noCommas);
+    ui->day3LineEdit->setValidator(noCommas);
+    ui->day4LineEdit->setValidator(noCommas);
+    ui->day5LineEdit->setValidator(noCommas);
+    ui->day6LineEdit->setValidator(noCommas);
+    ui->day7LineEdit->setValidator(noCommas);
+}
+
+SurveyMaker::~SurveyMaker()
+{
+    delete ui;
+}
+
+void SurveyMaker::refreshPreview()
+{
+    int currPos = ui->previewBrowser->verticalScrollBar()->value();
+    QString preview = "<h2>" + title + "</h2>";
+    preview += "<h3>First, some basic information</h3>"
+               "<p>&nbsp;&nbsp;&nbsp;&bull;What is your first name (or the name you prefer to be called)?<br></p>"
+               "<p>&nbsp;&nbsp;&nbsp;&bull;What is your last name?<br></p>"
+               "<p>&nbsp;&nbsp;&nbsp;&bull;What is your school email address?<br></p>";
+    preview += gender? "<p>&nbsp;&nbsp;&nbsp;&bull;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non-binary </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>" : "";
+    preview += URM? "<p>&nbsp;&nbsp;&nbsp;&bull;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>{ </b><i>yes </i><b>|</b><i> no </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>" : "";
+    preview += "<hr>";
+    if(numAttributes > 0)
+    {
+        preview += "<h3>This set of questions is about your past experiences/education and teamwork preferences.</h3>";
+        for(int attrib = 0; attrib < numAttributes; attrib++)
+        {
+            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;" + attributeTexts[attrib] + "<br></p>";
+        }
+        preview += "<hr>";
+    }
+    if(schedule)
+    {
+        preview += "<h3>Please tell us about your weekly schedule.</h3>";
+        preview += "<p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
+        preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        for(int time = startTime; time <= endTime; time++)
+        {
+            preview += QTime(time, 0).toString("hA") + "&nbsp;&nbsp;&nbsp;&nbsp;";
+        }
+        preview += "</p>";
+        for(int day = 0; day < 7; day++)
+        {
+            if(!(dayNames[day].isEmpty()))
+            preview += "<p>&nbsp;&nbsp;&nbsp;" + dayNames[day] + "</p>";
+        }
+        preview += "<hr>";
+    }
+    if(section || additionalQuestions)
+    {
+        preview += "<h3>Some final questions.</h3>";
+        if(section)
+        {
+            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;In which section are you enrolled?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>{ </b><i>";
+            for(int sect = 0; sect < sectionNames.size(); sect++)
+            {
+                if(sect > 0)
+                {
+                    preview += " </i><b>|</b><i> ";
+                }
+                preview += sectionNames[sect];
+            }
+            preview += "</i><b> }</b></p>";
+        }
+        if(additionalQuestions)
+        {
+            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;Any additional things we should know about you before we form the teams?</p>";
+        }
+    }
+
+    ui->previewBrowser->setHtml(preview);
+    ui->previewBrowser->verticalScrollBar()->setValue(currPos);
+}
+
+void SurveyMaker::on_pushButton_clicked()
+{
+    QString URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
+    URL += "title=" + QUrl::toPercentEncoding(ui->surveyTitleLineEdit->text()) + "&";
+    URL += "gend=" + QString(gender? "true" : "false") + "&";
+    URL += "urm=" + QString(URM? "true" : "false") + "&";
+    URL += "numattr=" + QString::number(numAttributes) + "&";
+    URL += "attrtext=" + allAttributeTexts + "&";
+    URL += "sched=" + QString(schedule? "true" : "false") + "&";
+    URL += "start=" + QString::number(startTime) + "&end=" + QString::number(endTime) + "&days=" + allDayNames + "&";
+    URL += "sect=" + QString(section? "true" : "false") + "&";
+    URL += "sects=" + allSectionNames + "&";
+    URL += "addl=" + QString(additionalQuestions? "true" : "false");
+
+    //make sure we can connect to google
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    delete networkReply;
+    delete manager;
+    if(weGotProblems)
+    {
+        QMessageBox::critical(this, "Error!", "There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created.");
+        return;
+    }
+
+    QDesktopServices::openUrl(QUrl(URL));
+}
+
+void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
+{
+    title = arg1;
+    refreshPreview();
+}
+
+void SurveyMaker::on_genderCheckBox_clicked(bool checked)
+{
+    gender = checked;
+    refreshPreview();
+}
+
+void SurveyMaker::on_URMCheckBox_clicked(bool checked)
+{
+    URM = checked;
+    refreshPreview();
+}
+
+void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
+{
+    numAttributes = arg1;
+    ui->attributeScrollBar->setMaximum(std::max(arg1-1,0));
+    ui->attributeScrollBar->setEnabled(numAttributes > 0);
+    ui->attributeTextEdit->setEnabled(numAttributes > 0);
+    refreshPreview();
+}
+
+void SurveyMaker::on_attributeScrollBar_valueChanged(int value)
+{
+    ui->attributeTextEdit->setPlainText(attributeTexts[value]);
+    ui->attributeTextEdit->setPlaceholderText("Enter the text of attribute question " + QString::number(value+1) + ".");
+}
+
+void SurveyMaker::on_attributeTextEdit_textChanged()
+{
+    //validate entry
+    QString currText = ui->attributeTextEdit->toPlainText();
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->attributeTextEdit->setPlainText(ui->attributeTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, "Format error", "Sorry, the following punctuation are not allowed in  question text:\n    ,  &  <  >\nOther punctuation is allowed.");
+    }
+
+    attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
+    allAttributeTexts = "";
+    for(int attrib = 0; attrib < numAttributes; attrib++)
+    {
+        if(attrib != 0)
+            allAttributeTexts += ",";
+        allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
+    }
+    refreshPreview();
+}
+
+void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
+{
+    schedule = checked;
+    ui->daysComboBox->setEnabled(checked);
+    ui->day1CheckBox->setEnabled(checked);
+    ui->day1LineEdit->setEnabled(checked);
+    ui->day2CheckBox->setEnabled(checked);
+    ui->day2LineEdit->setEnabled(checked);
+    ui->day3CheckBox->setEnabled(checked);
+    ui->day3LineEdit->setEnabled(checked);
+    ui->day4CheckBox->setEnabled(checked);
+    ui->day4LineEdit->setEnabled(checked);
+    ui->day5CheckBox->setEnabled(checked);
+    ui->day5LineEdit->setEnabled(checked);
+    ui->day6CheckBox->setEnabled(checked);
+    ui->day6LineEdit->setEnabled(checked);
+    ui->day7CheckBox->setEnabled(checked);
+    ui->day7LineEdit->setEnabled(checked);
+    ui->timeStartEdit->setEnabled(checked);
+    ui->timeEndEdit->setEnabled(checked);
+    refreshPreview();
+}
+
+void SurveyMaker::on_daysComboBox_currentIndexChanged(int index)
+{
+    if(index == 0)
+    {
+        //All Days
+        ui->day1CheckBox->setChecked(true);
+        ui->day2CheckBox->setChecked(true);
+        ui->day3CheckBox->setChecked(true);
+        ui->day4CheckBox->setChecked(true);
+        ui->day5CheckBox->setChecked(true);
+        ui->day6CheckBox->setChecked(true);
+        ui->day7CheckBox->setChecked(true);
+    }
+    else if(index == 1)
+    {
+        //Weekdays
+        ui->day1CheckBox->setChecked(false);
+        ui->day2CheckBox->setChecked(true);
+        ui->day3CheckBox->setChecked(true);
+        ui->day4CheckBox->setChecked(true);
+        ui->day5CheckBox->setChecked(true);
+        ui->day6CheckBox->setChecked(true);
+        ui->day7CheckBox->setChecked(false);
+
+    }
+    else if(index == 2)
+    {
+        //Weekends
+        ui->day1CheckBox->setChecked(true);
+        ui->day2CheckBox->setChecked(false);
+        ui->day3CheckBox->setChecked(false);
+        ui->day4CheckBox->setChecked(false);
+        ui->day5CheckBox->setChecked(false);
+        ui->day6CheckBox->setChecked(false);
+        ui->day7CheckBox->setChecked(true);
+    }
+    else
+    {
+        //Custom Days
+    }
+}
+
+void SurveyMaker::on_day1CheckBox_toggled(bool checked)
+{
+    ui->day1LineEdit->setText(checked? tr("Sunday") : "");
+    ui->day1LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::on_day2CheckBox_toggled(bool checked)
+{
+    ui->day2LineEdit->setText(checked? tr("Monday") : "");
+    ui->day2LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::on_day3CheckBox_toggled(bool checked)
+{
+    ui->day3LineEdit->setText(checked? tr("Tuesday") : "");
+    ui->day3LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::on_day4CheckBox_toggled(bool checked)
+{
+    ui->day4LineEdit->setText(checked? tr("Wednesday") : "");
+    ui->day4LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::on_day5CheckBox_toggled(bool checked)
+{
+    ui->day5LineEdit->setText(checked? tr("Thursday") : "");
+    ui->day5LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::on_day6CheckBox_toggled(bool checked)
+{
+    ui->day6LineEdit->setText(checked? tr("Friday") : "");
+    ui->day6LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::on_day7CheckBox_toggled(bool checked)
+{
+    ui->day7LineEdit->setText(checked? tr("Saturday") : "");
+    ui->day7LineEdit->setEnabled(checked);
+    checkDays();
+}
+
+void SurveyMaker::checkDays()
+{
+    bool weekends = ui->day1CheckBox->isChecked() && ui->day7CheckBox->isChecked();
+    bool noWeekends = !(ui->day1CheckBox->isChecked() || ui->day7CheckBox->isChecked());
+    bool weekdays = ui->day2CheckBox->isChecked() && ui->day3CheckBox->isChecked() &&
+                    ui->day4CheckBox->isChecked() && ui->day5CheckBox->isChecked() && ui->day6CheckBox->isChecked();
+    bool noWeekdays = !(ui->day2CheckBox->isChecked() || ui->day3CheckBox->isChecked() ||
+                        ui->day4CheckBox->isChecked() || ui->day5CheckBox->isChecked() || ui->day6CheckBox->isChecked());
+    if(weekends && weekdays)
+    {
+        ui->daysComboBox->setCurrentIndex(0);
+    }
+    else if(weekdays && noWeekends)
+    {
+        ui->daysComboBox->setCurrentIndex(1);
+    }
+    else if(weekends && noWeekdays)
+    {
+        ui->daysComboBox->setCurrentIndex(2);
+    }
+    else
+    {
+        ui->daysComboBox->setCurrentIndex(3);
+    }
+}
+
+void SurveyMaker::on_day1LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[0] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::on_day2LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[1] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::on_day3LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[2] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::on_day4LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[3] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::on_day5LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[4] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::on_day6LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[5] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::on_day7LineEdit_textChanged(const QString &arg1)
+{
+    dayNames[6] = arg1;
+    updateDays();
+    refreshPreview();
+}
+
+void SurveyMaker::updateDays()
+{
+    allDayNames = "";
+    bool firstOne = true;
+    for(int day = 0; day < 7; day++)
+    {
+        if(!(dayNames[day].isEmpty()))
+        {
+            if(!firstOne)
+            {
+                allDayNames += ",";
+            }
+            allDayNames += QUrl::toPercentEncoding(dayNames[day]);
+            firstOne = false;
+        }
+    }
+}
+
+void SurveyMaker::on_timeStartEdit_timeChanged(const QTime &time)
+{
+    startTime = time.hour();
+    if(ui->timeEndEdit->time() <= time)
+        ui->timeEndEdit->setTime(QTime(time.hour(), 0));
+    refreshPreview();
+}
+
+void SurveyMaker::on_timeEndEdit_timeChanged(const QTime &time)
+{
+    endTime = time.hour();
+    if(ui->timeStartEdit->time() >= time)
+        ui->timeStartEdit->setTime(QTime(time.hour(), 0));
+    refreshPreview();
+}
+
+void SurveyMaker::on_sectionCheckBox_clicked(bool checked)
+{
+    section = checked;
+    ui->sectionNamesTextEdit->setEnabled(checked);
+    refreshPreview();
+}
+
+void SurveyMaker::on_sectionNamesTextEdit_textChanged()
+{
+    //validate entry
+    QString currText = ui->sectionNamesTextEdit->toPlainText();
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->sectionNamesTextEdit->setPlainText(ui->sectionNamesTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, "Format error", "Sorry, the following punctuation are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed.");
+    }
+
+    sectionNames = ui->sectionNamesTextEdit->toPlainText().trimmed().split("\n");
+    refreshPreview();
+    allSectionNames = "";
+    if(section)
+    {
+        for(int sect = 0; sect < sectionNames.size(); sect++)
+        {
+            if(sect != 0)
+                allSectionNames += ",";
+            allSectionNames += QUrl::toPercentEncoding(sectionNames[sect]);
+        }
+    }
+}
+
+void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
+{
+    additionalQuestions = checked;
+    refreshPreview();
+}

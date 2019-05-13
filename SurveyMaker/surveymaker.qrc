@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>surveymaker.png</file>
+        <file>surveymaker.ico</file>
+        <file>OxygenMono-Regular.otf</file>
+    </qresource>
+</RCC>
