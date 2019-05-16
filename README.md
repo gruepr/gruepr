@@ -54,7 +54,7 @@ Description of gruepr:
                - [optional] "yes" or "no", to indicate whether the student comes from an underrepresented minority
                      group
                ~ [0 to 9 values] text responses to "attribute" questions, each in own field; first numeric digit
-                     found in the text is used by the program
+                     found in the text is the value used by the program
                ~ [0 to 7 values] semicolon-separated list of times each day that the student is unavailable to work
                ~ [optional] section
                ~ [optional] any additional notes for student (all remaining columns will get swallowed into this

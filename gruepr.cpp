@@ -1,5 +1,6 @@
 #include "ui_gruepr.h"
 #include "gruepr.h"
+#include <QScreen>
 #include <QList>
 #include <QFile>
 #include <QTextStream>
@@ -12,7 +13,6 @@
 #include <QCryptographicHash>
 #include <QPrintDialog>
 #include <QPainter>
-#include <QFont>
 
 
 gruepr::gruepr(QWidget *parent) :
@@ -21,10 +21,25 @@ gruepr::gruepr(QWidget *parent) :
 {
     //Setup the main window
     ui->setupUi(this);
-    //ui->statusBar->setSizeGripEnabled(false);
-    //setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/gruepr.png"));
+    ui->cancelOptimizationButton->hide();
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    int windowMaxHeight = screen->availableSize().height();
+    if(windowMaxHeight < 1000)
+    {
+        ui->label_15->setMaximumSize(35,35);
+        ui->label_16->setMaximumSize(35,35);
+        ui->label_17->setMaximumSize(35,35);
+        ui->label_18->setMaximumSize(35,35);
+        ui->label_19->setMaximumSize(35,35);
+        ui->label_20->setMaximumSize(35,35);
+        ui->label_21->setMaximumSize(35,35);
+        ui->label_22->setMaximumSize(35,35);
+        ui->label_24->setMaximumSize(35,35);
+    }
+    adjustSize();
 
     //Add the teamDataTree widget
     teamDataTree = new TeamTreeWidget(this);
@@ -913,10 +928,10 @@ void gruepr::optimizationComplete()
     ui->tabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->printTeamsButton->setEnabled(true);
-    ui->letsDoItButton->setEnabled(true);
-    ui->letsDoItButton->show();
     ui->cancelOptimizationButton->setEnabled(false);
     ui->cancelOptimizationButton->hide();
+    ui->letsDoItButton->setEnabled(true);
+    ui->letsDoItButton->show();
     ui->teamDataLayout->setEnabled(true);
     teamDataTree->setEnabled(true);
     teamDataTree->setHeaderHidden(false);
@@ -2720,7 +2735,6 @@ void gruepr::printFiles(bool printInstructorsFile, bool printStudentsFile, bool 
 
     if(doIt)
     {
-        QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
         QFont printFont = QFont("Oxygen Mono", 10, QFont::Normal);
 
         if(printInstructorsFile)

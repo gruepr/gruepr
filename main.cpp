@@ -47,6 +47,7 @@
 #include <QApplication>
 #include <QSplashScreen>
 #include <QThread>
+#include <QFontDatabase>
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
     a.setOrganizationName("gruepr");
     a.setApplicationName("gruepr");
     a.setApplicationVersion(GRUEPR_VERSION_NUMBER);
+    QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
 
     QSplashScreen *splash = new QSplashScreen;
     QPixmap pic(":/icons/splash.png");
