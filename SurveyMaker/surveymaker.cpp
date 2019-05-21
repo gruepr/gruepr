@@ -4,7 +4,6 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QtNetwork>
-#include <QFont>
 
 SurveyMaker::SurveyMaker(QWidget *parent) :
     QMainWindow(parent),
@@ -12,11 +11,6 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/surveymaker.png"));
-
-    QFontDatabase::addApplicationFont(":/OxygenMono-Regular.otf");
-    ui->previewBrowser->setFont(QFont("Oxygen Mono", 10, QFont::Normal));
-
-    refreshPreview();
 
     QRegExp nc("[^,&<>]*");
     noCommas = new QRegExpValidator(nc, this);
@@ -28,6 +22,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->day5LineEdit->setValidator(noCommas);
     ui->day6LineEdit->setValidator(noCommas);
     ui->day7LineEdit->setValidator(noCommas);
+
+    refreshPreview();
 }
 
 SurveyMaker::~SurveyMaker()
@@ -37,14 +33,20 @@ SurveyMaker::~SurveyMaker()
 
 void SurveyMaker::refreshPreview()
 {
-    int currPos = ui->previewBrowser->verticalScrollBar()->value();
+    int currPos = ui->previewText->verticalScrollBar()->value();
     QString preview = "<h2>" + title + "</h2>";
     preview += "<h3>First, some basic information</h3>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;What is your first name (or the name you prefer to be called)?<br></p>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;What is your last name?<br></p>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;What is your school email address?<br></p>";
-    preview += gender? "<p>&nbsp;&nbsp;&nbsp;&bull;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non-binary </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>" : "";
-    preview += URM? "<p>&nbsp;&nbsp;&nbsp;&bull;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>{ </b><i>yes </i><b>|</b><i> no </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>" : "";
+               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your first name (or the name you prefer to be called)?<br></p>"
+               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your last name?<br></p>"
+               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your school email address?<br></p>";
+    preview += gender?
+                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                "options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non-binary </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>"
+                : "";
+    preview += URM?
+                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                "options: <b>{ </b><i>yes </i><b>|</b><i> no </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>"
+                : "";
     preview += "<hr>";
     if(numAttributes > 0)
     {
@@ -77,7 +79,8 @@ void SurveyMaker::refreshPreview()
         preview += "<h3>Some final questions.</h3>";
         if(section)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;In which section are you enrolled?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>{ </b><i>";
+            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;In which section are you enrolled?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                       "options: <b>{ </b><i>";
             for(int sect = 0; sect < sectionNames.size(); sect++)
             {
                 if(sect > 0)
@@ -90,12 +93,12 @@ void SurveyMaker::refreshPreview()
         }
         if(additionalQuestions)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;Any additional things we should know about you before we form the teams?</p>";
+            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Any additional things we should know about you before we form the teams?</p>";
         }
     }
 
-    ui->previewBrowser->setHtml(preview);
-    ui->previewBrowser->verticalScrollBar()->setValue(currPos);
+    ui->previewText->setHtml(preview);
+    ui->previewText->verticalScrollBar()->setValue(currPos);
 }
 
 void SurveyMaker::on_pushButton_clicked()
@@ -121,18 +124,29 @@ void SurveyMaker::on_pushButton_clicked()
     bool weGotProblems = (networkReply->bytesAvailable() == 0);
     delete networkReply;
     delete manager;
+
     if(weGotProblems)
     {
-        QMessageBox::critical(this, "Error!", "There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created.");
+        QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created."));
         return;
     }
     else
     {
-        //ADD CANCEL BUTTON
-        QMessageBox::information(this, "Survey Creation", "The next step will open a browser window to connect to Google.\nThis step may take a few seconds, so please be patient.\nA screen with additional information will be shown in your browser window when the process is complete.");
+        QMessageBox createSurvey(this);
+        createSurvey.setIcon(QMessageBox::Information);
+        createSurvey.setWindowTitle(tr("Survey Creation"));
+        createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n"
+                             "You may be asked first to authorize gruepr to access your Google Drive.\n"
+                             "This authorization is needed so that the Google Form can be created for you.\n"
+                             "The survey creation itself will take 10 - 20 seconds. During this time, the browser window will be blank.\n"
+                             "A screen with additional information will be shown in your browser window as soon as the process is complete."));
+        createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        if(createSurvey.exec() == QMessageBox::Ok)
+        {
+            QDesktopServices::openUrl(QUrl(URL));
+            surveyCreated = true;
+        }
     }
-
-    QDesktopServices::openUrl(QUrl(URL));
 }
 
 void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
@@ -165,7 +179,7 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 void SurveyMaker::on_attributeScrollBar_valueChanged(int value)
 {
     ui->attributeTextEdit->setPlainText(attributeTexts[value]);
-    ui->attributeTextEdit->setPlaceholderText("Enter the text of attribute question " + QString::number(value+1) + ".");
+    ui->attributeTextEdit->setPlaceholderText(tr("Enter the text of attribute question ") + QString::number(value+1) + ".");
 }
 
 void SurveyMaker::on_attributeTextEdit_textChanged()
@@ -177,7 +191,7 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     {
         ui->attributeTextEdit->setPlainText(ui->attributeTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, "Format error", "Sorry, the following punctuation are not allowed in  question text:\n    ,  &  <  >\nOther punctuation is allowed.");
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in  question text:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
@@ -185,14 +199,17 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     for(int attrib = 0; attrib < numAttributes; attrib++)
     {
         if(attrib != 0)
+        {
             allAttributeTexts += ",";
-        if(!attributeTexts[attrib].isEmpty())
+        }
+
+        if(!(attributeTexts[attrib].isEmpty()))
         {
             allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
         }
         else
         {
-            allAttributeTexts += QUrl::toPercentEncoding("Question "+QString::number(attrib+1));
+            allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
         }
     }
     refreshPreview();
@@ -437,7 +454,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     {
         ui->sectionNamesTextEdit->setPlainText(ui->sectionNamesTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, "Format error", "Sorry, the following punctuation are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed.");
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     sectionNames = ui->sectionNamesTextEdit->toPlainText().trimmed().split("\n");
@@ -460,4 +477,37 @@ void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
 {
     additionalQuestions = checked;
     refreshPreview();
+}
+
+//////////////////
+// Before closing the application window, if the user never created a survey, ask them if they really want to leave
+//////////////////
+void SurveyMaker::closeEvent(QCloseEvent *event)
+{
+    bool actuallyExit = surveyCreated;
+    if(!surveyCreated)
+    {
+        QMessageBox exitNoSurveyBox(this);
+        exitNoSurveyBox.setIcon(QMessageBox::Warning);
+        exitNoSurveyBox.setWindowTitle(tr("Are you sure you want to exit?"));
+        exitNoSurveyBox.setText(tr("You have not created a survey yet. Are you sure you want to exit?"));
+        exitNoSurveyBox.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+        QAbstractButton* pButtonYes = exitNoSurveyBox.button(QMessageBox::Yes);
+        pButtonYes->setText(tr("Yes, exit without creating a survey"));
+        QAbstractButton* pButtonNo = exitNoSurveyBox.button(QMessageBox::No);
+        pButtonNo->setText(tr("No, please take me back to SurveyMaker"));
+
+        exitNoSurveyBox.exec();
+
+        actuallyExit = (exitNoSurveyBox.clickedButton() == pButtonYes);
+    }
+
+    if(actuallyExit)
+    {
+        event->accept();
+    }
+    else
+    {
+        event->ignore();
+    }
 }

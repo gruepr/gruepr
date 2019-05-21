@@ -16,6 +16,9 @@ public:
     explicit SurveyMaker(QWidget *parent = nullptr);
     ~SurveyMaker();
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     void on_surveyTitleLineEdit_textChanged(const QString &arg1);
     void on_genderCheckBox_clicked(bool checked);
@@ -51,13 +54,14 @@ private:
     void refreshPreview();
     void checkDays();
     void updateDays();
+    bool surveyCreated = false;
     QRegExpValidator *noCommas;
     QString title="";
     bool gender=true;
     bool URM=false;
     int numAttributes=3;
     QString attributeTexts[9]={"","","","","","","","",""};
-    QString allAttributeTexts="";
+    QString allAttributeTexts="Question%201,Question%202,Question%203";
     bool schedule=true;
     QString dayNames[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
     QString allDayNames="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
