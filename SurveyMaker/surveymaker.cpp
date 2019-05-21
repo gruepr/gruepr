@@ -126,6 +126,11 @@ void SurveyMaker::on_pushButton_clicked()
         QMessageBox::critical(this, "Error!", "There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created.");
         return;
     }
+    else
+    {
+        //ADD CANCEL BUTTON
+        QMessageBox::information(this, "Survey Creation", "The next step will open a browser window to connect to Google.\nThis step may take a few seconds, so please be patient.\nA screen with additional information will be shown in your browser window when the process is complete.");
+    }
 
     QDesktopServices::openUrl(QUrl(URL));
 }
@@ -181,7 +186,14 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     {
         if(attrib != 0)
             allAttributeTexts += ",";
-        allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
+        if(!attributeTexts[attrib].isEmpty())
+        {
+            allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
+        }
+        else
+        {
+            allAttributeTexts += QUrl::toPercentEncoding("Question "+QString::number(attrib+1));
+        }
     }
     refreshPreview();
 }
@@ -429,6 +441,8 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     }
 
     sectionNames = ui->sectionNamesTextEdit->toPlainText().trimmed().split("\n");
+    sectionNames.removeAll(QString(""));
+
     refreshPreview();
     allSectionNames = "";
     if(section)
