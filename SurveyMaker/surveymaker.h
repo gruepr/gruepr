@@ -49,6 +49,20 @@ private slots:
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_pushButton_clicked();
 
+    void on_day1LineEdit_editingFinished();
+
+    void on_day2LineEdit_editingFinished();
+
+    void on_day3LineEdit_editingFinished();
+
+    void on_day4LineEdit_editingFinished();
+
+    void on_day5LineEdit_editingFinished();
+
+    void on_day6LineEdit_editingFinished();
+
+    void on_day7LineEdit_editingFinished();
+
 private:
     Ui::SurveyMaker *ui;
     void refreshPreview();

@@ -14,20 +14,13 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     QRegExp nc("[^,&<>]*");
     noCommas = new QRegExpValidator(nc, this);
-    ui->surveyTitleLineEdit->setValidator(noCommas);
-    ui->day1LineEdit->setValidator(noCommas);
-    ui->day2LineEdit->setValidator(noCommas);
-    ui->day3LineEdit->setValidator(noCommas);
-    ui->day4LineEdit->setValidator(noCommas);
-    ui->day5LineEdit->setValidator(noCommas);
-    ui->day6LineEdit->setValidator(noCommas);
-    ui->day7LineEdit->setValidator(noCommas);
 
     refreshPreview();
 }
 
 SurveyMaker::~SurveyMaker()
 {
+    delete noCommas;
     delete ui;
 }
 
@@ -53,7 +46,7 @@ void SurveyMaker::refreshPreview()
         preview += "<h3>This set of questions is about your past experiences/education and teamwork preferences.</h3>";
         for(int attrib = 0; attrib < numAttributes; attrib++)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;" + attributeTexts[attrib] + "<br></p>";
+            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;" + attributeTexts[attrib] + "<br></p>";
         }
         preview += "<hr>";
     }
@@ -122,7 +115,6 @@ void SurveyMaker::on_pushButton_clicked()
     connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     bool weGotProblems = (networkReply->bytesAvailable() == 0);
-    delete networkReply;
     delete manager;
 
     if(weGotProblems)
@@ -151,7 +143,17 @@ void SurveyMaker::on_pushButton_clicked()
 
 void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
 {
-    title = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->surveyTitleLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the survey title:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    title = ui->surveyTitleLineEdit->text().trimmed();
     refreshPreview();
 }
 
@@ -357,51 +359,178 @@ void SurveyMaker::checkDays()
 
 void SurveyMaker::on_day1LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[0] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day1LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[0] = ui->day1LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
+}
+
+
+void SurveyMaker::on_day1LineEdit_editingFinished()
+{
+    if((dayNames[0].isEmpty()))
+    {
+        ui->day1CheckBox->setChecked(false);
+    }
 }
 
 void SurveyMaker::on_day2LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[1] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day2LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[1] = ui->day2LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
+}
+
+void SurveyMaker::on_day2LineEdit_editingFinished()
+{
+    if((dayNames[1].isEmpty()))
+    {
+        ui->day2CheckBox->setChecked(false);
+    }
 }
 
 void SurveyMaker::on_day3LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[2] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day3LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[2] = ui->day3LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
+}
+
+void SurveyMaker::on_day3LineEdit_editingFinished()
+{
+    if((dayNames[2].isEmpty()))
+    {
+        ui->day3CheckBox->setChecked(false);
+    }
 }
 
 void SurveyMaker::on_day4LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[3] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day4LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[3] = ui->day4LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
+}
+
+void SurveyMaker::on_day4LineEdit_editingFinished()
+{
+    if((dayNames[3].isEmpty()))
+    {
+        ui->day4CheckBox->setChecked(false);
+    }
 }
 
 void SurveyMaker::on_day5LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[4] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day5LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[4] = ui->day5LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
+}
+
+void SurveyMaker::on_day5LineEdit_editingFinished()
+{    if((dayNames[4].isEmpty()))
+    {
+        ui->day5CheckBox->setChecked(false);
+    }
+
 }
 
 void SurveyMaker::on_day6LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[5] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day6LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[5] = ui->day6LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
 }
 
+void SurveyMaker::on_day6LineEdit_editingFinished()
+{
+    if((dayNames[5].isEmpty()))
+    {
+        ui->day6CheckBox->setChecked(false);
+    }
+}
+
 void SurveyMaker::on_day7LineEdit_textChanged(const QString &arg1)
 {
-    dayNames[6] = arg1;
+    //validate entry
+    QString currText = arg1;
+    int currPos = 0;
+    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        ui->day7LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+
+    dayNames[6] = ui->day7LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
+}
+
+void SurveyMaker::on_day7LineEdit_editingFinished()
+{
+    if((dayNames[6].isEmpty()))
+    {
+        ui->day7CheckBox->setChecked(false);
+    }
 }
 
 void SurveyMaker::updateDays()

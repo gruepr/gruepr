@@ -25,9 +25,10 @@ gruepr::gruepr(QWidget *parent) :
     setWindowIcon(QIcon(":/icons/gruepr.png"));
     ui->cancelOptimizationButton->hide();
 
+    //Reduce size of the options icons if the screen is small
     QScreen *screen = QGuiApplication::primaryScreen();
     int windowMaxHeight = screen->availableSize().height();
-    if(windowMaxHeight < 1000)
+    if(windowMaxHeight < 900)
     {
         ui->label_15->setMaximumSize(35,35);
         ui->label_16->setMaximumSize(35,35);
@@ -149,7 +150,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->sortTeamsButton->setEnabled(false);
         ui->label_14->setEnabled(false);
         ui->teamNamesComboBox->setEnabled(false);
-        ui->tabWidget->setCurrentIndex(0);
+        ui->dataDisplayTabWidget->setCurrentIndex(0);
         ui->isolatedWomenCheckBox->setEnabled(false);
         ui->isolatedMenCheckBox->setEnabled(false);
         ui->mixedGenderCheckBox->setEnabled(false);
@@ -925,7 +926,7 @@ void gruepr::optimizationComplete()
     ui->label_2->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->label_22->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->loadSurveyFileButton->setEnabled(true);
-    ui->tabWidget->setCurrentIndex(1);
+    ui->dataDisplayTabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->printTeamsButton->setEnabled(true);
     ui->cancelOptimizationButton->setEnabled(false);
@@ -1817,7 +1818,7 @@ QStringList gruepr::ReadCSVLine(QString line, int minFields)
 //////////////////
 void gruepr::refreshStudentDisplay()
 {
-    ui->tabWidget->setCurrentIndex(0);
+    ui->dataDisplayTabWidget->setCurrentIndex(0);
     ui->studentTable->clearContents();
     ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
     ui->studentTable->setColumnCount(dataOptions.sectionIncluded? 5 : 4);
@@ -2531,7 +2532,7 @@ void gruepr::refreshTeamInfo()
         teamToolTips += teamToolTip;
     }
 
-    ui->tabWidget->setCurrentIndex(1);
+    ui->dataDisplayTabWidget->setCurrentIndex(1);
     teamDataTree->setColumnCount(1 + (dataOptions.genderIncluded? 1 : 0) + (dataOptions.URMIncluded? 1 : 0) +
                                       dataOptions.numAttributes + (dataOptions.dayNames.size() > 0? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
     QStringList headerLabels;
