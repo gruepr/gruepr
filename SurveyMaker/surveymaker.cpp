@@ -1,9 +1,9 @@
 #include "surveymaker.h"
 #include "ui_surveymaker.h"
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QMessageBox>
-#include <QDesktopServices>
 #include <QtNetwork>
+#include <QDesktopServices>
 
 SurveyMaker::SurveyMaker(QWidget *parent) :
     QMainWindow(parent),
@@ -12,10 +12,11 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->setupUi(this);
     setWindowIcon(QIcon(":/surveymaker.png"));
 
-    QRegExp nc("[^,&<>]*");
-    noCommas = new QRegExpValidator(nc, this);
+    QRegularExpression nc("[^,&<>]*");
+    noCommas = new QRegularExpressionValidator(nc, this);
 
-    refreshPreview();
+    // Create the initial survey preview. Waits 200 msec to do this--for some reason, doing this immediately prevents the font from being used in every field
+    QTimer::singleShot(200, [this](){ refreshPreview(); });
 }
 
 SurveyMaker::~SurveyMaker()

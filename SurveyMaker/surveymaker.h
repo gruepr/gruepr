@@ -36,12 +36,19 @@ private slots:
     void on_day6CheckBox_toggled(bool checked);
     void on_day7CheckBox_toggled(bool checked);
     void on_day1LineEdit_textChanged(const QString &arg1);
+    void on_day1LineEdit_editingFinished();
     void on_day2LineEdit_textChanged(const QString &arg1);
+    void on_day2LineEdit_editingFinished();
     void on_day3LineEdit_textChanged(const QString &arg1);
+    void on_day3LineEdit_editingFinished();
     void on_day4LineEdit_textChanged(const QString &arg1);
+    void on_day4LineEdit_editingFinished();
     void on_day5LineEdit_textChanged(const QString &arg1);
+    void on_day5LineEdit_editingFinished();
     void on_day6LineEdit_textChanged(const QString &arg1);
+    void on_day6LineEdit_editingFinished();
     void on_day7LineEdit_textChanged(const QString &arg1);
+    void on_day7LineEdit_editingFinished();
     void on_timeStartEdit_timeChanged(const QTime &time);
     void on_timeEndEdit_timeChanged(const QTime &time);
     void on_sectionCheckBox_clicked(bool checked);
@@ -49,27 +56,13 @@ private slots:
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_pushButton_clicked();
 
-    void on_day1LineEdit_editingFinished();
-
-    void on_day2LineEdit_editingFinished();
-
-    void on_day3LineEdit_editingFinished();
-
-    void on_day4LineEdit_editingFinished();
-
-    void on_day5LineEdit_editingFinished();
-
-    void on_day6LineEdit_editingFinished();
-
-    void on_day7LineEdit_editingFinished();
-
 private:
     Ui::SurveyMaker *ui;
     void refreshPreview();
     void checkDays();
     void updateDays();
     bool surveyCreated = false;
-    QRegExpValidator *noCommas;
+    QRegularExpressionValidator *noCommas;
     QString title="";
     bool gender=true;
     bool URM=false;
@@ -79,7 +72,7 @@ private:
     bool schedule=true;
     QString dayNames[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
     QString allDayNames="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
-    int startTime=9;
+    int startTime=10;
     int endTime=17;
     bool section;
     QStringList sectionNames={""};

@@ -418,27 +418,43 @@ registerDialog::registerDialog(QWidget *parent)
     theGrid = new QGridLayout(this);
 
     explanation = new QLabel(this);
-    explanation->setText(tr("\nThank you for registering your copy of gruepr.\nDoing so enables me to best support\nthe community of educators that uses it.\n\t-Josh\n\t j.hertz@neu.edu\n"));
+    explanation->setText(tr("\nThank you for registering your copy of gruepr.\n"
+                            "Doing so enables me to best support\nthe community of educators that uses it.\n"
+                            "\t-Josh\n"
+                            "\t j.hertz@neu.edu\n"));
     theGrid->addWidget(explanation, 0, 0);
 
     name = new QLineEdit(this);
-    name->setPlaceholderText(tr("full name"));
+    name->setPlaceholderText(tr("full name [required]"));
     theGrid->addWidget(name, 1, 0);
 
     institution = new QLineEdit(this);
-    institution->setPlaceholderText(tr("institution"));
+    institution->setPlaceholderText(tr("institution [required]"));
     theGrid->addWidget(institution, 2, 0);
 
     email = new QLineEdit(this);
-    email->setPlaceholderText(tr("email address"));
+    email->setPlaceholderText(tr("email address [required]"));
     theGrid->addWidget(email, 3, 0);
+    //force an email address-like input
+    //(one ore more letters, digit or special symbols, followed by @, followed by one ore more letters, digit or special symbols, followed by '.', followed by two, three or four letters)
+    QRegularExpression rx("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", QRegularExpression::CaseInsensitiveOption);
+    email->setValidator(new QRegularExpressionValidator(rx, this));
+    connect(email, &QLineEdit::textChanged, [=]() { QString stylecolor = (email->hasAcceptableInput())? "black" : "red"; email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
 
     //a spacer then ok/cancel buttons
     theGrid->setRowMinimumHeight(4, 20);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     theGrid->addWidget(buttonBox, 5, 0);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    connect(name, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->
+                                                   setEnabled(email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
+    connect(institution, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->
+                                                   setEnabled(email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
+    connect(email, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->
+                                                   setEnabled(email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
 
     adjustSize();
 }

@@ -3,5 +3,7 @@
         <file>surveymaker.png</file>
         <file>surveymaker.ico</file>
         <file>OxygenMono-Regular.otf</file>
+        <file>LICENSE.txt</file>
+        <file>README.md</file>
     </qresource>
 </RCC>

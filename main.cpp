@@ -32,7 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
 // - integrate with Google Drive: download survey results from within the application
-// - allow for smart main window resizing
 // - compile for OSX
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
