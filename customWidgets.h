@@ -16,6 +16,14 @@ public:
 };
 
 
+// a subclassed QTableWidgetItem that allows alphanumeric sorting
+class SectionTableWidgetItem : public QTableWidgetItem
+{
+public:
+    SectionTableWidgetItem(const QString txt = "");
+    bool operator <(const QTableWidgetItem &other) const;
+};
+
 
 // a subclassed QTreeWidget to show teams and students with summarized data on each
 class TeamTreeWidget : public QTreeWidget

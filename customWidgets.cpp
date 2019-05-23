@@ -1,4 +1,5 @@
 #include <QDateTime>
+#include <QCollator>
 #include <QDropEvent>
 #include <QPainter>
 #include "customWidgets.h"
@@ -15,6 +16,23 @@ TimestampTableWidgetItem::TimestampTableWidgetItem(const QString txt)
 bool TimestampTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
     return QDateTime::fromString(text(), "d-MMM. h:mm AP") < QDateTime::fromString(other.text(), "d-MMM. h:mm AP");
+}
+
+
+//////////////////
+// Table Widget Item for section names, allowing to sort alphanumerically
+//////////////////
+SectionTableWidgetItem::SectionTableWidgetItem(const QString txt)
+    :QTableWidgetItem(txt)
+{
+}
+
+bool SectionTableWidgetItem::operator <(const QTableWidgetItem &other) const
+{
+    QCollator sortAlphanumerically;
+    sortAlphanumerically.setNumericMode(true);
+    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+    return (sortAlphanumerically.compare(text(), other.text()) < 1);
 }
 
 

@@ -209,7 +209,10 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 }
                 if(sectionNames.size() > 1)
                 {
-                    sectionNames.sort();
+                    QCollator sortAlphanumerically;
+                    sortAlphanumerically.setNumericMode(true);
+                    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+                    std::sort(sectionNames.begin(), sectionNames.end(), sortAlphanumerically);
                     ui->sectionSelectionBox->setEnabled(true);
                     ui->label_2->setEnabled(true);
                     ui->label_22->setEnabled(true);
@@ -972,7 +975,7 @@ void gruepr::on_collapseAllButton_clicked()
 
 void gruepr::on_sortTeamsButton_clicked()
 {
-    float teamScores[maxStudents];
+    float teamScores[maxTeams];
     teamSetScore = getTeamScores(bestGenome, teamScores);
     for (int bubbleRound = 0; bubbleRound < numTeams-1; bubbleRound++)
         for (int team = 0; team < numTeams-bubbleRound-1; team++)
@@ -1299,7 +1302,7 @@ void gruepr::on_HelpButton_clicked()
     helpWindow.setWindowTitle("Help");
     QGridLayout theGrid(&helpWindow);
     QTextBrowser helpContents(&helpWindow);
-    helpContents.setHtml(tr("<h1>gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+    helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                             "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
                             "<p>Joshua Hertz <a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
                             "<p>Project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>"));
@@ -1317,17 +1320,18 @@ void gruepr::on_AboutButton_clicked()
 {
     QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
     QMessageBox::about(this, tr("About gruepr"),
-                       tr("<h2>gruepr " GRUEPR_VERSION_NUMBER "</h2>"
+                       tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
                           "<br>Joshua Hertz<br><a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
                           "<p>This copy of gruepr is ") + user + tr("."
                           "<p>gruepr is an open source project. The source code is freely available at"
                           "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
                           "<p>gruepr incorporates:"
-                              "<ul><li>Code from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the  GNU Lesser General Public License version 3;</li>"
-                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"; and</li>"
-                              "<li>The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams"
-                                                                    "(vern@newtypography.co.uk), released under SIL OPEN FONT LICENSE V1.1.</li></ul>"
+                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the GNU Lesser General Public License version 3</li>"
+                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
+                              "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
+                                                                    "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
+                                                                    " released under SIL OPEN FONT LICENSE V1.1.</span></li></ul>"
                           "<h3>Disclaimer</h3>"
                           "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
                           "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
@@ -1348,7 +1352,6 @@ void gruepr::on_registerButton_clicked()
     {
         //no internet right now
         QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));
-        delete networkReply;
         delete manager;
         return;
     }
@@ -1362,9 +1365,9 @@ void gruepr::on_registerButton_clicked()
         {
             // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
             if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
-                                              "?name="+window->name->text()+
-                                              "&institution="+window->institution->text()+
-                                              "&email="+window->email->text())))
+                                              "?name="+QUrl::toPercentEncoding(window->name->text())+
+                                              "&institution="+QUrl::toPercentEncoding(window->institution->text())+
+                                              "&email="+QUrl::toPercentEncoding(window->email->text()))))
             {
                 registeredUser = window->name->text();
                 QSettings savedSettings;
@@ -1383,7 +1386,6 @@ void gruepr::on_registerButton_clicked()
                                       tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <j.hertz@neu.edu>."));
             }
         }
-        delete networkReply;
         delete manager;
         delete window;
     }
@@ -1477,11 +1479,11 @@ bool gruepr::loadSurveyData(QString fileName)
     QVector<int> scheduleFields;
     while(field.contains("check the times", Qt::CaseInsensitive) && fieldnum < TotNumQuestions)
     {
-        QRegExp dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts a column title in checkbox matrix questions)
-        int pos = dayNameFinder.indexIn(field);
-        if(pos > -1)
+        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts a column title in checkbox matrix questions)
+        QRegularExpressionMatch dayName = dayNameFinder.match(field);
+        if(dayName.hasMatch())
         {
-            dataOptions.dayNames << dayNameFinder.cap(1);
+            dataOptions.dayNames << dayName.captured(1);
         }
         else
         {
@@ -1899,7 +1901,7 @@ void gruepr::refreshStudentDisplay()
             int column = 3;
             if(dataOptions.sectionIncluded)
             {
-                QTableWidgetItem *section = new QTableWidgetItem(student[ID].section);
+                SectionTableWidgetItem *section = new SectionTableWidgetItem(student[ID].section);
                 section->setToolTip(studentToolTip);
                 ui->studentTable->setItem(numStudents, column, section);
                 column++;
@@ -1908,7 +1910,7 @@ void gruepr::refreshStudentDisplay()
             QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png") , "", this);
             remover->setFlat(true);
             remover->setIconSize(QSize(20,20));
-            remover->setToolTip(tr("Remove this record from the current dataset"));
+            remover->setToolTip(tr("Remove this record from the current student set (the survey file itself will NOT be changed)."));
             remover->setProperty("StudentID", student[ID].ID);
             connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
             ui->studentTable->setCellWidget(numStudents, column, remover);
@@ -2405,7 +2407,7 @@ void gruepr::refreshTeamInfo()
 {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    float teamScores[maxStudents];
+    float teamScores[maxTeams];
     teamSetScore = getTeamScores(bestGenome, teamScores);
 
     QStringList teamToolTips;

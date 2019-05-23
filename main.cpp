@@ -26,7 +26,7 @@
 //    These icons have been made available under the creative commons license:
 //    Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
 
-//    An embedded font is used for pdf and printer output:
+//    An embedded font is used, mostly for pdf and printer output:
 //    Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk)
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

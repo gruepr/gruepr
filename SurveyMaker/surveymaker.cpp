@@ -15,7 +15,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     QRegularExpression nc("[^,&<>]*");
     noCommas = new QRegularExpressionValidator(nc, this);
 
-    // Create the initial survey preview. Waits 200 msec to do this--for some reason, doing this immediately prevents the font from being used in every field
+    // Create the initial survey preview. Waits 200 msec to do this--for some reason, doing this immediately prevents the embedded font from being used in every field
     QTimer::singleShot(200, [this](){ refreshPreview(); });
 }
 
@@ -35,11 +35,11 @@ void SurveyMaker::refreshPreview()
                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your school email address?<br></p>";
     preview += gender?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non-binary </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>"
+                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non-binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
                 : "";
     preview += URM?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "options: <b>{ </b><i>yes </i><b>|</b><i> no </i><b>|</b><i> prefer not to answer</i><b> }</b><br></p>"
+                "<small>options: <b>{ </b><i>yes </i><b>|</b><i> no </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
                 : "";
     preview += "<hr>";
     if(numAttributes > 0)
@@ -47,7 +47,10 @@ void SurveyMaker::refreshPreview()
         preview += "<h3>This set of questions is about your past experiences/education and teamwork preferences.</h3>";
         for(int attrib = 0; attrib < numAttributes; attrib++)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;" + attributeTexts[attrib] + "<br></p>";
+                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;" +
+                           (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib])
+                           + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                           "<small>response options will be added later, after creating the form</small>";
         }
         preview += "<hr>";
     }
@@ -74,7 +77,7 @@ void SurveyMaker::refreshPreview()
         if(section)
         {
             preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;In which section are you enrolled?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                       "options: <b>{ </b><i>";
+                       "<small>options: <b>{ </b><i>";
             for(int sect = 0; sect < sectionNames.size(); sect++)
             {
                 if(sect > 0)
@@ -83,7 +86,7 @@ void SurveyMaker::refreshPreview()
                 }
                 preview += sectionNames[sect];
             }
-            preview += "</i><b> }</b></p>";
+            preview += "</i><b> }</b></small></p>";
         }
         if(additionalQuestions)
         {
@@ -151,7 +154,7 @@ void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
     {
         ui->surveyTitleLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the survey title:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the survey title:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     title = ui->surveyTitleLineEdit->text().trimmed();
@@ -194,7 +197,7 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     {
         ui->attributeTextEdit->setPlainText(ui->attributeTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in  question text:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the question text:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
@@ -367,14 +370,13 @@ void SurveyMaker::on_day1LineEdit_textChanged(const QString &arg1)
     {
         ui->day1LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[0] = ui->day1LineEdit->text().trimmed();
     updateDays();
     refreshPreview();
 }
-
 
 void SurveyMaker::on_day1LineEdit_editingFinished()
 {
@@ -393,7 +395,7 @@ void SurveyMaker::on_day2LineEdit_textChanged(const QString &arg1)
     {
         ui->day2LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[1] = ui->day2LineEdit->text().trimmed();
@@ -418,7 +420,7 @@ void SurveyMaker::on_day3LineEdit_textChanged(const QString &arg1)
     {
         ui->day3LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[2] = ui->day3LineEdit->text().trimmed();
@@ -443,7 +445,7 @@ void SurveyMaker::on_day4LineEdit_textChanged(const QString &arg1)
     {
         ui->day4LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[3] = ui->day4LineEdit->text().trimmed();
@@ -468,7 +470,7 @@ void SurveyMaker::on_day5LineEdit_textChanged(const QString &arg1)
     {
         ui->day5LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[4] = ui->day5LineEdit->text().trimmed();
@@ -477,11 +479,11 @@ void SurveyMaker::on_day5LineEdit_textChanged(const QString &arg1)
 }
 
 void SurveyMaker::on_day5LineEdit_editingFinished()
-{    if((dayNames[4].isEmpty()))
+{
+    if((dayNames[4].isEmpty()))
     {
         ui->day5CheckBox->setChecked(false);
     }
-
 }
 
 void SurveyMaker::on_day6LineEdit_textChanged(const QString &arg1)
@@ -493,7 +495,7 @@ void SurveyMaker::on_day6LineEdit_textChanged(const QString &arg1)
     {
         ui->day6LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[5] = ui->day6LineEdit->text().trimmed();
@@ -518,7 +520,7 @@ void SurveyMaker::on_day7LineEdit_textChanged(const QString &arg1)
     {
         ui->day7LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[6] = ui->day7LineEdit->text().trimmed();
@@ -584,7 +586,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     {
         ui->sectionNamesTextEdit->setPlainText(ui->sectionNamesTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     sectionNames = ui->sectionNamesTextEdit->toPlainText().trimmed().split("\n");

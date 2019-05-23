@@ -437,8 +437,8 @@ registerDialog::registerDialog(QWidget *parent)
     theGrid->addWidget(email, 3, 0);
     //force an email address-like input
     //(one ore more letters, digit or special symbols, followed by @, followed by one ore more letters, digit or special symbols, followed by '.', followed by two, three or four letters)
-    QRegularExpression rx("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", QRegularExpression::CaseInsensitiveOption);
-    email->setValidator(new QRegularExpressionValidator(rx, this));
+    QRegularExpression emailAddressFormat("^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$", QRegularExpression::CaseInsensitiveOption);
+    email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
     connect(email, &QLineEdit::textChanged, [=]() { QString stylecolor = (email->hasAcceptableInput())? "black" : "red"; email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
 
     //a spacer then ok/cancel buttons
@@ -449,12 +449,12 @@ registerDialog::registerDialog(QWidget *parent)
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    connect(name, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->
-                                                   setEnabled(email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(institution, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->
-                                                   setEnabled(email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(email, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->
-                                                   setEnabled(email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
+    connect(name, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+                                                   email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
+    connect(institution, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+                                                   email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
+    connect(email, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+                                                   email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
 
     adjustSize();
 }
