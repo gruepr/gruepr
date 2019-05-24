@@ -19,7 +19,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPre
     this->requiredOrPrevented = requiredOrPrevented;
 
     //Set up window
-    setWindowTitle(tr("Select ") + QString(requiredOrPrevented==gatherTeammatesDialog::required?tr("Required"):tr("Prevented")) + tr(" Teammates"));
+    setWindowTitle(tr("Select ") + QString(requiredOrPrevented==gatherTeammatesDialog::required? tr("Required") : tr("Prevented")) + tr(" Teammates"));
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     setSizeGripEnabled(true);
     setMinimumSize(600, 600);
@@ -52,8 +52,10 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPre
     //Second and third row - the teammate choice box(es), a spacer, and a load button
     for(int i = 0; i < 8; i++)
     {
-        possibleTeammates[i].addItem("");
-        int indexInComboBox = 0;
+        possibleTeammates[i].addItem("Select a student:");
+        possibleTeammates[i].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
+        possibleTeammates[i].insertSeparator(1);
+        int indexInComboBox = 1;
         //Add to combobox a list of all the student names (in this section)
         for(int ID = 0; ID < numStudentsInSystem; ID++)
         {
@@ -68,14 +70,14 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates requiredOrPre
     }
     theGrid->setColumnMinimumWidth(4,15);
     loadTeammates = new QPushButton(this);
-    loadTeammates->setText(tr("&Add set of\n") + QString(requiredOrPrevented==gatherTeammatesDialog::required?tr(" required"):tr(" prevented")) + tr(" teammates "));
+    loadTeammates->setText(tr("&Add set of\n ") + QString(requiredOrPrevented==gatherTeammatesDialog::required? tr("required") : tr("prevented")) + tr(" teammates "));
     connect(loadTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::addOneTeammateSet);
     theGrid->addWidget(loadTeammates, 1, 5, 2, 1);
 
     //Fourth and fifth row - a spacer then reset table/ok/cancel buttons
     theGrid->setRowMinimumHeight(3, 20);
     resetTableButton = new QPushButton(this);
-    resetTableButton->setText(tr("&Reset"));
+    resetTableButton->setText(tr("&Reset All"));
     theGrid->addWidget(resetTableButton, 4, 0, 1, 1);
     connect(resetTableButton, &QPushButton::clicked, this, &gatherTeammatesDialog::clearAllTeammateSets);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -221,6 +223,18 @@ void gatherTeammatesDialog::refreshDisplay()
         }
     }
 
+    if(row == 0)
+    {
+        //indicate that there are no required/prevented teammates for any students
+        currentListOfTeammatesTable->setRowCount(1);
+        currentListOfTeammatesTable->setColumnCount(1);
+        currentListOfTeammatesTable->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
+        currentListOfTeammatesTable->setVerticalHeaderItem(0, new QTableWidgetItem(""));
+        currentListOfTeammatesTable->setItem(0, 0, new QTableWidgetItem(tr("No ")
+                                                                        + QString(requiredOrPrevented==gatherTeammatesDialog::required? tr("required") : tr("prevented"))
+                                                                        + tr(" teammates have beed set.")));
+    }
+
     currentListOfTeammatesTable->resizeColumnsToContents();
 }
 
@@ -250,7 +264,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     {
         numTeamsBox.addItem(QString::number(i+1));
     }
-    int startingNumTeams = ((numStudents%idealTeamsize==0)?((numStudents/idealTeamsize)-1):(numStudents/idealTeamsize));
+    int startingNumTeams = ((numStudents%idealTeamsize==0)? ((numStudents/idealTeamsize)-1) : (numStudents/idealTeamsize));
     numTeamsBox.setCurrentIndex(startingNumTeams);
     connect(&numTeamsBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &customTeamsizesDialog::refreshDisplay);
     theGrid->addWidget(&numTeamsBox, 1, 0, 1, -1, Qt::AlignHCenter);
@@ -367,7 +381,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, QStringList teamNames
         teamName[i].setPlaceholderText(tr("Custom name"));
         if(i < teamNames.size())
         {
-            teamName[i].setText((teamNames.at(i) == QString::number(i+1))?"":teamNames.at(i));
+            teamName[i].setText((teamNames.at(i) == QString::number(i+1))? "" : teamNames.at(i));
         }
         theGrid->addWidget(&teamName[i], (i/4), 2*(i%4)+1);
         theGrid->setColumnStretch(2*(i%4)+1, 1);

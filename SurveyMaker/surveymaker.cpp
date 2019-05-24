@@ -1,6 +1,5 @@
 #include "surveymaker.h"
 #include "ui_surveymaker.h"
-#include <QRegularExpression>
 #include <QMessageBox>
 #include <QtNetwork>
 #include <QDesktopServices>
@@ -11,17 +10,15 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/surveymaker.png"));
+    QFontDatabase::addApplicationFont(":/OxygenMono-Regular.otf");
 
-    QRegularExpression nc("[^,&<>]*");
-    noCommas = new QRegularExpressionValidator(nc, this);
+    noCommas = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
-    // Create the initial survey preview. Waits 200 msec to do this--for some reason, doing this immediately prevents the embedded font from being used in every field
-    QTimer::singleShot(200, [this](){ refreshPreview(); });
+    refreshPreview();
 }
 
 SurveyMaker::~SurveyMaker()
 {
-    delete noCommas;
     delete ui;
 }
 
@@ -589,7 +586,12 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
-    sectionNames = ui->sectionNamesTextEdit->toPlainText().trimmed().split("\n");
+    // split the input at every newline, then remove any blanks (including just spaces)
+    sectionNames = ui->sectionNamesTextEdit->toPlainText().split("\n");
+    for (int line = 0; line < sectionNames.size(); line++)
+    {
+        sectionNames[line] = sectionNames.at(line).trimmed();
+    }
     sectionNames.removeAll(QString(""));
 
     refreshPreview();

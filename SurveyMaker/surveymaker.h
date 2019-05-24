@@ -2,7 +2,7 @@
 #define SURVEYMAKER_H
 
 #include <QMainWindow>
-#include <QValidator>
+#include <QRegularExpressionValidator>
 
 namespace Ui {
 class SurveyMaker;

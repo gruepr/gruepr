@@ -7,11 +7,13 @@ Description of gruepr-SurveyMaker:
 
         Gruepr is a program for splitting a section of 4-200 students into optimized teams.
         
-        SurveyMaker is a secondary app used to easily create and use a customized Google Form to collect the
-        student data used by gruepr. After selecting the desired options in SurveyMaker and hitting the "Create
+        gruepr-SurveyMaker is a secondary app used to easily create and use a customized Google Form to collect
+        the student data used by gruepr. After selecting the desired options in SurveyMaker and hitting the "Create
         Survey" button, a browser window opens to run the Google script and show additional information. Once
-        complete, the user has two new files on the Google Drive: the Google Form itself and a spreadsheet that
-        will contain the students' responses.
+        complete, the user has two new files on their Google Drive: the Google Form itself and a spreadsheet that
+        will contain the students' responses. A page of instructions for use of the Form and spreadsheet are shown
+        in the browser, along with several direct URLs to edit the form, to send the form to the students, and to
+        download the form results after the students have submitted them.
 
 ---------------
 DISCLAIMER:
