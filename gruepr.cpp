@@ -939,6 +939,7 @@ void gruepr::optimizationComplete()
     ui->teamDataLayout->setEnabled(true);
     teamDataTree->setEnabled(true);
     teamDataTree->setHeaderHidden(false);
+    teamDataTree->collapseAll();
     ui->expandAllButton->setEnabled(true);
     ui->collapseAllButton->setEnabled(true);
     ui->sortTeamsButton->setEnabled(true);
@@ -948,7 +949,7 @@ void gruepr::optimizationComplete()
     taskbarProgress->hide();
 
     // free memory used to save array of IDs of students being teamed
-    delete[] studentIDs;
+    delete [] studentIDs;
 
     // Unpack the best team set and print teams list on the screen
     QList<int> bestTeamSet = future.result();
@@ -1437,13 +1438,13 @@ bool gruepr::loadSurveyData(QString fileName)
 
     // Read the optional gender/URM/attribute questions
     int fieldnum = 4;     // skipping past required first fields: timestamp(0), first name(1), last name(2), email address(3)
-    QString field = fields.at(fieldnum).toLocal8Bit().constData();
+    QString field = fields.at(fieldnum).toLocal8Bit();
     // See if gender data is included
-    if(field.contains("gender", Qt::CaseInsensitive))
+    if(field.contains(tr("gender"), Qt::CaseInsensitive))
     {
         dataOptions.genderIncluded = true;
         fieldnum++;
-        field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+        field = fields.at(fieldnum).toLocal8Bit();
     }
     else
     {
@@ -1451,11 +1452,11 @@ bool gruepr::loadSurveyData(QString fileName)
     }
 
     // See if URM data is included
-    if(field.contains("minority", Qt::CaseInsensitive))
+    if(field.contains(tr("minority"), Qt::CaseInsensitive))
     {
         dataOptions.URMIncluded = true;
         fieldnum++;
-        field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+        field = fields.at(fieldnum).toLocal8Bit();
     }
     else
     {
@@ -1670,28 +1671,33 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         }
         fieldnum++;
     }
-    student.availabilityChart = (dataOptions.dayNames.size() > 0? tr("Availability:\n           ") : "");
-    for(int day = 0; day < dataOptions.dayNames.size(); day++)
+    if(dataOptions.dayNames.size() > 0)
     {
-        student.availabilityChart += "\t" + dataOptions.dayNames.at(day).toLocal8Bit().left(3);     // using first three characters in day name as abbreviation
-    }
-    for(int time = 0; time < dataOptions.timeNames.size(); time++)
-    {
-        student.availabilityChart += "\n " + dataOptions.timeNames.at(time).toLocal8Bit();
-        if(dataOptions.timeNames.at(time).toLocal8Bit().size() < 6)
-        {
-            student.availabilityChart += QString((6-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
-        }
+        student.availabilityChart = tr("Availability:");
+        student.availabilityChart += "<table><tr><th></th>";
         for(int day = 0; day < dataOptions.dayNames.size(); day++)
         {
-            student.availabilityChart += "\t  " + QString(student.unavailable[(day*dataOptions.timeNames.size())+time]? " " : "√") + "  ";
+            student.availabilityChart += "<th>&nbsp;" + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "&nbsp;</th>";   // using first 3 characters in day name as abbreviation
         }
+        student.availabilityChart += "</tr>";
+        for(int time = 0; time < dataOptions.timeNames.size(); time++)
+        {
+            student.availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toLocal8Bit() + "</th>";
+            for(int day = 0; day < dataOptions.dayNames.size(); day++)
+            {
+                student.availabilityChart += "<td align = center>"
+                                             + QString(student.unavailable[(day*dataOptions.timeNames.size())+time]? "" : "√")
+                                             + "</td>";
+            }
+            student.availabilityChart += "</tr>";
+        }
+        student.availabilityChart += "</table>";
     }
 
     // optional last fields; might be section and/or additional notes
     if(dataOptions.sectionIncluded)
     {
-        student.section = fields.at(fieldnum).toLocal8Bit().trimmed().constData();
+        student.section = fields.at(fieldnum).toLocal8Bit().trimmed();
         if(student.section.startsWith("section",Qt::CaseInsensitive))
         {
             student.section = student.section.right(student.section.size()-7).trimmed();    //removing as redundant the word "section" if at the start of the section name
@@ -1843,10 +1849,10 @@ void gruepr::refreshStudentDisplay()
         if((ui->sectionSelectionBox->currentIndex() == 0) || (student[ID].section == ui->sectionSelectionBox->currentText()))
         {
             QString studentToolTip;
-            studentToolTip = student[ID].firstname + " " + student[ID].lastname + "  <" + student[ID].email + ">";
+            studentToolTip = "<html>" + student[ID].firstname + " " + student[ID].lastname + "<br>" + student[ID].email;
             if(dataOptions.genderIncluded)
             {
-                studentToolTip += "\n" + tr("Gender:  ");
+                studentToolTip += "<br>" + tr("Gender") + ":  ";
                 if(student[ID].gender == studentRecord::woman)
                 {
                     studentToolTip += tr("woman");
@@ -1862,7 +1868,7 @@ void gruepr::refreshStudentDisplay()
             }
             if(dataOptions.URMIncluded)
             {
-                studentToolTip += "\n" + tr("URM:  ");
+                studentToolTip += "<br>" + tr("URM") + ":  ";
                 if(student[ID].URM)
                 {
                     studentToolTip += tr("yes");
@@ -1874,7 +1880,7 @@ void gruepr::refreshStudentDisplay()
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                studentToolTip += "\n" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+                studentToolTip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
                 if(student[ID].attribute[attribute] != -1)
                 {
                     studentToolTip += QString::number(student[ID].attribute[attribute]);
@@ -1884,7 +1890,15 @@ void gruepr::refreshStudentDisplay()
                     studentToolTip += "x";
                 }
             }
-            studentToolTip += "\n" + student[ID].availabilityChart;
+            if(!(student[ID].availabilityChart.isEmpty()))
+            {
+                studentToolTip += "<br>--<br>" + student[ID].availabilityChart;
+            }
+            if(dataOptions.notesIncluded)
+            {
+                studentToolTip += "<br>--<br>" + tr("Notes") + ":<br>" + (student[ID].notes.isEmpty()? ("<i>" + tr("none") + "</i>") : student[ID].notes);
+            }
+            studentToolTip += "</html>";
 
             TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString("d-MMM. h:mm AP"));
             timestamp->setToolTip(studentToolTip);
@@ -1910,7 +1924,7 @@ void gruepr::refreshStudentDisplay()
             QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png") , "", this);
             remover->setFlat(true);
             remover->setIconSize(QSize(20,20));
-            remover->setToolTip(tr("Remove this record from the current student set (the survey file itself will NOT be changed)."));
+            remover->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
             remover->setProperty("StudentID", student[ID].ID);
             connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
             ui->studentTable->setCellWidget(numStudents, column, remover);
@@ -2106,11 +2120,11 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     // free memory for genepool, tempGen, and players
     for(int genome = 0; genome < populationSize; ++genome)
         delete [] genePool[genome];
-    delete[] genePool;
+    delete [] genePool;
     for(int genome = 0; genome < populationSize; ++genome)
         delete [] tempGen[genome];
-    delete[] tempGen;
-    delete[] players;
+    delete [] tempGen;
+    delete [] players;
 
     return bestTeamSet;
 }
@@ -2494,44 +2508,49 @@ void gruepr::refreshTeamInfo()
 
         if(dataOptions.dayNames.size() > 0)
         {
-            teamToolTip = tr("Team availability:") + "\n";
-            instructorsFileContents += ("\n" + tr("Availability:") + "\n");
-            studentsFileContents += ("\n" + tr("Availability:") + "\n");
-
-            teamToolTip += "              ";
-            instructorsFileContents += "            ";
-            studentsFileContents += "            ";
+            teamToolTip = "<html>" + tr("Team ") + teamNames[team] + tr(" availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
+            instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
+            studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
             for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
-                teamToolTip += dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "\t";
+                // using first 3 characters in day name as abbreviation
+                teamToolTip += "<th>" + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "</th>";
                 instructorsFileContents += "  " + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "  ";
                 studentsFileContents += "  " + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "  ";
             }
-            teamToolTip += "\n";
+            teamToolTip += "</tr>";
             instructorsFileContents += "\n";
             studentsFileContents += "\n";
 
             for(int time = 0; time < dataOptions.timeNames.size(); time++)
             {
-                teamToolTip += dataOptions.timeNames.at(time).toLocal8Bit() + "\t";
+                teamToolTip += "<tr><th>" + dataOptions.timeNames.at(time).toLocal8Bit() + "</th>";
                 instructorsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
                 studentsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
                     QString percentage = QString::number((100*canMeetAt[day][time])/teamSize[team]) + "% ";
-                    teamToolTip += percentage + "\t";
+                    if(percentage == "100% ")
+                    {
+                        teamToolTip += "<td align='center' bgcolor='PaleGreen'><b>" + percentage + "</b></td>";
+                    }
+                    else
+                    {
+                        teamToolTip += "<td align='center'>" + percentage + "</td>";
+                    }
                     instructorsFileContents += QString((4+dataOptions.dayNames.at(day).toLocal8Bit().left(3).size())-percentage.size(), ' ') + percentage;
                     studentsFileContents += QString((4+dataOptions.dayNames.at(day).toLocal8Bit().left(3).size())-percentage.size(), ' ') + percentage;
                 }
-                teamToolTip += "\n";
+                teamToolTip += "</tr>";
                 instructorsFileContents += "\n";
                 studentsFileContents += "\n";
             }
+            teamToolTip += "</table></html>";
         }
         instructorsFileContents += "\n\n";
         studentsFileContents += "\n\n";
-        teamToolTips += teamToolTip;
+        teamToolTips << teamToolTip;
     }
 
     ui->dataDisplayTabWidget->setCurrentIndex(1);
@@ -2592,32 +2611,31 @@ void gruepr::refreshTeamInfo()
     QTreeWidgetItem *parentItem;
     QTreeWidgetItem *childItem;
     QMapIterator<int, QList<studentRecord>> i(treeMap);
-    int teamnum = 0;
     while (i.hasNext())
     {
         //create team items
         i.next();
         parentItem = new QTreeWidgetItem(teamDataTree);
         parentItem->setText(0, tr("Team ") + teamNames[i.key()] + tr("  -  Score = ") + QString::number(double(teamScores[i.key()]), 'f', 2));
-        parentItem->setData(0, Qt::UserRole, teamnum);
-        parentItem->setToolTip(0, teamToolTips.at(teamnum));
+        parentItem->setData(0, Qt::UserRole, i.key());
+        parentItem->setToolTip(0, teamToolTips.at(i.key()));
         parentItem->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
         for(int column = 1; column < teamDataTree->columnCount(); column++)
         {
-            parentItem->setToolTip(column, teamToolTips.at(teamnum));
+            parentItem->setToolTip(column, teamToolTips.at(i.key()));
             parentItem->setTextAlignment(column, Qt::AlignCenter);
         }
         parentItem->setExpanded(true);
-        teamnum++;
 
         //create student items in each team
         foreach(const auto& studentOnThisTeam, i.value())
         {
+            QString studentToolTip = "<html>" + studentOnThisTeam.availabilityChart + "</html>";
             childItem = new QTreeWidgetItem;
             int column = 0;
             childItem->setText(column, studentOnThisTeam.firstname + " " + studentOnThisTeam.lastname);
             childItem->setData(column,Qt::UserRole,studentOnThisTeam.ID);
-            childItem->setToolTip(column, studentOnThisTeam.availabilityChart);
+            childItem->setToolTip(column, studentToolTip);
             childItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
             teamDataTree->resizeColumnToContents(column);
             if(dataOptions.genderIncluded)
@@ -2636,7 +2654,7 @@ void gruepr::refreshTeamInfo()
                 {
                     childItem->setText(column,tr("non-binary/unknown"));
                 }
-                childItem->setToolTip(column, studentOnThisTeam.availabilityChart);
+                childItem->setToolTip(column, studentToolTip);
                 childItem->setTextAlignment(column, Qt::AlignCenter);
                 teamDataTree->resizeColumnToContents(column);
             }
@@ -2652,7 +2670,7 @@ void gruepr::refreshTeamInfo()
                 {
                     childItem->setText(column,"");
                 }
-                childItem->setToolTip(column, studentOnThisTeam.availabilityChart);
+                childItem->setToolTip(column, studentToolTip);
                 childItem->setTextAlignment(column, Qt::AlignCenter);
                 teamDataTree->resizeColumnToContents(column);
             }
@@ -2668,7 +2686,7 @@ void gruepr::refreshTeamInfo()
                 {
                    childItem->setText(column, "X");
                 }
-                childItem->setToolTip(column, studentOnThisTeam.availabilityChart);
+                childItem->setToolTip(column, studentToolTip);
                 childItem->setTextAlignment(column, Qt::AlignCenter);
                 teamDataTree->resizeColumnToContents(column);
             }
@@ -2677,7 +2695,7 @@ void gruepr::refreshTeamInfo()
                 column++;
                 int availableTimes = studentOnThisTeam.availabilityChart.count("√");
                 childItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
-                childItem->setToolTip(column, studentOnThisTeam.availabilityChart);
+                childItem->setToolTip(column, studentToolTip);
                 childItem->setTextAlignment(column, Qt::AlignCenter);
             }
 

@@ -460,7 +460,7 @@ copy of gruepr!</string>
                </font>
               </property>
               <property name="toolTip">
-               <string>Add this record to the current student set (the survey file itself will NOT be changed).</string>
+               <string>&lt;html&gt;Add this record to the current student set.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Add Student</string>
@@ -814,8 +814,10 @@ copy of gruepr!</string>
            <string>Stop the optimization process and show the best set of teams found so far.</string>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 #f283a5, stop:1 #d26385);
-border: 1px solid #d26385;</string>
+           <string notr="true">QPushButton {
+background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 #f283a5, stop:1 #d26385);
+border: 1px solid #d26385;
+}</string>
           </property>
           <property name="text">
            <string>Stop Optimization</string>
