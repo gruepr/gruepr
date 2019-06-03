@@ -7,7 +7,7 @@
 #include <QTextBrowser>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent>
 #include <QtNetwork>
 #include <QDesktopServices>
 #include <QCryptographicHash>
@@ -25,31 +25,6 @@ gruepr::gruepr(QWidget *parent) :
     setWindowIcon(QIcon(":/icons/gruepr.png"));
     ui->cancelOptimizationButton->hide();
 
-    //Reduce size of the options icons if the screen is small
-    QScreen *screen = QGuiApplication::primaryScreen();
-    int windowMaxHeight = screen->availableSize().height();
-    if(windowMaxHeight < 900)
-    {
-        ui->label_15->setMaximumSize(35,35);
-        ui->label_16->setMaximumSize(35,35);
-        ui->label_17->setMaximumSize(35,35);
-        ui->label_18->setMaximumSize(35,35);
-        ui->label_19->setMaximumSize(35,35);
-        ui->label_20->setMaximumSize(35,35);
-        ui->label_21->setMaximumSize(35,35);
-        ui->label_22->setMaximumSize(35,35);
-        ui->label_24->setMaximumSize(35,35);
-    }
-    adjustSize();
-
-    //Add the teamDataTree widget
-    teamDataTree = new TeamTreeWidget(this);
-    teamDataTree->setGeometry(0,0,624,626);
-    ui->teamDataLayout->insertWidget(0, teamDataTree);
-    connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
-    connect(teamDataTree, &TeamTreeWidget::swapParents, this, &gruepr::swapTeams);
-    connect(teamDataTree, &TeamTreeWidget::teamInfoChanged, this, &gruepr::refreshTeamInfo);
-
     //Remove register button if registered
     QSettings savedSettings;
     registeredUser = savedSettings.value("registeredUser", "").toString();
@@ -65,6 +40,32 @@ gruepr::gruepr(QWidget *parent) :
         ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
         ui->statusBar->setStyleSheet("");
     }
+
+    //Reduce size of the options icons if the screen is small
+    if(QGuiApplication::primaryScreen()->availableSize().height() < 900)
+    {
+        ui->label_15->setMaximumSize(35,35);
+        ui->label_16->setMaximumSize(35,35);
+        ui->label_17->setMaximumSize(35,35);
+        ui->label_18->setMaximumSize(35,35);
+        ui->label_19->setMaximumSize(35,35);
+        ui->label_20->setMaximumSize(35,35);
+        ui->label_21->setMaximumSize(35,35);
+        ui->label_22->setMaximumSize(35,35);
+        ui->label_24->setMaximumSize(35,35);
+    }
+    adjustSize();
+
+    //Restore window geometry
+    restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
+
+    //Add the teamDataTree widget
+    teamDataTree = new TeamTreeWidget(this);
+    teamDataTree->setGeometry(0,0,624,626);
+    ui->teamDataLayout->insertWidget(0, teamDataTree);
+    connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
+    connect(teamDataTree, &TeamTreeWidget::swapParents, this, &gruepr::swapTeams);
+    connect(teamDataTree, &TeamTreeWidget::teamInfoChanged, this, &gruepr::refreshTeamInfo);
 
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress);
@@ -231,7 +232,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
             }
             else
             {
-                ui->sectionSelectionBox->addItem("No section data.");
+                ui->sectionSelectionBox->addItem(tr("No section data."));
                 ui->addStudentSectionComboBox->setEnabled(false);
                 ui->addStudentSectionComboBox->hide();
             }
@@ -1480,7 +1481,7 @@ bool gruepr::loadSurveyData(QString fileName)
     QVector<int> scheduleFields;
     while(field.contains("check the times", Qt::CaseInsensitive) && fieldnum < TotNumQuestions)
     {
-        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts a column title in checkbox matrix questions)
+        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts column titles in  matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(field);
         if(dayName.hasMatch())
         {
@@ -1707,7 +1708,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 
     if(dataOptions.notesIncluded)
     {
-        student.notes = fields.at(fieldnum).toLocal8Bit().simplified();     //.simplified() removes leading & trailing whitespace, converts each internal whitespace to just a single space
+        student.notes = fields.at(fieldnum).toLocal8Bit().simplified();     //.simplified() removes leading & trailing whitespace, converts each internal whitespace to just a space
     }
 
     return student;
@@ -1843,13 +1844,25 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(dataOptions.numStudentsInSystem);
 
+    // compile all the student names so that we can mark duplicates
+    QStringList studentNames;
+    for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+    {
+        studentNames << (student[ID].firstname + student[ID].lastname);
+    }
+
     numStudents = 0;
     for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
     {
+        bool duplicate = (studentNames.count(student[ID].firstname + student[ID].lastname)) > 1;
+
         if((ui->sectionSelectionBox->currentIndex() == 0) || (student[ID].section == ui->sectionSelectionBox->currentText()))
         {
             QString studentToolTip;
-            studentToolTip = "<html>" + student[ID].firstname + " " + student[ID].lastname + "<br>" + student[ID].email;
+            studentToolTip = "<html>" + student[ID].firstname + " " + student[ID].lastname;
+            if(duplicate)
+                studentToolTip += "<i><b>" + tr(" (there are two survey submissions with this name)") + "</b></i>";
+            studentToolTip += "<br>" + student[ID].email;
             if(dataOptions.genderIncluded)
             {
                 studentToolTip += "<br>" + tr("Gender") + ":  ";
@@ -1902,14 +1915,20 @@ void gruepr::refreshStudentDisplay()
 
             TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString("d-MMM. h:mm AP"));
             timestamp->setToolTip(studentToolTip);
+            if(duplicate)
+                timestamp->setBackgroundColor(Qt::yellow);
             ui->studentTable->setItem(numStudents, 0, timestamp);
 
             QTableWidgetItem *firstName = new QTableWidgetItem(student[ID].firstname);
             firstName->setToolTip(studentToolTip);
+            if(duplicate)
+                firstName->setBackgroundColor(Qt::yellow);
             ui->studentTable->setItem(numStudents, 1, firstName);
 
             QTableWidgetItem *lastName = new QTableWidgetItem(student[ID].lastname);
             lastName->setToolTip(studentToolTip);
+            if(duplicate)
+                lastName->setBackgroundColor(Qt::yellow);
             ui->studentTable->setItem(numStudents, 2, lastName);
 
             int column = 3;
@@ -1917,6 +1936,8 @@ void gruepr::refreshStudentDisplay()
             {
                 SectionTableWidgetItem *section = new SectionTableWidgetItem(student[ID].section);
                 section->setToolTip(studentToolTip);
+                if(duplicate)
+                    section->setBackgroundColor(Qt::yellow);
                 ui->studentTable->setItem(numStudents, column, section);
                 column++;
             }
@@ -1926,6 +1947,8 @@ void gruepr::refreshStudentDisplay()
             remover->setIconSize(QSize(20,20));
             remover->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
             remover->setProperty("StudentID", student[ID].ID);
+            if(duplicate)
+                remover->setStyleSheet("QPushButton { background-color: yellow; border: none; }");
             connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
             ui->studentTable->setCellWidget(numStudents, column, remover);
 
@@ -1963,12 +1986,15 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         genePool[genome] = new int[numStudents];
 
     // allocate memory for temporary genepool to hold each next generation before copying back into genepool
-    int** tempGen = new int*[populationSize];
+    int** tempPool = new int*[populationSize];
     for(int genome = 0; genome < populationSize; ++genome)
-        tempGen[genome] = new int[numStudents];
+        tempPool[genome] = new int[numStudents];
 
     // allocate memory to hold all the tournament-selected genomes
     tourneyPlayer *players = new tourneyPlayer[tournamentSize];
+
+    // create vector of scores
+    QVector<float> scores(populationSize);
 
     //start with an array of all the student IDs
     int randPerm[maxStudents];
@@ -1977,7 +2003,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         randPerm[i] = studentIDs[i];
     }
 
-    //then make "populationSize" number of random permutations for initial population, store in genePool
+    // then make "populationSize" number of random permutations for initial population, store in genePool
     for(int genome = 0; genome < populationSize; genome++)
     {
         std::random_shuffle(randPerm, randPerm+numStudents);
@@ -1987,16 +2013,25 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         }
     }
 
+    // create a function and a vector of pointers to each genome in the genepool, so that score calculations in each generation can be paralellized
+    //WHY DOESN'T THIS WORK???
+    //QVector<const int*> genomes(populationSize);
+    //for(int genome = 0; genome < populationSize; genome++)
+    //{
+    //    genomes[genome] = genePool[genome];
+    //}
+    //std::function<float(const int*)> getGenomeScores = [this](const int* Genome) {static float unusedTeamScores[maxTeams]; return getTeamScores(Genome, unusedTeamScores);};
+    //scores = QtConcurrent::blockingMapped<QVector<float> >(genomes, getGenomeScores);  // multi-threaded sending of each genome to be scored
+
     //calculate this first generation's scores
-    float scores[populationSize], teamScores[maxTeams];
+    std::function<float(const int*)> getGenomeScores = [this](const int* Genome) {static float unusedTeamScores[maxTeams]; return getTeamScores(Genome, unusedTeamScores);};
     for(int genome = 0; genome < populationSize; genome++)
     {
-        scores[genome] = getTeamScores(&genePool[genome][0], teamScores);
+        scores[genome] = getGenomeScores(genePool[genome]);
     }
 
     int temp[maxStudents];
     int *mom=nullptr, *dad=nullptr;                 // pointer to genome of mom and dad
-    float minScore;
     float tempScores[numElites];                    // temp storage for the score of each elite
     int indexOfBestTeamset[numElites];              // holds indexes of elites
     float bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
@@ -2005,78 +2040,77 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     float scoreStability;
     bool localOptimizationStopped = false;
 
-    //now optimize
+    // now optimize
     do								// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
     {
-
         do							// keep optimizing until reach stability or maxGenerations
         {
-            minScore = *std::min_element(scores, scores+populationSize);
-
-            //find the elites (best scores) in genePool and copy each to tempGen
+            // find the elites (n best scores) in genePool and copy each to tempPool
+            float minScore = *std::min_element(scores.constBegin(), scores.constEnd());
             for(int genome = 0; genome < numElites; genome++)
             {
-                indexOfBestTeamset[genome] = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));
+                indexOfBestTeamset[genome] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
                 for(int ID = 0; ID < numStudents; ID++)
                 {
-                    tempGen[genome][ID] = genePool[indexOfBestTeamset[genome]][ID];
+                    tempPool[genome][ID] = genePool[indexOfBestTeamset[genome]][ID];
                 }
                 // save this scores value then set it to the minimum one, so we can find the next biggest one during the next time through the loop
                 tempScores[genome] = scores[indexOfBestTeamset[genome]];
                 scores[indexOfBestTeamset[genome]] = minScore;
             }
-            //reset the altered scores of the elites
+            // reset the altered scores of the elites
             for(int genome = 0; genome < numElites; genome++)
             {
                 scores[indexOfBestTeamset[genome]] = tempScores[genome];
             }
 
-            //create populationSize-numElites children and place in tempGen
+            // create populationSize-numElites children and place in tempPool
             for(int genome = numElites; genome < populationSize; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(players, genePool, scores, mom, dad);
+                GA::tournamentSelectParents(players, genePool, scores.constData(), mom, dad);
 
-                //mate them and put child in tempGen
+                //mate them and put child in tempPool
                 GA::mate(mom, dad, teamSize, numTeams, temp, numStudents);
                 for(int ID = 0; ID < numStudents; ID++)
                 {
-                    tempGen[genome][ID] = temp[ID];
+                    tempPool[genome][ID] = temp[ID];
                 }
             }
 
-            //mutate genomes in tempGen with some probability--if a mutation occurs, mutate same genome again with same probability
+            // mutate genomes in tempPool with some probability--if a mutation occurs, mutate same genome again with same probability
             for(int genome = 0; genome < populationSize; genome++)
             {
                 while(rand() < mutationLikelihood)
                 {
-                    GA::mutate(&tempGen[genome][0], numStudents);
+                    GA::mutate(&tempPool[genome][0], numStudents);
                 }
             }
 
-            //copy all of tempGen into genePool
+            // copy all of tempPool into genePool
             for(int genome = 0; genome < populationSize; genome++)
             {
                 for(int ID = 0; ID < numStudents; ID++)
                 {
-                    genePool[genome][ID] = tempGen[genome][ID];
+                    genePool[genome][ID] = tempPool[genome][ID];
                 }
             }
 
             generation++;
 
-            //calculate new generation's scores
+            // calculate new generation's scores
+            //scores = QtConcurrent::blockingMapped<QVector<float> >(genomes, getGenomeScores);  // multi-threaded sending of each genome to be scored//WHY DOESN'T THIS WORK???
             for(int genome = 0; genome < populationSize; genome++)
             {
-                scores[genome] = getTeamScores(&genePool[genome][0], teamScores);
+                scores[genome] = getGenomeScores(genePool[genome]);
             }
 
-            //determine best score, save in historical record, and calculate score stability
-            indexOfBestTeamset[0] = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));    //index of largest element in scores[]
-            bestScores[generation%generationsOfStability] = scores[indexOfBestTeamset[0]];	//the best scores from the most recent generationsOfStability, wrapping around the storage location
-            scoreStability = scores[indexOfBestTeamset[0]] / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
+            // determine best score, save in historical record, and calculate score stability
+            float bestScore = *std::max_element(scores.constBegin(), scores.constEnd());    // largest element in scores
+            bestScores[generation%generationsOfStability] = bestScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
+            scoreStability = bestScore / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
 
-            emit generationComplete(scores[indexOfBestTeamset[0]], generation+extraGenerations, scoreStability);
+            emit generationComplete(bestScore, generation+extraGenerations, scoreStability);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;
@@ -2117,13 +2151,13 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         bestTeamSet << genePool[indexOfBestTeamset[0]][ID];
     }
 
-    // free memory for genepool, tempGen, and players
+    // free memory for genepool, tempPool, and players
     for(int genome = 0; genome < populationSize; ++genome)
         delete [] genePool[genome];
     delete [] genePool;
     for(int genome = 0; genome < populationSize; ++genome)
-        delete [] tempGen[genome];
-    delete [] tempGen;
+        delete [] tempPool[genome];
+    delete [] tempPool;
     delete [] players;
 
     return bestTeamSet;
@@ -2238,14 +2272,14 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                     }
                 }
                 // convert counts to a schedule score
-                if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)			// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
+                if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)		// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
                 {
                     schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
                     schedScore[team] *= realScheduleWeight;
                 }
-                else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)		// if team has between minimum and desired amount of schedule overlap
+                else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)	// if team has between minimum and desired amount of schedule overlap
                 {
-                    schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;		// normal schedule score is number of overlaps / desired number of overlaps
+                    schedScore[team] /= teamingOptions.desiredTimeBlocksOverlap;	// normal schedule score is number of overlaps / desired number of overlaps
                     schedScore[team] *= realScheduleWeight;
                 }
                 else													// if team has fewer than minTimeBlocksOverlap, apply penalty
@@ -2883,6 +2917,7 @@ void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter
 void gruepr::closeEvent(QCloseEvent *event)
 {
     QSettings savedSettings;
+    savedSettings.setValue("windowGeometry", saveGeometry());
     bool dontActuallyExit = false;
 
     if(savedSettings.value("askToSaveDefaultsOnExit",true).toBool() && ui->saveSettingsButton->isEnabled())

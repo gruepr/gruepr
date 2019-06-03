@@ -38,7 +38,7 @@
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
 // - maintain population diversity through prevention of inbreeding (store parent and grandparent of each genome and disallow tournament selection from genomes with a match)
 // - use multiple genepools and allow limited cross-breeding
-// - use parallel processing for faster operations--especially the breeding to next generation which can be completely done in parallel
+// - use parallel processing for faster operations
 // - to get around the redundancy-of-genome issue, store each genome as an unordered_set of unordered_sets. Each team is a set of IDs; each section is a set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
