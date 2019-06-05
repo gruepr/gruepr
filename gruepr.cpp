@@ -1980,15 +1980,14 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     // For example, if team 1 has 4 students, and genePool[0][] = [4, 9, 12, 1, 3, 6...], then the first genome places
     // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
-    // allocate memory for genepool
+    // allocate memory for genepool and tempgenepool to hold the next generation as it is being created
     int** genePool = new int*[populationSize];
-    for(int genome = 0; genome < populationSize; ++genome)
-        genePool[genome] = new int[numStudents];
-
-    // allocate memory for temporary genepool to hold each next generation before copying back into genepool
     int** tempPool = new int*[populationSize];
     for(int genome = 0; genome < populationSize; ++genome)
+    {
+        genePool[genome] = new int[numStudents];
         tempPool[genome] = new int[numStudents];
+    }
 
     // create an initial population
     // start with an array of all the student IDs in order
@@ -2009,22 +2008,30 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     delete[] randPerm;
 
     // calculate this first generation's scores
-    //WHY DOESN'T THIS WORK???
-    // create a function and a vector of pointers to each genome in the genepool
+    QVector<float> scores(populationSize);
+    float *unusedTeamScores = new float[numTeams];
+    for(int genome = 0; genome < populationSize; genome++)
+    {
+        scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores);
+    }
+    ///////
+    // below is code to calculate the scores with multiple threads
+    // calculating the fitness score for each new genome is prob. the most expensive part of the optimization process
+    // for parallelized calculation of scores, need to also change getTeamScores() so that it allocates memory at start and deallocates at end
+    // for: attributeScore, schedScore, genderAdj, URMAdj, prevTeammateAdj, reqTeammateAdj, removing them as static members of the class
+    // this memory management is expensive and seems to negate the speed improvement gained by parallelizing the score calculation
+    // In the future, to do it, uncomment the block below to replace the 5 lines above. Also, look for a similiar note later about 75 lines below this one
+    ///////
+    //// create a function and a vector of pointers to each genome in the genepool
     //QVector<const int*> genomes(populationSize);
     //for(int genome = 0; genome < populationSize; genome++)
     //{
     //    genomes[genome] = &genePool[genome][0];
     //}
-    //std::function<float(const int*)> getGenomeScores = [this](const int* Genome) {float unusedTeamScores[maxTeams]; return getTeamScores(Genome, unusedTeamScores);};
-    // multi-threaded scoring of each genome
-    //QVector<float> scores = QtConcurrent::blockingMapped<QVector<float> >(genomes, getGenomeScores);
-    float scores[populationSize];
-    float unusedTeamScores[maxTeams];
-    for(int genome = 0; genome < populationSize; genome++)
-    {
-        scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores);
-    }
+    //std::function<float(const int*)> getGenomeScores = [this, unusedTeamScores](const int* Genome) {return getTeamScores(Genome, unusedTeamScores);};
+    //// multi-threaded scoring of each genome
+    //QVector<float> scores = QtConcurrent::blockingMapped(genomes, getGenomeScores);
+    ///////
 
     // allocate memory to hold all the tournament-selected genomes
     tourneyPlayer *players = new tourneyPlayer[tournamentSize];
@@ -2045,10 +2052,10 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         do							// keep optimizing until reach stability or maxGenerations
         {
             // find the elites (n best scores) in genePool and copy each to tempPool
-            float minScore = *std::min_element(scores, scores+populationSize);
+            float minScore = *std::min_element(scores.constBegin(), scores.constEnd());
             for(int genome = 0; genome < numElites; genome++)
             {
-                indexOfBestTeamset[genome] = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));
+                indexOfBestTeamset[genome] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
                 for(int ID = 0; ID < numStudents; ID++)
                 {
                     tempPool[genome][ID] = genePool[indexOfBestTeamset[genome]][ID];
@@ -2067,7 +2074,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             for(int genome = numElites; genome < populationSize; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(players, genePool, scores, mom, dad);
+                GA::tournamentSelectParents(players, genePool, scores.data(), mom, dad);
 
                 //mate them and put child in tempPool
                 GA::mate(mom, dad, teamSize, numTeams, child, numStudents);
@@ -2077,8 +2084,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
                 }
             }
 
-            // mutate genomes in tempPool with some probability--if a mutation occurs, mutate same genome again with same probability
-            for(int genome = 0; genome < populationSize; genome++)
+            // mutate non-elite genomes in tempPool with some probability--if a mutation occurs, mutate same genome again with same probability
+            for(int genome = numElites; genome < populationSize; genome++)
             {
                 while(rand() < mutationLikelihood)
                 {
@@ -2098,14 +2105,14 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             generation++;
 
             // calculate new generation's scores
-            //scores = QtConcurrent::blockingMapped<QVector<float> >(genomes, getGenomeScores);
+            //scores = QtConcurrent::blockingMapped(genomes, getGenomeScores); //multithreaded approach--see note above
             for(int genome = 0; genome < populationSize; genome++)
             {
                 scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores);
             }
 
             // determine best score, save in historical record, and calculate score stability
-            indexOfBestTeamset[0] = static_cast<int>(std::distance(scores, std::max_element(scores, scores+populationSize)));
+            indexOfBestTeamset[0] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
             float bestScore = scores[indexOfBestTeamset[0]];
             bestScores[generation%generationsOfStability] = bestScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
             scoreStability = bestScore / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
@@ -2151,15 +2158,16 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         bestTeamSet << genePool[indexOfBestTeamset[0]][ID];
     }
 
-    // free memory for genepool, tempPool, and players
+    // deallocate memory
     for(int genome = 0; genome < populationSize; ++genome)
     {
-        delete[] genePool[genome];
         delete[] tempPool[genome];
+        delete[] genePool[genome];
     }
-    delete[] genePool;
-    delete[] tempPool;
     delete[] players;
+    delete[] unusedTeamScores;
+    delete[] tempPool;
+    delete[] genePool;
 
     return bestTeamSet;
 }
