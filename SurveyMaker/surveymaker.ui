@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>697</height>
+    <width>1228</width>
+    <height>723</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -127,8 +127,268 @@ padding: 12px;</string>
      </widget>
     </item>
     <item row="18" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,1">
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+     <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0" columnstretch="0,0,0,1">
+      <item row="0" column="3">
+       <widget class="QPlainTextEdit" name="attributeTextEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::NoContextMenu</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Enter the text of attribute question 1.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QComboBox" name="attributeComboBox">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+        </property>
+        <item>
+         <property name="text">
+          <string>Choose response options...</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Yes / No</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Yes / Maybe / No</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Definitely / Probably / Maybe / Probably not / Definitely not</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Strongly preferred / Preferred / Opposed / Strongly opposed</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>True / False</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Like me / Not like me</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Agree / Disagree</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Strongly agree / Agree / Undecided / Disagree / Strongly disagree</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4.0-3.75 / 3.74-3.5 / 3.49-3.25 / 3.24-3.0 / 2.99-2.75 / 2.74-2.5 / 2.49-2.0 / Below 2.0 / N.A.</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>100-90 / 89-80 / 79-70 / 69-60 / 59-50 / Below 50 / Not sure, or prefer not to say</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A / B / C / D / F / Not sure, or prefer not to say</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Very high / Above average / Average / Below average / Very low</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Excellent / Very good / Good / Fair / Poor</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A lot of experience / Some experience / Little experience / No experience</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Extremely / Very / Moderately / Slightly / Not at all</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A lot / Some / Very Little / None</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Much more / More / About the same / Less / Much less</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Most of the time / Some of the time / Seldom / Never</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Available / Available, but prefer not to / Not available</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Very frequently / Frequently / Occasionally / Rarely / Never</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Definitely will / Probably will / Probably won't / Definitely won't</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Very important / Important / Somewhat important / Not important</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Leader / Mix of leader and follower / Follower</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Highly confident / Moderately confident / Somewhat confident / Not confident</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 5</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 6</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 7</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 8</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rating from 1 to 9</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>3 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>5 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>6 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>7 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>8 custom options, to get entered later</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>9 custom options, to get entered later</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="0" column="2" rowspan="2" alignment="Qt::AlignHCenter">
+       <widget class="QScrollBar" name="attributeScrollBar">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>20</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximum">
+         <number>2</number>
+        </property>
+        <property name="pageStep">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" rowspan="2">
+       <widget class="QLabel" name="attributeLabel">
+        <property name="text">
+         <string>Attributes</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
        <widget class="QSpinBox" name="attributeCountSpinBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -144,48 +404,6 @@ padding: 12px;</string>
         </property>
         <property name="value">
          <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-       <widget class="QLabel" name="attributeLabel">
-        <property name="text">
-         <string>Attributes</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter">
-       <widget class="QScrollBar" name="attributeScrollBar">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>1</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximum">
-         <number>2</number>
-        </property>
-        <property name="pageStep">
-         <number>1</number>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignVCenter">
-       <widget class="QPlainTextEdit" name="attributeTextEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>1</horstretch>
-          <verstretch>1</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::NoContextMenu</enum>
-        </property>
-        <property name="placeholderText">
-         <string>Enter the text of attribute question 1.</string>
         </property>
        </widget>
       </item>
@@ -322,6 +540,12 @@ padding: 12px;</string>
         <horstretch>3</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>450</width>
+        <height>0</height>
+       </size>
       </property>
       <property name="font">
        <font>

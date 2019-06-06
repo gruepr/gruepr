@@ -29,10 +29,10 @@ void SurveyMaker::refreshPreview()
     preview += "<h3>First, some basic information</h3>"
                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your first name (or the name you prefer to be called)?<br></p>"
                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your last name?<br></p>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your school email address?<br></p>";
+               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your email address?<br></p>";
     preview += gender?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non-binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
+                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non — binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
                 : "";
     preview += URM?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -41,13 +41,56 @@ void SurveyMaker::refreshPreview()
     preview += "<hr>";
     if(numAttributes > 0)
     {
+        QStringList responseOptions = {
+            "response options will be added later, after creating the form",
+            "Yes / No",
+            "Yes / Maybe / No",
+            "Definitely / Probably / Maybe / Probably not / Definitely not",
+            "Strongly preferred / Preferred / Opposed / Strongly opposed",
+            "True / False",
+            "Like me / Not like me",
+            "Agree / Disagree",
+            "Strongly agree / Agree / Undecided / Disagree / Strongly disagree",
+            "4.0 — 3.75 / 3.74 — 3.5 / 3.49 — 3.25 / 3.24 — 3.0 / 2.99 — 2.75 / 2.74 — 2.5 / 2.49 — 2.0 / Below 2.0 / Not sure, or prefer not to say",
+            "100 — 90 / 89 — 80 / 79 — 70 / 69 — 60 / 59 — 50 / Below 50 / Not sure, or prefer not to say",
+            "A / B / C / D / F / Not sure, or prefer not to say",
+            "Very high / Above average / Average / Below average / Very low",
+            "Excellent / Very good / Good / Fair / Poor",
+            "Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative",
+            "A lot of experience / Some experience / Little experience / No experience",
+            "Extremely / Very / Moderately / Slightly / Not at all",
+            "A lot / Some / Very Little / None",
+            "Much more / More / About the same / Less / Much less",
+            "Most of the time / Some of the time / Seldom / Never",
+            "Available / Available, but prefer not to / Not available",
+            "Very frequently / Frequently / Occasionally / Rarely / Never",
+            "Definitely will / Probably will / Probably won't / Definitely won't",
+            "Very important / Important / Somewhat important / Not important",
+            "Leader / Mix of leader and follower / Follower",
+            "Highly confident / Moderately confident / Somewhat confident / Not confident",
+            "1 / 2 / 3",
+            "1 / 2 / 3 / 4",
+            "1 / 2 / 3 / 4 / 5",
+            "1 / 2 / 3 / 4 / 5 / 6",
+            "1 / 2 / 3 / 4 / 5 / 6 / 7",
+            "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8",
+            "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9",
+            "2 custom options, to be added after creating the form",
+            "3 custom options, to be added after creating the form",
+            "4 custom options, to be added after creating the form",
+            "5 custom options, to be added after creating the form",
+            "6 custom options, to be added after creating the form",
+            "7 custom options, to be added after creating the form",
+            "8 custom options, to be added after creating the form",
+            "9 custom options, to be added after creating the form",
+        };
         preview += "<h3>This set of questions is about your past experiences/education and teamwork preferences.</h3>";
         for(int attrib = 0; attrib < numAttributes; attrib++)
         {
                 preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;" +
                            (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib])
                            + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                           "<small>response options will be added later, after creating the form</small>";
+                           "<small>options: <b>{ </b><i>" + responseOptions.at(attributeResponses[attrib]).split("/").join("</i><b>|</b><i>") + "</i><b> }</b></small>";
         }
         preview += "<hr>";
     }
@@ -91,24 +134,27 @@ void SurveyMaker::refreshPreview()
         }
     }
 
-    ui->previewText->setHtml(preview);
-    ui->previewText->verticalScrollBar()->setValue(currPos);
-}
-
-void SurveyMaker::on_pushButton_clicked()
-{
-    QString URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
+    URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
     URL += "title=" + QUrl::toPercentEncoding(ui->surveyTitleLineEdit->text()) + "&";
     URL += "gend=" + QString(gender? "true" : "false") + "&";
     URL += "urm=" + QString(URM? "true" : "false") + "&";
     URL += "numattr=" + QString::number(numAttributes) + "&";
     URL += "attrtext=" + allAttributeTexts + "&";
+    URL += "attrresps=" + allAttributeResponses + "&";
     URL += "sched=" + QString(schedule? "true" : "false") + "&";
     URL += "start=" + QString::number(startTime) + "&end=" + QString::number(endTime) + "&days=" + allDayNames + "&";
     URL += "sect=" + QString(section? "true" : "false") + "&";
     URL += "sects=" + allSectionNames + "&";
     URL += "addl=" + QString(additionalQuestions? "true" : "false");
 
+    preview += "<hr><br><br><small>URL preview: " + URL + "</small>";
+
+    ui->previewText->setHtml(preview);
+    ui->previewText->verticalScrollBar()->setValue(currPos);
+}
+
+void SurveyMaker::on_pushButton_clicked()
+{
     //make sure we can connect to google
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     QEventLoop loop;
@@ -183,6 +229,7 @@ void SurveyMaker::on_attributeScrollBar_valueChanged(int value)
 {
     ui->attributeTextEdit->setPlainText(attributeTexts[value]);
     ui->attributeTextEdit->setPlaceholderText(tr("Enter the text of attribute question ") + QString::number(value+1) + ".");
+    ui->attributeComboBox->setCurrentIndex(attributeResponses[value]);
 }
 
 void SurveyMaker::on_attributeTextEdit_textChanged()
@@ -198,7 +245,7 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     }
 
     attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
-    allAttributeTexts = "";
+    allAttributeTexts.clear();
     for(int attrib = 0; attrib < numAttributes; attrib++)
     {
         if(attrib != 0)
@@ -214,6 +261,21 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
         {
             allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
         }
+    }
+    refreshPreview();
+}
+
+void SurveyMaker::on_attributeComboBox_currentIndexChanged(int index)
+{
+    attributeResponses[ui->attributeScrollBar->value()] = index;
+    allAttributeResponses.clear();
+    for(int attrib = 0; attrib < numAttributes; attrib++)
+    {
+        if(attrib != 0)
+        {
+            allAttributeResponses += ",";
+        }
+        allAttributeResponses += QString::number(attributeResponses[attrib]);
     }
     refreshPreview();
 }

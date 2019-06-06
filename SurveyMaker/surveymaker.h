@@ -26,6 +26,7 @@ private slots:
     void on_attributeCountSpinBox_valueChanged(int arg1);
     void on_attributeScrollBar_valueChanged(int value);
     void on_attributeTextEdit_textChanged();
+    void on_attributeComboBox_currentIndexChanged(int index);
     void on_scheduleCheckBox_clicked(bool checked);
     void on_daysComboBox_currentIndexChanged(int index);
     void on_day1CheckBox_toggled(bool checked);
@@ -69,6 +70,8 @@ private:
     int numAttributes=3;
     QString attributeTexts[9]={"","","","","","","","",""};
     QString allAttributeTexts="Question%201,Question%202,Question%203";
+    int attributeResponses[9]={0};
+    QString allAttributeResponses="0,0,0";
     bool schedule=true;
     QString dayNames[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
     QString allDayNames="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
@@ -78,6 +81,7 @@ private:
     QStringList sectionNames={""};
     QString allSectionNames="";
     bool additionalQuestions;
+    QString URL;
 };
 
 #endif // SURVEYMAKER_H
