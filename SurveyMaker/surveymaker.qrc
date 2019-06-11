@@ -5,5 +5,8 @@
         <file>OxygenMono-Regular.otf</file>
         <file>LICENSE.txt</file>
         <file>README.md</file>
+        <file>about.png</file>
+        <file>help.png</file>
+        <file>help.html</file>
     </qresource>
 </RCC>

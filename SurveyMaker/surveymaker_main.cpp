@@ -37,6 +37,10 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setOrganizationName("gruepr");
+    a.setApplicationName("surveyMaker");
+    a.setApplicationVersion(GRUEPR_VERSION_NUMBER);
+
     SurveyMaker w;
     w.show();
 

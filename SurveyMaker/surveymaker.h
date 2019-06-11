@@ -1,6 +1,9 @@
 #ifndef SURVEYMAKER_H
 #define SURVEYMAKER_H
 
+#define GRUEPR_VERSION_NUMBER "8.11"
+#define GRUEPR_COPYRIGHT_YEAR "2019"
+
 #include <QMainWindow>
 #include <QRegularExpressionValidator>
 
@@ -55,7 +58,9 @@ private slots:
     void on_sectionCheckBox_clicked(bool checked);
     void on_sectionNamesTextEdit_textChanged();
     void on_additionalQuestionsCheckBox_clicked(bool checked);
-    void on_pushButton_clicked();
+    void on_makeSurveyButton_clicked();
+    void on_helpButton_clicked();
+    void on_aboutButton_clicked();
 
 private:
     Ui::SurveyMaker *ui;

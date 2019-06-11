@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QtNetwork>
 #include <QDesktopServices>
+#include <QTextBrowser>
 
 SurveyMaker::SurveyMaker(QWidget *parent) :
     QMainWindow(parent),
@@ -11,6 +12,10 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->setupUi(this);
     setWindowIcon(QIcon(":/surveymaker.png"));
     QFontDatabase::addApplicationFont(":/OxygenMono-Regular.otf");
+
+    //Restore window geometry
+    QSettings savedSettings;
+    restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
 
     noCommas = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
@@ -32,7 +37,7 @@ void SurveyMaker::refreshPreview()
                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your email address?<br></p>";
     preview += gender?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non — binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
+                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non— binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
                 : "";
     preview += URM?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -51,8 +56,8 @@ void SurveyMaker::refreshPreview()
             "Like me / Not like me",
             "Agree / Disagree",
             "Strongly agree / Agree / Undecided / Disagree / Strongly disagree",
-            "4.0 — 3.75 / 3.74 — 3.5 / 3.49 — 3.25 / 3.24 — 3.0 / 2.99 — 2.75 / 2.74 — 2.5 / 2.49 — 2.0 / Below 2.0 / Not sure, or prefer not to say",
-            "100 — 90 / 89 — 80 / 79 — 70 / 69 — 60 / 59 — 50 / Below 50 / Not sure, or prefer not to say",
+            "4.0— 3.75 / 3.74— 3.5 / 3.49— 3.25 / 3.24— 3.0 / 2.99— 2.75 / 2.74— 2.5 / 2.49— 2.0 / Below 2.0 / Not sure, or prefer not to say",
+            "100— 90 / 89— 80 / 79— 70 / 69— 60 / 59— 50 / Below 50 / Not sure, or prefer not to say",
             "A / B / C / D / F / Not sure, or prefer not to say",
             "Very high / Above average / Average / Below average / Very low",
             "Excellent / Very good / Good / Fair / Poor",
@@ -132,6 +137,7 @@ void SurveyMaker::refreshPreview()
         {
             preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Any additional things we should know about you before we form the teams?</p>";
         }
+        preview += "<hr>";
     }
 
     URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
@@ -147,13 +153,13 @@ void SurveyMaker::refreshPreview()
     URL += "sects=" + allSectionNames + "&";
     URL += "addl=" + QString(additionalQuestions? "true" : "false");
 
-    preview += "<hr><br><br><small>URL preview: " + URL + "</small>";
+    //preview += "<br><br><small>URL preview: " + URL + "</small><hr>";
 
     ui->previewText->setHtml(preview);
     ui->previewText->verticalScrollBar()->setValue(currPos);
 }
 
-void SurveyMaker::on_pushButton_clicked()
+void SurveyMaker::on_makeSurveyButton_clicked()
 {
     //make sure we can connect to google
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
@@ -228,7 +234,7 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 void SurveyMaker::on_attributeScrollBar_valueChanged(int value)
 {
     ui->attributeTextEdit->setPlainText(attributeTexts[value]);
-    ui->attributeTextEdit->setPlaceholderText(tr("Enter the text of attribute question ") + QString::number(value+1) + ".");
+    ui->attributeTextEdit->setPlaceholderText(tr("Enter attribute question ") + QString::number(value+1) + ".");
     ui->attributeComboBox->setCurrentIndex(attributeResponses[value]);
 }
 
@@ -675,11 +681,61 @@ void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
     refreshPreview();
 }
 
+void SurveyMaker::on_helpButton_clicked()
+{
+    QFile helpFile(":/help.html");
+    if (!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+    QDialog helpWindow(this);
+    helpWindow.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    helpWindow.setSizeGripEnabled(true);
+    helpWindow.setWindowTitle("Help");
+    QGridLayout theGrid(&helpWindow);
+    QTextBrowser helpContents(&helpWindow);
+    helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
+                            "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+                            "<p>Joshua Hertz <a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
+                            "<p>Project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>"));
+    helpContents.append(helpFile.readAll());
+    helpFile.close();
+    helpContents.setOpenExternalLinks(true);
+    helpContents.setFrameShape(QFrame::NoFrame);
+    theGrid.addWidget(&helpContents, 0, 0, -1, -1);
+    helpWindow.resize(600,600);
+    helpWindow.exec();
+}
+
+void SurveyMaker::on_aboutButton_clicked()
+{
+    QMessageBox::about(this, tr("About gruepr: SurveyMaker"),
+                       tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+                          "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+                          "<br>Joshua Hertz<br><a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
+                          "<p>gruepr is an open source project. The source code is freely available at"
+                          "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
+                          "<p>gruepr incorporates:"
+                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the GNU Lesser General Public License version 3</li>"
+                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
+                              "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
+                                                                    "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
+                                                                    " released under SIL OPEN FONT LICENSE V1.1.</span></li></ul>"
+                          "<h3>Disclaimer</h3>"
+                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
+                          "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
+                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>"
+                          "GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
+}
+
 //////////////////
-// Before closing the application window, if the user never created a survey, ask them if they really want to leave
+// Before closing the application window, save the window geometry for next time and then, if the user never created a survey, ask them if they really want to leave
 //////////////////
 void SurveyMaker::closeEvent(QCloseEvent *event)
 {
+    QSettings savedSettings;
+    savedSettings.setValue("windowGeometry", saveGeometry());
+
     bool actuallyExit = surveyCreated;
     if(!surveyCreated)
     {
