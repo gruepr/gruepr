@@ -228,6 +228,23 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
     ui->attributeScrollBar->setMaximum(std::max(arg1-1,0));
     ui->attributeScrollBar->setEnabled(numAttributes > 0);
     ui->attributeTextEdit->setEnabled(numAttributes > 0);
+    allAttributeTexts.clear();
+    for(int attrib = 0; attrib < numAttributes; attrib++)
+    {
+        if(attrib != 0)
+        {
+            allAttributeTexts += ",";
+        }
+
+        if(!(attributeTexts[attrib].isEmpty()))
+        {
+            allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
+        }
+        else
+        {
+            allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
+        }
+    }
     refreshPreview();
 }
 
@@ -710,7 +727,7 @@ void SurveyMaker::on_helpButton_clicked()
 void SurveyMaker::on_aboutButton_clicked()
 {
     QMessageBox::about(this, tr("About gruepr: SurveyMaker"),
-                       tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+                       tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
                           "<br>Joshua Hertz<br><a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
                           "<p>gruepr is an open source project. The source code is freely available at"
