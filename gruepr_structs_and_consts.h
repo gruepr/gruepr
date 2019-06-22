@@ -1,7 +1,7 @@
 #ifndef GRUEPR_STRUCTS_AND_CONSTS
 #define GRUEPR_STRUCTS_AND_CONSTS
 
-#define GRUEPR_VERSION_NUMBER "8.11"
+#define GRUEPR_VERSION_NUMBER "8.12"
 #define GRUEPR_COPYRIGHT_YEAR "2019"
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
@@ -38,6 +38,7 @@ struct studentRecord
     bool unavailable[maxTimeBlocks] = {false};			// true if this is a busy block during week
     bool preventedWith[maxStudents] = {false};			// true if this student is prevented from working with the corresponding student
     bool requiredWith[maxStudents] = {false};			// true if this student is required to work with the corresponding student
+    bool requestedWith[maxStudents] = {false};			// true if this student desires to work with the corresponding student
     int attribute[maxAttributes] = {0};                 // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;
@@ -73,15 +74,16 @@ struct TeamingOptions
     bool isolatedMenPrevented;                          // if true, will prevent teams with an isolated man
     bool mixedGenderPreferred;                          // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented;                          // if true, will prevent teams with an isolated URM student
-    int desiredTimeBlocksOverlap=8;                     // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
-    int minTimeBlocksOverlap=4;                         // a team is penalized if there are fewer than this many time blocks that overlap
-    int meetingBlockSize=1;                             // count available meeting times in units of 1 hour or 2 hours long
+    int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
+    int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
+    int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
     bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
-    float attributeWeights[maxAttributes]={1,1,1,1,1,1,1,1,1};         // weights for each attribute as displayed to the user
+    float attributeWeights[maxAttributes] = {1,1,1,1,1,1,1,1,1};         // weights for each attribute as displayed to the user
     float scheduleWeight = 1;
-    int smallerTeamsSizes[maxStudents]={0};
+    int numberRequestedTeammatesGiven = 1;
+    int smallerTeamsSizes[maxStudents] = {0};
     int smallerTeamsNumTeams;
-    int largerTeamsSizes[maxStudents]={0};
+    int largerTeamsSizes[maxStudents] = {0};
     int largerTeamsNumTeams;
 };
 

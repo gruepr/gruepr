@@ -68,6 +68,10 @@ private slots:
 
     void on_preventedTeammatesButton_clicked();
 
+    void on_requestedTeammatesButton_clicked();
+
+    void on_requestedTeammateNumberBox_valueChanged(int arg1);
+
     void on_letsDoItButton_clicked();
 
     void on_cancelOptimizationButton_clicked();
@@ -141,12 +145,16 @@ private:
     // pre-allocated arrays for calculating scores (which happens a lot during optimization)
     float realAttributeWeights[maxAttributes];
     float realScheduleWeight;
+    bool haveAnyReqTeammates = false;
+    bool haveAnyPrevTeammates = false;
+    bool haveAnyRequestedTeammates = false;
     float attributeScore[maxAttributes][maxTeams];
     float schedScore[maxTeams];
     int genderAdj[maxTeams];
     int URMAdj[maxTeams];
-    int prevTeammateAdj[maxTeams];
     int reqTeammateAdj[maxTeams];
+    int prevTeammateAdj[maxTeams];
+    int requestedTeammateAdj[maxTeams];
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     int bestGenome[maxStudents];

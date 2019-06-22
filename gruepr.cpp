@@ -48,7 +48,6 @@ gruepr::gruepr(QWidget *parent) :
         ui->label_16->setMaximumSize(35,35);
         ui->label_17->setMaximumSize(35,35);
         ui->label_18->setMaximumSize(35,35);
-        ui->label_19->setMaximumSize(35,35);
         ui->label_20->setMaximumSize(35,35);
         ui->label_21->setMaximumSize(35,35);
         ui->label_22->setMaximumSize(35,35);
@@ -117,7 +116,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->requiredTeammatesButton->setEnabled(false);
         ui->label_18->setEnabled(false);
         ui->preventedTeammatesButton->setEnabled(false);
-        ui->label_19->setEnabled(false);
+        ui->requestedTeammatesButton->setEnabled(false);
+        ui->label_11->setEnabled(false);
+        ui->requestedTeammateNumberBox->setEnabled(false);
         ui->sectionSelectionBox->clear();
         ui->sectionSelectionBox->setEnabled(false);
         ui->label_2->setEnabled(false);
@@ -195,7 +196,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->requiredTeammatesButton->setEnabled(true);
             ui->label_18->setEnabled(true);
             ui->preventedTeammatesButton->setEnabled(true);
-            ui->label_19->setEnabled(true);
+            ui->requestedTeammatesButton->setEnabled(true);
+            ui->label_11->setEnabled(true);
+            ui->requestedTeammateNumberBox->setEnabled(true);
 
             if(dataOptions.sectionIncluded)
             {
@@ -350,6 +353,8 @@ void gruepr::on_loadSettingsButton_clicked()
     }
     teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
     ui->scheduleWeight->setValue(double(teamingOptions.scheduleWeight));
+    teamingOptions.numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
+    ui->requestedTeammateNumberBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
 
     QStringList keys = savedSettings.allKeys();
     keys.removeOne("registeredUser");
@@ -380,6 +385,7 @@ void gruepr::on_saveSettingsButton_clicked()
     }
     savedSettings.endArray();
     savedSettings.setValue("scheduleWeight", ui->scheduleWeight->value());
+    savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
 
     ui->clearSettingsButton->setEnabled(true);
 }
@@ -547,15 +553,6 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 void gruepr::on_attributeWeight_valueChanged(double arg1)
 {
     teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = float(arg1);
-
-    // Normalize all attribute and schedule weights
-    float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
-                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
-    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-    {
-        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
-    }
-    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 }
 
 
@@ -568,15 +565,6 @@ void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
 void gruepr::on_scheduleWeight_valueChanged(double arg1)
 {
     teamingOptions.scheduleWeight = float(arg1);
-
-    // Normalize all attribute and schedule weights
-    float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
-                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
-    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-    {
-        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
-    }
-    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
 }
 
 
@@ -620,6 +608,7 @@ void gruepr::on_requiredTeammatesButton_clicked()
         {
             this->student[ID] = window->student[ID];
         }
+        haveAnyReqTeammates = window->teammatesSpecified;
     }
 
     delete window;
@@ -640,9 +629,37 @@ void gruepr::on_preventedTeammatesButton_clicked()
         {
             this->student[ID] = window->student[ID];
         }
+        haveAnyPrevTeammates = window->teammatesSpecified;
     }
 
     delete window;
+}
+
+
+void gruepr::on_requestedTeammatesButton_clicked()
+{
+    //Open specialized dialog box to collect pairings that are required
+    gatherTeammatesDialog *window =
+            new gatherTeammatesDialog(gatherTeammatesDialog::requested, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
+
+    //If user clicks OK, replace student database with copy that has had pairings added
+    int reply = window->exec();
+    if(reply == QDialog::Accepted)
+    {
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+        {
+            this->student[ID] = window->student[ID];
+        }
+        haveAnyRequestedTeammates = window->teammatesSpecified;
+    }
+
+    delete window;
+}
+
+
+void gruepr::on_requestedTeammateNumberBox_valueChanged(int arg1)
+{
+    teamingOptions.numberRequestedTeammatesGiven = arg1;
 }
 
 
@@ -833,14 +850,15 @@ void gruepr::on_letsDoItButton_clicked()
     ui->cancelOptimizationButton->setEnabled(true);
     ui->cancelOptimizationButton->show();
 
-    // Normalize all attribute and schedule weights
-    float totalWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
-                           std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0));
+    // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
+    float normFactor = (dataOptions.numAttributes + ((dataOptions.dayNames.size() > 0)? 1 : 0)) /
+                       (((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
+                       std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0)));
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
-        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * (dataOptions.numAttributes + 1) / totalWeight;
+        realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * normFactor;
     }
-    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * (dataOptions.numAttributes + 1) / totalWeight;
+    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * normFactor;
 
     // Set up to show progess on windows taskbar
     taskbarButton = new QWinTaskbarButton(this);
@@ -2016,7 +2034,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     }
     ///////
     // below is code to calculate the scores with multiple threads
-    // calculating the fitness score for each new genome is prob. the most expensive part of the optimization process
+    // calculating the fitness score for each genome can be the most expensive part of the optimization process
     // for parallelized calculation of scores, need to also change getTeamScores() so that it allocates memory at start and deallocates at end
     // for: attributeScore, schedScore, genderAdj, URMAdj, prevTeammateAdj, reqTeammateAdj, removing them as static members of the class
     // this memory management is expensive and seems to negate the speed improvement gained by parallelizing the score calculation
@@ -2188,10 +2206,11 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         schedScore[team] = 0;
         genderAdj[team] = 0;
         URMAdj[team] = 0;
-        prevTeammateAdj[team] = 0;
         reqTeammateAdj[team] = 0;
+        prevTeammateAdj[team] = 0;
+        requestedTeammateAdj[team] = 0;
     }
-    int ID;
+    int ID, firstStudentInTeam=0;
 
     // Calculate each component score:
 
@@ -2299,8 +2318,8 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         }
     }
 
-    // Determine gender adjustments for isolated woman teams
-    if(dataOptions.genderIncluded)
+    // Determine gender adjustments
+    if(dataOptions.genderIncluded && (teamingOptions.isolatedWomenPrevented || teamingOptions.isolatedMenPrevented || teamingOptions.mixedGenderPreferred))
     {
         ID = 0;
         for(int team = 0; team < numTeams; team++)
@@ -2334,8 +2353,8 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         }
     }
 
-    // Determine adjustments for isolated URM teams
-    if(teamingOptions.isolatedURMPrevented && dataOptions.URMIncluded)
+    // Determine URM adjustments
+    if(dataOptions.URMIncluded && teamingOptions.isolatedURMPrevented)
     {
         ID = 0;
         for(int team = 0; team < numTeams; team++)
@@ -2356,60 +2375,108 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         }
     }
 
-    // Determine adjustments for prevented teammates on same team
-    int firstStudentInTeam=0;
-    // Loop through each team
-    for(int team = 0; team < numTeams; team++)
-    {
-        //loop studentA from first student in team to 2nd-to-last student in team
-        for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSize[team]-1)); studentA++)
-        {
-            //loop studentB from studentA+1 to last student in team
-            for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSize[team]); studentB++)
-            {
-                //if pairing prevented, adjustment = -(numAttributes + 1)
-                if(student[teammates[studentA]].preventedWith[teammates[studentB]])
-                {
-                    prevTeammateAdj[team] = -(dataOptions.numAttributes + 1);
-                }
-            }
-        }
-        firstStudentInTeam += teamSize[team];
-    }
-
     // Determine adjustments for required teammates NOT on same team
-    firstStudentInTeam=0;
-    // Loop through each team
-    for(int team = 0; team < numTeams; team++)
+    if(haveAnyReqTeammates)
     {
-        //loop through all students in team
-        for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize[team]); studentA++)
+        firstStudentInTeam=0;
+        // Loop through each team
+        for(int team = 0; team < numTeams; team++)
         {
-            //loop through ALL other students
-            for(int studentB = 0; studentB < numStudents; studentB++)
+            //loop through all students in team
+            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize[team]); studentA++)
             {
-                //if this pairing is required and studentB is in a/the section being teamed
-                if(student[teammates[studentA]].requiredWith[teammates[studentB]] && (ui->sectionSelectionBox->currentIndex() == 0 || student[teammates[studentB]].section == sectionName))
+                //loop through ALL other students
+                for(int studentB = 0; studentB < numStudents; studentB++)
                 {
-                    bool studentBOnTeam = false;
-                    //loop through all of studentA's current teammates
-                    for(int currMates = firstStudentInTeam; currMates < (firstStudentInTeam + teamSize[team]); currMates++)
+                    //if this pairing is required and studentB is in a/the section being teamed
+                    if(student[teammates[studentA]].requiredWith[teammates[studentB]] && (ui->sectionSelectionBox->currentIndex() == 0 || student[teammates[studentB]].section == sectionName))
                     {
-                        //if this pairing is found, then the required teammate is on the team!
-                        if(teammates[currMates] == teammates[studentB])
+                        bool studentBOnTeam = false;
+                        //loop through all of studentA's current teammates
+                        for(int currMates = firstStudentInTeam; currMates < (firstStudentInTeam + teamSize[team]); currMates++)
                         {
-                            studentBOnTeam = true;
+                            //if this pairing is found, then the required teammate is on the team!
+                            if(teammates[currMates] == teammates[studentB])
+                            {
+                                studentBOnTeam = true;
+                            }
+                        }
+                        //if the pairing was not found, then adjustment = -(numAttributes + 1)
+                        if(!studentBOnTeam)
+                        {
+                            reqTeammateAdj[team] = -(dataOptions.numAttributes + 1);
                         }
                     }
-                    //if the pairing was not found, then adjustment = -(numAttributes + 1)
-                    if(!studentBOnTeam)
+                }
+            }
+            firstStudentInTeam += teamSize[team];
+        }
+    }
+
+    // Determine adjustments for prevented teammates on same team
+    if(haveAnyPrevTeammates)
+    {
+        firstStudentInTeam=0;
+        // Loop through each team
+        for(int team = 0; team < numTeams; team++)
+        {
+            //loop studentA from first student in team to 2nd-to-last student in team
+            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSize[team]-1)); studentA++)
+            {
+                //loop studentB from studentA+1 to last student in team
+                for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSize[team]); studentB++)
+                {
+                    //if pairing prevented, adjustment = -(numAttributes + 1)
+                    if(student[teammates[studentA]].preventedWith[teammates[studentB]])
                     {
-                        reqTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                        prevTeammateAdj[team] = -(dataOptions.numAttributes + 1);
                     }
                 }
             }
+            firstStudentInTeam += teamSize[team];
         }
-        firstStudentInTeam += teamSize[team];
+    }
+
+    // Determine adjustments for not having at least N requested teammates
+    if(haveAnyRequestedTeammates)
+    {
+        firstStudentInTeam = 0;
+        int numRequestedTeammates = 0, numRequestedTeammatesFound = 0;
+        // Loop through each team
+        for(int team = 0; team < numTeams; team++)
+        {
+            //loop studentA from first student in team to last student in team
+            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize[team]); studentA++)
+            {
+                numRequestedTeammates = 0;
+                //first count how many teammates this student has requested
+                for(int ID = 0; ID < numStudents; ID++)
+                {
+                    if(student[teammates[studentA]].requestedWith[ID])
+                    {
+                        numRequestedTeammates++;
+                    }
+                }
+                if(numRequestedTeammates > 0)
+                {
+                    numRequestedTeammatesFound = 0;
+                    //next loop count how many requested teammates are found on their team
+                    for(int studentB = firstStudentInTeam; studentB < (firstStudentInTeam + teamSize[team]); studentB++)
+                    {
+                        if(student[teammates[studentA]].requestedWith[teammates[studentB]])
+                        {
+                            numRequestedTeammatesFound++;
+                        }
+                    }
+                    //apply penalty if student has unfulfilled requests that exceed the number allowed
+                    if(numRequestedTeammatesFound < std::min(numRequestedTeammates, teamingOptions.numberRequestedTeammatesGiven))
+                    {
+                        requestedTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                    }
+                }
+            }
+            firstStudentInTeam += teamSize[team];
+        }
     }
 
     //Bring component scores together for final team scores and, ultimately, a net score:
@@ -2417,13 +2484,13 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
     //final team scores are normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < numTeams; team++)
     {
-        // remove extra credit if any of the penalties are being applied, so that a very high schedule overlap doesn't cancel out the desired rule
+        // remove extra credit if any of the penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
         if(schedScore[team] > 1 && (genderAdj[team] < 0 || URMAdj[team] < 0 || prevTeammateAdj[team] < 0 || reqTeammateAdj[team] < 0))
         {
             schedScore[team] = 1;
         }
 
-        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team] + reqTeammateAdj[team];
+        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team] + reqTeammateAdj[team] + requestedTeammateAdj[team];
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             teamScores[team] += attributeScore[attribute][team];

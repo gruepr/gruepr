@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/friends.png</file>
-        <file>icons/notfriends.png</file>
         <file>icons/ruler.png</file>
         <file>icons/schedule.png</file>
         <file>icons/settings.png</file>

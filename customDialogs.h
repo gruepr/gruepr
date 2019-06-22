@@ -21,24 +21,26 @@ class gatherTeammatesDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum typeOfTeammates{required, prevented};
+    enum typeOfTeammates{required, prevented, requested};
 
-    gatherTeammatesDialog(const typeOfTeammates requiredOrPrevented, const studentRecord student[], int numStudentsInSystem, const QString &sectionName, QWidget *parent = nullptr);
+    gatherTeammatesDialog(const typeOfTeammates whatType, const studentRecord student[], int numStudentsInSystem, const QString &sectionName, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
 
     studentRecord *student;
+    bool teammatesSpecified;
 
 private slots:
     void addOneTeammateSet();
     void clearAllTeammateSets();
 
 private:
-    typeOfTeammates requiredOrPrevented;
+    typeOfTeammates whatType;
     QString sectionName;
     int numStudents;
     QGridLayout *theGrid;
     QTableWidget *currentListOfTeammatesTable;
-    QComboBox possibleTeammates[8];
+    static const int possibleNumIDs = 8;                //number of comboboxes in the dialog box, i.e., possible choices of teammates
+    QComboBox possibleTeammates[possibleNumIDs + 1];    // +1 for the requesting student in typeOfTeammates == requested
     QPushButton *loadTeammates;
     QPushButton *resetTableButton;
     QDialogButtonBox *buttonBox;
