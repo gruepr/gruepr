@@ -71,7 +71,7 @@ gruepr::gruepr(QWidget *parent) :
     connect(this, &gruepr::optimizationMightBeComplete, this, &gruepr::askWhetherToContinueOptimizing);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
-    // load all of the saved default values (if they exist)
+    // load all of the default values
     on_loadSettingsButton_clicked();
 
     // use arabic numbers for standard teamNames
@@ -239,7 +239,10 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->addStudentSectionComboBox->setEnabled(false);
                 ui->addStudentSectionComboBox->hide();
             }
-            on_sectionSelectionBox_currentIndexChanged(ui->sectionSelectionBox->currentText());
+            on_sectionSelectionBox_currentIndexChanged(ui->sectionSelectionBox->currentText());     // also loads data into student table
+            ui->studentTable->sortByColumn(0, Qt::AscendingOrder);
+            ui->studentTable->horizontalHeader()->setSortIndicatorShown(true);
+            ui->studentTable->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 
             if(dataOptions.numAttributes > 0)
             {
@@ -860,12 +863,14 @@ void gruepr::on_letsDoItButton_clicked()
     }
     realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * normFactor;
 
+#ifdef Q_OS_WIN32
     // Set up to show progess on windows taskbar
     taskbarButton = new QWinTaskbarButton(this);
     taskbarButton->setWindow(windowHandle());
     taskbarProgress = taskbarButton->progress();
     taskbarProgress->show();
     taskbarProgress->setMaximum(0);
+#endif
 
     // Get the IDs of students from desired section and change numStudents accordingly
     int numStudentsInSection = 0;
@@ -898,8 +903,10 @@ void gruepr::updateOptimizationProgress(float score, int generation, float score
     {
         ui->stabilityProgressBar->setEnabled(true);
         ui->stabilityProgressBar->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
+#ifdef Q_OS_WIN32
         taskbarProgress->setMaximum(100);
         taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
+#endif
     }
 }
 
@@ -965,7 +972,9 @@ void gruepr::optimizationComplete()
     ui->label_14->setEnabled(true);
     ui->label_23->setEnabled(true);
     ui->teamNamesComboBox->setEnabled(true);
+#ifdef Q_OS_WIN32
     taskbarProgress->hide();
+#endif
 
     // free memory used to save array of IDs of students being teamed
     delete [] studentIDs;
@@ -1324,7 +1333,7 @@ void gruepr::on_HelpButton_clicked()
     QTextBrowser helpContents(&helpWindow);
     helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                             "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                            "<p>Joshua Hertz <a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
+                            "<p>Joshua Hertz <a href = mailto:gruepr@gmail.com>gruepr@gmail.com</a>"
                             "<p>Project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>"));
     helpContents.append(helpFile.readAll());
     helpFile.close();
@@ -1342,7 +1351,7 @@ void gruepr::on_AboutButton_clicked()
     QMessageBox::about(this, tr("About gruepr"),
                        tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                          "<br>Joshua Hertz<br><a href = mailto:j.hertz@neu.edu>j.hertz@neu.edu</a>"
+                          "<br>Joshua Hertz<br><a href = mailto:gruepr@gmail.com>gruepr@gmail.com</a>"
                           "<p>This copy of gruepr is ") + user + tr("."
                           "<p>gruepr is an open source project. The source code is freely available at"
                           "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
@@ -1403,7 +1412,7 @@ void gruepr::on_registerButton_clicked()
             else
             {
                 QMessageBox::critical(this, tr("No Connection"),
-                                      tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <j.hertz@neu.edu>."));
+                                      tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <gruepr@gmail.com>."));
             }
         }
         delete manager;
@@ -1580,7 +1589,7 @@ bool gruepr::loadSurveyData(QString fileName)
     // Having read the header row and determined time names, if any, read each remaining row as a student record
     numStudents = 0;    // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     fields = ReadCSVLine(in.readLine(), TotNumQuestions);
-    while(!fields.empty())
+    while(!fields.empty() && numStudents < 200)
     {
         student[numStudents] = readOneRecordFromFile(fields);
         student[numStudents].ID = numStudents;
@@ -1588,6 +1597,13 @@ bool gruepr::loadSurveyData(QString fileName)
         fields = ReadCSVLine(in.readLine(), TotNumQuestions);
     }
     dataOptions.numStudentsInSystem = numStudents;
+
+    if(numStudents == 200)
+    {
+        QMessageBox::warning(this, tr("Reached maximum number of students."),
+                             tr("The maximum number of students have been read from the file."
+                                "\nThis version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
+    }
 
     inputFile.close();
     return true;
@@ -1934,19 +1950,19 @@ void gruepr::refreshStudentDisplay()
             TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString("d-MMM. h:mm AP"));
             timestamp->setToolTip(studentToolTip);
             if(duplicate)
-                timestamp->setBackgroundColor(Qt::yellow);
+                timestamp->setBackground(QBrush(QColor("#ffff3b")));
             ui->studentTable->setItem(numStudents, 0, timestamp);
 
             QTableWidgetItem *firstName = new QTableWidgetItem(student[ID].firstname);
             firstName->setToolTip(studentToolTip);
             if(duplicate)
-                firstName->setBackgroundColor(Qt::yellow);
+                firstName->setBackground(QBrush(QColor("#ffff3b")));
             ui->studentTable->setItem(numStudents, 1, firstName);
 
             QTableWidgetItem *lastName = new QTableWidgetItem(student[ID].lastname);
             lastName->setToolTip(studentToolTip);
             if(duplicate)
-                lastName->setBackgroundColor(Qt::yellow);
+                lastName->setBackground(QBrush(QColor("#ffff3b")));
             ui->studentTable->setItem(numStudents, 2, lastName);
 
             int column = 3;
@@ -1955,7 +1971,7 @@ void gruepr::refreshStudentDisplay()
                 SectionTableWidgetItem *section = new SectionTableWidgetItem(student[ID].section);
                 section->setToolTip(studentToolTip);
                 if(duplicate)
-                    section->setBackgroundColor(Qt::yellow);
+                    section->setBackground(QBrush(QColor("#ffff3b")));
                 ui->studentTable->setItem(numStudents, column, section);
                 column++;
             }
@@ -1966,7 +1982,7 @@ void gruepr::refreshStudentDisplay()
             remover->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
             remover->setProperty("StudentID", student[ID].ID);
             if(duplicate)
-                remover->setStyleSheet("QPushButton { background-color: yellow; border: none; }");
+                remover->setStyleSheet("QPushButton { background-color: #ffff3b; border: none; } QPushButton:selected { background-color: blue; border: none; }");
             connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
             ui->studentTable->setCellWidget(numStudents, column, remover);
 
@@ -1976,7 +1992,7 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->setRowCount(numStudents);
 
     QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0? "All sections" : " Section: " + sectionName);
-    ui->statusBar->showMessage(ui->statusBar->currentMessage().split("->")[0].trimmed() + "  -> " + sectiontext + "  [" + QString::number(numStudents) + " students]");
+    ui->statusBar->showMessage(ui->statusBar->currentMessage().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
 
     ui->studentTable->resizeColumnsToContents();
     ui->studentTable->setSortingEnabled(true);
@@ -2035,8 +2051,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     ///////
     // below is code to calculate the scores with multiple threads
     // calculating the fitness score for each genome can be the most expensive part of the optimization process
-    // for parallelized calculation of scores, need to also change getTeamScores() so that it allocates memory at start and deallocates at end
-    // for: attributeScore, schedScore, genderAdj, URMAdj, prevTeammateAdj, reqTeammateAdj, removing them as static members of the class
+    // for parallelized calculation of scores, need to also change allocate memory at start and deallocate at end for:
+    // attributeScore, schedScore, genderAdj, URMAdj, prevTeammateAdj, reqTeammateAdj,
+    // removing them as members of the gruepr object and making them instead thread local (allocate one copy per thread)
     // this memory management is expensive and seems to negate the speed improvement gained by parallelizing the score calculation
     // In the future, to do it, uncomment the block below to replace the 5 lines above. Also, look for a similiar note later about 75 lines below this one
     ///////

@@ -25,5 +25,6 @@
         <file>fonts/OxygenMono-Regular.otf</file>
         <file>icons/gender.png</file>
         <file>icons/allkinds.png</file>
+        <file>icons/gruepr.icns</file>
     </qresource>
 </RCC>

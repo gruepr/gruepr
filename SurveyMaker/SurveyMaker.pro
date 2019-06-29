@@ -4,12 +4,27 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+gruepr_version = 8.13
+copyright_year = 2019
 
+QT       += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = SurveyMaker
 TEMPLATE = app
+
+DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
+DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
+
+# set application properties
+VERSION = $$gruepr_version
+QMAKE_TARGET_COPYRIGHT = $$copyright_year
+QMAKE_TARGET_COMPANY = gruepr
+QMAKE_TARGET_PRODUCT = SurveyMaker
+
+# set application icon
+win32: RC_ICONS = surveymaker.ico
+macx: ICON = surveymaker.icns
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -24,6 +39,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
+# remove possible other optimization flags
+QMAKE_CXXFLAGS_RELEASE -= -O
+QMAKE_CXXFLAGS_RELEASE -= -O1
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE -= -O3
+
+# add the desired -Os if not present
+QMAKE_CXXFLAGS_RELEASE += -Os
+
 SOURCES += \
         surveymaker.cpp \
         surveymaker_main.cpp
@@ -36,8 +60,6 @@ FORMS += \
 
 RESOURCES += \
           surveymaker.qrc
-
-RC_ICONS = surveymaker.ico
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

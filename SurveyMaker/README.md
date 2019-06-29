@@ -1,6 +1,6 @@
 gruepr - SurveyMaker
 
-Copyright (C) 2019, Joshua Hertz < j.hertz@neu.edu >
+Copyright (C) 2019, Joshua Hertz < gruepr@gmail.com >
 
 ---------------
 Description of gruepr-SurveyMaker:

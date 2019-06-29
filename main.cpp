@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2019
 // Joshua Hertz
-// j.hertz@neu.edu
+// gruepr@gmail.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     QSplashScreen *splash = new QSplashScreen;
     QPixmap pic(":/icons/splash.png");
     splash->setPixmap(pic);
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\nj.hertz@neu.edu", Qt::AlignCenter);
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter);
     splash->show();
     QThread::sleep(2);
 

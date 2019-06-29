@@ -5,8 +5,10 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QPrinter>
-#include <QWinTaskbarButton>
-#include <QWinTaskbarProgress>
+#ifdef Q_OS_WIN32
+  #include <QWinTaskbarButton>
+  #include <QWinTaskbarProgress>
+#endif
 #include "customDialogs.h"
 #include "customWidgets.h"
 #include "gruepr_structs_and_consts.h"
@@ -159,8 +161,10 @@ private:
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     int bestGenome[maxStudents];
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
+#ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;
+#endif
     QMutex optimizationStoppedmutex;
     bool optimizationStopped;
     bool keepOptimizing;

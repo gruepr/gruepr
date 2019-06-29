@@ -4,12 +4,29 @@
 #
 #-------------------------------------------------
 
-QT       += core gui concurrent network printsupport winextras
+gruepr_version = 8.13
+copyright_year = 2019
 
+QT       += core gui concurrent network printsupport
+win32: QT += winextras
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = gruepr
 TEMPLATE = app
+
+DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
+DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
+
+# set application properties
+VERSION = $$gruepr_version
+QMAKE_TARGET_COPYRIGHT = $$copyright_year
+QMAKE_TARGET_COMPANY = gruepr
+QMAKE_TARGET_PRODUCT = gruepr
+
+# set application icon
+win32: RC_ICONS = icons\gruepr.ico
+macx: ICON = icons\gruepr.icns
+
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -28,6 +45,7 @@ CONFIG += c++11
 QMAKE_CXXFLAGS_RELEASE -= -O
 QMAKE_CXXFLAGS_RELEASE -= -O1
 QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE -= -Os
 
 # add the desired -O3 if not present
 QMAKE_CXXFLAGS_RELEASE += -O3
@@ -51,8 +69,6 @@ FORMS += \
 
 RESOURCES += \
           gruepr.qrc
-
-RC_ICONS = icons\gruepr.ico
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -32,7 +32,7 @@ bool SectionTableWidgetItem::operator <(const QTableWidgetItem &other) const
     QCollator sortAlphanumerically;
     sortAlphanumerically.setNumericMode(true);
     sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-    return (sortAlphanumerically.compare(text(), other.text()) < 1);
+    return (sortAlphanumerically.compare(text(), other.text()) < 0);
 }
 
 

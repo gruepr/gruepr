@@ -48,6 +48,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatType, con
     //First row - the current data
     currentListOfTeammatesTable = new QTableWidget(this);
     currentListOfTeammatesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    currentListOfTeammatesTable->setSelectionMode(QAbstractItemView::NoSelection);
     currentListOfTeammatesTable->setAlternatingRowColors(true);
     currentListOfTeammatesTable->setStyleSheet(
             "QTableView{gridline-color: black;}"
@@ -130,7 +131,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatType, con
     row += 2;
     theGrid->setRowMinimumHeight(row, 20);
     resetTableButton = new QPushButton(this);
-    resetTableButton->setText(tr("&Reset All"));
+    resetTableButton->setText(tr("&Clear All\n") + typeText + tr("Teammates"));
     theGrid->addWidget(resetTableButton, row+1, 0, 1, 1);
     connect(resetTableButton, &QPushButton::clicked, this, &gatherTeammatesDialog::clearAllTeammateSets);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -262,14 +263,15 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->setRowCount(0);
 
     int row=0, column;
+    bool atLeastOneTeammate;
     for(int ID1 = 0; ID1 < numStudents; ID1++)
     {
         if((sectionName == "") || (sectionName == student[ID1].section))
         {
+            atLeastOneTeammate = false;
             column = 0;
             currentListOfTeammatesTable->setRowCount(row+1);
             currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(student[ID1].firstname + " " + student[ID1].lastname));
-            currentListOfTeammatesTable->setItem(row, 0, new QTableWidgetItem("--"));
             bool printStudent;
             for(int ID2 = 0; ID2 < numStudents; ID2++)
             {
@@ -287,19 +289,47 @@ void gatherTeammatesDialog::refreshDisplay()
                 }
                 if(printStudent)
                 {
+                    atLeastOneTeammate = true;
                     if(currentListOfTeammatesTable->columnCount() < column+1)
                     {
                         currentListOfTeammatesTable->setColumnCount(column+1);
                         currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #") + QString::number(column+1)));
                     }
-                    currentListOfTeammatesTable->setItem(row, column, new QTableWidgetItem(student[ID2].firstname + " " + student[ID2].lastname));
+                    QHBoxLayout *box = new QHBoxLayout;
+                    QLabel *label = new QLabel(student[ID2].firstname + " " + student[ID2].lastname);
+                    QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
+                    remover->setFlat(true);
+                    remover->setIconSize(QSize(15, 15));
+                    if(whatType == gatherTeammatesDialog::required)
+                    {
+                        connect(remover, &QPushButton::clicked, [this, ID1, ID2]{student[ID1].requiredWith[ID2] = false; student[ID2].requiredWith[ID1] = false; refreshDisplay();});
+                    }
+                    else if(whatType == gatherTeammatesDialog::prevented)
+                    {
+                        connect(remover, &QPushButton::clicked, [this, ID1, ID2]{student[ID1].preventedWith[ID2] = false; student[ID2].preventedWith[ID1] = false; refreshDisplay();});
+                    }
+                    else
+                    {
+                        connect(remover, &QPushButton::clicked, [this, ID1, ID2]{student[ID1].requestedWith[ID2] = false; refreshDisplay();});
+                    }
+                    box->addWidget(label);
+                    box->addWidget(remover, 0, Qt::AlignLeft);
+                    box->setSpacing(0);
+                    QWidget *widg = new QWidget;
+                    widg->setLayout(box);
+                    currentListOfTeammatesTable->setCellWidget(row, column, widg);
                     column++;
                 }
+            }
+            if(!atLeastOneTeammate)
+            {
+                currentListOfTeammatesTable->setItem(row, 0, new QTableWidgetItem("--"));
             }
             row++;
         }
     }
     currentListOfTeammatesTable->resizeColumnsToContents();
+    currentListOfTeammatesTable->resizeRowsToContents();
 }
 
 
@@ -499,7 +529,7 @@ registerDialog::registerDialog(QWidget *parent)
     explanation->setText(tr("\nThank you for registering your copy of gruepr.\n"
                             "Doing so enables me to best support\nthe community of educators that uses it.\n"
                             "\t-Josh\n"
-                            "\t j.hertz@neu.edu\n"));
+                            "\t gruepr@gmail.com\n"));
     theGrid->addWidget(explanation, 0, 0);
 
     name = new QLineEdit(this);

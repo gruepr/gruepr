@@ -1,9 +1,6 @@
 #ifndef SURVEYMAKER_H
 #define SURVEYMAKER_H
 
-#define GRUEPR_VERSION_NUMBER "8.11"
-#define GRUEPR_COPYRIGHT_YEAR "2019"
-
 #include <QMainWindow>
 #include <QRegularExpressionValidator>
 
@@ -69,23 +66,23 @@ private:
     void updateDays();
     bool surveyCreated = false;
     QRegularExpressionValidator *noCommas;
-    QString title="";
-    bool gender=true;
-    bool URM=false;
-    int numAttributes=3;
-    QString attributeTexts[9]={"","","","","","","","",""};
-    QString allAttributeTexts="Question%201,Question%202,Question%203";
-    int attributeResponses[9]={0};
-    QString allAttributeResponses="0,0,0";
-    bool schedule=true;
-    QString dayNames[7]={"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-    QString allDayNames="Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
-    int startTime=10;
-    int endTime=17;
-    bool section;
-    QStringList sectionNames={""};
-    QString allSectionNames="";
-    bool additionalQuestions;
+    QString title = "";
+    bool gender = true;
+    bool URM = false;
+    int numAttributes = 3;
+    QString attributeTexts[9] = {"","","","","","","","",""};
+    QString allAttributeTexts = "Question%201,Question%202,Question%203";
+    int attributeResponses[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    QString allAttributeResponses = "0,0,0";
+    bool schedule = true;
+    QString dayNames[7] = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+    QString allDayNames = "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
+    int startTime = 10;
+    int endTime = 17;
+    bool section = false;
+    QStringList sectionNames = {""};
+    QString allSectionNames = "";
+    bool additionalQuestions = false;
     QString URL;
 };
 
