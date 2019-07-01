@@ -44,8 +44,15 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 {
     setStyleSheet("QHeaderView::section{border-top:0px solid #D8D8D8;border-left:0px solid #D8D8D8;border-right:1px solid black;"
                   "border-bottom: 1px solid black;background-color:Gainsboro;padding:4px;font-weight:bold;}"
-                  "QTreeWidget::item:selected{color: black;background-color: #85cbf8}"
-                  "QTreeWidget::item:hover{color: black;background-color: #85cbf8}");
+                  "QTreeWidget::item:selected{color: black;background-color: #85cbf8;}"
+                  "QTreeWidget::item:hover{color: black;background-color: #85cbf8;}"
+                  "QTreeWidget::branch{background-color: white;}"
+                  "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons/branch-more.png);}"
+                  "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons/branch-end.png);}"
+                  "QTreeView::branch:has-children:!has-siblings:closed,"
+                  "QTreeView::branch:closed:has-children:has-siblings {border-image: none; image: url(:/icons/branch-closed.png);}"
+                  "QTreeView::branch:open:has-children:!has-siblings,"
+                  "QTreeView::branch:open:has-children:has-siblings {border-image: none; image: url(:/icons/branch-open.png);}");
     setDragDropMode(QAbstractItemView::InternalMove);
     setSortingEnabled(false);
     setAlternatingRowColors(true);

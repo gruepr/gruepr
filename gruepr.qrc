@@ -26,5 +26,9 @@
         <file>icons/gender.png</file>
         <file>icons/allkinds.png</file>
         <file>icons/gruepr.icns</file>
+        <file>icons/branch-closed.png</file>
+        <file>icons/branch-end.png</file>
+        <file>icons/branch-more.png</file>
+        <file>icons/branch-open.png</file>
     </qresource>
 </RCC>

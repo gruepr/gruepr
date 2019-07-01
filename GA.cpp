@@ -83,18 +83,19 @@ void GA::mate(int *mom, int *dad, int teamSize[], int numTeams, int child[], int
 void GA::mutate(int genome[], int genomeSize)
 {
     int site1, site2;
+    int greatestRandMultiple = RAND_MAX - (RAND_MAX % genomeSize);      // Holds the largest rand() that is a multiple of genomeSize, so that we get a uniform value 0->genomeSize
     do
     {
         site1 = rand();
     }
-    while(site1 >= genomeSize);
+    while(site1 >= greatestRandMultiple);
     do
     {
         site2 = rand();
     }
-    while((site2 >= genomeSize) || (site2 == site1));
+    while(site2 >= greatestRandMultiple);
 
-    std::swap(genome[site1], genome[site2]);
+    std::swap(genome[site1%genomeSize], genome[site2%genomeSize]);
 
     return;
 }

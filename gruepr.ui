@@ -69,12 +69,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
           <property name="styleSheet">
            <string notr="true">background-color: #f283a5</string>
           </property>
@@ -166,11 +160,6 @@ copy of gruepr!</string>
             <height>50</height>
            </size>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
           <property name="visible">
            <bool>false</bool>
           </property>
@@ -215,11 +204,6 @@ border: 1px solid #d26385;
             <height>50</height>
            </size>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
           <property name="toolTip">
            <string>Find an optimal set of teams.</string>
           </property>
@@ -250,11 +234,6 @@ border: 1px solid #d26385;
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
         </property>
         <property name="currentIndex">
          <number>0</number>
@@ -341,9 +320,6 @@ border: 1px solid #d26385;
             <attribute name="horizontalHeaderMinimumSectionSize">
              <number>20</number>
             </attribute>
-            <attribute name="horizontalHeaderStretchLastSection">
-             <bool>true</bool>
-            </attribute>
            </widget>
           </item>
           <item>
@@ -371,11 +347,6 @@ border: 1px solid #d26385;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="placeholderText">
                <string>first name</string>
               </property>
@@ -391,11 +362,6 @@ border: 1px solid #d26385;
                 <horstretch>1</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
               </property>
               <property name="placeholderText">
                <string>last name</string>
@@ -413,11 +379,6 @@ border: 1px solid #d26385;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="placeholderText">
                <string>email address</string>
               </property>
@@ -433,11 +394,6 @@ border: 1px solid #d26385;
                 <horstretch>1</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
               </property>
               <item>
                <property name="text">
@@ -467,11 +423,6 @@ border: 1px solid #d26385;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <item>
                <property name="text">
                 <string>URM</string>
@@ -495,11 +446,6 @@ border: 1px solid #d26385;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
              </widget>
             </item>
             <item>
@@ -512,11 +458,6 @@ border: 1px solid #d26385;
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;Add this record to the current student set.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
@@ -561,11 +502,6 @@ border: 1px solid #d26385;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
               <property name="toolTip">
                <string>Save this set of teams as text or pdf files.</string>
               </property>
@@ -597,11 +533,6 @@ border: 1px solid #d26385;
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
               </property>
               <property name="toolTip">
                <string>Print this set of teams.</string>
@@ -639,11 +570,6 @@ border: 1px solid #d26385;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="font">
-               <font>
-                <pointsize>8</pointsize>
-               </font>
-              </property>
               <property name="text">
                <string>NOTE: You can swap the position of two students or two teams using drag-and-drop.</string>
               </property>
@@ -661,11 +587,6 @@ border: 1px solid #d26385;
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Show the students in all of the teams.</string>
@@ -685,11 +606,6 @@ border: 1px solid #d26385;
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Show only the summarized data for all of the teams.</string>
@@ -723,11 +639,6 @@ border: 1px solid #d26385;
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
-                </property>
                 <property name="toolTip">
                  <string>Sort the teams from lowest to highest compatibility score.</string>
                 </property>
@@ -760,11 +671,6 @@ border: 1px solid #d26385;
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
-                </property>
                 <property name="text">
                  <string>Team names:</string>
                 </property>
@@ -780,11 +686,6 @@ border: 1px solid #d26385;
                   <horstretch>1</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                 </font>
                 </property>
                 <property name="toolTip">
                  <string>Set the names of the teams.</string>
@@ -1054,11 +955,6 @@ border: 1px solid #d26385;
           <height>50</height>
          </size>
         </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
         <property name="toolTip">
          <string>Open the survey data file downloaded from the Google Form.</string>
         </property>
@@ -1094,14 +990,6 @@ border: 1px solid #d26385;
           <height>0</height>
          </size>
         </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-          <underline>false</underline>
-         </font>
-        </property>
         <property name="title">
          <string>Teaming Options</string>
         </property>
@@ -1131,15 +1019,6 @@ border: 1px solid #d26385;
              <width>50</width>
              <height>50</height>
             </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
            </property>
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons/friends.png</pixmap>
@@ -1526,7 +1405,7 @@ Teammates</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>Indicate requested teammates.</string>
+                <string>&lt;html&gt;Indicate requested teammates. Each student may have an arbitrarily long list of requested teammates, and gruepr will try to give each student a number (specfied below) of teammates from their list.&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Requested
@@ -1581,15 +1460,6 @@ Teammates</string>
              <height>50</height>
             </size>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
-           </property>
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons/attributes.png</pixmap>
            </property>
@@ -1611,15 +1481,6 @@ Teammates</string>
              <width>50</width>
              <height>50</height>
             </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
            </property>
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons/settings.png</pixmap>
@@ -1645,15 +1506,6 @@ Teammates</string>
              <width>50</width>
              <height>50</height>
             </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
            </property>
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons/classroom.png</pixmap>
@@ -1849,15 +1701,6 @@ If unselected, the students on a team will have a wide range of responses to thi
                <width>0</width>
                <height>18</height>
               </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-               <strikeout>false</strikeout>
-               <kerning>true</kerning>
-              </font>
              </property>
              <property name="styleSheet">
               <string notr="true">border: 1px rgb(0, 0, 0);
@@ -2096,15 +1939,6 @@ background-color: rgb(193, 193, 193);</string>
                  <height>18</height>
                 </size>
                </property>
-               <property name="font">
-                <font>
-                 <pointsize>8</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                 <strikeout>false</strikeout>
-                 <kerning>true</kerning>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>Overlaps in schedule must be at least this big to be considered an available meeting time.</string>
                </property>
@@ -2224,15 +2058,6 @@ background-color: rgb(193, 193, 193);</string>
              <height>50</height>
             </size>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
-           </property>
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons/schedule.png</pixmap>
            </property>
@@ -2296,15 +2121,6 @@ background-color: rgb(193, 193, 193);</string>
              <width>50</width>
              <height>50</height>
             </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>8</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
            </property>
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons/ruler.png</pixmap>

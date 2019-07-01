@@ -25,13 +25,27 @@ gruepr::gruepr(QWidget *parent) :
     setWindowIcon(QIcon(":/icons/gruepr.png"));
     ui->cancelOptimizationButton->hide();
 
-    //Remove register button if registered
+    //Set alternate fonts on some UI features
+    QFont altFont = this->font();
+    altFont.setPointSize(altFont.pointSize() + 4);
+    ui->loadSurveyFileButton->setFont(altFont);
+    ui->letsDoItButton->setFont(altFont);
+    ui->cancelOptimizationButton->setFont(altFont);
+    ui->saveTeamsButton->setFont(altFont);
+    ui->printTeamsButton->setFont(altFont);
+    ui->dataDisplayTabWidget->setFont(altFont);
+    ui->teamingOptionsGroupBox->setFont(altFont);
+
+    //Give registration reminder if unregistered, otherwise remove register button
     QSettings savedSettings;
     registeredUser = savedSettings.value("registeredUser", "").toString();
     QString UserID = savedSettings.value("registeredUserID", "").toString();
     if(registeredUser.isEmpty() || UserID != QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()))
     {
-        ui->statusBar->showMessage(tr("This copy of gruepr is unregistered"));
+        altFont = this->font();
+        altFont.setBold(true);
+        ui->registerButton->setFont(altFont);
+        ui->statusBar->showMessage(tr("This copy of gruepr is unregistered. Please register - it only takes a few seconds and is free."));
         ui->statusBar->setStyleSheet("background-color: #f283a5");
     }
     else
@@ -42,7 +56,12 @@ gruepr::gruepr(QWidget *parent) :
     }
 
     //Reduce size of the options icons if the screen is small
+#ifdef Q_OS_WIN32
     if(QGuiApplication::primaryScreen()->availableSize().height() < 900)
+#endif
+#ifdef Q_OS_MACOS
+    if(QGuiApplication::primaryScreen()->availableSize().height() < 800)
+#endif
     {
         ui->label_15->setMaximumSize(35,35);
         ui->label_16->setMaximumSize(35,35);
@@ -434,7 +453,17 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
 void gruepr::on_studentTable_cellEntered(int row, int /*unused column value*/)
 {
+    // select the current row, reset the background color of the remover button in previously selected row and change the remover in the current row
     ui->studentTable->selectRow(row);
+    static int prevRow = -1;
+    static QString prevStyleSheet = "";
+    if(prevRow != -1)
+    {
+        ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet(prevStyleSheet);
+    }
+    prevRow = row;
+    prevStyleSheet = ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->styleSheet();
+    ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
 }
 
 
@@ -468,7 +497,6 @@ void gruepr::on_addStudentPushButton_clicked()
     if(dataOptions.numStudentsInSystem < maxStudents)
     {
         student[dataOptions.numStudentsInSystem].ID = dataOptions.numStudentsInSystem;
-        student[dataOptions.numStudentsInSystem].addedManually = true;
         student[dataOptions.numStudentsInSystem].firstname = (ui->addStudentFirstName->text()).trimmed();
         student[dataOptions.numStudentsInSystem].firstname[0] = student[dataOptions.numStudentsInSystem].firstname[0].toUpper();
         student[dataOptions.numStudentsInSystem].lastname = (ui->addStudentLastName->text()).trimmed();
@@ -502,6 +530,7 @@ void gruepr::on_addStudentPushButton_clicked()
         {
             student[dataOptions.numStudentsInSystem].unavailable[time] = false;
         }
+        student[dataOptions.numStudentsInSystem].ambiguousSchedule = true;
         dataOptions.numStudentsInSystem++;
 
         refreshStudentDisplay();
@@ -852,6 +881,7 @@ void gruepr::on_letsDoItButton_clicked()
     ui->letsDoItButton->hide();
     ui->cancelOptimizationButton->setEnabled(true);
     ui->cancelOptimizationButton->show();
+    teamDataTree->setEnabled(false);
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
     float normFactor = (dataOptions.numAttributes + ((dataOptions.dayNames.size() > 0)? 1 : 0)) /
@@ -928,12 +958,18 @@ void gruepr::askWhetherToContinueOptimizing(int generation)
 
     QMessageBox questionWindow(this);
     questionWindow.setText(tr("Should we show the teams or continue optimizing?"));
+#ifdef Q_OS_WIN32
     questionWindow.setWindowTitle((generation < maxGenerations)? tr("The score seems to be stable.") : (tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
+#endif
+#ifdef Q_OS_MACOS
+    questionWindow.setInformativeText((generation < maxGenerations)? tr("The score seems to be stable.") : (tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
+#endif
     questionWindow.setIcon(QMessageBox::Question);
     questionWindow.setWindowModality(Qt::ApplicationModal);
     questionWindow.setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-    questionWindow.addButton(tr("Show Teams"), QMessageBox::YesRole);
+    QPushButton *stopHere = questionWindow.addButton(tr("Show Teams"), QMessageBox::YesRole);
     QPushButton *keepGoing = questionWindow.addButton(tr("Continue Optimizing"), QMessageBox::NoRole);
+    questionWindow.setDefaultButton(stopHere);
 
     questionWindow.exec();
 
@@ -1089,7 +1125,7 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
     {
         //chemical elements
         QStringList elements = (QString("Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
-                                        " Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
+                                        "Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
                                         "Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,"
                                         "Rubidium,Strontium,Yttrium,Zirconium,Niobium,Molybdenum,Technetium,Ruthenium,Rhodium,Palladium,Silver,"
                                         "Cadmium,Indium,Tin,Antimony,Tellurium,Iodine,Xenon,Cesium,Barium,Lanthanum,Cerium,Praseodymium,Neodymium,"
@@ -1728,6 +1764,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         }
         student.availabilityChart += "</table>";
     }
+    student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (dataOptions.dayNames.size() * dataOptions.timeNames.size()));
 
     // optional last fields; might be section and/or additional notes
     if(dataOptions.sectionIncluded)
@@ -1892,10 +1929,12 @@ void gruepr::refreshStudentDisplay()
 
         if((ui->sectionSelectionBox->currentIndex() == 0) || (student[ID].section == ui->sectionSelectionBox->currentText()))
         {
-            QString studentToolTip;
-            studentToolTip = "<html>" + student[ID].firstname + " " + student[ID].lastname;
+            QString studentToolTip = "<html>";
             if(duplicate)
-                studentToolTip += "<i><b>" + tr(" (there are two survey submissions with this name)") + "</b></i>";
+            {
+                studentToolTip += "<b>" + tr("Note: there are multiple survey submissions with this name!") + "</b><br>";
+            }
+            studentToolTip += student[ID].firstname + " " + student[ID].lastname;
             studentToolTip += "<br>" + student[ID].email;
             if(dataOptions.genderIncluded)
             {
@@ -1982,7 +2021,7 @@ void gruepr::refreshStudentDisplay()
             remover->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
             remover->setProperty("StudentID", student[ID].ID);
             if(duplicate)
-                remover->setStyleSheet("QPushButton { background-color: #ffff3b; border: none; } QPushButton:selected { background-color: blue; border: none; }");
+                remover->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
             connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
             ui->studentTable->setCellWidget(numStudents, column, remover);
 
@@ -1995,6 +2034,7 @@ void gruepr::refreshStudentDisplay()
     ui->statusBar->showMessage(ui->statusBar->currentMessage().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
 
     ui->studentTable->resizeColumnsToContents();
+    ui->studentTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->studentTable->setSortingEnabled(true);
 }
 
@@ -2067,6 +2107,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     //// multi-threaded scoring of each genome
     //QVector<float> scores = QtConcurrent::blockingMapped(genomes, getGenomeScores);
     ///////
+
+    emit generationComplete(*std::max_element(scores.constBegin(), scores.constEnd()), 0, 0);
 
     // allocate memory to hold all the tournament-selected genomes
     tourneyPlayer *players = new tourneyPlayer[tournamentSize];
@@ -2272,7 +2314,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         for(int team = 0; team < numTeams; team++)
         {
             int firstStudentInTeam = ID;
-            bool allStudentsAddedManually = true;
+            int numStudentsWithAmbiguousSchedules = 0;
             // combine each student's schedule array into a team schedule array
             QVector<bool> teamAvailability(dataOptions.dayNames.size()*dataOptions.timeNames.size());
             for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
@@ -2281,12 +2323,15 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                 teamAvailability[time] = true;
                 for(int teammate = 0; teammate < teamSize[team]; teammate++)
                 {
-                    teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
-                    allStudentsAddedManually &= student[teammates[ID]].addedManually;                               // logical "and" whether each student was manually added
+                    if(!student[teammates[ID]].ambiguousSchedule)
+                    {
+                        teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
+                    }
+                    numStudentsWithAmbiguousSchedules += student[teammates[ID]].ambiguousSchedule? 1: 0;
                     ID++;
                 }
             }
-            if(!allStudentsAddedManually)   // keep schedule score at 0 if all students added manually, to avoid runaway huge score by grouping them all together
+            if(numStudentsWithAmbiguousSchedules < (teamSize[team]-2))   // keep schedule score at 0 if all but 2 students have ambiguous sched, to avoid runaway huge score by grouping them
             {
                 // count how many free time blocks there are
                 if(teamingOptions.meetingBlockSize == 1)
