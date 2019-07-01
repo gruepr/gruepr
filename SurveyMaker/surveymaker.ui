@@ -972,9 +972,6 @@
         <property name="text">
          <string>Section</string>
         </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
       <item alignment="Qt::AlignVCenter">
@@ -1035,9 +1032,6 @@ padding: 12px;</string>
       </property>
       <property name="text">
        <string>Add a placeholder for additional questions</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
       </property>
      </widget>
     </item>
