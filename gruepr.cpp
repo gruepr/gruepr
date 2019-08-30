@@ -270,7 +270,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->attributeScrollBar->setEnabled(dataOptions.numAttributes > 1);
                 ui->attributeScrollBar->setValue(0);
                 on_attributeScrollBar_valueChanged(0);
-                ui->attributeLabel->setText(tr("1  of  ") + QString::number(dataOptions.numAttributes));
+                ui->attributeLabel->setText(tr("Attribute  1  of  ") + QString::number(dataOptions.numAttributes));
                 ui->attributeLabel->setEnabled(true);
                 ui->attributeTextEdit->setEnabled(true);
                 ui->attributeWeight->setEnabled(true);
@@ -418,7 +418,7 @@ void gruepr::on_clearSettingsButton_clicked()
     // Clear all settings
     QSettings savedSettings;
 
-    //Uncomment the line below and the one two below in order to prevent clearing the setting about "don't show this box again" on app exit
+    //Uncomment the line below and the line two below in order to prevent clearing the setting about "don't show this box again" on app exit
     //bool askToSave = savedSettings.value("askToSaveDefaultsOnExit",true).toBool();
     savedSettings.clear();
     //savedSettings.setValue("askToSaveDefaultsOnExit", askToSave);
@@ -577,7 +577,7 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
         ui->attributeTextEdit->setPlainText(dataOptions.attributeQuestionText.at(value));
         ui->attributeWeight->setValue(double(teamingOptions.attributeWeights[value]));
         ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
-        ui->attributeLabel->setText(QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
+        ui->attributeLabel->setText(tr("Attribute  ") + QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
     }
 }
 
@@ -884,9 +884,10 @@ void gruepr::on_letsDoItButton_clicked()
     teamDataTree->setEnabled(false);
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-    float normFactor = (dataOptions.numAttributes + ((dataOptions.dayNames.size() > 0)? 1 : 0)) /
-                       (((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) +
-                       std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0)));
+    realNumScoringFactors = dataOptions.numAttributes + ((dataOptions.dayNames.size() > 0)? 1 : 0);
+    float normFactor = (realNumScoringFactors) /
+                       (std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0)) +
+                        ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0));
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * normFactor;
@@ -1245,6 +1246,10 @@ void gruepr::on_saveTeamsButton_clicked()
             {
                 QMessageBox::critical(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
             }
+            else
+            {
+                setWindowModified(false);
+            }
         }
     }
     else if(result == QDialogButtonBox::SaveAll && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
@@ -1494,14 +1499,16 @@ bool gruepr::loadSurveyData(QString fileName)
     // Read the header row to determine what data is included
     QStringList fields = ReadCSVLine(in.readLine());
     int TotNumQuestions = fields.size();
-    if(fields.empty())
+    if(fields.size() < 4)       // need at least timestamp, first name, last name, email address
     {
+        QMessageBox::critical(this, tr("File error."),
+                             tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
         inputFile.close();
         return false;
     }
 
     // Read the optional gender/URM/attribute questions
-    int fieldnum = 4;     // skipping past required first fields: timestamp(0), first name(1), last name(2), email address(3)
+    int fieldnum = 4;           // skipping past required fields: timestamp(0), first name(1), last name(2), email address(3)
     QString field = fields.at(fieldnum).toLocal8Bit();
     // See if gender data is included
     if(field.contains(tr("gender"), Qt::CaseInsensitive))
@@ -1544,7 +1551,7 @@ bool gruepr::loadSurveyData(QString fileName)
     QVector<int> scheduleFields;
     while(field.contains("check the times", Qt::CaseInsensitive) && fieldnum < TotNumQuestions)
     {
-        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts column titles in  matrix questions)
+        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts column titles in matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(field);
         if(dayName.hasMatch())
         {
@@ -1597,6 +1604,8 @@ bool gruepr::loadSurveyData(QString fileName)
     // no data after header row--file is invalid
     if(fields.empty())
     {
+        QMessageBox::critical(this, tr("Insufficient number of students."),
+                             tr("There are no survey responses in this file."), QMessageBox::Ok);
         inputFile.close();
         return false;
     }
@@ -1634,11 +1643,33 @@ bool gruepr::loadSurveyData(QString fileName)
     }
     dataOptions.numStudentsInSystem = numStudents;
 
-    if(numStudents == 200)
+    if(numStudents == maxStudents)
     {
         QMessageBox::warning(this, tr("Reached maximum number of students."),
                              tr("The maximum number of students have been read from the file."
-                                "\nThis version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
+                                " This version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
+    }
+
+    if(numStudents < 4)
+    {
+        QMessageBox::critical(this, tr("Insufficient number of students."),
+                             tr("There are not enough survey responses in the file."
+                                " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
+        //reset the data
+        delete [] student;
+        student = new studentRecord[maxStudents];
+        dataOptions.numStudentsInSystem = 0;
+        dataOptions.numAttributes = 0;
+        dataOptions.attributeQuestionText.clear();
+        dataOptions.dayNames.clear();
+        dataOptions.timeNames.clear();
+        for(int attribNum = 0; attribNum < maxAttributes; attribNum++)
+        {
+            dataOptions.attributeLevels[attribNum] = 0;
+        }
+
+        inputFile.close();
+        return false;
     }
 
     inputFile.close();
@@ -1741,14 +1772,14 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
             student.unavailable[(day*dataOptions.timeNames.size())+time] = field.contains(dataOptions.timeNames.at(time).toLocal8Bit(), Qt::CaseInsensitive);
         }
         fieldnum++;
-    }
+    }   
     if(dataOptions.dayNames.size() > 0)
     {
         student.availabilityChart = tr("Availability:");
-        student.availabilityChart += "<table><tr><th></th>";
+        student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(int day = 0; day < dataOptions.dayNames.size(); day++)
         {
-            student.availabilityChart += "<th>&nbsp;" + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "&nbsp;</th>";   // using first 3 characters in day name as abbreviation
+            student.availabilityChart += "<th>" + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         student.availabilityChart += "</tr>";
         for(int time = 0; time < dataOptions.timeNames.size(); time++)
@@ -1756,9 +1787,8 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
             student.availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toLocal8Bit() + "</th>";
             for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
-                student.availabilityChart += "<td align = center>"
-                                             + QString(student.unavailable[(day*dataOptions.timeNames.size())+time]? "" : "√")
-                                             + "</td>";
+                student.availabilityChart += QString(student.unavailable[(day*dataOptions.timeNames.size())+time]?
+                                                  "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
             }
             student.availabilityChart += "</tr>";
         }
@@ -1929,62 +1959,7 @@ void gruepr::refreshStudentDisplay()
 
         if((ui->sectionSelectionBox->currentIndex() == 0) || (student[ID].section == ui->sectionSelectionBox->currentText()))
         {
-            QString studentToolTip = "<html>";
-            if(duplicate)
-            {
-                studentToolTip += "<b>" + tr("Note: there are multiple survey submissions with this name!") + "</b><br>";
-            }
-            studentToolTip += student[ID].firstname + " " + student[ID].lastname;
-            studentToolTip += "<br>" + student[ID].email;
-            if(dataOptions.genderIncluded)
-            {
-                studentToolTip += "<br>" + tr("Gender") + ":  ";
-                if(student[ID].gender == studentRecord::woman)
-                {
-                    studentToolTip += tr("woman");
-                }
-                else if(student[ID].gender == studentRecord::man)
-                {
-                    studentToolTip += tr("man");
-                }
-                else
-                {
-                    studentToolTip += tr("nonbinary/unknown");
-                }
-            }
-            if(dataOptions.URMIncluded)
-            {
-                studentToolTip += "<br>" + tr("URM") + ":  ";
-                if(student[ID].URM)
-                {
-                    studentToolTip += tr("yes");
-                }
-                else
-                {
-                    studentToolTip += tr("no");
-                }
-            }
-            for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-            {
-                studentToolTip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
-                if(student[ID].attribute[attribute] != -1)
-                {
-                    studentToolTip += QString::number(student[ID].attribute[attribute]);
-                }
-                else
-                {
-                    studentToolTip += "x";
-                }
-            }
-            if(!(student[ID].availabilityChart.isEmpty()))
-            {
-                studentToolTip += "<br>--<br>" + student[ID].availabilityChart;
-            }
-            if(dataOptions.notesIncluded)
-            {
-                studentToolTip += "<br>--<br>" + tr("Notes") + ":<br>" + (student[ID].notes.isEmpty()? ("<i>" + tr("none") + "</i>") : student[ID].notes);
-            }
-            studentToolTip += "</html>";
+            QString studentToolTip = createAToolTip(student[ID], duplicate);
 
             TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString("d-MMM. h:mm AP"));
             timestamp->setToolTip(studentToolTip);
@@ -2015,15 +1990,15 @@ void gruepr::refreshStudentDisplay()
                 column++;
             }
 
-            QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png") , "", this);
-            remover->setFlat(true);
-            remover->setIconSize(QSize(20,20));
-            remover->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
-            remover->setProperty("StudentID", student[ID].ID);
+            QPushButton *removerButton = new QPushButton(QIcon(":/icons/delete.png") , "", this);
+            removerButton->setFlat(true);
+            removerButton->setIconSize(QSize(20,20));
+            removerButton->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
+            removerButton->setProperty("StudentID", student[ID].ID);
             if(duplicate)
-                remover->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
-            connect(remover, &QPushButton::clicked, this, &gruepr::removeAStudent);
-            ui->studentTable->setCellWidget(numStudents, column, remover);
+                removerButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+            connect(removerButton, &QPushButton::clicked, this, &gruepr::removeAStudent);
+            ui->studentTable->setCellWidget(numStudents, column, removerButton);
 
             numStudents++;
         }
@@ -2036,6 +2011,72 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->resizeColumnsToContents();
     ui->studentTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->studentTable->setSortingEnabled(true);
+}
+
+
+////////////////////////////////////////////
+// Create a tooltip for a student
+////////////////////////////////////////////
+QString gruepr::createAToolTip(studentRecord info, bool duplicateRecord)
+{
+    QString toolTip = "<html>";
+    if(duplicateRecord)
+    {
+        toolTip += "<table><tr><td bgcolor=#ffff3b><b>" + tr("There are multiple survey submissions with this name!") + "</b></td></tr></table><br>";
+    }
+    toolTip += info.firstname + " " + info.lastname;
+    toolTip += "<br>" + info.email;
+    if(dataOptions.genderIncluded)
+    {
+        toolTip += "<br>" + tr("Gender") + ":  ";
+        if(info.gender == studentRecord::woman)
+        {
+            toolTip += tr("woman");
+        }
+        else if(info.gender == studentRecord::man)
+        {
+            toolTip += tr("man");
+        }
+        else
+        {
+            toolTip += tr("nonbinary/unknown");
+        }
+    }
+    if(dataOptions.URMIncluded)
+    {
+        toolTip += "<br>" + tr("URM") + ":  ";
+        if(info.URM)
+        {
+            toolTip += tr("yes");
+        }
+        else
+        {
+            toolTip += tr("no");
+        }
+    }
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        toolTip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+        if(info.attribute[attribute] != -1)
+        {
+            toolTip += QString::number(info.attribute[attribute]);
+        }
+        else
+        {
+            toolTip += "x";
+        }
+    }
+    if(!(info.availabilityChart.isEmpty()))
+    {
+        toolTip += "<br>--<br>" + info.availabilityChart;
+    }
+    if(dataOptions.notesIncluded)
+    {
+        toolTip += "<br>--<br>" + tr("Notes") + ":<br>" + (info.notes.isEmpty()? ("<i>" + tr("none") + "</i>") : info.notes);
+    }
+    toolTip += "</html>";
+
+    return toolTip;
 }
 
 
@@ -2055,8 +2096,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
     // allocate memory for genepool and tempgenepool to hold the next generation as it is being created
-    int** genePool = new int*[populationSize];
-    int** tempPool = new int*[populationSize];
+    int **genePool = new int*[populationSize];
+    int **tempPool = new int*[populationSize];
     for(int genome = 0; genome < populationSize; ++genome)
     {
         genePool[genome] = new int[numStudents];
@@ -2065,7 +2106,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 
     // create an initial population
     // start with an array of all the student IDs in order
-    int* randPerm = new int[numStudents];
+    int *randPerm = new int[numStudents];
     for(int i = 0; i < numStudents; i++)
     {
         randPerm[i] = studentIDs[i];
@@ -2103,7 +2144,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     //{
     //    genomes[genome] = &genePool[genome][0];
     //}
-    //std::function<float(const int*)> getGenomeScores = [this, unusedTeamScores](const int* Genome) {return getTeamScores(Genome, unusedTeamScores);};
+    //std::function<float(const int*)> getGenomeScores = [this, unusedTeamScores](const int *Genome) {return getTeamScores(Genome, unusedTeamScores);};
     //// multi-threaded scoring of each genome
     //QVector<float> scores = QtConcurrent::blockingMapped(genomes, getGenomeScores);
     ///////
@@ -2124,11 +2165,11 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     bool localOptimizationStopped = false;
 
     // now optimize
-    do								// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
+    do						// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
     {
-        do							// keep optimizing until reach stability or maxGenerations
+        do					// keep optimizing until reach stability or maxGenerations
         {
-            // find the elites (n best scores) in genePool and copy each to tempPool
+            // clone the elites in genePool into tempPool
             float minScore = *std::min_element(scores.constBegin(), scores.constEnd());
             for(int genome = 0; genome < numElites; genome++)
             {
@@ -2147,7 +2188,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
                 scores[indexOfBestTeamset[genome]] = tempScores[genome];
             }
 
-            // create populationSize-numElites children and place in tempPool
+            // create rest of population in tempPool by mating
             for(int genome = numElites; genome < populationSize; genome++)
             {
                 //get a couple of parents
@@ -2161,8 +2202,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
                 }
             }
 
-            // mutate non-elite genomes in tempPool with some probability--if a mutation occurs, mutate same genome again with same probability
-            for(int genome = numElites; genome < populationSize; genome++)
+            // mutate all but the top scoring genome in tempPool with some probability--if a mutation occurs, mutate same genome again with same probability
+            for(int genome = 1; genome < populationSize; genome++)
             {
                 while(rand() < mutationLikelihood)
                 {
@@ -2314,7 +2355,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         for(int team = 0; team < numTeams; team++)
         {
             int firstStudentInTeam = ID;
-            int numStudentsWithAmbiguousSchedules = 0;
+
             // combine each student's schedule array into a team schedule array
             QVector<bool> teamAvailability(dataOptions.dayNames.size()*dataOptions.timeNames.size());
             for(int time = 0; time < (dataOptions.dayNames.size()*dataOptions.timeNames.size()); time++)
@@ -2327,11 +2368,23 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                     {
                         teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
                     }
-                    numStudentsWithAmbiguousSchedules += student[teammates[ID]].ambiguousSchedule? 1: 0;
                     ID++;
                 }
             }
-            if(numStudentsWithAmbiguousSchedules < (teamSize[team]-2))   // keep schedule score at 0 if all but 2 students have ambiguous sched, to avoid runaway huge score by grouping them
+
+            // count number of students with ambiguous schedules
+            int numStudentsWithAmbiguousSchedules = 0;
+            ID = firstStudentInTeam;
+            for(int teammate = 0; teammate < teamSize[team]; teammate++)
+            {
+                if(student[teammates[ID]].ambiguousSchedule)
+                {
+                    numStudentsWithAmbiguousSchedules++;
+                }
+                ID++;
+            }
+
+            if((teamSize[team] == 2) || (numStudentsWithAmbiguousSchedules < (teamSize[team]-2)))   // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping them
             {
                 // count how many free time blocks there are
                 if(teamingOptions.meetingBlockSize == 1)
@@ -2374,7 +2427,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                 }
                 else													// if team has fewer than minTimeBlocksOverlap, apply penalty
                 {
-                    schedScore[team] = -(dataOptions.numAttributes + 1);
+                    schedScore[team] = -realNumScoringFactors;
                 }
             }
         }
@@ -2402,15 +2455,15 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
             }
             if(teamingOptions.isolatedWomenPrevented && numWomen == 1)
             {
-                genderAdj[team] -= (dataOptions.numAttributes + 1);
+                genderAdj[team] -= realNumScoringFactors;
             }
             if(teamingOptions.isolatedMenPrevented && numMen == 1)
             {
-                genderAdj[team] -= (dataOptions.numAttributes + 1);
+                genderAdj[team] -= realNumScoringFactors;
             }
             if(teamingOptions.mixedGenderPreferred && (numMen == 0 || numWomen == 0))
             {
-                genderAdj[team] -= (dataOptions.numAttributes + 1);
+                genderAdj[team] -= realNumScoringFactors;
             }
         }
     }
@@ -2432,7 +2485,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
             }
             if(numURM == 1)
             {
-                URMAdj[team] -= (dataOptions.numAttributes + 1);
+                URMAdj[team] -= realNumScoringFactors;
             }
         }
     }
@@ -2463,10 +2516,10 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                                 studentBOnTeam = true;
                             }
                         }
-                        //if the pairing was not found, then adjustment = -(numAttributes + 1)
+                        //if the pairing was not found, then adjustment = -realNumScoringFactors
                         if(!studentBOnTeam)
                         {
-                            reqTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                            reqTeammateAdj[team] = -realNumScoringFactors;
                         }
                     }
                 }
@@ -2488,10 +2541,10 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                 //loop studentB from studentA+1 to last student in team
                 for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSize[team]); studentB++)
                 {
-                    //if pairing prevented, adjustment = -(numAttributes + 1)
+                    //if pairing prevented, adjustment = -realNumScoringFactors
                     if(student[teammates[studentA]].preventedWith[teammates[studentB]])
                     {
-                        prevTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                        prevTeammateAdj[team] = -realNumScoringFactors;
                     }
                 }
             }
@@ -2533,7 +2586,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
                     //apply penalty if student has unfulfilled requests that exceed the number allowed
                     if(numRequestedTeammatesFound < std::min(numRequestedTeammates, teamingOptions.numberRequestedTeammatesGiven))
                     {
-                        requestedTeammateAdj[team] = -(dataOptions.numAttributes + 1);
+                        requestedTeammateAdj[team] = -realNumScoringFactors;
                     }
                 }
             }
@@ -2557,7 +2610,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
         {
             teamScores[team] += attributeScore[attribute][team];
         }
-        teamScores[team] = 100*teamScores[team] / (dataOptions.numAttributes + 1);
+        teamScores[team] = 100*teamScores[team] / realNumScoringFactors;
     }
 
     //Use the harmonic mean for the "total score"
@@ -2610,12 +2663,14 @@ void gruepr::refreshTeamInfo()
     int ID = 0;
     for(int team = 0; team < numTeams; team++)
     {
-        QString teamToolTip;
+        QString teamToolTip = "<html>" + tr("Team ") + teamNames[team] + "<br>";
         instructorsFileContents += tr("Team ") + teamNames[team] + tr("  -  Score = ") + QString::number(double(teamScores[team]), 'f', 2) + "\n\n";
         studentsFileContents += tr("Team ") + teamNames[team] + "\n\n";
 
         //loop through each teammate in the team
         QVector<QVector<int>> canMeetAt(dataOptions.dayNames.size(), QVector<int>(dataOptions.timeNames.size(), 0));
+        int numStudentsWithAmbiguousSchedules = 0, numWomen = 0, numMen = 0, numNonBinary = 0, numURM = 0;
+        int minAttributeLevel[maxAttributes] = {0}, maxAttributeLevel[maxAttributes] = {0};
         for(int teammate = 0; teammate < teamSize[team]; teammate++)
         {
             instructorsFileContents += "  ";
@@ -2625,14 +2680,17 @@ void gruepr::refreshTeamInfo()
                 if(student[bestGenome[ID]].gender == studentRecord::woman)
                 {
                     instructorsFileContents += " woman ";
+                    numWomen++;
                 }
                 else if(student[bestGenome[ID]].gender == studentRecord::man)
                 {
                     instructorsFileContents += "  man  ";
+                    numMen++;
                 }
                 else
                 {
                     instructorsFileContents += "   x   ";
+                    numNonBinary++;
                 }
             }
             if(dataOptions.URMIncluded)
@@ -2640,6 +2698,7 @@ void gruepr::refreshTeamInfo()
                 if(student[bestGenome[ID]].URM)
                 {
                     instructorsFileContents += " URM ";
+                    numURM++;
                 }
                 else
                 {
@@ -2656,6 +2715,14 @@ void gruepr::refreshTeamInfo()
                 {
                     instructorsFileContents += "x  ";
                 }
+                if(student[bestGenome[ID]].attribute[attribute] < minAttributeLevel[attribute] || minAttributeLevel[attribute] == 0)
+                {
+                    minAttributeLevel[attribute] = student[bestGenome[ID]].attribute[attribute];
+                }
+                if(student[bestGenome[ID]].attribute[attribute] > maxAttributeLevel[attribute] || maxAttributeLevel[attribute] == 0)
+                {
+                    maxAttributeLevel[attribute] = student[bestGenome[ID]].attribute[attribute];
+                }
             }
             int nameSize = (student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname).size();
             instructorsFileContents += student[bestGenome[ID]].firstname + " " + student[bestGenome[ID]].lastname +
@@ -2665,22 +2732,69 @@ void gruepr::refreshTeamInfo()
             spreadsheetFileContents += student[bestGenome[ID]].section + "\t" + teamNames[team] + "\t" + student[bestGenome[ID]].firstname +
                     " " + student[bestGenome[ID]].lastname + "\t" + student[bestGenome[ID]].email + "\n";
 
-            for(int day = 0; day < dataOptions.dayNames.size(); day++)
+            if(!student[bestGenome[ID]].ambiguousSchedule)
             {
-                for(int time = 0; time < dataOptions.timeNames.size(); time++)
+                for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
-                    if(!student[bestGenome[ID]].unavailable[(day*dataOptions.timeNames.size())+time])
+                    for(int time = 0; time < dataOptions.timeNames.size(); time++)
                     {
-                        canMeetAt[day][time]++;
+                        if(!student[bestGenome[ID]].unavailable[(day*dataOptions.timeNames.size())+time])
+                        {
+                            canMeetAt[day][time]++;
+                        }
                     }
                 }
             }
+            else
+            {
+                numStudentsWithAmbiguousSchedules++;
+            }
+
             ID++;
         }
-
+        if(dataOptions.genderIncluded)
+        {
+            teamToolTip += tr("Gender") + ":  ";
+            if(numWomen > 0)
+            {
+                teamToolTip += QString::number(numWomen) + (numWomen > 1? tr(" women") : tr(" woman"));
+            }
+            if(numWomen > 0 && numMen > 0)
+            {
+                teamToolTip += ", ";
+            }
+            if(numMen > 0)
+            {
+                teamToolTip += QString::number(numMen) + (numMen > 1? tr(" men") : tr(" man"));
+            }
+            if((numWomen > 0 || numMen > 0) && numNonBinary > 0)
+            {
+                teamToolTip += ", ";
+            }
+            if(numNonBinary > 0)
+            {
+                teamToolTip += QString::number(numNonBinary) + tr(" non-binary/unknown");
+            }
+        }
+        if(dataOptions.URMIncluded)
+        {
+            teamToolTip += "<br>" + tr("URM") + ":  " + QString::number(numURM);
+        }
+        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+        {
+            teamToolTip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+            if(minAttributeLevel[attribute] == maxAttributeLevel[attribute])
+            {
+                teamToolTip += QString::number(minAttributeLevel[attribute]);
+            }
+            else
+            {
+                teamToolTip += QString::number(minAttributeLevel[attribute]) + " - " + QString::number(maxAttributeLevel[attribute]);
+            }
+        }
         if(dataOptions.dayNames.size() > 0)
         {
-            teamToolTip = "<html>" + tr("Team ") + teamNames[team] + tr(" availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
+            teamToolTip += "<br>--<br>" + tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
@@ -2702,7 +2816,7 @@ void gruepr::refreshTeamInfo()
                 studentsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
-                    QString percentage = QString::number((100*canMeetAt[day][time])/teamSize[team]) + "% ";
+                    QString percentage = QString::number((100*canMeetAt[day][time]) / (teamSize[team]-numStudentsWithAmbiguousSchedules)) + "% ";
                     if(percentage == "100% ")
                     {
                         teamToolTip += "<td align='center' bgcolor='PaleGreen'><b>" + percentage + "</b></td>";
@@ -2802,7 +2916,7 @@ void gruepr::refreshTeamInfo()
         //create student items in each team
         foreach(const auto& studentOnThisTeam, i.value())
         {
-            QString studentToolTip = "<html>" + studentOnThisTeam.availabilityChart + "</html>";
+            QString studentToolTip = createAToolTip(studentOnThisTeam, false);
             childItem = new QTreeWidgetItem;
             int column = 0;
             childItem->setText(column, studentOnThisTeam.firstname + " " + studentOnThisTeam.lastname);
@@ -2881,6 +2995,8 @@ void gruepr::refreshTeamInfo()
          teamDataTree->topLevelItem(team)->setExpanded(expanded[team]);
     }
     delete [] expanded;
+
+    setWindowModified(true);
 
     QApplication::restoreOverrideCursor();
 }
@@ -2962,6 +3078,7 @@ void gruepr::printFiles(bool printInstructorsFile, bool printStudentsFile, bool 
             printer->setOrientation(QPrinter::Landscape);
             textDocument.print(printer);
         }
+        setWindowModified(false);
     }
     delete printer;
 }
@@ -2974,7 +3091,7 @@ QPrinter* gruepr::setupPrinter()
     return printer;
 }
 
-void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter* printer)
+void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter *printer)
 {
     QPainter painter(printer);
     painter.setFont(font);

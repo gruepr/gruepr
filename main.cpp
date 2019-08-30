@@ -32,7 +32,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
 // - integrate with Google Drive: download survey results from within the application
-// - compile for OSX
+// - remover button in student table: bug that causes crash? and add mouse enter event to select row of table
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 
     gruepr w;
     w.show();
+    w.setWindowTitle("[*]");
 
     splash->finish(&w);
     delete splash;
