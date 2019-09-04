@@ -19,7 +19,7 @@
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
 
 //    This software incorporates code from the open source Qt libraries,
-//    using version 5.12.1. These can be freely downloaded from
+//    using version 5.12 or 5.13. These can be freely downloaded from
 //    < http://qt.io/download >.
 
 //    Icons were originally created by Icons8 < https://icons8.com >.
@@ -32,7 +32,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
 // - integrate with Google Drive: download survey results from within the application
-// - remover button in student table: bug that causes crash? and add mouse enter event to select row of table
+// - remover button in student table: bug that causes crash?
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     gruepr w;
     w.show();
-    w.setWindowTitle("[*]");
+    w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
 
     splash->finish(&w);
     delete splash;

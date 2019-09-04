@@ -5,6 +5,7 @@
 
 #include <QTreeWidget>
 #include <QTableWidget>
+#include <QPushButton>
 
 
 // a subclassed QTableWidgetItem that allows correct sorting according to data and time from timestamp text
@@ -50,6 +51,22 @@ signals:
 private:
     QTreeWidgetItem* draggedItem;
     QTreeWidgetItem* droppedItem;
+};
+
+
+// a subclassed QPushButton that passes mouse enter events to its parent
+class PushButtonThatSignalsMouseEnterEvents : public QPushButton
+{
+    Q_OBJECT
+
+public:
+    PushButtonThatSignalsMouseEnterEvents(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
+
+protected:
+    void enterEvent(QEvent *event);
+
+signals:
+    void mouseEntered();
 };
 
 

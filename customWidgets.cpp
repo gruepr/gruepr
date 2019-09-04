@@ -235,3 +235,22 @@ void TeamTreeWidget::itemEntered(const QModelIndex &index)
 {
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
+
+
+//////////////////
+// QPushButton that passes mouse enter events to its parent
+//////////////////
+PushButtonThatSignalsMouseEnterEvents::PushButtonThatSignalsMouseEnterEvents(const QIcon &icon, const QString &text, QWidget *parent)
+    :QPushButton (icon, text, parent)
+{
+    this->setFlat(true);
+    this->setMouseTracking(true);
+    this->setIconSize(QSize(20,20));
+    this->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
+}
+
+void PushButtonThatSignalsMouseEnterEvents::enterEvent(QEvent *event)
+{
+    emit mouseEntered();
+    event->ignore();
+}

@@ -455,14 +455,25 @@ void gruepr::on_studentTable_cellEntered(int row, int /*unused column value*/)
 {
     // select the current row, reset the background color of the remover button in previously selected row and change the remover in the current row
     ui->studentTable->selectRow(row);
-    static int prevRow = -1;
-    static QString prevStyleSheet = "";
-    if(prevRow != -1)
+    static int prevID = -1;
+    if(prevID != -1)
     {
-        ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet(prevStyleSheet);
+        int prevRow = 0;
+        while((prevRow < ui->studentTable->rowCount()) && (prevID != ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("StudentID").toInt()))
+            prevRow++;
+        if(prevRow < ui->studentTable->rowCount())
+        {
+            if(ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("duplicate").toBool())
+            {
+                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+            }
+            else
+            {
+                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet("");
+            }
+        }
     }
-    prevRow = row;
-    prevStyleSheet = ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->styleSheet();
+    prevID = ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->property("StudentID").toInt();
     ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
 }
 
@@ -1016,11 +1027,15 @@ void gruepr::optimizationComplete()
     // free memory used to save array of IDs of students being teamed
     delete [] studentIDs;
 
-    // Unpack the best team set and print teams list on the screen
+    // Unpack the best team set, set the teamNames according to current option (unless custom teamNames already loaded), and print teams list on the screen
     QList<int> bestTeamSet = future.result();
     for(int ID = 0; ID < numStudents; ID++)
     {
         bestGenome[ID] = bestTeamSet[ID];
+    }
+    if(ui->teamNamesComboBox->currentIndex() < 7)
+    {
+        on_teamNamesComboBox_currentIndexChanged(ui->teamNamesComboBox->currentIndex());
     }
 
     refreshTeamInfo();
@@ -1148,13 +1163,18 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         //Open specialized dialog box to collect teamnames
         customTeamnamesDialog *window = new customTeamnamesDialog(numTeams, teamNames, this);
 
-        //If user clicks OK, use these team sizes, otherwise revert to previous option
+        //If user clicks OK, use these team names, otherwise revert to previous option
         int reply = window->exec();
         if(reply == QDialog::Accepted)
         {
             for(int team = 0; team < numTeams; team++)
             {
                 teamNames[team] = (window->teamName[team].text().isEmpty()? QString::number(team+1) : window->teamName[team].text());
+            }
+            // reset remaining teamNames to arabic numerals
+            for(int team = numTeams; team < maxTeams; team++)
+            {
+                teamNames << QString::number(team+1);
             }
             prevIndex = 7;
             bool currentValue = ui->teamNamesComboBox->blockSignals(true);
@@ -1397,7 +1417,7 @@ void gruepr::on_AboutButton_clicked()
                           "<p>gruepr is an open source project. The source code is freely available at"
                           "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
                           "<p>gruepr incorporates:"
-                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the GNU Lesser General Public License version 3</li>"
+                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.12 or 5.13</a>, released under the GNU Lesser General Public License version 3</li>"
                               "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
                               "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
                                                                     "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
@@ -1618,7 +1638,7 @@ bool gruepr::loadSurveyData(QString fileName)
         {
             for(auto i : scheduleFields)
             {
-                allTimeNames << QString(fields.at(i).toLocal8Bit()).toLower().split(';');
+                allTimeNames << ReadCSVLine(QString(fields.at(i).toLocal8Bit()).toLower().split(';').join(','));
             }
             fields = ReadCSVLine(in.readLine(), TotNumQuestions);
         }
@@ -1688,10 +1708,14 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 
     // first 4 fields: timestamp, first or preferred name, last name, email address
     int fieldnum = 0;
-    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT1);
+    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT1);         // format when downloaded direct from Form
     if(student.surveyTimestamp.isNull())
     {
-        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT2);
+        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT2);     // alt. format when downloaded direct from Form
+        if(student.surveyTimestamp.isNull())
+        {
+            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()), TIMESTAMP_FORMAT3);   // format when downloaded from Form Results Spreadsheet
+        }
     }
 
     fieldnum++;
@@ -1929,7 +1953,7 @@ QStringList gruepr::ReadCSVLine(QString line, int minFields)
 void gruepr::refreshStudentDisplay()
 {
     ui->dataDisplayTabWidget->setCurrentIndex(0);
-    ui->studentTable->clearContents();
+    ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
     ui->studentTable->setColumnCount(dataOptions.sectionIncluded? 5 : 4);
     ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Survey\nSubmission\nTime")));
@@ -1990,14 +2014,15 @@ void gruepr::refreshStudentDisplay()
                 column++;
             }
 
-            QPushButton *removerButton = new QPushButton(QIcon(":/icons/delete.png") , "", this);
-            removerButton->setFlat(true);
-            removerButton->setIconSize(QSize(20,20));
-            removerButton->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
+            PushButtonThatSignalsMouseEnterEvents *removerButton = new PushButtonThatSignalsMouseEnterEvents(QIcon(":/icons/delete.png"), "", this);
             removerButton->setProperty("StudentID", student[ID].ID);
+            removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
                 removerButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
-            connect(removerButton, &QPushButton::clicked, this, &gruepr::removeAStudent);
+            connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::clicked, this, &gruepr::removeAStudent);
+            // pass on mouse enter events onto cell in table
+            connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered,
+                [this, removerButton](){int row=0; while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)) row++; on_studentTable_cellEntered(row,0);});
             ui->studentTable->setCellWidget(numStudents, column, removerButton);
 
             numStudents++;

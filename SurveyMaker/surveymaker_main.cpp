@@ -19,7 +19,7 @@
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
 
 //    This software incorporates code from the open source Qt libraries,
-//    using version 5.12.1. These can be freely downloaded from
+//    using version 5.12 or 5.13. These can be freely downloaded from
 //    < http://qt.io/download >.
 
 //    Icons were originally created by Icons8 < https://icons8.com >.

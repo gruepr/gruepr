@@ -14,10 +14,7 @@
 #include "gruepr_structs_and_consts.h"
 
 
-namespace Ui
-{
-class gruepr;
-}
+namespace Ui {class gruepr;}
 
 
 class gruepr : public QMainWindow

@@ -102,7 +102,7 @@ void SurveyMaker::refreshPreview()
     if(schedule)
     {
         preview += "<h3>Please tell us about your weekly schedule.</h3>";
-        preview += "<p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
+        preview += "<p>Check the times that you are BUSY and will be UNAVAILABLE for group work.</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
         preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
         for(int time = startTime; time <= endTime; time++)
         {
@@ -161,13 +161,22 @@ void SurveyMaker::refreshPreview()
 
 void SurveyMaker::on_makeSurveyButton_clicked()
 {
+    //make sure we have at least one attribute or the schedule question
+    bool weGotProblems = ((numAttributes == 0) && !schedule);
+
+    if(weGotProblems)
+    {
+        QMessageBox::critical(this, tr("Error!"), tr("A gruepr survey must have at least one\nattribute question and/or a schedule question.\nThe survey has NOT been created."));
+        return;
+    }
+
     //make sure we can connect to google
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     QEventLoop loop;
     QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
     connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    weGotProblems = (networkReply->bytesAvailable() == 0);
     delete manager;
 
     if(weGotProblems)
@@ -175,22 +184,20 @@ void SurveyMaker::on_makeSurveyButton_clicked()
         QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created."));
         return;
     }
-    else
+
+    QMessageBox createSurvey(this);
+    createSurvey.setIcon(QMessageBox::Information);
+    createSurvey.setWindowTitle(tr("Survey Creation"));
+    createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n"
+                            "You may be asked first to authorize gruepr to access your Google Drive.\n"
+                            "This authorization is needed so that the Google Form can be created for you.\n"
+                            "The survey creation itself will take 10 - 20 seconds. During this time, the browser window will be blank.\n"
+                            "A screen with additional information will be shown in your browser window as soon as the process is complete."));
+    createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+    if(createSurvey.exec() == QMessageBox::Ok)
     {
-        QMessageBox createSurvey(this);
-        createSurvey.setIcon(QMessageBox::Information);
-        createSurvey.setWindowTitle(tr("Survey Creation"));
-        createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n"
-                             "You may be asked first to authorize gruepr to access your Google Drive.\n"
-                             "This authorization is needed so that the Google Form can be created for you.\n"
-                             "The survey creation itself will take 10 - 20 seconds. During this time, the browser window will be blank.\n"
-                             "A screen with additional information will be shown in your browser window as soon as the process is complete."));
-        createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-        if(createSurvey.exec() == QMessageBox::Ok)
-        {
-            QDesktopServices::openUrl(QUrl(URL));
-            surveyCreated = true;
-        }
+        QDesktopServices::openUrl(QUrl(URL));
+        surveyCreated = true;
     }
 }
 
@@ -733,7 +740,7 @@ void SurveyMaker::on_aboutButton_clicked()
                           "<p>gruepr is an open source project. The source code is freely available at"
                           "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
                           "<p>gruepr incorporates:"
-                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.12.1</a>, released under the GNU Lesser General Public License version 3</li>"
+                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.12 or 5.13</a>, released under the GNU Lesser General Public License version 3</li>"
                               "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
                               "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
                                                                     "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
