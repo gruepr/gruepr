@@ -136,4 +136,28 @@ private:
 };
 
 
+class editOrAddStudentDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    editOrAddStudentDialog(studentRecord studentToBeEdited, DataOptions dataOptions, QStringList sectionNames, QWidget *parent = nullptr);
+    ~editOrAddStudentDialog();
+
+    studentRecord student;
+
+private slots:
+    void recordEdited();
+
+private:
+    DataOptions dataOptions;
+    QGridLayout *theGrid;
+    QLabel *explanation;
+    QLineEdit *datatext;
+    QComboBox *databox;
+    QSpinBox *datanumber;
+    QDialogButtonBox *buttonBox;
+};
+
+
 #endif // CUSTOMDIALOGS

@@ -155,13 +155,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->studentTable->setRowCount(0);
         ui->studentTable->setColumnCount(0);
         ui->studentTable->setEnabled(false);
-        ui->addStudentFirstName->setEnabled(false);
-        ui->addStudentLastName->setEnabled(false);
-        ui->addStudentEmail->setEnabled(false);
-        ui->addStudentGenderComboBox->setEnabled(false);
-        ui->addStudentURMComboBox->setEnabled(false);
-        ui->addStudentSectionComboBox->setEnabled(false);
-        ui->addStudentSectionComboBox->clear();
         ui->addStudentPushButton->setEnabled(false);
         ui->teamDataLayout->setEnabled(false);
         teamDataTree->setEnabled(false);
@@ -207,9 +200,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->loadSettingsButton->setEnabled(true);
             ui->statusBar->showMessage("File: " + dataOptions.dataFile.fileName());
             ui->studentTable->setEnabled(true);
-            ui->addStudentFirstName->setEnabled(true);
-            ui->addStudentLastName->setEnabled(true);
-            ui->addStudentEmail->setEnabled(true);
             ui->addStudentPushButton->setEnabled(true);
             ui->teamDataLayout->setEnabled(true);
             ui->requiredTeammatesButton->setEnabled(true);
@@ -242,21 +232,15 @@ void gruepr::on_loadSurveyFileButton_clicked()
                     ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
                     ui->sectionSelectionBox->insertSeparator(1);
                     ui->sectionSelectionBox->addItems(sectionNames);
-                    ui->addStudentSectionComboBox->show();
-                    ui->addStudentSectionComboBox->setEnabled(true);
-                    ui->addStudentSectionComboBox->addItems(sectionNames);
                 }
                 else
                 {
                     ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
-                    ui->addStudentSectionComboBox->hide();
                 }
             }
             else
             {
                 ui->sectionSelectionBox->addItem(tr("No section data."));
-                ui->addStudentSectionComboBox->setEnabled(false);
-                ui->addStudentSectionComboBox->hide();
             }
             on_sectionSelectionBox_currentIndexChanged(ui->sectionSelectionBox->currentText());     // also loads data into student table
             ui->studentTable->sortByColumn(0, Qt::AscendingOrder);
@@ -285,28 +269,16 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
             if(dataOptions.genderIncluded)
             {
-                ui->addStudentGenderComboBox->show();
-                ui->addStudentGenderComboBox->setEnabled(true);
                 ui->isolatedWomenCheckBox->setEnabled(true);
                 ui->isolatedMenCheckBox->setEnabled(true);
                 ui->mixedGenderCheckBox->setEnabled(true);
                 ui->label_15->setEnabled(true);
             }
-            else
-            {
-                ui->addStudentGenderComboBox->hide();
-            }
 
             if(dataOptions.URMIncluded)
             {
-                ui->addStudentURMComboBox->show();
-                ui->addStudentURMComboBox->setEnabled(true);
                 ui->isolatedURMCheckBox->setEnabled(true);
                 ui->label_24->setEnabled(true);
-            }
-            else
-            {
-                ui->addStudentURMComboBox->hide();
             }
 
             if(dataOptions.dayNames.size() > 0)
@@ -427,7 +399,7 @@ void gruepr::on_clearSettingsButton_clicked()
     if(!registeredUser.isEmpty())
     {
         savedSettings.setValue("registeredUser", registeredUser);
-        savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+        savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash(registeredUser.toUtf8(), QCryptographicHash::Md5).toHex()));
     }
 
     ui->clearSettingsButton->setEnabled(false);
@@ -446,14 +418,14 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
     refreshStudentDisplay();
 
-    ui->idealTeamSizeBox->setMaximum(numStudents/2);
+    ui->idealTeamSizeBox->setMaximum(std::max(4,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 }
 
 
 void gruepr::on_studentTable_cellEntered(int row, int /*unused column value*/)
 {
-    // select the current row, reset the background color of the remover button in previously selected row and change the remover in the current row
+    // select the current row, reset the background color of the edit and remover buttons in previously selected row and change the remover in the current row
     ui->studentTable->selectRow(row);
     static int prevID = -1;
     if(prevID != -1)
@@ -466,15 +438,91 @@ void gruepr::on_studentTable_cellEntered(int row, int /*unused column value*/)
             if(ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("duplicate").toBool())
             {
                 ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-2)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
             }
             else
             {
                 ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet("");
+                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-2)->setStyleSheet("");
             }
         }
     }
     prevID = ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->property("StudentID").toInt();
     ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
+    ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
+}
+
+
+void gruepr::editAStudent()
+{
+    //Find the student record
+    int ID = 0;
+    while(sender()->property("StudentID").toInt() != student[ID].ID)
+        ID++;
+
+    QStringList sectionNames;
+    if(dataOptions.sectionIncluded)
+    {
+        for(int ID = 0; ID < numStudents; ID++)
+        {
+            if(!sectionNames.contains(student[ID].section))
+            {
+                sectionNames.append(student[ID].section);
+            }
+        }
+    }
+
+    //Open window with the student record in it
+    editOrAddStudentDialog *window = new editOrAddStudentDialog(student[ID], dataOptions, sectionNames, this);
+
+    //If user clicks OK, replace student in the database with edited copy
+    int reply = window->exec();
+    if(reply == QDialog::Accepted)
+    {
+        student[ID] = window->student;
+
+        //Re-do the section options in the selection box (in case user added a new section name)
+        if(dataOptions.sectionIncluded)
+        {
+            QString currentSection = ui->sectionSelectionBox->currentText();
+            ui->sectionSelectionBox->clear();
+            //get number of sections
+            QStringList newSectionNames;
+            for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+            {
+                if(!newSectionNames.contains(student[ID].section))
+                {
+                    newSectionNames.append(student[ID].section);
+                }
+            }
+            if(newSectionNames.size() > 1)
+            {
+                QCollator sortAlphanumerically;
+                sortAlphanumerically.setNumericMode(true);
+                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+                std::sort(newSectionNames.begin(), newSectionNames.end(), sortAlphanumerically);
+                ui->sectionSelectionBox->setEnabled(true);
+                ui->label_2->setEnabled(true);
+                ui->label_22->setEnabled(true);
+                ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
+                ui->sectionSelectionBox->insertSeparator(1);
+                ui->sectionSelectionBox->addItems(newSectionNames);
+            }
+            else
+            {
+                ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+            }
+
+            if(ui->sectionSelectionBox->findText(currentSection) != -1)
+            {
+                ui->sectionSelectionBox->setCurrentText(currentSection);
+            }
+        }
+
+        refreshStudentDisplay();
+    }
+
+    delete window;
 }
 
 
@@ -507,47 +555,76 @@ void gruepr::on_addStudentPushButton_clicked()
 {
     if(dataOptions.numStudentsInSystem < maxStudents)
     {
-        student[dataOptions.numStudentsInSystem].ID = dataOptions.numStudentsInSystem;
-        student[dataOptions.numStudentsInSystem].firstname = (ui->addStudentFirstName->text()).trimmed();
-        student[dataOptions.numStudentsInSystem].firstname[0] = student[dataOptions.numStudentsInSystem].firstname[0].toUpper();
-        student[dataOptions.numStudentsInSystem].lastname = (ui->addStudentLastName->text()).trimmed();
-        student[dataOptions.numStudentsInSystem].lastname[0] = student[dataOptions.numStudentsInSystem].lastname[0].toUpper();
-        student[dataOptions.numStudentsInSystem].email = (ui->addStudentEmail->text()).trimmed();
-        student[dataOptions.numStudentsInSystem].section = ui->addStudentSectionComboBox->currentText();
-        if(dataOptions.genderIncluded)
+        QStringList sectionNames;
+        if(dataOptions.sectionIncluded)
         {
-            if(ui->addStudentGenderComboBox->currentText()==tr("woman"))
+            for(int ID = 0; ID < numStudents; ID++)
             {
-                student[dataOptions.numStudentsInSystem].gender = studentRecord::woman;
-            }
-            else if(ui->addStudentGenderComboBox->currentText()==tr("man"))
-            {
-                student[dataOptions.numStudentsInSystem].gender = studentRecord::man;
-            }
-            else
-            {
-                student[dataOptions.numStudentsInSystem].gender = studentRecord::neither;
+                if(!sectionNames.contains(student[ID].section))
+                {
+                    sectionNames.append(student[ID].section);
+                }
             }
         }
-        if(dataOptions.URMIncluded)
+
+        //Open window with a blank student record in it
+        studentRecord newStudent;
+        newStudent.ID = dataOptions.numStudentsInSystem;
+        newStudent.surveyTimestamp = QDateTime::currentDateTime();
+        editOrAddStudentDialog *window = new editOrAddStudentDialog(newStudent, dataOptions, sectionNames, this);
+
+        //If user clicks OK, replace student in the database with edited copy
+        int reply = window->exec();
+        if(reply == QDialog::Accepted)
         {
-            student[dataOptions.numStudentsInSystem].URM = (ui->addStudentURMComboBox->currentText()==tr("URM"));
+            student[dataOptions.numStudentsInSystem] = window->student;
+            dataOptions.numStudentsInSystem++;
+
+            //Re-do the section options in the selection box (in case user added a new section name)
+            if(dataOptions.sectionIncluded)
+            {
+                QString currentSection = ui->sectionSelectionBox->currentText();
+                ui->sectionSelectionBox->clear();
+                //get number of sections
+                QStringList newSectionNames;
+                for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+                {
+                    if(!newSectionNames.contains(student[ID].section))
+                    {
+                        newSectionNames.append(student[ID].section);
+                    }
+                }
+                if(newSectionNames.size() > 1)
+                {
+                    QCollator sortAlphanumerically;
+                    sortAlphanumerically.setNumericMode(true);
+                    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+                    std::sort(newSectionNames.begin(), newSectionNames.end(), sortAlphanumerically);
+                    ui->sectionSelectionBox->setEnabled(true);
+                    ui->label_2->setEnabled(true);
+                    ui->label_22->setEnabled(true);
+                    ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
+                    ui->sectionSelectionBox->insertSeparator(1);
+                    ui->sectionSelectionBox->addItems(newSectionNames);
+                }
+                else
+                {
+                    ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+                }
+
+                if(ui->sectionSelectionBox->findText(currentSection) != -1)
+                {
+                    ui->sectionSelectionBox->setCurrentText(currentSection);
+                }
+            }
         }
-        for(int attributeNum = 0; attributeNum < maxAttributes; attributeNum++)
-        {
-            student[dataOptions.numStudentsInSystem].attribute[attributeNum] = -1;     //set all attribute levels to -1 as a flag to ignore during the teaming
-        }
-        for(int time = 0; time < maxTimeBlocks; time++)
-        {
-            student[dataOptions.numStudentsInSystem].unavailable[time] = false;
-        }
-        student[dataOptions.numStudentsInSystem].ambiguousSchedule = true;
-        dataOptions.numStudentsInSystem++;
 
         refreshStudentDisplay();
 
         ui->idealTeamSizeBox->setMaximum(numStudents/2);
         on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
+
+        delete window;
     }
     else
     {
@@ -1955,7 +2032,7 @@ void gruepr::refreshStudentDisplay()
     ui->dataDisplayTabWidget->setCurrentIndex(0);
     ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
-    ui->studentTable->setColumnCount(dataOptions.sectionIncluded? 5 : 4);
+    ui->studentTable->setColumnCount(dataOptions.sectionIncluded? 6 : 5);
     ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Survey\nSubmission\nTime")));
     ui->studentTable->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("First Name")));
     ui->studentTable->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Last Name")));
@@ -1965,6 +2042,8 @@ void gruepr::refreshStudentDisplay()
         ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Section")));
         column++;
     }
+    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Edit\nInfo")));
+    column++;
     ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Remove\nStudent")));
 
     ui->studentTable->setRowCount(dataOptions.numStudentsInSystem);
@@ -2014,7 +2093,21 @@ void gruepr::refreshStudentDisplay()
                 column++;
             }
 
+            PushButtonThatSignalsMouseEnterEvents *editButton = new PushButtonThatSignalsMouseEnterEvents(QIcon(":/icons/edit.png"), "", this);
+            editButton->setToolTip(tr("<html>Edit this record.<br><i>The survey file itself will NOT be changed.</i></html>"));
+            editButton->setProperty("StudentID", student[ID].ID);
+            editButton->setProperty("duplicate", duplicate);
+            if(duplicate)
+                editButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+            connect(editButton, &PushButtonThatSignalsMouseEnterEvents::clicked, this, &gruepr::editAStudent);
+            // pass on mouse enter events onto cell in table
+            connect(editButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered,
+                [this, editButton](){int row=0; while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2)) row++; on_studentTable_cellEntered(row,0);});
+            ui->studentTable->setCellWidget(numStudents, column, editButton);
+            column++;
+
             PushButtonThatSignalsMouseEnterEvents *removerButton = new PushButtonThatSignalsMouseEnterEvents(QIcon(":/icons/delete.png"), "", this);
+            removerButton->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
             removerButton->setProperty("StudentID", student[ID].ID);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)

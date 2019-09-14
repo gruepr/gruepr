@@ -246,7 +246,6 @@ PushButtonThatSignalsMouseEnterEvents::PushButtonThatSignalsMouseEnterEvents(con
     this->setFlat(true);
     this->setMouseTracking(true);
     this->setIconSize(QSize(20,20));
-    this->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
 }
 
 void PushButtonThatSignalsMouseEnterEvents::enterEvent(QEvent *event)

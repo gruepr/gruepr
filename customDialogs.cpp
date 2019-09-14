@@ -485,7 +485,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, QStringList teamNames
     theGrid->setRowMinimumHeight((numTeams/4)+1, 20);
     resetNamesButton = new QPushButton(this);
     resetNamesButton->setText(tr("&Clear All Names"));
-    theGrid->addWidget(resetNamesButton, (numTeams/4)+2, 0, 1, 1);
+    theGrid->addWidget(resetNamesButton, (numTeams/4)+2, 0, 1, 3);
     connect(resetNamesButton, &QPushButton::clicked, this, &customTeamnamesDialog::clearAllNames);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, (numTeams/4)+2, 3, 1, -1);
@@ -631,4 +631,171 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList p
     theGrid->addWidget(buttonBox, 5, 0);
 
     adjustSize();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to show/edit student data
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, DataOptions dataOptions, QStringList sectionNames, QWidget *parent)
+    :QDialog (parent)
+{
+    student = studentToBeEdited;
+    this->dataOptions = dataOptions;
+
+    //Set up window with a grid layout
+    if(studentToBeEdited.surveyTimestamp.secsTo(QDateTime::currentDateTime()) < 10)     // if timestamp is within the past 10 seconds, it is a new student
+    {
+        setWindowTitle(tr("Add new student record"));
+    }
+    else
+    {
+        setWindowTitle(tr("Edit student record"));
+    }
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    theGrid = new QGridLayout(this);
+
+    int numFields = 4 + (dataOptions.genderIncluded?1:0) + (dataOptions.URMIncluded?1:0) + (dataOptions.sectionIncluded?1:0) + dataOptions.numAttributes + (dataOptions.notesIncluded?1:0);
+    explanation = new QLabel[numFields];
+    datatext = new QLineEdit[numFields];
+    databox = new QComboBox[numFields];
+    datanumber = new QSpinBox[numFields];
+    int field = 0;
+
+    //Row 1 through 4--the required data
+    QStringList fieldNames = {tr("Survey timestamp"), tr("First name"), tr("Last name"), tr("Email address")};
+    QStringList fieldValues = {student.surveyTimestamp.toString(TIMESTAMP_FORMAT1), student.firstname, student.lastname, student.email};
+    for(int i = 0; i < 4; i++)
+    {
+        explanation[field].setText(fieldNames.at(field));
+        datatext[field].setText(fieldValues.at(field));
+        connect(&datatext[field], &QLineEdit::editingFinished, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&datatext[field], field, 1);
+        field++;
+    }
+
+    if(dataOptions.genderIncluded)
+    {
+        explanation[field].setText(tr("Gender"));
+        databox[field].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary/unknown"));
+        databox[field].setCurrentText(student.gender==studentRecord::woman?tr("woman"):(student.gender==studentRecord::man?tr("man"):tr("nonbinary/unknown")));
+        connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&databox[field], field, 1);
+        field++;
+    }
+
+    if(dataOptions.URMIncluded)
+    {
+        explanation[field].setText(tr("URM"));
+        databox[field].addItems(QStringList() << tr("yes") << tr("no"));
+        databox[field].setCurrentText(student.URM?tr("yes"):tr("no"));
+        connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&databox[field], field, 1);
+        field++;
+    }
+
+    if(dataOptions.sectionIncluded)
+    {
+        explanation[field].setText(tr("Section"));
+        databox[field].addItems(sectionNames);
+        databox[field].setCurrentText(student.section);
+        databox[field].setEditable(true);
+        connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&databox[field], field, 1);
+        field++;
+    }
+
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        explanation[field].setText(tr("Attribute ") + QString::number(attrib + 1));
+        datanumber[field].setValue(student.attribute[attrib]);
+        datanumber[field].setRange(0, 9);
+        if(datanumber[field].value() == 0)
+        {
+            datanumber[field].setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+        }
+        connect(&datanumber[field], QOverload<int>::of(&QSpinBox::valueChanged), [this](int /*unused new value*/){ recordEdited(); });
+        datanumber[field].setSpecialValueText(tr("not set/unknown"));
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&datanumber[field], field, 1);
+        field++;
+    }
+
+    if(dataOptions.notesIncluded)
+    {
+        explanation[field].setText(tr("Notes"));
+        datatext[field].setText(student.notes);
+        connect(&datatext[field], &QLineEdit::editingFinished, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&datatext[field], field, 1);
+        field++;
+    }
+
+    //a spacer then ok/cancel buttons
+    theGrid->setRowMinimumHeight(numFields+1, 20);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    theGrid->addWidget(buttonBox, numFields+2, 0, -1, -1);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    adjustSize();
+}
+
+
+editOrAddStudentDialog::~editOrAddStudentDialog()
+{
+    //delete dynamically allocated arrays created in class constructor
+    delete [] explanation;
+    delete [] datatext;
+    delete [] databox;
+    delete [] datanumber;
+}
+
+
+void editOrAddStudentDialog::recordEdited()
+{
+    student.surveyTimestamp = QDateTime::fromString(datatext[0].text(), TIMESTAMP_FORMAT1);
+    student.firstname = datatext[1].text();
+    student.lastname = datatext[2].text();
+    student.email = datatext[3].text();
+    int field = 4;
+    if(dataOptions.genderIncluded)
+    {
+        student.gender = (databox[field].currentText() == tr("woman")? studentRecord::woman : (databox[field].currentText() == tr("man")? studentRecord::man : studentRecord::neither));
+        field++;
+    }
+    if(dataOptions.URMIncluded)
+    {
+        student.URM = (databox[field].currentText()==tr("yes"));
+        field++;
+    }
+    if(dataOptions.sectionIncluded)
+    {
+        student.section = databox[field].currentText();
+        field++;
+    }
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        if(datanumber[field].value() != 0)
+        {
+            student.attribute[attrib] = datanumber[field].value();
+            datanumber[field].setStyleSheet("QSpinBox { }");
+        }
+        else
+        {
+            student.attribute[attrib] = -1;
+            datanumber[field].setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+        }
+        field++;
+    }
+    if(dataOptions.notesIncluded)
+    {
+        student.notes = datatext[field].text();
+        field++;
+    }
 }

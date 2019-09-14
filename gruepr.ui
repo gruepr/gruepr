@@ -337,118 +337,6 @@ border: 1px solid #d26385;
              <number>2</number>
             </property>
             <item>
-             <widget class="QLineEdit" name="addStudentFirstName">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="placeholderText">
-               <string>first name</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="addStudentLastName">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="placeholderText">
-               <string>last name</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="addStudentEmail">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="placeholderText">
-               <string>email address</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="addStudentGenderComboBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <item>
-               <property name="text">
-                <string>woman</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>man</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>non-binary</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="addStudentURMComboBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <item>
-               <property name="text">
-                <string>URM</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>non-URM</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="addStudentSectionComboBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>2</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="addStudentPushButton">
               <property name="enabled">
                <bool>false</bool>
@@ -460,10 +348,10 @@ border: 1px solid #d26385;
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;Add this record to the current student set.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;Add a student to the current dataset.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Add Student</string>
+               <string>Add a Student</string>
               </property>
               <property name="icon">
                <iconset resource="gruepr.qrc">
@@ -471,8 +359,8 @@ border: 1px solid #d26385;
               </property>
               <property name="iconSize">
                <size>
-                <width>20</width>
-                <height>20</height>
+                <width>30</width>
+                <height>30</height>
                </size>
               </property>
              </widget>

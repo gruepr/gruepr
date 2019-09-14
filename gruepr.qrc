@@ -30,5 +30,6 @@
         <file>icons/branch-end.png</file>
         <file>icons/branch-more.png</file>
         <file>icons/branch-open.png</file>
+        <file>icons/edit.png</file>
     </qresource>
 </RCC>

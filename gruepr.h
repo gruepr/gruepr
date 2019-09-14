@@ -33,6 +33,7 @@ private slots:
     void on_sectionSelectionBox_currentIndexChanged(const QString &arg1);
     void on_studentTable_cellEntered(int row, int column);
     void removeAStudent();
+    void editAStudent();
     void on_addStudentPushButton_clicked();
     void on_attributeScrollBar_valueChanged(int value);
     void on_attributeWeight_valueChanged(double arg1);

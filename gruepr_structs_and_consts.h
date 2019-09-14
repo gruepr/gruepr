@@ -32,8 +32,8 @@ const int maxTimeBlocks = 7*24;                         // resolution of schedul
 struct studentRecord
 {
     int ID;                                             // ID is assigned in order of appearance in the data file
-    enum {woman, man, neither} gender;
-    bool URM;                                           // true if this student is from an underrepresented minority group
+    enum Gender {woman, man, neither} gender = studentRecord::neither;
+    bool URM = false;                                   // true if this student is from an underrepresented minority group
     bool unavailable[maxTimeBlocks] = {false};			// true if this is a busy block during week
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
     bool preventedWith[maxStudents] = {false};			// true if this student is prevented from working with the corresponding student
