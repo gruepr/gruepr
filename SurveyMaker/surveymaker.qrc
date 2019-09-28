@@ -9,5 +9,8 @@
         <file>help.png</file>
         <file>help.html</file>
         <file>surveymaker.icns</file>
+        <file>open.png</file>
+        <file>save.png</file>
+        <file>complete.png</file>
     </qresource>
 </RCC>

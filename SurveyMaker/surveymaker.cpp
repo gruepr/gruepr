@@ -4,6 +4,8 @@
 #include <QtNetwork>
 #include <QDesktopServices>
 #include <QTextBrowser>
+#include <QFileDialog>
+#include <QJsonDocument>
 
 SurveyMaker::SurveyMaker(QWidget *parent) :
     QMainWindow(parent),
@@ -16,6 +18,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     //Restore window geometry
     QSettings savedSettings;
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
+    saveFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
     noCommas = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
@@ -30,6 +33,8 @@ SurveyMaker::~SurveyMaker()
 void SurveyMaker::refreshPreview()
 {
     int currPos = ui->previewText->verticalScrollBar()->value();
+
+    // generate preview text
     QString preview = "<h2>" + title + "</h2>";
     preview += "<h3>First, some basic information</h3>"
                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your first name (or the name you prefer to be called)?<br></p>"
@@ -46,50 +51,7 @@ void SurveyMaker::refreshPreview()
     preview += "<hr>";
     if(numAttributes > 0)
     {
-        QStringList responseOptions = {
-            "response options will be added later, after creating the form",
-            "Yes / No",
-            "Yes / Maybe / No",
-            "Definitely / Probably / Maybe / Probably not / Definitely not",
-            "Strongly preferred / Preferred / Opposed / Strongly opposed",
-            "True / False",
-            "Like me / Not like me",
-            "Agree / Disagree",
-            "Strongly agree / Agree / Undecided / Disagree / Strongly disagree",
-            "4.0— 3.75 / 3.74— 3.5 / 3.49— 3.25 / 3.24— 3.0 / 2.99— 2.75 / 2.74— 2.5 / 2.49— 2.0 / Below 2.0 / Not sure, or prefer not to say",
-            "100— 90 / 89— 80 / 79— 70 / 69— 60 / 59— 50 / Below 50 / Not sure, or prefer not to say",
-            "A / B / C / D / F / Not sure, or prefer not to say",
-            "Very high / Above average / Average / Below average / Very low",
-            "Excellent / Very good / Good / Fair / Poor",
-            "Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative",
-            "A lot of experience / Some experience / Little experience / No experience",
-            "Extremely / Very / Moderately / Slightly / Not at all",
-            "A lot / Some / Very Little / None",
-            "Much more / More / About the same / Less / Much less",
-            "Most of the time / Some of the time / Seldom / Never",
-            "Available / Available, but prefer not to / Not available",
-            "Very frequently / Frequently / Occasionally / Rarely / Never",
-            "Definitely will / Probably will / Probably won't / Definitely won't",
-            "Very important / Important / Somewhat important / Not important",
-            "Leader / Mix of leader and follower / Follower",
-            "Highly confident / Moderately confident / Somewhat confident / Not confident",
-            "1 / 2 / 3",
-            "1 / 2 / 3 / 4",
-            "1 / 2 / 3 / 4 / 5",
-            "1 / 2 / 3 / 4 / 5 / 6",
-            "1 / 2 / 3 / 4 / 5 / 6 / 7",
-            "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8",
-            "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9",
-            "2 custom options, to be added after creating the form",
-            "3 custom options, to be added after creating the form",
-            "4 custom options, to be added after creating the form",
-            "5 custom options, to be added after creating the form",
-            "6 custom options, to be added after creating the form",
-            "7 custom options, to be added after creating the form",
-            "8 custom options, to be added after creating the form",
-            "9 custom options, to be added after creating the form",
-        };
-        preview += "<h3>This set of questions is about your past experiences/education and teamwork preferences.</h3>";
+        preview += "<h3>This set of questions is about your past experiences/education or teamwork preferences.</h3>";
         for(int attrib = 0; attrib < numAttributes; attrib++)
         {
                 preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;" +
@@ -140,16 +102,69 @@ void SurveyMaker::refreshPreview()
         preview += "<hr>";
     }
 
+    // generate URL
+
     URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
     URL += "title=" + QUrl::toPercentEncoding(ui->surveyTitleLineEdit->text()) + "&";
     URL += "gend=" + QString(gender? "true" : "false") + "&";
     URL += "urm=" + QString(URM? "true" : "false") + "&";
     URL += "numattr=" + QString::number(numAttributes) + "&";
+    QString allAttributeTexts;
+    for(int attrib = 0; attrib < numAttributes; attrib++)
+    {
+        if(attrib != 0)
+        {
+            allAttributeTexts += ",";
+        }
+
+        if(!(attributeTexts[attrib].isEmpty()))
+        {
+            allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
+        }
+        else
+        {
+            allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
+        }
+    }
     URL += "attrtext=" + allAttributeTexts + "&";
+    QString allAttributeResponses;
+    for(int attrib = 0; attrib < numAttributes; attrib++)
+    {
+        if(attrib != 0)
+        {
+            allAttributeResponses += ",";
+        }
+        allAttributeResponses += QString::number(attributeResponses[attrib]);
+    }
     URL += "attrresps=" + allAttributeResponses + "&";
     URL += "sched=" + QString(schedule? "true" : "false") + "&";
-    URL += "start=" + QString::number(startTime) + "&end=" + QString::number(endTime) + "&days=" + allDayNames + "&";
+    URL += "start=" + QString::number(startTime) + "&end=" + QString::number(endTime);
+    QString allDayNames;
+    bool firstDay = true;
+    for(int day = 0; day < 7; day++)
+    {
+        if(!(dayNames[day].isEmpty()))
+        {
+            if(!firstDay)
+            {
+                allDayNames += ",";
+            }
+            allDayNames += QUrl::toPercentEncoding(dayNames[day]);
+            firstDay = false;
+        }
+    }
+    URL += "&days=" + allDayNames + "&";
     URL += "sect=" + QString(section? "true" : "false") + "&";
+    QString allSectionNames;
+    if(section)
+    {
+        for(int sect = 0; sect < sectionNames.size(); sect++)
+        {
+            if(sect != 0)
+                allSectionNames += ",";
+            allSectionNames += QUrl::toPercentEncoding(sectionNames[sect]);
+        }
+    }
     URL += "sects=" + allSectionNames + "&";
     URL += "addl=" + QString(additionalQuestions? "true" : "false");
 
@@ -188,9 +203,10 @@ void SurveyMaker::on_makeSurveyButton_clicked()
     QMessageBox createSurvey(this);
     createSurvey.setIcon(QMessageBox::Information);
     createSurvey.setWindowTitle(tr("Survey Creation"));
-    createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n"
+    createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n\n"
                             "You may be asked first to authorize gruepr to access your Google Drive.\n"
-                            "This authorization is needed so that the Google Form can be created for you.\n"
+                            "This authorization is needed so that the Google Form and the results spreadsheet can be created for you.\n"
+                            "All data associated with this survey will exist in your Google Drive only.\nNo data from this survey will be kept anywhere else.\n\n"
                             "The survey creation itself will take 10 - 20 seconds. During this time, the browser window will be blank.\n"
                             "A screen with additional information will be shown in your browser window as soon as the process is complete."));
     createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
@@ -235,23 +251,6 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
     ui->attributeScrollBar->setMaximum(std::max(arg1-1,0));
     ui->attributeScrollBar->setEnabled(numAttributes > 0);
     ui->attributeTextEdit->setEnabled(numAttributes > 0);
-    allAttributeTexts.clear();
-    for(int attrib = 0; attrib < numAttributes; attrib++)
-    {
-        if(attrib != 0)
-        {
-            allAttributeTexts += ",";
-        }
-
-        if(!(attributeTexts[attrib].isEmpty()))
-        {
-            allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
-        }
-        else
-        {
-            allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
-        }
-    }
     refreshPreview();
 }
 
@@ -275,38 +274,12 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     }
 
     attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
-    allAttributeTexts.clear();
-    for(int attrib = 0; attrib < numAttributes; attrib++)
-    {
-        if(attrib != 0)
-        {
-            allAttributeTexts += ",";
-        }
-
-        if(!(attributeTexts[attrib].isEmpty()))
-        {
-            allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
-        }
-        else
-        {
-            allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
-        }
-    }
     refreshPreview();
 }
 
 void SurveyMaker::on_attributeComboBox_currentIndexChanged(int index)
 {
     attributeResponses[ui->attributeScrollBar->value()] = index;
-    allAttributeResponses.clear();
-    for(int attrib = 0; attrib < numAttributes; attrib++)
-    {
-        if(attrib != 0)
-        {
-            allAttributeResponses += ",";
-        }
-        allAttributeResponses += QString::number(attributeResponses[attrib]);
-    }
     refreshPreview();
 }
 
@@ -463,7 +436,6 @@ void SurveyMaker::on_day1LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[0] = ui->day1LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -488,7 +460,6 @@ void SurveyMaker::on_day2LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[1] = ui->day2LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -513,7 +484,6 @@ void SurveyMaker::on_day3LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[2] = ui->day3LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -538,7 +508,6 @@ void SurveyMaker::on_day4LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[3] = ui->day4LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -563,7 +532,6 @@ void SurveyMaker::on_day5LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[4] = ui->day5LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -588,7 +556,6 @@ void SurveyMaker::on_day6LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[5] = ui->day6LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -613,7 +580,6 @@ void SurveyMaker::on_day7LineEdit_textChanged(const QString &arg1)
     }
 
     dayNames[6] = ui->day7LineEdit->text().trimmed();
-    updateDays();
     refreshPreview();
 }
 
@@ -622,24 +588,6 @@ void SurveyMaker::on_day7LineEdit_editingFinished()
     if((dayNames[6].isEmpty()))
     {
         ui->day7CheckBox->setChecked(false);
-    }
-}
-
-void SurveyMaker::updateDays()
-{
-    allDayNames = "";
-    bool firstOne = true;
-    for(int day = 0; day < 7; day++)
-    {
-        if(!(dayNames[day].isEmpty()))
-        {
-            if(!firstOne)
-            {
-                allDayNames += ",";
-            }
-            allDayNames += QUrl::toPercentEncoding(dayNames[day]);
-            firstOne = false;
-        }
     }
 }
 
@@ -687,16 +635,6 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     sectionNames.removeAll(QString(""));
 
     refreshPreview();
-    allSectionNames = "";
-    if(section)
-    {
-        for(int sect = 0; sect < sectionNames.size(); sect++)
-        {
-            if(sect != 0)
-                allSectionNames += ",";
-            allSectionNames += QUrl::toPercentEncoding(sectionNames[sect]);
-        }
-    }
 }
 
 void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
@@ -705,10 +643,227 @@ void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
     refreshPreview();
 }
 
+void SurveyMaker::on_openSurveyButton_clicked()
+{
+    //read all options from a text file
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    if( !(fileName.isEmpty()) )
+    {
+        QFile loadFile(fileName);
+        if(loadFile.open(QIODevice::ReadOnly))
+        {
+            saveFileLocation = QFileInfo(fileName).canonicalPath();
+            QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
+            QJsonObject loadObject = loadDoc.object();
+
+            if(loadObject.contains("Title") && loadObject["Title"].isString())
+            {
+                ui->surveyTitleLineEdit->setText(loadObject["Title"].toString());
+            }
+            if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool())
+            {
+                ui->firstNameCheckBox->setChecked(loadObject["FirstName"].toBool());
+            }
+            if(loadObject.contains("LastName") && loadObject["LastName"].isBool())
+            {
+                ui->lastNameCheckBox->setChecked(loadObject["LastName"].toBool());
+            }
+            if(loadObject.contains("Email") && loadObject["Email"].isBool())
+            {
+                ui->emailCheckBox->setChecked(loadObject["Email"].toBool());
+            }
+            if(loadObject.contains("Gender") && loadObject["Gender"].isBool())
+            {
+                ui->genderCheckBox->setChecked(loadObject["Gender"].toBool());
+                on_genderCheckBox_clicked(loadObject["Gender"].toBool());
+            }
+            if(loadObject.contains("URM") && loadObject["URM"].isBool())
+            {
+                ui->URMCheckBox->setChecked(loadObject["URM"].toBool());
+                on_URMCheckBox_clicked(loadObject["URM"].toBool());
+            }
+            if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble())
+            {
+                ui->attributeCountSpinBox->setValue(loadObject["numAttributes"].toInt());
+            }
+            for(int attribute = 0; attribute < numAttributes; attribute++)
+            {
+                if(loadObject.contains("Attribute" + QString::number(attribute+1)+"Question") &&
+                        loadObject["Attribute" + QString::number(attribute+1)+"Question"].isString())
+                {
+                     attributeTexts[attribute] = loadObject["Attribute" + QString::number(attribute+1)+"Question"].toString();
+                }
+                if(loadObject.contains("Attribute" + QString::number(attribute+1)+"Response") &&
+                        loadObject["Attribute" + QString::number(attribute+1)+"Response"].isDouble())
+                {
+                     attributeResponses[attribute] = loadObject["Attribute" + QString::number(attribute+1)+"Response"].toInt();
+                }
+            }
+            // reload first attribute question and responses on screen
+            ui->attributeScrollBar->setValue(0);
+            on_attributeScrollBar_valueChanged(0);
+            if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
+            {
+                ui->sectionCheckBox->setChecked(loadObject["Schedule"].toBool());
+                on_sectionCheckBox_clicked(loadObject["Schedule"].toBool());
+            }
+            //below is not performed with a for-loop because checkboxes and lineedits are not in an array
+            if(loadObject.contains("scheduleDay1") && loadObject["scheduleDay1"].isBool())
+            {
+                ui->day1CheckBox->setChecked(loadObject["scheduleDay1"].toBool());
+                on_day1CheckBox_toggled(loadObject["scheduleDay1"].toBool());
+            }
+            if(loadObject.contains("scheduleDay1Name") && loadObject["scheduleDay1Name"].isString())
+            {
+                ui->day1LineEdit->setText(loadObject["scheduleDay1Name"].toString());
+            }
+            if(loadObject.contains("scheduleDay2") && loadObject["scheduleDay2"].isBool())
+            {
+                ui->day2CheckBox->setChecked(loadObject["scheduleDay2"].toBool());
+                on_day2CheckBox_toggled(loadObject["scheduleDay2"].toBool());
+            }
+            if(loadObject.contains("scheduleDay2Name") && loadObject["scheduleDay2Name"].isString())
+            {
+                ui->day2LineEdit->setText(loadObject["scheduleDay2Name"].toString());
+            }
+            if(loadObject.contains("scheduleDay3") && loadObject["scheduleDay3"].isBool())
+            {
+                ui->day3CheckBox->setChecked(loadObject["scheduleDay3"].toBool());
+                on_day3CheckBox_toggled(loadObject["scheduleDay3"].toBool());
+            }
+            if(loadObject.contains("scheduleDay3Name") && loadObject["scheduleDay3Name"].isString())
+            {
+                ui->day3LineEdit->setText(loadObject["scheduleDay3Name"].toString());
+            }
+            if(loadObject.contains("scheduleDay4") && loadObject["scheduleDay4"].isBool())
+            {
+                ui->day4CheckBox->setChecked(loadObject["scheduleDay4"].toBool());
+                on_day4CheckBox_toggled(loadObject["scheduleDay4"].toBool());
+            }
+            if(loadObject.contains("scheduleDay4Name") && loadObject["scheduleDay4Name"].isString())
+            {
+                ui->day4LineEdit->setText(loadObject["scheduleDay4Name"].toString());
+            }
+            if(loadObject.contains("scheduleDay5") && loadObject["scheduleDay5"].isBool())
+            {
+                ui->day5CheckBox->setChecked(loadObject["scheduleDay5"].toBool());
+                on_day5CheckBox_toggled(loadObject["scheduleDay5"].toBool());
+            }
+            if(loadObject.contains("scheduleDay5Name") && loadObject["scheduleDay5Name"].isString())
+            {
+                ui->day5LineEdit->setText(loadObject["scheduleDay5Name"].toString());
+            }
+            if(loadObject.contains("scheduleDay6") && loadObject["scheduleDay6"].isBool())
+            {
+                ui->day6CheckBox->setChecked(loadObject["scheduleDay6"].toBool());
+                on_day6CheckBox_toggled(loadObject["scheduleDay6"].toBool());
+            }
+            if(loadObject.contains("scheduleDay6Name") && loadObject["scheduleDay6Name"].isString())
+            {
+                ui->day6LineEdit->setText(loadObject["scheduleDay6Name"].toString());
+            }
+            if(loadObject.contains("scheduleDay7") && loadObject["scheduleDay7"].isBool())
+            {
+                ui->day7CheckBox->setChecked(loadObject["scheduleDay7"].toBool());
+                on_day7CheckBox_toggled(loadObject["scheduleDay7"].toBool());
+            }
+            if(loadObject.contains("scheduleDay7Name") && loadObject["scheduleDay7Name"].isString())
+            {
+                ui->day7LineEdit->setText(loadObject["scheduleDay7Name"].toString());
+            }
+            if(loadObject.contains("scheduleStartHour") && loadObject["scheduleStartHour"].isDouble())
+            {
+                ui->timeStartEdit->setTime(QTime(loadObject["scheduleStartHour"].toInt(),0));
+            }
+            if(loadObject.contains("scheduleEndHour") && loadObject["scheduleEndHour"].isDouble())
+            {
+                ui->timeEndEdit->setTime(QTime(loadObject["scheduleEndHour"].toInt(),0));
+            }
+            if(loadObject.contains("Section") && loadObject["Section"].isBool())
+            {
+                ui->sectionCheckBox->setChecked(loadObject["Section"].toBool());
+                on_sectionCheckBox_clicked(loadObject["Section"].toBool());
+            }
+            if(loadObject.contains("SectionNames") && loadObject["SectionNames"].isString())
+            {
+                ui->sectionNamesTextEdit->setPlainText(loadObject["SectionNames"].toString().replace(',', '\n'));
+            }
+            if(loadObject.contains("AdditionalQuestions") && loadObject["AdditionalQuestions"].isBool())
+            {
+                ui->additionalQuestionsCheckBox->setChecked(loadObject["AdditionalQuestions"].toBool());
+                on_additionalQuestionsCheckBox_clicked(loadObject["AdditionalQuestions"].toBool());
+            }
+            loadFile.close();
+
+            refreshPreview();
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("File Error"), tr("This file cannot be read."));
+        }
+    }
+}
+
+void SurveyMaker::on_saveSurveyButton_clicked()
+{
+    //save all options to a text file
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    if( !(fileName.isEmpty()) )
+    {
+        QFile saveFile(fileName);
+        if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            saveFileLocation = QFileInfo(fileName).canonicalPath();
+            QJsonObject saveObject;
+            saveObject["Title"] = title;
+            saveObject["FirstName"] = true;
+            saveObject["LastName"] = true;
+            saveObject["Email"] = true;
+            saveObject["Gender"] = gender;
+            saveObject["URM"] = URM;
+            saveObject["numAttributes"] = numAttributes;
+            for(int attribute = 0; attribute < numAttributes; attribute++)
+            {
+                saveObject["Attribute" + QString::number(attribute+1)+"Question"] = attributeTexts[attribute];
+                saveObject["Attribute" + QString::number(attribute+1)+"Response"] = attributeResponses[attribute];
+            }
+            saveObject["Schedule"] = schedule;
+            //below is not performed with a for-loop because checkboxes are not in an array
+            saveObject["scheduleDay1"] = ui->day1CheckBox->isChecked();
+            saveObject["scheduleDay1Name"] = dayNames[0];
+            saveObject["scheduleDay2"] = ui->day2CheckBox->isChecked();
+            saveObject["scheduleDay2Name"] = dayNames[1];
+            saveObject["scheduleDay3"] = ui->day3CheckBox->isChecked();
+            saveObject["scheduleDay3Name"] = dayNames[2];
+            saveObject["scheduleDay4"] = ui->day4CheckBox->isChecked();
+            saveObject["scheduleDay4Name"] = dayNames[3];
+            saveObject["scheduleDay5"] = ui->day5CheckBox->isChecked();
+            saveObject["scheduleDay5Name"] = dayNames[4];
+            saveObject["scheduleDay6"] = ui->day6CheckBox->isChecked();
+            saveObject["scheduleDay6Name"] = dayNames[5];
+            saveObject["scheduleDay7"] = ui->day7CheckBox->isChecked();
+            saveObject["scheduleDay7Name"] = dayNames[6];
+            saveObject["scheduleStartHour"] = startTime;
+            saveObject["scheduleEndHour"] = endTime;
+            saveObject["Section"] = section;
+            saveObject["SectionNames"] = sectionNames.join(',');
+            saveObject["AdditionalQuestions"] = additionalQuestions;
+
+            QJsonDocument saveDoc(saveObject);
+            saveFile.write(saveDoc.toJson());
+            saveFile.close();
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
+        }
+    }
+}
+
 void SurveyMaker::on_helpButton_clicked()
 {
     QFile helpFile(":/help.html");
-    if (!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    if(!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         return;
     }
@@ -759,6 +914,7 @@ void SurveyMaker::closeEvent(QCloseEvent *event)
 {
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
+    savedSettings.setValue("saveFileLocation", saveFileLocation.canonicalFilePath());
 
     bool actuallyExit = surveyCreated;
     if(!surveyCreated)

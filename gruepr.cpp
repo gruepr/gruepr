@@ -90,20 +90,20 @@ gruepr::gruepr(QWidget *parent) :
     connect(this, &gruepr::optimizationMightBeComplete, this, &gruepr::askWhetherToContinueOptimizing);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
-    // load all of the default values
-    on_loadSettingsButton_clicked();
-
-    // use arabic numbers for standard teamNames
+    //Start with default teamnames (just arabic numbers)
     for(int team = 0; team < maxTeams; team++)
     {
         teamNames << QString::number(team+1);
     }
+
+    // load all of the default values
+    on_loadSettingsButton_clicked();
 }
 
 gruepr::~gruepr()
 {
     delete teamDataTree;
-    delete [] student;
+    delete[] student;
     delete ui;
 }
 
@@ -181,12 +181,14 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->printTeamsButton->setEnabled(false);
 
         //reset the data
-        delete [] student;
+        delete[] student;
         student = new studentRecord[maxStudents];
         dataOptions.dataFile = QFileInfo(fileName);
         dataOptions.numStudentsInSystem = 0;
         dataOptions.numAttributes = 0;
         dataOptions.attributeQuestionText.clear();
+        for(int attrib = 0; attrib < maxAttributes; attrib++)
+            dataOptions.attributeQuestionResponses[attrib].clear();
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
         for(int attribNum = 0; attribNum < maxAttributes; attribNum++)
@@ -303,6 +305,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
             ui->letsDoItButton->setEnabled(true);
         }
+
         QApplication::restoreOverrideCursor();
     }
 }
@@ -425,7 +428,7 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
 void gruepr::on_studentTable_cellEntered(int row, int /*unused column value*/)
 {
-    // select the current row, reset the background color of the edit and remover buttons in previously selected row and change the remover in the current row
+    // select the current row, reset the background color of the edit and remover buttons in previously selected row and change their color in the current row
     ui->studentTable->selectRow(row);
     static int prevID = -1;
     if(prevID != -1)
@@ -662,7 +665,16 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 {
     if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
     {
-        ui->attributeTextEdit->setPlainText(dataOptions.attributeQuestionText.at(value));
+        QString questionWithResponses = dataOptions.attributeQuestionText.at(value) + "\n\n";
+        for(int response = 0; response < dataOptions.attributeQuestionResponses[value].size(); response++)
+        {
+            if(!dataOptions.attributeQuestionResponses[value].at(response).at(0).isDigit())
+            {
+                questionWithResponses += QString::number(response + 1) + ": ";
+            }
+            questionWithResponses += dataOptions.attributeQuestionResponses[value].at(response) + "\n";
+        }
+        ui->attributeTextEdit->setPlainText(questionWithResponses);
         ui->attributeWeight->setValue(double(teamingOptions.attributeWeights[value]));
         ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
         ui->attributeLabel->setText(tr("Attribute  ") + QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
@@ -1102,20 +1114,26 @@ void gruepr::optimizationComplete()
 #endif
 
     // free memory used to save array of IDs of students being teamed
-    delete [] studentIDs;
+    delete[] studentIDs;
 
-    // Unpack the best team set, set the teamNames according to current option (unless custom teamNames already loaded), and print teams list on the screen
+    // Unpack the best team set
     QList<int> bestTeamSet = future.result();
     for(int ID = 0; ID < numStudents; ID++)
     {
         bestGenome[ID] = bestTeamSet[ID];
     }
-    if(ui->teamNamesComboBox->currentIndex() < 7)
+
+    // Load team names (and, by doing, refresh the team display)
+    if(ui->teamNamesComboBox->currentIndex() < 8)
     {
         on_teamNamesComboBox_currentIndexChanged(ui->teamNamesComboBox->currentIndex());
     }
-
-    refreshTeamInfo();
+    else
+    {
+        QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+        refreshTeamInfo();
+        QApplication::restoreOverrideCursor();
+    }
 }
 
 
@@ -1134,7 +1152,30 @@ void gruepr::on_collapseAllButton_clicked()
 void gruepr::on_sortTeamsButton_clicked()
 {
     float teamScores[maxTeams];
-    teamSetScore = getTeamScores(bestGenome, teamScores);
+    float **attributeScore = new float*[dataOptions.numAttributes];
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        attributeScore[attrib] = new float[numTeams];
+    }
+    float *schedScore = new float[numTeams];
+    int *genderAdj = new int[numTeams];
+    int *URMAdj = new int[numTeams];
+    int *reqTeammateAdj = new int[numTeams];
+    int *prevTeammateAdj = new int[numTeams];
+    int *requestedTeammateAdj = new int[numTeams];
+    teamSetScore = getTeamScores(bestGenome, teamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
+    delete[] requestedTeammateAdj;
+    delete[] prevTeammateAdj;
+    delete[] reqTeammateAdj;
+    delete[] URMAdj;
+    delete[] genderAdj;
+    delete[] schedScore;
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        delete[] attributeScore[attrib];
+    }
+    delete[] attributeScore;
+
     for (int bubbleRound = 0; bubbleRound < numTeams-1; bubbleRound++)
         for (int team = 0; team < numTeams-bubbleRound-1; team++)
             if (teamScores[team] > teamScores[team+1])
@@ -1142,7 +1183,10 @@ void gruepr::on_sortTeamsButton_clicked()
                 swapTeams(team, team+1);
                 std::swap(teamScores[team], teamScores[team+1]);
             }
+
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     refreshTeamInfo();
+    QApplication::restoreOverrideCursor();
 }
 
 
@@ -1235,6 +1279,22 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         }
         prevIndex = 6;
     }
+    else if(index == 7)
+    {
+        //Shakespeare plays (chronological, according to Royal Shakespeare Company)
+        QStringList ShakesPlays = (QString("The Taming of the Shrew,Henry VI,The Two Gentlemen of Verona,Titus Andronicus,Richard III,The Comedy of Errors,"
+                                        "Love's Labour's Lost,A Midsummer Night's Dream,Romeo and Juliet,Richard II,King John,The Merchant of Venice,"
+                                        "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,The Merry Wives of Windsor,"
+                                        "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
+                                        "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,The Winter's Tale,Tempest,Henry VIII,"
+                                        "The Two Noble Kinsmen").split(","));
+        //Cycle through list as often as needed, adding a repetition every time through the list
+        for(int team = 0; team < numTeams; team++)
+        {
+            teamNames[team] = (ShakesPlays[team%(ShakesPlays.size())]+" ").repeated((team/ShakesPlays.size())+1).trimmed();
+        }
+        prevIndex = 7;
+    }
     else
     {
         //Open specialized dialog box to collect teamnames
@@ -1253,11 +1313,11 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
             {
                 teamNames << QString::number(team+1);
             }
-            prevIndex = 7;
+            prevIndex = 8;
             bool currentValue = ui->teamNamesComboBox->blockSignals(true);
             ui->teamNamesComboBox->setCurrentIndex(prevIndex);
-            ui->teamNamesComboBox->setItemText(7, tr("Current names"));
-            ui->teamNamesComboBox->removeItem(8);
+            ui->teamNamesComboBox->setItemText(8, tr("Current names"));
+            ui->teamNamesComboBox->removeItem(9);
             ui->teamNamesComboBox->addItem(tr("Custom names"));
             ui->teamNamesComboBox->blockSignals(currentValue);
         }
@@ -1271,14 +1331,16 @@ void gruepr::on_teamNamesComboBox_currentIndexChanged(int index)
         delete window;
     }
 
-    if(ui->teamNamesComboBox->currentIndex() < 7)
+    if(ui->teamNamesComboBox->currentIndex() < 8)
     {
+        ui->teamNamesComboBox->removeItem(9);
         ui->teamNamesComboBox->removeItem(8);
-        ui->teamNamesComboBox->removeItem(7);
         ui->teamNamesComboBox->addItem(tr("Custom names"));
     }
 
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     refreshTeamInfo();
+    QApplication::restoreOverrideCursor();
 }
 
 
@@ -1731,7 +1793,7 @@ bool gruepr::loadSurveyData(QString fileName)
     // Having read the header row and determined time names, if any, read each remaining row as a student record
     numStudents = 0;    // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     fields = ReadCSVLine(in.readLine(), TotNumQuestions);
-    while(!fields.empty() && numStudents < 200)
+    while(!fields.empty() && numStudents < maxStudents)
     {
         student[numStudents] = readOneRecordFromFile(fields);
         student[numStudents].ID = numStudents;
@@ -1739,6 +1801,26 @@ bool gruepr::loadSurveyData(QString fileName)
         fields = ReadCSVLine(in.readLine(), TotNumQuestions);
     }
     dataOptions.numStudentsInSystem = numStudents;
+    for(int attrib = 0; attrib < maxAttributes; attrib++)
+    {
+        // gather all attribute question responses
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+        {
+            dataOptions.attributeQuestionResponses[attrib] << student[ID].attributeResponse[attrib];
+        }
+        dataOptions.attributeQuestionResponses[attrib].removeDuplicates();
+        QCollator sortAlphanumerically;
+        sortAlphanumerically.setNumericMode(true);
+        sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+        std::sort(dataOptions.attributeQuestionResponses[attrib].begin(), dataOptions.attributeQuestionResponses[attrib].end(), sortAlphanumerically);
+        // attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
+        dataOptions.attributeLevels[attrib] = dataOptions.attributeQuestionResponses[attrib].size();
+        // set numerical value of students' attribute responses according to their place in the sorted list of responses
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+        {
+            student[ID].attribute[attrib] = dataOptions.attributeQuestionResponses[attrib].indexOf(student[ID].attributeResponse[attrib]) + 1;
+        }
+    }
 
     if(numStudents == maxStudents)
     {
@@ -1746,18 +1828,19 @@ bool gruepr::loadSurveyData(QString fileName)
                              tr("The maximum number of students have been read from the file."
                                 " This version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
     }
-
-    if(numStudents < 4)
+    else if(numStudents < 4)
     {
         QMessageBox::critical(this, tr("Insufficient number of students."),
                              tr("There are not enough survey responses in the file."
                                 " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
         //reset the data
-        delete [] student;
+        delete[] student;
         student = new studentRecord[maxStudents];
         dataOptions.numStudentsInSystem = 0;
         dataOptions.numAttributes = 0;
         dataOptions.attributeQuestionText.clear();
+        for(int attrib = 0; attrib < maxAttributes; attrib++)
+            dataOptions.attributeQuestionResponses[attrib].clear();
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
         for(int attribNum = 0; attribNum < maxAttributes; attribNum++)
@@ -1846,21 +1929,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         QString field = fields.at(fieldnum).toLocal8Bit();
-        int chrctr = 0;
-        // search through this field character by character until we find a numeric digit (or reach the end)
-        while((field[chrctr].digitValue() < 0 || field[chrctr].digitValue() > 9) && (chrctr < field.size()))
-        {
-            chrctr++;
-        }
-        if(field[chrctr].digitValue() >= 0 && field[chrctr].digitValue() <= 9)
-        {
-            student.attribute[attribute] = field[chrctr].digitValue();
-            // attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
-            if(student.attribute[attribute] > dataOptions.attributeLevels[attribute])
-            {
-                dataOptions.attributeLevels[attribute] = student.attribute[attribute];
-            }
-        }
+        student.attributeResponse[attribute] = field;
         fieldnum++;
     }
 
@@ -2240,32 +2309,43 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     }
     delete[] randPerm;
 
-    // calculate this first generation's scores
+    // calculate this first generation's scores (multi-threaded if OpenMP is available)
     QVector<float> scores(populationSize);
-    float *unusedTeamScores = new float[numTeams];
+    float *unusedTeamScores, *schedScore;
+    float **attributeScore;
+    int *genderAdj, *URMAdj, *reqTeammateAdj, *prevTeammateAdj, *requestedTeammateAdj;
+#pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
+{
+    unusedTeamScores = new float[numTeams];
+    attributeScore = new float*[dataOptions.numAttributes];
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        attributeScore[attrib] = new float[numTeams];
+    }
+    schedScore = new float[numTeams];
+    genderAdj = new int[numTeams];
+    URMAdj = new int[numTeams];
+    reqTeammateAdj = new int[numTeams];
+    prevTeammateAdj = new int[numTeams];
+    requestedTeammateAdj = new int[numTeams];
+#pragma omp for
     for(int genome = 0; genome < populationSize; genome++)
     {
-        scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores);
+        scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
     }
-    ///////
-    // below is code to calculate the scores with multiple threads
-    // calculating the fitness score for each genome can be the most expensive part of the optimization process
-    // for parallelized calculation of scores, need to also change allocate memory at start and deallocate at end for:
-    // attributeScore, schedScore, genderAdj, URMAdj, prevTeammateAdj, reqTeammateAdj,
-    // removing them as members of the gruepr object and making them instead thread local (allocate one copy per thread)
-    // this memory management is expensive and seems to negate the speed improvement gained by parallelizing the score calculation
-    // In the future, to do it, uncomment the block below to replace the 5 lines above. Also, look for a similiar note later about 75 lines below this one
-    ///////
-    //// create a function and a vector of pointers to each genome in the genepool
-    //QVector<const int*> genomes(populationSize);
-    //for(int genome = 0; genome < populationSize; genome++)
-    //{
-    //    genomes[genome] = &genePool[genome][0];
-    //}
-    //std::function<float(const int*)> getGenomeScores = [this, unusedTeamScores](const int *Genome) {return getTeamScores(Genome, unusedTeamScores);};
-    //// multi-threaded scoring of each genome
-    //QVector<float> scores = QtConcurrent::blockingMapped(genomes, getGenomeScores);
-    ///////
+    delete[] requestedTeammateAdj;
+    delete[] prevTeammateAdj;
+    delete[] reqTeammateAdj;
+    delete[] URMAdj;
+    delete[] genderAdj;
+    delete[] schedScore;
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        delete[] attributeScore[attrib];
+    }
+    delete[] attributeScore;
+    delete[] unusedTeamScores;
+}
 
     emit generationComplete(*std::max_element(scores.constBegin(), scores.constEnd()), 0, 0);
 
@@ -2340,13 +2420,39 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 
             generation++;
 
-            // calculate new generation's scores
-            //scores = QtConcurrent::blockingMapped(genomes, getGenomeScores); //multithreaded approach--see note above
+            // calculate new generation's scores (multi-threaded if OpenMP is available)
+#pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
+{
+            unusedTeamScores = new float[numTeams];
+            attributeScore = new float*[dataOptions.numAttributes];
+            for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+            {
+                attributeScore[attrib] = new float[numTeams];
+            }
+            schedScore = new float[numTeams];
+            genderAdj = new int[numTeams];
+            URMAdj = new int[numTeams];
+            reqTeammateAdj = new int[numTeams];
+            prevTeammateAdj = new int[numTeams];
+            requestedTeammateAdj = new int[numTeams];
+#pragma omp for
             for(int genome = 0; genome < populationSize; genome++)
             {
-                scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores);
+                scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
             }
-
+            delete[] requestedTeammateAdj;
+            delete[] prevTeammateAdj;
+            delete[] reqTeammateAdj;
+            delete[] URMAdj;
+            delete[] genderAdj;
+            delete[] schedScore;
+            for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+            {
+                delete[] attributeScore[attrib];
+            }
+            delete[] attributeScore;
+            delete[] unusedTeamScores;
+}
             // determine best score, save in historical record, and calculate score stability
             indexOfBestTeamset[0] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
             float bestScore = scores[indexOfBestTeamset[0]];
@@ -2401,7 +2507,6 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
         delete[] genePool[genome];
     }
     delete[] players;
-    delete[] unusedTeamScores;
     delete[] tempPool;
     delete[] genePool;
 
@@ -2412,7 +2517,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-float gruepr::getTeamScores(const int teammates[], float teamScores[])
+float gruepr::getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj)
 {
     // Initialize each component score
     for(int team = 0; team < numTeams; team++)
@@ -2762,10 +2867,31 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[])
 //////////////////
 void gruepr::refreshTeamInfo()
 {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-    float teamScores[maxTeams];
-    teamSetScore = getTeamScores(bestGenome, teamScores);
+    // get scores for each team
+    float *teamScores = new float[numTeams];
+    float **attributeScore = new float*[dataOptions.numAttributes];
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        attributeScore[attrib] = new float[numTeams];
+    }
+    float *schedScore = new float[numTeams];
+    int *genderAdj = new int[numTeams];
+    int *URMAdj = new int[numTeams];
+    int *reqTeammateAdj = new int[numTeams];
+    int *prevTeammateAdj = new int[numTeams];
+    int *requestedTeammateAdj = new int[numTeams];
+    teamSetScore = getTeamScores(bestGenome, teamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
+    delete[] requestedTeammateAdj;
+    delete[] prevTeammateAdj;
+    delete[] reqTeammateAdj;
+    delete[] URMAdj;
+    delete[] genderAdj;
+    delete[] schedScore;
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        delete[] attributeScore[attrib];
+    }
+    delete[] attributeScore;
 
     QStringList teamToolTips;
 
@@ -3112,11 +3238,11 @@ void gruepr::refreshTeamInfo()
     {
          teamDataTree->topLevelItem(team)->setExpanded(expanded[team]);
     }
-    delete [] expanded;
+    delete[] expanded;
 
     setWindowModified(true);
 
-    QApplication::restoreOverrideCursor();
+    delete[] teamScores;
 }
 
 

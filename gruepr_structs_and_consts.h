@@ -46,6 +46,7 @@ struct studentRecord
     QString email;
     QString section;									// section data stored as text
     QString notes;										// any special notes for this student
+    QString attributeResponse[maxAttributes];           // the text of the response to each attribute question
     QString availabilityChart;
 };
 
@@ -58,9 +59,10 @@ struct DataOptions
     bool sectionIncluded;                               // is section data included in the survey?
     bool notesIncluded;                                 // are notes (or other additional info) included in the survey?
     int numAttributes;                                  // how many attribute questions are in the survey?
-    int attributeLevels[maxAttributes]={0};             // what is the maximum value for each attribute? Max possible value is 9, due to how the value is read from the file.
+    int attributeLevels[maxAttributes]={0};             // what is the maximum value for each attribute?
     int numStudentsInSystem;                            // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
+    QStringList attributeQuestionResponses[maxAttributes];      // the list of responses to each of the attribute questions
     QFileInfo dataFile;
     QStringList dayNames;
     QStringList timeNames;

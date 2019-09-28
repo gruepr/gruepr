@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 8.14
+gruepr_version = 8.15
 copyright_year = 2019
 
 QT       += core gui concurrent network printsupport
@@ -49,6 +49,10 @@ QMAKE_CXXFLAGS_RELEASE -= -Os
 
 # add the desired -O3 if not present
 QMAKE_CXXFLAGS_RELEASE += -O3
+
+# add OpenMP
+QMAKE_CXXFLAGS += -fopenmp
+LIBS += -fopenmp
 
 SOURCES += \
         customWidgets.cpp \

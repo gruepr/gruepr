@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QRegularExpressionValidator>
+#include <QFileInfo>
 
 namespace Ui {
 class SurveyMaker;
@@ -56,6 +57,8 @@ private slots:
     void on_sectionNamesTextEdit_textChanged();
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
+    void on_openSurveyButton_clicked();
+    void on_saveSurveyButton_clicked();
     void on_helpButton_clicked();
     void on_aboutButton_clicked();
 
@@ -63,7 +66,6 @@ private:
     Ui::SurveyMaker *ui;
     void refreshPreview();
     void checkDays();
-    void updateDays();
     bool surveyCreated = false;
     QRegularExpressionValidator *noCommas;
     QString title = "";
@@ -71,19 +73,52 @@ private:
     bool URM = false;
     int numAttributes = 3;
     QString attributeTexts[9] = {"","","","","","","","",""};
-    QString allAttributeTexts = "Question%201,Question%202,Question%203";
     int attributeResponses[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    QString allAttributeResponses = "0,0,0";
     bool schedule = true;
     QString dayNames[7] = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-    QString allDayNames = "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday";
     int startTime = 10;
     int endTime = 17;
     bool section = false;
     QStringList sectionNames = {""};
-    QString allSectionNames = "";
     bool additionalQuestions = false;
     QString URL;
+    QFileInfo saveFileLocation;
+    const QStringList responseOptions = {
+        "response options will be added later, after creating the form",
+        "Yes / No",
+        "Yes / Maybe / No",
+        "Definitely / Probably / Maybe / Probably not / Definitely not",
+        "Strongly preferred / Preferred / Opposed / Strongly opposed",
+        "True / False",
+        "Like me / Not like me",
+        "Agree / Disagree",
+        "Strongly agree / Agree / Undecided / Disagree / Strongly disagree",
+        "4.0— 3.75 / 3.74— 3.5 / 3.49— 3.25 / 3.24— 3.0 / 2.99— 2.75 / 2.74— 2.5 / 2.49— 2.0 / Below 2.0 / Not sure, or prefer not to say",
+        "100— 90 / 89— 80 / 79— 70 / 69— 60 / 59— 50 / Below 50 / Not sure, or prefer not to say",
+        "A / B / C / D / F / Not sure, or prefer not to say",
+        "Very high / Above average / Average / Below average / Very low",
+        "Excellent / Very good / Good / Fair / Poor",
+        "Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative",
+        "A lot of experience / Some experience / Little experience / No experience",
+        "Extremely / Very / Moderately / Slightly / Not at all",
+        "A lot / Some / Very Little / None",
+        "Much more / More / About the same / Less / Much less",
+        "Most of the time / Some of the time / Seldom / Never",
+        "Available / Available, but prefer not to / Not available",
+        "Very frequently / Frequently / Occasionally / Rarely / Never",
+        "Definitely will / Probably will / Probably won't / Definitely won't",
+        "Very important / Important / Somewhat important / Not important",
+        "Leader / Mix of leader and follower / Follower",
+        "Highly confident / Moderately confident / Somewhat confident / Not confident",
+        "1 / 2 / 3 / 4",
+        "1 / 2 / 3 / 4 / 5",
+        "1 / 2 / 3 / 4 / 5 / 6",
+        "1 / 2 / 3 / 4 / 5 / 6 / 7",
+        "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8",
+        "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9",
+        "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10",
+        "custom options, to be added after creating the form",
+    };
 };
 
 #endif // SURVEYMAKER_H

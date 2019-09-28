@@ -5,7 +5,7 @@ Copyright (C) 2019, Joshua Hertz < gruepr@gmail.com >
 ---------------
 Description of gruepr:
 
-        Gruepr is a program for splitting a section of 4-200 students into optimized teams.
+        Gruepr is a program for splitting a section of 4-300 students into optimized teams.
         It is originally based on CATME's team forming routine as described in their paper
         [ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
 
@@ -13,14 +13,14 @@ Description of gruepr:
         good distribution of students into teams is determined by a numerical score. The score can be based on:
            1) preventing isolated women, isolated men, and/or single-gender teams;
            2) preventing isolated URM students;
-           3) achieving within each team either homogeneity or heterogeneity of up to 9 numerical "attribute
-              levels", which could be skills assessments, work preferences, or attitudes;
+           3) achieving within each team either homogeneity or heterogeneity of up to 9 "attributes", which could
+              be skills assessments, work preferences, attitudes, major, or any other categorical/Likert question;
            4) achieving a high degree of overlap in schedule freetime;
            5) preventing any particular students from being on the same team; and/or
            6) requiring any particular students to be on the same team.
 
         After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams
-        are displayed showing the students names, emails, gender, URM statusm and attribute levels. Each team's
+        are displayed showing the students names, emails, gender, URM status, and attribute levels. Each team's
         score is also shown along with a table of student availability at each time slot throughout the week. You
         can choose whether to save this teamset, adjust this teamset by swapping pairs of students, or throw away
         the teamset entirely and start over. If you save the teamset, three files can be saved: 1) an instructor's

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 8.14
+gruepr_version = 8.15
 copyright_year = 2019
 
 QT       += core gui network

@@ -107,13 +107,6 @@ private:
     bool haveAnyReqTeammates = false;
     bool haveAnyPrevTeammates = false;
     bool haveAnyRequestedTeammates = false;
-    float attributeScore[maxAttributes][maxTeams];
-    float schedScore[maxTeams];
-    int genderAdj[maxTeams];
-    int URMAdj[maxTeams];
-    int reqTeammateAdj[maxTeams];
-    int prevTeammateAdj[maxTeams];
-    int requestedTeammateAdj[maxTeams];
         // team set optimization
     int *studentIDs;                                    // array of the IDs of students to be placed on teams
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
@@ -123,7 +116,7 @@ private:
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;
 #endif
-    float getTeamScores(const int teammates[], float teamScores[]);
+    float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj);
     float teamSetScore;
     int finalGeneration;
     int bestGenome[maxStudents];
