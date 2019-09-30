@@ -421,7 +421,7 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
     refreshStudentDisplay();
 
-    ui->idealTeamSizeBox->setMaximum(std::max(4,numStudents/2));
+    ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 }
 
@@ -549,7 +549,7 @@ void gruepr::removeAStudent()
 
     refreshStudentDisplay();
 
-    ui->idealTeamSizeBox->setMaximum(numStudents/2);
+    ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 }
 
@@ -624,7 +624,7 @@ void gruepr::on_addStudentPushButton_clicked()
 
         refreshStudentDisplay();
 
-        ui->idealTeamSizeBox->setMaximum(numStudents/2);
+        ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
         on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
 
         delete window;
@@ -799,7 +799,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 {
     ui->teamSizeBox->clear();
 
-    numTeams = numStudents/arg1;
+    numTeams = std::max(1, numStudents/arg1);
     teamingOptions.smallerTeamsNumTeams = numTeams;
     teamingOptions.largerTeamsNumTeams = numTeams;
 
@@ -974,6 +974,9 @@ void gruepr::on_letsDoItButton_clicked()
     ui->stabilityProgressBar->reset();
     ui->label_34->setEnabled(true);
     ui->sectionSelectionBox->setEnabled(false);
+    ui->teamSizeBox->setEnabled(false);
+    ui->label_10->setEnabled(false);
+    ui->idealTeamSizeBox->setEnabled(false);
     ui->loadSurveyFileButton->setEnabled(false);
     ui->saveTeamsButton->setEnabled(false);
     ui->printTeamsButton->setEnabled(false);
@@ -1091,6 +1094,9 @@ void gruepr::optimizationComplete()
     ui->sectionSelectionBox->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->label_2->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->label_22->setEnabled(ui->sectionSelectionBox->count() > 1);
+    ui->teamSizeBox->setEnabled(true);
+    ui->label_10->setEnabled(true);
+    ui->idealTeamSizeBox->setEnabled(true);
     ui->loadSurveyFileButton->setEnabled(true);
     ui->dataDisplayTabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
@@ -2309,13 +2315,15 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     }
     delete[] randPerm;
 
-    // calculate this first generation's scores (multi-threaded if OpenMP is available)
+    // calculate this first generation's scores (multi-threaded using OpenMP on Windows)
     QVector<float> scores(populationSize);
     float *unusedTeamScores, *schedScore;
     float **attributeScore;
     int *genderAdj, *URMAdj, *reqTeammateAdj, *prevTeammateAdj, *requestedTeammateAdj;
+#ifdef Q_OS_WIN32
 #pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
+#endif
     unusedTeamScores = new float[numTeams];
     attributeScore = new float*[dataOptions.numAttributes];
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
@@ -2328,7 +2336,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     reqTeammateAdj = new int[numTeams];
     prevTeammateAdj = new int[numTeams];
     requestedTeammateAdj = new int[numTeams];
+#ifdef Q_OS_WIN32
 #pragma omp for
+#endif
     for(int genome = 0; genome < populationSize; genome++)
     {
         scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
@@ -2345,7 +2355,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     }
     delete[] attributeScore;
     delete[] unusedTeamScores;
+#ifdef Q_OS_WIN32
 }
+#endif
 
     emit generationComplete(*std::max_element(scores.constBegin(), scores.constEnd()), 0, 0);
 
@@ -2420,9 +2432,11 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 
             generation++;
 
-            // calculate new generation's scores (multi-threaded if OpenMP is available)
+            // calculate new generation's scores (multi-threaded using OpenMP on Windows)
+#ifdef Q_OS_WIN32
 #pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
+#endif
             unusedTeamScores = new float[numTeams];
             attributeScore = new float*[dataOptions.numAttributes];
             for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
@@ -2435,7 +2449,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             reqTeammateAdj = new int[numTeams];
             prevTeammateAdj = new int[numTeams];
             requestedTeammateAdj = new int[numTeams];
+#ifdef Q_OS_WIN32
 #pragma omp for
+#endif
             for(int genome = 0; genome < populationSize; genome++)
             {
                 scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
@@ -2452,7 +2468,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             }
             delete[] attributeScore;
             delete[] unusedTeamScores;
+#ifdef Q_OS_WIN32
 }
+#endif
             // determine best score, save in historical record, and calculate score stability
             indexOfBestTeamset[0] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
             float bestScore = scores[indexOfBestTeamset[0]];
@@ -2638,9 +2656,9 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     }
                 }
                 // convert counts to a schedule score
-                if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)		// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/4 of the additional overlaps
+                if(schedScore[team] > teamingOptions.desiredTimeBlocksOverlap)		// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/6 of the additional overlaps
                 {
-                    schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (4*teamingOptions.desiredTimeBlocksOverlap));
+                    schedScore[team] = 1 + ((schedScore[team] - teamingOptions.desiredTimeBlocksOverlap) / (6*teamingOptions.desiredTimeBlocksOverlap));
                     schedScore[team] *= realScheduleWeight;
                 }
                 else if(schedScore[team] >= teamingOptions.minTimeBlocksOverlap)	// if team has between minimum and desired amount of schedule overlap

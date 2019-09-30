@@ -32,7 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
 // - integrate with Google Drive: download survey results from within the application; store all data in gruepr account instead of user account?
-// - prevent crash when only 1 student (such as after removing students or selecting a section with 1 student)
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
