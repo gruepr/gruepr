@@ -27,610 +27,39 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <layout class="QGridLayout" name="topLayout" columnstretch="1,0,0,0,0,0">
-      <item row="0" column="4" rowspan="2" colspan="2">
-       <layout class="QGridLayout" name="helpAboutLayout">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
-         <widget class="QToolButton" name="HelpButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Help</string>
-          </property>
-          <property name="text">
-           <string>Help</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/help.png</normaloff>:/icons/help.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonTextUnderIcon</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignBottom">
-         <widget class="QPushButton" name="registerButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: #f283a5</string>
-          </property>
-          <property name="text">
-           <string>Register my
-copy of gruepr!</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" colspan="2">
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="0" column="2" alignment="Qt::AlignHCenter|Qt::AlignTop">
-         <widget class="QToolButton" name="AboutButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>About gruepr</string>
-          </property>
-          <property name="text">
-           <string>About</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/about.png</normaloff>:/icons/about.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonTextUnderIcon</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" rowspan="3">
-         <spacer name="horizontalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="2" rowspan="2">
-       <layout class="QVBoxLayout" name="startStopLayout">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QPushButton" name="cancelOptimizationButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="visible">
-           <bool>false</bool>
-          </property>
-          <property name="toolTip">
-           <string>Stop the optimization process and show the best set of teams found so far.</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPushButton {
-background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 #f283a5, stop:1 #d26385);
-border: 1px solid #d26385;
-}</string>
-          </property>
-          <property name="text">
-           <string>Stop Optimization</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/stop.png</normaloff>:/icons/stop.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>40</width>
-            <height>40</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QPushButton" name="letsDoItButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string>Find an optimal set of teams.</string>
-          </property>
-          <property name="text">
-           <string>Create Teams</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>42</width>
-            <height>42</height>
-           </size>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="2" colspan="4">
-       <widget class="QTabWidget" name="dataDisplayTabWidget">
+      <item row="0" column="0" rowspan="2" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QPushButton" name="loadSurveyFileButton">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>1</horstretch>
-          <verstretch>1</verstretch>
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="currentIndex">
-         <number>0</number>
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>50</height>
+         </size>
         </property>
-        <property name="usesScrollButtons">
+        <property name="toolTip">
+         <string>Open the survey data file downloaded from the Google Form.</string>
+        </property>
+        <property name="text">
+         <string>Load Survey File...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="gruepr.qrc">
+          <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>40</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="checked">
          <bool>false</bool>
         </property>
-        <widget class="QWidget" name="studentsTab">
-         <attribute name="title">
-          <string>  Students  </string>
-         </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QTableWidget" name="studentTable">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>1</horstretch>
-              <verstretch>1</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="mouseTracking">
-             <bool>true</bool>
-            </property>
-            <property name="contextMenuPolicy">
-             <enum>Qt::NoContextMenu</enum>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QTableView{gridline-color: black;}
-            QHeaderView::section{
-                border-top:0px solid #D8D8D8;
-                border-left:0px solid #D8D8D8;
-                border-right:1px solid black;
-                border-bottom: 1px solid black;
-                background-color:Gainsboro;
-                padding:4px;
-                font-weight:bold;}
-            QTableCornerButton::section{
-                border-top:0px solid #D8D8D8;
-                border-left:0px solid #D8D8D8;
-                border-right:1px solid black;
-                border-bottom: 1px solid black;
-                background-color:white;}
-			QTableView::item{ selection-background-color: #85cbf8}</string>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustToContents</enum>
-            </property>
-            <property name="autoScroll">
-             <bool>false</bool>
-            </property>
-            <property name="editTriggers">
-             <set>QAbstractItemView::NoEditTriggers</set>
-            </property>
-            <property name="showDropIndicator" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="dragDropOverwriteMode">
-             <bool>false</bool>
-            </property>
-            <property name="alternatingRowColors">
-             <bool>true</bool>
-            </property>
-            <property name="selectionMode">
-             <enum>QAbstractItemView::SingleSelection</enum>
-            </property>
-            <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectRows</enum>
-            </property>
-            <property name="showGrid">
-             <bool>false</bool>
-            </property>
-            <property name="gridStyle">
-             <enum>Qt::NoPen</enum>
-            </property>
-            <property name="sortingEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="cornerButtonEnabled">
-             <bool>false</bool>
-            </property>
-            <attribute name="horizontalHeaderMinimumSectionSize">
-             <number>20</number>
-            </attribute>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="addStudentLayout">
-            <property name="leftMargin">
-             <number>2</number>
-            </property>
-            <property name="topMargin">
-             <number>2</number>
-            </property>
-            <property name="rightMargin">
-             <number>2</number>
-            </property>
-            <property name="bottomMargin">
-             <number>2</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="addStudentPushButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;Add a student to the current dataset.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Add a Student</string>
-              </property>
-              <property name="icon">
-               <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/add.png</normaloff>:/icons/add.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="teamsTab">
-         <attribute name="title">
-          <string>  Teams  </string>
-         </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_11">
-          <item>
-           <layout class="QHBoxLayout" name="savePrintLayout">
-            <property name="spacing">
-             <number>2</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="saveTeamsButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>Save this set of teams as text or pdf files.</string>
-              </property>
-              <property name="text">
-               <string>Save</string>
-              </property>
-              <property name="icon">
-               <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="printTeamsButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>Print this set of teams.</string>
-              </property>
-              <property name="text">
-               <string>Print</string>
-              </property>
-              <property name="icon">
-               <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="teamDataLayout">
-            <item>
-             <widget class="QLabel" name="label_23">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>NOTE: You can swap the position of two students or two teams using drag-and-drop.</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="teamOptionsLayout">
-              <item>
-               <widget class="QPushButton" name="expandAllButton">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="toolTip">
-                 <string>Show the students in all of the teams.</string>
-                </property>
-                <property name="text">
-                 <string>Expand All</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="collapseAllButton">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="toolTip">
-                 <string>Show only the summarized data for all of the teams.</string>
-                </property>
-                <property name="text">
-                 <string>Collapse All</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="sortTeamsButton">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="toolTip">
-                 <string>Sort the teams from lowest to highest compatibility score.</string>
-                </property>
-                <property name="text">
-                 <string>Sort Teams by Score</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_14">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Team names:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="teamNamesComboBox">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                  <horstretch>1</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="toolTip">
-                 <string>Set the names of the teams.</string>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Arabic numerals</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Roman numerals</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Hexadecimal numerals</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>English letters</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Greek letters</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>NATO phonetic alphabet</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Chemical elements</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Shakespeare's plays</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Custom names</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
        </widget>
       </item>
       <item row="0" column="3" rowspan="2">
@@ -834,40 +263,94 @@ border: 1px solid #d26385;
         </item>
        </layout>
       </item>
-      <item row="0" column="0" rowspan="2" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QPushButton" name="loadSurveyFileButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="0" column="2" rowspan="2">
+       <layout class="QVBoxLayout" name="startStopLayout">
+        <property name="spacing">
+         <number>2</number>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>300</width>
-          <height>50</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Open the survey data file downloaded from the Google Form.</string>
-        </property>
-        <property name="text">
-         <string>Load Survey File...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="gruepr.qrc">
-          <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>40</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QPushButton" name="cancelOptimizationButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="visible">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Stop the optimization process and show the best set of teams found so far.</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,   stop:0 #f283a5, stop:1 #d26385);
+border: 1px solid #d26385;
+}</string>
+          </property>
+          <property name="text">
+           <string>Stop Optimization</string>
+          </property>
+          <property name="icon">
+           <iconset resource="gruepr.qrc">
+            <normaloff>:/icons/stop.png</normaloff>:/icons/stop.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QPushButton" name="letsDoItButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Find an optimal set of teams.</string>
+          </property>
+          <property name="text">
+           <string>Create Teams</string>
+          </property>
+          <property name="icon">
+           <iconset resource="gruepr.qrc">
+            <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>42</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item row="2" column="0" colspan="2">
        <widget class="QGroupBox" name="teamingOptionsGroupBox">
@@ -2111,6 +1594,477 @@ Meeting Times:</string>
           </layout>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item row="0" column="4" rowspan="2" colspan="2">
+       <layout class="QGridLayout" name="helpAboutLayout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
+         <widget class="QToolButton" name="HelpButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Help</string>
+          </property>
+          <property name="text">
+           <string>Help</string>
+          </property>
+          <property name="icon">
+           <iconset resource="gruepr.qrc">
+            <normaloff>:/icons/help.png</normaloff>:/icons/help.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextUnderIcon</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+         <widget class="QPushButton" name="registerButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #f283a5</string>
+          </property>
+          <property name="text">
+           <string>Register my
+copy of gruepr!</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" colspan="2">
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="2" alignment="Qt::AlignHCenter|Qt::AlignTop">
+         <widget class="QToolButton" name="AboutButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>About gruepr</string>
+          </property>
+          <property name="text">
+           <string>About</string>
+          </property>
+          <property name="icon">
+           <iconset resource="gruepr.qrc">
+            <normaloff>:/icons/about.png</normaloff>:/icons/about.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonTextUnderIcon</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" rowspan="3">
+         <spacer name="horizontalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="2" colspan="4">
+       <widget class="QTabWidget" name="dataDisplayTabWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <property name="usesScrollButtons">
+         <bool>false</bool>
+        </property>
+        <widget class="QWidget" name="studentsTab">
+         <attribute name="title">
+          <string>  Students  </string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QTableWidget" name="studentTable">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="contextMenuPolicy">
+             <enum>Qt::NoContextMenu</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QTableView{gridline-color: black;}
+            QHeaderView::section{
+                border-top:0px solid #D8D8D8;
+                border-left:0px solid #D8D8D8;
+                border-right:1px solid black;
+                border-bottom: 1px solid black;
+                background-color:Gainsboro;
+                padding:4px;
+                font-weight:bold;}
+            QHeaderView::down-arrow{
+                image: url(:/icons/down_arrow.png);
+                width:20px;
+                subcontrol-origin:margin;
+                subcontrol-position:left;}
+           QHeaderView::up-arrow{
+                image: url(:/icons/up_arrow.png);
+                width:20px;
+                subcontrol-origin:margin;
+                subcontrol-position:left;}
+            QTableCornerButton::section{
+                border-top:0px solid #D8D8D8;
+                border-left:0px solid #D8D8D8;
+                border-right:1px solid black;
+                border-bottom: 1px solid black;
+                background-color:white;}
+			QTableView::item{ selection-background-color: #85cbf8}</string>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContents</enum>
+            </property>
+            <property name="autoScroll">
+             <bool>false</bool>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>false</bool>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+            <property name="showGrid">
+             <bool>false</bool>
+            </property>
+            <property name="gridStyle">
+             <enum>Qt::NoPen</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="cornerButtonEnabled">
+             <bool>false</bool>
+            </property>
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderMinimumSectionSize">
+             <number>20</number>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="addStudentLayout">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="addStudentPushButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;Add a student to the current dataset.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Add a Student</string>
+              </property>
+              <property name="icon">
+               <iconset resource="gruepr.qrc">
+                <normaloff>:/icons/add.png</normaloff>:/icons/add.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="teamsTab">
+         <attribute name="title">
+          <string>  Teams  </string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <item>
+           <layout class="QHBoxLayout" name="savePrintLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="saveTeamsButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Save this set of teams as text or pdf files.</string>
+              </property>
+              <property name="text">
+               <string>Save</string>
+              </property>
+              <property name="icon">
+               <iconset resource="gruepr.qrc">
+                <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="printTeamsButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Print this set of teams.</string>
+              </property>
+              <property name="text">
+               <string>Print</string>
+              </property>
+              <property name="icon">
+               <iconset resource="gruepr.qrc">
+                <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="teamDataLayout">
+            <item>
+             <widget class="QLabel" name="label_23">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>NOTE: You can swap the position of two students or two teams using drag-and-drop.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="teamOptionsLayout">
+              <item>
+               <widget class="QPushButton" name="expandAllButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Show the students in all of the teams.</string>
+                </property>
+                <property name="text">
+                 <string>Expand All</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="collapseAllButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Show only the summarized data for all of the teams.</string>
+                </property>
+                <property name="text">
+                 <string>Collapse All</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_14">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Set team names:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="teamNamesComboBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>Set the names of the teams.</string>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Custom names</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>

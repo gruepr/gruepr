@@ -4,6 +4,7 @@
 // Code related to the subclassed widgets used in gruepr
 
 #include <QTreeWidget>
+#include <QHeaderView>
 #include <QTableWidget>
 #include <QPushButton>
 
@@ -43,16 +44,32 @@ protected:
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
 
+public slots:
+    void resorting(int column);
+
 signals:
-    void swapChildren(int studentAID, int studentBID);  // if drag-and-dropping children in the view, swap teammates
+    void swapChildren(int studentAteam, int studentAID, int studentBteam, int studentBID);  // if drag-and-dropping children in the view, swap teammates
     void swapParents(int teamA, int teamB);             // "   "    "     "     parents   "  "    "    "    teams
-    void teamInfoChanged();                             // need to refresh the display
+    void updateTeamOrder();
 
 private:
     QTreeWidgetItem* draggedItem;
     QTreeWidgetItem* droppedItem;
 };
 
+class TeamTreeWidgetItem : public QTreeWidgetItem
+{
+public:
+    TeamTreeWidgetItem(QTreeWidget *parent = nullptr, int type = 0);
+    TeamTreeWidgetItem(QTreeWidgetItem *parent = nullptr, int type = 0);
+    bool operator<(const QTreeWidgetItem &other) const;
+};
+
+class TeamTreeHeaderView : public QHeaderView
+{
+public:
+    TeamTreeHeaderView(TeamTreeWidget *parent = nullptr);
+};
 
 // a subclassed QPushButton that passes mouse enter events to its parent
 class PushButtonThatSignalsMouseEnterEvents : public QPushButton

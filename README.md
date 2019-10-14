@@ -20,7 +20,7 @@ Description of gruepr:
            6) requiring any particular students to be on the same team.
 
         After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams
-        are displayed showing the students names, emails, gender, URM status, and attribute levels. Each team's
+        are displayed showing the students names, emails, gender, URM status, and attribute values. Each team's
         score is also shown along with a table of student availability at each time slot throughout the week. You
         can choose whether to save this teamset, adjust this teamset by swapping pairs of students, or throw away
         the teamset entirely and start over. If you save the teamset, three files can be saved: 1) an instructor's
@@ -33,13 +33,11 @@ Description of gruepr:
         Google Form and, in the "Responses" tab, click the three-dot icon and select "Download responses (.csv)".
         The gender question can be removed, if desired. The attribute questions on the Google Form (Section 3 of
         the form) can be modified, including reordering, adding, or removing questions. There can be anywhere
-        between 0 to 9 of these attribute questions. The only requirement is that the responses that the students
-        select MUST include one single digit number to indicate a quantitative measure of the answer to the question.
-        The schedule section can be removed, or the numbers and names of the days and times can be altered. The only
-        requirement here is to have 7 or fewer days and 24 or fewer hours in the matrix. A section question can be
-        included so that multiple sections can all be sent the same form; if more than one section is present in the
-        data, you can select which section to team. Additional questions for your own use can be added to the end of
-        the form.
+        between 0 to 9 of these attribute questions. The schedule section can be removed, or the numbers and names
+        of the days and times can be altered. The only requirement here is to have 7 or fewer days and 24 or fewer
+        hours in the matrix. A section question can be included so that multiple sections can all be sent the same
+        form; if more than one section is present in the data, you can select which section to team. Additional
+        questions for your own use can be added to the end of the form.
 
         The datafile must be a comma-separated-values (.csv) file with these contents:
            - header row, contains only the comma-separated question texts
@@ -51,17 +49,16 @@ Description of gruepr:
                ~ email
                ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
                      "Non-binary", etc.)
-               - [optional] "yes" or "no", to indicate whether the student comes from an underrepresented minority
+               ~ [optional] "yes" or "no", to indicate whether the student comes from an underrepresented minority
                      group
-               ~ [0 to 9 values] text responses to "attribute" questions, each in own field; first numeric digit
-                     found in the text is the value used by the program
+               ~ [0 to 9 values] text responses to "attribute" questions, each in own field
                ~ [0 to 7 values] semicolon-separated list of times each day that the student is unavailable to work
                ~ [optional] section
                ~ [optional] any additional notes for student (all remaining columns will get swallowed into this
                      field)
 
         COMPILING NOTES: Need C++11 compatibility. Using gcc/mingw, enabling the highest speed optimizations
-        with -O3 seems to offer significant speed boost.
+        with -O3 seems to offer significant speed boost. On Windows, need OpenMP.
 
 
 ---------------

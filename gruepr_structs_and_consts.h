@@ -27,6 +27,43 @@ const int maxStudents = maxRecords;                     // each student is a "re
 const int maxTeams = maxStudents/2;
 const int maxTimeBlocks = 7*24;                         // resolution of scheduling is 1 hr, and scope is weekly
 
+const int TeamInfoDisplay = Qt::UserRole;               // data with this role is stored in each column of the team info display tree, shown when team is collapsed
+const int TeamInfoSort = Qt::UserRole + 1;              // data with this role is stored in each column of the team info display tree, used when sorting the column
+
+// Options for the team names. A name for each list of names must be given.
+const QStringList teamnameListNames = {"Arabic numbers",
+                                       "Roman numerals",
+                                       "Hexadecimal numbers",
+                                       "English letters",
+                                       "Greek letters",
+                                       "NATO phonetic alphabet",
+                                       "Chemical elements",
+                                       "Shakespeare plays"};
+const QList<QStringList> teamNameLists{{},
+                                       {},
+                                       {},
+                                       {QString("A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z").split(",")},
+                                       {QString("Alpha,Beta,Gamma,Delta,Epsilon,Zeta,Eta,Theta,Iota,Kappa,"
+                                                "Lambda,Mu,Nu,Xi,Omicron,Pi,Rho,Sigma,Tau,Upsilon,Phi,Chi,Psi,Omega").split(",")},
+                                       {QString("Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,"
+                                                "Lima,Mike,November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu").split(",")},
+                                       {QString("Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
+                                                "Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
+                                                "Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,"
+                                                "Rubidium,Strontium,Yttrium,Zirconium,Niobium,Molybdenum,Technetium,Ruthenium,Rhodium,Palladium,Silver,"
+                                                "Cadmium,Indium,Tin,Antimony,Tellurium,Iodine,Xenon,Cesium,Barium,Lanthanum,Cerium,Praseodymium,Neodymium,"
+                                                "Promethium,Samarium,Europium,Gadolinium,Terbium,Dysprosium,Holmium,Erbium,Thulium,Ytterbium,Lutetium,"
+                                                "Hafnium,Tantalum,Tungsten,Rhenium,Osmium,Iridium,Platinum,Gold,Mercury,Thallium,Lead,Bismuth,Polonium,"
+                                                "Astatine,Radon,Francium,Radium,Actinium,Thorium,Protactinium,Uranium,Neptunium,Plutonium,Americium,Curium,"
+                                                "Berkelium,Californium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Dubnium,Seaborgium,"
+                                                "Bohrium,Hassium,Meitnerium,Darmstadtium,Roentgenium,Copernicium,Nihonium,Flerovium,Moscovium,Livermorium,"
+                                                "Tennessine,Oganesson").split(",")},
+                                       {QString("Taming of the Shrew,Henry VI,Two Gentlemen of Verona,Titus Andronicus,Richard III,Comedy of Errors,"
+                                                "Love's Labour's Lost,Midsummer Night's Dream,Romeo and Juliet,Richard II,King John,Merchant of Venice,"
+                                                "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,Merry Wives of Windsor,"
+                                                "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
+                                                "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
+                                                "Two Noble Kinsmen").split(",")}};
 
 //struct defining survey data from one student
 struct studentRecord
@@ -48,6 +85,26 @@ struct studentRecord
     QString notes;										// any special notes for this student
     QString attributeResponse[maxAttributes];           // the text of the response to each attribute question
     QString availabilityChart;
+};
+
+
+//class defining one team
+struct teamInfo
+{
+    float score;
+    int size;
+    int numWomen;
+    int numMen;
+    int numNeither;
+    int numURM;
+    int attributeMin[maxAttributes] = {0};                 // min rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
+    int attributeMax[maxAttributes] = {0};                 // max rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
+    int numStudentsAvailable[7][24] = {{0}};
+    int numStudentsWithAmbiguousSchedules = 0;
+    QList<int> studentIDs;
+    QString name;
+    QString availabilityChart;
+    QString tooltip;
 };
 
 

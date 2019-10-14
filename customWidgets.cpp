@@ -44,6 +44,8 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 {
     setStyleSheet("QHeaderView::section{border-top:0px solid #D8D8D8;border-left:0px solid #D8D8D8;border-right:1px solid black;"
                   "border-bottom: 1px solid black;background-color:Gainsboro;padding:4px;font-weight:bold;}"
+                  "QHeaderView::down-arrow{image: url(:/icons/down_arrow.png);width:20px;subcontrol-origin:margin;subcontrol-position:left;}"
+                  "QHeaderView::up-arrow{image: url(:/icons/up_arrow.png);width:20px;subcontrol-origin:margin;subcontrol-position:left;}"
                   "QTreeWidget::item:selected{color: black;background-color: #85cbf8;}"
                   "QTreeWidget::item:hover{color: black;background-color: #85cbf8;}"
                   "QTreeWidget::branch{background-color: white;}"
@@ -53,6 +55,8 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
                   "QTreeView::branch:closed:has-children:has-siblings {border-image: none; image: url(:/icons/branch-closed.png);}"
                   "QTreeView::branch:open:has-children:!has-siblings,"
                   "QTreeView::branch:open:has-children:has-siblings {border-image: none; image: url(:/icons/branch-open.png);}");
+    setHeader(new TeamTreeHeaderView(this));
+    header()->setSectionResizeMode(QHeaderView::Interactive);
     setDragDropMode(QAbstractItemView::InternalMove);
     setSortingEnabled(false);
     setAlternatingRowColors(true);
@@ -71,114 +75,17 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
     {
         return;
     }
-
-    int numWomen=0, numMen=0, numNonbinary=0, numURM = 0, numNonURM = 0, attributeMin[maxAttributes]={0}, attributeMax[maxAttributes]={0}, column;
-    for (int teammate = 0; teammate < item->childCount(); teammate++)
+    for(int column = 2; column < columnCount(); column++)
     {
-        QTreeWidgetItem *child = item->child(teammate);
-        column = 0;
-        column++;
-        if(headerItem()->text(column) == tr("gender"))
-        {
-            if(child->text(column) == tr("woman"))
-            {
-                numWomen++;
-
-            }
-            else if(child->text(column) == tr("man"))
-            {
-                numMen++;
-
-            }
-            else
-            {
-                numNonbinary++;
-            }
-            column++;
-        }
-        if(headerItem()->text(column) == tr("URM"))
-        {
-            if(child->text(column) == tr("yes"))
-            {
-                numURM++;
-
-            }
-            else
-            {
-                numNonURM++;
-            }
-            column++;
-        }
-        int attribute = 0;
-        while(headerItem()->text(column).contains(tr("attribute"), Qt::CaseInsensitive))
-        {
-            if(!child->text(column).contains("X"))
-            {
-                int value = (child->text(column)).toInt();
-                if(value > attributeMax[attribute] || attributeMax[attribute] == 0)
-                {
-                    attributeMax[attribute] = value;
-                }
-                if(value < attributeMin[attribute] || attributeMin[attribute] == 0)
-                {
-                    attributeMin[attribute] = value;
-                }
-            }
-            column++;
-            attribute++;
-        }
+        item->setText(column, item->data(column, Qt::UserRole).toString());
     }
-    column = 0;
-    column++;
-    if(headerItem()->text(column) == tr("gender"))
-    {
-        QString genderText;
-        if(numWomen > 0)
-        {
-            genderText += QString::number(numWomen) + tr("W");
-        }
-        if(numWomen > 0 && (numMen > 0 || numNonbinary > 0))
-        {
-            genderText += ", ";
-        }
-        if(numMen > 0)
-        {
-            genderText += QString::number(numMen) + tr("M");
-        }
-        if(numMen > 0 && numNonbinary > 0)
-        {
-            genderText += ", ";
-        }
-        if(numNonbinary > 0)
-        {
-            genderText += QString::number(numNonbinary) + tr("X");
-        }
-        item->setText(column, genderText);
-        resizeColumnToContents(column);
-        column++;
-    }
-    if(headerItem()->text(column) == tr("URM"))
-    {
-        item->setText(column, QString::number(numURM));
-        resizeColumnToContents(column);
-        column++;
-    }
-    int attribute = 0;
-    while(headerItem()->text(column).contains(tr("attribute"), Qt::CaseInsensitive))
-    {
-        QString attributeText = QString::number(attributeMin[attribute]);
-        if(attributeMin[attribute] != attributeMax[attribute])
-        {
-            attributeText += " - " + QString::number(attributeMax[attribute]);
-        }
-        item->setText(column, attributeText);
-        resizeColumnToContents(column);
-        column++;
-        attribute++;
-    }
-    item->setText(column, QString::number(item->toolTip(0).count("100%")));
 
     QTreeWidget::collapseItem(item);
+
+    for(int column = 0; column < columnCount(); column++)
+    {
+        header()->resizeSection(column, std::max(header()->sectionSizeHint(column), this->sizeHintForColumn(column)));
+    }
 }
 
 void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
@@ -187,13 +94,17 @@ void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
     {
         return;
     }
-    for(int column = 1; column < columnCount(); column++)
+    for(int column = 2; column < columnCount(); column++)
     {
         item->setText(column, "");
-        resizeColumnToContents(column);
     }
 
     QTreeWidget::expandItem(item);
+
+    for(int column = 0; column < columnCount(); column++)
+    {
+        header()->resizeSection(column, std::max(header()->sectionSizeHint(column), this->sizeHintForColumn(column)));
+    }
 }
 
 void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -211,18 +122,18 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
         return;
     }
 
-    // in the tree view, students have a parent (the team number) but teams do not. Iff dragged and dropped items are both students or both teams, then swap their places.
+    // in the tree view, students have a parent (the team number) but teams do not.
+    // Iff dragged and dropped items are both students or both teams, then swap their places.
     if(draggedItem->parent() && droppedItem->parent())  // two students
     {
-        // UserRole data stored in the item is the studentRecord.ID
-        emit swapChildren((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
-        emit teamInfoChanged();
+        // UserRole data stored in the item is the studentRecord.ID; TeamInfoSort data stored in the parent's column 0 is the team number
+        emit swapChildren((draggedItem->parent()->data(0,TeamInfoSort)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
+                          (droppedItem->parent()->data(0,TeamInfoSort)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
     }
     else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
     {
-        // UserRole data stored in the item is the team number
-        emit swapParents((draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
-        emit teamInfoChanged();
+        // TeamInfoSort data stored in column 0 is the team number
+        emit swapParents((draggedItem->data(0,TeamInfoSort)).toInt(), (droppedItem->data(0,TeamInfoSort)).toInt());
     }
     else
     {
@@ -231,9 +142,52 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     }
 }
 
+void TeamTreeWidget::resorting(int /*column*/)
+{
+    emit updateTeamOrder();
+}
+
 void TeamTreeWidget::itemEntered(const QModelIndex &index)
 {
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+}
+
+TeamTreeWidgetItem::TeamTreeWidgetItem(QTreeWidget *parent, int type)
+    :QTreeWidgetItem (parent, type)
+{
+}
+
+TeamTreeWidgetItem::TeamTreeWidgetItem(QTreeWidgetItem *parent, int type)
+    :QTreeWidgetItem (parent, type)
+{
+}
+
+bool TeamTreeWidgetItem::operator<(const QTreeWidgetItem &other) const
+{
+    if(parent())      // don't sort the students, only the teams
+    {
+        return false;
+    }
+
+    int sortColumn = treeWidget()->sortColumn();
+
+    if(sortColumn == 0)
+    {
+        QCollator sortAlphanumerically;
+        sortAlphanumerically.setNumericMode(true);
+        sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+        return (sortAlphanumerically.compare(text(sortColumn), other.text(sortColumn)) < 0);
+    }
+
+    // sort using sortorder data in column, and use teamnumber to break ties
+    return((1000*data(sortColumn, TeamInfoSort).toInt() + data(0, TeamInfoSort).toInt()) <
+           (1000*other.data(sortColumn, TeamInfoSort).toInt() + other.data(0, TeamInfoSort).toInt()));
+}
+
+TeamTreeHeaderView::TeamTreeHeaderView(TeamTreeWidget *parent)
+    :QHeaderView(Qt::Horizontal, parent)
+{
+    connect(this, &TeamTreeHeaderView::sectionClicked, parent, &TeamTreeWidget::resorting);
 }
 
 

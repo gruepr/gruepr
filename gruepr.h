@@ -59,16 +59,15 @@ private slots:
     void optimizationComplete();
     void on_expandAllButton_clicked();
     void on_collapseAllButton_clicked();
-    void on_sortTeamsButton_clicked();
-    void on_teamNamesComboBox_currentIndexChanged(int index);
+    void on_teamNamesComboBox_activated(int index);
     void on_saveTeamsButton_clicked();
     void on_printTeamsButton_clicked();
     void on_loadSettingsButton_clicked();
     void on_saveSettingsButton_clicked();
     void on_clearSettingsButton_clicked();
-    void swapTeammates(int studentAID, int studentBID);
+    void swapTeammates(int studentAteam, int studentAID, int studentBteam, int studentBID);
     void swapTeams(int teamA, int teamB);
-    void refreshTeamInfo();
+    void reorderedTeams();
     void on_HelpButton_clicked();
     void on_AboutButton_clicked();
     void on_registerButton_clicked();
@@ -88,12 +87,13 @@ private:
     DataOptions dataOptions;
     TeamingOptions teamingOptions;
     int numTeams;
-    int teamSize[maxTeams]={0};
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
         // reading survey data file
     bool loadSurveyData(QString fileName);              // returns false if file is invalid
     studentRecord *student = nullptr;                   // array to hold the students' data
+    int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
+    Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     int numStudents = maxStudents;
     studentRecord readOneRecordFromFile(QStringList fields);
     QStringList ReadCSVLine(QString line);              // read one line from a CSV file, smartly handling commas inside quotation mark-encased fields, and returning fields as QStringList
@@ -108,7 +108,7 @@ private:
     bool haveAnyPrevTeammates = false;
     bool haveAnyRequestedTeammates = false;
         // team set optimization
-    int *studentIDs;                                    // array of the IDs of students to be placed on teams
+    int *studentIDs = nullptr;                          // array of the IDs of students to be placed on teams
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
@@ -119,17 +119,23 @@ private:
     float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj);
     float teamSetScore;
     int finalGeneration;
-    int bestGenome[maxStudents];
     QMutex optimizationStoppedmutex;
     bool optimizationStopped;
     bool keepOptimizing;
         // reporting results
+    teamInfo *teams = nullptr;
+    void refreshTeamInfo(QList<int> teamNums = {-1});
+    void refreshTeamToolTips(QList<int> teamNums = {-1});
+    void resetTeamDisplay();
+    void refreshTeamDisplay(QList<int> teamNums = {-1});
+    bool *expanded = nullptr;
     QString sectionName;
-    QStringList teamNames;
-    TeamTreeWidget *teamDataTree;
+    TeamTreeWidget *teamDataTree = nullptr;
+    QList<TeamTreeWidgetItem*> parentItem;
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;
+    void createFileContents();
     void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
     QPrinter *setupPrinter();
     void printOneFile(QString file, QString delimiter, QFont &font, QPrinter *printer);
