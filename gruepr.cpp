@@ -202,6 +202,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
         {
             dataOptions.attributeLevels[attribNum] = 0;
         }
+        haveAnyRequiredTeammates = false;
+        haveAnyPreventedTeammates = false;
+        haveAnyRequestedTeammates = false;
 
         if(loadSurveyData(fileName))
         {
@@ -473,7 +476,7 @@ void gruepr::editAStudent()
     QStringList sectionNames;
     if(dataOptions.sectionIncluded)
     {
-        for(int ID = 0; ID < numStudents; ID++)
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
             if(!sectionNames.contains(student[ID].section))
             {
@@ -481,6 +484,10 @@ void gruepr::editAStudent()
             }
         }
     }
+    QCollator sortAlphanumerically;
+    sortAlphanumerically.setNumericMode(true);
+    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+    std::sort(sectionNames.begin(), sectionNames.end(), sortAlphanumerically);
 
     //Open window with the student record in it
     editOrAddStudentDialog *window = new editOrAddStudentDialog(student[ID], dataOptions, sectionNames, this);
@@ -747,7 +754,7 @@ void gruepr::on_requiredTeammatesButton_clicked()
         {
             this->student[ID] = window->student[ID];
         }
-        haveAnyReqTeammates = window->teammatesSpecified;
+        haveAnyRequiredTeammates = haveAnyRequiredTeammates || window->teammatesSpecified;
     }
 
     delete window;
@@ -764,11 +771,11 @@ void gruepr::on_preventedTeammatesButton_clicked()
     int reply = window->exec();
     if(reply == QDialog::Accepted)
     {
-        for(int ID = 0; ID < numStudents; ID++)
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
             this->student[ID] = window->student[ID];
         }
-        haveAnyPrevTeammates = window->teammatesSpecified;
+        haveAnyPreventedTeammates = haveAnyPreventedTeammates || window->teammatesSpecified;
     }
 
     delete window;
@@ -789,7 +796,7 @@ void gruepr::on_requestedTeammatesButton_clicked()
         {
             this->student[ID] = window->student[ID];
         }
-        haveAnyRequestedTeammates = window->teammatesSpecified;
+        haveAnyRequestedTeammates = haveAnyRequestedTeammates || window->teammatesSpecified;
     }
 
     delete window;
@@ -2089,17 +2096,18 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(dataOptions.numStudentsInSystem);
 
-    // compile all the student names so that we can mark duplicates
-    QStringList studentNames;
+    // compile all the student names and emails so that we can mark duplicates
+    QStringList studentNames, studentEmails;
     for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
     {
         studentNames << (student[ID].firstname + student[ID].lastname);
+        studentEmails << student[ID].email;
     }
 
     numStudents = 0;
     for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
     {
-        bool duplicate = (studentNames.count(student[ID].firstname + student[ID].lastname)) > 1;
+        bool duplicate = ((studentNames.count(student[ID].firstname + student[ID].lastname) > 1) || (studentEmails.count(student[ID].email) > 1));
 
         if((ui->sectionSelectionBox->currentIndex() == 0) || (student[ID].section == ui->sectionSelectionBox->currentText()))
         {
@@ -2181,7 +2189,7 @@ QString gruepr::createAToolTip(studentRecord info, bool duplicateRecord)
     QString toolTip = "<html>";
     if(duplicateRecord)
     {
-        toolTip += "<table><tr><td bgcolor=#ffff3b><b>" + tr("There are multiple survey submissions with this name!") + "</b></td></tr></table><br>";
+        toolTip += "<table><tr><td bgcolor=#ffff3b><b>" + tr("There appears to be multiple survey submissions from this student!") + "</b></td></tr></table><br>";
     }
     toolTip += info.firstname + " " + info.lastname;
     toolTip += "<br>" + info.email;
@@ -2705,7 +2713,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     }
 
     // Determine adjustments for required teammates NOT on same team
-    if(haveAnyReqTeammates)
+    if(haveAnyRequiredTeammates)
     {
         firstStudentInTeam=0;
         // Loop through each team
@@ -2743,7 +2751,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     }
 
     // Determine adjustments for prevented teammates on same team
-    if(haveAnyPrevTeammates)
+    if(haveAnyPreventedTeammates)
     {
         firstStudentInTeam=0;
         // Loop through each team

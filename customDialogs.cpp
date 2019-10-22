@@ -5,18 +5,18 @@
 // A dialog window to select sets of required or prevented teammates
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatType, const studentRecord student[], int numStudentsInSystem, const QString &sectionName, QWidget *parent)
+gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const studentRecord studentrecs[], int numStudentsComingIn, const QString &sectionname, QWidget *parent)
     : QDialog(parent)
 {
     //copy data into local versions, including full database of students
-    numStudents = numStudentsInSystem;
-    this->sectionName = sectionName;
-    this->student = new studentRecord[numStudentsInSystem];
-    for(int i = 0; i < numStudentsInSystem; i++)
+    numStudents = numStudentsComingIn;
+    sectionName = sectionname;
+    student = new studentRecord[numStudentsComingIn];
+    for(int i = 0; i < numStudentsComingIn; i++)
     {
-        this->student[i] = student[i];
+        student[i] = studentrecs[i];
     }
-    this->whatType = whatType;
+    whatType = whatTypeOfTeammate;
 
     //start off with no teammate data changed
     teammatesSpecified = false;
@@ -80,50 +80,56 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatType, con
         possibleTeammates[8].addItem("Select the student:");
         possibleTeammates[8].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
         possibleTeammates[8].insertSeparator(1);
-        int indexInComboBox = 1;
+        QList<studentRecord> studentsInComboBox;
         //Add to combobox a list of all the student names (in this section)
-        for(int ID = 0; ID < numStudentsInSystem; ID++)
+        for(int ID = 0; ID < numStudentsComingIn; ID++)
         {
             if((sectionName == "") || (sectionName == student[ID].section))
             {
-                indexInComboBox++;
-                possibleTeammates[8].insertItem(indexInComboBox, student[ID].firstname + " " + student[ID].lastname);
-                possibleTeammates[8].setItemData(indexInComboBox, student[ID].ID);
+                studentsInComboBox << student[ID];
             }
+        }
+        std::sort(studentsInComboBox.begin(), studentsInComboBox.end(), [](studentRecord i, studentRecord j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
+        for(int i = 0; i < studentsInComboBox.size(); i++)
+        {
+            possibleTeammates[8].insertItem(i+2, studentsInComboBox[i].lastname + ", " + studentsInComboBox[i].firstname, studentsInComboBox[i].ID);
         }
         theGrid->addWidget(&possibleTeammates[8], row, 0, 1, 2);
         row++;
     }
 
     //Rows 3&4 (or 4&5) - the teammate choice box(es), a spacer, and a load button
-    for(int i = 0; i < possibleNumIDs; i++)
+    for(int combobox = 0; combobox < possibleNumIDs; combobox++)
     {
         if(whatType != gatherTeammatesDialog::requested)
         {
-            possibleTeammates[i].addItem("Select a student:");
+            possibleTeammates[combobox].addItem("Select a student:");
         }
         else
         {
-            possibleTeammates[i].addItem("Select a requested teammate:");
+            possibleTeammates[combobox].addItem("Select a requested teammate:");
         }
-        possibleTeammates[i].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
-        possibleTeammates[i].insertSeparator(1);
-        int indexInComboBox = 1;
+        possibleTeammates[combobox].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
+        possibleTeammates[combobox].insertSeparator(1);
+        QList<studentRecord> studentsInComboBox;
         //Add to combobox a list of all the student names (in this section)
-        for(int ID = 0; ID < numStudentsInSystem; ID++)
+        for(int ID = 0; ID < numStudentsComingIn; ID++)
         {
             if((sectionName == "") || (sectionName == student[ID].section))
             {
-                indexInComboBox++;
-                possibleTeammates[i].insertItem(indexInComboBox, student[ID].firstname + " " + student[ID].lastname);
-                possibleTeammates[i].setItemData(indexInComboBox, student[ID].ID);
+                studentsInComboBox << student[ID];
             }
         }
-        theGrid->addWidget(&possibleTeammates[i], row+(i/4), i%4);
+        std::sort(studentsInComboBox.begin(), studentsInComboBox.end(), [](studentRecord i, studentRecord j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
+        for(int i = 0; i < studentsInComboBox.size(); i++)
+        {
+            possibleTeammates[combobox].insertItem(i+2, studentsInComboBox[i].lastname + ", " + studentsInComboBox[i].firstname, studentsInComboBox[i].ID);
+        }
+        theGrid->addWidget(&possibleTeammates[combobox], row+(combobox/4), combobox%4);
     }
     theGrid->setColumnMinimumWidth(4,15);
     loadTeammates = new QPushButton(this);
-    loadTeammates->setText(tr("&Add set of\n ") + typeText.toLower() + tr(" teammates "));
+    loadTeammates->setText(tr("&Add set of\n") + typeText.toLower() + tr("\nteammates"));
     connect(loadTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::addOneTeammateSet);
     theGrid->addWidget(loadTeammates, row, 5, 2, 1);
 
@@ -131,7 +137,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatType, con
     row += 2;
     theGrid->setRowMinimumHeight(row, 20);
     resetTableButton = new QPushButton(this);
-    resetTableButton->setText(tr("&Clear All\n") + typeText + tr("Teammates"));
+    resetTableButton->setText(tr("&Clear all\n") + typeText.toLower() + tr("\nteammates"));
     theGrid->addWidget(resetTableButton, row+1, 0, 1, 1);
     connect(resetTableButton, &QPushButton::clicked, this, &gatherTeammatesDialog::clearAllTeammateSets);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -169,6 +175,7 @@ void gatherTeammatesDialog::addOneTeammateSet()
         possibleTeammates[i].setCurrentIndex(0);
     }
 
+    //IN THE FUTURE--SHOULD DECOUPLE THIS USE OF INDEX IN student ARRAY AS CORRESPONDING TO THE ID NUMBER
     if(whatType != gatherTeammatesDialog::requested)
     {
         //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
@@ -262,71 +269,87 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->setHorizontalHeaderItem(0, new QTableWidgetItem(typeText + tr(" Teammate #1")));
     currentListOfTeammatesTable->setRowCount(0);
 
+    QList<studentRecord> studentAs;
+    for(int ID = 0; ID < numStudents; ID++)
+    {
+        if((sectionName == "") || (sectionName == student[ID].section))
+        {
+            studentAs << student[ID];
+        }
+    }
+    std::sort(studentAs.begin(), studentAs.end(), [](const studentRecord &A, const studentRecord &B)
+                                                    {return ((A.lastname+A.firstname) < (B.lastname+B.firstname));});
+
     int row=0, column;
     bool atLeastOneTeammate;
-    for(int ID1 = 0; ID1 < numStudents; ID1++)
+    for(QList<studentRecord>::iterator studentA = studentAs.begin(); studentA != studentAs.end(); studentA++)
     {
-        if((sectionName == "") || (sectionName == student[ID1].section))
+        atLeastOneTeammate = false;
+        column = 0;
+        currentListOfTeammatesTable->setRowCount(row+1);
+        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(studentA->lastname + ", " + studentA->firstname));
+        bool printStudent;
+        for(int studentBID = 0; studentBID < numStudents; studentBID++)
         {
-            atLeastOneTeammate = false;
-            column = 0;
-            currentListOfTeammatesTable->setRowCount(row+1);
-            currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(student[ID1].firstname + " " + student[ID1].lastname));
-            bool printStudent;
-            for(int ID2 = 0; ID2 < numStudents; ID2++)
+            if(whatType == gatherTeammatesDialog::required)
             {
+                printStudent = studentA->requiredWith[studentBID];
+            }
+            else if(whatType == gatherTeammatesDialog::prevented)
+            {
+                printStudent = studentA->preventedWith[studentBID];
+            }
+            else
+            {
+                printStudent = studentA->requestedWith[studentBID];
+            }
+            if(printStudent)
+            {
+                atLeastOneTeammate = true;
+                if(currentListOfTeammatesTable->columnCount() < column+1)
+                {
+                    currentListOfTeammatesTable->setColumnCount(column+1);
+                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #") + QString::number(column+1)));
+                }
+                QHBoxLayout *box = new QHBoxLayout;
+                QLabel *label = new QLabel(student[studentBID].lastname + ", " + student[studentBID].firstname);
+                QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
+                remover->setFlat(true);
+                remover->setIconSize(QSize(15, 15));
                 if(whatType == gatherTeammatesDialog::required)
                 {
-                    printStudent = student[ID1].requiredWith[ID2];
+                    connect(remover, &QPushButton::clicked, [this, studentA, studentBID]
+                                                            {studentA->requiredWith[studentBID] = false;
+                                                             student[studentBID].requiredWith[studentA->ID] = false;
+                                                             refreshDisplay();});
                 }
                 else if(whatType == gatherTeammatesDialog::prevented)
                 {
-                    printStudent = student[ID1].preventedWith[ID2];
+                    connect(remover, &QPushButton::clicked, [this, studentA, studentBID]
+                                                            {studentA->preventedWith[studentBID] = false;
+                                                             student[studentBID].preventedWith[studentA->ID] = false;
+                                                             refreshDisplay();});
                 }
                 else
                 {
-                    printStudent = student[ID1].requestedWith[ID2];
+                    connect(remover, &QPushButton::clicked, [this, studentA, studentBID]
+                                                            {studentA->requestedWith[studentBID] = false;
+                                                             refreshDisplay();});
                 }
-                if(printStudent)
-                {
-                    atLeastOneTeammate = true;
-                    if(currentListOfTeammatesTable->columnCount() < column+1)
-                    {
-                        currentListOfTeammatesTable->setColumnCount(column+1);
-                        currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #") + QString::number(column+1)));
-                    }
-                    QHBoxLayout *box = new QHBoxLayout;
-                    QLabel *label = new QLabel(student[ID2].firstname + " " + student[ID2].lastname);
-                    QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
-                    remover->setFlat(true);
-                    remover->setIconSize(QSize(15, 15));
-                    if(whatType == gatherTeammatesDialog::required)
-                    {
-                        connect(remover, &QPushButton::clicked, [this, ID1, ID2]{student[ID1].requiredWith[ID2] = false; student[ID2].requiredWith[ID1] = false; refreshDisplay();});
-                    }
-                    else if(whatType == gatherTeammatesDialog::prevented)
-                    {
-                        connect(remover, &QPushButton::clicked, [this, ID1, ID2]{student[ID1].preventedWith[ID2] = false; student[ID2].preventedWith[ID1] = false; refreshDisplay();});
-                    }
-                    else
-                    {
-                        connect(remover, &QPushButton::clicked, [this, ID1, ID2]{student[ID1].requestedWith[ID2] = false; refreshDisplay();});
-                    }
-                    box->addWidget(label);
-                    box->addWidget(remover, 0, Qt::AlignLeft);
-                    box->setSpacing(0);
-                    QWidget *widg = new QWidget;
-                    widg->setLayout(box);
-                    currentListOfTeammatesTable->setCellWidget(row, column, widg);
-                    column++;
-                }
+                box->addWidget(label);
+                box->addWidget(remover, 0, Qt::AlignLeft);
+                box->setSpacing(0);
+                QWidget *widg = new QWidget;
+                widg->setLayout(box);
+                currentListOfTeammatesTable->setCellWidget(row, column, widg);
+                column++;
             }
-            if(!atLeastOneTeammate)
-            {
-                currentListOfTeammatesTable->setItem(row, 0, new QTableWidgetItem("--"));
-            }
-            row++;
         }
+        if(!atLeastOneTeammate)
+        {
+            currentListOfTeammatesTable->setItem(row, 0, new QTableWidgetItem("--"));
+        }
+        row++;
     }
     currentListOfTeammatesTable->resizeColumnsToContents();
     currentListOfTeammatesTable->resizeRowsToContents();
@@ -702,8 +725,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, 
     {
         explanation[field].setText(tr("Section"));
         databox[field].addItems(sectionNames);
-        databox[field].setCurrentText(student.section);
         databox[field].setEditable(true);
+        databox[field].setCurrentText(student.section);
         connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(&databox[field], field, 1);

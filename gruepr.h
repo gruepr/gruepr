@@ -104,9 +104,9 @@ private:
     float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight
     float realScheduleWeight;                           // scoring weight of the schedule, normalized to total weight
     int realNumScoringFactors;                          // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
-    bool haveAnyReqTeammates = false;
-    bool haveAnyPrevTeammates = false;
-    bool haveAnyRequestedTeammates = false;
+    bool haveAnyRequiredTeammates;
+    bool haveAnyPreventedTeammates;
+    bool haveAnyRequestedTeammates;
         // team set optimization
     int *studentIDs = nullptr;                          // array of the IDs of students to be placed on teams
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs

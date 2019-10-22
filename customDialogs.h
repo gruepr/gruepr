@@ -22,8 +22,7 @@ class gatherTeammatesDialog : public QDialog
 
 public:
     enum typeOfTeammates{required, prevented, requested};
-
-    gatherTeammatesDialog(const typeOfTeammates whatType, const studentRecord student[], int numStudentsInSystem, const QString &sectionName, QWidget *parent = nullptr);
+    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const studentRecord studentrecs[], int numStudentsComingIn, const QString &sectionname, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
 
     studentRecord *student;
