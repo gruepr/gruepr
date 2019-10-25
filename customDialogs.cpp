@@ -73,6 +73,18 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     //Second row - text explanation
     theGrid->addWidget(explanation, 1, 0, 1, -1);
 
+    //Next rows - the selection of students
+    QList<studentRecord> studentsInComboBoxes;
+    //Add to combobox a list of all the student names (in this section)
+    for(int ID = 0; ID < numStudentsComingIn; ID++)
+    {
+        if((sectionName == "") || (sectionName == student[ID].section))
+        {
+            studentsInComboBoxes << student[ID];
+        }
+    }
+    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](studentRecord i, studentRecord j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
+
     //If this is requested teammates, add the 'base' student button in the third row
     int row = 2;
     if(whatType == gatherTeammatesDialog::requested)
@@ -80,19 +92,9 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         possibleTeammates[8].addItem("Select the student:");
         possibleTeammates[8].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
         possibleTeammates[8].insertSeparator(1);
-        QList<studentRecord> studentsInComboBox;
-        //Add to combobox a list of all the student names (in this section)
-        for(int ID = 0; ID < numStudentsComingIn; ID++)
+        for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {
-            if((sectionName == "") || (sectionName == student[ID].section))
-            {
-                studentsInComboBox << student[ID];
-            }
-        }
-        std::sort(studentsInComboBox.begin(), studentsInComboBox.end(), [](studentRecord i, studentRecord j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
-        for(int i = 0; i < studentsInComboBox.size(); i++)
-        {
-            possibleTeammates[8].insertItem(i+2, studentsInComboBox[i].lastname + ", " + studentsInComboBox[i].firstname, studentsInComboBox[i].ID);
+            possibleTeammates[8].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
         }
         theGrid->addWidget(&possibleTeammates[8], row, 0, 1, 2);
         row++;
@@ -111,19 +113,9 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         }
         possibleTeammates[combobox].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
         possibleTeammates[combobox].insertSeparator(1);
-        QList<studentRecord> studentsInComboBox;
-        //Add to combobox a list of all the student names (in this section)
-        for(int ID = 0; ID < numStudentsComingIn; ID++)
+        for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {
-            if((sectionName == "") || (sectionName == student[ID].section))
-            {
-                studentsInComboBox << student[ID];
-            }
-        }
-        std::sort(studentsInComboBox.begin(), studentsInComboBox.end(), [](studentRecord i, studentRecord j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
-        for(int i = 0; i < studentsInComboBox.size(); i++)
-        {
-            possibleTeammates[combobox].insertItem(i+2, studentsInComboBox[i].lastname + ", " + studentsInComboBox[i].firstname, studentsInComboBox[i].ID);
+            possibleTeammates[combobox].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
         }
         theGrid->addWidget(&possibleTeammates[combobox], row+(combobox/4), combobox%4);
     }
@@ -570,7 +562,9 @@ registerDialog::registerDialog(QWidget *parent)
     //(one ore more letters, digit or special symbols, followed by @, followed by one ore more letters, digit or special symbols, followed by '.', followed by two, three or four letters)
     QRegularExpression emailAddressFormat("^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$", QRegularExpression::CaseInsensitiveOption);
     email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
-    connect(email, &QLineEdit::textChanged, [=]() { QString stylecolor = (email->hasAcceptableInput())? "black" : "red"; email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
+    connect(email, &QLineEdit::textChanged, [this]()
+                                             {QString stylecolor = (email->hasAcceptableInput())? "black" : "red";
+                                              email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
 
     //a spacer then ok/cancel buttons
     theGrid->setRowMinimumHeight(4, 20);
@@ -580,11 +574,11 @@ registerDialog::registerDialog(QWidget *parent)
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    connect(name, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+    connect(name, &QLineEdit::textChanged, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
                                                    email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(institution, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+    connect(institution, &QLineEdit::textChanged, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
                                                    email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(email, &QLineEdit::textChanged, [=]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+    connect(email, &QLineEdit::textChanged, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
                                                    email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
 
     adjustSize();
@@ -688,7 +682,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, 
 
     //Row 1 through 4--the required data
     QStringList fieldNames = {tr("Survey timestamp"), tr("First name"), tr("Last name"), tr("Email address")};
-    QStringList fieldValues = {student.surveyTimestamp.toString(TIMESTAMP_FORMAT1), student.firstname, student.lastname, student.email};
+    QStringList fieldValues = {student.surveyTimestamp.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)), student.firstname, student.lastname, student.email};
     for(int i = 0; i < 4; i++)
     {
         explanation[field].setText(fieldNames.at(field));
@@ -698,6 +692,12 @@ editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, 
         theGrid->addWidget(&datatext[field], field, 1);
         field++;
     }
+
+    //Flag invalid timestamps
+    connect(&(datatext[0]), &QLineEdit::textChanged, [this]()
+                                                     {bool validTimeStamp = QDateTime::fromString(datatext[0].text(), QLocale::system().dateTimeFormat(QLocale::ShortFormat)).isValid();
+                                                      QString stylecolor = (validTimeStamp? "black" : "red");
+                                                      datatext[0].setStyleSheet("QLineEdit {color: " + stylecolor + ";}");});
 
     if(dataOptions.genderIncluded)
     {
@@ -737,7 +737,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, 
     {
         explanation[field].setText(tr("Attribute ") + QString::number(attrib + 1));
         datanumber[field].setValue(student.attribute[attrib]);
-        datanumber[field].setRange(0, 9);
+        datanumber[field].setRange(0, dataOptions.attributeLevels[attrib]);
         if(datanumber[field].value() == 0)
         {
             datanumber[field].setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
@@ -782,7 +782,7 @@ editOrAddStudentDialog::~editOrAddStudentDialog()
 
 void editOrAddStudentDialog::recordEdited()
 {
-    student.surveyTimestamp = QDateTime::fromString(datatext[0].text(), TIMESTAMP_FORMAT1);
+    student.surveyTimestamp = QDateTime::fromString(datatext[0].text(), QLocale::system().dateTimeFormat(QLocale::ShortFormat));
     student.firstname = datatext[1].text();
     student.lastname = datatext[2].text();
     student.email = datatext[3].text();

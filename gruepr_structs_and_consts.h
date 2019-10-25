@@ -4,6 +4,7 @@
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
 #define TIMESTAMP_FORMAT3 "M/d/yyyy h:mm:ss"
+#define TIMESTAMP_FORMAT4 "M/d/yyyy h:mm"
 
 #define USER_REGISTRATION_URL "https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"
 
@@ -31,14 +32,14 @@ const int TeamInfoDisplay = Qt::UserRole;               // data with this role i
 const int TeamInfoSort = Qt::UserRole + 1;              // data with this role is stored in each column of the team info display tree, used when sorting the column
 
 // Options for the team names. A name for each list of names must be given.
-const QStringList teamnameListNames = {"Arabic numbers",
-                                       "Roman numerals",
-                                       "Hexadecimal numbers",
-                                       "English letters",
-                                       "Greek letters",
-                                       "NATO phonetic alphabet",
-                                       "Chemical elements",
-                                       "Shakespeare plays"};
+const QStringList teamnameListNames = {QString("Arabic numbers,"
+                                       "Roman numerals,"
+                                       "Hexadecimal numbers,"
+                                       "English letters,"
+                                       "Greek letters,"
+                                       "NATO phonetic alphabet,"
+                                       "Chemical elements,"
+                                       "Shakespeare plays").split(",")};
 const QList<QStringList> teamNameLists{{},
                                        {},
                                        {},

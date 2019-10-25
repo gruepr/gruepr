@@ -1647,13 +1647,13 @@ bool gruepr::loadSurveyData(QString fileName)
 
     // Read the optional gender/URM/attribute questions
     int fieldnum = 4;           // skipping past required fields: timestamp(0), first name(1), last name(2), email address(3)
-    QString field = fields.at(fieldnum).toLocal8Bit();
+    QString field = fields.at(fieldnum).toUtf8();
     // See if gender data is included
     if(field.contains(tr("gender"), Qt::CaseInsensitive))
     {
         dataOptions.genderIncluded = true;
         fieldnum++;
-        field = fields.at(fieldnum).toLocal8Bit();
+        field = fields.at(fieldnum).toUtf8();
     }
     else
     {
@@ -1665,7 +1665,7 @@ bool gruepr::loadSurveyData(QString fileName)
     {
         dataOptions.URMIncluded = true;
         fieldnum++;
-        field = fields.at(fieldnum).toLocal8Bit();
+        field = fields.at(fieldnum).toUtf8();
     }
     else
     {
@@ -1681,7 +1681,7 @@ bool gruepr::loadSurveyData(QString fileName)
         dataOptions.numAttributes++;
         fieldnum++;
         if(fieldnum < TotNumQuestions)
-            field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+            field = fields.at(fieldnum).toUtf8();				// move on to next field
     }
 
     // Count the number of days in the schedule by counting number of questions that includes "Check the times".
@@ -1702,13 +1702,13 @@ bool gruepr::loadSurveyData(QString fileName)
         scheduleFields << fieldnum;
         fieldnum++;
         if(fieldnum < TotNumQuestions)
-            field = fields.at(fieldnum).toLocal8Bit();				// move on to next field
+            field = fields.at(fieldnum).toUtf8();				// move on to next field
     }
 
     // Look for any remaining questions
     if(TotNumQuestions > fieldnum)                                            // There is at least 1 additional field in header
     {
-        field = fields.at(fieldnum).toLocal8Bit();
+        field = fields.at(fieldnum).toUtf8();
         if(field.contains("which section", Qt::CaseInsensitive))			// next field is a section question
         {
             fieldnum++;
@@ -1756,7 +1756,7 @@ bool gruepr::loadSurveyData(QString fileName)
         {
             for(auto i : scheduleFields)
             {
-                allTimeNames << ReadCSVLine(QString(fields.at(i).toLocal8Bit()).toLower().split(';').join(','));
+                allTimeNames << ReadCSVLine(QString(fields.at(i).toUtf8()).toLower().split(';').join(','));
             }
             fields = ReadCSVLine(in.readLine(), TotNumQuestions);
         }
@@ -1847,32 +1847,60 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 
     // first 4 fields: timestamp, first or preferred name, last name, email address
     int fieldnum = 0;
-    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT1);         // format when downloaded direct from Form
+    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format when downloaded direct from Form
     if(student.surveyTimestamp.isNull())
     {
-        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()-4), TIMESTAMP_FORMAT2);     // alt. format when downloaded direct from Form
+        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt. format when downloaded direct from Form
         if(student.surveyTimestamp.isNull())
         {
-            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).size()), TIMESTAMP_FORMAT3);   // format when downloaded from Results Spreadsheet
+            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), TIMESTAMP_FORMAT3);   // format when downloaded from Results Spreadsheet
+            if(student.surveyTimestamp.isNull())
+            {
+                student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), TIMESTAMP_FORMAT4);   // format when saving a csv edited in Excel
+                if(student.surveyTimestamp.isNull())
+                {
+                    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::TextDate);
+                    if(student.surveyTimestamp.isNull())
+                    {
+                        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::ISODate);
+                        if(student.surveyTimestamp.isNull())
+                        {
+                            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::ISODateWithMs);
+                        }
+                        if(student.surveyTimestamp.isNull())
+                        {
+                            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::SystemLocaleShortDate);
+                        }
+                        if(student.surveyTimestamp.isNull())
+                        {
+                            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::SystemLocaleLongDate);
+                        }
+                        if(student.surveyTimestamp.isNull())
+                        {
+                            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::RFC2822Date);
+                        }
+                    }
+                }
+            }
         }
     }
 
     fieldnum++;
-    student.firstname = fields.at(fieldnum).toLocal8Bit().trimmed();
+    student.firstname = fields.at(fieldnum).toUtf8().trimmed();
     student.firstname[0] = student.firstname[0].toUpper();
 
     fieldnum++;
-    student.lastname = fields.at(fieldnum).toLocal8Bit().trimmed();
+    student.lastname = fields.at(fieldnum).toUtf8().trimmed();
     student.lastname[0] = student.lastname[0].toUpper();
 
     fieldnum++;
-    student.email = fields.at(fieldnum).toLocal8Bit().trimmed();
+    student.email = fields.at(fieldnum).toUtf8().trimmed();
 
     // optional 5th field in line; might be the gender
     fieldnum++;
     if(dataOptions.genderIncluded)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit();
+        QString field = fields.at(fieldnum).toUtf8();
         if(field.contains(tr("woman"), Qt::CaseInsensitive))
         {
             student.gender = studentRecord::woman;
@@ -1895,7 +1923,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     // optional next field in line; might be underrpresented minority status
     if(dataOptions.URMIncluded)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit();
+        QString field = fields.at(fieldnum).toUtf8();
         student.URM = (field.contains(tr("yes"), Qt::CaseInsensitive));
         fieldnum++;
     }
@@ -1907,7 +1935,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     // optional next 9 fields in line; might be the attributes
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit();
+        QString field = fields.at(fieldnum).toUtf8();
         student.attributeResponse[attribute] = field;
         fieldnum++;
     }
@@ -1915,10 +1943,10 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     // next 0-7 fields; might be the schedule
     for(int day = 0; day < dataOptions.dayNames.size(); day++)
     {
-        QString field = fields.at(fieldnum).toLocal8Bit();
+        QString field = fields.at(fieldnum).toUtf8();
         for(int time = 0; time < dataOptions.timeNames.size(); time++)
         {
-            student.unavailable[(day*dataOptions.timeNames.size())+time] = field.contains(dataOptions.timeNames.at(time).toLocal8Bit(), Qt::CaseInsensitive);
+            student.unavailable[(day*dataOptions.timeNames.size())+time] = field.contains(dataOptions.timeNames.at(time).toUtf8(), Qt::CaseInsensitive);
         }
         fieldnum++;
     }   
@@ -1928,12 +1956,12 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(int day = 0; day < dataOptions.dayNames.size(); day++)
         {
-            student.availabilityChart += "<th>" + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
+            student.availabilityChart += "<th>" + dataOptions.dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         student.availabilityChart += "</tr>";
         for(int time = 0; time < dataOptions.timeNames.size(); time++)
         {
-            student.availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toLocal8Bit() + "</th>";
+            student.availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toUtf8() + "</th>";
             for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
                 student.availabilityChart += QString(student.unavailable[(day*dataOptions.timeNames.size())+time]?
@@ -1948,7 +1976,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
     // optional last fields; might be section and/or additional notes
     if(dataOptions.sectionIncluded)
     {
-        student.section = fields.at(fieldnum).toLocal8Bit().trimmed();
+        student.section = fields.at(fieldnum).toUtf8().trimmed();
         if(student.section.startsWith("section",Qt::CaseInsensitive))
         {
             student.section = student.section.right(student.section.size()-7).trimmed();    //removing as redundant the word "section" if at the start of the section name
@@ -1958,7 +1986,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 
     if(dataOptions.notesIncluded)
     {
-        student.notes = fields.at(fieldnum).toLocal8Bit().simplified();     //.simplified() removes leading & trailing whitespace, converts each internal whitespace to just a space
+        student.notes = fields.at(fieldnum).toUtf8().simplified();     //.simplified() removes leading & trailing whitespace, converts each internal whitespace to just a space
     }
 
     return student;
@@ -2113,7 +2141,7 @@ void gruepr::refreshStudentDisplay()
         {
             QString studentToolTip = createAToolTip(student[ID], duplicate);
 
-            TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString("d-MMM. h:mm AP"));
+            TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString(Qt::SystemLocaleShortDate));
             timestamp->setToolTip(studentToolTip);
             if(duplicate)
                 timestamp->setBackground(QBrush(QColor("#ffff3b")));
@@ -3066,13 +3094,13 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
             for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
                 // using first 3 characters in day name as abbreviation
-                teams[*team].tooltip += "<th>" + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "</th>";
+                teams[*team].tooltip += "<th>" + dataOptions.dayNames.at(day).left(3) + "</th>";
             }
             teams[*team].tooltip += "</tr>";
 
             for(int time = 0; time < dataOptions.timeNames.size(); time++)
             {
-                teams[*team].tooltip += "<tr><th>" + dataOptions.timeNames.at(time).toLocal8Bit() + "</th>";
+                teams[*team].tooltip += "<tr><th>" + dataOptions.timeNames.at(time) + "</th>";
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
                     QString percentage = QString::number((100*teams[*team].numStudentsAvailable[day][time]) / (teams[*team].size-teams[*team].numStudentsWithAmbiguousSchedules)) + "% ";
@@ -3433,21 +3461,21 @@ void gruepr::createFileContents()
             for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
                 // using first 3 characters in day name as abbreviation
-                instructorsFileContents += "  " + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "  ";
-                studentsFileContents += "  " + dataOptions.dayNames.at(day).toLocal8Bit().left(3) + "  ";
+                instructorsFileContents += "  " + dataOptions.dayNames.at(day).left(3) + "  ";
+                studentsFileContents += "  " + dataOptions.dayNames.at(day).left(3) + "  ";
             }
             instructorsFileContents += "\n";
             studentsFileContents += "\n";
 
             for(int time = 0; time < dataOptions.timeNames.size(); time++)
             {
-                instructorsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
-                studentsFileContents += dataOptions.timeNames.at(time).toLocal8Bit() + QString((11-dataOptions.timeNames.at(time).toLocal8Bit().size()), ' ');
+                instructorsFileContents += dataOptions.timeNames.at(time) + QString((11-dataOptions.timeNames.at(time).size()), ' ');
+                studentsFileContents += dataOptions.timeNames.at(time) + QString((11-dataOptions.timeNames.at(time).size()), ' ');
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
                     QString percentage = QString::number((100*teams[team].numStudentsAvailable[day][time]) / (teams[team].size-teams[team].numStudentsWithAmbiguousSchedules)) + "% ";
-                    instructorsFileContents += QString((4+dataOptions.dayNames.at(day).toLocal8Bit().left(3).size())-percentage.size(), ' ') + percentage;
-                    studentsFileContents += QString((4+dataOptions.dayNames.at(day).toLocal8Bit().left(3).size())-percentage.size(), ' ') + percentage;
+                    instructorsFileContents += QString((4+dataOptions.dayNames.at(day).left(3).size())-percentage.size(), ' ') + percentage;
+                    studentsFileContents += QString((4+dataOptions.dayNames.at(day).left(3).size())-percentage.size(), ' ') + percentage;
                 }
                 instructorsFileContents += "\n";
                 studentsFileContents += "\n";

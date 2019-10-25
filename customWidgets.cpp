@@ -15,7 +15,7 @@ TimestampTableWidgetItem::TimestampTableWidgetItem(const QString txt)
 
 bool TimestampTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
-    return QDateTime::fromString(text(), "d-MMM. h:mm AP") < QDateTime::fromString(other.text(), "d-MMM. h:mm AP");
+    return QDateTime::fromString(text(), Qt::SystemLocaleShortDate) < QDateTime::fromString(other.text(), Qt::SystemLocaleShortDate);
 }
 
 
