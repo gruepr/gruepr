@@ -50,9 +50,11 @@ QMAKE_CXXFLAGS_RELEASE -= -Os
 # add the desired -O3 if not present
 QMAKE_CXXFLAGS_RELEASE += -O3
 
-# add OpenMP (to Windows)
+# add OpenMP
 win32: QMAKE_CXXFLAGS += -fopenmp
 win32: LIBS += -fopenmp
+macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
+macx: LIBS += -L /usr/local/lib /usr/local/lib/libomp.dylib
 
 SOURCES += \
         customWidgets.cpp \

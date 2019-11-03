@@ -2322,10 +2322,9 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     float *unusedTeamScores, *schedScore;
     float **attributeScore;
     int *genderAdj, *URMAdj, *reqTeammateAdj, *prevTeammateAdj, *requestedTeammateAdj;
-#ifdef Q_OS_WIN32
+
 #pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
-#endif
     unusedTeamScores = new float[numTeams];
     attributeScore = new float*[dataOptions.numAttributes];
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
@@ -2338,9 +2337,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     reqTeammateAdj = new int[numTeams];
     prevTeammateAdj = new int[numTeams];
     requestedTeammateAdj = new int[numTeams];
-#ifdef Q_OS_WIN32
 #pragma omp for
-#endif
     for(int genome = 0; genome < populationSize; genome++)
     {
         scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
@@ -2357,9 +2354,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     }
     delete[] attributeScore;
     delete[] unusedTeamScores;
-#ifdef Q_OS_WIN32
 }
-#endif
 
     emit generationComplete(*std::max_element(scores.constBegin(), scores.constEnd()), 0, 0);
 
@@ -2440,10 +2435,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             generation++;
 
             // calculate new generation's scores (multi-threaded using OpenMP on Windows)
-#ifdef Q_OS_WIN32
 #pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
-#endif
             unusedTeamScores = new float[numTeams];
             attributeScore = new float*[dataOptions.numAttributes];
             for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
@@ -2456,9 +2449,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             reqTeammateAdj = new int[numTeams];
             prevTeammateAdj = new int[numTeams];
             requestedTeammateAdj = new int[numTeams];
-#ifdef Q_OS_WIN32
 #pragma omp for
-#endif
             for(int genome = 0; genome < populationSize; genome++)
             {
                 scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
@@ -2475,9 +2466,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             }
             delete[] attributeScore;
             delete[] unusedTeamScores;
-#ifdef Q_OS_WIN32
 }
-#endif
             // determine best score, save in historical record, and calculate score stability
             indexOfBestTeamset[0] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
             float bestScore = scores[indexOfBestTeamset[0]];
