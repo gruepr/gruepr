@@ -98,8 +98,7 @@ struct teamInfo
     int numMen;
     int numNeither;
     int numURM;
-    int attributeMin[maxAttributes] = {0};                 // min rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
-    int attributeMax[maxAttributes] = {0};                 // max rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
+    QList<int> attributeVals[maxAttributes];
     int numStudentsAvailable[7][24] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     QList<int> studentIDs;
@@ -117,7 +116,9 @@ struct DataOptions
     bool sectionIncluded;                               // is section data included in the survey?
     bool notesIncluded;                                 // are notes (or other additional info) included in the survey?
     int numAttributes;                                  // how many attribute questions are in the survey?
-    int attributeLevels[maxAttributes]={0};             // what is the maximum value for each attribute?
+    int attributeMin[maxAttributes];                    // what is the minimum value for each attribute?
+    int attributeMax[maxAttributes];                    // what is the maximum value for each attribute?
+    bool attributeIsOrdered[maxAttributes];             // is this attribute ordered (numerical) or purely categorical?
     int numStudentsInSystem;                            // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[maxAttributes];      // the list of responses to each of the attribute questions
@@ -138,13 +139,14 @@ struct TeamingOptions
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
     bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
-    float attributeWeights[maxAttributes] = {1,1,1,1,1,1,1,1,1};         // weights for each attribute as displayed to the user
+    float attributeWeights[maxAttributes];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
     float scheduleWeight = 1;
     int numberRequestedTeammatesGiven = 1;
     int smallerTeamsSizes[maxStudents] = {0};
     int smallerTeamsNumTeams;
     int largerTeamsSizes[maxStudents] = {0};
     int largerTeamsNumTeams;
+    inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) attributeWeights[i] = 1;}    // initialize all attribute weights to 1
 };
 
 

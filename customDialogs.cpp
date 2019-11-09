@@ -1,6 +1,5 @@
 #include "customDialogs.h"
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog window to select sets of required or prevented teammates
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -678,6 +677,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, 
     datatext = new QLineEdit[numFields];
     databox = new QComboBox[numFields];
     datanumber = new QSpinBox[numFields];
+    datacategorical = new CategoricalSpinBox[numFields];
     int field = 0;
 
     //Row 1 through 4--the required data
@@ -736,16 +736,18 @@ editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, 
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
         explanation[field].setText(tr("Attribute ") + QString::number(attrib + 1));
-        datanumber[field].setValue(student.attribute[attrib]);
-        datanumber[field].setRange(0, dataOptions.attributeLevels[attrib]);
-        if(datanumber[field].value() == 0)
+        QSpinBox *spinbox = (dataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
+        datacategorical[field].responseTexts = dataOptions.attributeQuestionResponses[attrib];
+        spinbox->setValue(student.attribute[attrib]);
+        spinbox->setRange(0, dataOptions.attributeMax[attrib]);
+        if(spinbox->value() == 0)
         {
-            datanumber[field].setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+            spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
         }
-        connect(&datanumber[field], QOverload<int>::of(&QSpinBox::valueChanged), [this](int /*unused new value*/){ recordEdited(); });
-        datanumber[field].setSpecialValueText(tr("not set/unknown"));
+        connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int /*unused new value*/){ recordEdited(); });
+        spinbox->setSpecialValueText(tr("not set/unknown"));
         theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datanumber[field], field, 1);
+        theGrid->addWidget(spinbox, field, 1);
         field++;
     }
 
@@ -777,6 +779,7 @@ editOrAddStudentDialog::~editOrAddStudentDialog()
     delete [] datatext;
     delete [] databox;
     delete [] datanumber;
+    delete [] datacategorical;
 }
 
 
@@ -804,15 +807,16 @@ void editOrAddStudentDialog::recordEdited()
     }
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
-        if(datanumber[field].value() != 0)
+        QSpinBox *spinbox = (dataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
+        if(spinbox->value() != 0)
         {
-            student.attribute[attrib] = datanumber[field].value();
-            datanumber[field].setStyleSheet("QSpinBox { }");
+            student.attribute[attrib] = spinbox->value();
+            spinbox->setStyleSheet("QSpinBox { }");
         }
         else
         {
             student.attribute[attrib] = -1;
-            datanumber[field].setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+            spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
         }
         field++;
     }
@@ -821,4 +825,30 @@ void editOrAddStudentDialog::recordEdited()
         student.notes = datatext[field].text();
         field++;
     }
+}
+
+
+editOrAddStudentDialog::CategoricalSpinBox::CategoricalSpinBox(QWidget *parent)
+    :QSpinBox(parent)
+{
+}
+
+
+QString editOrAddStudentDialog::CategoricalSpinBox::textFromValue(int value) const
+{
+    return ((value > 0) ? (value <= 26 ? QString(char(value + 'A' - 1)) : QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + responseTexts.at(value - 1) : "0");
+}
+
+
+int editOrAddStudentDialog::CategoricalSpinBox::valueFromText(const QString &text) const
+{
+    return (responseTexts.indexOf(text.split(" - ").last()) + 1);
+}
+
+
+QValidator::State editOrAddStudentDialog::CategoricalSpinBox::validate (QString &input, int &pos) const
+{
+    (void)input;
+    (void)pos;
+    return QValidator::Acceptable;
 }

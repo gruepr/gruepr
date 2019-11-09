@@ -394,7 +394,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Tuesday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 3 Name</string>
@@ -440,7 +440,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Friday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 6 Name</string>
@@ -459,7 +459,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Wednesday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 4 Name</string>
@@ -478,7 +478,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Monday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 2 Name</string>
@@ -543,7 +543,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Sunday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 1 Name</string>
@@ -562,7 +562,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Saturday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 7 Name</string>
@@ -607,7 +607,7 @@
            <enum>Qt::NoContextMenu</enum>
           </property>
           <property name="text">
-           <string>Thursday</string>
+           <string/>
           </property>
           <property name="placeholderText">
            <string>Day 5 Name</string>

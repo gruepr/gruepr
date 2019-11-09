@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QRegularExpressionValidator>
 #include <QFileInfo>
+#include <QDate>
 
 namespace Ui {
 class SurveyMaker;
@@ -75,7 +76,15 @@ private:
     QString attributeTexts[9] = {"","","","","","","","",""};
     int attributeResponses[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     bool schedule = true;
-    QString dayNames[7] = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+    // local day names, using the fact that 1/1/2017 is a Sunday
+    const QString day1name = QDate(2017, 1, 1).toString("dddd");
+    const QString day2name = QDate(2017, 1, 2).toString("dddd");
+    const QString day3name = QDate(2017, 1, 3).toString("dddd");
+    const QString day4name = QDate(2017, 1, 4).toString("dddd");
+    const QString day5name = QDate(2017, 1, 5).toString("dddd");
+    const QString day6name = QDate(2017, 1, 6).toString("dddd");
+    const QString day7name = QDate(2017, 1, 7).toString("dddd");
+    QString dayNames[7] = {day1name,day2name,day3name,day4name,day5name,day6name,day7name};
     int startTime = 10;
     int endTime = 17;
     bool section = false;

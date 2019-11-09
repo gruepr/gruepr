@@ -22,6 +22,15 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     noCommas = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
+    //load in local day names
+    ui->day1LineEdit->setText(day1name);
+    ui->day2LineEdit->setText(day2name);
+    ui->day3LineEdit->setText(day3name);
+    ui->day4LineEdit->setText(day4name);
+    ui->day5LineEdit->setText(day5name);
+    ui->day6LineEdit->setText(day6name);
+    ui->day7LineEdit->setText(day7name);
+
     refreshPreview();
 }
 
@@ -350,49 +359,49 @@ void SurveyMaker::on_daysComboBox_currentIndexChanged(int index)
 
 void SurveyMaker::on_day1CheckBox_toggled(bool checked)
 {
-    ui->day1LineEdit->setText(checked? tr("Sunday") : "");
+    ui->day1LineEdit->setText(checked? day1name : "");
     ui->day1LineEdit->setEnabled(checked);
     checkDays();
 }
 
 void SurveyMaker::on_day2CheckBox_toggled(bool checked)
 {
-    ui->day2LineEdit->setText(checked? tr("Monday") : "");
+    ui->day2LineEdit->setText(checked? day2name : "");
     ui->day2LineEdit->setEnabled(checked);
     checkDays();
 }
 
 void SurveyMaker::on_day3CheckBox_toggled(bool checked)
 {
-    ui->day3LineEdit->setText(checked? tr("Tuesday") : "");
+    ui->day3LineEdit->setText(checked? day3name : "");
     ui->day3LineEdit->setEnabled(checked);
     checkDays();
 }
 
 void SurveyMaker::on_day4CheckBox_toggled(bool checked)
 {
-    ui->day4LineEdit->setText(checked? tr("Wednesday") : "");
+    ui->day4LineEdit->setText(checked? day4name : "");
     ui->day4LineEdit->setEnabled(checked);
     checkDays();
 }
 
 void SurveyMaker::on_day5CheckBox_toggled(bool checked)
 {
-    ui->day5LineEdit->setText(checked? tr("Thursday") : "");
+    ui->day5LineEdit->setText(checked? day5name : "");
     ui->day5LineEdit->setEnabled(checked);
     checkDays();
 }
 
 void SurveyMaker::on_day6CheckBox_toggled(bool checked)
 {
-    ui->day6LineEdit->setText(checked? tr("Friday") : "");
+    ui->day6LineEdit->setText(checked? day6name : "");
     ui->day6LineEdit->setEnabled(checked);
     checkDays();
 }
 
 void SurveyMaker::on_day7CheckBox_toggled(bool checked)
 {
-    ui->day7LineEdit->setText(checked? tr("Saturday") : "");
+    ui->day7LineEdit->setText(checked? day7name : "");
     ui->day7LineEdit->setEnabled(checked);
     checkDays();
 }

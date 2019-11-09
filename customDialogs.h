@@ -149,12 +149,25 @@ private slots:
     void recordEdited();
 
 private:
+
+    // a subclassed QSpinBox that replaces numerical values with categorical attribute responses in display
+    class CategoricalSpinBox : public QSpinBox
+    {
+    public:
+        CategoricalSpinBox(QWidget *parent = nullptr);
+        QString textFromValue(int value) const;
+        int valueFromText(const QString &text) const;
+        QValidator::State validate (QString &input, int &pos) const;
+        QStringList responseTexts;
+    };
+
     DataOptions dataOptions;
     QGridLayout *theGrid;
     QLabel *explanation;
     QLineEdit *datatext;
     QComboBox *databox;
     QSpinBox *datanumber;
+    CategoricalSpinBox *datacategorical;
     QDialogButtonBox *buttonBox;
 };
 

@@ -153,7 +153,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->attributeLabel->clear();
         ui->attributeLabel->setEnabled(false);
         ui->attributeScrollBar->setEnabled(false);
-        ui->attributeTextEdit->setPlainText("");
+        ui->attributeTextEdit->clear();
         ui->attributeTextEdit->setEnabled(false);
         ui->attributeWeight->setEnabled(false);
         ui->attributeHomogeneousBox->setEnabled(false);
@@ -198,10 +198,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
             dataOptions.attributeQuestionResponses[attrib].clear();
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
-        for(int attribNum = 0; attribNum < maxAttributes; attribNum++)
-        {
-            dataOptions.attributeLevels[attribNum] = 0;
-        }
         haveAnyRequiredTeammates = false;
         haveAnyPreventedTeammates = false;
         haveAnyRequestedTeammates = false;
@@ -679,16 +675,26 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 {
     if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
     {
-        QString questionWithResponses = dataOptions.attributeQuestionText.at(value) + "\n\nResponses:\n";
+        QString questionWithResponses = "<html>" + dataOptions.attributeQuestionText.at(value) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
         for(int response = 0; response < dataOptions.attributeQuestionResponses[value].size(); response++)
         {
-            if(!dataOptions.attributeQuestionResponses[value].at(response).at(0).isDigit())
+            if(dataOptions.attributeIsOrdered[value])
             {
-                questionWithResponses += QString::number(response + 1) + ": ";
+                // show reponse with starting number in bold
+                QRegularExpression startsWithNumber("^(\\d+)(.+)");
+                QRegularExpressionMatch match = startsWithNumber.match(dataOptions.attributeQuestionResponses[value].at(response));
+                questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + match.captured(2);
             }
-            questionWithResponses += dataOptions.attributeQuestionResponses[value].at(response) + "\n";
+            else
+            {
+                // show response with a preceding letter in bold (letter repeated for responses after 26)
+                questionWithResponses += "<br><b>";
+                questionWithResponses += (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26)));
+                questionWithResponses += "</b>. " + dataOptions.attributeQuestionResponses[value].at(response);
+            }
         }
-        ui->attributeTextEdit->setPlainText(questionWithResponses);
+        questionWithResponses += "</div></html>";
+        ui->attributeTextEdit->setHtml(questionWithResponses);
         ui->attributeWeight->setValue(double(teamingOptions.attributeWeights[value]));
         ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
         ui->attributeLabel->setText(tr("Attribute  ") + QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
@@ -1780,24 +1786,52 @@ bool gruepr::loadSurveyData(QString fileName)
         fields = ReadCSVLine(in.readLine(), TotNumQuestions);
     }
     dataOptions.numStudentsInSystem = numStudents;
+
+    // Set the attribute question options and numerical values for each student
     for(int attrib = 0; attrib < maxAttributes; attrib++)
     {
-        // gather all attribute question responses
+        // gather all unique attribute question responses and sort
         for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
-            dataOptions.attributeQuestionResponses[attrib] << student[ID].attributeResponse[attrib];
+            if(!dataOptions.attributeQuestionResponses[attrib].contains(student[ID].attributeResponse[attrib]))
+            {
+                dataOptions.attributeQuestionResponses[attrib] << student[ID].attributeResponse[attrib];
+            }
         }
-        dataOptions.attributeQuestionResponses[attrib].removeDuplicates();
         QCollator sortAlphanumerically;
         sortAlphanumerically.setNumericMode(true);
         sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
         std::sort(dataOptions.attributeQuestionResponses[attrib].begin(), dataOptions.attributeQuestionResponses[attrib].end(), sortAlphanumerically);
-        // attribute scores all start at 1, and this allows us to auto-calibrate the max value for each question
-        dataOptions.attributeLevels[attrib] = dataOptions.attributeQuestionResponses[attrib].size();
-        // set numerical value of students' attribute responses according to their place in the sorted list of responses
-        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+
+        // if every response starts with a number, then it is ordered (numerical); if any response is missing a number at the beginning, then it is categorical
+        dataOptions.attributeIsOrdered[attrib] = true;
+        QRegularExpression startsWithNumber("^\\d+");
+        for(int response = 0; response < dataOptions.attributeQuestionResponses[attrib].size(); response++)
         {
-            student[ID].attribute[attrib] = dataOptions.attributeQuestionResponses[attrib].indexOf(student[ID].attributeResponse[attrib]) + 1;
+            dataOptions.attributeIsOrdered[attrib] &= startsWithNumber.match(dataOptions.attributeQuestionResponses[attrib].at(response)).hasMatch();
+        }
+
+        if(dataOptions.attributeIsOrdered[attrib])
+        {
+            // ordered/numerical values. attribute scores will be based on number at the first and last response
+            dataOptions.attributeMin[attrib] = startsWithNumber.match(dataOptions.attributeQuestionResponses[attrib].first()).captured().toInt();
+            dataOptions.attributeMax[attrib] = startsWithNumber.match(dataOptions.attributeQuestionResponses[attrib].last()).captured().toInt();
+            // set numerical value of students' attribute responses according to the number at the start of the response
+            for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+            {
+                student[ID].attribute[attrib] = startsWithNumber.match(student[ID].attributeResponse[attrib]).captured().toInt();
+            }
+        }
+        else
+        {
+            // categorical values. attribute scores will count up to the number of responses
+            dataOptions.attributeMin[attrib] = 1;
+            dataOptions.attributeMax[attrib] = dataOptions.attributeQuestionResponses[attrib].size();
+            // set numerical value of students' attribute responses according to their place in the sorted list of responses
+            for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+            {
+                student[ID].attribute[attrib] = dataOptions.attributeQuestionResponses[attrib].indexOf(student[ID].attributeResponse[attrib]) + 1;
+            }
         }
     }
 
@@ -1822,10 +1856,6 @@ bool gruepr::loadSurveyData(QString fileName)
             dataOptions.attributeQuestionResponses[attrib].clear();
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
-        for(int attribNum = 0; attribNum < maxAttributes; attribNum++)
-        {
-            dataOptions.attributeLevels[attribNum] = 0;
-        }
 
         inputFile.close();
         return false;
@@ -1996,7 +2026,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 //////////////////
 // Read one line from a CSV file, smartly handling commas within fields that are enclosed by quotation marks
 //////////////////
-QStringList gruepr::ReadCSVLine(QString line)
+QStringList gruepr::ReadCSVLine(QString line, int minFields)
 {
     enum State {Normal, Quote} state = Normal;
     QStringList fields;
@@ -2077,14 +2107,12 @@ QStringList gruepr::ReadCSVLine(QString line)
         }
     }
 
-    return fields;
-}
+    if(minFields == -1)      // default value of -1 means just return however many fields are found
+    {
+        return fields;
+    }
 
-QStringList gruepr::ReadCSVLine(QString line, int minFields)
-{
-    QStringList fields = ReadCSVLine(line);
-
-    // no data--return empty QStringList
+    // no data found--just return empty QStringList
     if(fields.empty())
     {
         return fields;
@@ -2254,11 +2282,20 @@ QString gruepr::createAToolTip(studentRecord info, bool duplicateRecord)
         toolTip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         if(info.attribute[attribute] != -1)
         {
-            toolTip += QString::number(info.attribute[attribute]);
+            if(dataOptions.attributeIsOrdered[attribute])
+            {
+                toolTip += QString::number(info.attribute[attribute]);
+            }
+            else
+            {
+                // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
+                toolTip += (info.attribute[attribute] <= 26 ? QString(char(info.attribute[attribute]-1 + 'A')) :
+                                                              QString(char((info.attribute[attribute]-1)%26 + 'A')).repeated(1+((info.attribute[attribute]-1)/26)));
+            }
         }
         else
         {
-            toolTip += "x";
+            toolTip += "?";
         }
     }
     if(!(info.availabilityChart.isEmpty()))
@@ -2560,27 +2597,36 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
             ID = 0;
             for(int team = 0; team < numTeams; team++)
             {
-                int maxLevel = student[teammates[ID]].attribute[attribute], minLevel = student[teammates[ID]].attribute[attribute];
+                // gather all unique attribute values (but ignore students with attribute levels of -1, which represents an unknown value)
+                QList<int> attributeLevelsInTeam;
                 for(int teammate = 0; teammate < teams[team].size; teammate++)
                 {
-                    if(student[teammates[ID]].attribute[attribute] != -1)       //students added manually have attribute levels of -1, so don't consider their "score"
+                    if((student[teammates[ID]].attribute[attribute] != -1) && !(attributeLevelsInTeam.contains(student[teammates[ID]].attribute[attribute])))
                     {
-                        if(student[teammates[ID]].attribute[attribute] > maxLevel)
-                        {
-                            maxLevel = student[teammates[ID]].attribute[attribute];
-                        }
-                        if(student[teammates[ID]].attribute[attribute] < minLevel)
-                        {
-                            minLevel = student[teammates[ID]].attribute[attribute];
-                        }
+                        attributeLevelsInTeam << student[teammates[ID]].attribute[attribute];
                     }
                     ID++;
                 }
-                attributeScore[attribute][team] = (maxLevel - minLevel) / (dataOptions.attributeLevels[attribute] - float(1.0));    //range in team's values divided by total possible range
+
+                float attributeRangeInTeam;
+                if(dataOptions.attributeIsOrdered[attribute])
+                {
+                    // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
+                    auto mm = std::minmax_element(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
+                    attributeRangeInTeam = *mm.second - *mm.first;
+                }
+                else
+                {
+                    // attribute is categorical--heterogeneous means create maximum number of unique values
+                    attributeRangeInTeam = attributeLevelsInTeam.count() - 1;
+                }
+
+                attributeScore[attribute][team] = attributeRangeInTeam / (dataOptions.attributeMax[attribute] - dataOptions.attributeMin[attribute]);
                 if(teamingOptions.desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
                 {
                     attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
                 }
+
                 attributeScore[attribute][team] *= realAttributeWeights[attribute];
             }
         }
@@ -2946,8 +2992,7 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
         teams[*team].numStudentsWithAmbiguousSchedules = 0;
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
-            teams[*team].attributeMin[attribute] = 0;
-            teams[*team].attributeMax[attribute] = 0;
+            teams[*team].attributeVals[attribute].clear();
         }
         for(int day = 0; day < dataOptions.dayNames.size(); day++)
         {
@@ -2984,16 +3029,11 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                if(student[teams[*team].studentIDs[teammate]].attribute[attribute] < teams[*team].attributeMin[attribute] || teams[*team].attributeMin[attribute] == 0)
+                if(!teams[*team].attributeVals[attribute].contains(student[teams[*team].studentIDs[teammate]].attribute[attribute]))
                 {
-                    teams[*team].attributeMin[attribute] = student[teams[*team].studentIDs[teammate]].attribute[attribute];
-                }
-                if(student[teams[*team].studentIDs[teammate]].attribute[attribute] > teams[*team].attributeMax[attribute] || teams[*team].attributeMax[attribute] == 0)
-                {
-                    teams[*team].attributeMax[attribute] = student[teams[*team].studentIDs[teammate]].attribute[attribute];
+                    teams[*team].attributeVals[attribute] << student[teams[*team].studentIDs[teammate]].attribute[attribute];
                 }
             }
-
             if(!student[teams[*team].studentIDs[teammate]].ambiguousSchedule)
             {
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
@@ -3067,13 +3107,33 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             teams[*team].tooltip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
-            if(teams[*team].attributeMin[attribute] == teams[*team].attributeMax[attribute])
+            if(dataOptions.attributeIsOrdered[attribute])
             {
-                teams[*team].tooltip += QString::number(teams[*team].attributeMin[attribute]);
+                // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
+                QList<int> teamVals = teams[*team].attributeVals[attribute];
+                teamVals.removeAll(-1);
+                auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
+                if(*mm.first == *mm.second)
+                {
+                    teams[*team].tooltip += QString::number(*mm.first);
+                }
+                else
+                {
+                    teams[*team].tooltip += QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                }
             }
             else
             {
-                teams[*team].tooltip += QString::number(teams[*team].attributeMin[attribute]) + " - " + QString::number(teams[*team].attributeMax[attribute]);
+                // attribute is categorical, so important info is the list of values
+                std::sort(teams[*team].attributeVals[attribute].begin(), teams[*team].attributeVals[attribute].end());
+                // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
+                teams[*team].tooltip += (teams[*team].attributeVals[attribute].at(0) <= 26 ? QString(char(teams[*team].attributeVals[attribute].at(0)-1 + 'A')) :
+                                         QString(char((teams[*team].attributeVals[attribute].at(0)-1)%26 + 'A')).repeated(1+((teams[*team].attributeVals[attribute].at(0)-1)/26)));
+                for(int val = 1; val < teams[*team].attributeVals[attribute].size(); val++)
+                {
+                    teams[*team].tooltip += ", " + (teams[*team].attributeVals[attribute].at(val) <= 26 ? QString(char(teams[*team].attributeVals[attribute].at(val)-1 + 'A')) :
+                        QString(char((teams[*team].attributeVals[attribute].at(val)-1)%26 + 'A')).repeated(1+((teams[*team].attributeVals[attribute].at(val)-1)/26)));
+                }
             }
         }
         if(dataOptions.dayNames.size() > 0)
@@ -3241,13 +3301,39 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
         }
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
-            QString attributeText = QString::number(teams[*team].attributeMin[attribute]);
-            if(teams[*team].attributeMin[attribute] != teams[*team].attributeMax[attribute])
+            QString attributeText;
+            int sortData;
+            QList<int> teamVals = teams[*team].attributeVals[attribute];
+            teamVals.removeAll(-1);
+            if(dataOptions.attributeIsOrdered[attribute])
             {
-                attributeText += " - " + QString::number(teams[*team].attributeMax[attribute]);
+                // attribute is ordered/numbered, so important info is the range of values
+                auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
+                if(*mm.first == *mm.second)
+                {
+                    attributeText = QString::number(*mm.first);
+                }
+                else
+                {
+                    attributeText = QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                }
+                sortData = *mm.first * 1000 + *mm.second;
+            }
+            else
+            {
+                // attribute is categorical, so important info is the list of values
+                std::sort(teamVals.begin(), teamVals.end());
+                // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
+                attributeText = (teamVals.at(0) <= 26 ? QString(char(teamVals.at(0)-1 + 'A')) : QString(char((teamVals.at(0)-1)%26 + 'A')).repeated(1+((teamVals.at(0)-1)/26)));
+                for(int val = 1; val < teamVals.size(); val++)
+                {
+                    attributeText += ", ";
+                    attributeText += (teamVals.at(val) <= 26 ? QString(char(teamVals.at(val)-1 + 'A')) : QString(char((teamVals.at(val)-1)%26 + 'A')).repeated(1+((teamVals.at(val)-1)/26)));
+                }
+                sortData = (teamVals.at(0) * 10000) + (teamVals.size() * 100) + (teamVals.size() > 1 ? teamVals.at(1) : 0);   // sort by first item, then number of items, then second item
             }
             parentItem[*team]->setData(column, TeamInfoDisplay, attributeText);
-            parentItem[*team]->setData(column, TeamInfoSort, teams[*team].attributeMin[attribute] * 10 + teams[*team].attributeMax[attribute]);
+            parentItem[*team]->setData(column, TeamInfoSort, sortData);
             parentItem[*team]->setToolTip(column, teams[*team].tooltip);
             parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
             column++;
@@ -3323,14 +3409,21 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                QString att;
-                if(student[teams[*team].studentIDs[stud]].attribute[attribute] != -1)
+                int value = student[teams[*team].studentIDs[stud]].attribute[attribute];
+                if(value != -1)
                 {
-                    childItem->setText(column, QString::number(student[teams[*team].studentIDs[stud]].attribute[attribute]));
+                    if(dataOptions.attributeIsOrdered[attribute])
+                    {
+                        childItem->setText(column, QString::number(value));
+                    }
+                    else
+                    {
+                        childItem->setText(column, (value <= 26 ? QString(char(value-1 + 'A')) : QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26))));
+                    }
                 }
                 else
                 {
-                   childItem->setText(column, "X");
+                   childItem->setText(column, "?");
                 }
                 childItem->setToolTip(column, studentToolTip);
                 childItem->setTextAlignment(column, Qt::AlignCenter);
@@ -3424,13 +3517,21 @@ void gruepr::createFileContents()
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                if(student[teams[team].studentIDs[teammate]].attribute[attribute] != -1)
+                int value = student[teams[team].studentIDs[teammate]].attribute[attribute];
+                if(value != -1)
                 {
-                    instructorsFileContents += QString::number(student[teams[team].studentIDs[teammate]].attribute[attribute]) + "  ";
+                    if(dataOptions.attributeIsOrdered[attribute])
+                    {
+                        instructorsFileContents += (QString::number(value)).leftJustified(3);
+                    }
+                    else
+                    {
+                        instructorsFileContents += (value <= 26 ? (QString(char(value-1 + 'A'))).leftJustified(3) : (QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26)))).leftJustified(3);
+                    }
                 }
                 else
                 {
-                    instructorsFileContents += "x  ";
+                    instructorsFileContents += (QString("?")).leftJustified(3);
                 }
             }
             int nameSize = (student[teams[team].studentIDs[teammate]].firstname + " " + student[teams[team].studentIDs[teammate]].lastname).size();

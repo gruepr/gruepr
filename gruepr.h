@@ -96,8 +96,9 @@ private:
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     int numStudents = maxStudents;
     studentRecord readOneRecordFromFile(QStringList fields);
-    QStringList ReadCSVLine(QString line);              // read one line from a CSV file, smartly handling commas inside quotation mark-encased fields, and returning fields as QStringList
-    QStringList ReadCSVLine(QString line, int minFields); // as above, but (unless line is empty) append empty fields so that always return QStringList with at least minFields entries
+    QStringList ReadCSVLine(QString line, int minFields = -1); // read one line from CSV file, smartly handling commas inside quotation mark-encased fields
+                                                               // if line is non-empty and minFields is given, append empty fields so returned QStringList
+                                                               // always has >= minFields
     void refreshStudentDisplay();
     QString createAToolTip(studentRecord info, bool duplicateRecord);
         // score calculation
