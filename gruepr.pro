@@ -4,12 +4,11 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 8.17
+gruepr_version = 9.0
 copyright_year = 2019
 
-QT       += core gui concurrent network printsupport
+QT       += core gui widgets concurrent network printsupport
 win32: QT += winextras
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = gruepr
 TEMPLATE = app
@@ -61,17 +60,20 @@ SOURCES += \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
-        customDialogs.cpp
+        customDialogs.cpp \
+        surveymaker.cpp
 
 HEADERS += \
         customWidgets.h \
         gruepr.h \
         GA.h \
         customDialogs.h \
-        gruepr_structs_and_consts.h
+        gruepr_structs_and_consts.h \
+        surveymaker.h
 
 FORMS += \
-      gruepr.ui
+      gruepr.ui \
+      surveymaker.ui
 
 RESOURCES += \
           gruepr.qrc

@@ -41,32 +41,84 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr.h"
+#include "surveymaker.h"
 #include <QApplication>
 #include <QSplashScreen>
+#include <QMessageBox>
+#include <QToolButton>
 #include <QThread>
 #include <QFontDatabase>
 
 int main(int argc, char *argv[])
 {
+    // Set up application
     QApplication a(argc, argv);
     a.setOrganizationName("gruepr");
     a.setApplicationName("gruepr");
     a.setApplicationVersion(GRUEPR_VERSION_NUMBER);
     QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
 
+    // Show splash screen
     QSplashScreen *splash = new QSplashScreen;
     QPixmap pic(":/icons/splash.png");
     splash->setPixmap(pic);
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter);
     splash->show();
-    QThread::sleep(2);
+    QThread::sleep(1);
 
-    gruepr w;
-    w.show();
-    w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
+    // Create application choice (gruepr or SurveyMaker) window
+    QMessageBox *startWindow = new QMessageBox;
+    QFont defFont("Oxygen Mono", a.font().pointSize()+8);
+    startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    startWindow->setWindowTitle(" ");
+    startWindow->setFont(defFont); startWindow->setText("Select an app to run:");
 
-    splash->finish(&w);
+    // Button metrics
+    defFont.setPointSize(a.font().pointSize()+4);
+    int labelWidth = (QFontMetrics(defFont)).boundingRect("SurveyMaker").width();
+    QSize defIconSize(labelWidth-20,labelWidth-20);
+    QSize defButtonSize(labelWidth+20,labelWidth+20);
+
+    QToolButton *survMakeButton = new QToolButton(startWindow);
+    survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(defFont); survMakeButton->setFixedSize(defButtonSize);
+    survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker"); survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    startWindow->addButton(survMakeButton, QMessageBox::YesRole);
+
+    QToolButton *grueprButton = new QToolButton(startWindow);
+    grueprButton->setIconSize(defIconSize); grueprButton->setFont(defFont); grueprButton->setFixedSize(defButtonSize);
+    grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr"); grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    startWindow->addButton(grueprButton, QMessageBox::YesRole);
+
+    QToolButton *leaveButton = new QToolButton(startWindow);
+    leaveButton->setIconSize(defIconSize); leaveButton->setFont(defFont); leaveButton->setFixedSize(defButtonSize);
+    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit"); leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    startWindow->addButton(leaveButton, QMessageBox::NoRole);
+
+    // Show application choice window and delete splash
+    splash->finish(startWindow);
+    startWindow->exec();
     delete splash;
 
-    return a.exec();
+    // Run chosen application
+    int executionResult = 0;
+    if((startWindow->clickedButton() == grueprButton) || (startWindow->clickedButton() == survMakeButton))
+    {
+        startWindow->hide();
+        if(startWindow->clickedButton() == grueprButton)
+        {
+            gruepr w;
+            w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
+            w.show();
+            executionResult = a.exec();
+        }
+        else
+        {
+            SurveyMaker w;
+            w.setWindowTitle("gruepr-SurveyMaker [*]");         // asterisk is placeholder, shown when there is unsaved work
+            w.show();
+            executionResult = a.exec();
+        }
+    }
+    delete startWindow;
+    return executionResult;
 }

@@ -11,14 +11,26 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::SurveyMaker)
 {
+    //Setup the main window
     ui->setupUi(this);
-    setWindowIcon(QIcon(":/surveymaker.png"));
-    QFontDatabase::addApplicationFont(":/OxygenMono-Regular.otf");
+    setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
+    setWindowIcon(QIcon(":/icons/surveymaker.png"));
 
-    //Restore window geometry
+    //Give registration reminder if unregistered, otherwise remove register button
     QSettings savedSettings;
-    restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
-    saveFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
+    registeredUser = savedSettings.value("registeredUser", "").toString();
+    QString UserID = savedSettings.value("registeredUserID", "").toString();
+    if(registeredUser.isEmpty() || UserID != QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()))
+    {
+        QFont altFont = this->font();
+        altFont.setBold(true);
+        ui->registerButton->setFont(altFont);
+    }
+    else
+    {
+        ui->registerButton->hide();
+    }
+
 
     noCommas = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
@@ -30,6 +42,10 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->day5LineEdit->setText(day5name);
     ui->day6LineEdit->setText(day6name);
     ui->day7LineEdit->setText(day7name);
+
+    //Restore window geometry
+    restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
+    saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
 
     refreshPreview();
 }
@@ -871,7 +887,7 @@ void SurveyMaker::on_saveSurveyButton_clicked()
 
 void SurveyMaker::on_helpButton_clicked()
 {
-    QFile helpFile(":/help.html");
+    QFile helpFile(":/help-surveymaker.html");
     if(!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         return;
@@ -916,14 +932,60 @@ void SurveyMaker::on_aboutButton_clicked()
                           "GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
 }
 
+void SurveyMaker::on_registerButton_clicked()
+{
+    //make sure we can connect to google
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    if(!(networkReply->bytesAvailable()))
+    {
+        //no internet right now
+        QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));
+        delete manager;
+        return;
+    }
+    else
+    {
+        //we can connect, so gather name, institution, and email address for submission
+        registerDialog *window = new registerDialog(this);
+        int reply = window->exec();
+        //If user clicks OK, email registration info and add to saved settings
+        if(reply == QDialog::Accepted)
+        {
+            // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
+            if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
+                                              "?name="+QUrl::toPercentEncoding(window->name->text())+
+                                              "&institution="+QUrl::toPercentEncoding(window->institution->text())+
+                                              "&email="+QUrl::toPercentEncoding(window->email->text()))))
+            {
+                registeredUser = window->name->text();
+                QSettings savedSettings;
+                savedSettings.setValue("registeredUser", registeredUser);
+                savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+                ui->registerButton->hide();
+            }
+            else
+            {
+                QMessageBox::critical(this, tr("No Connection"),
+                                      tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <gruepr@gmail.com>."));
+            }
+        }
+        delete manager;
+        delete window;
+    }
+}
+
 //////////////////
 // Before closing the application window, save the window geometry for next time and then, if the user never created a survey, ask them if they really want to leave
 //////////////////
 void SurveyMaker::closeEvent(QCloseEvent *event)
 {
     QSettings savedSettings;
-    savedSettings.setValue("windowGeometry", saveGeometry());
-    savedSettings.setValue("saveFileLocation", saveFileLocation.canonicalFilePath());
+    savedSettings.setValue("surveyMakerWindowGeometry", saveGeometry());
+    savedSettings.setValue("surveyMakerSaveFileLocation", saveFileLocation.canonicalFilePath());
 
     bool actuallyExit = surveyCreated;
     if(!surveyCreated)

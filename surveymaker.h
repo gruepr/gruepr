@@ -5,6 +5,8 @@
 #include <QRegularExpressionValidator>
 #include <QFileInfo>
 #include <QDate>
+#include "customDialogs.h"
+#include "gruepr_structs_and_consts.h"
 
 namespace Ui {
 class SurveyMaker;
@@ -63,8 +65,11 @@ private slots:
     void on_helpButton_clicked();
     void on_aboutButton_clicked();
 
+    void on_registerButton_clicked();
+
 private:
     Ui::SurveyMaker *ui;
+    QString registeredUser;
     void refreshPreview();
     void checkDays();
     bool surveyCreated = false;
