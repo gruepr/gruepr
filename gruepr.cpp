@@ -1324,20 +1324,22 @@ void gruepr::on_teamNamesComboBox_activated(int index)
 void gruepr::on_saveTeamsButton_clicked()
 {
     createFileContents();
-    QStringList previews = {studentsFileContents.left(1000) + "...", instructorsFileContents.left(1000) + "...", spreadsheetFileContents.left(1000) + "..."};
+    QStringList previews = {studentsFileContents.left(1000) + "...",
+                            instructorsFileContents.mid(instructorsFileContents.indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, 1000) + "...",
+                            spreadsheetFileContents.left(1000) + "..."};
 
     //Open specialized dialog box to choose which file(s) to save
     whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::save, previews, this);
     int result = window->exec();
 
-    if(result == QDialogButtonBox::Save && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
+    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
     {
         //save to text files
-        QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename"), "", tr("Text File (*.txt);;All Files (*)"));
+        QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename for the text file(s)"), "", tr("Text File (*.txt);;All Files (*)"));
         if ( !(baseFileName.isEmpty()) )
         {
             bool problemSaving = false;
-            if(window->instructorFile->isChecked())
+            if(window->instructorFiletxt->isChecked())
             {
                 QFile instructorsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix());
                 if(instructorsFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -1351,7 +1353,7 @@ void gruepr::on_saveTeamsButton_clicked()
                     problemSaving = true;
                 }
             }
-            if(window->studentFile->isChecked())
+            if(window->studentFiletxt->isChecked())
             {
                 QFile studentsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix());
                 if(studentsFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -1365,7 +1367,7 @@ void gruepr::on_saveTeamsButton_clicked()
                     problemSaving = true;
                 }
             }
-            if(window->spreadsheetFile->isChecked())
+            if(window->spreadsheetFiletxt->isChecked())
             {
                 QFile spreadsheetFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_spreadsheet." + QFileInfo(baseFileName).suffix());
                 if(spreadsheetFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -1389,10 +1391,10 @@ void gruepr::on_saveTeamsButton_clicked()
             }
         }
     }
-    else if(result == QDialogButtonBox::SaveAll && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
+    if(result == QDialogButtonBox::Ok && (window->instructorFilepdf->isChecked() || window->studentFilepdf->isChecked()))
     {
         //save as formatted pdf files
-        printFiles(window->instructorFile->isChecked(), window->studentFile->isChecked(), window->spreadsheetFile->isChecked(), true);
+        printFiles(window->instructorFilepdf->isChecked(), window->studentFilepdf->isChecked(), false, true);
     }
     delete window;
 }
@@ -1401,15 +1403,17 @@ void gruepr::on_saveTeamsButton_clicked()
 void gruepr::on_printTeamsButton_clicked()
 {
     createFileContents();
-    QStringList previews = {studentsFileContents.left(1000) + "...", instructorsFileContents.left(1000) + "...", spreadsheetFileContents.left(1000) + "..."};
+    QStringList previews = {studentsFileContents.left(1000) + "...",
+                            instructorsFileContents.mid(instructorsFileContents.indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, 1000) + "...",
+                            spreadsheetFileContents.left(1000) + "..."};
 
     //Open specialized dialog box to choose which file(s) to print
     whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::print, previews, this);
     int result = window->exec();
 
-    if(result == QDialogButtonBox::Ok && (window->instructorFile->isChecked() || window->studentFile->isChecked() || window->spreadsheetFile->isChecked()))
+    if(result == QDialogButtonBox::Ok && (window->instructorFilepdf->isChecked() || window->studentFilepdf->isChecked() || window->spreadsheetFiletxt->isChecked()))
     {
-        printFiles(window->instructorFile->isChecked(), window->studentFile->isChecked(), false, false);
+        printFiles(window->instructorFilepdf->isChecked(), window->studentFilepdf->isChecked(), window->spreadsheetFiletxt->isChecked(), false);
     }
     delete window;
 }
@@ -3463,8 +3467,54 @@ void gruepr::createFileContents()
                 (dataOptions.dataFile.filePath().left(27)+"..."+dataOptions.dataFile.filePath().right(60)) : dataOptions.dataFile.filePath();
 
     spreadsheetFileContents = tr("Section\tTeam\tName\tEmail\n");
+
     instructorsFileContents = tr("File: ") + dataOptions.dataFile.filePath() + "\n" + tr("Section: ") + sectionName + "\n" + tr("Optimized over ") +
-            QString::number(finalGeneration) + tr(" generations") + "\n" + tr("Net score: ") + QString::number(double(teamSetScore)) + "\n\n\n";
+            QString::number(finalGeneration) + tr(" generations") + "\n" + tr("Net score: ") + QString::number(double(teamSetScore)) + "\n\n";
+    instructorsFileContents += tr("Teaming Options") + ":";
+    if(dataOptions.genderIncluded)
+    {
+        instructorsFileContents += (teamingOptions.isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
+        instructorsFileContents += (teamingOptions.isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
+        instructorsFileContents += (teamingOptions.mixedGenderPreferred? ("\n" + tr("Mixed gender teams preferred")) : "");
+    }
+    if(dataOptions.URMIncluded && teamingOptions.isolatedURMPrevented)
+    {
+        instructorsFileContents += "\n" + tr("Isolated URM students prevented");
+    }
+    if(teamingOptions.scheduleWeight > 0)
+    {
+        instructorsFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions.meetingBlockSize) + tr(" hours");
+        instructorsFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions.minTimeBlocksOverlap);
+        instructorsFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions.desiredTimeBlocksOverlap);
+        instructorsFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions.scheduleWeight));
+    }
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        instructorsFileContents += "\n" + tr("Attribute ") + QString::number(attrib+1) + ": "
+                + tr("weight") + " = " + QString::number(double(teamingOptions.attributeWeights[attrib])) +
+                + ", " + (teamingOptions.desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
+    }
+    instructorsFileContents += "\n\n\n";
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    {
+        QString questionWithResponses = tr("Attribute ") + QString::number(attrib+1) + "\n" + dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
+        for(int response = 0; response < dataOptions.attributeQuestionResponses[attrib].size(); response++)
+        {
+            if(dataOptions.attributeIsOrdered[attrib])
+            {
+                questionWithResponses += "\n\t" + dataOptions.attributeQuestionResponses[attrib].at(response);
+            }
+            else
+            {
+                // show response with a preceding letter (letter repeated for responses after 26)
+                questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26)));
+                questionWithResponses += ". " + dataOptions.attributeQuestionResponses[attrib].at(response);
+            }
+        }
+        questionWithResponses += "\n\n\n";
+        instructorsFileContents += questionWithResponses;
+    }
+
     studentsFileContents = "";
 
     // get team numbers in the order that they are currently displayed/sorted

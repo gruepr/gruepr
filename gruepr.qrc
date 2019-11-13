@@ -34,10 +34,8 @@
         <file>icons/down_arrow.png</file>
         <file>icons/up_arrow.png</file>
         <file>icons/complete.png</file>
-        <file>icons/surveymaker.png</file>
-        <file>icons/surveymaker.ico</file>
         <file>help-surveymaker.html</file>
-        <file>icons/surveymaker.icns</file>
         <file>icons/exit.png</file>
+        <file>icons/surveymaker.png</file>
     </qresource>
 </RCC>

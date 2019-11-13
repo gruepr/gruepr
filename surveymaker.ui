@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>725</height>
+    <width>1081</width>
+    <height>753</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1108,7 +1108,7 @@
       <item alignment="Qt::AlignHCenter">
        <widget class="QPushButton" name="makeSurveyButton">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -1170,8 +1170,8 @@ padding: 12px;</string>
           </property>
           <property name="iconSize">
            <size>
-            <width>30</width>
-            <height>30</height>
+            <width>40</width>
+            <height>40</height>
            </size>
           </property>
           <property name="toolButtonStyle">
@@ -1193,9 +1193,12 @@ padding: 12px;</string>
           </property>
           <property name="iconSize">
            <size>
-            <width>30</width>
-            <height>30</height>
+            <width>40</width>
+            <height>40</height>
            </size>
+          </property>
+          <property name="shortcut">
+           <string>Ctrl+S</string>
           </property>
           <property name="toolButtonStyle">
            <enum>Qt::ToolButtonTextUnderIcon</enum>

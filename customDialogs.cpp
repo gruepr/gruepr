@@ -592,7 +592,9 @@ registerDialog::registerDialog(QWidget *parent)
 whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList previews, QWidget *parent)
     :QDialog (parent)
 {
-    QString saveOrPrintString = (saveOrPrint==whichFilesDialog::save?tr("save"):tr("print"));
+    saveDialog = (saveOrPrint == whichFilesDialog::save);
+    QString saveOrPrintString = (saveDialog? tr("save") : tr("print"));
+
     //Set up window with a grid layout
     setWindowTitle(tr("Choose files to ") + saveOrPrintString);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -601,53 +603,113 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList p
     explanation = new QLabel(this);
     explanation->setTextFormat(Qt::RichText);
     explanation->setText(tr("<br>You can ") + saveOrPrintString + tr(" the following files:<br><i>hover over title for a preview</i><br>"));
-    theGrid->addWidget(explanation, 0, 0);
+    theGrid->addWidget(explanation, 0, 0, 1, -1);
 
-    studentFile = new QCheckBox(this);
-    studentFile->resize(30,30);
-    studentFile->setText(tr("Student's file:\nnames, email addresses, and team availability schedules."));
+    if(saveDialog)
+    {
+        textfile = new QLabel(this);
+        textfile->setText(tr("text"));
+        theGrid->addWidget(textfile, 1, 0);
+        QFrame* pdftxtline = new QFrame(this);
+        pdftxtline->setFrameShape(QFrame::VLine);
+        pdftxtline->setFrameShadow(QFrame::Sunken);
+        theGrid->addWidget(pdftxtline, 1, 1, 4, 1);
+        pdffile = new QLabel(this);
+        pdffile->setText("pdf");
+        theGrid->addWidget(pdffile, 1, 2);
+    }
+
+    studentFiletxt = new QCheckBox(this);
+    studentFiletxt->resize(30,30);
+    theGrid->addWidget(studentFiletxt, 2, 0);
+    connect(studentFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+    if(saveDialog)
+    {
+        studentFilepdf = new QCheckBox(this);
+        studentFilepdf->resize(30,30);
+        theGrid->addWidget(studentFilepdf, 2, 2);
+        connect(studentFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+    }
+    studentFileLabel = new QLabel(this);
+    studentFileLabel->setText(tr("Student's file:\nnames, email addresses, and team availability schedules."));
+    theGrid->addWidget(studentFileLabel, 2, 3);
     if(!(previews.empty()))
     {
-        studentFile->setToolTip(previews.at(0));
+        studentFiletxt->setToolTip(previews.at(0));
+        if(saveDialog)
+        {
+            studentFilepdf->setToolTip(previews.at(0));
+        }
+        studentFileLabel->setToolTip(previews.at(0));
     }
-    theGrid->addWidget(studentFile, 1, 0);
 
-    instructorFile = new QCheckBox(this);
-    instructorFile->resize(30,30);
-    instructorFile->setText(tr("Instructor's file:\nnames, email addresses, demographic and attribute data, and team availability schedule."));
+    instructorFiletxt = new QCheckBox(this);
+    instructorFiletxt->resize(30,30);
+    theGrid->addWidget(instructorFiletxt, 3, 0);
+    connect(instructorFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+    if(saveDialog)
+    {
+        instructorFilepdf = new QCheckBox(this);
+        instructorFilepdf->resize(30,30);
+        theGrid->addWidget(instructorFilepdf, 3, 2);
+        connect(instructorFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+    }
+    instructorFileLabel = new QLabel(this);
+    instructorFileLabel->setText(tr("Instructor's file:\nFile data, teaming options, optimization data,\n"
+                                    "names, email addresses, demographic and attribute data, and team availability schedule."));
+    theGrid->addWidget(instructorFileLabel, 3, 3);
     if(!(previews.empty()))
     {
-        instructorFile->setToolTip(previews.at(1));
+        instructorFiletxt->setToolTip(previews.at(1));
+        if(saveDialog)
+        {
+            instructorFilepdf->setToolTip(previews.at(1));
+        }
+        instructorFileLabel->setToolTip(previews.at(1));
     }
-    theGrid->addWidget(instructorFile, 2, 0);
 
-    spreadsheetFile = new QCheckBox(this);
-    spreadsheetFile->resize(30,30);
-    spreadsheetFile->setText(tr("Spreadsheet file:\nsections, teams, names, and email addresses in a tabular format."));
+    spreadsheetFiletxt = new QCheckBox(this);
+    spreadsheetFiletxt->resize(30,30);
+    theGrid->addWidget(spreadsheetFiletxt, 4, 0);
+    connect(spreadsheetFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+    spreadsheetFileLabel = new QLabel(this);
+    spreadsheetFileLabel->setText(tr("Spreadsheet file:\nsections, teams, names, and email addresses in a tabular format."));
+    theGrid->addWidget(spreadsheetFileLabel, 4, 3);
     if(!(previews.empty()))
     {
-        spreadsheetFile->setToolTip(previews.at(2));
+        spreadsheetFiletxt->setToolTip(previews.at(2));
+        spreadsheetFileLabel->setToolTip(previews.at(2));
     }
-    theGrid->addWidget(spreadsheetFile, 3, 0);
 
-    if(saveOrPrint == whichFilesDialog::save)
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    if(saveDialog)
     {
-        buttonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::SaveAll | QDialogButtonBox::Cancel, this);
-        buttonBox->button(QDialogButtonBox::Save)->setText("Save as &Text");
-        buttonBox->button(QDialogButtonBox::SaveAll)->setText("Save as &PDF");
+        buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Save"));
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
     else
     {
-        buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-        buttonBox->button(QDialogButtonBox::Ok)->setText("&Print");
+        buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Print"));
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
     connect(buttonBox, &QDialogButtonBox::clicked, this, [this](QAbstractButton *button){QDialog::done(buttonBox->standardButton(button));});
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(4, 20);
-    theGrid->addWidget(buttonBox, 5, 0);
+    theGrid->setRowMinimumHeight(5, 20);
+    theGrid->addWidget(buttonBox, 6, 0, -1, -1);
 
     adjustSize();
+}
+
+
+void whichFilesDialog::boxToggled()
+{
+    bool somethingClicked = studentFiletxt->isChecked() || instructorFiletxt->isChecked() || spreadsheetFiletxt->isChecked();
+    if(saveDialog)
+    {
+        somethingClicked = somethingClicked || studentFilepdf->isChecked() || instructorFilepdf->isChecked();
+    }
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(somethingClicked);
 }
 
 

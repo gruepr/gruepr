@@ -276,6 +276,7 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
     ui->attributeScrollBar->setMaximum(std::max(arg1-1,0));
     ui->attributeScrollBar->setEnabled(numAttributes > 0);
     ui->attributeTextEdit->setEnabled(numAttributes > 0);
+    ui->attributeComboBox->setEnabled(numAttributes > 0);
     refreshPreview();
 }
 

@@ -120,17 +120,27 @@ class whichFilesDialog : public QDialog
 
 public:
     enum action{save, print};
-    enum saveFormat{txt, pdf};
 
     whichFilesDialog(const action saveOrPrint, const QStringList previews = {}, QWidget *parent = nullptr);
 
-    QCheckBox *studentFile;
-    QCheckBox *instructorFile;
-    QCheckBox *spreadsheetFile;
+    QCheckBox *studentFiletxt;
+    QCheckBox *studentFilepdf;
+    QCheckBox *instructorFiletxt;
+    QCheckBox *instructorFilepdf;
+    QCheckBox *spreadsheetFiletxt;
+
+private slots:
+    void boxToggled();
 
 private:
+    bool saveDialog;
     QGridLayout *theGrid;
     QLabel *explanation;
+    QLabel *textfile;
+    QLabel *pdffile;
+    QLabel *studentFileLabel;
+    QLabel *instructorFileLabel;
+    QLabel *spreadsheetFileLabel;
     QDialogButtonBox *buttonBox;
 };
 
