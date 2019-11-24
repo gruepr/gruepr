@@ -79,6 +79,23 @@ int main(int argc, char *argv[])
     QSize defIconSize(labelWidth-20,labelWidth-20);
     QSize defButtonSize(labelWidth+20,labelWidth+20);
 
+#ifdef Q_OS_MACOS   //order switches for some reason mac->windows
+    QToolButton *leaveButton = new QToolButton(startWindow);
+    leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
+    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit"); leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    startWindow->addButton(leaveButton, QMessageBox::YesRole);
+
+    QToolButton *grueprButton = new QToolButton(startWindow);
+    grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
+    grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr"); grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    startWindow->addButton(grueprButton, QMessageBox::YesRole);
+
+    QToolButton *survMakeButton = new QToolButton(startWindow);
+    survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
+    survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker"); survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    startWindow->addButton(survMakeButton, QMessageBox::YesRole);
+#endif
+#ifdef Q_OS_WIN32
     QToolButton *survMakeButton = new QToolButton(startWindow);
     survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
     survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker"); survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -92,7 +109,8 @@ int main(int argc, char *argv[])
     QToolButton *leaveButton = new QToolButton(startWindow);
     leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
     leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit"); leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    startWindow->addButton(leaveButton, QMessageBox::NoRole);
+    startWindow->addButton(leaveButton, QMessageBox::YesRole);
+#endif
 
     // Show application choice window and delete splash
     splash->finish(startWindow);

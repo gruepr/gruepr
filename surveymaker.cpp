@@ -948,35 +948,32 @@ void SurveyMaker::on_registerButton_clicked()
         delete manager;
         return;
     }
-    else
+    //we can connect, so gather name, institution, and email address for submission
+    registerDialog *window = new registerDialog(this);
+    int reply = window->exec();
+    //If user clicks OK, email registration info and add to saved settings
+    if(reply == QDialog::Accepted)
     {
-        //we can connect, so gather name, institution, and email address for submission
-        registerDialog *window = new registerDialog(this);
-        int reply = window->exec();
-        //If user clicks OK, email registration info and add to saved settings
-        if(reply == QDialog::Accepted)
+        // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
+        if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
+                                          "?name="+QUrl::toPercentEncoding(window->name->text())+
+                                          "&institution="+QUrl::toPercentEncoding(window->institution->text())+
+                                          "&email="+QUrl::toPercentEncoding(window->email->text()))))
         {
-            // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
-            if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
-                                              "?name="+QUrl::toPercentEncoding(window->name->text())+
-                                              "&institution="+QUrl::toPercentEncoding(window->institution->text())+
-                                              "&email="+QUrl::toPercentEncoding(window->email->text()))))
-            {
-                registeredUser = window->name->text();
-                QSettings savedSettings;
-                savedSettings.setValue("registeredUser", registeredUser);
-                savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
-                ui->registerButton->hide();
-            }
-            else
-            {
-                QMessageBox::critical(this, tr("No Connection"),
-                                      tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <gruepr@gmail.com>."));
-            }
+            registeredUser = window->name->text();
+            QSettings savedSettings;
+            savedSettings.setValue("registeredUser", registeredUser);
+            savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+            ui->registerButton->hide();
         }
-        delete manager;
-        delete window;
+        else
+        {
+            QMessageBox::critical(this, tr("No Connection"),
+                                  tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <gruepr@gmail.com>."));
+        }
     }
+    delete manager;
+    delete window;
 }
 
 //////////////////

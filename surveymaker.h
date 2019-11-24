@@ -78,8 +78,8 @@ private:
     bool gender = true;
     bool URM = false;
     int numAttributes = 3;
-    QString attributeTexts[9] = {"","","","","","","","",""};
-    int attributeResponses[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    QString attributeTexts[maxAttributes] = {"","","","","","","","",""};
+    int attributeResponses[maxAttributes] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     bool schedule = true;
     // local day names, using the fact that 1/1/2017 is a Sunday
     const QString day1name = QDate(2017, 1, 1).toString("dddd");

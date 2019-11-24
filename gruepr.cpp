@@ -80,11 +80,11 @@ gruepr::gruepr(QWidget *parent) :
     //Disallow sorting on last two columns of student table
     connect(ui->studentTable->horizontalHeader(), &QHeaderView::sectionClicked, [this](int column)
                                                                                 {if(column < ui->studentTable->columnCount()-2)
-                                                                                      {ui->studentTable->sortByColumn(column);
+                                                                                      {ui->studentTable->sortByColumn(column, ui->studentTable->horizontalHeader()->sortIndicatorOrder());
                                                                                        prevSortColumn = column;
                                                                                        prevSortOrder = ui->studentTable->horizontalHeader()->sortIndicatorOrder();}
                                                                                  else
-                                                                                      {ui->studentTable->sortByColumn(prevSortColumn);
+                                                                                      {ui->studentTable->sortByColumn(prevSortColumn, prevSortOrder);
                                                                                        ui->studentTable->horizontalHeader()->setSortIndicator(prevSortColumn, prevSortOrder);}});
 
     //Add the teamDataTree widget
@@ -1431,7 +1431,11 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
 
     if(studentAteam == studentBteam)
     {
+#if QT_VERSION >= QT_VERSION_CHECK(5,13,0)
+        teams[studentAteam].studentIDs.swapItemsAt(teams[studentAteam].studentIDs.indexOf(studentAID), teams[studentBteam].studentIDs.indexOf(studentBID));
+#else
         teams[studentAteam].studentIDs.swap(teams[studentAteam].studentIDs.indexOf(studentAID), teams[studentBteam].studentIDs.indexOf(studentBID));
+#endif
         refreshTeamInfo(QList<int>({studentAteam}));
         refreshTeamToolTips(QList<int>({studentAteam}));
         refreshTeamDisplay(QList<int>({studentAteam}));

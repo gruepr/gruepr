@@ -83,7 +83,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
             studentsInComboBoxes << student[ID];
         }
     }
-    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](studentRecord i, studentRecord j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
+    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const studentRecord &i, const studentRecord &j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 
     //If this is requested teammates, add the 'base' student button in the third row
     int row = 2;
@@ -469,7 +469,7 @@ void customTeamsizesDialog::teamsizeChanged(int)
 // A dialog to choose custom team names
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-customTeamnamesDialog::customTeamnamesDialog(int numTeams, QStringList teamNames, QWidget *parent)
+customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &teamNames, QWidget *parent)
     :QDialog (parent)
 {
     this->numTeams = numTeams;
@@ -589,7 +589,7 @@ registerDialog::registerDialog(QWidget *parent)
 // A dialog to choose which item(s) to save or print
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList previews, QWidget *parent)
+whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &previews, QWidget *parent)
     :QDialog (parent)
 {
     saveDialog = (saveOrPrint == whichFilesDialog::save);
@@ -717,7 +717,7 @@ void whichFilesDialog::boxToggled()
 // A dialog to show/edit student data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-editOrAddStudentDialog::editOrAddStudentDialog(studentRecord studentToBeEdited, DataOptions dataOptions, QStringList sectionNames, QWidget *parent)
+editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent)
     :QDialog (parent)
 {
     student = studentToBeEdited;

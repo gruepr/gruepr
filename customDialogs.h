@@ -79,7 +79,7 @@ class customTeamnamesDialog : public QDialog
     Q_OBJECT
 
 public:
-    customTeamnamesDialog(int numTeams = 1, QStringList teamNames = {}, QWidget *parent = nullptr);
+    customTeamnamesDialog(int numTeams = 1, const QStringList &teamNames = {}, QWidget *parent = nullptr);
     ~customTeamnamesDialog();
 
     QLineEdit *teamName;
@@ -121,7 +121,7 @@ class whichFilesDialog : public QDialog
 public:
     enum action{save, print};
 
-    whichFilesDialog(const action saveOrPrint, const QStringList previews = {}, QWidget *parent = nullptr);
+    whichFilesDialog(const action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
 
     QCheckBox *studentFiletxt;
     QCheckBox *studentFilepdf;
@@ -150,7 +150,7 @@ class editOrAddStudentDialog : public QDialog
     Q_OBJECT
 
 public:
-    editOrAddStudentDialog(studentRecord studentToBeEdited, DataOptions dataOptions, QStringList sectionNames, QWidget *parent = nullptr);
+    editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent = nullptr);
     ~editOrAddStudentDialog();
 
     studentRecord student;
