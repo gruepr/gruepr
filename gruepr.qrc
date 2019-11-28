@@ -19,7 +19,6 @@
         <file>help.html</file>
         <file>icons/print.png</file>
         <file>icons/help.png</file>
-        <file>icons/splash.png</file>
         <file>LICENSE.txt</file>
         <file>README.md</file>
         <file>fonts/OxygenMono-Regular.otf</file>
@@ -37,5 +36,6 @@
         <file>help-surveymaker.html</file>
         <file>icons/exit.png</file>
         <file>icons/surveymaker.png</file>
+        <file>icons/fish.png</file>
     </qresource>
 </RCC>

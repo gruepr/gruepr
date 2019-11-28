@@ -353,7 +353,7 @@ bool gatherTeammatesDialog::loadFile()
                 choiceWindow->setWindowTitle("Choose student");
                 QGridLayout *grid = new QGridLayout(choiceWindow);
                 QLabel *text = new QLabel(choiceWindow);
-                text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " + tr("could not be found.\n\nPlease select this student from the list:"));
+                text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " + tr("could not be found.<br>Please select this student from the list:"));
                 grid->addWidget(text, 0, 0, 1, -1);
                 QComboBox *names = new QComboBox(choiceWindow);
                 QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
@@ -366,6 +366,7 @@ bool gatherTeammatesDialog::loadFile()
                 grid->addWidget(names, 1, 0, 1, -1);
                 grid->setRowMinimumHeight(2, 20);
                 QDialogButtonBox *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
+                OKCancel->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
                 connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
                 connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
                 grid->addWidget(OKCancel, 3, 0, 1, -1);
@@ -466,24 +467,32 @@ void gatherTeammatesDialog::refreshDisplay()
                 QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
                 remover->setFlat(true);
                 remover->setIconSize(QSize(15, 15));
+                remover->setProperty("studentAID", studentA->ID);
+                remover->setProperty("studentBID", studentBID);
                 if(whatType == gatherTeammatesDialog::required)
                 {
-                    connect(remover, &QPushButton::clicked, [this, studentA, studentBID]
-                                                            {studentA->requiredWith[studentBID] = false;
-                                                             student[studentBID].requiredWith[studentA->ID] = false;
+                    connect(remover, &QPushButton::clicked, [this, remover]
+                                                            {int studentAID = remover->property("studentAID").toInt();
+                                                             int studentBID = remover->property("studentBID").toInt();
+                                                             student[studentAID].requiredWith[studentBID] = false;
+                                                             student[studentBID].requiredWith[studentAID] = false;
                                                              refreshDisplay();});
                 }
                 else if(whatType == gatherTeammatesDialog::prevented)
                 {
-                    connect(remover, &QPushButton::clicked, [this, studentA, studentBID]
-                                                            {studentA->preventedWith[studentBID] = false;
-                                                             student[studentBID].preventedWith[studentA->ID] = false;
+                    connect(remover, &QPushButton::clicked, [this, remover]
+                                                            {int studentAID = remover->property("studentAID").toInt();
+                                                             int studentBID = remover->property("studentBID").toInt();
+                                                             student[studentAID].preventedWith[studentBID] = false;
+                                                             student[studentBID].preventedWith[studentAID] = false;
                                                              refreshDisplay();});
                 }
                 else
                 {
-                    connect(remover, &QPushButton::clicked, [this, studentA, studentBID]
-                                                            {studentA->requestedWith[studentBID] = false;
+                    connect(remover, &QPushButton::clicked, [this, remover]
+                                                            {int studentAID = remover->property("studentAID").toInt();
+                                                             int studentBID = remover->property("studentBID").toInt();
+                                                             student[studentAID].requestedWith[studentBID] = false;
                                                              refreshDisplay();});
                 }
                 box->addWidget(label);

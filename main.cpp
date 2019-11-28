@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
 
     // Show splash screen
     QSplashScreen *splash = new QSplashScreen;
-    QPixmap pic(":/icons/splash.png");
+    QPixmap pic(":/icons/fish.png");
     splash->setPixmap(pic);
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter);
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter, Qt::white);
     splash->show();
     QThread::sleep(1);
 
