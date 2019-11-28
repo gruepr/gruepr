@@ -1,11 +1,16 @@
+#include <QFileDialog>
+#include <QTextStream>
+#include <QMessageBox>
 #include "customDialogs.h"
+#include "Levenshtein.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog window to select sets of required or prevented teammates
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const studentRecord studentrecs[], int numStudentsComingIn, const QString &sectionname, QWidget *parent)
+gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const studentRecord studentrecs[],
+                                                int numStudentsComingIn, const QString &sectionname, QWidget *parent)
     : QDialog(parent)
 {
     //copy data into local versions, including full database of students
@@ -27,17 +32,20 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     if(whatType == gatherTeammatesDialog::required)
     {
         typeText = tr("Required");
-        explanation->setText(tr("Select up to ") + QString::number(possibleNumIDs) + tr(" students that will be required to be on the same team, then click the \"Add set\" button."));
+        explanation->setText(tr("Select up to ") + QString::number(possibleNumIDs) +
+                             tr(" students that will be required to be on the same team, then click the \"Add set\" button."));
     }
     else if (whatType == gatherTeammatesDialog::prevented)
     {
         typeText = tr("Prevented");
-        explanation->setText(tr("Select up to ") + QString::number(possibleNumIDs) + tr(" students that will be prevented from bring on the same team, then click the \"Add set\" button."));
+        explanation->setText(tr("Select up to ") + QString::number(possibleNumIDs) +
+                             tr(" students that will be prevented from bring on the same team, then click the \"Add set\" button."));
     }
     else
     {
         typeText = tr("Requested");
-        explanation->setText(tr("Select a student and up to ") + QString::number(possibleNumIDs) + tr(" requested teammates, then click the \"Add set\" button."));
+        explanation->setText(tr("Select a student and up to ") + QString::number(possibleNumIDs) +
+                             tr(" requested teammates, then click the \"Add set\" button."));
     }
     setWindowTitle(tr("Select ") + typeText + tr(" Teammates"));
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -83,7 +91,8 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
             studentsInComboBoxes << student[ID];
         }
     }
-    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const studentRecord &i, const studentRecord &j){return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
+    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const studentRecord &i, const studentRecord &j)
+                                                                        {return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 
     //If this is requested teammates, add the 'base' student button in the third row
     int row = 2;
@@ -115,7 +124,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         possibleTeammates[combobox].insertSeparator(1);
         for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {
-            possibleTeammates[combobox].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
+            possibleTeammates[combobox].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname,studentsInComboBoxes[i].ID);
         }
         theGrid->addWidget(&possibleTeammates[combobox], row+(combobox/4), combobox%4);
     }
@@ -125,13 +134,21 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     connect(loadTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::addOneTeammateSet);
     theGrid->addWidget(loadTeammates, row, 5, 2, 1);
 
-    //Rows 5&6 (or 6&7) - a spacer then reset table/ok/cancel buttons
+    //Rows 5&6 (or 6&7) - a spacer then reset table/loadFile/ok/cancel buttons
     row += 2;
     theGrid->setRowMinimumHeight(row, 20);
     resetTableButton = new QPushButton(this);
     resetTableButton->setText(tr("&Clear all\n") + typeText.toLower() + tr("\nteammates"));
     theGrid->addWidget(resetTableButton, row+1, 0, 1, 1);
     connect(resetTableButton, &QPushButton::clicked, this, &gatherTeammatesDialog::clearAllTeammateSets);
+    if(whatType == gatherTeammatesDialog::prevented)
+    {
+        loadFileOfTeammates = new QPushButton(this);
+        loadFileOfTeammates->setText(tr("&Load file\nof previous\nteammates"));
+        loadFileOfTeammates->setToolTip(tr("<html>Load the spreadsheet file from a previous set of gruepr-created teams in order to place all students with new teammates.</html>"));
+        theGrid->addWidget(loadFileOfTeammates, row+1, 1, 1, 1);
+        connect(loadFileOfTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::loadFile);
+    }
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, row+1, 2, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -240,6 +257,147 @@ void gatherTeammatesDialog::clearAllTeammateSets()
 }
 
 
+bool gatherTeammatesDialog::loadFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)"));
+    if(fileName.isEmpty())
+        return false;
+
+    QFile inputFile(fileName);
+    inputFile.open(QIODevice::ReadOnly);
+    QTextStream in(&inputFile);
+
+    // Read the header row and make sure file format is correct. If so, read next line to make sure it has data
+    bool formattedCorrectly = true;
+    QStringList fields = in.readLine().split('\t');
+    if(fields.size() < 4)       // should be section, team, name, email
+    {
+        formattedCorrectly = false;
+    }
+    else
+    {
+        if((fields.at(0).toLower() != tr("section")) || (fields.at(1).toLower() != tr("team"))
+                || (fields.at(2).toLower() != tr("name")) || (fields.at(3).toLower() != tr("email")))
+        {
+            formattedCorrectly = false;
+        }
+        fields = in.readLine().split('\t');
+        if(fields.size() < 4)
+        {
+            formattedCorrectly = false;
+        }
+    }
+    if(!formattedCorrectly)
+    {
+        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        inputFile.close();
+        return false;
+    }
+
+    // Process each row until there's an empty one. Load unique section+team strings into teams; load new/matching names into corresponding teammates list
+    QStringList teamnames;
+    QList<QStringList> teammates;
+    while(!fields.isEmpty())
+    {
+        int pos = teamnames.indexOf(fields.at(0)+fields.at(1)); // get index of this section+team
+
+        if(pos == -1)   // section+team is not yet found in teams list
+        {
+            teamnames << fields.at(0)+fields.at(1);
+            teammates.append(QStringList(fields.at(2)));
+        }
+        else
+        {
+            teammates[pos].append(fields.at(2));
+        }
+
+        // read next row. If row is empty, then make fields empty
+        fields = in.readLine().split('\t');
+        if(fields.size() == 1 && fields.at(0) == "")
+        {
+            fields.clear();
+        }
+    }
+
+    // Now we have list of section+teams and corresponding lists of teammates by name
+    // Need to convert names to IDs and then work through all teammate pairings
+    for(int team = 0; team < teammates.size(); team++)
+    {
+        QList<int> IDs;
+        for(int searchStudent = 0; searchStudent < teammates.at(team).size(); searchStudent++)  // searchStudent is the name we're looking for
+        {
+            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
+            while((knownStudent < numStudents) && (teammates.at(team).at(searchStudent)) != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
+            {
+                knownStudent++;
+            }
+
+            if(knownStudent != numStudents)
+            {
+                // Exact match found
+                IDs << student[knownStudent].ID;
+            }
+            else
+            {
+                // No exact match, so list possible matches sorted by Levenshtein distance
+                QMultiMap<int, QString> possibleStudents;
+                for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
+                {
+                    possibleStudents.insert(levenshtein::distance(teammates.at(team).at(searchStudent), student[knownStudent].firstname + " " + student[knownStudent].lastname),
+                                            student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
+                }
+
+                // Create student selection window
+                QDialog *choiceWindow = new QDialog(this);
+                choiceWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+                choiceWindow->setWindowTitle("Choose student");
+                QGridLayout *grid = new QGridLayout(choiceWindow);
+                QLabel *text = new QLabel(choiceWindow);
+                text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " + tr("could not be found.\n\nPlease select this student from the list:"));
+                grid->addWidget(text, 0, 0, 1, -1);
+                QComboBox *names = new QComboBox(choiceWindow);
+                QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
+                while (i != possibleStudents.constEnd())
+                {
+                    QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
+                    names->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
+                    i++;
+                }
+                grid->addWidget(names, 1, 0, 1, -1);
+                grid->setRowMinimumHeight(2, 20);
+                QDialogButtonBox *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
+                connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
+                connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
+                grid->addWidget(OKCancel, 3, 0, 1, -1);
+                if(choiceWindow->exec() == QDialog::Accepted)
+                {
+                    IDs << (names->currentData(Qt::UserRole)).toInt();
+                }
+                delete choiceWindow;
+            }
+        }
+
+        //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
+        for(int ID1 = 0; ID1 < IDs.size(); ID1++)
+        {
+            for(int ID2 = ID1+1; ID2 < IDs.size(); ID2++)
+            {
+                if(IDs[ID1] != IDs[ID2])
+                {
+                    //we have at least one required/prevented teammate pair!
+                    teammatesSpecified = true;
+                    student[IDs[ID1]].preventedWith[IDs[ID2]] = true;
+                    student[IDs[ID2]].preventedWith[IDs[ID1]] = true;
+                }
+            }
+        }
+    }
+
+    refreshDisplay();
+    return true;
+}
+
+
 void gatherTeammatesDialog::refreshDisplay()
 {
     QString typeText;
@@ -301,7 +459,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 if(currentListOfTeammatesTable->columnCount() < column+1)
                 {
                     currentListOfTeammatesTable->setColumnCount(column+1);
-                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #") + QString::number(column+1)));
+                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #")+QString::number(column+1)));
                 }
                 QHBoxLayout *box = new QHBoxLayout;
                 QLabel *label = new QLabel(student[studentBID].lastname + ", " + student[studentBID].firstname);
@@ -559,7 +717,7 @@ registerDialog::registerDialog(QWidget *parent)
     email->setPlaceholderText(tr("email address [required]"));
     theGrid->addWidget(email, 3, 0);
     //force an email address-like input
-    //(one ore more letters, digit or special symbols, followed by @, followed by one ore more letters, digit or special symbols, followed by '.', followed by two, three or four letters)
+    //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
     QRegularExpression emailAddressFormat("^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$", QRegularExpression::CaseInsensitiveOption);
     email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
     connect(email, &QLineEdit::textChanged, [this]()
@@ -717,7 +875,8 @@ void whichFilesDialog::boxToggled()
 // A dialog to show/edit student data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent)
+editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions,
+                                                                                       const QStringList &sectionNames, QWidget *parent)
     :QDialog (parent)
 {
     student = studentToBeEdited;
@@ -735,7 +894,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
 
-    int numFields = 4 + (dataOptions.genderIncluded?1:0) + (dataOptions.URMIncluded?1:0) + (dataOptions.sectionIncluded?1:0) + dataOptions.numAttributes + (dataOptions.notesIncluded?1:0);
+    int numFields = 4 + (dataOptions.genderIncluded?1:0) + (dataOptions.URMIncluded?1:0) + (dataOptions.sectionIncluded?1:0) +
+                            dataOptions.numAttributes + (dataOptions.notesIncluded?1:0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[numFields];
     databox = new QComboBox[numFields];
@@ -745,7 +905,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
 
     //Row 1 through 4--the required data
     QStringList fieldNames = {tr("Survey timestamp"), tr("First name"), tr("Last name"), tr("Email address")};
-    QStringList fieldValues = {student.surveyTimestamp.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)), student.firstname, student.lastname, student.email};
+    QStringList fieldValues = {student.surveyTimestamp.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)),
+                               student.firstname, student.lastname, student.email};
     for(int i = 0; i < 4; i++)
     {
         explanation[field].setText(fieldNames.at(field));
@@ -758,7 +919,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
 
     //Flag invalid timestamps
     connect(&(datatext[0]), &QLineEdit::textChanged, [this]()
-                                                     {bool validTimeStamp = QDateTime::fromString(datatext[0].text(), QLocale::system().dateTimeFormat(QLocale::ShortFormat)).isValid();
+                                                     {bool validTimeStamp = QDateTime::fromString(datatext[0].text(),
+                                                            QLocale::system().dateTimeFormat(QLocale::ShortFormat)).isValid();
                                                       QString stylecolor = (validTimeStamp? "black" : "red");
                                                       datatext[0].setStyleSheet("QLineEdit {color: " + stylecolor + ";}");});
 
@@ -855,7 +1017,8 @@ void editOrAddStudentDialog::recordEdited()
     int field = 4;
     if(dataOptions.genderIncluded)
     {
-        student.gender = (databox[field].currentText() == tr("woman")? studentRecord::woman : (databox[field].currentText() == tr("man")? studentRecord::man : studentRecord::neither));
+        student.gender = (databox[field].currentText() == tr("woman")? studentRecord::woman :
+                                                                       (databox[field].currentText()==tr("man")? studentRecord::man : studentRecord::neither));
         field++;
     }
     if(dataOptions.URMIncluded)
@@ -874,11 +1037,13 @@ void editOrAddStudentDialog::recordEdited()
         if(spinbox->value() != 0)
         {
             student.attribute[attrib] = spinbox->value();
+            student.attributeResponse[attrib] = dataOptions.attributeQuestionResponses[attrib].at(spinbox->value() - 1);
             spinbox->setStyleSheet("QSpinBox { }");
         }
         else
         {
             student.attribute[attrib] = -1;
+            student.attributeResponse[attrib] = "";
             spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
         }
         field++;
@@ -899,7 +1064,8 @@ editOrAddStudentDialog::CategoricalSpinBox::CategoricalSpinBox(QWidget *parent)
 
 QString editOrAddStudentDialog::CategoricalSpinBox::textFromValue(int value) const
 {
-    return ((value > 0) ? (value <= 26 ? QString(char(value + 'A' - 1)) : QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + responseTexts.at(value - 1) : "0");
+    return ((value > 0) ? (value <= 26 ? QString(char(value + 'A' - 1)) :
+                                         QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + responseTexts.at(value - 1) : "0");
 }
 
 

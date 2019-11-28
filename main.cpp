@@ -32,6 +32,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
 // - integrate with Google Drive: download survey results from within the application; store all data in gruepr account instead of user account?
+// - allowing load of external data, using levenshtein::distance to match names
+// - improve preview of team files to be saved
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
@@ -79,38 +81,28 @@ int main(int argc, char *argv[])
     QSize defIconSize(labelWidth-20,labelWidth-20);
     QSize defButtonSize(labelWidth+20,labelWidth+20);
 
-#ifdef Q_OS_MACOS   //order switches for some reason mac->windows
+    // Create and add buttons
     QToolButton *leaveButton = new QToolButton(startWindow);
     leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
     leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit"); leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    startWindow->addButton(leaveButton, QMessageBox::YesRole);
-
     QToolButton *grueprButton = new QToolButton(startWindow);
     grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
     grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr"); grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    startWindow->addButton(grueprButton, QMessageBox::YesRole);
-
     QToolButton *survMakeButton = new QToolButton(startWindow);
     survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
     survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker"); survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    //order switches for some reason mac->windows
+#ifdef Q_OS_MACOS
+    startWindow->addButton(leaveButton, QMessageBox::YesRole);
+    startWindow->addButton(grueprButton, QMessageBox::YesRole);
     startWindow->addButton(survMakeButton, QMessageBox::YesRole);
 #endif
 #ifdef Q_OS_WIN32
-    QToolButton *survMakeButton = new QToolButton(startWindow);
-    survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
-    survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker"); survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     startWindow->addButton(survMakeButton, QMessageBox::YesRole);
-
-    QToolButton *grueprButton = new QToolButton(startWindow);
-    grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
-    grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr"); grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     startWindow->addButton(grueprButton, QMessageBox::YesRole);
-
-    QToolButton *leaveButton = new QToolButton(startWindow);
-    leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
-    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit"); leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
 #endif
+    startWindow->setEscapeButton(leaveButton);
 
     // Show application choice window and delete splash
     splash->finish(startWindow);
@@ -122,22 +114,19 @@ int main(int argc, char *argv[])
 
     // Run chosen application
     int executionResult = 0;
-    if((result == grueprButton) || (result == survMakeButton))
+    if(result == grueprButton)
     {
-        if(result == grueprButton)
-        {
-            gruepr w;
-            w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
-            w.show();
-            executionResult = a.exec();
-        }
-        else
-        {
-            SurveyMaker w;
-            w.setWindowTitle("gruepr: SurveyMaker [*]");         // asterisk is placeholder, shown when there is unsaved work
-            w.show();
-            executionResult = a.exec();
-        }
+        gruepr w;
+        w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
+        w.show();
+        executionResult = a.exec();
+    }
+    else if(result == survMakeButton)
+    {
+        SurveyMaker w;
+        w.setWindowTitle("gruepr: SurveyMaker [*]");         // asterisk is placeholder, shown when there is unsaved work
+        w.show();
+        executionResult = a.exec();
     }
 
     return executionResult;

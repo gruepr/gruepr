@@ -38,12 +38,14 @@ private:
     int numStudents;
     QGridLayout *theGrid;
     QTableWidget *currentListOfTeammatesTable;
-    static const int possibleNumIDs = 8;                //number of comboboxes in the dialog box, i.e., possible choices of teammates
+    static const int possibleNumIDs = 8;                // number of comboboxes in the dialog box, i.e., possible choices of teammates
     QComboBox possibleTeammates[possibleNumIDs + 1];    // +1 for the requesting student in typeOfTeammates == requested
     QPushButton *loadTeammates;
     QPushButton *resetTableButton;
+    QPushButton *loadFileOfTeammates;
     QDialogButtonBox *buttonBox;
     void refreshDisplay();
+    bool loadFile();                                    // returns true on success, false on fail
 };
 
 

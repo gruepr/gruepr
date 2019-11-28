@@ -47,7 +47,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
          </font>
         </property>
         <property name="toolTip">
-         <string>Open the survey data file downloaded from the Google Form.</string>
+         <string>Open a survey data file.</string>
         </property>
         <property name="text">
          <string>Load Survey File...</string>
@@ -1200,7 +1200,7 @@ p, li { white-space: pre-wrap; }
                </property>
               </widget>
              </item>
-             <item row="0" column="2">
+             <item row="0" column="3">
               <widget class="QSpinBox" name="desiredMeetingTimes">
                <property name="enabled">
                 <bool>false</bool>
@@ -1273,7 +1273,20 @@ Meeting Times:</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="2">
+             <item row="0" column="4" rowspan="2">
+              <spacer name="horizontalSpacer_10">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>33</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="1" column="3">
               <widget class="QLabel" name="label_9">
                <property name="enabled">
                 <bool>false</bool>
@@ -1295,15 +1308,18 @@ Meeting Times:</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="3" rowspan="2">
-              <spacer name="horizontalSpacer_10">
+             <item row="0" column="2">
+              <spacer name="horizontalSpacer_11">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>0</width>
-                 <height>33</height>
+                 <width>10</width>
+                 <height>20</height>
                 </size>
                </property>
               </spacer>
@@ -1874,7 +1890,7 @@ copy of gruepr!</string>
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;Add a student to the current dataset.&lt;br&gt;&lt;i&gt;The survey file itself will NOT be changed.&lt;/i&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;Add a student to the current dataset.&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Add a Student</string>
@@ -1882,6 +1898,35 @@ copy of gruepr!</string>
               <property name="icon">
                <iconset resource="gruepr.qrc">
                 <normaloff>:/icons/add.png</normaloff>:/icons/add.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="saveSurveyFilePushButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;Save the current dataset to a survey file.&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Save the Dataset</string>
+              </property>
+              <property name="icon">
+               <iconset resource="gruepr.qrc">
+                <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
               </property>
               <property name="iconSize">
                <size>

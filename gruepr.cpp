@@ -164,6 +164,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->studentTable->setColumnCount(0);
         ui->studentTable->setEnabled(false);
         ui->addStudentPushButton->setEnabled(false);
+        ui->saveSurveyFilePushButton->setEnabled(false);
         ui->teamDataLayout->setEnabled(false);
         teamDataTree->setEnabled(false);
         ui->label_23->setEnabled(false);
@@ -432,8 +433,9 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 }
 
 
-void gruepr::on_studentTable_cellEntered(int row, int /*unused column value*/)
+void gruepr::on_studentTable_cellEntered(int row, int column)
 {
+    (void)column;
     // select the current row, reset the background color of the edit and remover buttons in previously selected row and change their color in the current row
     ui->studentTable->selectRow(row);
     static int prevID = -1;
@@ -532,6 +534,9 @@ void gruepr::editAStudent()
             }
         }
 
+        //Enable save data file option, since data set is now edited
+        ui->saveSurveyFilePushButton->setEnabled(true);
+
         refreshStudentDisplay();
     }
 
@@ -556,6 +561,9 @@ void gruepr::removeAStudent()
         }
     }
     dataOptions.numStudentsInSystem--;
+
+    //Enable save data file option, since data set is now edited
+    ui->saveSurveyFilePushButton->setEnabled(true);
 
     refreshStudentDisplay();
 
@@ -586,7 +594,7 @@ void gruepr::on_addStudentPushButton_clicked()
         newStudent.surveyTimestamp = QDateTime::currentDateTime();
         editOrAddStudentDialog *window = new editOrAddStudentDialog(newStudent, dataOptions, sectionNames, this);
 
-        //If user clicks OK, replace student in the database with edited copy
+        //If user clicks OK, add student to the database
         int reply = window->exec();
         if(reply == QDialog::Accepted)
         {
@@ -630,12 +638,15 @@ void gruepr::on_addStudentPushButton_clicked()
                     ui->sectionSelectionBox->setCurrentText(currentSection);
                 }
             }
+
+            //Enable save data file option, since data set is now edited
+            ui->saveSurveyFilePushButton->setEnabled(true);
+
+            refreshStudentDisplay();
+
+            ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
+            on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
         }
-
-        refreshStudentDisplay();
-
-        ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
-        on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
 
         delete window;
     }
@@ -643,6 +654,108 @@ void gruepr::on_addStudentPushButton_clicked()
     {
         QMessageBox::warning(this, tr("Cannot add student."),
                              tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") + QString(maxStudents) + tr("."), QMessageBox::Ok);
+    }
+}
+
+
+void gruepr::on_saveSurveyFilePushButton_clicked()
+{
+    QString newSurveyFileName = QFileDialog::getSaveFileName(this, tr("Save Survey Data File"), dataOptions.dataFile.canonicalPath(), tr("Survey Data File (*.csv);;All Files (*)"));
+    if ( !(newSurveyFileName.isEmpty()) )
+    {
+        bool problemSaving = false;
+        QFile newSurveyFile(newSurveyFileName);
+        if(newSurveyFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QTextStream out(&newSurveyFile);
+
+            // Write the header row
+            out << "Timestamp,What is your first name (or the name you prefer to be called)?,What is your last name?,What is your email address?";       // need at least timestamp, first name, last name, email address
+            if(dataOptions.genderIncluded)
+            {
+                out << ",With which gender do you identify?";
+            }
+            // See if URM data is included
+            if(dataOptions.URMIncluded)
+            {
+                 out << ",Do you identify as a member of an underrepresented minority group?";
+            }
+            for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+            {
+                out << ",\"" << dataOptions.attributeQuestionText[attrib] << "\"";
+            }
+            for(int day = 0; day < dataOptions.dayNames.size(); day++)
+            {
+                out << ",Check the times that you are BUSY and will be UNAVAILABLE for group work. [" << dataOptions.dayNames[day] << "]";
+            }
+            if(dataOptions.sectionIncluded)
+            {
+                out << ",In which section are you enrolled?";
+            }
+            if(dataOptions.notesIncluded)
+            {
+                out << ",Notes";
+            }
+            out << endl;
+
+            // Add each student's info
+            for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+            {
+                out << student[ID].surveyTimestamp.toString(Qt::ISODate) << ",\"" << student[ID].firstname << "\",\"" << student[ID].lastname << "\",\"" << student[ID].email << "\"";
+                if(dataOptions.genderIncluded)
+                {
+                    out << "," << (student[ID].gender==studentRecord::woman? tr("woman") : (student[ID].gender==studentRecord::man? tr("man") : tr("nonbinary/unknown")));
+                }
+                // See if URM data is included
+                if(dataOptions.URMIncluded)
+                {
+                    out << "," << (student[ID].URM? tr("yes") : tr("no"));
+                }
+                for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+                {
+                    out << ",\"" << student[ID].attributeResponse[attrib] << "\"";
+                }
+                for(int day = 0; day < dataOptions.dayNames.size(); day++)
+                {
+                    out << ",\"";
+                    bool firsttime = true;
+                    for(int time = 0; time < dataOptions.timeNames.size(); time++)
+                    {
+                        if(student[ID].unavailable[(day*dataOptions.timeNames.size())+time])
+                        {
+                            out << (firsttime? "" : ", ");
+                            out << dataOptions.timeNames.at(time);
+                            firsttime = false;
+                        }
+                    }
+                    out << "\"";
+                }
+                if(dataOptions.sectionIncluded)
+                {
+                    out << ",\"" << student[ID].section << "\"";
+                }
+                if(dataOptions.notesIncluded)
+                {
+                    out << ",\"" << student[ID].notes << "\"";
+                }
+                out << endl;
+            }
+
+            newSurveyFile.close();
+        }
+        else
+        {
+            problemSaving = true;
+        }
+
+        if(problemSaving)
+        {
+            QMessageBox::critical(this, tr("No File Saved"), tr("No file was saved.\nThere was an issue writing the file."));
+        }
+        else
+        {
+            ui->saveSurveyFilePushButton->setEnabled(false);
+        }
     }
 }
 
@@ -1798,13 +1911,17 @@ bool gruepr::loadSurveyData(QString fileName)
     // Set the attribute question options and numerical values for each student
     for(int attrib = 0; attrib < maxAttributes; attrib++)
     {
-        // gather all unique attribute question responses and sort
+        // gather all unique attribute question responses, remove a blank response if it exists in a list with other responses, and then sort
         for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
             if(!dataOptions.attributeQuestionResponses[attrib].contains(student[ID].attributeResponse[attrib]))
             {
                 dataOptions.attributeQuestionResponses[attrib] << student[ID].attributeResponse[attrib];
             }
+        }
+        if(dataOptions.attributeQuestionResponses[attrib].size() > 1)
+        {
+            dataOptions.attributeQuestionResponses[attrib].removeAll(QString(""));
         }
         QCollator sortAlphanumerically;
         sortAlphanumerically.setNumericMode(true);
@@ -1838,7 +1955,14 @@ bool gruepr::loadSurveyData(QString fileName)
             // set numerical value of students' attribute responses according to their place in the sorted list of responses
             for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
             {
-                student[ID].attribute[attrib] = dataOptions.attributeQuestionResponses[attrib].indexOf(student[ID].attributeResponse[attrib]) + 1;
+                if(!student[ID].attributeResponse[attrib].isEmpty())
+                {
+                    student[ID].attribute[attrib] = dataOptions.attributeQuestionResponses[attrib].indexOf(student[ID].attributeResponse[attrib]) + 1;
+                }
+                else
+                {
+                    student[ID].attribute[attrib] = 0;
+                }
             }
         }
     }
@@ -2207,7 +2331,7 @@ void gruepr::refreshStudentDisplay()
             }
 
             PushButtonThatSignalsMouseEnterEvents *editButton = new PushButtonThatSignalsMouseEnterEvents(QIcon(":/icons/edit.png"), "", this);
-            editButton->setToolTip(tr("<html>Edit this record.<br><i>The survey file itself will NOT be changed.</i></html>"));
+            editButton->setToolTip(tr("<html>Edit this student.</html>"));
             editButton->setProperty("StudentID", student[ID].ID);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
@@ -2220,7 +2344,7 @@ void gruepr::refreshStudentDisplay()
             column++;
 
             PushButtonThatSignalsMouseEnterEvents *removerButton = new PushButtonThatSignalsMouseEnterEvents(QIcon(":/icons/delete.png"), "", this);
-            removerButton->setToolTip(tr("<html>Remove this record from the current student set.<br><i>The survey file itself will NOT be changed.</i></html>"));
+            removerButton->setToolTip(tr("<html>Remove this student from the current data set.</html>"));
             removerButton->setProperty("StudentID", student[ID].ID);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
@@ -3470,7 +3594,7 @@ void gruepr::createFileContents()
     QString elidedDataFileName = (dataOptions.dataFile.filePath().size()>90)?
                 (dataOptions.dataFile.filePath().left(27)+"..."+dataOptions.dataFile.filePath().right(60)) : dataOptions.dataFile.filePath();
 
-    spreadsheetFileContents = tr("Section\tTeam\tName\tEmail\n");
+    spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
 
     instructorsFileContents = tr("File: ") + dataOptions.dataFile.filePath() + "\n" + tr("Section: ") + sectionName + "\n" + tr("Optimized over ") +
             QString::number(finalGeneration) + tr(" generations") + "\n" + tr("Net score: ") + QString::number(double(teamSetScore)) + "\n\n";

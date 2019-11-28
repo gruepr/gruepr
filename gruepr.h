@@ -35,6 +35,7 @@ private slots:
     void removeAStudent();
     void editAStudent();
     void on_addStudentPushButton_clicked();
+    void on_saveSurveyFilePushButton_clicked();
     void on_attributeScrollBar_valueChanged(int value);
     void on_attributeWeight_valueChanged(double arg1);
     void on_attributeHomogeneousBox_stateChanged(int arg1);

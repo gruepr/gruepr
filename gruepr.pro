@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 9.1
+gruepr_version = 9.2
 copyright_year = 2019
 
 QT       += core gui widgets concurrent network printsupport
@@ -51,6 +51,7 @@ macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
 macx: LIBS += -L /usr/local/lib /usr/local/lib/libomp.dylib
 
 SOURCES += \
+        Levenshtein.cpp \
         customWidgets.cpp \
         main.cpp \
         gruepr.cpp \
@@ -59,6 +60,7 @@ SOURCES += \
         surveymaker.cpp
 
 HEADERS += \
+        Levenshtein.h \
         customWidgets.h \
         gruepr.h \
         GA.h \
