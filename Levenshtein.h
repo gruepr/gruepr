@@ -4,7 +4,7 @@
 #include <QString>
 
 namespace levenshtein {
-    int distance(const QString &source, const QString &target, const Qt::CaseSensitivity cs = Qt::CaseSensitive);
+    int distance(const QString &source, const QString &target, Qt::CaseSensitivity cs = Qt::CaseSensitive);
 }
 
 #endif

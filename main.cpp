@@ -55,9 +55,9 @@ int main(int argc, char *argv[])
 {
     // Set up application
     QApplication a(argc, argv);
-    a.setOrganizationName("gruepr");
-    a.setApplicationName("gruepr");
-    a.setApplicationVersion(GRUEPR_VERSION_NUMBER);
+    QApplication::setOrganizationName("gruepr");
+    QApplication::setApplicationName("gruepr");
+    QApplication::setApplicationVersion(GRUEPR_VERSION_NUMBER);
     QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
 
     // Show splash screen
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     splash->setPixmap(pic);
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter, Qt::white);
     splash->show();
-    QThread::sleep(1);
+    QThread::sleep(2);
 
     // Create application choice (gruepr or SurveyMaker) window
     QMessageBox *startWindow = new QMessageBox;

@@ -27,7 +27,7 @@ struct tourneyPlayer
 namespace GA
 {
     void tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int *&mom, int *&dad);
-    void mate(int *mom, int *dad, int teamSize[], int numTeams, int child[], int genomeSize);
+    void mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize);
     void mutate(int genome[], int genomeSize);
 };
 

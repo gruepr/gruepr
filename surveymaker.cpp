@@ -99,7 +99,9 @@ void SurveyMaker::refreshPreview()
         for(int day = 0; day < 7; day++)
         {
             if(!(dayNames[day].isEmpty()))
-            preview += "<p>&nbsp;&nbsp;&nbsp;" + dayNames[day] + "</p>";
+            {
+                preview += "<p>&nbsp;&nbsp;&nbsp;" + dayNames[day] + "</p>";
+            }
         }
         preview += "<hr>";
     }
@@ -186,7 +188,9 @@ void SurveyMaker::refreshPreview()
         for(int sect = 0; sect < sectionNames.size(); sect++)
         {
             if(sect != 0)
+            {
                 allSectionNames += ",";
+            }
             allSectionNames += QUrl::toPercentEncoding(sectionNames[sect]);
         }
     }
@@ -621,7 +625,9 @@ void SurveyMaker::on_timeStartEdit_timeChanged(const QTime &time)
 {
     startTime = time.hour();
     if(ui->timeEndEdit->time() <= time)
+    {
         ui->timeEndEdit->setTime(QTime(time.hour(), 0));
+    }
     refreshPreview();
 }
 
@@ -629,7 +635,9 @@ void SurveyMaker::on_timeEndEdit_timeChanged(const QTime &time)
 {
     endTime = time.hour();
     if(ui->timeStartEdit->time() >= time)
+    {
         ui->timeStartEdit->setTime(QTime(time.hour(), 0));
+    }
     refreshPreview();
 }
 
@@ -941,7 +949,7 @@ void SurveyMaker::on_registerButton_clicked()
     QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
     connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    if(!(networkReply->bytesAvailable()))
+    if(networkReply->bytesAvailable() == 0)
     {
         //no internet right now
         QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));

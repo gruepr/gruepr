@@ -196,7 +196,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
         dataOptions.numAttributes = 0;
         dataOptions.attributeQuestionText.clear();
         for(int attrib = 0; attrib < maxAttributes; attrib++)
+        {
             dataOptions.attributeQuestionResponses[attrib].clear();
+        }
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
         haveAnyRequiredTeammates = false;
@@ -443,7 +445,9 @@ void gruepr::on_studentTable_cellEntered(int row, int column)
     {
         int prevRow = 0;
         while((prevRow < ui->studentTable->rowCount()) && (prevID != ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("StudentID").toInt()))
+        {
             prevRow++;
+        }
         if(prevRow < ui->studentTable->rowCount())
         {
             if(ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("duplicate").toBool())
@@ -469,7 +473,9 @@ void gruepr::editAStudent()
     //Find the student record
     int ID = 0;
     while(sender()->property("StudentID").toInt() != student[ID].ID)
+    {
         ID++;
+    }
 
     QStringList sectionNames;
     if(dataOptions.sectionIncluded)
@@ -1985,7 +1991,9 @@ bool gruepr::loadSurveyData(QString fileName)
         dataOptions.numAttributes = 0;
         dataOptions.attributeQuestionText.clear();
         for(int attrib = 0; attrib < maxAttributes; attrib++)
+        {
             dataOptions.attributeQuestionResponses[attrib].clear();
+        }
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
 
@@ -2372,7 +2380,7 @@ void gruepr::refreshStudentDisplay()
 ////////////////////////////////////////////
 // Create a tooltip for a student
 ////////////////////////////////////////////
-QString gruepr::createAToolTip(studentRecord info, bool duplicateRecord)
+QString gruepr::createAToolTip(const studentRecord &info, bool duplicateRecord)
 {
     QString toolTip = "<html>";
     if(duplicateRecord)
@@ -3365,7 +3373,6 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
 {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    for(int t=0; t < numTeams; t++)
     // if no teamNums given, update all
     if(teamNums == QList<int>({-1}))
     {

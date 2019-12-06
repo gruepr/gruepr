@@ -30,7 +30,7 @@ protected:
 
 private slots:
     void on_loadSurveyFileButton_clicked();
-    void on_sectionSelectionBox_currentIndexChanged(const QString &arg1);
+    void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
     void on_studentTable_cellEntered(int row, int column);
     void removeAStudent();
     void editAStudent();
@@ -101,7 +101,7 @@ private:
                                                                // if line is non-empty and minFields is given, append empty fields so returned QStringList
                                                                // always has >= minFields
     void refreshStudentDisplay();
-    QString createAToolTip(studentRecord info, bool duplicateRecord);
+    QString createAToolTip(const studentRecord &info, bool duplicateRecord);
         // score calculation
     float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight
     float realScheduleWeight;                           // scoring weight of the schedule, normalized to total weight

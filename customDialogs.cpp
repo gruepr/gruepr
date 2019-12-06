@@ -261,7 +261,9 @@ bool gatherTeammatesDialog::loadFile()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)"));
     if(fileName.isEmpty())
+    {
         return false;
+    }
 
     QFile inputFile(fileName);
     inputFile.open(QIODevice::ReadOnly);

@@ -38,7 +38,7 @@ void GA::tournamentSelectParents(tourneyPlayer *players, int **genePool, const f
 //////////////////
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
-void GA::mate(int *mom, int *dad, int teamSize[], int numTeams, int child[], int genomeSize)
+void GA::mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize)
 {
     //randomly choose two team boundaries in the genome from which to cut an allele
     int endTeam = 1+rand()%numTeams, startTeam = rand()%endTeam;	//endTeam is between 1 and number of teams, startTeam is between 0 and endTeam-1
@@ -64,7 +64,7 @@ void GA::mate(int *mom, int *dad, int teamSize[], int numTeams, int child[], int
     //remove from the child each value in mom's allele
     for(int i = 0; i < (end-start); i++)
     {
-        std::remove(child, child + genomeSize, mom[start+i]);
+        (void)std::remove(child, child + genomeSize, mom[start+i]);
     }
 
     //make room for mom's allele
