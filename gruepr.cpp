@@ -10,7 +10,6 @@
 #include <QtConcurrent>
 #include <QtNetwork>
 #include <QDesktopServices>
-#include <QCryptographicHash>
 #include <QPrintDialog>
 #include <QPainter>
 
@@ -36,24 +35,6 @@ gruepr::gruepr(QWidget *parent) :
     ui->dataDisplayTabWidget->setFont(altFont);
     ui->teamingOptionsGroupBox->setFont(altFont);
 
-    //Give registration reminder if unregistered, otherwise remove register button
-    QSettings savedSettings;
-    registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString UserID = savedSettings.value("registeredUserID", "").toString();
-    if(registeredUser.isEmpty() || UserID != QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()))
-    {
-        altFont = this->font();
-        altFont.setBold(true);
-        ui->registerButton->setFont(altFont);
-        ui->statusBar->showMessage(tr("This copy of gruepr is unregistered. Please register - it only takes a few seconds and is free."));
-        ui->statusBar->setStyleSheet("background-color: #f283a5");
-    }
-    else
-    {
-        ui->registerButton->hide();
-        ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
-        ui->statusBar->setStyleSheet("");
-    }
 
     //Reduce size of the options icons if the screen is small
 #ifdef Q_OS_WIN32
@@ -75,6 +56,7 @@ gruepr::gruepr(QWidget *parent) :
     adjustSize();
 
     //Restore window geometry
+    QSettings savedSettings;
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
 
     //Disallow sorting on last two columns of student table
@@ -401,6 +383,8 @@ void gruepr::on_clearSettingsButton_clicked()
 {
     // Clear all settings
     QSettings savedSettings;
+    QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    QString registeredUserID = savedSettings.value("registeredUserID", "").toString();
 
     //Uncomment the line below and the line two below in order to prevent clearing the setting about "don't show this box again" on app exit
     //bool askToSave = savedSettings.value("askToSaveDefaultsOnExit",true).toBool();
@@ -411,7 +395,7 @@ void gruepr::on_clearSettingsButton_clicked()
     if(!registeredUser.isEmpty())
     {
         savedSettings.setValue("registeredUser", registeredUser);
-        savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash(registeredUser.toUtf8(), QCryptographicHash::Md5).toHex()));
+        savedSettings.setValue("registeredUserID", registeredUserID);
     }
 
     ui->clearSettingsButton->setEnabled(false);
@@ -1655,6 +1639,8 @@ void gruepr::on_HelpButton_clicked()
 
 void gruepr::on_AboutButton_clicked()
 {
+    QSettings savedSettings;
+    QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
     QMessageBox::about(this, tr("About gruepr"),
                        tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
@@ -1675,59 +1661,6 @@ void gruepr::on_AboutButton_clicked()
                           "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>"
                           "GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
 }
-
-
-void gruepr::on_registerButton_clicked()
-{
-    //make sure we can connect to google
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    if(!(networkReply->bytesAvailable()))
-    {
-        //no internet right now
-        QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));
-        delete manager;
-        return;
-    }
-    else
-    {
-        //we can connect, so gather name, institution, and email address for submission
-        registerDialog *window = new registerDialog(this);
-        int reply = window->exec();
-        //If user clicks OK, email registration info and add to saved settings
-        if(reply == QDialog::Accepted)
-        {
-            // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
-            if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
-                                              "?name="+QUrl::toPercentEncoding(window->name->text())+
-                                              "&institution="+QUrl::toPercentEncoding(window->institution->text())+
-                                              "&email="+QUrl::toPercentEncoding(window->email->text()))))
-            {
-                registeredUser = window->name->text();
-                QSettings savedSettings;
-                savedSettings.setValue("registeredUser", registeredUser);
-                savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
-                ui->registerButton->hide();
-                ui->statusBar->setStyleSheet("");
-                if(ui->statusBar->currentMessage()==tr("This copy of gruepr is unregistered"))
-                {
-                    ui->statusBar->showMessage(tr("This copy of gruepr is registered to ") + registeredUser);
-                }
-            }
-            else
-            {
-                QMessageBox::critical(this, tr("No Connection"),
-                                      tr("There seems to be a problem with submitting your registration.\nPlease try again at another time or contact <gruepr@gmail.com>."));
-            }
-        }
-        delete manager;
-        delete window;
-    }
-}
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

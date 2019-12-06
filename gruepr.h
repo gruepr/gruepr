@@ -71,7 +71,6 @@ private slots:
     void reorderedTeams();
     void on_HelpButton_clicked();
     void on_AboutButton_clicked();
-    void on_registerButton_clicked();
 
 signals:
     void generationComplete(float score, int generation, float scoreStability);
@@ -83,8 +82,6 @@ signals:
 private:
         // setup
     Ui::gruepr *ui;
-    QString registeredUser;
-        // options
     DataOptions dataOptions;
     TeamingOptions teamingOptions;
     int numTeams;

@@ -37,9 +37,9 @@
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
-// - maintain population diversity through prevention of inbreeding (store parent and grandparent of each genome and disallow tournament selection from genomes with a match)
+// - maintain population diversity by preventing inbreeding (store parent & grandparent of each genome; disallow tournament selection from genome w/ match)
 // - use multiple genepools and allow limited cross-breeding
-// - to get around the redundancy-of-genome issue, store each genome as an unordered_set of unordered_sets. Each team is a set of IDs; each section is a set of teams.
+// - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr.h"
@@ -50,6 +50,10 @@
 #include <QToolButton>
 #include <QThread>
 #include <QFontDatabase>
+#include <QSettings>
+#include <QCryptographicHash>
+#include <QtNetwork>
+#include <QDesktopServices>
 
 int main(int argc, char *argv[])
 {
@@ -77,22 +81,39 @@ int main(int argc, char *argv[])
 
     // Button metrics
     boxFont->setPointSize(a.font().pointSize()+4);
-    int labelWidth = (QFontMetrics(*boxFont)).boundingRect("SurveyMaker").width();
+    int labelWidth = (QFontMetrics(*boxFont)).boundingRect("Register gruepr").width();
     QSize defIconSize(labelWidth-20,labelWidth-20);
-    QSize defButtonSize(labelWidth+20,labelWidth+20);
+    QSize defButtonSize(labelWidth+20,labelWidth);
 
     // Create and add buttons
     QToolButton *leaveButton = new QToolButton(startWindow);
     leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
-    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit"); leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit");
+    leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     QToolButton *grueprButton = new QToolButton(startWindow);
     grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
-    grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr"); grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr");
+    grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     QToolButton *survMakeButton = new QToolButton(startWindow);
     survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
-    survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker"); survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker");
+    survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    //Add registration button only if unregistered
+    QSettings savedSettings;
+    QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    QString UserID = savedSettings.value("registeredUserID", "").toString();
+    bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
+
     //order switches for some reason mac->windows
 #ifdef Q_OS_MACOS
+    if(!registered)
+    {
+        QToolButton *registerUserButton = new QToolButton(startWindow);
+        registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
+        registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
+        registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        startWindow->addButton(registerUserButton, QMessageBox::YesRole);
+    }
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
     startWindow->addButton(grueprButton, QMessageBox::YesRole);
     startWindow->addButton(survMakeButton, QMessageBox::YesRole);
@@ -101,6 +122,14 @@ int main(int argc, char *argv[])
     startWindow->addButton(survMakeButton, QMessageBox::YesRole);
     startWindow->addButton(grueprButton, QMessageBox::YesRole);
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
+    if(!registered)
+    {
+        QToolButton *registerUserButton = new QToolButton(startWindow);
+        registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
+        registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
+        registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        startWindow->addButton(registerUserButton, QMessageBox::YesRole);
+    }
 #endif
     startWindow->setEscapeButton(leaveButton);
 
@@ -109,25 +138,77 @@ int main(int argc, char *argv[])
     startWindow->exec();
     QAbstractButton *result = startWindow->clickedButton();
     delete splash;
-    delete startWindow;
     delete boxFont;
 
     // Run chosen application
     int executionResult = 0;
-    if(result == grueprButton)
+    while(result != leaveButton)
     {
-        gruepr w;
-        w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
-        w.show();
-        executionResult = a.exec();
-    }
-    else if(result == survMakeButton)
-    {
-        SurveyMaker w;
-        w.setWindowTitle("gruepr: SurveyMaker [*]");         // asterisk is placeholder, shown when there is unsaved work
-        w.show();
-        executionResult = a.exec();
+        if(result == grueprButton)
+        {
+            gruepr w;
+            w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
+            w.show();
+            executionResult = a.exec();
+            result = leaveButton;
+        }
+        else if(result == survMakeButton)
+        {
+            SurveyMaker w;
+            w.setWindowTitle("gruepr: SurveyMaker [*]");         // asterisk is placeholder, shown when there is unsaved work
+            w.show();
+            executionResult = a.exec();
+            result = leaveButton;
+        }
+        else
+        {
+            //make sure we can connect to google
+            QNetworkAccessManager *manager = new QNetworkAccessManager(startWindow);
+            QEventLoop loop;
+            QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+            QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+            if(!(networkReply->bytesAvailable()))
+            {
+                //no internet right now
+                QMessageBox::critical(startWindow, "No Internet Connection", "There does not seem to be an internet connection.\n"
+                                                                             "Please register at another time.");
+                delete manager;
+            }
+            else
+            {
+                //we can connect, so gather name, institution, and email address for submission
+                registerDialog *window = new registerDialog(startWindow);
+                int reply = window->exec();
+                //If user clicks OK, email registration info and add to saved settings
+                if(reply == QDialog::Accepted)
+                {
+                    // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
+                    if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
+                                                      "?name="+QUrl::toPercentEncoding(window->name->text())+
+                                                      "&institution="+QUrl::toPercentEncoding(window->institution->text())+
+                                                      "&email="+QUrl::toPercentEncoding(window->email->text()))))
+                    {
+                        registeredUser = window->name->text();
+                        QSettings savedSettings;
+                        savedSettings.setValue("registeredUser", registeredUser);
+                        savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+                    }
+                    else
+                    {
+                        QMessageBox::critical(startWindow, "No Connection",
+                                              "There seems to be a problem with submitting your registration.\n"
+                                              "Please try again at another time or contact <gruepr@gmail.com>.");
+                    }
+                }
+                delete manager;
+                delete window;
+            }
+            startWindow->exec();
+            result = startWindow->clickedButton();
+        }
     }
 
+    delete startWindow;
     return executionResult;
 }

@@ -1638,11 +1638,24 @@ Meeting Times:</string>
        </widget>
       </item>
       <item row="0" column="4" rowspan="2" colspan="2">
-       <layout class="QGridLayout" name="helpAboutLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
          <number>2</number>
         </property>
-        <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
+        <item>
+         <spacer name="horizontalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QToolButton" name="HelpButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1671,40 +1684,7 @@ Meeting Times:</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignBottom">
-         <widget class="QPushButton" name="registerButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: #f283a5</string>
-          </property>
-          <property name="text">
-           <string>Register my
-copy of gruepr!</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" colspan="2">
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="0" column="2" alignment="Qt::AlignHCenter|Qt::AlignTop">
+        <item>
          <widget class="QToolButton" name="AboutButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1735,19 +1715,6 @@ copy of gruepr!</string>
            <enum>Qt::ToolButtonTextUnderIcon</enum>
           </property>
          </widget>
-        </item>
-        <item row="0" column="0" rowspan="3">
-         <spacer name="horizontalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </item>
