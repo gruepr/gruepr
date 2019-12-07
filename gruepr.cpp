@@ -9,7 +9,6 @@
 #include <QMessageBox>
 #include <QtConcurrent>
 #include <QtNetwork>
-#include <QDesktopServices>
 #include <QPrintDialog>
 #include <QPainter>
 
@@ -189,6 +188,34 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
         if(loadSurveyData(fileName))
         {
+            // Check for duplicate student names and/or emails; warn if found
+            QStringList studentNames, studentEmails;
+            bool duplicatesExist = false;
+            for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+            {
+                if(!studentNames.contains(student[ID].firstname + student[ID].lastname))
+                {
+                    studentNames << (student[ID].firstname + student[ID].lastname);
+                }
+                else
+                {
+                    duplicatesExist = true;
+                }
+                if(!studentEmails.contains(student[ID].email))
+                {
+                    studentEmails << student[ID].email;
+                }
+                else
+                {
+                    duplicatesExist = true;
+                }
+            }
+            if(duplicatesExist)
+            {
+                QMessageBox::warning(this, tr("Possible duplicate submissions"), tr("There appears to be at least one student with multiple survey submissions.\n"
+                                                                                    "Possible duplicates are marked with a yellow background in the table."));
+            }
+
             ui->saveSettingsButton->setEnabled(true);
             ui->loadSettingsButton->setEnabled(true);
             ui->statusBar->showMessage("File: " + dataOptions.dataFile.fileName());

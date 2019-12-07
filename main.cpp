@@ -33,7 +33,6 @@
 // FUTURE WORK:
 // - integrate with Google Drive: download survey results from within the application; store all data in gruepr account instead of user account?
 // - allowing load of external data, using levenshtein::distance to match names
-// - improve preview of team files to be saved
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
@@ -99,6 +98,7 @@ int main(int argc, char *argv[])
     survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker");
     survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     //Add registration button only if unregistered
+    QToolButton *registerUserButton = nullptr;
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString UserID = savedSettings.value("registeredUserID", "").toString();
@@ -108,10 +108,11 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_MACOS
     if(!registered)
     {
-        QToolButton *registerUserButton = new QToolButton(startWindow);
+        registerUserButton = new QToolButton(startWindow);
         registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
         registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
         registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        registerUserButton->setStyleSheet("background-color: #f283a5");
         startWindow->addButton(registerUserButton, QMessageBox::YesRole);
     }
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
@@ -124,10 +125,11 @@ int main(int argc, char *argv[])
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
     if(!registered)
     {
-        QToolButton *registerUserButton = new QToolButton(startWindow);
+        registerUserButton = new QToolButton(startWindow);
         registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
         registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
         registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        registerUserButton->setStyleSheet("background-color: #f283a5");
         startWindow->addButton(registerUserButton, QMessageBox::YesRole);
     }
 #endif
@@ -193,6 +195,7 @@ int main(int argc, char *argv[])
                         QSettings savedSettings;
                         savedSettings.setValue("registeredUser", registeredUser);
                         savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+                        startWindow->removeButton(registerUserButton);
                     }
                     else
                     {

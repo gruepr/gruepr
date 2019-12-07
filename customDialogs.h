@@ -124,6 +124,7 @@ public:
     enum action{save, print};
 
     whichFilesDialog(const action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
+    ~whichFilesDialog();
 
     QCheckBox *studentFiletxt;
     QCheckBox *studentFilepdf;
@@ -140,10 +141,11 @@ private:
     QLabel *explanation;
     QLabel *textfile;
     QLabel *pdffile;
-    QLabel *studentFileLabel;
-    QLabel *instructorFileLabel;
-    QLabel *spreadsheetFileLabel;
+    QPushButton *studentFileLabel;
+    QPushButton *instructorFileLabel;
+    QPushButton *spreadsheetFileLabel;
     QDialogButtonBox *buttonBox;
+    QFont previousToolTipFont;
 };
 
 

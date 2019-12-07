@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QToolTip>
 #include "customDialogs.h"
 #include "Levenshtein.h"
 
@@ -768,10 +769,12 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     setWindowTitle(tr("Choose files to ") + saveOrPrintString);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
+    previousToolTipFont = QToolTip::font();
+    QToolTip::setFont(QFont("Oxygen Mono", previousToolTipFont.pointSize()));
 
     explanation = new QLabel(this);
     explanation->setTextFormat(Qt::RichText);
-    explanation->setText(tr("<br>You can ") + saveOrPrintString + tr(" the following files:<br><i>hover over title for a preview</i><br>"));
+    explanation->setText(tr("<br>You can ") + saveOrPrintString + tr(" the following files:<br>Preview a file by hovering over the title.<br>"));
     theGrid->addWidget(explanation, 0, 0, 1, -1);
 
     if(saveDialog)
@@ -779,10 +782,10 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         textfile = new QLabel(this);
         textfile->setText(tr("text"));
         theGrid->addWidget(textfile, 1, 0);
-        QFrame* pdftxtline = new QFrame(this);
+        QFrame *pdftxtline = new QFrame(this);
         pdftxtline->setFrameShape(QFrame::VLine);
         pdftxtline->setFrameShadow(QFrame::Sunken);
-        theGrid->addWidget(pdftxtline, 1, 1, 4, 1);
+        theGrid->addWidget(pdftxtline, 1, 1, 6, 1);
         pdffile = new QLabel(this);
         pdffile->setText("pdf");
         theGrid->addWidget(pdffile, 1, 2);
@@ -792,16 +795,21 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     studentFiletxt->resize(30,30);
     theGrid->addWidget(studentFiletxt, 2, 0);
     connect(studentFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+
+    studentFileLabel = new QPushButton(this);
+    studentFileLabel->setFlat(true);
+    studentFileLabel->setStyleSheet("Text-align:left");
+    connect(studentFileLabel, &QPushButton::clicked, studentFiletxt, &QCheckBox::toggle);
+    studentFileLabel->setText(tr("Student's file:\nnames, email addresses, and team availability schedules."));
+    theGrid->addWidget(studentFileLabel, 2, 3);
     if(saveDialog)
     {
         studentFilepdf = new QCheckBox(this);
         studentFilepdf->resize(30,30);
         theGrid->addWidget(studentFilepdf, 2, 2);
         connect(studentFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+        connect(studentFileLabel, &QPushButton::clicked, studentFilepdf, &QCheckBox::toggle);
     }
-    studentFileLabel = new QLabel(this);
-    studentFileLabel->setText(tr("Student's file:\nnames, email addresses, and team availability schedules."));
-    theGrid->addWidget(studentFileLabel, 2, 3);
     if(!(previews.empty()))
     {
         studentFiletxt->setToolTip(previews.at(0));
@@ -811,22 +819,30 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         }
         studentFileLabel->setToolTip(previews.at(0));
     }
+    QFrame *belowStudentLine = new QFrame(this);
+    belowStudentLine->setFrameShape(QFrame::HLine);
+    belowStudentLine->setFrameShadow(QFrame::Sunken);
+    theGrid->addWidget(belowStudentLine, 3, 0, 1, -1);
 
     instructorFiletxt = new QCheckBox(this);
     instructorFiletxt->resize(30,30);
-    theGrid->addWidget(instructorFiletxt, 3, 0);
+    theGrid->addWidget(instructorFiletxt, 4, 0);
     connect(instructorFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+    instructorFileLabel = new QPushButton(this);
+    instructorFileLabel->setFlat(true);
+    instructorFileLabel->setStyleSheet("Text-align:left");
+    connect(instructorFileLabel, &QPushButton::clicked, instructorFiletxt, &QCheckBox::toggle);
+    instructorFileLabel->setText(tr("Instructor's file:\nFile data, teaming options, optimization data,\n"
+                                    "names, email addresses, demographic and attribute data, and team availability schedule."));
+    theGrid->addWidget(instructorFileLabel, 4, 3);
     if(saveDialog)
     {
         instructorFilepdf = new QCheckBox(this);
         instructorFilepdf->resize(30,30);
-        theGrid->addWidget(instructorFilepdf, 3, 2);
+        theGrid->addWidget(instructorFilepdf, 4, 2);
         connect(instructorFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
+        connect(instructorFileLabel, &QPushButton::clicked, instructorFilepdf, &QCheckBox::toggle);
     }
-    instructorFileLabel = new QLabel(this);
-    instructorFileLabel->setText(tr("Instructor's file:\nFile data, teaming options, optimization data,\n"
-                                    "names, email addresses, demographic and attribute data, and team availability schedule."));
-    theGrid->addWidget(instructorFileLabel, 3, 3);
     if(!(previews.empty()))
     {
         instructorFiletxt->setToolTip(previews.at(1));
@@ -836,14 +852,21 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         }
         instructorFileLabel->setToolTip(previews.at(1));
     }
+    QFrame *belowInstructorLine = new QFrame(this);
+    belowInstructorLine->setFrameShape(QFrame::HLine);
+    belowInstructorLine->setFrameShadow(QFrame::Sunken);
+    theGrid->addWidget(belowInstructorLine, 5, 0, 1, -1);
 
     spreadsheetFiletxt = new QCheckBox(this);
     spreadsheetFiletxt->resize(30,30);
-    theGrid->addWidget(spreadsheetFiletxt, 4, 0);
+    theGrid->addWidget(spreadsheetFiletxt, 6, 0);
     connect(spreadsheetFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
-    spreadsheetFileLabel = new QLabel(this);
+    spreadsheetFileLabel = new QPushButton(this);
+    spreadsheetFileLabel->setFlat(true);
+    spreadsheetFileLabel->setStyleSheet("Text-align:left");
+    connect(spreadsheetFileLabel, &QPushButton::clicked, spreadsheetFiletxt, &QCheckBox::toggle);
     spreadsheetFileLabel->setText(tr("Spreadsheet file:\nsections, teams, names, and email addresses in a tabular format."));
-    theGrid->addWidget(spreadsheetFileLabel, 4, 3);
+    theGrid->addWidget(spreadsheetFileLabel, 6, 3);
     if(!(previews.empty()))
     {
         spreadsheetFiletxt->setToolTip(previews.at(2));
@@ -864,10 +887,16 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     connect(buttonBox, &QDialogButtonBox::clicked, this, [this](QAbstractButton *button){QDialog::done(buttonBox->standardButton(button));});
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(5, 20);
-    theGrid->addWidget(buttonBox, 6, 0, -1, -1);
+    theGrid->setRowMinimumHeight(7, 20);
+    theGrid->addWidget(buttonBox, 8, 0, -1, -1);
 
     adjustSize();
+}
+
+
+whichFilesDialog::~whichFilesDialog()
+{
+    QToolTip::setFont(previousToolTipFont);
 }
 
 

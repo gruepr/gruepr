@@ -8,9 +8,7 @@
 #include "customDialogs.h"
 #include "gruepr_structs_and_consts.h"
 
-namespace Ui {
-class SurveyMaker;
-}
+namespace Ui {class SurveyMaker;}
 
 class SurveyMaker : public QMainWindow
 {
