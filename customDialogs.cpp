@@ -1002,7 +1002,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
     {
         explanation[field].setText(tr("Attribute ") + QString::number(attrib + 1));
         QSpinBox *spinbox = (dataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
-        datacategorical[field].responseTexts = dataOptions.attributeQuestionResponses[attrib];
+        datacategorical[field].setCategoricalValues(dataOptions.attributeQuestionResponses[attrib]);
         spinbox->setValue(student.attribute[attrib]);
         spinbox->setRange(0, dataOptions.attributeMax[attrib]);
         if(spinbox->value() == 0)
@@ -1096,28 +1096,142 @@ void editOrAddStudentDialog::recordEdited()
 }
 
 
-editOrAddStudentDialog::CategoricalSpinBox::CategoricalSpinBox(QWidget *parent)
-    :QSpinBox(parent)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to gather which attribute values should be disallowed on the same team
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QSet<int> &currIncompats, QWidget *parent)
+    :QDialog (parent)
 {
+    numPossibleValues = dataOptions.attributeQuestionResponses[attribute].size() + 1;
+    incompatibleResponses = currIncompats;
+
+    //Set up window with a grid layout
+    setWindowTitle(tr("Select incompatible responses for Attribute ") + QString::number(attribute + 1));
+
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    theGrid = new QGridLayout(this);
+
+    attributeDescription = new QLabel;
+    attributeDescription->setText("<html><br>" + dataOptions.attributeQuestionText.at(attribute) +
+                         "<hr>" + tr("Prevent students with these responses from being placed on the same team:") + "<br></html>");
+    attributeDescription->setWordWrap(true);
+    theGrid->addWidget(attributeDescription, 0, 0, 1, -1);
+
+    // a checkbox and a label for each response values
+    enableValue = new QCheckBox[numPossibleValues];
+    responses = new QPushButton[numPossibleValues];
+    for(int response = 0; response < numPossibleValues; response++)
+    {
+        enableValue[response].setChecked(incompatibleResponses.contains((response == (numPossibleValues-1)? -1 : (response + 1))));
+        connect(&enableValue[response], &QCheckBox::toggled, this, &gatherIncompatibleResponsesDialog::selectionChanged);
+        theGrid->addWidget(&enableValue[response], response + 1, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+
+        if(response == numPossibleValues - 1)
+        {
+            responses[response].setText(tr("-. value not set/unknown"));
+        }
+        else if(dataOptions.attributeIsOrdered[attribute])
+        {
+            // show reponse with starting number
+            QRegularExpression startsWithNumber("^(\\d+)(.+)");
+            QRegularExpressionMatch match = startsWithNumber.match(dataOptions.attributeQuestionResponses[attribute].at(response));
+            responses[response].setText(match.captured(1) + match.captured(2));
+        }
+        else
+        {
+            // show response with a preceding letter (letter repeated for responses after 26)
+            responses[response].setText((response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))) +
+                                         ". " + dataOptions.attributeQuestionResponses[attribute].at(response));
+        }
+        responses[response].setFlat(true);
+        responses[response].setStyleSheet("Text-align:left");
+        connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
+        theGrid->addWidget(&responses[response], response + 1, 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+    }
+    theGrid->setColumnStretch(1, 1);    // set second column as the one to grow
+
+    //explanatory text of which response pairs will be considered incompatible
+    explanation = new QLabel;
+    explanation->clear();
+    theGrid->addWidget(explanation, numPossibleValues + 2, 0, 1, -1);
+    theGrid->setRowStretch(numPossibleValues + 2, 1);
+
+    //a spacer then ok/cancel buttons
+    theGrid->setRowMinimumHeight(numPossibleValues + 3, 20);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    theGrid->addWidget(buttonBox, numPossibleValues + 4, 0, -1, -1);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    selectionChanged();     // set formatting
+    adjustSize();
 }
 
 
-QString editOrAddStudentDialog::CategoricalSpinBox::textFromValue(int value) const
+gatherIncompatibleResponsesDialog::~gatherIncompatibleResponsesDialog()
 {
-    return ((value > 0) ? (value <= 26 ? QString(char(value + 'A' - 1)) :
-                                         QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + responseTexts.at(value - 1) : "0");
+    //delete dynamically allocated arrays created in class constructor
+    delete [] enableValue;
+    delete [] responses;
 }
 
-
-int editOrAddStudentDialog::CategoricalSpinBox::valueFromText(const QString &text) const
+void gatherIncompatibleResponsesDialog::selectionChanged()
 {
-    return (responseTexts.indexOf(text.split(" - ").last()) + 1);
-}
+    int numChecked = 0;
+    for(int response = 0; response < numPossibleValues; response++)
+    {
+        bool thisOneChecked = enableValue[response].isChecked();
+        numChecked += thisOneChecked? 1 : 0;
+        QFont f = responses[response].font();
+        f.setBold(thisOneChecked);
+        responses[response].setFont(f);
+        if(thisOneChecked)
+        {
+            incompatibleResponses << (response == (numPossibleValues-1)? -1 : (response + 1));
+        }
+        else
+        {
+            incompatibleResponses.remove(response == (numPossibleValues-1)? -1 : (response + 1));
+        }
+    }
 
-
-QValidator::State editOrAddStudentDialog::CategoricalSpinBox::validate (QString &input, int &pos) const
-{
-    (void)input;
-    (void)pos;
-    return QValidator::Acceptable;
+    if(numChecked > 1)
+    {
+        QList<int> sortedVals = incompatibleResponses.toList();
+        if(sortedVals.removeOne(-1))
+        {
+            sortedVals << numPossibleValues;
+        }
+        std::sort(sortedVals.begin(), sortedVals.end());
+        QString totalExplanationText;
+        for(int i = 0; i < sortedVals.size() - 1; i++)
+        {
+            QString explanationText = tr("Students with response ") + responses[sortedVals[i]-1].text().split('.').at(0) +
+                               tr(" will not be teamed with students with response ");
+            bool first = true;
+            for(int j = i + 1; j < sortedVals.size(); j++)
+            {
+                if(!first)
+                {
+                    explanationText += ", ";
+                }
+                explanationText += responses[sortedVals[j]-1].text().split('.').at(0);
+                first = false;
+            }
+            // replace last comma in list with "or"
+            if(!first)
+            {
+                explanationText.replace(explanationText.lastIndexOf(","), 1, tr(" or "));
+            }
+            totalExplanationText += (explanationText + ".<br>");
+        }
+        // remove all html tags, replace "-" with "not set/unknown"
+        totalExplanationText.remove("<html>").remove("<b>").remove("</b>").replace("-", tr("not set/unknown"));
+        explanation->setText("<html><hr><br><b>" + totalExplanationText + "</b></html>");
+    }
+    else
+    {
+        explanation->setText("<html><hr><br><b>" + tr("No response values are incompatible.") + "<br></b></html>");
+    }
 }

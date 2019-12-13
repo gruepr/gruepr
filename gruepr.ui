@@ -954,33 +954,7 @@ Teammates</string>
            <property name="verticalSpacing">
             <number>2</number>
            </property>
-           <item row="2" column="2" colspan="2">
-            <widget class="QCheckBox" name="attributeHomogeneousBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>If selected, all of the students on a team will have a similar response to this question.
-If unselected, the students on a team will have a wide range of responses to this question.</string>
-             </property>
-             <property name="text">
-              <string>Prefer Homogeneous</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2" colspan="5">
+           <item row="0" column="2" colspan="6">
             <widget class="QLabel" name="attributeLabel">
              <property name="enabled">
               <bool>false</bool>
@@ -999,88 +973,6 @@ If unselected, the students on a team will have a wide range of responses to thi
              </property>
              <property name="text">
               <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QDoubleSpinBox" name="attributeWeight">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>The relative importance of this attribute in forming the teams</string>
-             </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::NoButtons</enum>
-             </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="4" colspan="3">
-            <spacer name="horizontalSpacer_6">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>18</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="0" colspan="2">
-            <widget class="QScrollBar" name="attributeScrollBar">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-               <horstretch>1</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 1px rgb(0, 0, 0);
-background-color: rgb(193, 193, 193);</string>
-             </property>
-             <property name="minimum">
-              <number>-1</number>
-             </property>
-             <property name="maximum">
-              <number>-1</number>
-             </property>
-             <property name="pageStep">
-              <number>1</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="invertedAppearance">
-              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -1106,7 +998,7 @@ background-color: rgb(193, 193, 193);</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="7">
+           <item row="1" column="0" colspan="8">
             <widget class="QTextEdit" name="attributeTextEdit">
              <property name="enabled">
               <bool>false</bool>
@@ -1153,6 +1045,122 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QScrollBar" name="attributeScrollBar">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+               <horstretch>1</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>18</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border: 1px rgb(0, 0, 0);
+background-color: rgb(193, 193, 193);</string>
+             </property>
+             <property name="minimum">
+              <number>-1</number>
+             </property>
+             <property name="maximum">
+              <number>-1</number>
+             </property>
+             <property name="pageStep">
+              <number>1</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="invertedAppearance">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2" colspan="2">
+            <widget class="QCheckBox" name="attributeHomogeneousBox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>18</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>If selected, all of the students on a team will have a similar response to this question.
+If unselected, the students on a team will have a wide range of responses to this question.</string>
+             </property>
+             <property name="text">
+              <string>Prefer Homogeneous</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDoubleSpinBox" name="attributeWeight">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>The relative importance of this attribute in forming the teams</string>
+             </property>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::NoButtons</enum>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="5" colspan="3">
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>18</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="4">
+            <widget class="QPushButton" name="incompatibleResponsesButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;Indicate  response values that should prevent students from being on the same team.&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Incompatible
+Responses</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item row="3" column="0" colspan="3">
@@ -1183,12 +1191,6 @@ p, li { white-space: pre-wrap; }
                <property name="enabled">
                 <bool>false</bool>
                </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -1207,12 +1209,6 @@ p, li { white-space: pre-wrap; }
               <widget class="QSpinBox" name="desiredMeetingTimes">
                <property name="enabled">
                 <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
@@ -1422,12 +1418,6 @@ Meeting Times:</string>
               <widget class="QDoubleSpinBox" name="scheduleWeight">
                <property name="enabled">
                 <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>

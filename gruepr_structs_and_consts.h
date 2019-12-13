@@ -12,6 +12,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QMap>
+#include <QSet>
 #include "GA.h"
 
 //map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
@@ -140,6 +141,7 @@ struct TeamingOptions
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
     bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
     float attributeWeights[maxAttributes];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
+    QSet<int> incompatibleAttributeValues[maxAttributes];
     float scheduleWeight = 1;
     int numberRequestedTeammatesGiven = 1;
     int smallerTeamsSizes[maxStudents] = {0};

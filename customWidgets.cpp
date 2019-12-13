@@ -2,6 +2,7 @@
 #include <QCollator>
 #include <QDropEvent>
 #include <QPainter>
+#include <QStylePainter>
 #include "customWidgets.h"
 #include "gruepr_structs_and_consts.h"
 
@@ -206,4 +207,70 @@ void PushButtonThatSignalsMouseEnterEvents::enterEvent(QEvent *event)
 {
     emit mouseEntered();
     event->ignore();
+}
+
+
+//////////////////
+// QSpinBox that replaces numerical values with categorical attribute responses in display
+//////////////////
+CategoricalSpinBox::CategoricalSpinBox(QWidget *parent)
+    :QSpinBox(parent)
+{
+}
+
+void CategoricalSpinBox::setCategoricalValues(const QStringList &categoricalValues)
+{
+    this->categoricalValues = categoricalValues;
+}
+
+QString CategoricalSpinBox::textFromValue(int value) const
+{
+    return ((value > 0) ? (value <= 26 ? QString(char(value + 'A' - 1)) :
+                                         QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + categoricalValues.at(value - 1) : "0");
+}
+
+int CategoricalSpinBox::valueFromText(const QString &text) const
+{
+    return (categoricalValues.indexOf(text.split(" - ").last()) + 1);
+}
+
+QValidator::State CategoricalSpinBox::validate (QString &input, int &pos) const
+{
+    (void)input;
+    (void)pos;
+    return QValidator::Acceptable;
+}
+
+
+//////////////////
+// QComboBox that paints with elided contents
+//////////////////
+ComboBoxWithElidedContents::ComboBoxWithElidedContents(QWidget *parent)
+    :QComboBox(parent)
+{
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+}
+
+QSize ComboBoxWithElidedContents::sizeHint() const
+{
+    return minimumSizeHint();
+}
+
+QSize ComboBoxWithElidedContents::minimumSizeHint() const
+{
+    return QSize((QFontMetrics(this->font())).boundingRect("Very high / Above average / Average / Below average / Very low").width()+15, QComboBox::minimumSizeHint().height());
+}
+
+void ComboBoxWithElidedContents::paintEvent(QPaintEvent *event)
+{
+    (void)event;
+    QStyleOptionComboBox opt;
+    initStyleOption(&opt);
+
+    QStylePainter p(this);
+    p.drawComplexControl(QStyle::CC_ComboBox, opt);
+
+    QRect textRect = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxEditField, this);
+    opt.currentText = p.fontMetrics().elidedText(opt.currentText, Qt::ElideMiddle, textRect.width());
+    p.drawControl(QStyle::CE_ComboBoxLabel, opt);
 }

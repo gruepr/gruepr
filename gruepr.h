@@ -39,6 +39,7 @@ private slots:
     void on_attributeScrollBar_valueChanged(int value);
     void on_attributeWeight_valueChanged(double arg1);
     void on_attributeHomogeneousBox_stateChanged(int arg1);
+    void on_incompatibleResponsesButton_clicked();
     void on_isolatedWomenCheckBox_stateChanged(int arg1);
     void on_isolatedMenCheckBox_stateChanged(int arg1);
     void on_mixedGenderCheckBox_stateChanged(int arg1);
@@ -106,6 +107,7 @@ private:
     bool haveAnyRequiredTeammates;
     bool haveAnyPreventedTeammates;
     bool haveAnyRequestedTeammates;
+    bool haveAnyIncompatibleAttributes[maxAttributes];
         // team set optimization
     int *studentIDs = nullptr;                          // array of the IDs of students to be placed on teams
     QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
@@ -115,7 +117,8 @@ private:
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;
 #endif
-    float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj);
+    float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, int **incompatAttribAdj, float *schedScore,
+                        int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj);
     float teamSetScore;
     int finalGeneration;
     QMutex optimizationStoppedmutex;

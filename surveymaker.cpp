@@ -32,6 +32,16 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
     saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
 
+    //Add items to response options combobox
+    ui->attributeComboBox->addItem("Choose the response options...");
+    ui->attributeComboBox->insertSeparator(1);
+    for(int response = 0; response < responseOptions.size(); response++)
+    {
+        ui->attributeComboBox->addItem(responseOptions.at(response));
+        ui->attributeComboBox->setItemData(response + 2, responseOptions.at(response), Qt::ToolTipRole);
+    }
+    responseOptions.insert(0, "custom options, to be added after creating the form");
+
     refreshPreview();
 }
 
@@ -294,7 +304,7 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
 
 void SurveyMaker::on_attributeComboBox_currentIndexChanged(int index)
 {
-    attributeResponses[ui->attributeScrollBar->value()] = index;
+    attributeResponses[ui->attributeScrollBar->value()] = ((index>1) ? (index-1) : 0);
     refreshPreview();
 }
 

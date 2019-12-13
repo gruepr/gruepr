@@ -138,6 +138,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->attributeTextEdit->setEnabled(false);
         ui->attributeWeight->setEnabled(false);
         ui->attributeHomogeneousBox->setEnabled(false);
+        ui->incompatibleResponsesButton->setEnabled(false);
         ui->label_21->setEnabled(false);
         ui->label_5->setEnabled(false);
         ui->studentTable->clear();
@@ -179,6 +180,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         for(int attrib = 0; attrib < maxAttributes; attrib++)
         {
             dataOptions.attributeQuestionResponses[attrib].clear();
+            haveAnyIncompatibleAttributes[attrib] = false;
         }
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
@@ -279,6 +281,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->attributeTextEdit->setEnabled(true);
                 ui->attributeWeight->setEnabled(true);
                 ui->attributeHomogeneousBox->setEnabled(true);
+                ui->incompatibleResponsesButton->setEnabled(true);
                 ui->label_21->setEnabled(true);
                 ui->label_5->setEnabled(true);
             }
@@ -841,6 +844,24 @@ void gruepr::on_attributeWeight_valueChanged(double arg1)
 void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
 {
     teamingOptions.desireHomogeneous[ui->attributeScrollBar->value()] = arg1;
+}
+
+
+void gruepr::on_incompatibleResponsesButton_clicked()
+{
+    //Open specialized dialog box to collect response pairings that should prevent students from being on the same team
+    gatherIncompatibleResponsesDialog *window =
+            new gatherIncompatibleResponsesDialog(ui->attributeScrollBar->value(), dataOptions, teamingOptions.incompatibleAttributeValues[ui->attributeScrollBar->value()], this);
+
+    //If user clicks OK, replace student database with copy that has had pairings added
+    int reply = window->exec();
+    if(reply == QDialog::Accepted)
+    {
+        haveAnyIncompatibleAttributes[ui->attributeScrollBar->value()] = !window->incompatibleResponses.empty();
+        teamingOptions.incompatibleAttributeValues[ui->attributeScrollBar->value()] = window->incompatibleResponses;
+    }
+
+    delete window;
 }
 
 
@@ -2458,15 +2479,17 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     QVector<float> scores(populationSize);
     float *unusedTeamScores, *schedScore;
     float **attributeScore;
-    int *genderAdj, *URMAdj, *reqTeammateAdj, *prevTeammateAdj, *requestedTeammateAdj;
+    int **incompatAttribAdj, *genderAdj, *URMAdj, *reqTeammateAdj, *prevTeammateAdj, *requestedTeammateAdj;
 
-#pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
+#pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, incompatAttribAdj, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
     unusedTeamScores = new float[numTeams];
     attributeScore = new float*[dataOptions.numAttributes];
+    incompatAttribAdj = new int*[dataOptions.numAttributes];
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
         attributeScore[attrib] = new float[numTeams];
+        incompatAttribAdj[attrib] = new int[numTeams];
     }
     schedScore = new float[numTeams];
     genderAdj = new int[numTeams];
@@ -2477,7 +2500,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 #pragma omp for
     for(int genome = 0; genome < populationSize; genome++)
     {
-        scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
+        scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, incompatAttribAdj, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
     }
     delete[] requestedTeammateAdj;
     delete[] prevTeammateAdj;
@@ -2488,8 +2511,10 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
         delete[] attributeScore[attrib];
+        delete[] incompatAttribAdj[attrib];
     }
     delete[] attributeScore;
+    delete[] incompatAttribAdj;
     delete[] unusedTeamScores;
 }
 
@@ -2572,13 +2597,15 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             generation++;
 
             // calculate new generation's scores (multi-threaded using OpenMP on Windows)
-#pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
+#pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, incompatAttribAdj, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
             unusedTeamScores = new float[numTeams];
             attributeScore = new float*[dataOptions.numAttributes];
+            incompatAttribAdj = new int*[dataOptions.numAttributes];
             for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
             {
                 attributeScore[attrib] = new float[numTeams];
+                incompatAttribAdj[attrib] = new int[numTeams];
             }
             schedScore = new float[numTeams];
             genderAdj = new int[numTeams];
@@ -2589,7 +2616,7 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 #pragma omp for
             for(int genome = 0; genome < populationSize; genome++)
             {
-                scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
+                scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, incompatAttribAdj, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
             }
             delete[] requestedTeammateAdj;
             delete[] prevTeammateAdj;
@@ -2600,8 +2627,10 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
             for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
             {
                 delete[] attributeScore[attrib];
+                delete[] incompatAttribAdj[attrib];
             }
             delete[] attributeScore;
+            delete[] incompatAttribAdj;
             delete[] unusedTeamScores;
 }
             // determine best score, save in historical record, and calculate score stability
@@ -2668,8 +2697,8 @@ QList<int> gruepr::optimizeTeams(int *studentIDs)
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-float gruepr::getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *genderAdj, int *URMAdj,
-                                                                       int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj)
+float gruepr::getTeamScores(const int teammates[], float teamScores[], float **attributeScore, int **incompatAttribAdj, float *schedScore,
+                            int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj)
 {
     // Initialize each component score
     for(int team = 0; team < numTeams; team++)
@@ -2677,6 +2706,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             attributeScore[attribute][team] = 0;
+            incompatAttribAdj[attribute][team] = 0;
         }
         schedScore[team] = 0;
         genderAdj[team] = 0;
@@ -2689,27 +2719,35 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
 
     // Calculate each component score:
 
-    // Calculate attribute scores for each attribute for each team:
-    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    // Calculate attribute scores and adjustements for each attribute for each team:
+    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
-        if(realAttributeWeights[attribute] > 0)
+        if(realAttributeWeights[attrib] > 0)
         {
             ID = 0;
             for(int team = 0; team < numTeams; team++)
             {
-                // gather all unique attribute values (but ignore students with attribute levels of -1, which represents an unknown value)
-                QList<int> attributeLevelsInTeam;
+                // gather all unique attribute values
+                QSet<int> attributeLevelsInTeam;
                 for(int teammate = 0; teammate < teams[team].size; teammate++)
                 {
-                    if((student[teammates[ID]].attribute[attribute] != -1) && !(attributeLevelsInTeam.contains(student[teammates[ID]].attribute[attribute])))
-                    {
-                        attributeLevelsInTeam << student[teammates[ID]].attribute[attribute];
-                    }
+                    attributeLevelsInTeam << student[teammates[ID]].attribute[attrib];
                     ID++;
                 }
 
+                // Determine adjustments for teammates with more than 1 incompatible attribute response values on same team
+                if(haveAnyIncompatibleAttributes[attrib])
+                {
+                    if((attributeLevelsInTeam & teamingOptions.incompatibleAttributeValues[attrib]).size() > 1)
+                    {
+                        incompatAttribAdj[attrib][team] = -realNumScoringFactors;
+                    }
+                }
+
+                // Remove attribute values of -1 (unknown/not set) and then determine attribute scores
+                attributeLevelsInTeam.remove(-1);
                 float attributeRangeInTeam;
-                if(dataOptions.attributeIsOrdered[attribute])
+                if(dataOptions.attributeIsOrdered[attrib])
                 {
                     // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
                     auto mm = std::minmax_element(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
@@ -2721,13 +2759,13 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     attributeRangeInTeam = attributeLevelsInTeam.count() - 1;
                 }
 
-                attributeScore[attribute][team] = attributeRangeInTeam / (dataOptions.attributeMax[attribute] - dataOptions.attributeMin[attribute]);
-                if(teamingOptions.desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
+                attributeScore[attrib][team] = attributeRangeInTeam / (dataOptions.attributeMax[attrib] - dataOptions.attributeMin[attrib]);
+                if(teamingOptions.desireHomogeneous[attrib])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
                 {
-                    attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
+                    attributeScore[attrib][team] = 1 - attributeScore[attrib][team];
                 }
 
-                attributeScore[attribute][team] *= realAttributeWeights[attribute];
+                attributeScore[attrib][team] *= realAttributeWeights[attrib];
             }
         }
     }
@@ -2984,13 +3022,20 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     //final team scores are normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < numTeams; team++)
     {
+
         // remove extra credit if any of the penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
-        if(schedScore[team] > 1 && (genderAdj[team] < 0 || URMAdj[team] < 0 || prevTeammateAdj[team] < 0 || reqTeammateAdj[team] < 0))
+        int totalIncompatAdj = 0;
+        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+        {
+            totalIncompatAdj += incompatAttribAdj[attribute][team];
+        }
+        if(schedScore[team] > 1 && (genderAdj[team] < 0 || URMAdj[team] < 0 || prevTeammateAdj[team] < 0 || reqTeammateAdj[team] < 0 || totalIncompatAdj < 0))
         {
             schedScore[team] = 1;
         }
 
-        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team] + reqTeammateAdj[team] + requestedTeammateAdj[team];
+        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team]
+                           + reqTeammateAdj[team] + requestedTeammateAdj[team] + totalIncompatAdj;
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             teamScores[team] += attributeScore[attribute][team];
@@ -3052,9 +3097,11 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
     }
     float *teamScores = new float[numTeams];
     float **attributeScore = new float*[dataOptions.numAttributes];
+    int **incompatAttribAdj = new int*[dataOptions.numAttributes];
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
         attributeScore[attrib] = new float[numTeams];
+        incompatAttribAdj[attrib] = new int[numTeams];
     }
     float *schedScore = new float[numTeams];
     int *genderAdj = new int[numTeams];
@@ -3062,7 +3109,7 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
     int *reqTeammateAdj = new int[numTeams];
     int *prevTeammateAdj = new int[numTeams];
     int *requestedTeammateAdj = new int[numTeams];
-    getTeamScores(genome, teamScores, attributeScore, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
+    getTeamScores(genome, teamScores, attributeScore, incompatAttribAdj, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj);
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].score = teamScores[team];
@@ -3076,8 +3123,10 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
         delete[] attributeScore[attrib];
+        delete[] incompatAttribAdj[attrib];
     }
     delete[] attributeScore;
+    delete[] incompatAttribAdj;
     delete[] teamScores;
     delete[] genome;
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1081</width>
-    <height>753</height>
+    <width>816</width>
+    <height>714</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -748,180 +748,16 @@
        </widget>
       </item>
       <item row="1" column="3" alignment="Qt::AlignLeft">
-       <widget class="QComboBox" name="attributeComboBox">
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToContents</enum>
+       <widget class="ComboBoxWithElidedContents" name="attributeComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <item>
-         <property name="text">
-          <string>Choose response options...</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Yes / No</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Yes / Maybe / No</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Definitely / Probably / Maybe / Probably not / Definitely not</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Strongly preferred / Preferred / Opposed / Strongly opposed</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>True / False</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Like me / Not like me</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Agree / Disagree</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Strongly agree / Agree / Undecided / Disagree / Strongly disagree</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>4.0-3.75 / 3.74-3.5 / 3.49-3.25 / 3.24-3.0 / 2.99-2.75 / 2.74-2.5 / 2.49-2.0 / Below 2.0 / N.A.</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>100-90 / 89-80 / 79-70 / 69-60 / 59-50 / Below 50 / Not sure, or prefer not to say</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A / B / C / D / F / Not sure, or prefer not to say</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Very high / Above average / Average / Below average / Very low</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Excellent / Very good / Good / Fair / Poor</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A lot of experience / Some experience / Little experience / No experience</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Extremely / Very / Moderately / Slightly / Not at all</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A lot / Some / Very Little / None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Much more / More / About the same / Less / Much less</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Most of the time / Some of the time / Seldom / Never</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Available / Available, but prefer not to / Not available</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Very frequently / Frequently / Occasionally / Rarely / Never</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Definitely will / Probably will / Probably won't / Definitely won't</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Very important / Important / Somewhat important / Not important</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Leader / Mix of leader and follower / Follower</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Highly confident / Moderately confident / Somewhat confident / Not confident</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 4</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 5</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 6</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 7</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 8</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 9</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Numerical rating from 1 to 10</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>custom options, to be entered later</string>
-         </property>
-        </item>
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+        </property>
        </widget>
       </item>
       <item row="0" column="2" rowspan="2" alignment="Qt::AlignHCenter">
@@ -1213,6 +1049,13 @@ padding: 12px;</string>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ComboBoxWithElidedContents</class>
+   <extends>QComboBox</extends>
+   <header>CustomWidgets.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>daysComboBox</tabstop>
   <tabstop>day1CheckBox</tabstop>

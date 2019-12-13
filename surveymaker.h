@@ -92,8 +92,7 @@ private:
     bool additionalQuestions = false;
     QString URL;
     QFileInfo saveFileLocation;
-    const QStringList responseOptions = {
-        "response options will be added later, after creating the form",
+    QStringList responseOptions = {
         "Yes / No",
         "Yes / Maybe / No",
         "Definitely / Probably / Maybe / Probably not / Definitely not",

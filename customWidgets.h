@@ -7,6 +7,8 @@
 #include <QHeaderView>
 #include <QTableWidget>
 #include <QPushButton>
+#include <QSpinBox>
+#include <QComboBox>
 
 
 // a subclassed QTableWidgetItem that allows correct sorting according to data and time from timestamp text
@@ -86,5 +88,30 @@ signals:
     void mouseEntered();
 };
 
+// a subclassed QSpinBox that replaces numerical values with categorical attribute responses in display
+class CategoricalSpinBox : public QSpinBox
+{
+public:
+    CategoricalSpinBox(QWidget *parent = nullptr);
+    void setCategoricalValues(const QStringList &categoricalValues);
+    QString textFromValue(int value) const;
+    int valueFromText(const QString &text) const;
+    QValidator::State validate (QString &input, int &pos) const;
+
+private:
+    QStringList categoricalValues;
+};
+
+// a subclassed combobox that paints with elided contents
+class ComboBoxWithElidedContents : public QComboBox
+{
+public:
+    ComboBoxWithElidedContents(QWidget *parent = nullptr);
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+protected:
+    void paintEvent(QPaintEvent* event) override;
+};
 
 #endif // CUSTOMWIDGETS

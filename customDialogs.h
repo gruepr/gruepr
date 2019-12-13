@@ -13,6 +13,7 @@
 #include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <customWidgets.h>
 #include "gruepr_structs_and_consts.h"
 
 
@@ -163,18 +164,6 @@ private slots:
     void recordEdited();
 
 private:
-
-    // a subclassed QSpinBox that replaces numerical values with categorical attribute responses in display
-    class CategoricalSpinBox : public QSpinBox
-    {
-    public:
-        CategoricalSpinBox(QWidget *parent = nullptr);
-        QString textFromValue(int value) const;
-        int valueFromText(const QString &text) const;
-        QValidator::State validate (QString &input, int &pos) const;
-        QStringList responseTexts;
-    };
-
     DataOptions dataOptions;
     QGridLayout *theGrid;
     QLabel *explanation;
@@ -183,6 +172,30 @@ private:
     QSpinBox *datanumber;
     CategoricalSpinBox *datacategorical;
     QDialogButtonBox *buttonBox;
+};
+
+
+class gatherIncompatibleResponsesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QSet<int> &currIncompats, QWidget *parent = nullptr);
+    ~gatherIncompatibleResponsesDialog();
+
+    QSet<int> incompatibleResponses;
+
+private slots:
+    void selectionChanged();
+
+private:
+    int numPossibleValues;
+    QGridLayout *theGrid;
+    QLabel *attributeDescription;
+    QCheckBox *enableValue;
+    QPushButton *responses;
+    QDialogButtonBox *buttonBox;
+    QLabel *explanation;
 };
 
 
