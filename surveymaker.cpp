@@ -283,7 +283,7 @@ void SurveyMaker::on_attributeScrollBar_valueChanged(int value)
 {
     ui->attributeTextEdit->setPlainText(attributeTexts[value]);
     ui->attributeTextEdit->setPlaceholderText(tr("Enter attribute question ") + QString::number(value+1) + ".");
-    ui->attributeComboBox->setCurrentIndex(attributeResponses[value]);
+    ui->attributeComboBox->setCurrentIndex((attributeResponses[value] > 0) ? attributeResponses[value] + 1 : 0);
 }
 
 void SurveyMaker::on_attributeTextEdit_textChanged()
