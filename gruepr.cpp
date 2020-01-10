@@ -1931,7 +1931,14 @@ bool gruepr::loadSurveyData(QString fileName)
             // set numerical value of students' attribute responses according to the number at the start of the response
             for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
             {
-                student[ID].attribute[attrib] = startsWithNumber.match(student[ID].attributeResponse[attrib]).captured().toInt();
+                if(!student[ID].attributeResponse[attrib].isEmpty())
+                {
+                    student[ID].attribute[attrib] = startsWithNumber.match(student[ID].attributeResponse[attrib]).captured().toInt();
+                }
+                else
+                {
+                    student[ID].attribute[attrib] = -1;
+                }
             }
         }
         else
@@ -1948,10 +1955,11 @@ bool gruepr::loadSurveyData(QString fileName)
                 }
                 else
                 {
-                    student[ID].attribute[attrib] = 0;
+                    student[ID].attribute[attrib] = -1;
                 }
             }
         }
+
     }
 
     if(numStudents == maxStudents)
@@ -2017,18 +2025,22 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
                         if(student.surveyTimestamp.isNull())
                         {
                             student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::ISODateWithMs);
-                        }
                         if(student.surveyTimestamp.isNull())
                         {
                             student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::SystemLocaleShortDate);
-                        }
                         if(student.surveyTimestamp.isNull())
                         {
                             student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::SystemLocaleLongDate);
-                        }
                         if(student.surveyTimestamp.isNull())
                         {
                             student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::RFC2822Date);
+                        if(student.surveyTimestamp.isNull())
+                        {
+                            student.surveyTimestamp = QDateTime::currentDateTime();
+                        }
+                        }
+                        }
+                        }
                         }
                     }
                 }

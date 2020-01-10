@@ -31,7 +31,7 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUTURE WORK:
-// - integrate with Google Drive: download survey results from within the application; store all data in gruepr account instead of user account?
+// - integrate with Google Drive: download survey results from within the application; expand to Canvas and other integration
 // - allowing load of external data, using levenshtein::distance to match names
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
