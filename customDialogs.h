@@ -180,20 +180,24 @@ class gatherIncompatibleResponsesDialog : public QDialog
     Q_OBJECT
 
 public:
-    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QSet<int> &currIncompats, QWidget *parent = nullptr);
+    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QList< QPair<int,int> > &currIncompats, QWidget *parent = nullptr);
     ~gatherIncompatibleResponsesDialog();
 
-    QSet<int> incompatibleResponses;
+    QList< QPair<int,int> > incompatibleResponses;
 
 private slots:
-    void selectionChanged();
+    void addValues();
+    void clearAllValues();
 
 private:
+    void updateExplanation();
     int numPossibleValues;
     QGridLayout *theGrid;
     QLabel *attributeDescription;
     QCheckBox *enableValue;
     QPushButton *responses;
+    QPushButton *addValuesButton;
+    QPushButton *resetValuesButton;
     QDialogButtonBox *buttonBox;
     QLabel *explanation;
 };

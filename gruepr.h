@@ -85,32 +85,32 @@ private:
     Ui::gruepr *ui;
     DataOptions dataOptions;
     TeamingOptions teamingOptions;
-    int numTeams;
+    int numTeams = 1;
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
         // reading survey data file
-    bool loadSurveyData(QString fileName);              // returns false if file is invalid
+    bool loadSurveyData(const QString &fileName);              // returns false if file is invalid
     studentRecord *student = nullptr;                   // array to hold the students' data
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     int numStudents = maxStudents;
-    studentRecord readOneRecordFromFile(QStringList fields);
-    QStringList ReadCSVLine(QString line, int minFields = -1); // read one line from CSV file, smartly handling commas inside quotation mark-encased fields
+    studentRecord readOneRecordFromFile(const QStringList &fields);
+    QStringList ReadCSVLine(const QString &line, int minFields = -1); // read one line from CSV file, smartly handling commas inside quotation mark-encased fields
                                                                // if line is non-empty and minFields is given, append empty fields so returned QStringList
                                                                // always has >= minFields
     void refreshStudentDisplay();
     QString createAToolTip(const studentRecord &info, bool duplicateRecord);
         // score calculation
-    float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight
-    float realScheduleWeight;                           // scoring weight of the schedule, normalized to total weight
-    int realNumScoringFactors;                          // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
-    bool haveAnyRequiredTeammates;
-    bool haveAnyPreventedTeammates;
-    bool haveAnyRequestedTeammates;
-    bool haveAnyIncompatibleAttributes[maxAttributes];
+    float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
+    float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
+    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
+    bool haveAnyRequiredTeammates = false;
+    bool haveAnyPreventedTeammates = false;
+    bool haveAnyRequestedTeammates = false;
+    bool haveAnyIncompatibleAttributes[maxAttributes];  // (initialized in constructor)
         // team set optimization
     int *studentIDs = nullptr;                          // array of the IDs of students to be placed on teams
-    QList<int> optimizeTeams(int *studentIDs);          // returns a single permutation-of-IDs
+    QList<int> optimizeTeams(const int *studentIDs);    // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
 #ifdef Q_OS_WIN32
@@ -119,11 +119,11 @@ private:
 #endif
     float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, int **incompatAttribAdj, float *schedScore,
                         int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj);
-    float teamSetScore;
-    int finalGeneration;
+    float teamSetScore = 0;
+    int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
-    bool optimizationStopped;
-    bool keepOptimizing;
+    bool optimizationStopped = false;
+    bool keepOptimizing = false;
         // reporting results
     teamInfo *teams = nullptr;
     void refreshTeamInfo(QList<int> teamNums = {-1});
@@ -140,7 +140,7 @@ private:
     void createFileContents();
     void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
     QPrinter *setupPrinter();
-    void printOneFile(QString file, QString delimiter, QFont &font, QPrinter *printer);
+    void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
 };
 
 #endif // GRUEPR_H

@@ -1153,7 +1153,7 @@ If unselected, the students on a team will have a wide range of responses to thi
               </sizepolicy>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;Indicate  response values that should prevent students from being on the same team.&lt;/html&gt;</string>
+              <string>&lt;html&gt;Indicate response values that should prevent students from being on the same team.&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Incompatible

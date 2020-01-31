@@ -112,43 +112,45 @@ struct teamInfo
 //struct defining the options set by what is found in the survey data file
 struct DataOptions
 {
-    bool genderIncluded;                                // is gender data included in the survey?
-    bool URMIncluded;                                   // is URM data included in the survey?
-    bool sectionIncluded;                               // is section data included in the survey?
-    bool notesIncluded;                                 // are notes (or other additional info) included in the survey?
-    int numAttributes;                                  // how many attribute questions are in the survey?
+    bool genderIncluded = false;                        // is gender data included in the survey?
+    bool URMIncluded = false;                           // is URM data included in the survey?
+    bool sectionIncluded = false;                       // is section data included in the survey?
+    bool notesIncluded = false;                         // are notes (or other additional info) included in the survey?
+    int numAttributes = 0;                              // how many attribute questions are in the survey?
     int attributeMin[maxAttributes];                    // what is the minimum value for each attribute?
     int attributeMax[maxAttributes];                    // what is the maximum value for each attribute?
     bool attributeIsOrdered[maxAttributes];             // is this attribute ordered (numerical) or purely categorical?
-    int numStudentsInSystem;                            // total number of students in the file
+    int numStudentsInSystem = 0;                        // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[maxAttributes];      // the list of responses to each of the attribute questions
     QFileInfo dataFile;
     QStringList dayNames;
     QStringList timeNames;
+    inline DataOptions(){for(int i = 0; i < maxAttributes; i++) {attributeMin[i] = 1; attributeMax[i] = 1; attributeIsOrdered[i] = true;}}
 };
 
 
 //struct defining the teaming options set by the user
 struct TeamingOptions
 {
-    bool isolatedWomenPrevented;                        // if true, will prevent teams with an isolated woman
-    bool isolatedMenPrevented;                          // if true, will prevent teams with an isolated man
-    bool mixedGenderPreferred;                          // if true, will penalize teams with all men or all women
-    bool isolatedURMPrevented;                          // if true, will prevent teams with an isolated URM student
+    bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
+    bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
+    bool mixedGenderPreferred = false;                  // if true, will penalize teams with all men or all women
+    bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
     bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
     float attributeWeights[maxAttributes];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
-    QSet<int> incompatibleAttributeValues[maxAttributes];
+    QList< QPair<int,int> > incompatibleAttributeValues[maxAttributes]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;
     int numberRequestedTeammatesGiven = 1;
     int smallerTeamsSizes[maxStudents] = {0};
-    int smallerTeamsNumTeams;
+    int smallerTeamsNumTeams = 1;
     int largerTeamsSizes[maxStudents] = {0};
-    int largerTeamsNumTeams;
-    inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) attributeWeights[i] = 1;}    // initialize all attribute weights to 1
+    int largerTeamsNumTeams = 1;
+    // initialize all attribute weights to 1, desires to heterogeneous, and no incompatible attribute values
+    inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1;}}
 };
 
 

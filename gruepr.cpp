@@ -76,6 +76,13 @@ gruepr::gruepr(QWidget *parent) :
     connect(teamDataTree, &TeamTreeWidget::swapParents, this, &gruepr::swapTeams);
     connect(teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &gruepr::reorderedTeams);
 
+    //Initialize remaining parameters
+    for(int attrib = 0; attrib < maxAttributes; attrib++)
+    {
+        realAttributeWeights[attrib] = 1;
+        haveAnyIncompatibleAttributes[attrib] = false;
+    }
+
     //Load team name options into combo box
     ui->teamNamesComboBox->insertItems(0, teamnameListNames);
 
@@ -271,6 +278,14 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
             if(dataOptions.numAttributes > 0)
             {
+                //(re)set the weight to zero for any attributes with just one value in the data
+                for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+                {
+                    if(dataOptions.attributeMin[attribute] == dataOptions.attributeMax[attribute])
+                    {
+                        teamingOptions.attributeWeights[attribute] = 0;
+                    }
+                }
                 ui->attributeScrollBar->setMinimum(0);
                 ui->attributeScrollBar->setMaximum(dataOptions.numAttributes-1);
                 ui->attributeScrollBar->setEnabled(dataOptions.numAttributes > 1);
@@ -304,7 +319,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->label_24->setEnabled(true);
             }
 
-            if(dataOptions.dayNames.size() > 0)
+            if(!dataOptions.dayNames.empty())
             {
                 ui->minMeetingTimes->setEnabled(true);
                 ui->desiredMeetingTimes->setEnabled(true);
@@ -361,6 +376,14 @@ void gruepr::on_loadSettingsButton_clicked()
         teamingOptions.attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
     }
     savedSettings.endArray();
+    //reset the weight to zero for any attributes with just one value in the data
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
+    {
+        if(dataOptions.attributeMin[attribute] == dataOptions.attributeMax[attribute])
+        {
+            teamingOptions.attributeWeights[attribute] = 0;
+        }
+    }
     if(ui->attributeScrollBar->value() == 0)
     {
         on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
@@ -828,6 +851,26 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
         }
         questionWithResponses += "</div></html>";
         ui->attributeTextEdit->setHtml(questionWithResponses);
+        if(dataOptions.attributeMin[value] == dataOptions.attributeMax[value])
+        {
+            teamingOptions.attributeWeights[value] = 0;
+            ui->attributeWeight->setEnabled(false);
+            ui->attributeWeight->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
+            ui->attributeHomogeneousBox->setEnabled(false);
+            ui->attributeHomogeneousBox->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
+            ui->incompatibleResponsesButton->setEnabled(false);
+            ui->incompatibleResponsesButton->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
+        }
+        else
+        {
+            ui->attributeWeight->setEnabled(true);
+            ui->attributeWeight->setToolTip(tr("The relative importance of this attribute in forming the teams"));
+            ui->attributeHomogeneousBox->setEnabled(true);
+            ui->attributeHomogeneousBox->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
+                                                       "If unselected, the students on a team will have a wide range of responses to this question."));
+            ui->incompatibleResponsesButton->setEnabled(true);
+            ui->incompatibleResponsesButton->setToolTip(tr("<html>Indicate response values that should prevent students from being on the same team.</html>"));
+        }
         ui->attributeWeight->setValue(double(teamingOptions.attributeWeights[value]));
         ui->attributeHomogeneousBox->setChecked(teamingOptions.desireHomogeneous[value]);
         ui->attributeLabel->setText(tr("Attribute  ") + QString::number(value+1) + tr("  of  ") + QString::number(dataOptions.numAttributes));
@@ -837,13 +880,19 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
 
 void gruepr::on_attributeWeight_valueChanged(double arg1)
 {
-    teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = float(arg1);
+    if(ui->attributeScrollBar->value() >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
+    {
+        teamingOptions.attributeWeights[ui->attributeScrollBar->value()] = float(arg1);
+    }
 }
 
 
 void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
 {
-    teamingOptions.desireHomogeneous[ui->attributeScrollBar->value()] = arg1;
+    if(ui->attributeScrollBar->value() >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
+    {
+        teamingOptions.desireHomogeneous[ui->attributeScrollBar->value()] = arg1;
+    }
 }
 
 
@@ -857,7 +906,7 @@ void gruepr::on_incompatibleResponsesButton_clicked()
     int reply = window->exec();
     if(reply == QDialog::Accepted)
     {
-        haveAnyIncompatibleAttributes[ui->attributeScrollBar->value()] = !window->incompatibleResponses.empty();
+        haveAnyIncompatibleAttributes[ui->attributeScrollBar->value()] = !(window->incompatibleResponses.empty());
         teamingOptions.incompatibleAttributeValues[ui->attributeScrollBar->value()] = window->incompatibleResponses;
     }
 
@@ -1158,15 +1207,15 @@ void gruepr::on_letsDoItButton_clicked()
     teamDataTree->setEnabled(false);
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-    realNumScoringFactors = dataOptions.numAttributes + ((dataOptions.dayNames.size() > 0)? 1 : 0);
-    float normFactor = (realNumScoringFactors) /
+    realNumScoringFactors = dataOptions.numAttributes + (!dataOptions.dayNames.empty()? 1 : 0);
+    float normFactor = (float(realNumScoringFactors)) /
                        (std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0)) +
-                        ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0));
+                        (!dataOptions.dayNames.empty()? teamingOptions.scheduleWeight : 0));
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * normFactor;
     }
-    realScheduleWeight = ((dataOptions.dayNames.size() > 0)? teamingOptions.scheduleWeight : 0) * normFactor;
+    realScheduleWeight = (!dataOptions.dayNames.empty()? teamingOptions.scheduleWeight : 0) * normFactor;
 
 #ifdef Q_OS_WIN32
     // Set up to show progess on windows taskbar
@@ -1702,7 +1751,8 @@ void gruepr::on_AboutButton_clicked()
                               "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
                               "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
                                                                     "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
-                                                                    " released under SIL OPEN FONT LICENSE V1.1.</span></li></ul>"
+                                                                    " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
+                              "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
                           "<h3>Disclaimer</h3>"
                           "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
                           "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
@@ -1742,7 +1792,7 @@ void gruepr::setTeamSizes(const int singleSize)
 //////////////////
 // Read the survey datafile, setting the data options and loading all of the student records, returning true if successful and false if file is invalid
 //////////////////
-bool gruepr::loadSurveyData(QString fileName)
+bool gruepr::loadSurveyData(const QString &fileName)
 {
     QFile inputFile(fileName);
     inputFile.open(QIODevice::ReadOnly);
@@ -1795,7 +1845,9 @@ bool gruepr::loadSurveyData(QString fileName)
         dataOptions.numAttributes++;
         fieldnum++;
         if(fieldnum < TotNumQuestions)
+        {
             field = fields.at(fieldnum).toUtf8();				// move on to next field
+        }
     }
 
     // Count the number of days in the schedule by counting number of questions that includes "Check the times".
@@ -1816,7 +1868,9 @@ bool gruepr::loadSurveyData(QString fileName)
         scheduleFields << fieldnum;
         fieldnum++;
         if(fieldnum < TotNumQuestions)
+        {
             field = fields.at(fieldnum).toUtf8();				// move on to next field
+        }
     }
 
     // Look for any remaining questions
@@ -1863,7 +1917,7 @@ bool gruepr::loadSurveyData(QString fileName)
     }
 
     // If there is schedule info, read through the schedule fields in all of the responses to compile a list of time names, save as dataOptions.TimeNames
-    if(dataOptions.dayNames.size() != 0)
+    if(!dataOptions.dayNames.empty())
     {
         QStringList allTimeNames;
         while(!fields.empty())
@@ -1877,7 +1931,7 @@ bool gruepr::loadSurveyData(QString fileName)
         allTimeNames.removeDuplicates();
         allTimeNames.removeOne("");
         //sort allTimeNames smartly, using mapped string -> hour of day integer
-        std::sort(allTimeNames.begin(), allTimeNames.end(), [](const QString a, const QString b) -> bool{return meaningOfTimeNames.value(a) < meaningOfTimeNames.value(b);} );
+        std::sort(allTimeNames.begin(), allTimeNames.end(), [](const QString &a, const QString &b) -> bool{return meaningOfTimeNames.value(a) < meaningOfTimeNames.value(b);} );
         dataOptions.timeNames = allTimeNames;
     }
 
@@ -1998,7 +2052,7 @@ bool gruepr::loadSurveyData(QString fileName)
 //////////////////
 // Read one student's info from the survey datafile
 //////////////////
-studentRecord gruepr::readOneRecordFromFile(QStringList fields)
+studentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
 {
     studentRecord student;
 
@@ -2113,7 +2167,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
         }
         fieldnum++;
     }   
-    if(dataOptions.dayNames.size() > 0)
+    if(!dataOptions.dayNames.empty())
     {
         student.availabilityChart = tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
@@ -2159,7 +2213,7 @@ studentRecord gruepr::readOneRecordFromFile(QStringList fields)
 //////////////////
 // Read one line from a CSV file, smartly handling commas within fields that are enclosed by quotation marks
 //////////////////
-QStringList gruepr::ReadCSVLine(QString line, int minFields)
+QStringList gruepr::ReadCSVLine(const QString &line, int minFields)
 {
     enum State {Normal, Quote} state = Normal;
     QStringList fields;
@@ -2189,7 +2243,9 @@ QStringList gruepr::ReadCSVLine(QString line, int minFields)
 
             // Other character
             else
+            {
                 value += current;
+            }
         }
 
         // In-quote state
@@ -2218,7 +2274,9 @@ QStringList gruepr::ReadCSVLine(QString line, int minFields)
 
             // Other character
             else
+            {
                 value += current;
+            }
         }
     }
     if (!value.isEmpty())
@@ -2230,12 +2288,18 @@ QStringList gruepr::ReadCSVLine(QString line, int minFields)
     // quotes is removed.  The quotes are removed here.
     for (int i=0; i<fields.size(); ++i)
     {
-        if (fields[i].length()>=1 && fields[i].left(1)=='"')
+        if(fields[i].length() >= 1)
         {
-            fields[i]=fields[i].mid(1);
-            if (fields[i].length()>=1 && fields[i].right(1)=='"')
+            if(fields[i].at(0) == '"')
             {
-                fields[i]=fields[i].left(fields[i].length()-1);
+                fields[i] = fields[i].mid(1);
+                if(fields[i].length() >= 1)
+                {
+                    if(fields[i].right(1) == '"')
+                    {
+                        fields[i] = fields[i].left(fields[i].length() - 1);
+                    }
+                }
             }
         }
     }
@@ -2305,19 +2369,25 @@ void gruepr::refreshStudentDisplay()
             TimestampTableWidgetItem *timestamp = new TimestampTableWidgetItem(student[ID].surveyTimestamp.toString(Qt::SystemLocaleShortDate));
             timestamp->setToolTip(studentToolTip);
             if(duplicate)
+            {
                 timestamp->setBackground(QBrush(QColor("#ffff3b")));
+            }
             ui->studentTable->setItem(numStudents, 0, timestamp);
 
             QTableWidgetItem *firstName = new QTableWidgetItem(student[ID].firstname);
             firstName->setToolTip(studentToolTip);
             if(duplicate)
+            {
                 firstName->setBackground(QBrush(QColor("#ffff3b")));
+            }
             ui->studentTable->setItem(numStudents, 1, firstName);
 
             QTableWidgetItem *lastName = new QTableWidgetItem(student[ID].lastname);
             lastName->setToolTip(studentToolTip);
             if(duplicate)
+            {
                 lastName->setBackground(QBrush(QColor("#ffff3b")));
+            }
             ui->studentTable->setItem(numStudents, 2, lastName);
 
             int column = 3;
@@ -2326,7 +2396,9 @@ void gruepr::refreshStudentDisplay()
                 SectionTableWidgetItem *section = new SectionTableWidgetItem(student[ID].section);
                 section->setToolTip(studentToolTip);
                 if(duplicate)
+                {
                     section->setBackground(QBrush(QColor("#ffff3b")));
+                }
                 ui->studentTable->setItem(numStudents, column, section);
                 column++;
             }
@@ -2336,7 +2408,9 @@ void gruepr::refreshStudentDisplay()
             editButton->setProperty("StudentID", student[ID].ID);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
+            {
                 editButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+            }
             connect(editButton, &PushButtonThatSignalsMouseEnterEvents::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
             connect(editButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered,
@@ -2349,7 +2423,9 @@ void gruepr::refreshStudentDisplay()
             removerButton->setProperty("StudentID", student[ID].ID);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
+            {
                 removerButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+            }
             connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::clicked, this, &gruepr::removeAStudent);
             // pass on mouse enter events onto cell in table
             connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered,
@@ -2448,7 +2524,7 @@ QString gruepr::createAToolTip(const studentRecord &info, bool duplicateRecord)
 ////////////////////////////////////////////
 // Create and optimize teams using genetic algorithm
 ////////////////////////////////////////////
-QList<int> gruepr::optimizeTeams(int *studentIDs)
+QList<int> gruepr::optimizeTeams(const int *studentIDs)
 {
     // seed the pRNG (need to specifically do it here because this is happening in a new thread)
     srand(unsigned(time(nullptr)));
@@ -2750,9 +2826,13 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 // Determine adjustments for teammates with more than 1 incompatible attribute response values on same team
                 if(haveAnyIncompatibleAttributes[attrib])
                 {
-                    if((attributeLevelsInTeam & teamingOptions.incompatibleAttributeValues[attrib]).size() > 1)
+                    // go through each pair found in teamingOptions.incompatibleAttributeValues[attrib] list and see if both int's found in attributeLevelsInTeam
+                    for(auto pair : teamingOptions.incompatibleAttributeValues[attrib])
                     {
-                        incompatAttribAdj[attrib][team] = -realNumScoringFactors;
+                        if(attributeLevelsInTeam.contains(pair.first) && attributeLevelsInTeam.contains(pair.second))
+                        {
+                            incompatAttribAdj[attrib][team] = -realNumScoringFactors;
+                        }
                     }
                 }
 
@@ -3052,7 +3132,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         {
             teamScores[team] += attributeScore[attribute][team];
         }
-        teamScores[team] = 100*teamScores[team] / realNumScoringFactors;
+        teamScores[team] = 100*teamScores[team] / float(realNumScoringFactors);
     }
 
     //Use the harmonic mean for the "total score"
@@ -3064,7 +3144,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         //if any teamScore is <= 0, return the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean
         if(teamScores[team] <= 0)
         {
-            float mean = std::accumulate(teamScores, teamScores+numTeams, float(0.0))/numTeams;		// accumulate() is from <numeric>, and it sums an array
+            float mean = std::accumulate(teamScores, teamScores+numTeams, float(0.0))/float(numTeams);		// accumulate() is from <numeric>, and it sums an array
             if(mean < 0)
             {
                 return(mean + (mean/2));
@@ -3077,7 +3157,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         harmonicSum += 1/teamScores[team];
     }
 
-    return(numTeams/harmonicSum);
+    return(float(numTeams)/harmonicSum);
 }
 
 
@@ -3297,7 +3377,7 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
                 }
             }
         }
-        if(dataOptions.dayNames.size() > 0)
+        if(!dataOptions.dayNames.empty())
         {
             teams[*team].tooltip += "<br>--<br>" + tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
@@ -3338,7 +3418,7 @@ void gruepr::resetTeamDisplay()
 {
     ui->dataDisplayTabWidget->setCurrentIndex(1);
     teamDataTree->setColumnCount(3 + (dataOptions.genderIncluded? 1 : 0) + (dataOptions.URMIncluded? 1 : 0) +
-                                      dataOptions.numAttributes + (dataOptions.dayNames.size() > 0? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
+                                      dataOptions.numAttributes + ((!dataOptions.dayNames.empty())? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
     QStringList headerLabels;
     headerLabels << tr("   name") << tr("   team\n   score");
     if(dataOptions.genderIncluded)
@@ -3353,11 +3433,15 @@ void gruepr::resetTeamDisplay()
     {
         headerLabels << tr("   attribute ") + QString::number(attribute+1);
     }
-    if(dataOptions.dayNames.size() > 0)
+    if(!dataOptions.dayNames.empty())
     {
         headerLabels << tr("   available\n   meeting\n   hours");
     }
-    headerLabels << tr("   display_order");
+    headerLabels << tr("display_order");
+    for(int i = 0; i < headerLabels.size()-1; i++)
+    {
+        teamDataTree->showColumn(i);
+    }
     teamDataTree->hideColumn(headerLabels.size()-1);
     teamDataTree->setHeaderLabels(headerLabels);
     teamDataTree->setSortingEnabled(false);
@@ -3498,7 +3582,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
             column++;
         }
-        if(dataOptions.dayNames.size() > 0)
+        if(!dataOptions.dayNames.empty())
         {
             parentItem[*team]->setData(column, TeamInfoDisplay, QString::number(teams[*team].tooltip.count("100%")));
             parentItem[*team]->setData(column, TeamInfoSort, teams[*team].tooltip.count("100%"));
@@ -3590,7 +3674,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
                 teamDataTree->resizeColumnToContents(column);
                 column++;
             }
-            if(dataOptions.dayNames.size() > 0)
+            if(!dataOptions.dayNames.empty())
             {
                 int availableTimes = student[teams[*team].studentIDs[stud]].availabilityChart.count("√");
                 childItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
@@ -3619,9 +3703,6 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
 //////////////////
 void gruepr::createFileContents()
 {
-    QString elidedDataFileName = (dataOptions.dataFile.filePath().size()>90)?
-                (dataOptions.dataFile.filePath().left(27)+"..."+dataOptions.dataFile.filePath().right(60)) : dataOptions.dataFile.filePath();
-
     spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
 
     instructorsFileContents = tr("File: ") + dataOptions.dataFile.filePath() + "\n" + tr("Section: ") + sectionName + "\n" + tr("Optimized over ") +
@@ -3749,7 +3830,7 @@ void gruepr::createFileContents()
                     " " + student[teams[team].studentIDs[teammate]].lastname + "\t" + student[teams[team].studentIDs[teammate]].email + "\n";
 
         }
-        if(dataOptions.dayNames.size() > 0)
+        if(!dataOptions.dayNames.empty())
         {
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
@@ -3872,7 +3953,7 @@ QPrinter* gruepr::setupPrinter()
     return printer;
 }
 
-void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter *printer)
+void gruepr::printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer)
 {
     QPainter painter(printer);
     painter.setFont(font);
@@ -3887,8 +3968,8 @@ void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter
     QStringList currentPage;
     QList<QStringList> pages;
     int y = 0;
-    QStringList::const_iterator it = eachTeam.begin();
-    while (it != eachTeam.end())
+    QStringList::const_iterator it = eachTeam.cbegin();
+    while (it != eachTeam.cend())
     {
         //calculate height on page of this team text
         int textWidth = painter.window().width() - 2*LargeGap - 2*SmallGap;
@@ -3919,8 +4000,8 @@ void gruepr::printOneFile(QString file, QString delimiter, QFont &font, QPrinter
         }
         QTransform savedTransform = painter.worldTransform();
         painter.translate(0, LargeGap);
-        QStringList::const_iterator it = pages[pagenum].begin();
-        while (it != pages[pagenum].end())
+        QStringList::const_iterator it = pages[pagenum].cbegin();
+        while (it != pages[pagenum].cend())
         {
             QString title = it->left(it->indexOf('\n')) + " ";
             QString body = it->right(it->size() - (it->indexOf('\n')+1));

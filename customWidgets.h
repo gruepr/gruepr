@@ -15,7 +15,7 @@
 class TimestampTableWidgetItem : public QTableWidgetItem
 {
 public:
-    TimestampTableWidgetItem(const QString txt = "");
+    TimestampTableWidgetItem(const QString &txt = "");
     bool operator <(const QTableWidgetItem &other) const;
 };
 
@@ -24,7 +24,7 @@ public:
 class SectionTableWidgetItem : public QTableWidgetItem
 {
 public:
-    SectionTableWidgetItem(const QString txt = "");
+    SectionTableWidgetItem(const QString &txt = "");
     bool operator <(const QTableWidgetItem &other) const;
 };
 
@@ -69,6 +69,8 @@ public:
 
 class TeamTreeHeaderView : public QHeaderView
 {
+    Q_OBJECT
+
 public:
     TeamTreeHeaderView(TeamTreeWidget *parent = nullptr);
 };
@@ -91,6 +93,8 @@ signals:
 // a subclassed QSpinBox that replaces numerical values with categorical attribute responses in display
 class CategoricalSpinBox : public QSpinBox
 {
+    Q_OBJECT
+
 public:
     CategoricalSpinBox(QWidget *parent = nullptr);
     void setCategoricalValues(const QStringList &categoricalValues);
@@ -105,6 +109,8 @@ private:
 // a subclassed combobox that paints with elided contents
 class ComboBoxWithElidedContents : public QComboBox
 {
+    Q_OBJECT
+
 public:
     ComboBoxWithElidedContents(QWidget *parent = nullptr);
     QSize sizeHint() const override;

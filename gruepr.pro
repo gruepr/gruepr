@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 9.3.1
+gruepr_version = 9.3.2
 copyright_year = 2019-2020
 
 QT       += core gui widgets concurrent network printsupport
@@ -38,11 +38,11 @@ CONFIG += c++11
 # remove possible other optimization flags
 QMAKE_CXXFLAGS_RELEASE -= -O
 QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE -= -O3
 QMAKE_CXXFLAGS_RELEASE -= -Os
 
-# add the desired -O3 if not present
-QMAKE_CXXFLAGS_RELEASE += -O3
+# add the desired -O2 if not present
+QMAKE_CXXFLAGS_RELEASE += -O2
 
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -fopenmp

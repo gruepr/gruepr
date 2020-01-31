@@ -9,7 +9,7 @@
 //////////////////
 // Table Widget Item for timestamps, allowing to sort chronologically
 //////////////////
-TimestampTableWidgetItem::TimestampTableWidgetItem(const QString txt)
+TimestampTableWidgetItem::TimestampTableWidgetItem(const QString &txt)
     :QTableWidgetItem(txt)
 {
 }
@@ -23,7 +23,7 @@ bool TimestampTableWidgetItem::operator <(const QTableWidgetItem &other) const
 //////////////////
 // Table Widget Item for section names, allowing to sort alphanumerically
 //////////////////
-SectionTableWidgetItem::SectionTableWidgetItem(const QString txt)
+SectionTableWidgetItem::SectionTableWidgetItem(const QString &txt)
     :QTableWidgetItem(txt)
 {
 }

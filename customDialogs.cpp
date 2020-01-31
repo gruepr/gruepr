@@ -624,7 +624,7 @@ void customTeamsizesDialog::refreshDisplay(int numTeamsBoxIndex)
 }
 
 
-void customTeamsizesDialog::teamsizeChanged(int)
+void customTeamsizesDialog::teamsizeChanged(int /*unused*/)
 {
     for(int i = 0; i < numStudents; i++)
     {
@@ -1100,7 +1100,7 @@ void editOrAddStudentDialog::recordEdited()
 // A dialog to gather which attribute values should be disallowed on the same team
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QSet<int> &currIncompats, QWidget *parent)
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QList< QPair<int,int> > &currIncompats, QWidget *parent)
     :QDialog (parent)
 {
     numPossibleValues = dataOptions.attributeQuestionResponses[attribute].size() + 1;
@@ -1123,8 +1123,6 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     responses = new QPushButton[numPossibleValues];
     for(int response = 0; response < numPossibleValues; response++)
     {
-        enableValue[response].setChecked(incompatibleResponses.contains((response == (numPossibleValues-1)? -1 : (response + 1))));
-        connect(&enableValue[response], &QCheckBox::toggled, this, &gatherIncompatibleResponsesDialog::selectionChanged);
         theGrid->addWidget(&enableValue[response], response + 1, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
 
         if(response == numPossibleValues - 1)
@@ -1151,20 +1149,30 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     }
     theGrid->setColumnStretch(1, 1);    // set second column as the one to grow
 
+    //button to add the currently checked values as incompatible pairs
+    addValuesButton = new QPushButton(this);
+    addValuesButton->setText(tr("Add these\nincompatible\nvalue pairs"));
+    connect(addValuesButton, &QPushButton::clicked, this, &gatherIncompatibleResponsesDialog::addValues);
+    theGrid->addWidget(addValuesButton, numPossibleValues + 2, 0, 1, -1);
+
     //explanatory text of which response pairs will be considered incompatible
     explanation = new QLabel;
     explanation->clear();
-    theGrid->addWidget(explanation, numPossibleValues + 2, 0, 1, -1);
-    theGrid->setRowStretch(numPossibleValues + 2, 1);
+    theGrid->addWidget(explanation, numPossibleValues + 3, 0, 1, -1);
+    theGrid->setRowStretch(numPossibleValues + 3, 1);
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(numPossibleValues + 3, 20);
+    theGrid->setRowMinimumHeight(numPossibleValues + 4, 20);
+    resetValuesButton = new QPushButton(this);
+    resetValuesButton->setText(tr("&Clear all\nincompatible\nvalues"));
+    theGrid->addWidget(resetValuesButton, numPossibleValues + 5, 0, 1, 1);
+    connect(resetValuesButton, &QPushButton::clicked, this, &gatherIncompatibleResponsesDialog::clearAllValues);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, numPossibleValues + 4, 0, -1, -1);
+    theGrid->addWidget(buttonBox, numPossibleValues + 5, 1, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    selectionChanged();     // set formatting
+    updateExplanation();
     adjustSize();
 }
 
@@ -1176,62 +1184,48 @@ gatherIncompatibleResponsesDialog::~gatherIncompatibleResponsesDialog()
     delete [] responses;
 }
 
-void gatherIncompatibleResponsesDialog::selectionChanged()
-{
-    int numChecked = 0;
-    for(int response = 0; response < numPossibleValues; response++)
-    {
-        bool thisOneChecked = enableValue[response].isChecked();
-        numChecked += thisOneChecked? 1 : 0;
-        QFont f = responses[response].font();
-        f.setBold(thisOneChecked);
-        responses[response].setFont(f);
-        if(thisOneChecked)
-        {
-            incompatibleResponses << (response == (numPossibleValues-1)? -1 : (response + 1));
-        }
-        else
-        {
-            incompatibleResponses.remove(response == (numPossibleValues-1)? -1 : (response + 1));
-        }
-    }
 
-    if(numChecked > 1)
-    {
-        QList<int> sortedVals = incompatibleResponses.toList();
-        if(sortedVals.removeOne(-1))
-        {
-            sortedVals << numPossibleValues;
-        }
-        std::sort(sortedVals.begin(), sortedVals.end());
-        QString totalExplanationText;
-        for(int i = 0; i < sortedVals.size() - 1; i++)
-        {
-            QString explanationText = tr("Students with response ") + responses[sortedVals[i]-1].text().split('.').at(0) +
-                               tr(" will not be teamed with students with response ");
-            bool first = true;
-            for(int j = i + 1; j < sortedVals.size(); j++)
-            {
-                if(!first)
-                {
-                    explanationText += ", ";
-                }
-                explanationText += responses[sortedVals[j]-1].text().split('.').at(0);
-                first = false;
-            }
-            // replace last comma in list with "or"
-            if(!first)
-            {
-                explanationText.replace(explanationText.lastIndexOf(","), 1, tr(" or "));
-            }
-            totalExplanationText += (explanationText + ".<br>");
-        }
-        // remove all html tags, replace "-" with "not set/unknown"
-        totalExplanationText.remove("<html>").remove("<b>").remove("</b>").replace("-", tr("not set/unknown"));
-        explanation->setText("<html><hr><br><b>" + totalExplanationText + "</b></html>");
-    }
-    else
+void gatherIncompatibleResponsesDialog::updateExplanation()
+{
+    if(incompatibleResponses.empty())
     {
         explanation->setText("<html><hr><br><b>" + tr("No response values are incompatible.") + "<br></b></html>");
     }
+    else
+    {
+        QString explanationText;
+        for(auto pair : incompatibleResponses)
+        {
+            explanationText += tr("Students with response ") + responses[(pair.first)-1].text().split('.').at(0) +
+                    tr(" will not be teamed with students with response ") + responses[(pair.second)-1].text().split('.').at(0) + ".<br>";
+        }
+        // remove all html tags, replace "-" with "not set/unknown"
+        explanationText.remove("<html>").replace("-", tr("not set/unknown"));
+        explanation->setText("<html><hr><br><b>" + explanationText + "</b></html>");
+    }
+}
+
+
+void gatherIncompatibleResponsesDialog::addValues()
+{
+    for(int response1 = 0; response1 < numPossibleValues - 1; response1++)
+    {
+        for(int response2 = response1 + 1; response2 < numPossibleValues; response2++)
+        {
+            if( enableValue[response1].isChecked() && enableValue[response2].isChecked() &&
+                !incompatibleResponses.contains(QPair<int,int>(response1+1, response2+1)) &&
+                !incompatibleResponses.contains(QPair<int,int>(response2+1, response1+1)) )
+            {
+                incompatibleResponses << QPair<int,int>(response1+1, response2+1);
+            }
+        }
+    }
+    updateExplanation();
+}
+
+
+void gatherIncompatibleResponsesDialog::clearAllValues()
+{
+    incompatibleResponses.clear();
+    updateExplanation();
 }
