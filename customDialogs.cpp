@@ -1208,6 +1208,7 @@ void gatherIncompatibleResponsesDialog::updateExplanation()
 
 void gatherIncompatibleResponsesDialog::addValues()
 {
+    // create pairs for every combination of checked values
     for(int response1 = 0; response1 < numPossibleValues - 1; response1++)
     {
         for(int response2 = response1 + 1; response2 < numPossibleValues; response2++)
@@ -1221,6 +1222,12 @@ void gatherIncompatibleResponsesDialog::addValues()
         }
     }
     updateExplanation();
+
+    // reset checkboxes
+    for(int response = 0; response < numPossibleValues; response++)
+    {
+        enableValue[response].setChecked(false);
+    }
 }
 
 
