@@ -203,4 +203,23 @@ private:
 };
 
 
+class gatherURMResponsesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    gatherURMResponsesDialog(const DataOptions &dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
+    ~gatherURMResponsesDialog();
+
+    QStringList URMResponsesConsideredUR;
+
+private:
+    QGridLayout *theGrid;
+    QLabel *explanation;
+    QCheckBox *enableValue;
+    QPushButton *responses;
+    QDialogButtonBox *buttonBox;
+};
+
+
 #endif // CUSTOMDIALOGS

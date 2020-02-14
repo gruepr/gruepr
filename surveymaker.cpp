@@ -65,8 +65,7 @@ void SurveyMaker::refreshPreview()
                 "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non— binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
                 : "";
     preview += URM?
-                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Do you identify as a member of an underrepresented minority?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "<small>options: <b>{ </b><i>yes </i><b>|</b><i> no </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
+                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;How do you identify your race, ethnicity, or cultural heritage?<br></p>"
                 : "";
     preview += "<hr>";
     if(numAttributes > 0)

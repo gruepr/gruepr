@@ -86,6 +86,7 @@ struct studentRecord
     QString section;									// section data stored as text
     QString notes;										// any special notes for this student
     QString attributeResponse[maxAttributes];           // the text of the response to each attribute question
+    QString URMResponse;                                // the text of the response the the race/ethnicity/culture question
     QString availabilityChart;
 };
 
@@ -123,6 +124,7 @@ struct DataOptions
     int numStudentsInSystem = 0;                        // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[maxAttributes];      // the list of responses to each of the attribute questions
+    QStringList URMResponses;                           // the list of responses to the race/ethnicity/culture question
     QFileInfo dataFile;
     QStringList dayNames;
     QStringList timeNames;
@@ -137,6 +139,7 @@ struct TeamingOptions
     bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
     bool mixedGenderPreferred = false;                  // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
+    QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long

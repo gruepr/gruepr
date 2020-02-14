@@ -146,7 +146,8 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     {
         loadFileOfTeammates = new QPushButton(this);
         loadFileOfTeammates->setText(tr("&Load file\nof previous\nteammates"));
-        loadFileOfTeammates->setToolTip(tr("<html>Load the spreadsheet file from a previous set of gruepr-created teams in order to place all students with new teammates.</html>"));
+        loadFileOfTeammates->setToolTip(tr("<html>Load the spreadsheet file from a previous set of gruepr-created teams"
+                                           "in order to place all students with new teammates.</html>"));
         theGrid->addWidget(loadFileOfTeammates, row+1, 1, 1, 1);
         connect(loadFileOfTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::loadFile);
     }
@@ -346,7 +347,8 @@ bool gatherTeammatesDialog::loadFile()
                 QMultiMap<int, QString> possibleStudents;
                 for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
                 {
-                    possibleStudents.insert(levenshtein::distance(teammates.at(team).at(searchStudent), student[knownStudent].firstname + " " + student[knownStudent].lastname),
+                    possibleStudents.insert(levenshtein::distance(teammates.at(team).at(searchStudent),
+                                            student[knownStudent].firstname + " " + student[knownStudent].lastname),
                                             student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
                 }
 
@@ -356,7 +358,8 @@ bool gatherTeammatesDialog::loadFile()
                 choiceWindow->setWindowTitle("Choose student");
                 QGridLayout *grid = new QGridLayout(choiceWindow);
                 QLabel *text = new QLabel(choiceWindow);
-                text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " + tr("could not be found.<br>Please select this student from the list:"));
+                text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " +
+                              tr("could not be found.<br>Please select this student from the list:"));
                 grid->addWidget(text, 0, 0, 1, -1);
                 QComboBox *names = new QComboBox(choiceWindow);
                 QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
@@ -916,7 +919,7 @@ void whichFilesDialog::boxToggled()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions,
-                                                                                       const QStringList &sectionNames, QWidget *parent)
+                                               const QStringList &sectionNames, QWidget *parent)
     :QDialog (parent)
 {
     student = studentToBeEdited;
@@ -966,7 +969,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
 
     if(dataOptions.genderIncluded)
     {
-        explanation[field].setText(tr("Gender"));
+        explanation[field].setText(tr("Gender identity"));
         databox[field].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary/unknown"));
         databox[field].setCurrentText(student.gender==studentRecord::woman?tr("woman"):(student.gender==studentRecord::man?tr("man"):tr("nonbinary/unknown")));
         connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
@@ -977,9 +980,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
 
     if(dataOptions.URMIncluded)
     {
-        explanation[field].setText(tr("URM"));
-        databox[field].addItems(QStringList() << tr("yes") << tr("no"));
-        databox[field].setCurrentText(student.URM?tr("yes"):tr("no"));
+        explanation[field].setText(tr("Racial/ethnic/cultural identity"));
+        databox[field].addItems(dataOptions.URMResponses);
+        databox[field].setEditable(true);
+        databox[field].setCurrentText(student.URMResponse);
         connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(&databox[field], field, 1);
@@ -1063,7 +1067,7 @@ void editOrAddStudentDialog::recordEdited()
     }
     if(dataOptions.URMIncluded)
     {
-        student.URM = (databox[field].currentText()==tr("yes"));
+        student.URMResponse = databox[field].currentText();
         field++;
     }
     if(dataOptions.sectionIncluded)
@@ -1100,7 +1104,8 @@ void editOrAddStudentDialog::recordEdited()
 // A dialog to gather which attribute values should be disallowed on the same team
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QList< QPair<int,int> > &currIncompats, QWidget *parent)
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions,
+                                                                     const QList< QPair<int,int> > &currIncompats, QWidget *parent)
     :QDialog (parent)
 {
     numPossibleValues = dataOptions.attributeQuestionResponses[attribute].size() + 1;
@@ -1112,7 +1117,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
 
-    attributeDescription = new QLabel;
+    attributeDescription = new QLabel(this);
     attributeDescription->setText("<html><br>" + dataOptions.attributeQuestionText.at(attribute) +
                          "<hr>" + tr("Prevent students with these responses from being placed on the same team:") + "<br></html>");
     attributeDescription->setWordWrap(true);
@@ -1156,7 +1161,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     theGrid->addWidget(addValuesButton, numPossibleValues + 2, 0, 1, -1);
 
     //explanatory text of which response pairs will be considered incompatible
-    explanation = new QLabel;
+    explanation = new QLabel(this);
     explanation->clear();
     theGrid->addWidget(explanation, numPossibleValues + 3, 0, 1, -1);
     theGrid->setRowStretch(numPossibleValues + 3, 1);
@@ -1235,4 +1240,66 @@ void gatherIncompatibleResponsesDialog::clearAllValues()
 {
     incompatibleResponses.clear();
     updateExplanation();
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to gather which racial/ethnic/cultural identities should be considered underrepresented
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
+    :QDialog (parent)
+{
+    URMResponsesConsideredUR = currURMResponsesConsideredUR;
+
+    //Set up window with a grid layout
+    setWindowTitle(tr("Select underrepresented race/ethnicity responses"));
+
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    theGrid = new QGridLayout(this);
+
+    explanation = new QLabel(this);
+    explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity."
+                            "Which of these should be considered underrepresented?<hr></html>"));
+    explanation->setWordWrap(true);
+    theGrid->addWidget(explanation, 0, 0, 1, -1);
+
+    // a checkbox and a label for each response values
+    enableValue = new QCheckBox[dataOptions.URMResponses.size()];
+    responses = new QPushButton[dataOptions.URMResponses.size()];
+    for(int response = 0; response < dataOptions.URMResponses.size(); response++)
+    {
+        enableValue[response].setChecked(URMResponsesConsideredUR.contains(dataOptions.URMResponses.at(response)));
+        theGrid->addWidget(&enableValue[response], (response/4) + 1, 2*(response%4), 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        connect(&enableValue[response], &QCheckBox::stateChanged, [&, response](int state){
+                                                                                 if(state == Qt::Checked)
+                                                                                   {URMResponsesConsideredUR << dataOptions.URMResponses.at(response);}
+                                                                                 else
+                                                                                   {URMResponsesConsideredUR.removeAll(dataOptions.URMResponses.at(response));}
+                                                                                 });
+        responses[response].setText(dataOptions.URMResponses.at(response));
+        responses[response].setFlat(true);
+        responses[response].setStyleSheet("Text-align:left");
+        connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
+        theGrid->addWidget(&responses[response], (response/4) + 1, 2*(response%4) + 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+    }
+    theGrid->setColumnStretch(1, 1);    // set second column as the one to grow
+
+    //a spacer then ok/cancel buttons
+    theGrid->setRowMinimumHeight(dataOptions.URMResponses.size() + 2, 20);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    theGrid->addWidget(buttonBox, dataOptions.URMResponses.size() + 3, 1, -1, -1);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    adjustSize();
+}
+
+
+gatherURMResponsesDialog::~gatherURMResponsesDialog()
+{
+    //delete dynamically allocated arrays created in class constructor
+    delete [] enableValue;
+    delete [] responses;
 }

@@ -44,6 +44,7 @@ private slots:
     void on_isolatedMenCheckBox_stateChanged(int arg1);
     void on_mixedGenderCheckBox_stateChanged(int arg1);
     void on_isolatedURMCheckBox_stateChanged(int arg1);
+    void on_URMResponsesButton_clicked();
     void on_minMeetingTimes_valueChanged(int arg1);
     void on_desiredMeetingTimes_valueChanged(int arg1);
     void on_meetingLength_currentIndexChanged(int index);

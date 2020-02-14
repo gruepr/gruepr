@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>816</width>
-    <height>714</height>
+    <height>723</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -872,7 +872,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Underrepresented minority status</string>
+       <string>Race/ethnicity/cultural heritage</string>
       </property>
      </widget>
     </item>

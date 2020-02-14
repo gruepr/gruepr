@@ -167,6 +167,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->mixedGenderCheckBox->setEnabled(false);
         ui->label_15->setEnabled(false);
         ui->isolatedURMCheckBox->setEnabled(false);
+        ui->URMResponsesButton->setEnabled(false);
         ui->label_24->setEnabled(false);
         ui->teamSizeBox->clear();
         ui->teamSizeBox->setEnabled(false);
@@ -316,6 +317,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
             if(dataOptions.URMIncluded)
             {
                 ui->isolatedURMCheckBox->setEnabled(true);
+                ui->URMResponsesButton->setEnabled(true);
                 ui->label_24->setEnabled(true);
             }
 
@@ -359,7 +361,9 @@ void gruepr::on_loadSettingsButton_clicked()
     teamingOptions.mixedGenderPreferred = savedSettings.value("mixedGenderPreferred", false).toBool();
     ui->mixedGenderCheckBox->setChecked(teamingOptions.isolatedMenPrevented);
     teamingOptions.isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
+    ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
     ui->isolatedURMCheckBox->setChecked(teamingOptions.isolatedURMPrevented);
+    ui->isolatedURMCheckBox->blockSignals(false);
     teamingOptions.desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
     ui->desiredMeetingTimes->setValue(teamingOptions.desiredTimeBlocksOverlap);
     teamingOptions.minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
@@ -538,8 +542,32 @@ void gruepr::editAStudent()
     if(reply == QDialog::Accepted)
     {
         student[ID] = window->student;
+        student[ID].URM = teamingOptions.URMResponsesConsideredUR.contains(student[ID].URMResponse);
 
-        //Re-do the section options in the selection box (in case user added a new section name)
+        //Re-build the URM info
+        if(dataOptions.URMIncluded)
+        {
+            dataOptions.URMResponses.clear();
+            for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+            {
+                if(!dataOptions.URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
+                {
+                    dataOptions.URMResponses << student[ID].URMResponse;
+                }
+            }
+            QCollator sortAlphanumerically;
+            sortAlphanumerically.setNumericMode(true);
+            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+            std::sort(dataOptions.URMResponses.begin(), dataOptions.URMResponses.end(), sortAlphanumerically);
+            if(dataOptions.URMResponses.contains("--"))
+            {
+                // put the blank response option at the end of the list
+                dataOptions.URMResponses.removeAll("--");
+                dataOptions.URMResponses << "--";
+            }
+        }
+
+        //Re-build the section options in the selection box (in case user added a new section name)
         if(dataOptions.sectionIncluded)
         {
             QString currentSection = ui->sectionSelectionBox->currentText();
@@ -642,7 +670,32 @@ void gruepr::on_addStudentPushButton_clicked()
         if(reply == QDialog::Accepted)
         {
             student[dataOptions.numStudentsInSystem] = window->student;
+            student[dataOptions.numStudentsInSystem].URM = teamingOptions.URMResponsesConsideredUR.contains(student[dataOptions.numStudentsInSystem].URMResponse);
+
             dataOptions.numStudentsInSystem++;
+
+            //Re-build the URM info
+            if(dataOptions.URMIncluded)
+            {
+                dataOptions.URMResponses.clear();
+                for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+                {
+                    if(!dataOptions.URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
+                    {
+                        dataOptions.URMResponses << student[ID].URMResponse;
+                    }
+                }
+                QCollator sortAlphanumerically;
+                sortAlphanumerically.setNumericMode(true);
+                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+                std::sort(dataOptions.URMResponses.begin(), dataOptions.URMResponses.end(), sortAlphanumerically);
+                if(dataOptions.URMResponses.contains("--"))
+                {
+                    // put the blank response option at the end of the list
+                    dataOptions.URMResponses.removeAll("--");
+                    dataOptions.URMResponses << "--";
+                }
+            }
 
             //Re-do the section options in the selection box (in case user added a new section name)
             if(dataOptions.sectionIncluded)
@@ -721,7 +774,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
             // See if URM data is included
             if(dataOptions.URMIncluded)
             {
-                 out << ",Do you identify as a member of an underrepresented minority group?";
+                 out << ",How do you identify your race, ethnicity, or cultural heritage?";
             }
             for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
             {
@@ -749,10 +802,9 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                 {
                     out << "," << (student[ID].gender==studentRecord::woman? tr("woman") : (student[ID].gender==studentRecord::man? tr("man") : tr("nonbinary/unknown")));
                 }
-                // See if URM data is included
                 if(dataOptions.URMIncluded)
                 {
-                    out << "," << (student[ID].URM? tr("yes") : tr("no"));
+                    out << "," << (student[ID].URMResponse);
                 }
                 for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
                 {
@@ -824,6 +876,33 @@ void gruepr::on_mixedGenderCheckBox_stateChanged(int arg1)
 void gruepr::on_isolatedURMCheckBox_stateChanged(int arg1)
 {
     teamingOptions.isolatedURMPrevented = arg1;
+    if(teamingOptions.isolatedURMPrevented && teamingOptions.URMResponsesConsideredUR.empty())
+    {
+        // if we are preventing isolated URM students, but have not selected yet which responses should be considered URM, let's ask user to enter those in
+        on_URMResponsesButton_clicked();
+    }
+}
+
+
+void gruepr::on_URMResponsesButton_clicked()
+{
+    // open window to decide which values are to be considered underrepresented
+    gatherURMResponsesDialog *window = new gatherURMResponsesDialog(dataOptions, teamingOptions.URMResponsesConsideredUR, this);
+
+    //If user clicks OK, replace the responses considered underrepresented with the set from the window
+    int reply = window->exec();
+    if(reply == QDialog::Accepted)
+    {
+        teamingOptions.URMResponsesConsideredUR = window->URMResponsesConsideredUR;
+        teamingOptions.URMResponsesConsideredUR.removeDuplicates();
+        //(re)apply these values to the student database
+        for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+        {
+            student[ID].URM = teamingOptions.URMResponsesConsideredUR.contains(student[ID].URMResponse);
+        }
+    }
+
+    delete window;
 }
 
 
@@ -1825,7 +1904,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     }
 
     // See if URM data is included
-    if(field.contains(tr("minority"), Qt::CaseInsensitive))
+    if(field.contains(tr("minority"), Qt::CaseInsensitive) || field.contains(tr("ethnic"), Qt::CaseInsensitive))
     {
         dataOptions.URMIncluded = true;
         fieldnum++;
@@ -2016,6 +2095,25 @@ bool gruepr::loadSurveyData(const QString &fileName)
 
     }
 
+    // gather all unique URM question responses and sort
+    for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
+    {
+        if(!dataOptions.URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
+        {
+            dataOptions.URMResponses << student[ID].URMResponse;
+        }
+    }
+    QCollator sortAlphanumerically;
+    sortAlphanumerically.setNumericMode(true);
+    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+    std::sort(dataOptions.URMResponses.begin(), dataOptions.URMResponses.end(), sortAlphanumerically);
+    if(dataOptions.URMResponses.contains("--"))
+    {
+        // put the blank response option at the end of the list
+        dataOptions.URMResponses.removeAll("--");
+        dataOptions.URMResponses << "--";
+    }
+
     if(numStudents == maxStudents)
     {
         QMessageBox::warning(this, tr("Reached maximum number of students."),
@@ -2140,8 +2238,12 @@ studentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     // optional next field in line; might be underrpresented minority status
     if(dataOptions.URMIncluded)
     {
-        QString field = fields.at(fieldnum).toUtf8();
-        student.URM = (field.contains(tr("yes"), Qt::CaseInsensitive));
+        QString field = fields.at(fieldnum).toUtf8().toLower().simplified();
+        if(field == "")
+        {
+            field = tr("--");
+        }
+        student.URMResponse = field;
         fieldnum++;
     }
     else
@@ -2476,15 +2578,8 @@ QString gruepr::createAToolTip(const studentRecord &info, bool duplicateRecord)
     }
     if(dataOptions.URMIncluded)
     {
-        toolTip += "<br>" + tr("URM") + ":  ";
-        if(info.URM)
-        {
-            toolTip += tr("yes");
-        }
-        else
-        {
-            toolTip += tr("no");
-        }
+        toolTip += "<br>" + tr("Identity") + ":  ";
+        toolTip += info.URMResponse;
     }
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
