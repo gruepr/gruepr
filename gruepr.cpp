@@ -188,10 +188,14 @@ void gruepr::on_loadSurveyFileButton_clicked()
         for(int attrib = 0; attrib < maxAttributes; attrib++)
         {
             dataOptions.attributeQuestionResponses[attrib].clear();
+            dataOptions.attributeMin[attrib] = 1;
+            dataOptions.attributeMax[attrib] = 1;
+            dataOptions.attributeIsOrdered[attrib] = false;
             haveAnyIncompatibleAttributes[attrib] = false;
         }
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
+        dataOptions.URMResponses.clear();
         haveAnyRequiredTeammates = false;
         haveAnyPreventedTeammates = false;
         haveAnyRequestedTeammates = false;
