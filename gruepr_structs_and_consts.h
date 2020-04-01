@@ -40,7 +40,9 @@ const QStringList teamnameListNames = {QString("Arabic numbers,"
                                        "Greek letters,"
                                        "NATO phonetic alphabet,"
                                        "Chemical elements,"
-                                       "Shakespeare plays").split(",")};
+                                       "Shakespeare plays,"
+                                       "Olympic host cities")
+                                       .split(",")};
 const QList<QStringList> teamNameLists{{},
                                        {},
                                        {},
@@ -65,7 +67,10 @@ const QList<QStringList> teamNameLists{{},
                                                 "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,Merry Wives of Windsor,"
                                                 "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
                                                 "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
-                                                "Two Noble Kinsmen").split(",")}};
+                                                "Two Noble Kinsmen").split(",")},
+                                       {QString("Athens,Paris,St Louis,London,Stockholm,Amsterdam,Los Angeles,Berlin,Helsinki,Melbourne,Rome,Tokyo,"
+                                                "Mexico City,Munich,Montreal,Moscow,Seoul,Barcelona,Atlanta,Sydney,Beijing,Rio de Janeiro").split(",")}
+                                      };
 
 //struct defining survey data from one student
 struct studentRecord

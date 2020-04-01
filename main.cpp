@@ -36,8 +36,6 @@
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - change stability metric? (base the convergence metric on the population median score relative to population max)
-// - maintain population diversity by preventing inbreeding (store parent & grandparent of each genome; disallow tournament selection from genome w/ match)
-// - use multiple genepools and allow limited cross-breeding
 // - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

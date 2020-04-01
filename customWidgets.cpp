@@ -45,8 +45,8 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 {
     setStyleSheet("QHeaderView::section{border-top:0px solid #D8D8D8;border-left:0px solid #D8D8D8;border-right:1px solid black;"
                   "border-bottom: 1px solid black;background-color:Gainsboro;padding:4px;font-weight:bold;}"
-                  "QHeaderView::down-arrow{image: url(:/icons/down_arrow.png);width:20px;subcontrol-origin:margin;subcontrol-position:left;}"
-                  "QHeaderView::up-arrow{image: url(:/icons/up_arrow.png);width:20px;subcontrol-origin:margin;subcontrol-position:left;}"
+                  "QHeaderView::down-arrow{image: url(:/icons/down_arrow.png);width:18px;subcontrol-origin:padding;subcontrol-position:bottom left;}"
+                  "QHeaderView::up-arrow{image: url(:/icons/up_arrow.png);width:18px;subcontrol-origin:padding;subcontrol-position:top left;}"
                   "QTreeWidget::item:selected{color: black;background-color: #85cbf8;}"
                   "QTreeWidget::item:hover{color: black;background-color: #85cbf8;}"
                   "QTreeWidget::branch{background-color: white;}"
@@ -143,8 +143,19 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     }
 }
 
-void TeamTreeWidget::resorting(int /*column*/)
+void TeamTreeWidget::resorting(int column)
 {
+    for(int i = 0; i < columnCount(); i++)
+    {
+        if(i != column)
+        {
+            headerItem()->setIcon(i, QIcon(":/icons/updown_arrow.png"));
+        }
+        else
+        {
+            headerItem()->setIcon(column, QIcon(":/icons/blank_arrow.png"));
+        }
+    }
     emit updateTeamOrder();
 }
 
@@ -163,7 +174,7 @@ TeamTreeWidgetItem::TeamTreeWidgetItem(QTreeWidgetItem *parent, int type)
 {
 }
 
-bool TeamTreeWidgetItem::operator<(const QTreeWidgetItem &other) const
+bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 {
     if(parent())      // don't sort the students, only the teams
     {

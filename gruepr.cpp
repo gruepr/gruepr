@@ -62,6 +62,9 @@ gruepr::gruepr(QWidget *parent) :
     connect(ui->studentTable->horizontalHeader(), &QHeaderView::sectionClicked, [this](int column)
                                                                                 {if(column < ui->studentTable->columnCount()-2)
                                                                                       {ui->studentTable->sortByColumn(column, ui->studentTable->horizontalHeader()->sortIndicatorOrder());
+                                                                                       ui->studentTable->horizontalHeaderItem(column)->setIcon(QIcon(":/icons/blank_arrow.png"));
+                                                                                       if(column != prevSortColumn)
+                                                                                       {ui->studentTable->horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons/updown_arrow.png"));}
                                                                                        prevSortColumn = column;
                                                                                        prevSortOrder = ui->studentTable->horizontalHeader()->sortIndicatorOrder();}
                                                                                  else
@@ -243,6 +246,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->label_11->setEnabled(true);
             ui->requestedTeammateNumberBox->setEnabled(true);
 
+            ui->sectionSelectionBox->blockSignals(true);
             if(dataOptions.sectionIncluded)
             {
                 //get number of sections
@@ -276,10 +280,17 @@ void gruepr::on_loadSurveyFileButton_clicked()
             {
                 ui->sectionSelectionBox->addItem(tr("No section data."));
             }
-            on_sectionSelectionBox_currentIndexChanged(ui->sectionSelectionBox->currentText());     // also loads data into student table
+            sectionName = ui->sectionSelectionBox->currentText();
+            ui->sectionSelectionBox->blockSignals(false);
+
+            refreshStudentDisplay();
             ui->studentTable->sortByColumn(0, Qt::AscendingOrder);
             ui->studentTable->horizontalHeader()->setSortIndicatorShown(true);
             ui->studentTable->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
+            ui->studentTable->horizontalHeaderItem(0)->setIcon(QIcon(":/icons/blank_arrow.png"));
+
+            ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
+            on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
 
             if(dataOptions.numAttributes > 0)
             {
@@ -474,6 +485,7 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
     sectionName = desiredSection;
 
     refreshStudentDisplay();
+    ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
@@ -613,6 +625,7 @@ void gruepr::editAStudent()
         ui->saveSurveyFilePushButton->setEnabled(true);
 
         refreshStudentDisplay();
+        ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
     }
 
     delete window;
@@ -641,6 +654,7 @@ void gruepr::removeAStudent()
     ui->saveSurveyFilePushButton->setEnabled(true);
 
     refreshStudentDisplay();
+    ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
@@ -743,6 +757,7 @@ void gruepr::on_addStudentPushButton_clicked()
             ui->saveSurveyFilePushButton->setEnabled(true);
 
             refreshStudentDisplay();
+            ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
 
             ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
             on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
@@ -1460,6 +1475,7 @@ void gruepr::optimizationComplete()
 
     // Sort by score and load initial order into currentSort column
     teamDataTree->sortByColumn(1, Qt::AscendingOrder);
+    teamDataTree->headerItem()->setIcon(1, QIcon(":/icons/blank_arrow.png"));
     for(int team = 0; team < numTeams; team++)
     {
         teamDataTree->topLevelItem(team)->setData(teamDataTree->columnCount()-1, TeamInfoSort, team);
@@ -1500,6 +1516,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     if(teamDataTree->sortColumn() == 0)
     {
         teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+        teamDataTree->headerItem()->setIcon(0, QIcon(QIcon(":/icons/updown_arrow.png")));
     }
 
     // Set team names to:
@@ -2440,18 +2457,19 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
     ui->studentTable->setColumnCount(dataOptions.sectionIncluded? 6 : 5);
-    ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("   Survey\n   Submission\n   Time")));
-    ui->studentTable->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("   First Name")));
-    ui->studentTable->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("   Last Name")));
+    QIcon unsortedIcon(":/icons/updown_arrow.png");
+    ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(unsortedIcon, tr("Survey\nSubmission\nTime")));
+    ui->studentTable->setHorizontalHeaderItem(1, new QTableWidgetItem(unsortedIcon, tr("First Name")));
+    ui->studentTable->setHorizontalHeaderItem(2, new QTableWidgetItem(unsortedIcon, tr("Last Name")));
     int column = 3;
     if(dataOptions.sectionIncluded)
     {
-        ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("   Section")));
+        ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(unsortedIcon, tr("Section")));
         column++;
     }
-    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Edit\nInfo")));
+    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Edit")));
     column++;
-    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Remove\nStudent")));
+    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Remove")));
 
     ui->studentTable->setRowCount(dataOptions.numStudentsInSystem);
 
@@ -2510,7 +2528,7 @@ void gruepr::refreshStudentDisplay()
             }
 
             PushButtonThatSignalsMouseEnterEvents *editButton = new PushButtonThatSignalsMouseEnterEvents(QIcon(":/icons/edit.png"), "", this);
-            editButton->setToolTip(tr("<html>Edit this student.</html>"));
+            editButton->setToolTip(tr("<html>Edit this student's data.</html>"));
             editButton->setProperty("StudentID", student[ID].ID);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
@@ -2638,10 +2656,20 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     // allocate memory for genepool and tempgenepool to hold the next generation as it is being created
     int **genePool = new int*[populationSize];
     int **tempPool = new int*[populationSize];
+    // allocate memory for ancestors and tempancestors to hold the ancestors of the next generation as it is being created
+    int **ancestors = new int*[populationSize];
+    int **tempAncestors = new int*[populationSize];
+    int numAncestors = 2;           //always track mom & dad
+    for(int gen = 0; gen < numGenerationsOfAncestors; gen++)
+    {
+        numAncestors += (4<<gen);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
+    }
     for(int genome = 0; genome < populationSize; ++genome)
     {
         genePool[genome] = new int[numStudents];
         tempPool[genome] = new int[numStudents];
+        ancestors[genome] = new int[numAncestors];
+        tempAncestors[genome] = new int[numAncestors];
     }
 
     // create an initial population
@@ -2662,7 +2690,16 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     }
     delete[] randPerm;
 
-    // calculate this first generation's scores (multi-threaded using OpenMP on Windows)
+    // just use rand's for the initial "ancestor" values, since none of these are related and so all matings should be permitted
+    for(int genome = 0; genome < populationSize; genome++)
+    {
+        for(int ancestor = 0; ancestor < numAncestors; ancestor++)
+        {
+            ancestors[genome][ancestor] = rand();
+        }
+    }
+
+    // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     QVector<float> scores(populationSize);
     float *unusedTeamScores, *schedScore;
     float **attributeScore;
@@ -2753,7 +2790,7 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             for(int genome = numElites; genome < populationSize; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(players, genePool, scores.data(), mom, dad);
+                GA::tournamentSelectParents(players, genePool, scores.data(), ancestors, mom, dad, tempAncestors[genome]);
 
                 //mate them and put child in tempPool
                 GA::mate(mom, dad, teamSize, numTeams, child, numStudents);
@@ -2772,18 +2809,22 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
                 }
             }
 
-            // copy all of tempPool into genePool
+            // copy all of tempPool into genePool and all of tempAncestors into ancestors
             for(int genome = 0; genome < populationSize; genome++)
             {
                 for(int ID = 0; ID < numStudents; ID++)
                 {
                     genePool[genome][ID] = tempPool[genome][ID];
                 }
+                for(int ancestor = 0; ancestor < numAncestors; ancestor++)
+                {
+                    ancestors[genome][ancestor] = tempAncestors[genome][ancestor];
+                }
             }
 
             generation++;
 
-            // calculate new generation's scores (multi-threaded using OpenMP on Windows)
+            // calculate new generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
 #pragma omp parallel shared(scores) private(unusedTeamScores, attributeScore, incompatAttribAdj, schedScore, genderAdj, URMAdj, reqTeammateAdj, prevTeammateAdj, requestedTeammateAdj)
 {
             unusedTeamScores = new float[numTeams];
@@ -2872,10 +2913,14 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     {
         delete[] tempPool[genome];
         delete[] genePool[genome];
+        delete[] tempAncestors[genome];
+        delete[] ancestors[genome];
     }
     delete[] players;
     delete[] tempPool;
     delete[] genePool;
+    delete[] tempAncestors;
+    delete[] ancestors;
 
     return bestTeamSet;
 }
@@ -3519,22 +3564,22 @@ void gruepr::resetTeamDisplay()
     teamDataTree->setColumnCount(3 + (dataOptions.genderIncluded? 1 : 0) + (dataOptions.URMIncluded? 1 : 0) +
                                       dataOptions.numAttributes + ((!dataOptions.dayNames.empty())? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
     QStringList headerLabels;
-    headerLabels << tr("   name") << tr("   team\n   score");
+    headerLabels << tr("name") << tr("team\nscore");
     if(dataOptions.genderIncluded)
     {
-        headerLabels << tr("   gender");
+        headerLabels << tr("gender");
     }
     if(dataOptions.URMIncluded)
     {
-        headerLabels << tr("   URM");
+        headerLabels << tr("URM");
     }
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
-        headerLabels << tr("   attribute ") + QString::number(attribute+1);
+        headerLabels << tr("attribute ") + QString::number(attribute+1);
     }
     if(!dataOptions.dayNames.empty())
     {
-        headerLabels << tr("   available\n   meeting\n   hours");
+        headerLabels << tr("available\nmeeting\nhours");
     }
     headerLabels << tr("display_order");
     for(int i = 0; i < headerLabels.size()-1; i++)
@@ -3542,7 +3587,13 @@ void gruepr::resetTeamDisplay()
         teamDataTree->showColumn(i);
     }
     teamDataTree->hideColumn(headerLabels.size()-1);
-    teamDataTree->setHeaderLabels(headerLabels);
+    QTreeWidgetItem *headerTextWithIcon = new QTreeWidgetItem;
+    for(int i = 0; i < headerLabels.size(); i++)
+    {
+        headerTextWithIcon->setIcon(i, QIcon(":/icons/updown_arrow.png"));
+        headerTextWithIcon->setText(i, headerLabels.at(i));
+    }
+    teamDataTree->setHeaderItem(headerTextWithIcon);
     teamDataTree->setSortingEnabled(false);
     teamDataTree->header()->setDefaultAlignment(Qt::AlignCenter);
     teamDataTree->header()->setSectionResizeMode(QHeaderView::Interactive);

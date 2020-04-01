@@ -459,14 +459,14 @@ border: 1px solid #d26385;
                 font-weight:bold;}
             QHeaderView::down-arrow{
                 image: url(:/icons/down_arrow.png);
-                width:20px;
-                subcontrol-origin:margin;
-                subcontrol-position:left;}
+                width:18px;
+				subcontrol-origin: padding;
+                subcontrol-position:bottom left;}
            QHeaderView::up-arrow{
                 image: url(:/icons/up_arrow.png);
-                width:20px;
-                subcontrol-origin:margin;
-                subcontrol-position:left;}
+                width:18px;
+				subcontrol-origin: padding;
+                subcontrol-position:top left;}
             QTableCornerButton::section{
                 border-top:0px solid #D8D8D8;
                 border-left:0px solid #D8D8D8;
@@ -1861,7 +1861,8 @@ Teammates</string>
               <string>&lt;html&gt;Select which racial/ethnic/cultural identites should be considered underrepresented.&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Underepresented
+              <string>Set
+Underepresented
 Identities</string>
              </property>
             </widget>
@@ -2027,7 +2028,7 @@ Identities</string>
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'MS Shell Dlg 2';&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="placeholderText">
               <string>Attribute question text</string>

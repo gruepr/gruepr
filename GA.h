@@ -8,6 +8,10 @@
 const int maxRecords = 300;                             // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow with >300 records)
 const int populationSize = 30000;						// the number of genomes in each generation--larger size is slower, but arguably more optimized result. A size of 5000 works with the default stack size. For size of 20000, stack size was increased to 16 MB. For 30000, increased to 32 MB.
 const int tournamentSize = populationSize/500;          // most of the next generation is created by mating many pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
+const int numGenerationsOfAncestors = 3;                // how many generations of ancestors to look back when preventing the selection of related mates:
+                                                        //      1 = prevent if either parent is same (no siblings mating);
+                                                        //      2 = prevent if any parent or grandparent is same (no siblings or 1st cousins);
+                                                        //      3 = prevent if any parent, grandparent, or greatgrandparent is same (no siblings, 1st or 2nd cousins); etc.
 const int topGenomeLikelihood = 33 * (RAND_MAX/100);	// first number gives probability out of 100 for selecting the best genome in the tournament as first parent to mate, then the best among the rest for second parent; if top is not selected, move to next best genome
 const int numElites = 3;                    			// from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite significantly stabilizes the high score to end optimization
 const int minGenerations = 40;                          // will keep optimizing for at least minGenerations
@@ -21,12 +25,14 @@ struct tourneyPlayer
 {
     int *genome;
     float score;
+    int *ancestors;     //array of ancestor's IDs
+    int ID;             //this player's ID
 };
 
 
 namespace GA
 {
-    void tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int *&mom, int *&dad);
+    void tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int **ancestors, int *&mom, int *&dad, int parentage[]);
     void mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize);
     void mutate(int genome[], int genomeSize);
 };

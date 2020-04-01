@@ -1,6 +1,6 @@
 gruepr
 
-Copyright (C) 2019, Joshua Hertz < gruepr@gmail.com >
+Copyright (C) 2019-2020, Joshua Hertz < gruepr@gmail.com >
 
 ---------------
 Description of gruepr:
@@ -15,9 +15,11 @@ Description of gruepr:
            2) preventing isolated URM students;
            3) achieving within each team either homogeneity or heterogeneity of up to 9 "attributes", which could
               be skills assessments, work preferences, attitudes, major, or any other categorical/Likert question;
-           4) achieving a high degree of overlap in schedule freetime;
-           5) preventing any particular students from being on the same team; and/or
-           6) requiring any particular students to be on the same team.
+           4) preventing students with incompatible attributes from being on the same team;
+           5) achieving a high degree of overlap in schedule freetime;
+           6) preventing any particular students from being on the same team;
+           7) requiring any particular students to be on the same team; and/or
+           8) requiring at least a certain number of students from a particular list to be on the same team.
 
         After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams
         are displayed showing the students names, emails, gender, URM status, and attribute values. Each team's
@@ -49,16 +51,15 @@ Description of gruepr:
                ~ email
                ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
                      "Non-binary", etc.)
-               ~ [optional] "yes" or "no", to indicate whether the student comes from an underrepresented minority
-                     group
+               ~ [optional] self-reported racial/ethnic/cultural background
                ~ [0 to 9 values] text responses to "attribute" questions, each in own field
                ~ [0 to 7 values] semicolon-separated list of times each day that the student is unavailable to work
                ~ [optional] section
                ~ [optional] any additional notes for student (all remaining columns will get swallowed into this
                      field)
 
-        COMPILING NOTES: Need C++11 and OpenMP. Using gcc/mingw, enabling the highest speed optimizations
-        with -O3 seems to offer significant speed boost.
+        COMPILING NOTES: Need C++11 and OpenMP. Using gcc/mingw, enabling the speed optimization of -O2 seems to
+        offer significant speed boost.
 
 
 ---------------
