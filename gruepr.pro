@@ -48,7 +48,7 @@ QMAKE_CXXFLAGS_RELEASE += -O2
 win32: QMAKE_CXXFLAGS += -fopenmp
 win32: LIBS += -fopenmp
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
-macx: LIBS += -L /usr/local/lib /usr/local/lib/libomp.dylib
+macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
         Levenshtein.cpp \

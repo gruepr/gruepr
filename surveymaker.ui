@@ -1053,7 +1053,7 @@ padding: 12px;</string>
   <customwidget>
    <class>ComboBoxWithElidedContents</class>
    <extends>QComboBox</extends>
-   <header>CustomWidgets.h</header>
+   <header>customWidgets.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
