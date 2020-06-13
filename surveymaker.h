@@ -58,6 +58,7 @@ private slots:
     void on_sectionNamesTextEdit_textChanged();
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
+    void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
     void on_openSurveyButton_clicked();
     void on_saveSurveyButton_clicked();
     void on_helpButton_clicked();
@@ -68,13 +69,13 @@ private:
     void refreshPreview();
     void checkDays();
     bool surveyCreated = false;
-    QRegularExpressionValidator *noCommas;
+    QRegularExpressionValidator *noInvalidPunctuation;
     QString title = "";
     bool gender = true;
     bool URM = false;
     int numAttributes = 3;
-    QString attributeTexts[maxAttributes] = {"","","","","","","","",""};
-    int attributeResponses[maxAttributes] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    QString attributeTexts[maxAttributes] = {""};
+    int attributeResponses[maxAttributes] = {0};
     bool schedule = true;
     // local day names, using the fact that 1/1/2017 is a Sunday
     const QString day1name = QDate(2017, 1, 1).toString("dddd");
@@ -90,7 +91,9 @@ private:
     bool section = false;
     QStringList sectionNames = {""};
     bool additionalQuestions = false;
-    QString URL;
+    static void postGoogleURL(SurveyMaker *survey = nullptr);
+    static void createFiles(SurveyMaker *survey = nullptr);
+    void (*generateSurvey)(SurveyMaker *survey) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
     QStringList responseOptions = {
         "Yes / No",

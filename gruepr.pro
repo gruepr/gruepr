@@ -4,10 +4,10 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 9.5
+gruepr_version = 9.6
 copyright_year = 2019-2020
 
-QT       += core gui widgets concurrent network printsupport
+QT       += core gui widgets concurrent network printsupport charts
 win32: QT += winextras
 
 TARGET = gruepr
@@ -52,6 +52,7 @@ macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
         Levenshtein.cpp \
+        boxwhiskerplot.cpp \
         customWidgets.cpp \
         main.cpp \
         gruepr.cpp \
@@ -61,6 +62,7 @@ SOURCES += \
 
 HEADERS += \
         Levenshtein.h \
+        boxwhiskerplot.h \
         customWidgets.h \
         gruepr.h \
         GA.h \

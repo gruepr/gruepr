@@ -30,12 +30,21 @@
 //    Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk)
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// FUTURE WORK:
-// - integrate with Google Drive: download survey results from within the application; expand to Canvas and other integration
+// DONE:
+// - added external window display of optimization and cleaned up UI
+// - made section question more specific
+// - larger max # of attributes
+// - order students on each team alphabetically
+// - save surveymaker to textfile/csv file
+//
+// TO DO:
+// - order teams at first using lastname+firstname of first student in team; let click on name column get back to this order
+// - save/load defaults into file instead of registry
+// - move clear all teammates button to less error-prone location
 // - allowing load of external data, using levenshtein::distance to match names
+// - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
-// - change stability metric? (base the convergence metric on the population median score relative to population max)
 // - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

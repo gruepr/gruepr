@@ -21,14 +21,13 @@ gruepr::gruepr(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/gruepr.png"));
-    ui->cancelOptimizationButton->hide();
+    qRegisterMetaType<QVector<float> >("QVector<float>");
 
     //Set alternate fonts on some UI features
     QFont altFont = this->font();
     altFont.setPointSize(altFont.pointSize() + 4);
     ui->loadSurveyFileButton->setFont(altFont);
     ui->letsDoItButton->setFont(altFont);
-    ui->cancelOptimizationButton->setFont(altFont);
     ui->saveTeamsButton->setFont(altFont);
     ui->printTeamsButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
@@ -91,7 +90,7 @@ gruepr::gruepr(QWidget *parent) :
 
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress);
-    connect(this, &gruepr::optimizationMightBeComplete, this, &gruepr::askWhetherToContinueOptimizing);
+    connect(this, &gruepr::optimizationMightBeComplete, [this] {QApplication::beep(); QApplication::alert(this);});
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
     // load all of the default values
@@ -336,7 +335,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
                 ui->label_24->setEnabled(true);
             }
 
-            if(!dataOptions.dayNames.empty())
+            if(!dataOptions.dayNames.isEmpty())
             {
                 ui->minMeetingTimes->setEnabled(true);
                 ui->desiredMeetingTimes->setEnabled(true);
@@ -895,7 +894,7 @@ void gruepr::on_mixedGenderCheckBox_stateChanged(int arg1)
 void gruepr::on_isolatedURMCheckBox_stateChanged(int arg1)
 {
     teamingOptions.isolatedURMPrevented = arg1;
-    if(teamingOptions.isolatedURMPrevented && teamingOptions.URMResponsesConsideredUR.empty())
+    if(teamingOptions.isolatedURMPrevented && teamingOptions.URMResponsesConsideredUR.isEmpty())
     {
         // if we are preventing isolated URM students, but have not selected yet which responses should be considered URM, let's ask user to enter those in
         on_URMResponsesButton_clicked();
@@ -1004,7 +1003,7 @@ void gruepr::on_incompatibleResponsesButton_clicked()
     int reply = window->exec();
     if(reply == QDialog::Accepted)
     {
-        haveAnyIncompatibleAttributes[ui->attributeScrollBar->value()] = !(window->incompatibleResponses.empty());
+        haveAnyIncompatibleAttributes[ui->attributeScrollBar->value()] = !(window->incompatibleResponses.isEmpty());
         teamingOptions.incompatibleAttributeValues[ui->attributeScrollBar->value()] = window->incompatibleResponses;
     }
 
@@ -1280,17 +1279,21 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
 
 void gruepr::on_letsDoItButton_clicked()
 {
+    if(dataOptions.URMIncluded && teamingOptions.isolatedURMPrevented && teamingOptions.URMResponsesConsideredUR.isEmpty())
+    {
+        int resp = QMessageBox::warning(this, tr("gruepr"),
+                                       tr("You have selected to prevented isolated URM students,\n"
+                                          "however none of the race/ethnicity response values\n"
+                                          "have been selected to be considered as underrepresented.\n\n"
+                                          "Click OK to continue or Cancel to go back and select URM responses."),
+                                       QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
+        if(resp == QMessageBox::Cancel)
+        {
+            ui->URMResponsesButton->setFocus();
+            return;
+        }
+    }
     // Update UI
-    ui->label_31->setEnabled(true);
-    ui->generationsBox->setEnabled(true);
-    ui->generationsBox->clear();
-    ui->label_32->setEnabled(true);
-    ui->scoreBox->setEnabled(true);
-    ui->scoreBox->clear();
-    ui->label_33->setEnabled(true);
-    ui->stabilityProgressBar->setEnabled(true);
-    ui->stabilityProgressBar->reset();
-    ui->label_34->setEnabled(true);
     ui->sectionSelectionBox->setEnabled(false);
     ui->teamSizeBox->setEnabled(false);
     ui->label_10->setEnabled(false);
@@ -1299,21 +1302,18 @@ void gruepr::on_letsDoItButton_clicked()
     ui->saveTeamsButton->setEnabled(false);
     ui->printTeamsButton->setEnabled(false);
     ui->letsDoItButton->setEnabled(false);
-    ui->letsDoItButton->hide();
-    ui->cancelOptimizationButton->setEnabled(true);
-    ui->cancelOptimizationButton->show();
     teamDataTree->setEnabled(false);
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-    realNumScoringFactors = dataOptions.numAttributes + (!dataOptions.dayNames.empty()? 1 : 0);
+    realNumScoringFactors = dataOptions.numAttributes + (!dataOptions.dayNames.isEmpty()? 1 : 0);
     float normFactor = (float(realNumScoringFactors)) /
                        (std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0)) +
-                        (!dataOptions.dayNames.empty()? teamingOptions.scheduleWeight : 0));
+                        (!dataOptions.dayNames.isEmpty()? teamingOptions.scheduleWeight : 0));
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * normFactor;
     }
-    realScheduleWeight = (!dataOptions.dayNames.empty()? teamingOptions.scheduleWeight : 0) * normFactor;
+    realScheduleWeight = (!dataOptions.dayNames.isEmpty()? teamingOptions.scheduleWeight : 0) * normFactor;
 
 #ifdef Q_OS_WIN32
     // Set up to show progess on windows taskbar
@@ -1323,6 +1323,20 @@ void gruepr::on_letsDoItButton_clicked()
     taskbarProgress->show();
     taskbarProgress->setMaximum(0);
 #endif
+
+    // Create progress display plot
+    progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
+    auto *chartView = new QtCharts::QChartView(progressChart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
+    // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
+    progressWindow = new progressDialog(tr("Generation ") + "-- - " + tr("Top Score = ") + "--.----", chartView, this);
+    progressWindow->show();
+    connect(progressWindow, &progressDialog::letsStop, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+                                                               connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
+                                                               optimizationStoppedmutex.lock();
+                                                               optimizationStopped = true;
+                                                               optimizationStoppedmutex.unlock();});
 
     // Get the IDs of students from desired section and change numStudents accordingly
     int numStudentsInSection = 0;
@@ -1344,71 +1358,47 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(float score, int generation, float scoreStability)
+void gruepr::updateOptimizationProgress(QVector<float> allScores, int generation, float scoreStability)
 {
-    ui->generationsBox->setValue(generation);
-    ui->generationsBox->setStyleSheet(generation >= minGenerations? "" : "background-color: #fbdae4");
+    progressChart->loadNextVals(allScores);
+    progressChart->updatePlot();
+    if(generation > maxGenerations)
+    {
+        progressWindow->setText(tr("Generation ") + QString::number(generation) + " - " +
+                                tr("Top Score = ") + QString::number(*std::max_element(allScores.constBegin(), allScores.constEnd())) +
+                                "<br><br><span style=\"color:red;\">" + tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.") +
+                                "<br>" + tr("It is recommended to stop optimization now.") + "</span>");
+        progressWindow->highlightStopButton();
+    }
+    else if( (generation >= minGenerations) && (scoreStability > 100) )
+    {
+        progressWindow->setText(tr("Generation ") + QString::number(generation) +
+                                tr(" - Top Score = ") + QString::number(*std::max_element(allScores.constBegin(), allScores.constEnd())) +
+                                "<br><br><span style=\"color:red;\">" + tr("Score appears to be stable.") +
+                                "<br>" + tr("It is recommended to stop optimization now.") + "</span>");
+        progressWindow->highlightStopButton();
+    }
+    else
+    {
+        progressWindow->setText(tr("Generation ") + QString::number(generation) +
+                                tr(" - Top Score = ") + QString::number(*std::max_element(allScores.constBegin(), allScores.constEnd())) +
+                                "<br><br><span style=\"color:green;\">" + tr("Optimization in progress.") +
+                                "<br>" + tr("You may click the stop button at any time.") + "</span>");
+    }
 
-    ui->scoreBox->setValue(static_cast<double>(score));
-
+#ifdef Q_OS_WIN32
     if(generation >= generationsOfStability)
     {
-        ui->stabilityProgressBar->setEnabled(true);
-        ui->stabilityProgressBar->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
-#ifdef Q_OS_WIN32
         taskbarProgress->setMaximum(100);
         taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
-#endif
     }
-}
-
-
-void gruepr::on_cancelOptimizationButton_clicked()
-{
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-    connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
-    optimizationStoppedmutex.lock();
-    optimizationStopped = true;
-    optimizationStoppedmutex.unlock();
-}
-
-
-void gruepr::askWhetherToContinueOptimizing(int generation)
-{
-    QApplication::beep();
-    QApplication::alert(this);
-
-    QMessageBox questionWindow(this);
-    questionWindow.setText(tr("Should we show the teams or continue optimizing?"));
-#ifdef Q_OS_WIN32
-    questionWindow.setWindowTitle((generation < maxGenerations)? tr("The score seems to be stable.") : (tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
 #endif
-#ifdef Q_OS_MACOS
-    questionWindow.setInformativeText((generation < maxGenerations)? tr("The score seems to be stable.") : (tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.")));
-#endif
-    questionWindow.setIcon(QMessageBox::Question);
-    questionWindow.setWindowModality(Qt::ApplicationModal);
-    questionWindow.setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-    QPushButton *stopHere = questionWindow.addButton(tr("Show Teams"), QMessageBox::YesRole);
-    QPushButton *keepGoing = questionWindow.addButton(tr("Continue Optimizing"), QMessageBox::NoRole);
-    questionWindow.setDefaultButton(stopHere);
-
-    questionWindow.exec();
-
-    keepOptimizing = (questionWindow.clickedButton() == keepGoing);
-
-    emit haveOurKeepOptimizingValue();
-}
+ }
 
 
 void gruepr::optimizationComplete()
 {
     // update UI
-    ui->label_31->setEnabled(false);
-    ui->generationsBox->setStyleSheet("");
-    ui->stabilityProgressBar->setEnabled(false);
-    ui->stabilityProgressBar->reset();
-    ui->label_34->setEnabled(false);
     ui->sectionSelectionBox->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->label_2->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->label_22->setEnabled(ui->sectionSelectionBox->count() > 1);
@@ -1419,10 +1409,7 @@ void gruepr::optimizationComplete()
     ui->dataDisplayTabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->printTeamsButton->setEnabled(true);
-    ui->cancelOptimizationButton->setEnabled(false);
-    ui->cancelOptimizationButton->hide();
     ui->letsDoItButton->setEnabled(true);
-    ui->letsDoItButton->show();
     ui->teamDataLayout->setEnabled(true);
     teamDataTree->setEnabled(true);
     teamDataTree->setHeaderHidden(false);
@@ -1439,6 +1426,7 @@ void gruepr::optimizationComplete()
 #ifdef Q_OS_WIN32
     taskbarProgress->hide();
 #endif
+    delete progressWindow;
 
     // free memory used to save array of IDs of students being teamed
     delete[] studentIDs;
@@ -1456,6 +1444,9 @@ void gruepr::optimizationComplete()
             teams[team].studentIDs << bestTeamSet.at(ID);
             ID++;
         }
+        //sort teammates within a team alphabetically by lastname,firstname
+        std::sort(teams[team].studentIDs.begin(), teams[team].studentIDs.end(),
+                  [this] (const int &a, const int &b) {return ( (student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname) );});
     }
 
     // Get scores and other student info loaded
@@ -1570,7 +1561,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         {
             teamNames << teams[teamDisplayNum.at(team)].name;
         }
-        customTeamnamesDialog *window = new customTeamnamesDialog(numTeams, teamNames, this);
+        auto *window = new customTeamnamesDialog(numTeams, teamNames, this);
 
         //If user clicks OK, use these team names, otherwise revert to previous option
         int reply = window->exec();
@@ -1936,10 +1927,10 @@ bool gruepr::loadSurveyData(const QString &fileName)
         dataOptions.URMIncluded = false;
     }
 
-    // Count the number of attributes by counting number of questions from here until one includes "check the times," "which section", or the end of the line is reached.
+    // Count the number of attributes by counting number of questions from here until one includes "check the times," "In which section are you enrolled", or end of the line is reached.
     // Save these attribute question texts, if any, into string list.
     dataOptions.numAttributes = 0;                              // how many skill/attitude rankings are there?
-    while( !(field.contains("check the times", Qt::CaseInsensitive)) && !(field.contains("which section", Qt::CaseInsensitive)) && (fieldnum < TotNumQuestions) )
+    while( !(field.contains("check the times", Qt::CaseInsensitive)) && !(field.contains("In which section are you enrolled", Qt::CaseInsensitive)) && (fieldnum < TotNumQuestions) )
     {
         dataOptions.attributeQuestionText << field;
         dataOptions.numAttributes++;
@@ -1977,7 +1968,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     if(TotNumQuestions > fieldnum)                                            // There is at least 1 additional field in header
     {
         field = fields.at(fieldnum).toUtf8();
-        if(field.contains("which section", Qt::CaseInsensitive))			// next field is a section question
+        if(field.contains("In which section are you enrolled", Qt::CaseInsensitive))			// next field is a section question
         {
             fieldnum++;
             if(TotNumQuestions > fieldnum)                                    // if there are any more fields after section
@@ -2008,7 +1999,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     fields = ReadCSVLine(in.readLine(), TotNumQuestions);
 
     // no data after header row--file is invalid
-    if(fields.empty())
+    if(fields.isEmpty())
     {
         QMessageBox::critical(this, tr("Insufficient number of students."),
                              tr("There are no survey responses in this file."), QMessageBox::Ok);
@@ -2017,10 +2008,10 @@ bool gruepr::loadSurveyData(const QString &fileName)
     }
 
     // If there is schedule info, read through the schedule fields in all of the responses to compile a list of time names, save as dataOptions.TimeNames
-    if(!dataOptions.dayNames.empty())
+    if(!dataOptions.dayNames.isEmpty())
     {
         QStringList allTimeNames;
-        while(!fields.empty())
+        while(!fields.isEmpty())
         {
             for(auto i : scheduleFields)
             {
@@ -2040,7 +2031,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     // Having read the header row and determined time names, if any, read each remaining row as a student record
     numStudents = 0;    // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     fields = ReadCSVLine(in.readLine(), TotNumQuestions);
-    while(!fields.empty() && numStudents < maxStudents)
+    while(!fields.isEmpty() && numStudents < maxStudents)
     {
         student[numStudents] = readOneRecordFromFile(fields);
         student[numStudents].ID = numStudents;
@@ -2290,7 +2281,7 @@ studentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
         }
         fieldnum++;
     }   
-    if(!dataOptions.dayNames.empty())
+    if(!dataOptions.dayNames.isEmpty())
     {
         student.availabilityChart = tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
@@ -2433,7 +2424,7 @@ QStringList gruepr::ReadCSVLine(const QString &line, int minFields)
     }
 
     // no data found--just return empty QStringList
-    if(fields.empty())
+    if(fields.isEmpty())
     {
         return fields;
     }
@@ -2742,7 +2733,7 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     delete[] unusedTeamScores;
 }
 
-    emit generationComplete(*std::max_element(scores.constBegin(), scores.constEnd()), 0, 0);
+    emit generationComplete(scores, 0, 0);
 
     // allocate memory to hold all the tournament-selected genomes
     tourneyPlayer *players = new tourneyPlayer[tournamentSize];
@@ -2865,9 +2856,10 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             indexOfBestTeamset[0] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
             float bestScore = scores[indexOfBestTeamset[0]];
             bestScores[generation%generationsOfStability] = bestScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
-            scoreStability = bestScore / (*std::max_element(bestScores,bestScores+generationsOfStability) - *std::min_element(bestScores,bestScores+generationsOfStability));
+            auto mmscores = std::minmax_element(bestScores,bestScores+generationsOfStability);
+            scoreStability = bestScore / (*mmscores.second - *mmscores.first);
 
-            emit generationComplete(bestScore, generation+extraGenerations, scoreStability);
+            emit generationComplete(scores, generation+extraGenerations, scoreStability);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;
@@ -2882,18 +2874,10 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
         }
         else
         {
-            emit optimizationMightBeComplete(generation);
-
-            // wait for user to enter their choice in the dialogbox
-            QEventLoop waitForUserToChoose;
-            connect(this, &gruepr::haveOurKeepOptimizingValue, &waitForUserToChoose, &QEventLoop::quit);
-            waitForUserToChoose.exec();
-
-            if(keepOptimizing)
-            {
-                extraGenerations += generation;
-                generation = 0;
-            }
+            emit optimizationMightBeComplete();
+            keepOptimizing = true;
+            extraGenerations += generation;
+            generation = 0;
         }
     }
     while(keepOptimizing);
@@ -3521,7 +3505,7 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
                 }
             }
         }
-        if(!dataOptions.dayNames.empty())
+        if(!dataOptions.dayNames.isEmpty())
         {
             teams[*team].tooltip += "<br>--<br>" + tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
@@ -3562,7 +3546,7 @@ void gruepr::resetTeamDisplay()
 {
     ui->dataDisplayTabWidget->setCurrentIndex(1);
     teamDataTree->setColumnCount(3 + (dataOptions.genderIncluded? 1 : 0) + (dataOptions.URMIncluded? 1 : 0) +
-                                      dataOptions.numAttributes + ((!dataOptions.dayNames.empty())? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
+                                      dataOptions.numAttributes + ((!dataOptions.dayNames.isEmpty())? 1 : 0) );   // name, gender?, URM?, each attribute, schedule?
     QStringList headerLabels;
     headerLabels << tr("name") << tr("team\nscore");
     if(dataOptions.genderIncluded)
@@ -3577,7 +3561,7 @@ void gruepr::resetTeamDisplay()
     {
         headerLabels << tr("attribute ") + QString::number(attribute+1);
     }
-    if(!dataOptions.dayNames.empty())
+    if(!dataOptions.dayNames.isEmpty())
     {
         headerLabels << tr("available\nmeeting\nhours");
     }
@@ -3732,7 +3716,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
             column++;
         }
-        if(!dataOptions.dayNames.empty())
+        if(!dataOptions.dayNames.isEmpty())
         {
             parentItem[*team]->setData(column, TeamInfoDisplay, QString::number(teams[*team].tooltip.count("100%")));
             parentItem[*team]->setData(column, TeamInfoSort, teams[*team].tooltip.count("100%"));
@@ -3824,7 +3808,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
                 teamDataTree->resizeColumnToContents(column);
                 column++;
             }
-            if(!dataOptions.dayNames.empty())
+            if(!dataOptions.dayNames.isEmpty())
             {
                 int availableTimes = student[teams[*team].studentIDs[stud]].availabilityChart.count("√");
                 childItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
@@ -3980,7 +3964,7 @@ void gruepr::createFileContents()
                     " " + student[teams[team].studentIDs[teammate]].lastname + "\t" + student[teams[team].studentIDs[teammate]].email + "\n";
 
         }
-        if(!dataOptions.dayNames.empty())
+        if(!dataOptions.dayNames.isEmpty())
         {
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
@@ -4126,7 +4110,7 @@ void gruepr::printOneFile(const QString &file, const QString &delimiter, QFont &
         int maxHeight = painter.window().height();
         QRect textRect = painter.boundingRect(0, 0, textWidth, maxHeight, Qt::TextWordWrap, *it);
         int height = textRect.height() + 2*SmallGap;
-        if(y + height > pageHeight && !currentPage.empty())
+        if(y + height > pageHeight && !currentPage.isEmpty())
         {
             pages.push_back(currentPage);
             currentPage.clear();
@@ -4136,7 +4120,7 @@ void gruepr::printOneFile(const QString &file, const QString &delimiter, QFont &
         y += height + MediumGap;
         ++it;
     }
-    if (!currentPage.empty())
+    if (!currentPage.isEmpty())
     {
         pages.push_back(currentPage);
     }

@@ -13,7 +13,8 @@
 #include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QCheckBox>
-#include <customWidgets.h>
+#include "customWidgets.h"
+#include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
 
 
@@ -219,6 +220,29 @@ private:
     QCheckBox *enableValue;
     QPushButton *responses;
     QDialogButtonBox *buttonBox;
+};
+
+
+class progressDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    progressDialog(QString text = "", QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
+    ~progressDialog();
+
+    void setText(QString text = "");
+    void highlightStopButton();
+
+signals:
+    void letsStop();
+
+private:
+    bool graphShown = false;
+    QGridLayout *theGrid;
+    QLabel *explanation;
+    QPushButton *showStatsButton;
+    QPushButton *stopHere;
 };
 
 

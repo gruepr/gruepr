@@ -29,7 +29,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
 
     //Set up window
     QString typeText;
-    QLabel *explanation = new QLabel(this);
+    auto *explanation = new QLabel(this);
     if(whatType == gatherTeammatesDialog::required)
     {
         typeText = tr("Required");
@@ -353,15 +353,15 @@ bool gatherTeammatesDialog::loadFile()
                 }
 
                 // Create student selection window
-                QDialog *choiceWindow = new QDialog(this);
+                auto *choiceWindow = new QDialog(this);
                 choiceWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
                 choiceWindow->setWindowTitle("Choose student");
-                QGridLayout *grid = new QGridLayout(choiceWindow);
-                QLabel *text = new QLabel(choiceWindow);
+                auto *grid = new QGridLayout(choiceWindow);
+                auto *text = new QLabel(choiceWindow);
                 text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " +
                               tr("could not be found.<br>Please select this student from the list:"));
                 grid->addWidget(text, 0, 0, 1, -1);
-                QComboBox *names = new QComboBox(choiceWindow);
+                auto *names = new QComboBox(choiceWindow);
                 QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
                 while (i != possibleStudents.constEnd())
                 {
@@ -371,7 +371,7 @@ bool gatherTeammatesDialog::loadFile()
                 }
                 grid->addWidget(names, 1, 0, 1, -1);
                 grid->setRowMinimumHeight(2, 20);
-                QDialogButtonBox *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
+                auto *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
                 OKCancel->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
                 connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
                 connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
@@ -468,9 +468,9 @@ void gatherTeammatesDialog::refreshDisplay()
                     currentListOfTeammatesTable->setColumnCount(column+1);
                     currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #")+QString::number(column+1)));
                 }
-                QHBoxLayout *box = new QHBoxLayout;
-                QLabel *label = new QLabel(student[studentBID].lastname + ", " + student[studentBID].firstname);
-                QPushButton *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
+                auto *box = new QHBoxLayout;
+                auto *label = new QLabel(student[studentBID].lastname + ", " + student[studentBID].firstname);
+                auto *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
                 remover->setFlat(true);
                 remover->setIconSize(QSize(15, 15));
                 remover->setProperty("studentAID", studentA->ID);
@@ -504,7 +504,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 box->addWidget(label);
                 box->addWidget(remover, 0, Qt::AlignLeft);
                 box->setSpacing(0);
-                QWidget *widg = new QWidget;
+                auto *widg = new QWidget;
                 widg->setLayout(box);
                 currentListOfTeammatesTable->setCellWidget(row, column, widg);
                 column++;
@@ -785,7 +785,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         textfile = new QLabel(this);
         textfile->setText(tr("text"));
         theGrid->addWidget(textfile, 1, 0);
-        QFrame *pdftxtline = new QFrame(this);
+        auto *pdftxtline = new QFrame(this);
         pdftxtline->setFrameShape(QFrame::VLine);
         pdftxtline->setFrameShadow(QFrame::Sunken);
         theGrid->addWidget(pdftxtline, 1, 1, 6, 1);
@@ -813,7 +813,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         connect(studentFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
         connect(studentFileLabel, &QPushButton::clicked, studentFilepdf, &QCheckBox::toggle);
     }
-    if(!(previews.empty()))
+    if(!(previews.isEmpty()))
     {
         studentFiletxt->setToolTip(previews.at(0));
         if(saveDialog)
@@ -822,7 +822,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         }
         studentFileLabel->setToolTip(previews.at(0));
     }
-    QFrame *belowStudentLine = new QFrame(this);
+    auto *belowStudentLine = new QFrame(this);
     belowStudentLine->setFrameShape(QFrame::HLine);
     belowStudentLine->setFrameShadow(QFrame::Sunken);
     theGrid->addWidget(belowStudentLine, 3, 0, 1, -1);
@@ -846,7 +846,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         connect(instructorFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
         connect(instructorFileLabel, &QPushButton::clicked, instructorFilepdf, &QCheckBox::toggle);
     }
-    if(!(previews.empty()))
+    if(!(previews.isEmpty()))
     {
         instructorFiletxt->setToolTip(previews.at(1));
         if(saveDialog)
@@ -855,7 +855,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         }
         instructorFileLabel->setToolTip(previews.at(1));
     }
-    QFrame *belowInstructorLine = new QFrame(this);
+    auto *belowInstructorLine = new QFrame(this);
     belowInstructorLine->setFrameShape(QFrame::HLine);
     belowInstructorLine->setFrameShadow(QFrame::Sunken);
     theGrid->addWidget(belowInstructorLine, 5, 0, 1, -1);
@@ -870,7 +870,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     connect(spreadsheetFileLabel, &QPushButton::clicked, spreadsheetFiletxt, &QCheckBox::toggle);
     spreadsheetFileLabel->setText(tr("Spreadsheet file:\nsections, teams, names, and email addresses in a tabular format."));
     theGrid->addWidget(spreadsheetFileLabel, 6, 3);
-    if(!(previews.empty()))
+    if(!(previews.isEmpty()))
     {
         spreadsheetFiletxt->setToolTip(previews.at(2));
         spreadsheetFileLabel->setToolTip(previews.at(2));
@@ -1192,7 +1192,7 @@ gatherIncompatibleResponsesDialog::~gatherIncompatibleResponsesDialog()
 
 void gatherIncompatibleResponsesDialog::updateExplanation()
 {
-    if(incompatibleResponses.empty())
+    if(incompatibleResponses.isEmpty())
     {
         explanation->setText("<html><hr><br><b>" + tr("No response values are incompatible.") + "<br></b></html>");
     }
@@ -1302,4 +1302,80 @@ gatherURMResponsesDialog::~gatherURMResponsesDialog()
     //delete dynamically allocated arrays created in class constructor
     delete [] enableValue;
     delete [] responses;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to show progress in optimization
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+progressDialog::progressDialog(QString text, QtCharts::QChartView *chart, QWidget *parent)
+    :QDialog (parent)
+{
+    //Set up window with a grid layout
+    setWindowTitle(tr("Optimizing teams..."));
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint);
+    setSizeGripEnabled(true);
+    theGrid = new QGridLayout(this);
+
+    explanation = new QLabel(this);
+    QFont defFont("Oxygen Mono");
+    defFont.setPointSize((explanation->fontInfo()).pointSize() + 4);
+    explanation->setFont(defFont);
+    setText(text);
+    theGrid->addWidget(explanation, 0, 0, 1, 1);
+
+    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Finish and\nshow teams", this);
+    stopHere->setIconSize(QSize(60,60));
+    defFont = stopHere->font();
+    defFont.setPointSize((explanation->fontInfo()).pointSize());
+    stopHere->setFont(defFont);
+    stopHere->setToolTip(tr("Stop the optimization process and show the best set of teams found so far."));
+    stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    connect(stopHere, &QPushButton::clicked, [this] {emit letsStop();});
+    theGrid->addWidget(stopHere, 0, 1, 1, 1, Qt::AlignRight);
+
+    auto *line = new QFrame(this);
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    theGrid->addWidget(line, 1, 0, 1, -1);
+
+    if(chart)
+    {
+        theGrid->addWidget(chart, 3, 0, 1, -1);
+        chart->hide();
+
+        showStatsButton = new QPushButton(QIcon(":/icons/down_arrow.png"), "Show optimization progress", this);
+        showStatsButton->setIconSize(QSize(25,25));
+        stopHere->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        connect(showStatsButton, &QPushButton::clicked, [this, chart] {graphShown = !graphShown; int height; QIcon icon; QString butText;
+                                                                       if(graphShown)
+                                                                       {chart->show(); height = 400; icon = QIcon(":/icons/up_arrow.png"); butText = "Hide optimization progress";}
+                                                                       else
+                                                                       {chart->hide(); height = 20; icon = QIcon(":/icons/down_arrow.png"); butText = "Show optimization progress";}
+                                                                       theGrid->setRowMinimumHeight(3, height);
+                                                                       showStatsButton->setIcon(icon);
+                                                                       showStatsButton->setText(butText);
+                                                                       adjustSize();});
+        theGrid->addWidget(showStatsButton, 2, 0, 1, -1);
+    }
+
+    adjustSize();
+}
+
+void progressDialog::setText(QString text)
+{
+    explanation->setText("<html>" + text + "</html>");
+}
+
+void progressDialog::highlightStopButton()
+{
+    stopHere->setFocus();
+    stopHere->setStyleSheet("QPushButton {border-style: outset; border-width: 4px; border-color: red;}");
+    stopHere->setMinimumSize(stopHere->size());
+}
+
+progressDialog::~progressDialog()
+{
 }

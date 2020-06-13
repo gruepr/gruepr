@@ -24,7 +24,7 @@ const QMap<QString, int> meaningOfTimeNames{ {"1am",1}, {"2am",2}, {"3am",3}, {"
                                            {"1 pm",13}, {"2 pm",14}, {"3 pm",15}, {"4 pm",16}, {"5 pm",17}, {"6 pm",18}, {"7 pm",19}, {"8 pm",20}, {"9 pm",21}, {"10 pm",22}, {"11 pm",23}, {"12 am",0},
                                            {"noon",12}, {"midnight", 0} };
 
-const int maxAttributes = 9;							// maximum number of skills/attitudes
+const int maxAttributes = 15;							// maximum number of skills/attitudes
 const int maxStudents = maxRecords;                     // each student is a "record" in the genetic algorithm
 const int maxTeams = maxStudents/2;
 const int maxTimeBlocks = 7*24;                         // resolution of scheduling is 1 hr, and scope is weekly

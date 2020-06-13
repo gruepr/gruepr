@@ -16,7 +16,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/surveymaker.png"));
 
-    noCommas = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
+    noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
     //load in local day names
     ui->day1LineEdit->setText(day1name);
@@ -123,24 +123,56 @@ void SurveyMaker::refreshPreview()
         preview += "<hr>";
     }
 
-    // generate URL
+    ui->previewText->setHtml(preview);
+    ui->previewText->verticalScrollBar()->setValue(currPos);
+}
 
-    URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
-    URL += "title=" + QUrl::toPercentEncoding(ui->surveyTitleLineEdit->text()) + "&";
-    URL += "gend=" + QString(gender? "true" : "false") + "&";
-    URL += "urm=" + QString(URM? "true" : "false") + "&";
-    URL += "numattr=" + QString::number(numAttributes) + "&";
+void SurveyMaker::on_makeSurveyButton_clicked()
+{
+    //make sure we have at least one attribute or the schedule question
+     if(((numAttributes == 0) && !schedule))
+    {
+        QMessageBox::critical(this, tr("Error!"), tr("A gruepr survey must have at least one\nattribute question and/or a schedule question.\nThe survey has NOT been created."));
+        return;
+    }
+
+    generateSurvey(this);
+}
+
+void SurveyMaker::postGoogleURL(SurveyMaker *survey)
+{
+    //make sure we can connect to google
+    auto *manager = new QNetworkAccessManager(survey);
+    QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    delete manager;
+
+    if(weGotProblems)
+    {
+        QMessageBox::critical(survey, tr("Error!"), tr("There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created."));
+        return;
+    }
+
+    //generate Google URL
+    QString URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
+    URL += "title=" + QUrl::toPercentEncoding(survey->ui->surveyTitleLineEdit->text()) + "&";
+    URL += "gend=" + QString(survey->gender? "true" : "false") + "&";
+    URL += "urm=" + QString(survey->URM? "true" : "false") + "&";
+    URL += "numattr=" + QString::number(survey->numAttributes) + "&";
     QString allAttributeTexts;
-    for(int attrib = 0; attrib < numAttributes; attrib++)
+    for(int attrib = 0; attrib < survey->numAttributes; attrib++)
     {
         if(attrib != 0)
         {
             allAttributeTexts += ",";
         }
 
-        if(!(attributeTexts[attrib].isEmpty()))
+        if(!(survey->attributeTexts[attrib].isEmpty()))
         {
-            allAttributeTexts += QUrl::toPercentEncoding(attributeTexts[attrib]);
+            allAttributeTexts += QUrl::toPercentEncoding(survey->attributeTexts[attrib]);
         }
         else
         {
@@ -149,94 +181,221 @@ void SurveyMaker::refreshPreview()
     }
     URL += "attrtext=" + allAttributeTexts + "&";
     QString allAttributeResponses;
-    for(int attrib = 0; attrib < numAttributes; attrib++)
+    for(int attrib = 0; attrib < survey->numAttributes; attrib++)
     {
         if(attrib != 0)
         {
             allAttributeResponses += ",";
         }
-        allAttributeResponses += QString::number(attributeResponses[attrib]);
+        allAttributeResponses += QString::number(survey->attributeResponses[attrib]);
     }
     URL += "attrresps=" + allAttributeResponses + "&";
-    URL += "sched=" + QString(schedule? "true" : "false") + "&";
-    URL += "start=" + QString::number(startTime) + "&end=" + QString::number(endTime);
+    URL += "sched=" + QString(survey->schedule? "true" : "false") + "&";
+    URL += "start=" + QString::number(survey->startTime) + "&end=" + QString::number(survey->endTime);
     QString allDayNames;
     bool firstDay = true;
     for(int day = 0; day < 7; day++)
     {
-        if(!(dayNames[day].isEmpty()))
+        if(!(survey->dayNames[day].isEmpty()))
         {
             if(!firstDay)
             {
                 allDayNames += ",";
             }
-            allDayNames += QUrl::toPercentEncoding(dayNames[day]);
+            allDayNames += QUrl::toPercentEncoding(survey->dayNames[day]);
             firstDay = false;
         }
     }
     URL += "&days=" + allDayNames + "&";
-    URL += "sect=" + QString(section? "true" : "false") + "&";
+    URL += "sect=" + QString(survey->section? "true" : "false") + "&";
     QString allSectionNames;
-    if(section)
+    if(survey->section)
     {
-        for(int sect = 0; sect < sectionNames.size(); sect++)
+        for(int sect = 0; sect < survey->sectionNames.size(); sect++)
         {
             if(sect != 0)
             {
                 allSectionNames += ",";
             }
-            allSectionNames += QUrl::toPercentEncoding(sectionNames[sect]);
+            allSectionNames += QUrl::toPercentEncoding(survey->sectionNames[sect]);
         }
     }
     URL += "sects=" + allSectionNames + "&";
-    URL += "addl=" + QString(additionalQuestions? "true" : "false");
+    URL += "addl=" + QString(survey->additionalQuestions? "true" : "false");
 
-    //preview += "<br><br><small>URL preview: " + URL + "</small><hr>";
-
-    ui->previewText->setHtml(preview);
-    ui->previewText->verticalScrollBar()->setValue(currPos);
-}
-
-void SurveyMaker::on_makeSurveyButton_clicked()
-{
-    //make sure we have at least one attribute or the schedule question
-    bool weGotProblems = ((numAttributes == 0) && !schedule);
-
-    if(weGotProblems)
-    {
-        QMessageBox::critical(this, tr("Error!"), tr("A gruepr survey must have at least one\nattribute question and/or a schedule question.\nThe survey has NOT been created."));
-        return;
-    }
-
-    //make sure we can connect to google
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    weGotProblems = (networkReply->bytesAvailable() == 0);
-    delete manager;
-
-    if(weGotProblems)
-    {
-        QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\nCheck your network connection and try again.\nThe survey has NOT been created."));
-        return;
-    }
-
-    QMessageBox createSurvey(this);
+    //upload to Google
+    QMessageBox createSurvey;
     createSurvey.setIcon(QMessageBox::Information);
     createSurvey.setWindowTitle(tr("Survey Creation"));
     createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n\n"
-                            "You may be asked first to authorize gruepr to access your Google Drive.\n"
+                            "  » You may be asked first to authorize gruepr to access your Google Drive. "
                             "This authorization is needed so that the Google Form and the results spreadsheet can be created for you.\n"
-                            "All data associated with this survey will exist in your Google Drive only.\nNo data from this survey will be kept anywhere else.\n\n"
-                            "The survey creation itself will take 10 - 20 seconds. During this time, the browser window will be blank.\n"
+                            "  » The survey, the survey responses, and all data associated with this survey will exist in your Google Drive. "
+                            "No data from this survey is stored anywhere else.\n\n"
+                            "  » The survey creation process will take 10 - 20 seconds. During this time, the browser window will be blank. "
                             "A screen with additional information will be shown in your browser window as soon as the process is complete."));
     createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
     if(createSurvey.exec() == QMessageBox::Ok)
     {
         QDesktopServices::openUrl(QUrl(URL));
-        surveyCreated = true;
+        survey->surveyCreated = true;
+    }
+}
+
+void SurveyMaker::createFiles(SurveyMaker *survey)
+{
+    //give instructions about how this option works
+    QMessageBox createSurvey;
+    createSurvey.setIcon(QMessageBox::Information);
+    createSurvey.setWindowTitle(tr("Survey Creation"));
+    createSurvey.setText(tr("The next step will save two files to your computer:\n\n"
+                            "  » A text file that lists the questions you should include in your survey.\n\n"
+                            "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
+    createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+    if(createSurvey.exec() == QMessageBox::Ok)
+    {
+        //get the filenames and location
+        QString fileName = QFileDialog::getSaveFileName(survey, tr("Save File"), survey->saveFileLocation.canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
+        if( !(fileName.isEmpty()) )
+        {
+            //create the files
+            QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
+            if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text) && saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
+            {
+                int questionNumber = 0, sectionNumber = 0;
+                QString textFileContents = survey->title + "\n\n";
+                QString csvFileContents = "Timestamp";
+
+                textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
+                textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Basic Information") + ":";
+
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += tr("What is your first name (or the name you prefer to be called)?");
+                csvFileContents += ",What is your first name (or the name you prefer to be called)?";
+
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += tr("What is your last name?");
+                csvFileContents += ",What is your last name?";
+
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += tr("What is your email address?");
+                csvFileContents += ",What is your email address?";
+
+                if(survey->gender)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += tr("With which gender do you identify?");
+                    textFileContents += "\n     " + tr("choices: [woman | man | non-binary | prefer not to answer]");
+                    csvFileContents += ",With which gender do you identify?";
+                }
+                if(survey->URM)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += tr("How do you identify your race, ethnicity, or cultural heritage?");
+                    csvFileContents += ",\"How do you identify your race, ethnicity, or cultural heritage?\"";
+                }
+                if(survey->numAttributes > 0)
+                {
+                    textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Attributes") + ":";
+                    for(int attrib = 0; attrib < survey->numAttributes; attrib++)
+                    {
+                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                        textFileContents += survey->attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
+                        textFileContents += "\n     " + tr("choices") + ": [";
+                        QStringList responses = survey->responseOptions.at(survey->attributeResponses[attrib]).split("/");
+                        for(int resp = 0; resp < responses.size(); resp++)
+                        {
+                            if(resp != 0)
+                            {
+                                textFileContents += " | ";
+                            }
+                            if( (survey->attributeResponses[attrib] > 0) && (survey->attributeResponses[attrib] < 26) )
+                            {
+                                textFileContents += QString::number(resp+1) + ". ";
+                            }
+                            textFileContents += responses.at(resp);
+                        }
+                        textFileContents += "]";
+                        csvFileContents += ",\"" + (survey->attributeTexts[attrib].isEmpty()? "Attribute question " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
+                    }
+                }
+                if(survey->schedule)
+                {
+                    textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Schedule") + ":";
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += tr("Please tell us about your weekly schedule.") + "\n";
+                    textFileContents += "     " + tr("Check the times that you are BUSY and will be UNAVAILABLE for group work.") + "\n";
+                    textFileContents += "                 ";
+                    for(int time = survey->startTime; time <= survey->endTime; time++)
+                    {
+                        textFileContents += QTime(time, 0).toString("hA") + "    ";
+                    }
+                    textFileContents += "\n";
+                    for(int day = 0; day < 7; day++)
+                    {
+                        if(!(survey->dayNames[day].isEmpty()))
+                        {
+                            textFileContents += "\n      " + survey->dayNames[day] + "\n";
+                            csvFileContents += ",Check the times that you are BUSY and will be UNAVAILABLE for group work. [" + survey->dayNames[day] + "]";
+                        }
+                    }
+                }
+                if(survey->section || survey->additionalQuestions)
+                {
+                    textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Additional Information") + ":";
+                    if(survey->section)
+                    {
+                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                        textFileContents += tr("In which section are you enrolled?");
+                        textFileContents += "\n     " + tr("choices") + ": [";
+                        for(int sect = 0; sect < survey->sectionNames.size(); sect++)
+                        {
+                            if(sect > 0)
+                            {
+                                textFileContents += " | ";
+                            }
+
+                            textFileContents += survey->sectionNames[sect];
+                        }
+                        textFileContents += " ]";
+                        csvFileContents += ",In which section are you enrolled?";
+                    }
+                    if(survey->additionalQuestions)
+                    {
+                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                        textFileContents += tr("{Any additional questions you wish to include in the survey but not use for forming groups.}");
+                        csvFileContents += ",Any additional questions you wish to include in the survey but not use for forming groups.";
+                    }
+                }
+
+                //write the files
+                QTextStream output(&saveFile), output2(&saveFile2);
+                output << textFileContents;
+                output2 << csvFileContents;
+                saveFile.close();
+                saveFile2.close();
+
+                survey->surveyCreated = true;
+            }
+        }
+        else
+        {
+            QMessageBox::critical(survey, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+        }
+    }
+}
+
+void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg1)
+{
+    if(arg1 == "Google form")
+    {
+        ui->makeSurveyButton->setToolTip("<html>Upload the survey previewed below to your Google Drive so that students can submit their responses.</html>");
+        generateSurvey = &SurveyMaker::postGoogleURL;
+    }
+    else if(arg1 == "csv file")
+    {
+        ui->makeSurveyButton->setToolTip("<html>Create a text file with the required question text to use for your survey and a csv file to paste the results in afterwards.</html>");
+        generateSurvey = &SurveyMaker::createFiles;
     }
 }
 
@@ -245,11 +404,11 @@ void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->surveyTitleLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the survey title:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the survey title:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     title = ui->surveyTitleLineEdit->text().trimmed();
@@ -290,11 +449,19 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
     //validate entry
     QString currText = ui->attributeTextEdit->toPlainText();
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->attributeTextEdit->setPlainText(ui->attributeTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the question text:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the question text:\n    ,  &  <  >\nOther punctuation is allowed."));
+    }
+    else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
+    {
+        ui->attributeTextEdit->setPlainText(ui->attributeTextEdit->toPlainText().replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
+        QApplication::beep();
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, attribute questions may not containt the exact wording:\n"
+                                                          "\"In which section are you enrolled\"\nwithin the question text.\n"
+                                                          "A section question may be added using the \"Section\" checkbox."));
     }
 
     attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
@@ -452,11 +619,11 @@ void SurveyMaker::on_day1LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day1LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[0] = ui->day1LineEdit->text().trimmed();
@@ -476,11 +643,11 @@ void SurveyMaker::on_day2LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day2LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[1] = ui->day2LineEdit->text().trimmed();
@@ -500,11 +667,11 @@ void SurveyMaker::on_day3LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day3LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[2] = ui->day3LineEdit->text().trimmed();
@@ -524,11 +691,11 @@ void SurveyMaker::on_day4LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day4LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[3] = ui->day4LineEdit->text().trimmed();
@@ -548,11 +715,11 @@ void SurveyMaker::on_day5LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day5LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[4] = ui->day5LineEdit->text().trimmed();
@@ -572,11 +739,11 @@ void SurveyMaker::on_day6LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day6LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[5] = ui->day6LineEdit->text().trimmed();
@@ -596,11 +763,11 @@ void SurveyMaker::on_day7LineEdit_textChanged(const QString &arg1)
     //validate entry
     QString currText = arg1;
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->day7LineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     dayNames[6] = ui->day7LineEdit->text().trimmed();
@@ -647,11 +814,11 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     //validate entry
     QString currText = ui->sectionNamesTextEdit->toPlainText();
     int currPos = 0;
-    if(noCommas->validate(currText, currPos) != QValidator::Acceptable)
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
         ui->sectionNamesTextEdit->setPlainText(ui->sectionNamesTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation marks are not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the section names:\n    ,  &  <  >\nOther punctuation is allowed."));
     }
 
     // split the input at every newline, then remove any blanks (including just spaces)

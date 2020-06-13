@@ -11,6 +11,7 @@
 #endif
 #include "customDialogs.h"
 #include "customWidgets.h"
+#include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
 
 
@@ -56,9 +57,7 @@ private slots:
     void on_requestedTeammatesButton_clicked();
     void on_requestedTeammateNumberBox_valueChanged(int arg1);
     void on_letsDoItButton_clicked();
-    void on_cancelOptimizationButton_clicked();
-    void updateOptimizationProgress(float score, int generation, float scoreStability);
-    void askWhetherToContinueOptimizing(int generation);
+    void updateOptimizationProgress(QVector<float> allScores, int generation, float scoreStability);
     void optimizationComplete();
     void on_expandAllButton_clicked();
     void on_collapseAllButton_clicked();
@@ -75,9 +74,8 @@ private slots:
     void on_AboutButton_clicked();
 
 signals:
-    void generationComplete(float score, int generation, float scoreStability);
-    void optimizationMightBeComplete(int generation);
-    void haveOurKeepOptimizingValue();
+    void generationComplete(QVector<float> allScores, int generation, float scoreStability);
+    void optimizationMightBeComplete();
     void turnOffBusyCursor();
     void connectedToPrinter();
 
@@ -89,8 +87,9 @@ private:
     int numTeams = 1;
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
+
         // reading survey data file
-    bool loadSurveyData(const QString &fileName);              // returns false if file is invalid
+    bool loadSurveyData(const QString &fileName);       // returns false if file is invalid
     studentRecord *student = nullptr;                   // array to hold the students' data
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
@@ -101,6 +100,7 @@ private:
                                                                // always has >= minFields
     void refreshStudentDisplay();
     QString createAToolTip(const studentRecord &info, bool duplicateRecord);
+
         // score calculation
     float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
     float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
@@ -109,11 +109,14 @@ private:
     bool haveAnyPreventedTeammates = false;
     bool haveAnyRequestedTeammates = false;
     bool haveAnyIncompatibleAttributes[maxAttributes];  // (initialized in constructor)
+
         // team set optimization
     int *studentIDs = nullptr;                          // array of the IDs of students to be placed on teams
     QList<int> optimizeTeams(const int *studentIDs);    // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
+    BoxWhiskerPlot *progressChart;
+    progressDialog *progressWindow;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;
@@ -125,6 +128,7 @@ private:
     QMutex optimizationStoppedmutex;
     bool optimizationStopped = false;
     bool keepOptimizing = false;
+
         // reporting results
     teamInfo *teams = nullptr;
     void refreshTeamInfo(QList<int> teamNums = {-1});
