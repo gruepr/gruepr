@@ -40,5 +40,7 @@
         <file>icons/license.png</file>
         <file>icons/updown_arrow.png</file>
         <file>icons/blank_arrow.png</file>
+        <file>icons/ok.png</file>
+        <file>icons/loading.gif</file>
     </qresource>
 </RCC>

@@ -1,16 +1,18 @@
 #include "ui_gruepr.h"
 #include "gruepr.h"
-#include <QScreen>
-#include <QList>
 #include <QFile>
-#include <QTextStream>
-#include <QTextBrowser>
 #include <QFileDialog>
+#include <QJsonDocument>
+#include <QList>
 #include <QMessageBox>
+#include <QPainter>
+#include <QPrintDialog>
+#include <QScreen>
+#include <QTextBrowser>
+#include <QTextStream>
 #include <QtConcurrent>
 #include <QtNetwork>
-#include <QPrintDialog>
-#include <QPainter>
+#include <random>
 
 
 gruepr::gruepr(QWidget *parent) :
@@ -53,12 +55,8 @@ gruepr::gruepr(QWidget *parent) :
     }
     adjustSize();
 
-    //Restore window geometry
-    QSettings savedSettings;
-    restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
-
     //Disallow sorting on last two columns of student table
-    connect(ui->studentTable->horizontalHeader(), &QHeaderView::sectionClicked, [this](int column)
+    connect(ui->studentTable->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int column)
                                                                                 {if(column < ui->studentTable->columnCount()-2)
                                                                                       {ui->studentTable->sortByColumn(column, ui->studentTable->horizontalHeader()->sortIndicatorOrder());
                                                                                        ui->studentTable->horizontalHeaderItem(column)->setIcon(QIcon(":/icons/blank_arrow.png"));
@@ -90,11 +88,10 @@ gruepr::gruepr(QWidget *parent) :
 
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress);
-    connect(this, &gruepr::optimizationMightBeComplete, [this] {QApplication::beep(); QApplication::alert(this);});
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
     // load all of the default values
-    on_loadSettingsButton_clicked();
+    loadDefaultSettings();
 }
 
 gruepr::~gruepr()
@@ -232,8 +229,6 @@ void gruepr::on_loadSurveyFileButton_clicked()
                                                                                     "Possible duplicates are marked with a yellow background in the table."));
             }
 
-            ui->saveSettingsButton->setEnabled(true);
-            ui->loadSettingsButton->setEnabled(true);
             ui->statusBar->showMessage("File: " + dataOptions.dataFile.fileName());
             ui->studentTable->setEnabled(true);
             ui->addStudentPushButton->setEnabled(true);
@@ -355,6 +350,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->label_10->setEnabled(true);
             on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 
+            ui->loadSettingsButton->setEnabled(true);
+            ui->saveSettingsButton->setEnabled(true);
+            ui->label_17->setEnabled(true);
             ui->letsDoItButton->setEnabled(true);
         }
 
@@ -365,111 +363,162 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
 void gruepr::on_loadSettingsButton_clicked()
 {
-    //Load default settings (from saved settings, if they exist)
-    QSettings savedSettings;
-    dataOptions.dataFile.setFile(savedSettings.value("dataFileLocation", "").toString());
-    teamingOptions.isolatedWomenPrevented = savedSettings.value("isolatedWomenPrevented", false).toBool();
-    ui->isolatedWomenCheckBox->setChecked(teamingOptions.isolatedWomenPrevented);
-    teamingOptions.isolatedMenPrevented = savedSettings.value("isolatedMenPrevented", false).toBool();
-    ui->isolatedMenCheckBox->setChecked(teamingOptions.isolatedMenPrevented);
-    teamingOptions.mixedGenderPreferred = savedSettings.value("mixedGenderPreferred", false).toBool();
-    ui->mixedGenderCheckBox->setChecked(teamingOptions.isolatedMenPrevented);
-    teamingOptions.isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
-    ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
-    ui->isolatedURMCheckBox->setChecked(teamingOptions.isolatedURMPrevented);
-    ui->isolatedURMCheckBox->blockSignals(false);
-    teamingOptions.desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
-    ui->desiredMeetingTimes->setValue(teamingOptions.desiredTimeBlocksOverlap);
-    teamingOptions.minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
-    ui->minMeetingTimes->setValue(teamingOptions.minTimeBlocksOverlap);
-    teamingOptions.meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toInt();
-    ui->meetingLength->setCurrentIndex(teamingOptions.meetingBlockSize-1);
-    ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", ui->idealTeamSizeBox->value()).toInt());
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
-    savedSettings.beginReadArray("Attributes");
-    for (int attribNum = 0; attribNum < maxAttributes; ++attribNum)
+    //read all options from a text file
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), dataOptions.dataFile.canonicalFilePath(), tr("gruepr Settings File (*.json);;All Files (*)"));
+    if( !(fileName.isEmpty()) )
     {
-        savedSettings.setArrayIndex(attribNum);
-        teamingOptions.desireHomogeneous[attribNum] = savedSettings.value("desireHomogeneous", false).toBool();
-        teamingOptions.attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
-    }
-    savedSettings.endArray();
-    //reset the weight to zero for any attributes with just one value in the data
-    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-    {
-        if(dataOptions.attributeMin[attribute] == dataOptions.attributeMax[attribute])
+        QFile loadFile(fileName);
+        if(loadFile.open(QIODevice::ReadOnly))
         {
-            teamingOptions.attributeWeights[attribute] = 0;
+            QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
+            QJsonObject loadObject = loadDoc.object();
+
+            if(loadObject.contains("idealTeamSize") && loadObject["idealTeamSize"].isDouble())
+            {
+                ui->idealTeamSizeBox->setValue(loadObject["idealTeamSize"].toInt());
+                on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+            }
+            if(loadObject.contains("isolatedWomenPrevented") && loadObject["isolatedWomenPrevented"].isBool())
+            {
+                teamingOptions.isolatedWomenPrevented = loadObject["isolatedWomenPrevented"].toBool();
+                ui->isolatedWomenCheckBox->setChecked(teamingOptions.isolatedWomenPrevented);
+            }
+            if(loadObject.contains("isolatedMenPrevented") && loadObject["isolatedMenPrevented"].isBool())
+            {
+                teamingOptions.isolatedMenPrevented = loadObject["isolatedMenPrevented"].toBool();
+                ui->isolatedMenCheckBox->setChecked(teamingOptions.isolatedMenPrevented);
+            }
+            if(loadObject.contains("singleGenderPrevented") && loadObject["singleGenderPrevented"].isBool())
+            {
+                teamingOptions.singleGenderPrevented = loadObject["singleGenderPrevented"].toBool();
+                ui->mixedGenderCheckBox->setChecked(teamingOptions.singleGenderPrevented);
+            }
+            if(loadObject.contains("isolatedURMPrevented") && loadObject["isolatedURMPrevented"].isBool())
+            {
+                teamingOptions.isolatedURMPrevented = loadObject["isolatedURMPrevented"].toBool();
+                ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
+                ui->isolatedURMCheckBox->setChecked(teamingOptions.isolatedURMPrevented);
+                ui->isolatedURMCheckBox->blockSignals(false);
+            }
+            if(loadObject.contains("URMResponsesConsideredUR") && loadObject["URMResponsesConsideredUR"].isString())
+            {
+                teamingOptions.URMResponsesConsideredUR = loadObject["URMResponsesConsideredUR"].toString().split(';');
+            }
+            if(loadObject.contains("minTimeBlocksOverlap") && loadObject["minTimeBlocksOverlap"].isDouble())
+            {
+                teamingOptions.minTimeBlocksOverlap = loadObject["minTimeBlocksOverlap"].toInt();
+                ui->minMeetingTimes->setValue(teamingOptions.minTimeBlocksOverlap);
+            }
+            if(loadObject.contains("desiredTimeBlocksOverlap") && loadObject["desiredTimeBlocksOverlap"].isDouble())
+            {
+                teamingOptions.desiredTimeBlocksOverlap = loadObject["desiredTimeBlocksOverlap"].toInt();
+                ui->desiredMeetingTimes->setValue(teamingOptions.desiredTimeBlocksOverlap);
+            }
+            if(loadObject.contains("meetingBlockSize") && loadObject["meetingBlockSize"].isDouble())
+            {
+                teamingOptions.meetingBlockSize = loadObject["meetingBlockSize"].toInt();
+                ui->meetingLength->setCurrentIndex(teamingOptions.meetingBlockSize - 1);
+            }
+            if(loadObject.contains("scheduleWeight") && loadObject["scheduleWeight"].isDouble())
+            {
+                teamingOptions.scheduleWeight = float(loadObject["scheduleWeight"].toDouble());
+                ui->scheduleWeight->setValue(teamingOptions.scheduleWeight);
+            }
+
+            for(int attribute = 0; attribute < maxAttributes; attribute++)
+            {
+                if(loadObject.contains("Attribute" + QString::number(attribute+1)+"desireHomogeneous") &&
+                        loadObject["Attribute" + QString::number(attribute+1)+"desireHomogeneous"].isBool())
+                {
+                    teamingOptions.desireHomogeneous[attribute] = loadObject["Attribute" + QString::number(attribute+1)+"desireHomogeneous"].toBool();
+                }
+                if(loadObject.contains("Attribute" + QString::number(attribute+1)+"Weight") &&
+                        loadObject["Attribute" + QString::number(attribute+1)+"Weight"].isDouble())
+                {
+                    teamingOptions.attributeWeights[attribute] = float(loadObject["Attribute" + QString::number(attribute+1)+"Weight"].toDouble());
+                    //reset the weight to zero for any attributes with just one value in the data
+                    if(dataOptions.attributeMin[attribute] == dataOptions.attributeMax[attribute])
+                    {
+                        teamingOptions.attributeWeights[attribute] = 0;
+                    }
+                }
+                int incompatibleResponseNum = 0;
+                QList< QPair<int,int> > setOfIncompatibleResponses;
+                while(loadObject.contains("Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)) &&
+                      loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)].isString())
+                {
+                    QStringList incoRes = loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)].toString().split(',');
+                    setOfIncompatibleResponses << QPair<int,int>(incoRes.at(0).toInt(),incoRes.at(1).toInt());
+                    incompatibleResponseNum++;
+                }
+                teamingOptions.incompatibleAttributeValues[attribute] = setOfIncompatibleResponses;
+            }
+            if(ui->attributeScrollBar->value() == 0)
+            {
+                on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
+            }
+            else
+            {
+                ui->attributeScrollBar->setValue(0);
+            }
+
+            if(loadObject.contains("numberRequestedTeammatesGiven") && loadObject["numberRequestedTeammatesGiven"].isDouble())
+            {
+                teamingOptions.numberRequestedTeammatesGiven = loadObject["numberRequestedTeammatesGiven"].toInt();
+                ui->requestedTeammateNumberBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
+            }
+
+            loadFile.close();
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("File Error"), tr("This file cannot be read."));
         }
     }
-    if(ui->attributeScrollBar->value() == 0)
-    {
-        on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
-    }
-    else
-    {
-        ui->attributeScrollBar->setValue(0);
-    }
-    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
-    ui->scheduleWeight->setValue(double(teamingOptions.scheduleWeight));
-    teamingOptions.numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
-    ui->requestedTeammateNumberBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
-
-    QStringList keys = savedSettings.allKeys();
-    keys.removeOne("registeredUser");
-    keys.removeOne("registeredUserID");
-    keys.removeOne("askToSaveDefaultsOnExit");
-    ui->clearSettingsButton->setEnabled(!keys.isEmpty());  // setting this value based on whether there ARE saved settings
 }
 
 
 void gruepr::on_saveSettingsButton_clicked()
 {
-    QSettings savedSettings;
-    savedSettings.setValue("dataFileLocation", dataOptions.dataFile.canonicalFilePath());
-    savedSettings.setValue("isolatedWomenPrevented", teamingOptions.isolatedWomenPrevented);
-    savedSettings.setValue("isolatedMenPrevented", teamingOptions.isolatedMenPrevented);
-    savedSettings.setValue("mixedGenderPreferred", teamingOptions.mixedGenderPreferred);
-    savedSettings.setValue("isolatedURMPrevented", teamingOptions.isolatedURMPrevented);
-    savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions.desiredTimeBlocksOverlap);
-    savedSettings.setValue("minTimeBlocksOverlap", teamingOptions.minTimeBlocksOverlap);
-    savedSettings.setValue("meetingBlockSize", teamingOptions.meetingBlockSize);
-    savedSettings.setValue("idealTeamSize", ui->idealTeamSizeBox->value());
-    savedSettings.beginWriteArray("Attributes");
-    for (int attribNum = 0; attribNum < maxAttributes; ++attribNum)
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), dataOptions.dataFile.canonicalPath(), tr("gruepr Settings File (*.json);;All Files (*)"));
+    if( !(fileName.isEmpty()) )
     {
-        savedSettings.setArrayIndex(attribNum);
-        savedSettings.setValue("desireHomogeneous", teamingOptions.desireHomogeneous[attribNum]);
-        savedSettings.setValue("Weight", teamingOptions.attributeWeights[attribNum]);
+        QFile saveFile(fileName);
+        if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QJsonObject saveObject;
+            saveObject["idealTeamSize"] = ui->idealTeamSizeBox->value();
+            saveObject["isolatedWomenPrevented"] = teamingOptions.isolatedWomenPrevented;
+            saveObject["isolatedMenPrevented"] = teamingOptions.isolatedMenPrevented;
+            saveObject["singleGenderPrevented"] = teamingOptions.singleGenderPrevented;
+            saveObject["isolatedURMPrevented"] = teamingOptions.isolatedURMPrevented;
+            saveObject["URMResponsesConsideredUR"] = teamingOptions.URMResponsesConsideredUR.join(';');
+            saveObject["minTimeBlocksOverlap"] = teamingOptions.minTimeBlocksOverlap;
+            saveObject["desiredTimeBlocksOverlap"] = teamingOptions.desiredTimeBlocksOverlap;
+            saveObject["meetingBlockSize"] = teamingOptions.meetingBlockSize;
+            saveObject["scheduleWeight"] = teamingOptions.scheduleWeight;
+            for(int attribute = 0; attribute < maxAttributes; attribute++)
+            {
+                saveObject["Attribute" + QString::number(attribute+1)+"desireHomogeneous"] = teamingOptions.desireHomogeneous[attribute];
+                saveObject["Attribute" + QString::number(attribute+1)+"Weight"] = teamingOptions.attributeWeights[attribute];
+                for(int incompResp = 0; incompResp < teamingOptions.incompatibleAttributeValues[attribute].size(); incompResp++)
+                {
+                    saveObject["Attribute" + QString::number(attribute+1)+"incompatibleResponse" + QString::number(incompResp+1)] =
+                            (QString::number(teamingOptions.incompatibleAttributeValues[attribute].at(incompResp).first) + "," +
+                             QString::number(teamingOptions.incompatibleAttributeValues[attribute].at(incompResp).second));
+                }
+            }
+            saveObject["numberRequestedTeammatesGiven"] = teamingOptions.numberRequestedTeammatesGiven;
+
+            QJsonDocument saveDoc(saveObject);
+            saveFile.write(saveDoc.toJson());
+            saveFile.close();
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("No Files Saved"), tr("This settings file was not saved.\nThere was an issue writing the file to disk."));
+        }
     }
-    savedSettings.endArray();
-    savedSettings.setValue("scheduleWeight", ui->scheduleWeight->value());
-    savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
-
-    ui->clearSettingsButton->setEnabled(true);
-}
-
-
-void gruepr::on_clearSettingsButton_clicked()
-{
-    // Clear all settings
-    QSettings savedSettings;
-    QString registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString registeredUserID = savedSettings.value("registeredUserID", "").toString();
-
-    //Uncomment the line below and the line two below in order to prevent clearing the setting about "don't show this box again" on app exit
-    //bool askToSave = savedSettings.value("askToSaveDefaultsOnExit",true).toBool();
-    savedSettings.clear();
-    //savedSettings.setValue("askToSaveDefaultsOnExit", askToSave);
-
-    //put the registered user info back, if it exists
-    if(!registeredUser.isEmpty())
-    {
-        savedSettings.setValue("registeredUser", registeredUser);
-        savedSettings.setValue("registeredUserID", registeredUserID);
-    }
-
-    ui->clearSettingsButton->setEnabled(false);
 }
 
 
@@ -887,7 +936,7 @@ void gruepr::on_isolatedMenCheckBox_stateChanged(int arg1)
 
 void gruepr::on_mixedGenderCheckBox_stateChanged(int arg1)
 {
-    teamingOptions.mixedGenderPreferred = arg1;
+    teamingOptions.singleGenderPrevented = arg1;
 }
 
 
@@ -1046,63 +1095,60 @@ void gruepr::on_meetingLength_currentIndexChanged(int index)
 void gruepr::on_requiredTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are required
-    gatherTeammatesDialog *window =
-            new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
+    auto *dial = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
-    int reply = window->exec();
+    int reply = dial->exec();
     if(reply == QDialog::Accepted)
     {
         for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
-            this->student[ID] = window->student[ID];
+            this->student[ID] = dial->student[ID];
         }
-        haveAnyRequiredTeammates = haveAnyRequiredTeammates || window->teammatesSpecified;
+        haveAnyRequiredTeammates = haveAnyRequiredTeammates || dial->teammatesSpecified;
     }
 
-    delete window;
+    delete dial;
 }
 
 
 void gruepr::on_preventedTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are prevented
-    gatherTeammatesDialog *window =
-            new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
+    auto *dial = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
-    int reply = window->exec();
+    int reply = dial->exec();
     if(reply == QDialog::Accepted)
     {
         for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
-            this->student[ID] = window->student[ID];
+            this->student[ID] = dial->student[ID];
         }
-        haveAnyPreventedTeammates = haveAnyPreventedTeammates || window->teammatesSpecified;
+        haveAnyPreventedTeammates = haveAnyPreventedTeammates || dial->teammatesSpecified;
     }
 
-    delete window;
+    delete dial;
 }
 
 
 void gruepr::on_requestedTeammatesButton_clicked()
 {
     //Open specialized dialog box to collect pairings that are required
-    gatherTeammatesDialog *window =
-            new gatherTeammatesDialog(gatherTeammatesDialog::requested, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
+    auto *dial = new gatherTeammatesDialog(gatherTeammatesDialog::requested, student, dataOptions.numStudentsInSystem, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
-    int reply = window->exec();
+    int reply = dial->exec();
     if(reply == QDialog::Accepted)
     {
         for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
         {
-            this->student[ID] = window->student[ID];
+            this->student[ID] = dial->student[ID];
         }
-        haveAnyRequestedTeammates = haveAnyRequestedTeammates || window->teammatesSpecified;
+        haveAnyRequestedTeammates = haveAnyRequestedTeammates || dial->teammatesSpecified;
     }
 
-    delete window;
+    delete dial;
 }
 
 
@@ -1305,15 +1351,15 @@ void gruepr::on_letsDoItButton_clicked()
     teamDataTree->setEnabled(false);
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-    realNumScoringFactors = dataOptions.numAttributes + (!dataOptions.dayNames.isEmpty()? 1 : 0);
+    realNumScoringFactors = dataOptions.numAttributes + (dataOptions.dayNames.isEmpty()? 0 : 1);
     float normFactor = (float(realNumScoringFactors)) /
                        (std::accumulate(teamingOptions.attributeWeights, teamingOptions.attributeWeights + dataOptions.numAttributes, float(0.0)) +
-                        (!dataOptions.dayNames.isEmpty()? teamingOptions.scheduleWeight : 0));
+                        (dataOptions.dayNames.isEmpty()? 0 : teamingOptions.scheduleWeight));
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         realAttributeWeights[attribute] = teamingOptions.attributeWeights[attribute] * normFactor;
     }
-    realScheduleWeight = (!dataOptions.dayNames.isEmpty()? teamingOptions.scheduleWeight : 0) * normFactor;
+    realScheduleWeight = (dataOptions.dayNames.isEmpty()? 0 : teamingOptions.scheduleWeight) * normFactor;
 
 #ifdef Q_OS_WIN32
     // Set up to show progess on windows taskbar
@@ -1330,9 +1376,9 @@ void gruepr::on_letsDoItButton_clicked()
     chartView->setRenderHint(QPainter::Antialiasing);
 
     // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-    progressWindow = new progressDialog(tr("Generation ") + "-- - " + tr("Top Score = ") + "--.----", chartView, this);
+    progressWindow = new progressDialog("", chartView, this);
     progressWindow->show();
-    connect(progressWindow, &progressDialog::letsStop, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
                                                                connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
                                                                optimizationStoppedmutex.lock();
                                                                optimizationStopped = true;
@@ -1364,26 +1410,18 @@ void gruepr::updateOptimizationProgress(QVector<float> allScores, int generation
     progressChart->updatePlot();
     if(generation > maxGenerations)
     {
-        progressWindow->setText(tr("Generation ") + QString::number(generation) + " - " +
-                                tr("Top Score = ") + QString::number(*std::max_element(allScores.constBegin(), allScores.constEnd())) +
-                                "<br><br><span style=\"color:red;\">" + tr("We have reached ") + QString::number(maxGenerations) + tr(" generations.") +
-                                "<br>" + tr("It is recommended to stop optimization now.") + "</span>");
+        progressWindow->setText(tr("We have reached ") + QString::number(maxGenerations) + tr(" generations."),
+                                generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
         progressWindow->highlightStopButton();
     }
-    else if( (generation >= minGenerations) && (scoreStability > 100) )
+    else if( (generation >= minGenerations) && (scoreStability > minScoreStability) )
     {
-        progressWindow->setText(tr("Generation ") + QString::number(generation) +
-                                tr(" - Top Score = ") + QString::number(*std::max_element(allScores.constBegin(), allScores.constEnd())) +
-                                "<br><br><span style=\"color:red;\">" + tr("Score appears to be stable.") +
-                                "<br>" + tr("It is recommended to stop optimization now.") + "</span>");
+        progressWindow->setText(tr("Score appears to be stable."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
         progressWindow->highlightStopButton();
     }
     else
     {
-        progressWindow->setText(tr("Generation ") + QString::number(generation) +
-                                tr(" - Top Score = ") + QString::number(*std::max_element(allScores.constBegin(), allScores.constEnd())) +
-                                "<br><br><span style=\"color:green;\">" + tr("Optimization in progress.") +
-                                "<br>" + tr("You may click the stop button at any time.") + "</span>");
+        progressWindow->setText(tr("Optimization in progress."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), false);
     }
 
 #ifdef Q_OS_WIN32
@@ -1398,6 +1436,10 @@ void gruepr::updateOptimizationProgress(QVector<float> allScores, int generation
 
 void gruepr::optimizationComplete()
 {
+    //alert
+    QApplication::beep();
+    QApplication::alert(this);
+
     // update UI
     ui->sectionSelectionBox->setEnabled(ui->sectionSelectionBox->count() > 1);
     ui->label_2->setEnabled(ui->sectionSelectionBox->count() > 1);
@@ -1426,6 +1468,7 @@ void gruepr::optimizationComplete()
 #ifdef Q_OS_WIN32
     taskbarProgress->hide();
 #endif
+    delete progressChart;
     delete progressWindow;
 
     // free memory used to save array of IDs of students being teamed
@@ -1446,14 +1489,15 @@ void gruepr::optimizationComplete()
         }
         //sort teammates within a team alphabetically by lastname,firstname
         std::sort(teams[team].studentIDs.begin(), teams[team].studentIDs.end(),
-                  [this] (const int &a, const int &b) {return ( (student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname) );});
+                  [this] (const int a, const int b) {return ( (student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname) );});
     }
 
     // Get scores and other student info loaded
     refreshTeamInfo();
 
-    // Sort teams by score and set default names
-    std::sort(teams, teams+numTeams, [](const teamInfo &a, const teamInfo &b) {return a.score < b.score;});
+    // Sort teams by student name and set default teamnames
+    std::sort(teams, teams+numTeams, [this](const teamInfo &a, const teamInfo &b) {return ( (student[a.studentIDs.at(0)].lastname + student[a.studentIDs.at(0)].firstname) <
+                                                                                            (student[b.studentIDs.at(0)].lastname + student[b.studentIDs.at(0)].firstname) );});
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].name = QString::number(team+1);
@@ -1465,8 +1509,8 @@ void gruepr::optimizationComplete()
     refreshTeamDisplay();
 
     // Sort by score and load initial order into currentSort column
-    teamDataTree->sortByColumn(1, Qt::AscendingOrder);
-    teamDataTree->headerItem()->setIcon(1, QIcon(":/icons/blank_arrow.png"));
+    teamDataTree->sortByColumn(0, Qt::AscendingOrder);
+    teamDataTree->headerItem()->setIcon(0, QIcon(":/icons/blank_arrow.png"));
     for(int team = 0; team < numTeams; team++)
     {
         teamDataTree->topLevelItem(team)->setData(teamDataTree->columnCount()-1, TeamInfoSort, team);
@@ -1501,7 +1545,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         {
             team++;
         }
-        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TeamInfoSort).toInt();
+        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TeamNumber).toInt();
     }
 
     if(teamDataTree->sortColumn() == 0)
@@ -1602,7 +1646,6 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         parentItem[team]->setText(0, tr("Team ") + teams[team].name);
         parentItem[team]->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
         parentItem[team]->setData(0, TeamInfoDisplay, tr("Team ") + teams[team].name);
-        parentItem[team]->setData(0, TeamInfoSort, team);
         for(int column = 0; column < teamDataTree->columnCount()-1; column++)
         {
             parentItem[team]->setToolTip(column, teams[team].tooltip);
@@ -1615,9 +1658,10 @@ void gruepr::on_teamNamesComboBox_activated(int index)
 void gruepr::on_saveTeamsButton_clicked()
 {
     createFileContents();
-    QStringList previews = {studentsFileContents.left(1000) + "...",
-                            instructorsFileContents.mid(instructorsFileContents.indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, 1000) + "...",
-                            spreadsheetFileContents.left(1000) + "..."};
+    const int previewLength = 1000;
+    QStringList previews = {studentsFileContents.left(previewLength) + "...",
+                            instructorsFileContents.mid(instructorsFileContents.indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, previewLength) + "...",
+                            spreadsheetFileContents.left(previewLength) + "..."};
 
     //Open specialized dialog box to choose which file(s) to save
     whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::save, previews, this);
@@ -1694,9 +1738,10 @@ void gruepr::on_saveTeamsButton_clicked()
 void gruepr::on_printTeamsButton_clicked()
 {
     createFileContents();
-    QStringList previews = {studentsFileContents.left(1000) + "...",
-                            instructorsFileContents.mid(instructorsFileContents.indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, 1000) + "...",
-                            spreadsheetFileContents.left(1000) + "..."};
+    const int previewLength = 1000;
+    QStringList previews = {studentsFileContents.left(previewLength) + "...",
+                            instructorsFileContents.mid(instructorsFileContents.indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, previewLength) + "...",
+                            spreadsheetFileContents.left(previewLength) + "..."};
 
     //Open specialized dialog box to choose which file(s) to print
     whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::print, previews, this);
@@ -1753,11 +1798,11 @@ void gruepr::swapTeams(int teamA, int teamB)
     int teamARow=0, teamBRow=0;
     for(int row = 0; row < numTeams; row++)
     {
-        if(teamDataTree->topLevelItem(row)->data(0, TeamInfoSort).toInt() == teamA)
+        if(teamDataTree->topLevelItem(row)->data(0, TeamNumber).toInt() == teamA)
         {
             teamARow = row;
         }
-        else if(teamDataTree->topLevelItem(row)->data(0, TeamInfoSort).toInt() == teamB)
+        else if(teamDataTree->topLevelItem(row)->data(0, TeamNumber).toInt() == teamB)
         {
             teamBRow = row;
         }
@@ -1855,6 +1900,69 @@ void gruepr::on_AboutButton_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////
+//Load window geometry and default teaming options saved from previous run. If non-existant, load app defaults.
+//////////////////
+void gruepr::loadDefaultSettings()
+{
+    QSettings savedSettings;
+
+    //Restore window geometry
+    restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
+
+    //Restore last data file folder location
+    dataOptions.dataFile.setFile(savedSettings.value("dataFileLocation", "").toString());
+
+    //Restore teaming options
+    ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
+    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());        // load new team sizes in teamingOptions and in ui selection box
+    teamingOptions.isolatedWomenPrevented = savedSettings.value("isolatedWomenPrevented", false).toBool();
+    ui->isolatedWomenCheckBox->setChecked(teamingOptions.isolatedWomenPrevented);
+    teamingOptions.isolatedMenPrevented = savedSettings.value("isolatedMenPrevented", false).toBool();
+    ui->isolatedMenCheckBox->setChecked(teamingOptions.isolatedMenPrevented);
+    teamingOptions.singleGenderPrevented = savedSettings.value("singleGenderPrevented", false).toBool();
+    ui->mixedGenderCheckBox->setChecked(teamingOptions.singleGenderPrevented);
+    teamingOptions.isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
+    ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
+    ui->isolatedURMCheckBox->setChecked(teamingOptions.isolatedURMPrevented);
+    ui->isolatedURMCheckBox->blockSignals(false);
+    teamingOptions.minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
+    ui->minMeetingTimes->setValue(teamingOptions.minTimeBlocksOverlap);
+    teamingOptions.desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
+    ui->desiredMeetingTimes->setValue(teamingOptions.desiredTimeBlocksOverlap);
+    teamingOptions.meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toInt();
+    ui->meetingLength->setCurrentIndex(teamingOptions.meetingBlockSize-1);
+    teamingOptions.scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
+    ui->scheduleWeight->setValue(double(teamingOptions.scheduleWeight));
+    savedSettings.beginReadArray("Attributes");
+    for (int attribNum = 0; attribNum < maxAttributes; ++attribNum)
+    {
+        savedSettings.setArrayIndex(attribNum);
+        teamingOptions.desireHomogeneous[attribNum] = savedSettings.value("desireHomogeneous", false).toBool();
+        teamingOptions.attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
+        int numIncompats = savedSettings.beginReadArray("incompatibleResponses");
+        for(int incompResp = 0; incompResp < numIncompats; incompResp++)
+        {
+            savedSettings.setArrayIndex(incompResp);
+            QStringList incompats = savedSettings.value("incompatibleResponses", "").toString().split(',');
+            teamingOptions.incompatibleAttributeValues[attribNum] << QPair<int,int>(incompats.at(0).toInt(),incompats.at(1).toInt());
+        }
+        savedSettings.endArray();
+    }
+    savedSettings.endArray();
+    if(ui->attributeScrollBar->value() == 0)
+    {
+        on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
+    }
+    else
+    {
+        ui->attributeScrollBar->setValue(0);
+    }
+    teamingOptions.numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
+    ui->requestedTeammateNumberBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
+}
 
 
 //////////////////
@@ -2013,7 +2121,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
         QStringList allTimeNames;
         while(!fields.isEmpty())
         {
-            for(auto i : scheduleFields)
+            for(auto i : qAsConst(scheduleFields))
             {
                 allTimeNames << ReadCSVLine(QString(fields.at(i).toUtf8()).toLower().split(';').join(','));
             }
@@ -2317,7 +2425,7 @@ studentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
 
     if(dataOptions.notesIncluded)
     {
-        student.notes = fields.at(fieldnum).toUtf8().simplified();     //.simplified() removes leading & trailing whitespace, converts each internal whitespace to just a space
+        student.notes = fields.mid(fieldnum).join('\n').toUtf8().trimmed();     //all remaining fields
     }
 
     return student;
@@ -2528,8 +2636,8 @@ void gruepr::refreshStudentDisplay()
             }
             connect(editButton, &PushButtonThatSignalsMouseEnterEvents::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
-            connect(editButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered,
-                [this, editButton](){int row=0; while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2)) row++; on_studentTable_cellEntered(row,0);});
+            connect(editButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered, this, [this, editButton]
+                        {int row=0; while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2)) {row++;} on_studentTable_cellEntered(row,0);});
             ui->studentTable->setCellWidget(numStudents, column, editButton);
             column++;
 
@@ -2543,8 +2651,8 @@ void gruepr::refreshStudentDisplay()
             }
             connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::clicked, this, &gruepr::removeAStudent);
             // pass on mouse enter events onto cell in table
-            connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered,
-                [this, removerButton](){int row=0; while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)) row++; on_studentTable_cellEntered(row,0);});
+            connect(removerButton, &PushButtonThatSignalsMouseEnterEvents::mouseEntered, this, [this, removerButton]
+                        {int row=0; while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)) {row++;} on_studentTable_cellEntered(row,0);});
             ui->studentTable->setCellWidget(numStudents, column, removerButton);
 
             numStudents++;
@@ -2621,7 +2729,8 @@ QString gruepr::createAToolTip(const studentRecord &info, bool duplicateRecord)
     }
     if(dataOptions.notesIncluded)
     {
-        toolTip += "<br>--<br>" + tr("Notes") + ":<br>" + (info.notes.isEmpty()? ("<i>" + tr("none") + "</i>") : info.notes);
+        QString note = info.notes;
+        toolTip += "<br>--<br>" + tr("Notes") + ":<br>" + (note.isEmpty()? ("<i>" + tr("none") + "</i>") : note.replace("\n","<br>"));
     }
     toolTip += "</html>";
 
@@ -2634,8 +2743,10 @@ QString gruepr::createAToolTip(const studentRecord &info, bool duplicateRecord)
 ////////////////////////////////////////////
 QList<int> gruepr::optimizeTeams(const int *studentIDs)
 {
-    // seed the pRNG (need to specifically do it here because this is happening in a new thread)
-    srand(unsigned(time(nullptr)));
+    // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
+    //srand(unsigned(time(nullptr)));
+    std::random_device randDev;
+    std::mt19937 pRNG(randDev());
 
     // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
     // Each genome in this generation stores (by permutation) which students are in which team.
@@ -2673,7 +2784,7 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     // then make "populationSize" number of random permutations for initial population, store in genePool
     for(int genome = 0; genome < populationSize; genome++)
     {
-        std::random_shuffle(randPerm, randPerm+numStudents);
+        std::shuffle(randPerm, randPerm+numStudents, pRNG);
         for(int ID = 0; ID < numStudents; ID++)
         {
             genePool[genome][ID] = randPerm[ID];
@@ -2681,12 +2792,13 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     }
     delete[] randPerm;
 
-    // just use rand's for the initial "ancestor" values, since none of these are related and so all matings should be permitted
+    // just use random values for the initial "ancestor" values, since none of these are related and so all matings should be permitted
+    std::uniform_int_distribution<unsigned int> randAncestor(0, populationSize);
     for(int genome = 0; genome < populationSize; genome++)
     {
         for(int ancestor = 0; ancestor < numAncestors; ancestor++)
         {
-            ancestors[genome][ancestor] = rand();
+            ancestors[genome][ancestor] = randAncestor(pRNG);
         }
     }
 
@@ -2744,7 +2856,7 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     int indexOfBestTeamset[numElites];              // holds indexes of elites
     float bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     int generation = 0;
-    int extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
+//    int extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
     float scoreStability;
     bool localOptimizationStopped = false;
     int teamSize[maxTeams] = {0};
@@ -2781,10 +2893,10 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             for(int genome = numElites; genome < populationSize; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(players, genePool, scores.data(), ancestors, mom, dad, tempAncestors[genome]);
+                GA::tournamentSelectParents(players, genePool, scores.data(), ancestors, mom, dad, tempAncestors[genome], pRNG);
 
                 //mate them and put child in tempPool
-                GA::mate(mom, dad, teamSize, numTeams, child, numStudents);
+                GA::mate(mom, dad, teamSize, numTeams, child, numStudents, pRNG);
                 for(int ID = 0; ID < numStudents; ID++)
                 {
                     tempPool[genome][ID] = child[ID];
@@ -2792,11 +2904,12 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             }
 
             // mutate all but the top scoring genome in tempPool with some probability--if a mutation occurs, mutate same genome again with same probability
+            std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 1; genome < populationSize; genome++)
             {
-                while(rand() < mutationLikelihood)
+                while(randProbability(pRNG) < mutationLikelihood)
                 {
-                    GA::mutate(&tempPool[genome][0], numStudents);
+                    GA::mutate(&tempPool[genome][0], numStudents, pRNG);
                 }
             }
 
@@ -2859,13 +2972,13 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             auto mmscores = std::minmax_element(bestScores,bestScores+generationsOfStability);
             scoreStability = bestScore / (*mmscores.second - *mmscores.first);
 
-            emit generationComplete(scores, generation+extraGenerations, scoreStability);
+            emit generationComplete(scores, generation, scoreStability);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;
             optimizationStoppedmutex.unlock();
         }
-        while(!localOptimizationStopped && ((generation < minGenerations) || ((generation < maxGenerations) && (scoreStability < 100))));
+        while(!localOptimizationStopped && ((generation < minGenerations) || ((generation < maxGenerations) && (scoreStability < minScoreStability))));
 
         if(localOptimizationStopped)
         {
@@ -2874,15 +2987,16 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
         }
         else
         {
-            emit optimizationMightBeComplete();
+//            emit optimizationMightBeComplete();
             keepOptimizing = true;
-            extraGenerations += generation;
-            generation = 0;
+//            extraGenerations += generation;
+//            generation = 0;
         }
     }
     while(keepOptimizing);
 
-    finalGeneration = generation + extraGenerations;
+//    finalGeneration = generation + extraGenerations;
+    finalGeneration = generation;
     teamSetScore = bestScores[generation%generationsOfStability];
 
     //copy best team set into a QList to return
@@ -2955,7 +3069,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 if(haveAnyIncompatibleAttributes[attrib])
                 {
                     // go through each pair found in teamingOptions.incompatibleAttributeValues[attrib] list and see if both int's found in attributeLevelsInTeam
-                    for(auto pair : teamingOptions.incompatibleAttributeValues[attrib])
+                    for(auto pair : qAsConst(teamingOptions.incompatibleAttributeValues[attrib]))
                     {
                         if(attributeLevelsInTeam.contains(pair.first) && attributeLevelsInTeam.contains(pair.second))
                         {
@@ -3077,7 +3191,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     }
 
     // Determine gender adjustments
-    if(dataOptions.genderIncluded && (teamingOptions.isolatedWomenPrevented || teamingOptions.isolatedMenPrevented || teamingOptions.mixedGenderPreferred))
+    if(dataOptions.genderIncluded && (teamingOptions.isolatedWomenPrevented || teamingOptions.isolatedMenPrevented || teamingOptions.singleGenderPrevented))
     {
         ID = 0;
         for(int team = 0; team < numTeams; team++)
@@ -3104,7 +3218,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
             {
                 genderAdj[team] -= realNumScoringFactors;
             }
-            if(teamingOptions.mixedGenderPreferred && (numMen == 0 || numWomen == 0))
+            if(teamingOptions.singleGenderPrevented && (numMen == 0 || numWomen == 0))
             {
                 genderAdj[team] -= realNumScoringFactors;
             }
@@ -3571,7 +3685,7 @@ void gruepr::resetTeamDisplay()
         teamDataTree->showColumn(i);
     }
     teamDataTree->hideColumn(headerLabels.size()-1);
-    QTreeWidgetItem *headerTextWithIcon = new QTreeWidgetItem;
+    auto *headerTextWithIcon = new QTreeWidgetItem;
     for(int i = 0; i < headerLabels.size(); i++)
     {
         headerTextWithIcon->setIcon(i, QIcon(":/icons/updown_arrow.png"));
@@ -3629,16 +3743,17 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
         //create team items and fill in information
         int column = 0;
         parentItem[*team]->setText(column, tr("Team ") + teams[*team].name);
-        parentItem[*team]->setData(column, TeamInfoDisplay, tr("Team ") + teams[*team].name);
-        parentItem[*team]->setData(column, TeamInfoSort, *team);
-        parentItem[*team]->setToolTip(column, teams[*team].tooltip);
         parentItem[*team]->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+        parentItem[*team]->setData(column, TeamInfoDisplay, tr("Team ") + teams[*team].name);
+        parentItem[*team]->setData(column, TeamInfoSort, student[teams[*team].studentIDs[0]].lastname+student[teams[*team].studentIDs[0]].firstname);
+        parentItem[*team]->setData(column, TeamNumber, *team);
+        parentItem[*team]->setToolTip(column, teams[*team].tooltip);
         column++;
         parentItem[*team]->setText(column, QString::number(double(teams[*team].score), 'f', 2));
+        parentItem[*team]->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
         parentItem[*team]->setData(column, TeamInfoDisplay, QString::number(double(teams[*team].score), 'f', 2));
         parentItem[*team]->setData(column, TeamInfoSort, teams[*team].score);
         parentItem[*team]->setToolTip(column, teams[*team].tooltip);
-        parentItem[*team]->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
         column++;
         if(dataOptions.genderIncluded)
         {
@@ -3740,7 +3855,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
         for(int stud = 0; stud < teams[*team].size; stud++)
         {
             QString studentToolTip = createAToolTip(student[teams[*team].studentIDs[stud]], false);
-            TeamTreeWidgetItem *childItem = new TeamTreeWidgetItem(parentItem[*team]);
+            auto *childItem = new TeamTreeWidgetItem(parentItem[*team]);
             int column = 0;
             childItem->setText(column, student[teams[*team].studentIDs[stud]].firstname + " " + student[teams[*team].studentIDs[stud]].lastname);
             childItem->setData(column, Qt::UserRole, student[teams[*team].studentIDs[stud]].ID);
@@ -3846,7 +3961,7 @@ void gruepr::createFileContents()
     {
         instructorsFileContents += (teamingOptions.isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
         instructorsFileContents += (teamingOptions.isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
-        instructorsFileContents += (teamingOptions.mixedGenderPreferred? ("\n" + tr("Mixed gender teams preferred")) : "");
+        instructorsFileContents += (teamingOptions.singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
     }
     if(dataOptions.URMIncluded && teamingOptions.isolatedURMPrevented)
     {
@@ -3897,7 +4012,7 @@ void gruepr::createFileContents()
         {
             team++;
         }
-        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TeamInfoSort).toInt();
+        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TeamNumber).toInt();
     }
 
     //loop through every team
@@ -3985,8 +4100,8 @@ void gruepr::createFileContents()
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
                     QString percentage = QString::number((100*teams[team].numStudentsAvailable[day][time]) / (teams[team].size-teams[team].numStudentsWithAmbiguousSchedules)) + "% ";
-                    instructorsFileContents += QString((4+dataOptions.dayNames.at(day).left(3).size())-percentage.size(), ' ') + percentage;
-                    studentsFileContents += QString((4+dataOptions.dayNames.at(day).left(3).size())-percentage.size(), ' ') + percentage;
+                    instructorsFileContents += QString((4+dataOptions.dayNames.at(day).leftRef(3).size())-percentage.size(), ' ') + percentage;
+                    studentsFileContents += QString((4+dataOptions.dayNames.at(day).leftRef(3).size())-percentage.size(), ' ') + percentage;
                 }
                 instructorsFileContents += "\n";
                 studentsFileContents += "\n";
@@ -4006,7 +4121,7 @@ void gruepr::printFiles(bool printInstructorsFile, bool printStudentsFile, bool 
     // connecting to the printer is spun off into a separate thread because sometimes it causes ~30 second hang
     // message box explains what's happening
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-    QMessageBox *msgBox = new QMessageBox(this);
+    auto *msgBox = new QMessageBox(this);
     msgBox->setIcon(QMessageBox::Information);
     msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
     msgBox->setStandardButtons(nullptr);        // no buttons
@@ -4081,7 +4196,7 @@ void gruepr::printFiles(bool printInstructorsFile, bool printStudentsFile, bool 
 
 QPrinter* gruepr::setupPrinter()
 {
-    QPrinter *printer = new QPrinter(QPrinter::HighResolution);
+    auto *printer = new QPrinter(QPrinter::HighResolution);
     printer->setOrientation(QPrinter::Portrait);
     emit connectedToPrinter();
     return printer;
@@ -4169,9 +4284,10 @@ void gruepr::closeEvent(QCloseEvent *event)
 {
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
+    savedSettings.setValue("dataFileLocation", dataOptions.dataFile.canonicalFilePath());
     bool dontActuallyExit = false;
 
-    if(savedSettings.value("askToSaveDefaultsOnExit",true).toBool() && ui->saveSettingsButton->isEnabled())
+    if(savedSettings.value("askToSaveDefaultsOnExit",true).toBool())
     {
         QApplication::beep();
         QMessageBox saveOptionsOnClose(this);
@@ -4180,7 +4296,7 @@ void gruepr::closeEvent(QCloseEvent *event)
 
         saveOptionsOnClose.setIcon(QMessageBox::Question);
         saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
-        saveOptionsOnClose.setText(tr("Before exiting, should we save all of the current options as defaults?"));
+        saveOptionsOnClose.setText(tr("Before exiting, should we save all of the\ncurrent teaming options as defaults?"));
         saveOptionsOnClose.setCheckBox(&neverShowAgain);
         saveOptionsOnClose.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         saveOptionsOnClose.setButtonText(QMessageBox::Discard, tr("Don't Save"));
@@ -4188,7 +4304,34 @@ void gruepr::closeEvent(QCloseEvent *event)
         saveOptionsOnClose.exec();
         if(saveOptionsOnClose.result() == QMessageBox::Save)
         {
-            on_saveSettingsButton_clicked();
+            savedSettings.setValue("idealTeamSize", ui->idealTeamSizeBox->value());
+            savedSettings.setValue("isolatedWomenPrevented", teamingOptions.isolatedWomenPrevented);
+            savedSettings.setValue("isolatedMenPrevented", teamingOptions.isolatedMenPrevented);
+            savedSettings.setValue("singleGenderPrevented", teamingOptions.singleGenderPrevented);
+            savedSettings.setValue("isolatedURMPrevented", teamingOptions.isolatedURMPrevented);
+            savedSettings.setValue("minTimeBlocksOverlap", teamingOptions.minTimeBlocksOverlap);
+            savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions.desiredTimeBlocksOverlap);
+            savedSettings.setValue("meetingBlockSize", teamingOptions.meetingBlockSize);
+            savedSettings.setValue("scheduleWeight", ui->scheduleWeight->value());
+            savedSettings.beginWriteArray("Attributes");
+            for (int attribNum = 0; attribNum < maxAttributes; ++attribNum)
+            {
+                savedSettings.setArrayIndex(attribNum);
+                savedSettings.setValue("desireHomogeneous", teamingOptions.desireHomogeneous[attribNum]);
+                savedSettings.setValue("weight", teamingOptions.attributeWeights[attribNum]);
+                savedSettings.remove("incompatibleResponses");  //clear any existing values
+                savedSettings.beginWriteArray("incompatibleResponses");
+                for(int incompResp = 0; incompResp < teamingOptions.incompatibleAttributeValues[attribNum].size(); incompResp++)
+                {
+                    savedSettings.setArrayIndex(incompResp);
+                    savedSettings.setValue("incompatibleResponses",
+                            (QString::number(teamingOptions.incompatibleAttributeValues[attribNum].at(incompResp).first) + "," +
+                             QString::number(teamingOptions.incompatibleAttributeValues[attribNum].at(incompResp).second)));
+                }
+                savedSettings.endArray();
+            }
+            savedSettings.endArray();
+            savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
         }
         else if(saveOptionsOnClose.result() == QMessageBox::Cancel)
         {

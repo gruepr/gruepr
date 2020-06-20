@@ -1,10 +1,11 @@
-#include <QFileDialog>
-#include <QTextStream>
-#include <QMessageBox>
-#include <QToolTip>
-#include "customDialogs.h"
 #include "Levenshtein.h"
-
+#include "customDialogs.h"
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QMovie>
+#include <QTextStream>
+#include <QTimer>
+#include <QToolTip>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog window to select sets of required, prevented, or requested teammates
@@ -99,14 +100,14 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     int row = 2;
     if(whatType == gatherTeammatesDialog::requested)
     {
-        possibleTeammates[8].addItem("Select the student:");
-        possibleTeammates[8].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
-        possibleTeammates[8].insertSeparator(1);
+        possibleTeammates[possibleNumIDs].addItem("Select the student:");
+        possibleTeammates[possibleNumIDs].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
+        possibleTeammates[possibleNumIDs].insertSeparator(1);
         for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {
-            possibleTeammates[8].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
+            possibleTeammates[possibleNumIDs].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
         }
-        theGrid->addWidget(&possibleTeammates[8], row, 0, 1, 2);
+        theGrid->addWidget(&possibleTeammates[possibleNumIDs], row, 0, 1, 2);
         row++;
     }
 
@@ -138,21 +139,28 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     //Rows 5&6 (or 6&7) - a spacer then reset table/loadFile/ok/cancel buttons
     row += 2;
     theGrid->setRowMinimumHeight(row, 20);
-    resetTableButton = new QPushButton(this);
-    resetTableButton->setText(tr("&Clear all\n") + typeText.toLower() + tr("\nteammates"));
-    theGrid->addWidget(resetTableButton, row+1, 0, 1, 1);
-    connect(resetTableButton, &QPushButton::clicked, this, &gatherTeammatesDialog::clearAllTeammateSets);
-    if(whatType == gatherTeammatesDialog::prevented)
+    resetSaveOrLoad = new QComboBox(this);
+    resetSaveOrLoad->setIconSize(QSize(15,15));
+    resetSaveOrLoad->addItem(tr("Additional actions"));
+    resetSaveOrLoad->insertSeparator(1);
+    resetSaveOrLoad->addItem(QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
+    resetSaveOrLoad->setItemData(2, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
+    resetSaveOrLoad->addItem(QIcon(":/icons/save.png"), tr("Save the current set to a CSV file..."));
+    resetSaveOrLoad->setItemData(3, tr("Save the current table to a csv file"), Qt::ToolTipRole);
+    resetSaveOrLoad->addItem(QIcon(":/icons/open.png"), tr("Load a CSV file of teammates..."));
+    resetSaveOrLoad->setItemData(4, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
+    if(whatType != gatherTeammatesDialog::requested)
     {
-        loadFileOfTeammates = new QPushButton(this);
-        loadFileOfTeammates->setText(tr("&Load file\nof previous\nteammates"));
-        loadFileOfTeammates->setToolTip(tr("<html>Load the spreadsheet file from a previous set of gruepr-created teams"
-                                           "in order to place all students with new teammates.</html>"));
-        theGrid->addWidget(loadFileOfTeammates, row+1, 1, 1, 1);
-        connect(loadFileOfTeammates, &QPushButton::clicked, this, &gatherTeammatesDialog::loadFile);
+        resetSaveOrLoad->addItem(QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
+        resetSaveOrLoad->setItemData(5, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
     }
+    theGrid->addWidget(resetSaveOrLoad, row+1, 0, 1, 3);
+    connect(resetSaveOrLoad, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {if(index == 2) clearAllTeammateSets();
+                                                                                                           else if(index == 3) saveCSVFile();
+                                                                                                           else if(index == 4) loadCSVFile();
+                                                                                                           else if(index == 5) loadSpreadsheetFile();});
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, row+1, 2, -1, -1);
+    theGrid->addWidget(buttonBox, row+1, 3, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
@@ -215,15 +223,18 @@ void gatherTeammatesDialog::addOneTeammateSet()
     }
     else
     {
-        int baseStudent = possibleTeammates[8].itemData(possibleTeammates[8].currentIndex()).toInt();
+        int baseStudent = possibleTeammates[possibleNumIDs].itemData(possibleTeammates[possibleNumIDs].currentIndex()).toInt();
         //Reset combobox
-        possibleTeammates[8].setCurrentIndex(0);
+        possibleTeammates[possibleNumIDs].setCurrentIndex(0);
         for(int ID1 = 0; ID1 < count; ID1++)
         {
-            //we have at least one requested teammate pair!
-            teammatesSpecified = true;
+            if(baseStudent != IDs[ID1])
+            {
+                //we have at least one requested teammate pair!
+                teammatesSpecified = true;
 
-            student[baseStudent].requestedWith[IDs[ID1]] = true;
+                student[baseStudent].requestedWith[IDs[ID1]] = true;
+            }
         }
     }
     refreshDisplay();
@@ -232,6 +243,14 @@ void gatherTeammatesDialog::addOneTeammateSet()
 
 void gatherTeammatesDialog::clearAllTeammateSets()
 {
+    int resp = QMessageBox::warning(this, tr("gruepr"),tr("This will remove all teammates data listed in the\ntable. Are you sure you want to continue?\n"),
+                                    QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if(resp == QMessageBox::No)
+    {
+        resetSaveOrLoad->setCurrentIndex(0);
+        return;
+    }
+
     teammatesSpecified = false;
 
     for(int ID1 = 0; ID1 < numStudents; ID1++)
@@ -259,11 +278,236 @@ void gatherTeammatesDialog::clearAllTeammateSets()
 }
 
 
-bool gatherTeammatesDialog::loadFile()
+bool gatherTeammatesDialog::saveCSVFile()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)"));
+    if(fileName.isEmpty())
+    {
+        resetSaveOrLoad->setCurrentIndex(0);
+        return false;
+    }
+
+    QFile outputFile(fileName);
+    QTextStream out(&outputFile);
+    QString csvFileContents = "basename";
+
+    for(int i = 1; i <= currentListOfTeammatesTable->columnCount(); i++)
+    {
+        csvFileContents += ",name" + QString::number(i);
+    }
+    csvFileContents += "\n";
+
+    for(int basename = 0; basename < currentListOfTeammatesTable->rowCount(); basename++)
+    {
+        QStringList lastnameFirstname = currentListOfTeammatesTable->verticalHeaderItem(basename)->text().split(',');
+        csvFileContents += lastnameFirstname.at(1).trimmed() + " " + lastnameFirstname.at(0).trimmed();
+        for(int teammate = 0; teammate < currentListOfTeammatesTable->columnCount(); teammate++)
+        {
+            QStringList lastnameFirstname = {"",""};
+            QWidget *teammateItem(currentListOfTeammatesTable->cellWidget(basename,teammate));
+            if (teammateItem != nullptr)
+            {
+                lastnameFirstname = teammateItem->property("studentName").toString().split(',');
+            }
+            csvFileContents += "," + lastnameFirstname.at(1).trimmed() + " " + lastnameFirstname.at(0).trimmed();
+        }
+        csvFileContents += "\n";
+    }
+
+    if(outputFile.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream out(&outputFile);
+        out << csvFileContents;
+        outputFile.close();
+    }
+    else
+    {
+        QMessageBox::critical(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
+    }
+
+    refreshDisplay();
+    return true;
+}
+
+
+bool gatherTeammatesDialog::loadCSVFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)"));
+    if(fileName.isEmpty())
+    {
+        resetSaveOrLoad->setCurrentIndex(0);
+        return false;
+    }
+
+    QFile inputFile(fileName);
+    inputFile.open(QIODevice::ReadOnly);
+    QTextStream in(&inputFile);
+
+    // Read the header row and make sure file format is correct. If so, read next line to make sure it has data
+    bool formattedCorrectly = true;
+    QStringList fields = in.readLine().split(',');
+    int numFields = fields.size();
+    if(numFields < 2)       // should be basename, name1, name2, name3, ..., nameN
+    {
+        formattedCorrectly = false;
+    }
+    else
+    {
+        if((fields.at(0).toLower() != tr("basename")) || (!fields.at(1).toLower().startsWith(tr("name"))))
+        {
+            formattedCorrectly = false;
+        }
+        fields = in.readLine().split(',');
+        if(fields.size() < numFields)
+        {
+            formattedCorrectly = false;
+        }
+    }
+    if(!formattedCorrectly)
+    {
+        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        inputFile.close();
+        return false;
+    }
+
+    // Process each row until there's an empty one. Load unique base names into basenames; load other names in the row into corresponding teammates list
+    QStringList basenames;
+    QList<QStringList> teammates;
+    while(!fields.isEmpty())
+    {
+        int pos = basenames.indexOf(fields.at(0)); // get index of this name
+
+        if(pos == -1)   // basename is not yet found in basenames list
+        {
+            basenames << fields.at(0).trimmed();
+            teammates.append(QStringList());
+            for(int i = 1; i < numFields; i++)
+            {
+                QString teammate = fields.at(i).trimmed();
+                if(!teammate.isEmpty())
+                {
+                    teammates.last() << teammate;
+                }
+            }
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("File error."), tr("This file has an error in its format:\nThe same name appears more than once in the first column."), QMessageBox::Ok);
+            inputFile.close();
+            return false;
+        }
+
+        // read next row. If row is empty, then make fields empty
+        fields = in.readLine().split(',');
+        if(fields.size() == 1 && fields.at(0) == "")
+        {
+            fields.clear();
+        }
+    }
+
+    // Now we have list of basenames and corresponding lists of teammates by name
+    // Need to convert names to IDs and then add each teammate to the basename
+
+    // First prepend the basenames to each list of teammates
+    for(int basename = 0; basename < basenames.size(); basename++)
+    {
+        teammates[basename].prepend(basenames.at(basename));
+    }
+
+    for(int basename = 0; basename < basenames.size(); basename++)
+    {
+        QList<int> IDs;
+        for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++)  // searchStudent is the name we're looking for
+        {
+            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
+            while((knownStudent < numStudents) && (teammates.at(basename).at(searchStudent)) != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
+            {
+                knownStudent++;
+            }
+
+            if(knownStudent != numStudents)
+            {
+                // Exact match found
+                IDs << student[knownStudent].ID;
+            }
+            else
+            {
+                // No exact match, so list possible matches sorted by Levenshtein distance
+                QMultiMap<int, QString> possibleStudents;
+                for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
+                {
+                    possibleStudents.insert(levenshtein::distance(teammates.at(basename).at(searchStudent),
+                                            student[knownStudent].firstname + " " + student[knownStudent].lastname),
+                                            student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
+                }
+
+                // Create student selection window
+                auto *choiceWindow = new QDialog(this);
+                choiceWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+                choiceWindow->setWindowTitle("Choose student");
+                auto *grid = new QGridLayout(choiceWindow);
+                auto *text = new QLabel(choiceWindow);
+                text->setText(tr("An exact match for") + " <b>" + teammates.at(basename).at(searchStudent) + "</b> " +
+                              tr("could not be found.<br>Please select this student from the list:"));
+                grid->addWidget(text, 0, 0, 1, -1);
+                auto *names = new QComboBox(choiceWindow);
+                QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
+                while (i != possibleStudents.constEnd())
+                {
+                    QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
+                    names->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
+                    i++;
+                }
+                grid->addWidget(names, 1, 0, 1, -1);
+                grid->setRowMinimumHeight(2, 20);
+                auto *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
+                OKCancel->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
+                connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
+                connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
+                grid->addWidget(OKCancel, 3, 0, 1, -1);
+                if(choiceWindow->exec() == QDialog::Accepted)
+                {
+                    IDs << (names->currentData(Qt::UserRole)).toInt();
+                }
+                delete choiceWindow;
+            }
+        }
+
+        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+        for(int ID = 1; ID < IDs.size(); ID++)
+        {
+            if(IDs[0] != IDs[ID])
+            {
+                //we have at least one specified teammate pair!
+                teammatesSpecified = true;
+
+                if(whatType == gatherTeammatesDialog::required)
+                {
+                    student[IDs[0]].requiredWith[IDs[ID]] = true;
+                }
+                else if(whatType == gatherTeammatesDialog::prevented)
+                {
+                    student[IDs[0]].preventedWith[IDs[ID]] = true;
+                }
+                else    //whatType == gatherTeammatesDialog::requested
+                {
+                    student[IDs[0]].requestedWith[IDs[ID]] = true;
+                }
+            }
+        }
+    }
+
+    refreshDisplay();
+    return true;
+}
+
+
+bool gatherTeammatesDialog::loadSpreadsheetFile()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)"));
     if(fileName.isEmpty())
     {
+        resetSaveOrLoad->setCurrentIndex(0);
         return false;
     }
 
@@ -298,16 +542,16 @@ bool gatherTeammatesDialog::loadFile()
         return false;
     }
 
-    // Process each row until there's an empty one. Load unique section+team strings into teams; load new/matching names into corresponding teammates list
+    // Process each row until there's an empty one. Load unique team strings into teams; load new/matching names into corresponding teammates list
     QStringList teamnames;
     QList<QStringList> teammates;
     while(!fields.isEmpty())
     {
-        int pos = teamnames.indexOf(fields.at(0)+fields.at(1)); // get index of this section+team
+        int pos = teamnames.indexOf(fields.at(1)); // get index of this team
 
-        if(pos == -1)   // section+team is not yet found in teams list
+        if(pos == -1)   // team is not yet found in teams list
         {
-            teamnames << fields.at(0)+fields.at(1);
+            teamnames << fields.at(1);
             teammates.append(QStringList(fields.at(2)));
         }
         else
@@ -323,7 +567,7 @@ bool gatherTeammatesDialog::loadFile()
         }
     }
 
-    // Now we have list of section+teams and corresponding lists of teammates by name
+    // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
     for(int team = 0; team < teammates.size(); team++)
     {
@@ -393,8 +637,17 @@ bool gatherTeammatesDialog::loadFile()
                 {
                     //we have at least one required/prevented teammate pair!
                     teammatesSpecified = true;
-                    student[IDs[ID1]].preventedWith[IDs[ID2]] = true;
-                    student[IDs[ID2]].preventedWith[IDs[ID1]] = true;
+
+                    if(whatType == gatherTeammatesDialog::required)
+                    {
+                        student[IDs[ID1]].requiredWith[IDs[ID2]] = true;
+                        student[IDs[ID2]].requiredWith[IDs[ID1]] = true;
+                    }
+                    else
+                    {
+                        student[IDs[ID1]].preventedWith[IDs[ID2]] = true;
+                        student[IDs[ID2]].preventedWith[IDs[ID1]] = true;
+                    }
                 }
             }
         }
@@ -477,7 +730,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 remover->setProperty("studentBID", studentBID);
                 if(whatType == gatherTeammatesDialog::required)
                 {
-                    connect(remover, &QPushButton::clicked, [this, remover]
+                    connect(remover, &QPushButton::clicked, this, [this, remover]
                                                             {int studentAID = remover->property("studentAID").toInt();
                                                              int studentBID = remover->property("studentBID").toInt();
                                                              student[studentAID].requiredWith[studentBID] = false;
@@ -486,7 +739,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 }
                 else if(whatType == gatherTeammatesDialog::prevented)
                 {
-                    connect(remover, &QPushButton::clicked, [this, remover]
+                    connect(remover, &QPushButton::clicked, this, [this, remover]
                                                             {int studentAID = remover->property("studentAID").toInt();
                                                              int studentBID = remover->property("studentBID").toInt();
                                                              student[studentAID].preventedWith[studentBID] = false;
@@ -495,7 +748,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 }
                 else
                 {
-                    connect(remover, &QPushButton::clicked, [this, remover]
+                    connect(remover, &QPushButton::clicked, this, [this, remover]
                                                             {int studentAID = remover->property("studentAID").toInt();
                                                              int studentBID = remover->property("studentBID").toInt();
                                                              student[studentAID].requestedWith[studentBID] = false;
@@ -506,6 +759,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 box->setSpacing(0);
                 auto *widg = new QWidget;
                 widg->setLayout(box);
+                widg->setProperty("studentName", label->text());
                 currentListOfTeammatesTable->setCellWidget(row, column, widg);
                 column++;
             }
@@ -518,6 +772,8 @@ void gatherTeammatesDialog::refreshDisplay()
     }
     currentListOfTeammatesTable->resizeColumnsToContents();
     currentListOfTeammatesTable->resizeRowsToContents();
+
+    resetSaveOrLoad->setCurrentIndex(0);
 }
 
 
@@ -735,7 +991,7 @@ registerDialog::registerDialog(QWidget *parent)
     //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
     QRegularExpression emailAddressFormat("^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$", QRegularExpression::CaseInsensitiveOption);
     email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
-    connect(email, &QLineEdit::textChanged, [this]()
+    connect(email, &QLineEdit::textChanged, this, [this]()
                                              {QString stylecolor = (email->hasAcceptableInput())? "black" : "red";
                                               email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
 
@@ -747,11 +1003,11 @@ registerDialog::registerDialog(QWidget *parent)
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    connect(name, &QLineEdit::textChanged, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+    connect(name, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
                                                    email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(institution, &QLineEdit::textChanged, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+    connect(institution, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
                                                    email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(email, &QLineEdit::textChanged, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+    connect(email, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
                                                    email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
 
     adjustSize();
@@ -961,7 +1217,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
     }
 
     //Flag invalid timestamps
-    connect(&(datatext[0]), &QLineEdit::textChanged, [this]()
+    connect(&(datatext[0]), &QLineEdit::textChanged, this, [this]()
                                                      {bool validTimeStamp = QDateTime::fromString(datatext[0].text(),
                                                             QLocale::system().dateTimeFormat(QLocale::ShortFormat)).isValid();
                                                       QString stylecolor = (validTimeStamp? "black" : "red");
@@ -1013,7 +1269,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
         {
             spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
         }
-        connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int /*unused new value*/){ recordEdited(); });
+        connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int /*unused new value*/){ recordEdited(); });
         spinbox->setSpecialValueText(tr("not set/unknown"));
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(spinbox, field, 1);
@@ -1199,7 +1455,7 @@ void gatherIncompatibleResponsesDialog::updateExplanation()
     else
     {
         QString explanationText;
-        for(auto pair : incompatibleResponses)
+        for(const QPair<int, int> &pair : qAsConst(incompatibleResponses))
         {
             explanationText += tr("Students with response ") + responses[(pair.first)-1].text().split('.').at(0) +
                     tr(" will not be teamed with students with response ") + responses[(pair.second)-1].text().split('.').at(0) + ".<br>";
@@ -1272,7 +1528,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOption
     {
         enableValue[response].setChecked(URMResponsesConsideredUR.contains(dataOptions.URMResponses.at(response)));
         theGrid->addWidget(&enableValue[response], (response/4) + 1, 2*(response%4), 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
-        connect(&enableValue[response], &QCheckBox::stateChanged, [&, response](int state){
+        connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
                                                                                  if(state == Qt::Checked)
                                                                                    {URMResponsesConsideredUR << dataOptions.URMResponses.at(response);}
                                                                                  else
@@ -1310,7 +1566,7 @@ gatherURMResponsesDialog::~gatherURMResponsesDialog()
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(QString text, QtCharts::QChartView *chart, QWidget *parent)
+progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window with a grid layout
@@ -1319,63 +1575,148 @@ progressDialog::progressDialog(QString text, QtCharts::QChartView *chart, QWidge
     setSizeGripEnabled(true);
     theGrid = new QGridLayout(this);
 
-    explanation = new QLabel(this);
+    statusText = new QLabel(this);
     QFont defFont("Oxygen Mono");
-    defFont.setPointSize((explanation->fontInfo()).pointSize() + 4);
-    explanation->setFont(defFont);
-    setText(text);
-    theGrid->addWidget(explanation, 0, 0, 1, 1);
+    statusText->setFont(defFont);
+    statusText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    theGrid->addWidget(statusText, 0, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
 
-    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Finish and\nshow teams", this);
-    stopHere->setIconSize(QSize(60,60));
-    defFont = stopHere->font();
-    defFont.setPointSize((explanation->fontInfo()).pointSize());
-    stopHere->setFont(defFont);
-    stopHere->setToolTip(tr("Stop the optimization process and show the best set of teams found so far."));
-    stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-    connect(stopHere, &QPushButton::clicked, [this] {emit letsStop();});
-    theGrid->addWidget(stopHere, 0, 1, 1, 1, Qt::AlignRight);
+    explanationIcon = new QLabel(this);
+    explanationIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    QMovie *movie = new QMovie(":/icons/loading.gif");
+    explanationIcon->setMovie(movie);
+    movie->start();
+
+    explanationText = new QLabel(this);
+    explanationText->setFont(defFont);
+    explanationText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    auto explanationBox = new QHBoxLayout;
+    theGrid->addLayout(explanationBox, 1, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
+    explanationBox->addWidget(explanationIcon, 0, Qt::AlignHCenter | Qt::AlignVCenter);
+    explanationBox->addWidget(explanationText, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    explanationBox->addStretch(1);
 
     auto *line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Sunken);
-    theGrid->addWidget(line, 1, 0, 1, -1);
+    theGrid->addWidget(line, 2, 0, 1, -1);
 
-    if(chart)
+    if(chart != nullptr)
     {
-        theGrid->addWidget(chart, 3, 0, 1, -1);
+        theGrid->addWidget(chart, 5, 0, 1, -1);
         chart->hide();
+        graphShown = false;
 
-        showStatsButton = new QPushButton(QIcon(":/icons/down_arrow.png"), "Show optimization progress", this);
-        showStatsButton->setIconSize(QSize(25,25));
-        stopHere->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        connect(showStatsButton, &QPushButton::clicked, [this, chart] {graphShown = !graphShown; int height; QIcon icon; QString butText;
-                                                                       if(graphShown)
-                                                                       {chart->show(); height = 400; icon = QIcon(":/icons/up_arrow.png"); butText = "Hide optimization progress";}
-                                                                       else
-                                                                       {chart->hide(); height = 20; icon = QIcon(":/icons/down_arrow.png"); butText = "Show optimization progress";}
-                                                                       theGrid->setRowMinimumHeight(3, height);
-                                                                       showStatsButton->setIcon(icon);
-                                                                       showStatsButton->setText(butText);
-                                                                       adjustSize();});
-        theGrid->addWidget(showStatsButton, 2, 0, 1, -1);
+        showStatsButton = new QPushButton(QIcon(":/icons/down_arrow.png"), "Show progress", this);
+        showStatsButton->setIconSize(QSize(20, 20));
+        showStatsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        connect(showStatsButton, &QPushButton::clicked, this, [this, chart] {statsButtonPushed(chart);});
+        theGrid->addWidget(showStatsButton, 3, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->setColumnStretch(1,1);
     }
 
+    onlyStopManually = new QCheckBox("Continue optimizing\nuntil I manually stop it.", this);
+    onlyStopManually->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    theGrid->addWidget(onlyStopManually, 3, 2, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+
+    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Stop", this);
+    stopHere->setIconSize(QSize(30, 30));
+    stopHere->setToolTip(tr("Stop the optimization process immediately and show the best set of teams found so far."));
+    stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    connect(stopHere, &QPushButton::clicked, this, [this] {emit letsStop();});
+    theGrid->addWidget(stopHere, 3, 3, 1, -1, Qt::AlignRight | Qt::AlignVCenter);
+
+    countdownToClose = new QTimer(this);
+    setText(text);
     adjustSize();
 }
 
-void progressDialog::setText(QString text)
+void progressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
 {
-    explanation->setText("<html>" + text + "</html>");
+    QString explanation = "<html>" + tr("Generation ") + QString::number(generation) + " - " + tr("Top Score = ") + QString::number(score) +
+                              "<br><span style=\"color:" + (autostopInProgress? "green" : "black") + ";\">" + text + "<br>";
+    if(autostopInProgress && !onlyStopManually->isChecked())
+    {
+        explanation += tr("Optimization will stop in ") + QString::number(secsLeftToClose) + tr(" seconds.");
+    }
+    explanation += "</span></html>";
+    explanationText->setText(explanation);
+
+    if(autostopInProgress)
+    {
+        explanationIcon->setPixmap(QIcon(":/icons/ok.png").pixmap(25, 25));
+    }
+
+    if(autostopInProgress && !onlyStopManually->isChecked())
+    {
+        statusText->setText(tr("Status: Finalizing..."));
+    }
+    else
+    {
+        statusText->setText(tr("Status: Optimizing..."));
+    }
 }
 
 void progressDialog::highlightStopButton()
 {
     stopHere->setFocus();
-    stopHere->setStyleSheet("QPushButton {border-style: outset; border-width: 4px; border-color: red;}");
-    stopHere->setMinimumSize(stopHere->size());
+
+    if(countdownToClose->isActive() || onlyStopManually->isChecked())
+    {
+        return;
+    }
+
+    connect(countdownToClose, &QTimer::timeout, this, &progressDialog::updateCountdown);
+    countdownToClose->start(1000);
+}
+
+void progressDialog::updateCountdown()
+{
+    if(onlyStopManually->isChecked())
+    {
+        secsLeftToClose = 15;
+        return;
+    }
+
+    secsLeftToClose--;
+    explanationText->setText(explanationText->text().replace(QRegularExpression(tr("stop in ") + "\\d*"), tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
+    if(secsLeftToClose == 0)
+    {
+        stopHere->animateClick();
+    }
+}
+
+void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
+{
+    graphShown = !graphShown;
+
+    int height;
+    QIcon icon;
+    QString butText;
+    if(graphShown)
+    {
+        chart->show();
+        height = 400;
+        icon = QIcon(":/icons/up_arrow.png");
+        butText = "Hide progress";
+    }
+    else
+    {
+        chart->hide();
+        height = 0;
+        icon = QIcon(":/icons/down_arrow.png");
+        butText = "Show progress";
+    }
+    int chartRow, x;
+    theGrid->getItemPosition(theGrid->indexOf(chart), &chartRow, &x, &x, &x);
+    theGrid->setRowMinimumHeight(chartRow, height);
+    showStatsButton->setIcon(icon);
+    showStatsButton->setText(butText);
+    adjustSize();
 }
 
 progressDialog::~progressDialog()
 {
+    countdownToClose->stop();
 }

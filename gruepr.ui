@@ -741,25 +741,12 @@ Meeting Times:</string>
            <property name="spacing">
             <number>2</number>
            </property>
-           <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-            <widget class="QLabel" name="label_4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Default Values:</string>
-             </property>
-            </widget>
-           </item>
            <item>
             <layout class="QHBoxLayout" name="defaultValuesInnerLayout">
              <property name="spacing">
               <number>2</number>
              </property>
-             <item alignment="Qt::AlignHCenter">
+             <item>
               <widget class="QPushButton" name="loadSettingsButton">
                <property name="enabled">
                 <bool>false</bool>
@@ -774,7 +761,9 @@ Meeting Times:</string>
                 <string>Load the default teaming options.</string>
                </property>
                <property name="text">
-                <string>Load</string>
+                <string>Load
+Teaming Options
+from a File</string>
                </property>
               </widget>
              </item>
@@ -793,26 +782,9 @@ Meeting Times:</string>
                 <string>Save the current teaming options as the defaults for the future.</string>
                </property>
                <property name="text">
-                <string>Save</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="clearSettingsButton">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Reset the saved teaming options to the original defaults.</string>
-               </property>
-               <property name="text">
-                <string>Reset All</string>
+                <string>Save
+Teaming Options
+to a File</string>
                </property>
               </widget>
              </item>
@@ -1068,6 +1040,9 @@ Identities</string>
          </item>
          <item row="17" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
           <widget class="QLabel" name="label_17">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -1081,7 +1056,7 @@ Identities</string>
             </size>
            </property>
            <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/settings.png</pixmap>
+            <pixmap resource="gruepr.qrc">:/icons/save.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>

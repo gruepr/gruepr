@@ -52,8 +52,8 @@ private slots:
     void on_day6LineEdit_editingFinished();
     void on_day7LineEdit_textChanged(const QString &arg1);
     void on_day7LineEdit_editingFinished();
-    void on_timeStartEdit_timeChanged(const QTime &time);
-    void on_timeEndEdit_timeChanged(const QTime &time);
+    void on_timeStartEdit_timeChanged(QTime time);
+    void on_timeEndEdit_timeChanged(QTime time);
     void on_sectionCheckBox_clicked(bool checked);
     void on_sectionNamesTextEdit_textChanged();
     void on_additionalQuestionsCheckBox_clicked(bool checked);

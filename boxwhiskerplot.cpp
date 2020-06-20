@@ -1,6 +1,6 @@
 #include "boxwhiskerplot.h"
 
-BoxWhiskerPlot::BoxWhiskerPlot(QString title, QString xAxisTitle, QString yAxisTitle)
+BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle)
     : QtCharts::QChart()
 {
     QFont titleFont("Oxygen Mono");
@@ -42,7 +42,7 @@ BoxWhiskerPlot::BoxWhiskerPlot(QString title, QString xAxisTitle, QString yAxisT
 void BoxWhiskerPlot::updatePlot()
 {
     auto *set = new QtCharts::QBoxSet(nextVals[0], nextVals[1], nextVals[2], nextVals[3], nextVals[4]);
-    if(set)
+    if(set != nullptr)
     {
         dataSeries->append(set);
     }
@@ -71,11 +71,14 @@ void BoxWhiskerPlot::updatePlot()
 
 void BoxWhiskerPlot::loadNextVals(QVector<float> vals)
 {
-    if(vals.count() >= 5)
+    int count = vals.count();
+    const int numValsNeededForBoxAndWhisker = 5;
+    const int ignoreBottomXPercentOfData = 10;
+
+    if(count >= numValsNeededForBoxAndWhisker)
     {
         std::sort(vals.begin(), vals.end());
-        int count = vals.count();
-        nextVals[0] = median(vals, 0, count/5);     //lower extreme (lower decile)
+        nextVals[0] = median(vals, 0, count/(ignoreBottomXPercentOfData/2));     //lower extreme
         nextVals[1] = median(vals, 0, count/2);     //lower quartile
         nextVals[2] = median(vals, 0, count);       //median
         nextVals[3] = median(vals, count / 2 + (count % 2), count);     //upper quartile
@@ -87,17 +90,15 @@ void BoxWhiskerPlot::loadNextVals(QVector<float> vals)
 }
 
 
-float BoxWhiskerPlot::median(QVector<float> vals, int begin, int end)
+float BoxWhiskerPlot::median(const QVector<float> &vals, int begin, int end)
 {
     int count = end - begin;
-    if (count % 2)
+    if ((count % 2) != 0)
     {
         return vals.at(count/2 + begin);
     }
-    else
-    {
-        float right = vals.at(count/2 + begin);
-        float left = vals.at(count/2 - 1 + begin);
-        return (right + left) / 2.0;
-    }
+
+    float right = vals.at(count/2 + begin);
+    float left = vals.at(count/2 - 1 + begin);
+    return (right + left) / 2.0f;
 }

@@ -1,15 +1,18 @@
-#include <algorithm>
 #include "GA.h"
+#include <algorithm>
 
 //////////////////
 // Select two parents from the genepool using tournament selection
 //////////////////
-void GA::tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int **ancestors, int *&mom, int *&dad, int parentage[])
+void GA::tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
 {
+    std::uniform_int_distribution<unsigned int> randProbability(1, 100);
+    std::uniform_int_distribution<unsigned int> randGenome(0, populationSize-1);
+
     //get tournamentSize random values from 0 -> populationSize and get those index-valued genePool genomes and scores into players[]
     for(int player = 0; player < tournamentSize; player++)
     {
-        int tourneyPick = rand()%populationSize;
+        int tourneyPick = randGenome(pRNG);
         players[player].genome = &genePool[tourneyPick][0];
         players[player].score = scores[tourneyPick];
         players[player].ancestors = &ancestors[tourneyPick][0];
@@ -17,19 +20,19 @@ void GA::tournamentSelectParents(tourneyPlayer *players, int **genePool, const f
     }
 
     //sort tournament genomes so top genomes in tournament are at the beginning
-    std::sort(players, players+tournamentSize, [](tourneyPlayer i,tourneyPlayer j){return i.score>j.score;});
+    std::sort(players, players+tournamentSize, [](const tourneyPlayer &i,const tourneyPlayer &j){return i.score>j.score;});
 
     //pick first genome from tournament, most likely from the beginning so that best genomes are more likely have offspring
     int momsindex = 0;
     //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
-    while(rand() > topGenomeLikelihood)
+    while(randProbability(pRNG) > topGenomeLikelihood)
     {
         momsindex++;
     }
 
     //pick second genome from tournament in same way, but make sure to not pick the same genome
     int dadsindex = 0;
-    while((rand() > topGenomeLikelihood) || (dadsindex == momsindex))
+    while((randProbability(pRNG) > topGenomeLikelihood) || (dadsindex == momsindex))
     {
         dadsindex++;
     }
@@ -86,10 +89,18 @@ void GA::tournamentSelectParents(tourneyPlayer *players, int **genePool, const f
 //////////////////
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
-void GA::mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize)
+void GA::mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize, std::mt19937 &pRNG)
 {
+
     //randomly choose two team boundaries in the genome from which to cut an allele
-    int endTeam = 1+rand()%numTeams, startTeam = rand()%endTeam;	//endTeam is between 1 and number of teams, startTeam is between 0 and endTeam-1
+    std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
+    int startTeam = randTeam(pRNG);
+    int endTeam;
+    do
+    {
+        endTeam = randTeam(pRNG);
+    }
+    while(endTeam == startTeam);
 
     //Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
     int end=0, start=0, team=0, position=0;
@@ -120,30 +131,14 @@ void GA::mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[
 
     //copy mom's allele into child
     std::copy(mom + start, mom + end, child + start);
-
-    return;
 }
 
 
 //////////////////
 // Randomly swap two sites in given genome
 //////////////////
-void GA::mutate(int genome[], int genomeSize)
+void GA::mutate(int genome[], int genomeSize, std::mt19937 &pRNG)
 {
-    int site1, site2;
-    int greatestRandMultiple = RAND_MAX - (RAND_MAX % genomeSize);      // Holds the largest rand() that is a multiple of genomeSize, so that we get a uniform value 0->genomeSize
-    do
-    {
-        site1 = rand();
-    }
-    while(site1 >= greatestRandMultiple);
-    do
-    {
-        site2 = rand();
-    }
-    while(site2 >= greatestRandMultiple);
-
-    std::swap(genome[site1%genomeSize], genome[site2%genomeSize]);
-
-    return;
+    std::uniform_int_distribution<unsigned int> randSite(0, genomeSize-1);
+    std::swap(genome[randSite(pRNG)], genome[randSite(pRNG)]);
 }

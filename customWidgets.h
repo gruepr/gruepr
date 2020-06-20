@@ -15,7 +15,7 @@
 class TimestampTableWidgetItem : public QTableWidgetItem
 {
 public:
-    TimestampTableWidgetItem(const QString &txt = "");
+    TimestampTableWidgetItem(const QString &txt = "") : QTableWidgetItem(txt) {}
     bool operator <(const QTableWidgetItem &other) const;
 };
 
@@ -24,7 +24,7 @@ public:
 class SectionTableWidgetItem : public QTableWidgetItem
 {
 public:
-    SectionTableWidgetItem(const QString &txt = "");
+    SectionTableWidgetItem(const QString &txt = "") : QTableWidgetItem(txt) {}
     bool operator <(const QTableWidgetItem &other) const;
 };
 
@@ -62,8 +62,8 @@ private:
 class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-    TeamTreeWidgetItem(QTreeWidget *parent = nullptr, int type = 0);
-    TeamTreeWidgetItem(QTreeWidgetItem *parent = nullptr, int type = 0);
+    TeamTreeWidgetItem(QTreeWidget *parent = nullptr, int type = 0) : QTreeWidgetItem (parent, type) {}
+    TeamTreeWidgetItem(QTreeWidgetItem *parent = nullptr, int type = 0) : QTreeWidgetItem (parent, type) {}
     bool operator<(const QTreeWidgetItem &other) const;
 };
 
@@ -74,6 +74,7 @@ class TeamTreeHeaderView : public QHeaderView
 public:
     TeamTreeHeaderView(TeamTreeWidget *parent = nullptr);
 };
+
 
 // a subclassed QPushButton that passes mouse enter events to its parent
 class PushButtonThatSignalsMouseEnterEvents : public QPushButton
@@ -90,11 +91,14 @@ signals:
     void mouseEntered();
 };
 
+
 // a subclassed QSpinBox that replaces numerical values with categorical attribute responses in display
 class CategoricalSpinBox : public QSpinBox
 {
+    Q_OBJECT
+
 public:
-    CategoricalSpinBox(QWidget *parent = nullptr);
+    CategoricalSpinBox(QWidget *parent = nullptr) : QSpinBox(parent) {}
     void setCategoricalValues(const QStringList &categoricalValues);
     QString textFromValue(int value) const;
     int valueFromText(const QString &text) const;
@@ -104,9 +108,12 @@ private:
     QStringList categoricalValues;
 };
 
+
 // a subclassed combobox that paints with elided contents
 class ComboBoxWithElidedContents : public QComboBox
 {
+    Q_OBJECT
+
 public:
     ComboBoxWithElidedContents(QWidget *parent = nullptr);
     QSize sizeHint() const override;

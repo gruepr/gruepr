@@ -43,11 +43,12 @@ private:
     static const int possibleNumIDs = 8;                // number of comboboxes in the dialog box, i.e., possible choices of teammates
     QComboBox possibleTeammates[possibleNumIDs + 1];    // +1 for the requesting student in typeOfTeammates == requested
     QPushButton *loadTeammates;
-    QPushButton *resetTableButton;
-    QPushButton *loadFileOfTeammates;
+    QComboBox *resetSaveOrLoad;
     QDialogButtonBox *buttonBox;
     void refreshDisplay();
-    bool loadFile();                                    // returns true on success, false on fail
+    bool saveCSVFile();                                    // returns true on success, false on fail
+    bool loadCSVFile();
+    bool loadSpreadsheetFile();
 };
 
 
@@ -228,21 +229,30 @@ class progressDialog : public QDialog
     Q_OBJECT
 
 public:
-    progressDialog(QString text = "", QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
+    progressDialog(const QString &text = "", QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog();
 
-    void setText(QString text = "");
+   void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
     void highlightStopButton();
+
+private slots:
+    void statsButtonPushed(QtCharts::QChartView *chart);
+    void updateCountdown();
 
 signals:
     void letsStop();
 
 private:
-    bool graphShown = false;
+    bool graphShown;
     QGridLayout *theGrid;
-    QLabel *explanation;
-    QPushButton *showStatsButton;
+    QLabel *statusText;
+    QLabel *explanationText;
+    QLabel *explanationIcon;
+    QCheckBox *onlyStopManually;
     QPushButton *stopHere;
+    QPushButton *showStatsButton;
+    QTimer *countdownToClose;
+    int secsLeftToClose = 15;
 };
 
 

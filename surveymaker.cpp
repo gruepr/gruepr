@@ -1,11 +1,11 @@
 #include "surveymaker.h"
 #include "ui_surveymaker.h"
-#include <QMessageBox>
-#include <QtNetwork>
 #include <QDesktopServices>
-#include <QTextBrowser>
 #include <QFileDialog>
 #include <QJsonDocument>
+#include <QMessageBox>
+#include <QTextBrowser>
+#include <QtNetwork>
 
 SurveyMaker::SurveyMaker(QWidget *parent) :
     QMainWindow(parent),
@@ -782,7 +782,7 @@ void SurveyMaker::on_day7LineEdit_editingFinished()
     }
 }
 
-void SurveyMaker::on_timeStartEdit_timeChanged(const QTime &time)
+void SurveyMaker::on_timeStartEdit_timeChanged(QTime time)
 {
     startTime = time.hour();
     if(ui->timeEndEdit->time() <= time)
@@ -792,7 +792,7 @@ void SurveyMaker::on_timeStartEdit_timeChanged(const QTime &time)
     refreshPreview();
 }
 
-void SurveyMaker::on_timeEndEdit_timeChanged(const QTime &time)
+void SurveyMaker::on_timeEndEdit_timeChanged(QTime time)
 {
     endTime = time.hour();
     if(ui->timeStartEdit->time() >= time)

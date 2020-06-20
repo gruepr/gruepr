@@ -1,5 +1,5 @@
-#include <QVector>
 #include "Levenshtein.h"
+#include <QVector>
 
 int levenshtein::distance(const QString &source, const QString &target, const Qt::CaseSensitivity cs)
 {
@@ -46,7 +46,7 @@ int levenshtein::distance(const QString &source, const QString &target, const Qt
     {
       return targetLength;
     }
-    else if (targetLength == 0)
+    if (targetLength == 0)
     {
       return sourceLength;
     }

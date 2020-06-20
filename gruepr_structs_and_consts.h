@@ -15,14 +15,6 @@
 #include <QSet>
 #include "GA.h"
 
-//map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
-const QMap<QString, int> meaningOfTimeNames{ {"1am",1}, {"2am",2}, {"3am",3}, {"4am",4}, {"5am",5}, {"6am",6}, {"7am",7}, {"8am",8}, {"9am",9}, {"10am",10}, {"11am",11}, {"12pm",12},
-                                           {"1pm",13}, {"2pm",14}, {"3pm",15}, {"4pm",16}, {"5pm",17}, {"6pm",18}, {"7pm",19}, {"8pm",20}, {"9pm",21}, {"10pm",22}, {"11pm",23}, {"12am",0},
-                                           {"1:00",1}, {"2:00",2}, {"3:00",3}, {"4:00",4}, {"5:00",5}, {"6:00",6}, {"7:00",7}, {"8:00",8}, {"9:00",9}, {"10:00",10}, {"11:00",11}, {"12:00",12},
-                                           {"13:00",13}, {"14:00",14}, {"15:00",15}, {"16:00",16}, {"17:00",17}, {"18:00",18}, {"19:00",19}, {"20:00",20}, {"21:00",21}, {"22:00",22}, {"23:00",23}, {"0:00",0},
-                                           {"1 am",1}, {"2 am",2}, {"3 am",3}, {"4 am",4}, {"5 am",5}, {"6 am",6}, {"7 am",7}, {"8 am",8}, {"9 am",9}, {"10 am",10}, {"11 am",11}, {"12 pm",12},
-                                           {"1 pm",13}, {"2 pm",14}, {"3 pm",15}, {"4 pm",16}, {"5 pm",17}, {"6 pm",18}, {"7 pm",19}, {"8 pm",20}, {"9 pm",21}, {"10 pm",22}, {"11 pm",23}, {"12 am",0},
-                                           {"noon",12}, {"midnight", 0} };
 
 const int maxAttributes = 15;							// maximum number of skills/attitudes
 const int maxStudents = maxRecords;                     // each student is a "record" in the genetic algorithm
@@ -31,18 +23,37 @@ const int maxTimeBlocks = 7*24;                         // resolution of schedul
 
 const int TeamInfoDisplay = Qt::UserRole;               // data with this role is stored in each column of the team info display tree, shown when team is collapsed
 const int TeamInfoSort = Qt::UserRole + 1;              // data with this role is stored in each column of the team info display tree, used when sorting the column
+const int TeamNumber = Qt::UserRole + 2;                // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
+
+//map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
+const QMap<QString, int> meaningOfTimeNames{ {"1am",1}, {"2am",2}, {"3am",3}, {"4am",4}, {"5am",5}, {"6am",6},
+                                             {"7am",7}, {"8am",8}, {"9am",9}, {"10am",10}, {"11am",11}, {"12pm",12},
+                                             {"1pm",13}, {"2pm",14}, {"3pm",15}, {"4pm",16}, {"5pm",17}, {"6pm",18},
+                                             {"7pm",19}, {"8pm",20}, {"9pm",21}, {"10pm",22}, {"11pm",23}, {"12am",0},
+                                             {"1:00",1}, {"2:00",2}, {"3:00",3}, {"4:00",4}, {"5:00",5}, {"6:00",6},
+                                             {"7:00",7}, {"8:00",8}, {"9:00",9}, {"10:00",10}, {"11:00",11}, {"12:00",12},
+                                             {"13:00",13}, {"14:00",14}, {"15:00",15}, {"16:00",16}, {"17:00",17}, {"18:00",18},
+                                             {"19:00",19}, {"20:00",20}, {"21:00",21}, {"22:00",22}, {"23:00",23}, {"0:00",0},
+                                             {"1 am",1}, {"2 am",2}, {"3 am",3}, {"4 am",4}, {"5 am",5}, {"6 am",6},
+                                             {"7 am",7}, {"8 am",8}, {"9 am",9}, {"10 am",10}, {"11 am",11}, {"12 pm",12},
+                                             {"1 pm",13}, {"2 pm",14}, {"3 pm",15}, {"4 pm",16}, {"5 pm",17}, {"6 pm",18},
+                                             {"7 pm",19}, {"8 pm",20}, {"9 pm",21}, {"10 pm",22}, {"11 pm",23}, {"12 am",0},
+                                             {"noon",12}, {"midnight", 0} };
 
 // Options for the team names. A name for each list of names must be given.
-const QStringList teamnameListNames = {QString("Arabic numbers,"
-                                       "Roman numerals,"
-                                       "Hexadecimal numbers,"
-                                       "English letters,"
-                                       "Greek letters,"
-                                       "NATO phonetic alphabet,"
-                                       "Chemical elements,"
-                                       "Shakespeare plays,"
-                                       "Olympic host cities")
-                                       .split(",")};
+const QStringList teamnameListNames {QString(
+                                            "Arabic numbers,"
+                                            "Roman numerals,"
+                                            "Hexadecimal numbers,"
+                                            "English letters,"
+                                            "Greek letters,"
+                                            "NATO phonetic alphabet,"
+                                            "Chemical elements,"
+                                            "Shakespeare plays,"
+                                            "Olympic host cities,"
+                                            "Minor Simpsons characters")
+                                            .split(",")};
+
 const QList<QStringList> teamNameLists{{},
                                        {},
                                        {},
@@ -69,8 +80,12 @@ const QList<QStringList> teamNameLists{{},
                                                 "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
                                                 "Two Noble Kinsmen").split(",")},
                                        {QString("Athens,Paris,St Louis,London,Stockholm,Amsterdam,Los Angeles,Berlin,Helsinki,Melbourne,Rome,Tokyo,"
-                                                "Mexico City,Munich,Montreal,Moscow,Seoul,Barcelona,Atlanta,Sydney,Beijing,Rio de Janeiro").split(",")}
+                                                "Mexico City,Munich,Montreal,Moscow,Seoul,Barcelona,Atlanta,Sydney,Beijing,Rio de Janeiro").split(",")},
+                                       {QString("Artie Ziff,Bleeding Gums Murphy,Cleetus,Disco Stu,Edna Krabappel,Frank 'Grimy' Grimes,Ginger Flanders,"
+                                                "Hans Moleman,Jebediah Springfield,Kent Brockman,Luann Van Houten,Mayor Quimby,Ned Flanders,Professor Frink,Rainier Wolfcastle,"
+                                                "Sideshow Bob,Troy McClure,Uter Zorker,Waylon Smithers,Xoxchitla,Yes Guy,Zelda").split(",")}
                                       };
+
 
 //struct defining survey data from one student
 struct studentRecord
@@ -142,7 +157,7 @@ struct TeamingOptions
 {
     bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
     bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
-    bool mixedGenderPreferred = false;                  // if true, will penalize teams with all men or all women
+    bool singleGenderPrevented = false;                  // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
     QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
@@ -158,7 +173,7 @@ struct TeamingOptions
     int largerTeamsSizes[maxStudents] = {0};
     int largerTeamsNumTeams = 1;
     // initialize all attribute weights to 1, desires to heterogeneous, and no incompatible attribute values
-    inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1;}}
+    inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1; incompatibleAttributeValues[i].clear();}}
 };
 
 

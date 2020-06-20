@@ -1,19 +1,14 @@
-#include <QDateTime>
+#include "customWidgets.h"
+#include "gruepr_structs_and_consts.h"
 #include <QCollator>
+#include <QDateTime>
 #include <QDropEvent>
 #include <QPainter>
 #include <QStylePainter>
-#include "customWidgets.h"
-#include "gruepr_structs_and_consts.h"
 
 //////////////////
 // Table Widget Item for timestamps, allowing to sort chronologically
 //////////////////
-TimestampTableWidgetItem::TimestampTableWidgetItem(const QString &txt)
-    :QTableWidgetItem(txt)
-{
-}
-
 bool TimestampTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
     return QDateTime::fromString(text(), Qt::SystemLocaleShortDate) < QDateTime::fromString(other.text(), Qt::SystemLocaleShortDate);
@@ -23,11 +18,6 @@ bool TimestampTableWidgetItem::operator <(const QTableWidgetItem &other) const
 //////////////////
 // Table Widget Item for section names, allowing to sort alphanumerically
 //////////////////
-SectionTableWidgetItem::SectionTableWidgetItem(const QString &txt)
-    :QTableWidgetItem(txt)
-{
-}
-
 bool SectionTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
     QCollator sortAlphanumerically;
@@ -127,14 +117,13 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     // Iff dragged and dropped items are both students or both teams, then swap their places.
     if(draggedItem->parent() && droppedItem->parent())  // two students
     {
-        // UserRole data stored in the item is the studentRecord.ID; TeamInfoSort data stored in the parent's column 0 is the team number
-        emit swapChildren((draggedItem->parent()->data(0,TeamInfoSort)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
-                          (droppedItem->parent()->data(0,TeamInfoSort)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
+        // UserRole data stored in the item is the studentRecord.ID; TeamNumber data stored in the parent's column 0 is the team number
+        emit swapChildren((draggedItem->parent()->data(0,TeamNumber)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
+                          (droppedItem->parent()->data(0,TeamNumber)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
     }
     else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
     {
-        // TeamInfoSort data stored in column 0 is the team number
-        emit swapParents((draggedItem->data(0,TeamInfoSort)).toInt(), (droppedItem->data(0,TeamInfoSort)).toInt());
+        emit swapParents((draggedItem->data(0,TeamNumber)).toInt(), (droppedItem->data(0,TeamNumber)).toInt());
     }
     else
     {
@@ -164,16 +153,6 @@ void TeamTreeWidget::itemEntered(const QModelIndex &index)
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
 
-TeamTreeWidgetItem::TeamTreeWidgetItem(QTreeWidget *parent, int type)
-    :QTreeWidgetItem (parent, type)
-{
-}
-
-TeamTreeWidgetItem::TeamTreeWidgetItem(QTreeWidgetItem *parent, int type)
-    :QTreeWidgetItem (parent, type)
-{
-}
-
 bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 {
     if(parent())      // don't sort the students, only the teams
@@ -185,15 +164,12 @@ bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 
     if(sortColumn == 0)
     {
-        QCollator sortAlphanumerically;
-        sortAlphanumerically.setNumericMode(true);
-        sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-        return (sortAlphanumerically.compare(text(sortColumn), other.text(sortColumn)) < 0);
+        return (data(sortColumn, TeamInfoSort).toString() < other.data(sortColumn, TeamInfoSort).toString());
     }
 
-    // sort using sortorder data in column, and use teamnumber to break ties
-    return((1000*data(sortColumn, TeamInfoSort).toInt() + data(0, TeamInfoSort).toInt()) <
-           (1000*other.data(sortColumn, TeamInfoSort).toInt() + other.data(0, TeamInfoSort).toInt()));
+    // sort using sortorder data in column, and use existing order to break ties
+    return((1000*data(sortColumn, TeamInfoSort).toInt() + data(columnCount()-1, TeamInfoSort).toInt()) <
+           (1000*other.data(sortColumn, TeamInfoSort).toInt() + other.data(columnCount()-1, TeamInfoSort).toInt()));
 }
 
 TeamTreeHeaderView::TeamTreeHeaderView(TeamTreeWidget *parent)
@@ -224,11 +200,6 @@ void PushButtonThatSignalsMouseEnterEvents::enterEvent(QEvent *event)
 //////////////////
 // QSpinBox that replaces numerical values with categorical attribute responses in display
 //////////////////
-CategoricalSpinBox::CategoricalSpinBox(QWidget *parent)
-    :QSpinBox(parent)
-{
-}
-
 void CategoricalSpinBox::setCategoricalValues(const QStringList &categoricalValues)
 {
     this->categoricalValues = categoricalValues;
@@ -269,7 +240,7 @@ QSize ComboBoxWithElidedContents::sizeHint() const
 
 QSize ComboBoxWithElidedContents::minimumSizeHint() const
 {
-    return QSize((QFontMetrics(this->font())).boundingRect("Very high / Above average / Average / Below average / Very low").width()+15, QComboBox::minimumSizeHint().height());
+    return {(QFontMetrics(this->font())).boundingRect("Very high / Above average / Average / Below average / Very low").width()+15, QComboBox::minimumSizeHint().height()};
 }
 
 void ComboBoxWithElidedContents::paintEvent(QPaintEvent *event)

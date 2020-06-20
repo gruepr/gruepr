@@ -35,13 +35,17 @@
 // - made section question more specific
 // - larger max # of attributes
 // - order students on each team alphabetically
-// - save surveymaker to textfile/csv file
+// - add option to save surveymaker output to textfile/csv file
+// - order teams at first using lastname+firstname of first student in team; click on name column gets back to this order (until teams are renamed or students swapped)
+// - move clear all teammates button to less error-prone location
+// - save/load CSV of teammates, using levenshtein::distance to match names
+// - handle multiple notes columns in surveydata
+// - save/load defaults into file instead of registry
+// - auto-close optimization on timer after stable
+// - modernize rand()
+// - make Teams table click-on-name-column persist as ordering by student name (even after teams are renamed or students swapped)
 //
 // TO DO:
-// - order teams at first using lastname+firstname of first student in team; let click on name column get back to this order
-// - save/load defaults into file instead of registry
-// - move clear all teammates button to less error-prone location
-// - allowing load of external data, using levenshtein::distance to match names
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
@@ -51,15 +55,15 @@
 #include "gruepr.h"
 #include "surveymaker.h"
 #include <QApplication>
-#include <QSplashScreen>
-#include <QMessageBox>
-#include <QToolButton>
-#include <QThread>
-#include <QFontDatabase>
-#include <QSettings>
 #include <QCryptographicHash>
-#include <QtNetwork>
 #include <QDesktopServices>
+#include <QFontDatabase>
+#include <QMessageBox>
+#include <QSettings>
+#include <QSplashScreen>
+#include <QThread>
+#include <QToolButton>
+#include <QtNetwork>
 
 int main(int argc, char *argv[])
 {
@@ -80,13 +84,13 @@ int main(int argc, char *argv[])
 
     // Create application choice (gruepr or SurveyMaker) window
     QMessageBox *startWindow = new QMessageBox;
-    QFont *boxFont = new QFont("Oxygen Mono", a.font().pointSize()+8);
+    QFont *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize()+8);
     startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     startWindow->setWindowTitle(" ");
     startWindow->setFont(*boxFont); startWindow->setText("Select an app to run:");
 
     // Button metrics
-    boxFont->setPointSize(a.font().pointSize()+4);
+    boxFont->setPointSize(QApplication::font().pointSize()+4);
     int labelWidth = (QFontMetrics(*boxFont)).boundingRect("Register gruepr").width();
     QSize defIconSize(labelWidth-20,labelWidth-20);
     QSize defButtonSize(labelWidth+20,labelWidth);

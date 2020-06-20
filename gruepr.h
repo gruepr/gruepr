@@ -66,7 +66,6 @@ private slots:
     void on_printTeamsButton_clicked();
     void on_loadSettingsButton_clicked();
     void on_saveSettingsButton_clicked();
-    void on_clearSettingsButton_clicked();
     void swapTeammates(int studentAteam, int studentAID, int studentBteam, int studentBID);
     void swapTeams(int teamA, int teamB);
     void reorderedTeams();
@@ -75,13 +74,13 @@ private slots:
 
 signals:
     void generationComplete(QVector<float> allScores, int generation, float scoreStability);
-    void optimizationMightBeComplete();
     void turnOffBusyCursor();
     void connectedToPrinter();
 
 private:
         // setup
     Ui::gruepr *ui;
+    void loadDefaultSettings();
     DataOptions dataOptions;
     TeamingOptions teamingOptions;
     int numTeams = 1;
@@ -115,8 +114,8 @@ private:
     QList<int> optimizeTeams(const int *studentIDs);    // returns a single permutation-of-IDs
     QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
-    BoxWhiskerPlot *progressChart;
-    progressDialog *progressWindow;
+    BoxWhiskerPlot *progressChart = nullptr;
+    progressDialog *progressWindow = nullptr;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;

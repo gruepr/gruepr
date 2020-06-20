@@ -11,16 +11,16 @@ class BoxWhiskerPlot : public QtCharts::QChart
     Q_OBJECT
 
 public:
-    BoxWhiskerPlot(QString title = "", QString xAxisTitle = "", QString yAxisTitle = "");
+    BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "");
     void loadNextVals(QVector<float> vals);
-    int dataWidth = 40;
+    const int dataWidth = 40;
     const int updateChunkSize = 10;
 
 public slots:
     void updatePlot();
 
 private:
-    float median(QVector<float> vals, int begin, int end);
+    float median(const QVector<float> &vals, int begin, int end);
     QtCharts::QBoxPlotSeries *dataSeries;
     QtCharts::QBarCategoryAxis *axisX;
     QtCharts::QValueAxis *axisY;
