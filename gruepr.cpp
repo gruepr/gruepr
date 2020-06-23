@@ -1379,10 +1379,10 @@ void gruepr::on_letsDoItButton_clicked()
     progressWindow = new progressDialog("", chartView, this);
     progressWindow->show();
     connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-                                                               connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
-                                                               optimizationStoppedmutex.lock();
-                                                               optimizationStopped = true;
-                                                               optimizationStoppedmutex.unlock();});
+                                                                     connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
+                                                                     optimizationStoppedmutex.lock();
+                                                                     optimizationStopped = true;
+                                                                     optimizationStoppedmutex.unlock();});
 
     // Get the IDs of students from desired section and change numStudents accordingly
     int numStudentsInSection = 0;
@@ -1406,8 +1406,12 @@ void gruepr::on_letsDoItButton_clicked()
 
 void gruepr::updateOptimizationProgress(QVector<float> allScores, int generation, float scoreStability)
 {
-    progressChart->loadNextVals(allScores);
-    progressChart->updatePlot();
+    if((generation % (progressChart->plotFrequency)) == 0)
+    {
+        progressChart->loadNextVals(allScores);
+        progressChart->updatePlot();
+    }
+
     if(generation > maxGenerations)
     {
         progressWindow->setText(tr("We have reached ") + QString::number(maxGenerations) + tr(" generations."),

@@ -15,9 +15,10 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     axisX = new QtCharts::QBarCategoryAxis;
     this->addAxis(axisX, Qt::AlignBottom);
     dataSeries->attachAxis(axisX);
-    for(int i = 1; i <= dataWidth + updateChunkSize; i++)
+    int ticklabel = 0;
+    for(int i = 0; i <= dataWidth; i += plotFrequency)
     {
-        if(i % updateChunkSize == 0)
+        if(ticklabel++ % xAxisTickPeriod == 0)
         {
             axisX->append(QString::number(i));
         }
@@ -47,11 +48,12 @@ void BoxWhiskerPlot::updatePlot()
         dataSeries->append(set);
     }
 
-    if(!((axisX->categories()).contains(QString::number(updateChunkSize * (1 + (dataSeries->count() / updateChunkSize))))))
+    if(((dataSeries->count() - 1) * plotFrequency)  == (axisX->max()).toInt())
     {
-        for(int i = 1 + (updateChunkSize * (dataSeries->count() / updateChunkSize)); i <= updateChunkSize * (1 + (dataSeries->count() / updateChunkSize)); i++)
+        int ticklabel = 0;
+        for(int i = ((dataSeries->count() - 1) * plotFrequency); i <= (((dataSeries->count()) * plotFrequency) + updateChunkSize); i += plotFrequency)
         {
-            if(i % updateChunkSize == 0)
+            if(ticklabel++ % xAxisTickPeriod == 0)
             {
                 axisX->append(QString::number(i));
             }
@@ -61,8 +63,8 @@ void BoxWhiskerPlot::updatePlot()
             }
         }
     }
-    axisX->setRange(QString::number(std::max(0, updateChunkSize * (1 + (dataSeries->count() / updateChunkSize)) - dataWidth )),
-                    QString::number(std::max(dataWidth, updateChunkSize * (1 + (dataSeries->count() / updateChunkSize)) )));
+    axisX->setRange(QString::number(std::max(0, ((dataSeries->count() - 1) * plotFrequency) + updateChunkSize - dataWidth)),
+                    QString::number(std::max(dataWidth, ((dataSeries->count() - 1) * plotFrequency) + updateChunkSize)));
 
     axisY->setRange(yAxisRange[0], yAxisRange[1]);
     axisY->applyNiceNumbers();

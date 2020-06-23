@@ -13,8 +13,7 @@ class BoxWhiskerPlot : public QtCharts::QChart
 public:
     BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "");
     void loadNextVals(QVector<float> vals);
-    const int dataWidth = 40;
-    const int updateChunkSize = 10;
+    const int plotFrequency = 5;
 
 public slots:
     void updatePlot();
@@ -26,6 +25,9 @@ private:
     QtCharts::QValueAxis *axisY;
     float nextVals[5] = {0,0,0,0,0};
     float yAxisRange[2] = {0, 1};
+    const int dataWidth = 50;
+    const int updateChunkSize = 20;
+    const int xAxisTickPeriod = 2;
 };
 
 #endif // BOXWHISKERPLOT_H

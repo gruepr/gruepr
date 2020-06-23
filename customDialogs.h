@@ -252,7 +252,7 @@ private:
     QPushButton *stopHere;
     QPushButton *showStatsButton;
     QTimer *countdownToClose;
-    int secsLeftToClose = 15;
+    int secsLeftToClose = 5;
 };
 
 
