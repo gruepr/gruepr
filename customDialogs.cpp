@@ -1368,7 +1368,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     incompatibleResponses = currIncompats;
 
     //Set up window with a grid layout
-    setWindowTitle(tr("Select incompatible responses for Attribute ") + QString::number(attribute + 1));
+    setWindowTitle(tr("Select incompatible responses for attribute ") + QString::number(attribute + 1));
 
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
@@ -1406,13 +1406,14 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
         connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
-        theGrid->addWidget(&responses[response], response + 1, 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(&responses[response], response + 1, 1, 1, -1,  Qt::AlignLeft | Qt::AlignVCenter);
     }
     theGrid->setColumnStretch(1, 1);    // set second column as the one to grow
 
     //button to add the currently checked values as incompatible pairs
     addValuesButton = new QPushButton(this);
     addValuesButton->setText(tr("Add these\nincompatible\nvalue pairs"));
+    addValuesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(addValuesButton, &QPushButton::clicked, this, &gatherIncompatibleResponsesDialog::addValues);
     theGrid->addWidget(addValuesButton, numPossibleValues + 2, 0, 1, -1);
 
@@ -1425,16 +1426,18 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     //a spacer then ok/cancel buttons
     theGrid->setRowMinimumHeight(numPossibleValues + 4, 20);
     resetValuesButton = new QPushButton(this);
-    resetValuesButton->setText(tr("&Clear all\nincompatible\nvalues"));
-    theGrid->addWidget(resetValuesButton, numPossibleValues + 5, 0, 1, 1);
+    resetValuesButton->setText(tr("&Clear all\nvalues"));
+    resetValuesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    theGrid->addWidget(resetValuesButton, numPossibleValues + 5, 0, 1, 2);
     connect(resetValuesButton, &QPushButton::clicked, this, &gatherIncompatibleResponsesDialog::clearAllValues);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, numPossibleValues + 5, 1, -1, -1);
+    theGrid->addWidget(buttonBox, numPossibleValues + 5, 3, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    updateExplanation();
+    explanation->setText("<html><hr><br><b>" + tr("Students with these responses will not be placed on the same team:") + "<br><br><br></b></html>");
     adjustSize();
+    updateExplanation();
 }
 
 
@@ -1454,11 +1457,11 @@ void gatherIncompatibleResponsesDialog::updateExplanation()
     }
     else
     {
-        QString explanationText;
+        QString explanationText = tr("Students with these responses will not be placed on the same team:<br>");
         for(const QPair<int, int> &pair : qAsConst(incompatibleResponses))
         {
-            explanationText += tr("Students with response ") + responses[(pair.first)-1].text().split('.').at(0) +
-                    tr(" will not be teamed with students with response ") + responses[(pair.second)-1].text().split('.').at(0) + ".<br>";
+            explanationText += "&nbsp;&nbsp;&nbsp;&nbsp;" + responses[(pair.first)-1].text().split('.').at(0) +
+                               " " + QChar(0x27f7) + " " + responses[(pair.second)-1].text().split('.').at(0) + "<br>";
         }
         // remove all html tags, replace "-" with "not set/unknown"
         explanationText.remove("<html>").replace("-", tr("not set/unknown"));
@@ -1482,6 +1485,7 @@ void gatherIncompatibleResponsesDialog::addValues()
             }
         }
     }
+    std::sort(incompatibleResponses.begin(), incompatibleResponses.end(), [](const QPair<int,int> &a, const QPair<int,int> &b){return (a.first*100+a.second) < (b.first*100+b.second);});
     updateExplanation();
 
     // reset checkboxes

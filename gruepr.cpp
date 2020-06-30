@@ -3056,7 +3056,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     // Calculate attribute scores and adjustements for each attribute for each team:
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
-        if(realAttributeWeights[attrib] > 0)
+        if((realAttributeWeights[attrib] > 0) || (haveAnyIncompatibleAttributes[attrib]))
         {
             ID = 0;
             for(int team = 0; team < numTeams; team++)
@@ -3082,25 +3082,28 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     }
                 }
 
-                // Remove attribute values of -1 (unknown/not set) and then determine attribute scores
-                attributeLevelsInTeam.remove(-1);
-                float attributeRangeInTeam;
-                if(dataOptions.attributeIsOrdered[attrib])
+                if(realAttributeWeights[attrib] > 0)
                 {
-                    // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
-                    auto mm = std::minmax_element(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
-                    attributeRangeInTeam = *mm.second - *mm.first;
-                }
-                else
-                {
-                    // attribute is categorical--heterogeneous means create maximum number of unique values
-                    attributeRangeInTeam = attributeLevelsInTeam.count() - 1;
-                }
+                    // Remove attribute values of -1 (unknown/not set) and then determine attribute scores
+                    attributeLevelsInTeam.remove(-1);
+                    float attributeRangeInTeam;
+                    if(dataOptions.attributeIsOrdered[attrib])
+                    {
+                        // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
+                        auto mm = std::minmax_element(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
+                        attributeRangeInTeam = *mm.second - *mm.first;
+                    }
+                    else
+                    {
+                        // attribute is categorical--heterogeneous means create maximum number of unique values
+                        attributeRangeInTeam = attributeLevelsInTeam.count() - 1;
+                    }
 
-                attributeScore[attrib][team] = attributeRangeInTeam / (dataOptions.attributeMax[attrib] - dataOptions.attributeMin[attrib]);
-                if(teamingOptions.desireHomogeneous[attrib])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
-                {
-                    attributeScore[attrib][team] = 1 - attributeScore[attrib][team];
+                    attributeScore[attrib][team] = attributeRangeInTeam / (dataOptions.attributeMax[attrib] - dataOptions.attributeMin[attrib]);
+                    if(teamingOptions.desireHomogeneous[attrib])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
+                    {
+                        attributeScore[attrib][team] = 1 - attributeScore[attrib][team];
+                    }
                 }
 
                 attributeScore[attrib][team] *= realAttributeWeights[attrib];
