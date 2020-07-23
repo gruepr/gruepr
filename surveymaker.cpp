@@ -16,6 +16,26 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/surveymaker.png"));
 
+    //Setup the main window menu items
+    connect(ui->actionOpenSurvey, &QAction::triggered, this, &SurveyMaker::openSurvey);
+    connect(ui->actionSaveSurvey, &QAction::triggered, this, &SurveyMaker::saveSurvey);
+    connect(ui->actionGoogle_form, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
+                                                                     generateSurvey = &SurveyMaker::postGoogleURL;
+                                                                     on_makeSurveyButton_clicked();
+                                                                     generateSurvey = prevSurveyMethod;});
+    connect(ui->actionSaved_files, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
+                                                                     generateSurvey = &SurveyMaker::createFiles;
+                                                                     on_makeSurveyButton_clicked();
+                                                                     generateSurvey = prevSurveyMethod;});
+    ui->actionExit->setMenuRole(QAction::QuitRole);
+    connect(ui->actionExit, &QAction::triggered, this, &SurveyMaker::close);
+    //ui->actionSettings->setMenuRole(QAction::PreferencesRole);
+    //connect(ui->actionSettings, &QAction::triggered, this, &SurveyMaker::settingsWindow);
+    connect(ui->actionHelp, &QAction::triggered, this, &SurveyMaker::helpWindow);
+    ui->actionAbout->setMenuRole(QAction::AboutRole);
+    connect(ui->actionAbout, &QAction::triggered, this, &SurveyMaker::aboutWindow);
+    connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
+
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
     //load in local day names
@@ -83,7 +103,9 @@ void SurveyMaker::refreshPreview()
     if(schedule)
     {
         preview += "<h3>Please tell us about your weekly schedule.</h3>";
-        preview += "<p>Check the times that you are BUSY and will be UNAVAILABLE for group work.</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
+        preview += "<p>Check the times that you are ";
+        preview += ((busyOrFree == busy)? "BUSY and will be UNAVAILABLE" : "FREE and will be AVAILABLE");
+        preview += " for group work.</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
         preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
         for(int time = startTime; time <= endTime; time++)
         {
@@ -191,6 +213,7 @@ void SurveyMaker::postGoogleURL(SurveyMaker *survey)
     }
     URL += "attrresps=" + allAttributeResponses + "&";
     URL += "sched=" + QString(survey->schedule? "true" : "false") + "&";
+    URL += "busy=" + QString((survey->busyOrFree == busy)? "true" : "false") + "&";
     URL += "start=" + QString::number(survey->startTime) + "&end=" + QString::number(survey->endTime);
     QString allDayNames;
     bool firstDay = true;
@@ -222,16 +245,17 @@ void SurveyMaker::postGoogleURL(SurveyMaker *survey)
     }
     URL += "sects=" + allSectionNames + "&";
     URL += "addl=" + QString(survey->additionalQuestions? "true" : "false");
+    //qDebug() << URL;
 
     //upload to Google
     QMessageBox createSurvey;
     createSurvey.setIcon(QMessageBox::Information);
     createSurvey.setWindowTitle(tr("Survey Creation"));
     createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n\n"
-                            "  » You may be asked first to authorize gruepr to access your Google Drive. "
-                            "This authorization is needed so that the Google Form and the results spreadsheet can be created for you.\n"
+                            "  » You may be asked first to log in to Google and/or authorize gruepr to access your Google Drive. "
+                            "This authorization is needed so that the Google Form and the results spreadsheet can be created for you.\n\n"
                             "  » The survey, the survey responses, and all data associated with this survey will exist in your Google Drive. "
-                            "No data from this survey is stored anywhere else.\n\n"
+                            "No data from this survey is stored or sent anywhere else.\n\n"
                             "  » The survey creation process will take 10 - 20 seconds. During this time, the browser window will be blank. "
                             "A screen with additional information will be shown in your browser window as soon as the process is complete."));
     createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
@@ -324,7 +348,9 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                     textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Schedule") + ":";
                     textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
                     textFileContents += tr("Please tell us about your weekly schedule.") + "\n";
-                    textFileContents += "     " + tr("Check the times that you are BUSY and will be UNAVAILABLE for group work.") + "\n";
+                    textFileContents += "     " + tr("Check the times that you are");
+                    textFileContents += ((survey->busyOrFree == busy)? tr(" BUSY and will be UNAVAILABLE ") : tr(" FREE and will be AVAILABLE "));
+                    textFileContents += tr("for group work.") + "\n";
                     textFileContents += "                 ";
                     for(int time = survey->startTime; time <= survey->endTime; time++)
                     {
@@ -336,7 +362,9 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                         if(!(survey->dayNames[day].isEmpty()))
                         {
                             textFileContents += "\n      " + survey->dayNames[day] + "\n";
-                            csvFileContents += ",Check the times that you are BUSY and will be UNAVAILABLE for group work. [" + survey->dayNames[day] + "]";
+                            csvFileContents += ",Check the times that you are";
+                            csvFileContents += ((survey->busyOrFree == busy)? " BUSY and will be UNAVAILABLE " : " FREE and will be AVAILABLE ");
+                            csvFileContents += "for group work. [" + survey->dayNames[day] + "]";
                         }
                     }
                 }
@@ -389,12 +417,12 @@ void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg
 {
     if(arg1 == "Google form")
     {
-        ui->makeSurveyButton->setToolTip("<html>Upload the survey previewed below to your Google Drive so that students can submit their responses.</html>");
+        ui->makeSurveyButton->setToolTip("<html>Upload the survey to your Google Drive.</html>");
         generateSurvey = &SurveyMaker::postGoogleURL;
     }
-    else if(arg1 == "csv file")
+    else if(arg1 == "saved files")
     {
-        ui->makeSurveyButton->setToolTip("<html>Create a text file with the required question text to use for your survey and a csv file to paste the results in afterwards.</html>");
+        ui->makeSurveyButton->setToolTip("<html>Create a text file with the required question texts and a csv file to paste the results in afterwards.</html>");
         generateSurvey = &SurveyMaker::createFiles;
     }
 }
@@ -477,6 +505,8 @@ void SurveyMaker::on_attributeComboBox_currentIndexChanged(int index)
 void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
 {
     schedule = checked;
+    ui->busyFreeLabel->setEnabled(checked);
+    ui->busyFreeComboBox->setEnabled(checked);
     ui->daysComboBox->setEnabled(checked);
     ui->day1CheckBox->setEnabled(checked);
     ui->day1LineEdit->setEnabled(checked);
@@ -494,6 +524,12 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
     ui->day7LineEdit->setEnabled(checked);
     ui->timeStartEdit->setEnabled(checked);
     ui->timeEndEdit->setEnabled(checked);
+    refreshPreview();
+}
+
+void SurveyMaker::on_busyFreeComboBox_currentIndexChanged(const QString &arg1)
+{
+    busyOrFree = ((arg1 == "busy")? busy : free);
     refreshPreview();
 }
 
@@ -838,7 +874,7 @@ void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
     refreshPreview();
 }
 
-void SurveyMaker::on_openSurveyButton_clicked()
+void SurveyMaker::openSurvey()
 {
     //read all options from a text file
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
@@ -901,6 +937,11 @@ void SurveyMaker::on_openSurveyButton_clicked()
             {
                 ui->sectionCheckBox->setChecked(loadObject["Schedule"].toBool());
                 on_sectionCheckBox_clicked(loadObject["Schedule"].toBool());
+            }
+            if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
+            {
+                ui->busyFreeComboBox->setCurrentText(loadObject["ScheduleAsBusy"].toBool()? "busy" : "free");
+                on_busyFreeComboBox_currentIndexChanged(loadObject["ScheduleAsBusy"].toBool()? "busy" : "free");
             }
             //below is not performed with a for-loop because checkboxes and lineedits are not in an array
             if(loadObject.contains("scheduleDay1") && loadObject["scheduleDay1"].isBool())
@@ -999,7 +1040,7 @@ void SurveyMaker::on_openSurveyButton_clicked()
     }
 }
 
-void SurveyMaker::on_saveSurveyButton_clicked()
+void SurveyMaker::saveSurvey()
 {
     //save all options to a text file
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
@@ -1023,6 +1064,7 @@ void SurveyMaker::on_saveSurveyButton_clicked()
                 saveObject["Attribute" + QString::number(attribute+1)+"Response"] = attributeResponses[attribute];
             }
             saveObject["Schedule"] = schedule;
+            saveObject["ScheduleAsBusy"] = (busyOrFree == busy);
             //below is not performed with a for-loop because checkboxes are not in an array
             saveObject["scheduleDay1"] = ui->day1CheckBox->isChecked();
             saveObject["scheduleDay1Name"] = dayNames[0];
@@ -1055,7 +1097,12 @@ void SurveyMaker::on_saveSurveyButton_clicked()
     }
 }
 
-void SurveyMaker::on_helpButton_clicked()
+
+void SurveyMaker::settingsWindow()
+{
+}
+
+void SurveyMaker::helpWindow()
 {
     QFile helpFile(":/help-surveymaker.html");
     if(!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1081,7 +1128,7 @@ void SurveyMaker::on_helpButton_clicked()
     helpWindow.exec();
 }
 
-void SurveyMaker::on_aboutButton_clicked()
+void SurveyMaker::aboutWindow()
 {
     QMessageBox::about(this, tr("About gruepr: SurveyMaker"),
                        tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"

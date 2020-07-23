@@ -1575,7 +1575,7 @@ progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart,
 {
     //Set up window with a grid layout
     setWindowTitle(tr("Optimizing teams..."));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint);
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
     setSizeGripEnabled(true);
     theGrid = new QGridLayout(this);
 

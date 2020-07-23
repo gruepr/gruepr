@@ -30,6 +30,7 @@ private slots:
     void on_attributeTextEdit_textChanged();
     void on_attributeComboBox_currentIndexChanged(int index);
     void on_scheduleCheckBox_clicked(bool checked);
+    void on_busyFreeComboBox_currentIndexChanged(const QString &arg1);
     void on_daysComboBox_currentIndexChanged(int index);
     void on_day1CheckBox_toggled(bool checked);
     void on_day2CheckBox_toggled(bool checked);
@@ -59,10 +60,11 @@ private slots:
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
-    void on_openSurveyButton_clicked();
-    void on_saveSurveyButton_clicked();
-    void on_helpButton_clicked();
-    void on_aboutButton_clicked();
+    void openSurvey();
+    void saveSurvey();
+    void settingsWindow();
+    void helpWindow();
+    void aboutWindow();
 
 private:
     Ui::SurveyMaker *ui;
@@ -77,6 +79,7 @@ private:
     QString attributeTexts[maxAttributes] = {""};
     int attributeResponses[maxAttributes] = {0};
     bool schedule = true;
+    enum {busy, free} busyOrFree = busy;
     // local day names, using the fact that 1/1/2017 is a Sunday
     const QString day1name = QDate(2017, 1, 1).toString("dddd");
     const QString day2name = QDate(2017, 1, 2).toString("dddd");

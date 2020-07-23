@@ -12,22 +12,17 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 
     setTitle(title);
 
-    axisX = new QtCharts::QBarCategoryAxis;
+    axisX = new QtCharts::QCategoryAxis;
     this->addAxis(axisX, Qt::AlignBottom);
     dataSeries->attachAxis(axisX);
-    int ticklabel = 0;
-    for(int i = 0; i <= dataWidth; i += plotFrequency)
+    xAxisRange[0] = 0;
+    xAxisRange[1] = dataWidth/plotFrequency;
+    axisX->setRange(xAxisRange[0], xAxisRange[1]);
+    for(int label = 0; label <= xAxisRange[1]; label++)
     {
-        if(ticklabel++ % xAxisTickPeriod == 0)
-        {
-            axisX->append(QString::number(i));
-        }
-        else
-        {
-            axisX->append(QString(' ').repeated(i));
-        }
+        axisX->append(QString::number(label*plotFrequency), label);
     }
-    axisX->setRange(QString::number(1), QString::number(dataWidth));
+    axisX->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
     axisX->setTitleFont(titleFont);
     axisX->setTitleText(xAxisTitle);
 
@@ -40,67 +35,63 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 }
 
 
-void BoxWhiskerPlot::updatePlot()
+void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *orderedIndex)
 {
+    //adds a new distribution to the graph window; QVector vals is not sorted, but the indexes in sorted order is given in orderedIndex
+    const int numValsNeededForBoxAndWhisker = 5;
+    const int ignoreLowestXPercentOfData = 5;  //drop outliers at low end
+    int count = vals.count() - (vals.count()*ignoreLowestXPercentOfData/100);
+
+    if(count >= numValsNeededForBoxAndWhisker)
+    {
+        nextVals[0] = vals.at(orderedIndex[count]);                 //lower extreme (min)
+        nextVals[1] = median(vals, orderedIndex, count/2, count);   //lower quartile
+        nextVals[2] = median(vals, orderedIndex, 0, count);         //median
+        nextVals[3] = median(vals, orderedIndex, 0, count/2);       //upper quartile
+        nextVals[4] = vals.at(orderedIndex[0]);                     //upper extreme (max)
+    }
+
     auto *set = new QtCharts::QBoxSet(nextVals[0], nextVals[1], nextVals[2], nextVals[3], nextVals[4]);
     if(set != nullptr)
     {
         dataSeries->append(set);
     }
 
-    if(((dataSeries->count() - 1) * plotFrequency)  == (axisX->max()).toInt())
+    //shift x-axis by updateChunkSize if we are at the right edge of graph
+    if(dataSeries->count() > xAxisRange[1])
     {
-        int ticklabel = 0;
-        for(int i = ((dataSeries->count() - 1) * plotFrequency); i <= (((dataSeries->count()) * plotFrequency) + updateChunkSize); i += plotFrequency)
+        xAxisRange[0] = std::max(xAxisRange[0], dataSeries->count() - 1 + (updateChunkSize - dataWidth)/plotFrequency);
+        xAxisRange[1] = std::max(xAxisRange[1], dataSeries->count() - 1 + (updateChunkSize/plotFrequency));
+        //remove labels getting shifted off the axis (working backwards)
+        for(int label = ((updateChunkSize/plotFrequency) - 1); label >= 0; label--)
         {
-            if(ticklabel++ % xAxisTickPeriod == 0)
-            {
-                axisX->append(QString::number(i));
-            }
-            else
-            {
-                axisX->append(QString(' ').repeated(i));
-            }
+            axisX->remove(axisX->categoriesLabels().at(label));
         }
+        //add labels getting shifted on to the axis
+        for(int label = dataSeries->count() - 1; label <= xAxisRange[1]; label++)
+        {
+            axisX->append(QString::number(label*plotFrequency), label);
+        }
+        axisX->setRange(xAxisRange[0], xAxisRange[1]);
+        axisX->setStartValue(xAxisRange[0]);
     }
-    axisX->setRange(QString::number(std::max(0, ((dataSeries->count() - 1) * plotFrequency) + updateChunkSize - dataWidth)),
-                    QString::number(std::max(dataWidth, ((dataSeries->count() - 1) * plotFrequency) + updateChunkSize)));
 
+    yAxisRange[0] = std::min(yAxisRange[0], nextVals[0]);
+    yAxisRange[1] = std::max(yAxisRange[1], nextVals[4]);
     axisY->setRange(yAxisRange[0], yAxisRange[1]);
     axisY->applyNiceNumbers();
 }
 
 
-void BoxWhiskerPlot::loadNextVals(QVector<float> vals)
-{
-    int count = vals.count();
-    const int numValsNeededForBoxAndWhisker = 5;
-    const int ignoreBottomXPercentOfData = 10;
-
-    if(count >= numValsNeededForBoxAndWhisker)
-    {
-        std::sort(vals.begin(), vals.end());
-        nextVals[0] = median(vals, 0, count/(ignoreBottomXPercentOfData/2));     //lower extreme
-        nextVals[1] = median(vals, 0, count/2);     //lower quartile
-        nextVals[2] = median(vals, 0, count);       //median
-        nextVals[3] = median(vals, count / 2 + (count % 2), count);     //upper quartile
-        nextVals[4] = vals.last();                      //upper extreme (max)
-
-        yAxisRange[0] = std::min(yAxisRange[0], nextVals[0]);     //min y-axis value of plot
-        yAxisRange[1] = std::max(yAxisRange[1], nextVals[4]);     //max y-axis value of plot
-    }
-}
-
-
-float BoxWhiskerPlot::median(const QVector<float> &vals, int begin, int end)
+float BoxWhiskerPlot::median(const QVector<float> &vals, const int *orderedIndex, int begin, int end)
 {
     int count = end - begin;
     if ((count % 2) != 0)
     {
-        return vals.at(count/2 + begin);
+        return vals.at(orderedIndex[count/2 + begin]);
     }
 
-    float right = vals.at(count/2 + begin);
-    float left = vals.at(count/2 - 1 + begin);
+    float right = vals.at(orderedIndex[count/2 + begin]);
+    float left = vals.at(orderedIndex[count/2 - 1 + begin]);
     return (right + left) / 2.0f;
 }

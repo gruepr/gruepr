@@ -21,19 +21,9 @@ const int minScoreStability = 100;                      // will keep optimizing 
 const int mutationLikelihood = 50;                      // percent likelihood of a mutation (when mutation occurs, another chance at mutation is given with same likelihood (iteratively))
 
 
-//struct used for tournament selection of parents to mate in genetic algorithm
-struct tourneyPlayer
-{
-    int *genome;
-    float score;
-    int *ancestors;     //array of ancestor's IDs
-    int ID;             //this player's ID
-};
-
-
 namespace GA
 {
-    void tournamentSelectParents(tourneyPlayer *players, int **genePool, const float scores[], int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
+    void tournamentSelectParents(int **genePool, int *orderedIndex, int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
     void mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize, std::mt19937 &pRNG);
     void mutate(int genome[], int genomeSize, std::mt19937 &pRNG);
 };

@@ -3,14 +3,12 @@
         <file>icons/friends.png</file>
         <file>icons/ruler.png</file>
         <file>icons/schedule.png</file>
-        <file>icons/settings.png</file>
         <file>icons/classroom.png</file>
         <file>icons/attributes.png</file>
         <file>icons/gruepr.ico</file>
         <file>icons/gruepr.png</file>
         <file>icons/about.png</file>
         <file>icons/save.png</file>
-        <file>icons/open.png</file>
         <file>icons/party.png</file>
         <file>icons/stop.png</file>
         <file>icons/exchange.png</file>
@@ -42,5 +40,10 @@
         <file>icons/blank_arrow.png</file>
         <file>icons/ok.png</file>
         <file>icons/loading.gif</file>
+        <file>icons/website.png</file>
+        <file>icons/saveFile.png</file>
+        <file>icons/saveSettings.png</file>
+        <file>icons/loadSettings.png</file>
+        <file>icons/openFile.png</file>
     </qresource>
 </RCC>

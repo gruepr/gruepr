@@ -57,23 +57,24 @@ private slots:
     void on_requestedTeammatesButton_clicked();
     void on_requestedTeammateNumberBox_valueChanged(int arg1);
     void on_letsDoItButton_clicked();
-    void updateOptimizationProgress(QVector<float> allScores, int generation, float scoreStability);
+    void updateOptimizationProgress(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability);
     void optimizationComplete();
     void on_expandAllButton_clicked();
     void on_collapseAllButton_clicked();
     void on_teamNamesComboBox_activated(int index);
     void on_saveTeamsButton_clicked();
     void on_printTeamsButton_clicked();
-    void on_loadSettingsButton_clicked();
-    void on_saveSettingsButton_clicked();
+    void loadOptionsFile();
+    void saveOptionsFile();
     void swapTeammates(int studentAteam, int studentAID, int studentBteam, int studentBID);
     void swapTeams(int teamA, int teamB);
     void reorderedTeams();
-    void on_HelpButton_clicked();
-    void on_AboutButton_clicked();
+    void settingsWindow();
+    void helpWindow();
+    void aboutWindow();
 
 signals:
-    void generationComplete(QVector<float> allScores, int generation, float scoreStability);
+    void generationComplete(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability);
     void turnOffBusyCursor();
     void connectedToPrinter();
 

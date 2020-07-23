@@ -13,7 +13,7 @@ Description of gruepr:
         good distribution of students into teams is determined by a numerical score. The score can be based on:
            1) preventing isolated women, isolated men, and/or single-gender teams;
            2) preventing isolated URM students;
-           3) achieving within each team either homogeneity or heterogeneity of up to 9 "attributes", which could
+           3) achieving within each team either homogeneity or heterogeneity of up to 15 "attributes", which could
               be skills assessments, work preferences, attitudes, major, or any other categorical/Likert question;
            4) preventing students with incompatible attributes from being on the same team;
            5) achieving a high degree of overlap in schedule freetime;
@@ -33,13 +33,9 @@ Description of gruepr:
         The datafile of student information has a specific required format. Using the Google Form allows you to
         download the data into exactly this file format without modification. After collecting responses, go to the
         Google Form and, in the "Responses" tab, click the three-dot icon and select "Download responses (.csv)".
-        The gender question can be removed, if desired. The attribute questions on the Google Form (Section 3 of
-        the form) can be modified, including reordering, adding, or removing questions. There can be anywhere
-        between 0 to 9 of these attribute questions. The schedule section can be removed, or the numbers and names
-        of the days and times can be altered. The only requirement here is to have 7 or fewer days and 24 or fewer
-        hours in the matrix. A section question can be included so that multiple sections can all be sent the same
-        form; if more than one section is present in the data, you can select which section to team. Additional
-        questions for your own use can be added to the end of the form.
+        A section question can be included so that multiple sections can all be sent the same form; if more than
+        one section is present in the data, you can select which section to team. Additional questions for your own
+        use can be included at the end of the survey.
 
         The datafile must be a comma-separated-values (.csv) file with these contents:
            - header row, contains only the comma-separated question texts
@@ -52,7 +48,7 @@ Description of gruepr:
                ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
                      "Non-binary", etc.)
                ~ [optional] self-reported racial/ethnic/cultural background
-               ~ [0 to 9 values] text responses to "attribute" questions, each in own field
+               ~ [0 to 15 values] text responses to "attribute" questions, each in own field
                ~ [0 to 7 values] semicolon-separated list of times each day that the student is unavailable to work
                ~ [optional] section
                ~ [optional] any additional notes for student (all remaining columns will get swallowed into this

@@ -3,7 +3,7 @@
 
 #include <QChartView>
 #include <QBoxPlotSeries>
-#include <QBarCategoryAxis>
+#include <QCategoryAxis>
 #include <QValueAxis>
 
 class BoxWhiskerPlot : public QtCharts::QChart
@@ -12,22 +12,19 @@ class BoxWhiskerPlot : public QtCharts::QChart
 
 public:
     BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "");
-    void loadNextVals(QVector<float> vals);
+    void loadNextVals(const QVector<float> &vals, const int *orderedIndex);
     const int plotFrequency = 5;
 
-public slots:
-    void updatePlot();
-
 private:
-    float median(const QVector<float> &vals, int begin, int end);
+    float median(const QVector<float> &vals, const int *orderedIndex, int begin, int end);
     QtCharts::QBoxPlotSeries *dataSeries;
-    QtCharts::QBarCategoryAxis *axisX;
+    QtCharts::QCategoryAxis *axisX;
     QtCharts::QValueAxis *axisY;
     float nextVals[5] = {0,0,0,0,0};
+    int xAxisRange[2] = {0, 1};
     float yAxisRange[2] = {0, 1};
-    const int dataWidth = 50;
+    const int dataWidth = 60;
     const int updateChunkSize = 20;
-    const int xAxisTickPeriod = 2;
 };
 
 #endif // BOXWHISKERPLOT_H

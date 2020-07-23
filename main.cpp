@@ -31,19 +31,9 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - added external window display of optimization and cleaned up UI
-// - made section question more specific
-// - larger max # of attributes
-// - order students on each team alphabetically
-// - add option to save surveymaker output to textfile/csv file
-// - order teams at first using lastname+firstname of first student in team; click on name column gets back to this order (until teams are renamed or students swapped)
-// - move clear all teammates button to less error-prone location
-// - save/load CSV of teammates, using levenshtein::distance to match names
-// - handle multiple notes columns in surveydata
-// - save/load defaults into file instead of registry
-// - auto-close optimization on timer after stable
-// - modernize rand()
-// - make Teams table click-on-name-column persist as ordering by student name (even after teams are renamed or students swapped)
+// - cleaned up code in optimization & box-and-whisker plot
+// - cleaning up UI
+// - allow for schedule question to ask when students are free instead of when they are busy
 //
 // TO DO:
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
@@ -80,7 +70,7 @@ int main(int argc, char *argv[])
     splash->setPixmap(pic);
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter, Qt::white);
     splash->show();
-    QThread::sleep(2);
+    QThread::sleep(1);
 
     // Create application choice (gruepr or SurveyMaker) window
     QMessageBox *startWindow = new QMessageBox;

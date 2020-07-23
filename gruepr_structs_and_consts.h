@@ -49,8 +49,8 @@ const QStringList teamnameListNames {QString(
                                             "Greek letters,"
                                             "NATO phonetic alphabet,"
                                             "Chemical elements,"
-                                            "Shakespeare plays,"
-                                            "Olympic host cities,"
+                                            "Shakespeare plays (RSC chron.),"
+                                            "Discontinued Olympic sports,"
                                             "Minor Simpsons characters")
                                             .split(",")};
 
@@ -79,11 +79,11 @@ const QList<QStringList> teamNameLists{{},
                                                 "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
                                                 "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
                                                 "Two Noble Kinsmen").split(",")},
-                                       {QString("Athens,Paris,St Louis,London,Stockholm,Amsterdam,Los Angeles,Berlin,Helsinki,Melbourne,Rome,Tokyo,"
-                                                "Mexico City,Munich,Montreal,Moscow,Seoul,Barcelona,Atlanta,Sydney,Beijing,Rio de Janeiro").split(",")},
+                                       {QString("Angling,Bowling,Cannon Shooting,Dog Sledding,Engraving,Fire Fighting,Gliding,Hurling,India Club Swinging,Jeu de Paume,"
+                                                "Korfball,Lacrosse,Motorcycling,Orchestra,Pigeon Racing,Roller Hockey,Savate,Tug of War,Vaulting,Waterskiing").split(",")},
                                        {QString("Artie Ziff,Bleeding Gums Murphy,Cleetus,Disco Stu,Edna Krabappel,Frank 'Grimy' Grimes,Ginger Flanders,"
-                                                "Hans Moleman,Jebediah Springfield,Kent Brockman,Luann Van Houten,Mayor Quimby,Ned Flanders,Professor Frink,Rainier Wolfcastle,"
-                                                "Sideshow Bob,Troy McClure,Uter Zorker,Waylon Smithers,Xoxchitla,Yes Guy,Zelda").split(",")}
+                                                "Helen Lovejoy,Itchy,Jebediah Springfield,Kent Brockman,Luann Van Houten,Mayor Quimby,Ned Flanders,Professor Frink,"
+                                                "Queen Helvetica,Ruth Powers,Sideshow Bob,Troy McClure,Uter Zorker,Waylon Smithers,Xoxchitla,Yes Guy,Zelda").split(",")}
                                       };
 
 
@@ -137,6 +137,7 @@ struct DataOptions
     bool URMIncluded = false;                           // is URM data included in the survey?
     bool sectionIncluded = false;                       // is section data included in the survey?
     bool notesIncluded = false;                         // are notes (or other additional info) included in the survey?
+    bool scheduleDataIsFreetime = false;                // was the survey set up so that students are indicating their freetime in the schedule?
     int numAttributes = 0;                              // how many attribute questions are in the survey?
     int attributeMin[maxAttributes];                    // what is the minimum value for each attribute?
     int attributeMax[maxAttributes];                    // what is the maximum value for each attribute?

@@ -12,6 +12,7 @@
 #include <QTextStream>
 #include <QtConcurrent>
 #include <QtNetwork>
+#include <QDesktopServices>
 #include <random>
 
 
@@ -25,16 +26,34 @@ gruepr::gruepr(QWidget *parent) :
     setWindowIcon(QIcon(":/icons/gruepr.png"));
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
+    //Setup the main window menu items
+    connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
+    connect(ui->actionSave_Survey_File, &QAction::triggered, this, &gruepr::on_saveSurveyFilePushButton_clicked);
+    connect(ui->actionLoad_Teaming_Options_File, &QAction::triggered, this, &gruepr::loadOptionsFile);
+    connect(ui->actionSave_Teaming_Options_File, &QAction::triggered, this, &gruepr::saveOptionsFile);
+    connect(ui->actionCreate_Teams, &QAction::triggered, this, &gruepr::on_letsDoItButton_clicked);
+    connect(ui->actionSave_Teams, &QAction::triggered, this, &gruepr::on_saveTeamsButton_clicked);
+    connect(ui->actionPrint_Teams, &QAction::triggered, this, &gruepr::on_printTeamsButton_clicked);
+    ui->actionExit->setMenuRole(QAction::QuitRole);
+    connect(ui->actionExit, &QAction::triggered, this, &gruepr::close);
+    //ui->actionSettings->setMenuRole(QAction::PreferencesRole);
+    //connect(ui->actionSettings, &QAction::triggered, this, &gruepr::settingsWindow);
+    connect(ui->actionHelp, &QAction::triggered, this, &gruepr::helpWindow);
+    ui->actionAbout->setMenuRole(QAction::AboutRole);
+    connect(ui->actionAbout, &QAction::triggered, this, &gruepr::aboutWindow);
+    connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
+
     //Set alternate fonts on some UI features
     QFont altFont = this->font();
     altFont.setPointSize(altFont.pointSize() + 4);
     ui->loadSurveyFileButton->setFont(altFont);
     ui->letsDoItButton->setFont(altFont);
+    ui->addStudentPushButton->setFont(altFont);
+    ui->saveSurveyFilePushButton->setFont(altFont);
     ui->saveTeamsButton->setFont(altFont);
     ui->printTeamsButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
     ui->teamingOptionsGroupBox->setFont(altFont);
-
 
     //Reduce size of the options icons if the screen is small
 #ifdef Q_OS_WIN32
@@ -44,14 +63,13 @@ gruepr::gruepr(QWidget *parent) :
     if(QGuiApplication::primaryScreen()->availableSize().height() < 800)
 #endif
     {
-        ui->label_15->setMaximumSize(35,35);
-        ui->label_16->setMaximumSize(35,35);
-        ui->label_17->setMaximumSize(35,35);
-        ui->label_18->setMaximumSize(35,35);
-        ui->label_20->setMaximumSize(35,35);
-        ui->label_21->setMaximumSize(35,35);
-        ui->label_22->setMaximumSize(35,35);
-        ui->label_24->setMaximumSize(35,35);
+        ui->label_15->setMaximumSize(30,30);
+        ui->label_16->setMaximumSize(30,30);
+        ui->label_18->setMaximumSize(30,30);
+        ui->label_20->setMaximumSize(30,30);
+        ui->label_21->setMaximumSize(30,30);
+        ui->label_22->setMaximumSize(30,30);
+        ui->label_24->setMaximumSize(30,30);
     }
     adjustSize();
 
@@ -153,6 +171,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->studentTable->setEnabled(false);
         ui->addStudentPushButton->setEnabled(false);
         ui->saveSurveyFilePushButton->setEnabled(false);
+        ui->actionSave_Survey_File->setEnabled(false);
         ui->teamDataLayout->setEnabled(false);
         teamDataTree->setEnabled(false);
         ui->label_23->setEnabled(false);
@@ -174,8 +193,11 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->label_10->setEnabled(false);
         ui->idealTeamSizeBox->setEnabled(false);
         ui->letsDoItButton->setEnabled(false);
+        ui->actionCreate_Teams->setEnabled(false);
         ui->saveTeamsButton->setEnabled(false);
         ui->printTeamsButton->setEnabled(false);
+        ui->actionSave_Teams->setEnabled(false);
+        ui->actionPrint_Teams->setEnabled(false);
 
         //reset the data
         delete[] student;
@@ -192,6 +214,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
             dataOptions.attributeIsOrdered[attrib] = false;
             haveAnyIncompatibleAttributes[attrib] = false;
         }
+        dataOptions.scheduleDataIsFreetime = false;
         dataOptions.dayNames.clear();
         dataOptions.timeNames.clear();
         dataOptions.URMResponses.clear();
@@ -350,10 +373,10 @@ void gruepr::on_loadSurveyFileButton_clicked()
             ui->label_10->setEnabled(true);
             on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 
-            ui->loadSettingsButton->setEnabled(true);
-            ui->saveSettingsButton->setEnabled(true);
-            ui->label_17->setEnabled(true);
+            ui->actionLoad_Teaming_Options_File->setEnabled(true);
+            ui->actionSave_Teaming_Options_File->setEnabled(true);
             ui->letsDoItButton->setEnabled(true);
+            ui->actionCreate_Teams->setEnabled(true);
         }
 
         QApplication::restoreOverrideCursor();
@@ -361,7 +384,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
 }
 
 
-void gruepr::on_loadSettingsButton_clicked()
+void gruepr::loadOptionsFile()
 {
     //read all options from a text file
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), dataOptions.dataFile.canonicalFilePath(), tr("gruepr Settings File (*.json);;All Files (*)"));
@@ -478,7 +501,7 @@ void gruepr::on_loadSettingsButton_clicked()
 }
 
 
-void gruepr::on_saveSettingsButton_clicked()
+void gruepr::saveOptionsFile()
 {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), dataOptions.dataFile.canonicalPath(), tr("gruepr Settings File (*.json);;All Files (*)"));
     if( !(fileName.isEmpty()) )
@@ -671,6 +694,7 @@ void gruepr::editAStudent()
 
         //Enable save data file option, since data set is now edited
         ui->saveSurveyFilePushButton->setEnabled(true);
+        ui->actionSave_Survey_File->setEnabled(true);
 
         refreshStudentDisplay();
         ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
@@ -700,6 +724,7 @@ void gruepr::removeAStudent()
 
     //Enable save data file option, since data set is now edited
     ui->saveSurveyFilePushButton->setEnabled(true);
+    ui->actionSave_Survey_File->setEnabled(true);
 
     refreshStudentDisplay();
     ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
@@ -803,6 +828,7 @@ void gruepr::on_addStudentPushButton_clicked()
 
             //Enable save data file option, since data set is now edited
             ui->saveSurveyFilePushButton->setEnabled(true);
+            ui->actionSave_Survey_File->setEnabled(true);
 
             refreshStudentDisplay();
             ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
@@ -917,6 +943,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
         else
         {
             ui->saveSurveyFilePushButton->setEnabled(false);
+            ui->actionSave_Survey_File->setEnabled(false);
         }
     }
 }
@@ -1347,7 +1374,10 @@ void gruepr::on_letsDoItButton_clicked()
     ui->loadSurveyFileButton->setEnabled(false);
     ui->saveTeamsButton->setEnabled(false);
     ui->printTeamsButton->setEnabled(false);
+    ui->actionSave_Teams->setEnabled(false);
+    ui->actionPrint_Teams->setEnabled(false);
     ui->letsDoItButton->setEnabled(false);
+    ui->actionCreate_Teams->setEnabled(false);
     teamDataTree->setEnabled(false);
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
@@ -1404,12 +1434,11 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(QVector<float> allScores, int generation, float scoreStability)
+void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability)
 {
     if((generation % (progressChart->plotFrequency)) == 0)
     {
-        progressChart->loadNextVals(allScores);
-        progressChart->updatePlot();
+        progressChart->loadNextVals(allScores, orderedIndex);
     }
 
     if(generation > maxGenerations)
@@ -1455,7 +1484,10 @@ void gruepr::optimizationComplete()
     ui->dataDisplayTabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->printTeamsButton->setEnabled(true);
+    ui->actionSave_Teams->setEnabled(true);
+    ui->actionPrint_Teams->setEnabled(true);
     ui->letsDoItButton->setEnabled(true);
+    ui->actionCreate_Teams->setEnabled(true);
     ui->teamDataLayout->setEnabled(true);
     teamDataTree->setEnabled(true);
     teamDataTree->setHeaderHidden(false);
@@ -1847,7 +1879,12 @@ void gruepr::reorderedTeams()
 }
 
 
-void gruepr::on_HelpButton_clicked()
+void gruepr::settingsWindow()
+{
+}
+
+
+void gruepr::helpWindow()
 {
     QFile helpFile(":/help.html");
     if (!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1874,7 +1911,7 @@ void gruepr::on_HelpButton_clicked()
 }
 
 
-void gruepr::on_AboutButton_clicked()
+void gruepr::aboutWindow()
 {
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
@@ -2042,7 +2079,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     // Count the number of attributes by counting number of questions from here until one includes "check the times," "In which section are you enrolled", or end of the line is reached.
     // Save these attribute question texts, if any, into string list.
     dataOptions.numAttributes = 0;                              // how many skill/attitude rankings are there?
-    while( !(field.contains("check the times", Qt::CaseInsensitive)) && !(field.contains("In which section are you enrolled", Qt::CaseInsensitive)) && (fieldnum < TotNumQuestions) )
+    while( !(field.contains("check the times", Qt::CaseInsensitive)) && !(field.contains("in which section are you enrolled", Qt::CaseInsensitive)) && (fieldnum < TotNumQuestions) )
     {
         dataOptions.attributeQuestionText << field;
         dataOptions.numAttributes++;
@@ -2058,6 +2095,10 @@ bool gruepr::loadSurveyData(const QString &fileName)
     QVector<int> scheduleFields;
     while(field.contains("check the times", Qt::CaseInsensitive) && fieldnum < TotNumQuestions)
     {
+        if(field.contains("FREE and will be AVAILABLE", Qt::CaseInsensitive))   // this means even if one field has this language, all will be understood as representing free time
+        {
+            dataOptions.scheduleDataIsFreetime = true;
+        }
         QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts column titles in matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(field);
         if(dayName.hasMatch())
@@ -2080,7 +2121,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     if(TotNumQuestions > fieldnum)                                            // There is at least 1 additional field in header
     {
         field = fields.at(fieldnum).toUtf8();
-        if(field.contains("In which section are you enrolled", Qt::CaseInsensitive))			// next field is a section question
+        if(field.contains("in which section are you enrolled", Qt::CaseInsensitive))			// next field is a section question
         {
             fieldnum++;
             if(TotNumQuestions > fieldnum)                                    // if there are any more fields after section
@@ -2390,6 +2431,10 @@ studentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
         for(int time = 0; time < dataOptions.timeNames.size(); time++)
         {
             student.unavailable[(day*dataOptions.timeNames.size())+time] = field.contains(dataOptions.timeNames.at(time).toUtf8(), Qt::CaseInsensitive);
+            if(dataOptions.scheduleDataIsFreetime)
+            {
+                student.unavailable[(day*dataOptions.timeNames.size())+time] = !student.unavailable[(day*dataOptions.timeNames.size())+time];
+            }
         }
         fieldnum++;
     }   
@@ -2777,6 +2822,12 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
         ancestors[genome] = new int[numAncestors];
         tempAncestors[genome] = new int[numAncestors];
     }
+    // allocate memory for array of indexes, to be sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
+    int *orderedIndex = new int[populationSize];
+    for(int genome = 0; genome < populationSize; ++genome)
+    {
+        orderedIndex[genome] = genome;
+    }
 
     // create an initial population
     // start with an array of all the student IDs in order
@@ -2849,18 +2900,14 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     delete[] unusedTeamScores;
 }
 
-    emit generationComplete(scores, 0, 0);
-
-    // allocate memory to hold all the tournament-selected genomes
-    tourneyPlayer *players = new tourneyPlayer[tournamentSize];
+    // get genome indexes in order of score, largest to smallest
+    std::sort(orderedIndex, orderedIndex+populationSize, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
+    emit generationComplete(scores, orderedIndex, 0, 0);
 
     int child[maxStudents];
     int *mom=nullptr, *dad=nullptr;                 // pointer to genome of mom and dad
-    float tempScores[numElites];                    // temp storage for the score of each elite
-    int indexOfBestTeamset[numElites];              // holds indexes of elites
     float bestScores[generationsOfStability]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     int generation = 0;
-//    int extraGenerations = 0;		// keeps track of "extra generations" to include in generation number displayed, used when user has chosen to continue optimizing further
     float scoreStability;
     bool localOptimizationStopped = false;
     int teamSize[maxTeams] = {0};
@@ -2875,29 +2922,19 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
         do					// keep optimizing until reach stability or maxGenerations
         {
             // clone the elites in genePool into tempPool
-            float minScore = *std::min_element(scores.constBegin(), scores.constEnd());
             for(int genome = 0; genome < numElites; genome++)
             {
-                indexOfBestTeamset[genome] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
                 for(int ID = 0; ID < numStudents; ID++)
                 {
-                    tempPool[genome][ID] = genePool[indexOfBestTeamset[genome]][ID];
+                    tempPool[genome][ID] = genePool[orderedIndex[genome]][ID];
                 }
-                // save this scores value then set it to the minimum one, so we can find the next biggest one during the next time through the loop
-                tempScores[genome] = scores[indexOfBestTeamset[genome]];
-                scores[indexOfBestTeamset[genome]] = minScore;
-            }
-            // reset the altered scores of the elites
-            for(int genome = 0; genome < numElites; genome++)
-            {
-                scores[indexOfBestTeamset[genome]] = tempScores[genome];
             }
 
             // create rest of population in tempPool by mating
             for(int genome = numElites; genome < populationSize; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(players, genePool, scores.data(), ancestors, mom, dad, tempAncestors[genome], pRNG);
+                GA::tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, tempAncestors[genome], pRNG);
 
                 //mate them and put child in tempPool
                 GA::mate(mom, dad, teamSize, numTeams, child, numStudents, pRNG);
@@ -2969,14 +3006,23 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             delete[] incompatAttribAdj;
             delete[] unusedTeamScores;
 }
-            // determine best score, save in historical record, and calculate score stability
-            indexOfBestTeamset[0] = scores.indexOf(*std::max_element(scores.constBegin(), scores.constEnd()));
-            float bestScore = scores[indexOfBestTeamset[0]];
-            bestScores[generation%generationsOfStability] = bestScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
-            auto mmscores = std::minmax_element(bestScores,bestScores+generationsOfStability);
-            scoreStability = bestScore / (*mmscores.second - *mmscores.first);
 
-            emit generationComplete(scores, generation, scoreStability);
+            // get genome indexes in order of score, largest to smallest
+            std::sort(orderedIndex, orderedIndex+populationSize, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
+
+            // determine best score, save in historical record, and calculate score stability
+            bestScores[generation%generationsOfStability] = scores[orderedIndex[0]];	//the best scores from the most recent generationsOfStability, wrapping around the storage location
+            auto mmScores = std::minmax_element(bestScores, bestScores+generationsOfStability);
+            if(*mmScores.second == *mmScores.first)
+            {
+                scoreStability = minScoreStability + 1;
+            }
+            else
+            {
+                scoreStability = scores[orderedIndex[0]] / (*mmScores.second - *mmScores.first);
+            }
+
+            emit generationComplete(scores, orderedIndex, generation, scoreStability);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;
@@ -2991,23 +3037,20 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
         }
         else
         {
-//            emit optimizationMightBeComplete();
             keepOptimizing = true;
-//            extraGenerations += generation;
-//            generation = 0;
         }
     }
     while(keepOptimizing);
 
-//    finalGeneration = generation + extraGenerations;
     finalGeneration = generation;
     teamSetScore = bestScores[generation%generationsOfStability];
 
     //copy best team set into a QList to return
     QList<int> bestTeamSet;
+    bestTeamSet.reserve(numStudents);
     for(int ID = 0; ID < numStudents; ID++)
     {
-        bestTeamSet << genePool[indexOfBestTeamset[0]][ID];
+        bestTeamSet << genePool[orderedIndex[0]][ID];
     }
 
     // deallocate memory
@@ -3018,11 +3061,11 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
         delete[] tempAncestors[genome];
         delete[] ancestors[genome];
     }
-    delete[] players;
     delete[] tempPool;
     delete[] genePool;
     delete[] tempAncestors;
     delete[] ancestors;
+    delete[] orderedIndex;
 
     return bestTeamSet;
 }
@@ -3375,8 +3418,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
             schedScore[team] = 1;
         }
 
-        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team]
-                           + reqTeammateAdj[team] + requestedTeammateAdj[team] + totalIncompatAdj;
+        teamScores[team] = schedScore[team] + genderAdj[team] + URMAdj[team] + prevTeammateAdj[team] + reqTeammateAdj[team] + requestedTeammateAdj[team] + totalIncompatAdj;
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             teamScores[team] += attributeScore[attribute][team];
