@@ -1,8 +1,7 @@
-// This is the script running on Google servers, used by the SurveyMaker api
+// This is the script running on Google servers, used by the SurveyMaker API
 //
 // Execute this script by visiting: https://script.google.com/macros/s/.../exec
-// Execute with parameters by visiting: https://script.google.com/macros/s/.../exec?title=test&gend=true&urm=true&numattr=3&attrtext=__text__&sched=true&start=8&end=21&days=Sunday,Monday,Tuesday,Wednesday,Thursday,Friday&sect=true&sects=11,12,13,14&addl=true
-// Dev execute with parameters by visiting: https://script.google.com/macros/s/.../dev?title=test&gend=true&urm=true&numattr=3&attrtext=__text__&sched=true&start=8&end=21&days=Sunday,Monday,Tuesday,Wednesday,Thursday,Friday&sect=true&sects=11,12,13,14&addl=true
+// Execute with parameters by visiting: https://script.google.com/macros/s/.../exec?title=test1&gend=true&urm=true&numattr=3&attrtext=__text__&sched=true&busy=true&start=8&end=21&days=Monday,Tuesday,Wednesday,Thursday,Friday&sect=false&sects=11,12,13,14&addl=true
 
 function doGet(e) {
   var dataAll = e.parameter;
@@ -15,6 +14,7 @@ function doGet(e) {
   var attributeResponses = (dataAll["attrresps"]).split(",");
   var numAttributesWOResponseText = 0;
   var includeSchedule = (dataAll["sched"]=="true");
+  var scheduleMeansFree = (dataAll["busy"]=="false");
   var start = parseInt(dataAll["start"],10);
   var end = parseInt(dataAll["end"],10);
   var dayNames = (dataAll["days"]).split(",");
@@ -34,10 +34,6 @@ function doGet(e) {
   // Set form options
   form.setAcceptingResponses(true).setCollectEmail(false).setShuffleQuestions(false).setIsQuiz(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(false);
   form.setDescription('Instructions:\n\nYour response to this survey will help you be on the best possible project team.\n\nAll answers are strictly confidential, and all answers are acceptable.\n\nPlease be as honest as possible!');  
-  
-  // Create a spreadsheet destination and get the DOCID
-  var ss = SpreadsheetApp.create(title + ' (Responses)');
-  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   
   // Create basic info page
   form.addPageBreakItem()
@@ -123,12 +119,20 @@ function doGet(e) {
     for(var time = start; time <= end; time++) {
         timeNames.push(allTimeNames[time]);
     }
-    
-    form.addCheckboxGridItem()
-      .setTitle('Check the times that you are BUSY and will be UNAVAILABLE for group work.')
-      .setHelpText('You may need to scroll to see all columns (' + startTimeName + ' to ' + endTimeName + ').')
-      .setColumns(timeNames)
-      .setRows(dayNames);
+
+    if(scheduleMeansFree) {
+      form.addCheckboxGridItem()
+        .setTitle('Check the times that you are FREE and will be AVAILABLE for group work.')
+        .setHelpText('You may need to scroll to see all columns (' + startTimeName + ' to ' + endTimeName + ').')
+        .setColumns(timeNames)
+        .setRows(dayNames);
+    } else {
+      form.addCheckboxGridItem()
+        .setTitle('Check the times that you are BUSY and will be UNAVAILABLE for group work.')
+        .setHelpText('You may need to scroll to see all columns (' + startTimeName + ' to ' + endTimeName + ').')
+        .setColumns(timeNames)
+        .setRows(dayNames);
+    }
   }
 
   // Create section and other questions page
@@ -150,6 +154,10 @@ function doGet(e) {
     }
   }
   
+  // Create a spreadsheet destination and get the DOCID
+  var ss = SpreadsheetApp.create(title + ' (Responses)');
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());  
+
   var page = HtmlService.createTemplateFromFile('surveyCreated');
   page.title = title;
   page.editURL = form.getEditUrl();
