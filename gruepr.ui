@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>671</height>
+    <width>872</width>
+    <height>669</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,20 +26,117 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="topLayout" columnstretch="1,0,0,0">
-      <item row="1" column="0" colspan="2">
+     <layout class="QGridLayout" name="topLayout" rowstretch="1,100" columnstretch="2,3">
+      <item row="0" column="0">
+       <layout class="QHBoxLayout" name="TopButtonsLayout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+         <widget class="QPushButton" name="loadSurveyFileButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>Open a survey data file.</string>
+          </property>
+          <property name="text">
+           <string>Load Survey File</string>
+          </property>
+          <property name="icon">
+           <iconset resource="gruepr.qrc">
+            <normaloff>:/icons/openFile.png</normaloff>:/icons/openFile.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+         <widget class="QPushButton" name="letsDoItButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>Find an optimal set of teams.</string>
+          </property>
+          <property name="text">
+           <string>Create Teams</string>
+          </property>
+          <property name="icon">
+           <iconset resource="gruepr.qrc">
+            <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>42</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>2</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
        <widget class="QGroupBox" name="teamingOptionsGroupBox">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>2</horstretch>
-          <verstretch>1</verstretch>
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>10</horstretch>
+          <verstretch>10</verstretch>
          </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>400</width>
-          <height>0</height>
-         </size>
         </property>
         <property name="font">
          <font>
@@ -183,37 +280,12 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           </widget>
          </item>
          <item row="9" column="1" colspan="2">
-          <layout class="QGridLayout" name="attributesLayout" rowstretch="0,1,0">
-           <property name="sizeConstraint">
-            <enum>QLayout::SetMinimumSize</enum>
-           </property>
+          <layout class="QGridLayout" name="attributesLayout" columnstretch="1,1,1,100">
            <property name="verticalSpacing">
             <number>2</number>
            </property>
-           <item row="0" column="2" colspan="6">
-            <widget class="QLabel" name="attributeLabel">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_5">
+           <item row="2" column="1" alignment="Qt::AlignVCenter">
+            <widget class="QDoubleSpinBox" name="attributeWeight">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -223,26 +295,29 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>13</height>
-              </size>
+             <property name="toolTip">
+              <string>The relative importance of this attribute in forming the teams</string>
              </property>
-             <property name="text">
-              <string>Weight:</string>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::NoButtons</enum>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="8">
+           <item row="1" column="0" colspan="4">
             <widget class="QTextEdit" name="attributeTextEdit">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>1</horstretch>
-               <verstretch>4</verstretch>
+               <verstretch>1</verstretch>
               </sizepolicy>
              </property>
              <property name="contextMenuPolicy">
@@ -281,22 +356,32 @@ p, li { white-space: pre-wrap; }
              </property>
             </widget>
            </item>
-           <item row="0" column="0" colspan="2">
+           <item row="2" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+            <widget class="QLabel" name="label_5">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Weight:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2" alignment="Qt::AlignVCenter">
             <widget class="QScrollBar" name="attributeScrollBar">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-               <horstretch>1</horstretch>
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
              </property>
              <property name="styleSheet">
               <string notr="true">border: 1px rgb(0, 0, 0);
@@ -319,22 +404,16 @@ background-color: rgb(193, 193, 193);</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="2" colspan="2">
+           <item row="2" column="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QCheckBox" name="attributeHomogeneousBox">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
              </property>
              <property name="toolTip">
               <string>If selected, all of the students on a team will have a similar response to this question.
@@ -345,45 +424,29 @@ If unselected, the students on a team will have a wide range of responses to thi
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QDoubleSpinBox" name="attributeWeight">
+           <item row="0" column="2" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+            <widget class="QLabel" name="attributeLabel">
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="toolTip">
-              <string>The relative importance of this attribute in forming the teams</string>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::NoButtons</enum>
-             </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="value">
-              <double>1.000000000000000</double>
+             <property name="text">
+              <string/>
              </property>
             </widget>
            </item>
-           <item row="2" column="5" colspan="3">
-            <spacer name="horizontalSpacer_6">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>18</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="2" column="4">
+           <item row="2" column="3" alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QPushButton" name="incompatibleResponsesButton">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -568,7 +631,7 @@ Meeting Times:</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="2">
+             <item row="0" column="2" rowspan="2">
               <spacer name="horizontalSpacer_11">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -795,7 +858,7 @@ Teammates</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0" colspan="2" alignment="Qt::AlignVCenter">
+             <item row="0" column="0" colspan="2">
               <widget class="QPushButton" name="requestedTeammatesButton">
                <property name="enabled">
                 <bool>false</bool>
@@ -941,8 +1004,8 @@ Teammates</string>
           </widget>
          </item>
          <item row="0" column="1" colspan="2">
-          <layout class="QGridLayout" name="sectionGridLayout">
-           <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QLabel" name="label_2">
              <property name="enabled">
               <bool>false</bool>
@@ -958,7 +1021,7 @@ Teammates</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QComboBox" name="sectionSelectionBox">
              <property name="enabled">
               <bool>false</bool>
@@ -1018,11 +1081,11 @@ Teammates</string>
           </widget>
          </item>
          <item row="2" column="1" colspan="2">
-          <layout class="QGridLayout" name="teamSizeLayout">
+          <layout class="QGridLayout" name="teamSizeLayout" rowstretch="0,0" columnstretch="0,2">
            <property name="verticalSpacing">
             <number>4</number>
            </property>
-           <item row="0" column="1">
+           <item row="0" column="1" alignment="Qt::AlignLeft">
             <widget class="QSpinBox" name="idealTeamSizeBox">
              <property name="enabled">
               <bool>false</bool>
@@ -1056,7 +1119,29 @@ Teammates</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="3" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <item row="0" column="0" alignment="Qt::AlignLeft">
+            <widget class="QLabel" name="label_10">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>13</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Ideal Team Size:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QComboBox" name="teamSizeBox">
              <property name="enabled">
               <bool>false</bool>
@@ -1080,41 +1165,6 @@ Teammates</string>
               <enum>QComboBox::AdjustToContents</enum>
              </property>
             </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_10">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>13</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Ideal Team Size:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <spacer name="horizontalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>18</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </item>
@@ -1152,10 +1202,7 @@ Teammates</string>
          </item>
          <item row="6" column="1" rowspan="2" colspan="2">
           <layout class="QHBoxLayout" name="URMLayout">
-           <property name="spacing">
-            <number>4</number>
-           </property>
-           <item>
+           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QCheckBox" name="isolatedURMCheckBox">
              <property name="enabled">
               <bool>false</bool>
@@ -1174,7 +1221,7 @@ Teammates</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
             <widget class="QPushButton" name="URMResponsesButton">
              <property name="enabled">
               <bool>false</bool>
@@ -1196,13 +1243,13 @@ Identities</string>
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_12">
+            <spacer name="horizontalSpacer_3">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>0</width>
                <height>20</height>
               </size>
              </property>
@@ -1213,136 +1260,17 @@ Identities</string>
         </layout>
        </widget>
       </item>
-      <item row="0" column="0" colspan="4">
-       <layout class="QHBoxLayout" name="TopButtonsLayout">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item alignment="Qt::AlignLeft">
-         <widget class="QPushButton" name="loadSurveyFileButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="toolTip">
-           <string>Open a survey data file.</string>
-          </property>
-          <property name="text">
-           <string>Load Survey File</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/openFile.png</normaloff>:/icons/openFile.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>40</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_13">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item alignment="Qt::AlignLeft">
-         <widget class="QPushButton" name="letsDoItButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="toolTip">
-           <string>Find an optimal set of teams.</string>
-          </property>
-          <property name="text">
-           <string>Create Teams</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>42</width>
-            <height>42</height>
-           </size>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="2" colspan="2">
+      <item row="0" column="1" rowspan="2">
        <widget class="QTabWidget" name="dataDisplayTabWidget">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>3</horstretch>
-          <verstretch>1</verstretch>
+          <horstretch>10</horstretch>
+          <verstretch>10</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>400</width>
+          <width>440</width>
           <height>0</height>
          </size>
         </property>
@@ -1677,86 +1605,86 @@ Identities</string>
               </item>
              </layout>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="savePrintLayout">
-            <property name="spacing">
-             <number>2</number>
-            </property>
             <item>
-             <widget class="QPushButton" name="saveTeamsButton">
-              <property name="enabled">
-               <bool>false</bool>
+             <layout class="QHBoxLayout" name="savePrintLayout">
+              <property name="spacing">
+               <number>2</number>
               </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Save this set of teams as text or pdf files.</string>
-              </property>
-              <property name="text">
-               <string>Save</string>
-              </property>
-              <property name="icon">
-               <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="printTeamsButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="toolTip">
-               <string>Print this set of teams.</string>
-              </property>
-              <property name="text">
-               <string>Print</string>
-              </property>
-              <property name="icon">
-               <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>30</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
+              <item>
+               <widget class="QPushButton" name="saveTeamsButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="toolTip">
+                 <string>Save this set of teams as text or pdf files.</string>
+                </property>
+                <property name="text">
+                 <string>Save</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="gruepr.qrc">
+                  <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="printTeamsButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>12</pointsize>
+                 </font>
+                </property>
+                <property name="toolTip">
+                 <string>Print this set of teams.</string>
+                </property>
+                <property name="text">
+                 <string>Print</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="gruepr.qrc">
+                  <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -1774,7 +1702,7 @@ Identities</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>872</width>
      <height>21</height>
     </rect>
    </property>

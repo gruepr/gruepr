@@ -31,9 +31,7 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - cleaned up code in optimization & box-and-whisker plot
-// - cleaning up UI
-// - allow for schedule question to ask when students are free instead of when they are busy
+// - further cleaning up UI
 //
 // TO DO:
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
