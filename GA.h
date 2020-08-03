@@ -23,7 +23,7 @@ const int mutationLikelihood = 50;                      // percent likelihood of
 
 namespace GA
 {
-    void tournamentSelectParents(int **genePool, int *orderedIndex, int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
+    void tournamentSelectParents(int **genePool, const int *orderedIndex, int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
     void mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize, std::mt19937 &pRNG);
     void mutate(int genome[], int genomeSize, std::mt19937 &pRNG);
 };

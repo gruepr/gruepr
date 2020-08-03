@@ -11,8 +11,6 @@
 #include <QString>
 #include <QDateTime>
 #include <QFileInfo>
-#include <QMap>
-#include <QSet>
 #include "GA.h"
 
 
@@ -26,72 +24,62 @@ const int TeamInfoSort = Qt::UserRole + 1;              // data with this role i
 const int TeamNumber = Qt::UserRole + 2;                // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
 
 //map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
-const QMap<QString, int> meaningOfTimeNames{ {"1am",1}, {"2am",2}, {"3am",3}, {"4am",4}, {"5am",5}, {"6am",6},
-                                             {"7am",7}, {"8am",8}, {"9am",9}, {"10am",10}, {"11am",11}, {"12pm",12},
-                                             {"1pm",13}, {"2pm",14}, {"3pm",15}, {"4pm",16}, {"5pm",17}, {"6pm",18},
-                                             {"7pm",19}, {"8pm",20}, {"9pm",21}, {"10pm",22}, {"11pm",23}, {"12am",0},
-                                             {"1:00",1}, {"2:00",2}, {"3:00",3}, {"4:00",4}, {"5:00",5}, {"6:00",6},
-                                             {"7:00",7}, {"8:00",8}, {"9:00",9}, {"10:00",10}, {"11:00",11}, {"12:00",12},
-                                             {"13:00",13}, {"14:00",14}, {"15:00",15}, {"16:00",16}, {"17:00",17}, {"18:00",18},
-                                             {"19:00",19}, {"20:00",20}, {"21:00",21}, {"22:00",22}, {"23:00",23}, {"0:00",0},
-                                             {"1 am",1}, {"2 am",2}, {"3 am",3}, {"4 am",4}, {"5 am",5}, {"6 am",6},
-                                             {"7 am",7}, {"8 am",8}, {"9 am",9}, {"10 am",10}, {"11 am",11}, {"12 pm",12},
-                                             {"1 pm",13}, {"2 pm",14}, {"3 pm",15}, {"4 pm",16}, {"5 pm",17}, {"6 pm",18},
-                                             {"7 pm",19}, {"8 pm",20}, {"9 pm",21}, {"10 pm",22}, {"11 pm",23}, {"12 am",0},
-                                             {"noon",12}, {"midnight", 0} };
+const char timeNames[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"
+                        "11am,11 am,11:00,12pm,12 pm,12:00,1pm,1 pm,13:00,2pm,2 pm,14:00,3pm,3 pm,15:00,4pm,4 pm,16:00,5pm,5 pm,17:00,6pm,6 pm,18:00,7pm,7 pm,19:00,8pm,8 pm,20:00,"
+                        "9pm,9 pm,21:00,10pm,10 pm,22:00,11pm,11 pm,23:00,12am,12 am,0:00,noon,midnight"};
+const int timeMeanings[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,
+                          13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
 
 // Options for the team names. A name for each list of names must be given.
-const QStringList teamnameListNames {QString(
-                                            "Arabic numbers,"
-                                            "Roman numerals,"
-                                            "Hexadecimal numbers,"
-                                            "English letters,"
-                                            "Greek letters,"
-                                            "NATO phonetic alphabet,"
-                                            "Chemical elements,"
-                                            "Shakespeare plays (RSC chron.),"
-                                            "Discontinued Olympic sports,"
-                                            "Minor Simpsons characters")
-                                            .split(",")};
+const char teamNameNames[] {"Arabic numbers,"
+                            "Roman numerals,"
+                            "Hexadecimal numbers,"
+                            "English letters,"
+                            "Greek letters,"
+                            "NATO phonetic alphabet,"
+                            "Chemical elements,"
+                            "Genres of music,"
+                            "Shakespeare plays (RSC chron.),"
+                            "Discontinued Olympic sports,"
+                            "Minor Simpsons characters"};
 
-const QList<QStringList> teamNameLists{{},
-                                       {},
-                                       {},
-                                       {QString("A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z").split(",")},
-                                       {QString("Alpha,Beta,Gamma,Delta,Epsilon,Zeta,Eta,Theta,Iota,Kappa,"
-                                                "Lambda,Mu,Nu,Xi,Omicron,Pi,Rho,Sigma,Tau,Upsilon,Phi,Chi,Psi,Omega").split(",")},
-                                       {QString("Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,"
-                                                "Lima,Mike,November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu").split(",")},
-                                       {QString("Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
-                                                "Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
-                                                "Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,"
-                                                "Rubidium,Strontium,Yttrium,Zirconium,Niobium,Molybdenum,Technetium,Ruthenium,Rhodium,Palladium,Silver,"
-                                                "Cadmium,Indium,Tin,Antimony,Tellurium,Iodine,Xenon,Cesium,Barium,Lanthanum,Cerium,Praseodymium,Neodymium,"
-                                                "Promethium,Samarium,Europium,Gadolinium,Terbium,Dysprosium,Holmium,Erbium,Thulium,Ytterbium,Lutetium,"
-                                                "Hafnium,Tantalum,Tungsten,Rhenium,Osmium,Iridium,Platinum,Gold,Mercury,Thallium,Lead,Bismuth,Polonium,"
-                                                "Astatine,Radon,Francium,Radium,Actinium,Thorium,Protactinium,Uranium,Neptunium,Plutonium,Americium,Curium,"
-                                                "Berkelium,Californium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Dubnium,Seaborgium,"
-                                                "Bohrium,Hassium,Meitnerium,Darmstadtium,Roentgenium,Copernicium,Nihonium,Flerovium,Moscovium,Livermorium,"
-                                                "Tennessine,Oganesson").split(",")},
-                                       {QString("Taming of the Shrew,Henry VI,Two Gentlemen of Verona,Titus Andronicus,Richard III,Comedy of Errors,"
-                                                "Love's Labour's Lost,Midsummer Night's Dream,Romeo and Juliet,Richard II,King John,Merchant of Venice,"
-                                                "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,Merry Wives of Windsor,"
-                                                "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
-                                                "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
-                                                "Two Noble Kinsmen").split(",")},
-                                       {QString("Angling,Bowling,Cannon Shooting,Dog Sledding,Engraving,Fire Fighting,Gliding,Hurling,India Club Swinging,Jeu de Paume,"
-                                                "Korfball,Lacrosse,Motorcycling,Orchestra,Pigeon Racing,Roller Hockey,Savate,Tug of War,Vaulting,Waterskiing").split(",")},
-                                       {QString("Artie Ziff,Bleeding Gums Murphy,Cleetus,Disco Stu,Edna Krabappel,Frank 'Grimy' Grimes,Ginger Flanders,"
-                                                "Helen Lovejoy,Itchy,Jebediah Springfield,Kent Brockman,Luann Van Houten,Mayor Quimby,Ned Flanders,Professor Frink,"
-                                                "Queen Helvetica,Ruth Powers,Sideshow Bob,Troy McClure,Uter Zorker,Waylon Smithers,Xoxchitla,Yes Guy,Zelda").split(",")}
-                                      };
-
+const char listOfTeamNames[] {";"
+                              ";"
+                              ";"
+                              "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z;"
+                              "α,β,γ,δ,ε,ζ,η,θ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,σ,τ,ϒ,φ,χ,ψ,ω;"
+                              "Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,Lima,Mike,"
+                                 "November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu;"
+                              "Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
+                                 "Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
+                                 "Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,"
+                                 "Rubidium,Strontium,Yttrium,Zirconium,Niobium,Molybdenum,Technetium,Ruthenium,Rhodium,Palladium,Silver,"
+                                 "Cadmium,Indium,Tin,Antimony,Tellurium,Iodine,Xenon,Cesium,Barium,Lanthanum,Cerium,Praseodymium,Neodymium,"
+                                 "Promethium,Samarium,Europium,Gadolinium,Terbium,Dysprosium,Holmium,Erbium,Thulium,Ytterbium,Lutetium,"
+                                 "Hafnium,Tantalum,Tungsten,Rhenium,Osmium,Iridium,Platinum,Gold,Mercury,Thallium,Lead,Bismuth,Polonium,"
+                                 "Astatine,Radon,Francium,Radium,Actinium,Thorium,Protactinium,Uranium,Neptunium,Plutonium,Americium,Curium,"
+                                 "Berkelium,Californium,Einsteinium,Fermium,Mendelevium,Nobelium,Lawrencium,Rutherfordium,Dubnium,Seaborgium,"
+                                 "Bohrium,Hassium,Meitnerium,Darmstadtium,Roentgenium,Copernicium,Nihonium,Flerovium,Moscovium,Livermorium,"
+                                 "Tennessine,Oganesson;"
+                              "Afrobeat,Blues,Country,Doo-Wop,EDM,Folk,Gospel,Hip-Hop,Indie,Jazz,K-Pop,Lullaby,Mariachi,New Age,Opera,Punk,"
+                                 "Qawwali,Reggae,Soundtrack,Tejano,Underground,Vocal,Western Swing,Xhosa,Yodeling,Zydeco;"
+                              "Taming of the Shrew,Henry VI,Two Gentlemen of Verona,Titus Andronicus,Richard III,Comedy of Errors,"
+                                 "Love's Labour's Lost,Midsummer Night's Dream,Romeo and Juliet,Richard II,King John,Merchant of Venice,"
+                                 "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,Merry Wives of Windsor,"
+                                 "Twelfth Night,Troilus and Cressida,Othello,Measure for Measure,All's Well That Ends Well,Timon of Athens,"
+                                 "King Lear,Macbeth,Antony and Cleopatra,Coriolanus,Pericles,Cymbeline,Winter's Tale,Tempest,Henry VIII,"
+                                 "Two Noble Kinsmen;"
+                              "Angling,Bowling,Cannon Shooting,Dog Sledding,Engraving,Fire Fighting,Gliding,Hurling,India Club Swinging,Jeu de Paume,"
+                                 "Korfball,Lacrosse,Motorcycle Racing,Orchestra,Pigeon Racing,Roller Hockey,Savate,Tug of War,Vaulting,Waterskiing;"
+                              "Artie Ziff,Brunella Pommelhorst,Cleetus,Disco Stu,Edna Krabappel,Frank 'Grimy' Grimes,Ginger Flanders,"
+                                 "Helen Lovejoy,Itchy,Jebediah Springfield,Kent Brockman,Luann Van Houten,Mayor Quimby,Ned Flanders,Professor Frink,"
+                                 "Queen Helvetica,Ruth Powers,Sideshow Bob,Troy McClure,Uter Zorker,Waylon Smithers,Xoxchitla,Yes Guy,Zelda"};
 
 //struct defining survey data from one student
-struct studentRecord
+struct StudentRecord
 {
     int ID;                                             // ID is assigned in order of appearance in the data file
-    enum Gender {woman, man, neither} gender = studentRecord::neither;
+    enum Gender {woman, man, neither} gender = StudentRecord::neither;  // neither represents non-binary, unknown, prefer not to say, etc.
     bool URM = false;                                   // true if this student is from an underrepresented minority group
     bool unavailable[maxTimeBlocks] = {false};			// true if this is a busy block during week
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
@@ -112,7 +100,7 @@ struct studentRecord
 
 
 //class defining one team
-struct teamInfo
+struct TeamInfo
 {
     float score;
     int size;

@@ -11,22 +11,19 @@
 // A dialog window to select sets of required, prevented, or requested teammates
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const studentRecord studentrecs[],
+gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[],
                                                 int numStudentsComingIn, const QString &sectionname, QWidget *parent)
     : QDialog(parent)
 {
     //copy data into local versions, including full database of students
     numStudents = numStudentsComingIn;
     sectionName = sectionname;
-    student = new studentRecord[numStudentsComingIn];
+    student = new StudentRecord[numStudentsComingIn];
     for(int i = 0; i < numStudentsComingIn; i++)
     {
         student[i] = studentrecs[i];
     }
     whatType = whatTypeOfTeammate;
-
-    //start off with no teammate data changed
-    teammatesSpecified = false;
 
     //Set up window
     QString typeText;
@@ -84,7 +81,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     theGrid->addWidget(explanation, 1, 0, 1, -1);
 
     //Next rows - the selection of students
-    QList<studentRecord> studentsInComboBoxes;
+    QList<StudentRecord> studentsInComboBoxes;
     //Add to combobox a list of all the student names (in this section)
     for(int ID = 0; ID < numStudentsComingIn; ID++)
     {
@@ -93,7 +90,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
             studentsInComboBoxes << student[ID];
         }
     }
-    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const studentRecord &i, const studentRecord &j)
+    std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const StudentRecord &i, const StudentRecord &j)
                                                                         {return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 
     //If this is requested teammates, add the 'base' student button in the third row
@@ -147,7 +144,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     resetSaveOrLoad->setItemData(2, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
     resetSaveOrLoad->addItem(QIcon(":/icons/save.png"), tr("Save the current set to a CSV file..."));
     resetSaveOrLoad->setItemData(3, tr("Save the current table to a csv file"), Qt::ToolTipRole);
-    resetSaveOrLoad->addItem(QIcon(":/icons/open.png"), tr("Load a CSV file of teammates..."));
+    resetSaveOrLoad->addItem(QIcon(":/icons/openFile.png"), tr("Load a CSV file of teammates..."));
     resetSaveOrLoad->setItemData(4, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
     if(whatType != gatherTeammatesDialog::requested)
     {
@@ -155,10 +152,10 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         resetSaveOrLoad->setItemData(5, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
     }
     theGrid->addWidget(resetSaveOrLoad, row+1, 0, 1, 3);
-    connect(resetSaveOrLoad, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {if(index == 2) clearAllTeammateSets();
-                                                                                                           else if(index == 3) saveCSVFile();
-                                                                                                           else if(index == 4) loadCSVFile();
-                                                                                                           else if(index == 5) loadSpreadsheetFile();});
+    connect(resetSaveOrLoad, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {if(index == 2) {clearAllTeammateSets();}
+                                                                                                           else if(index == 3) {saveCSVFile();}
+                                                                                                           else if(index == 4) {loadCSVFile();}
+                                                                                                           else if(index == 5) {loadSpreadsheetFile();}});
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, row+1, 3, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -205,8 +202,6 @@ void gatherTeammatesDialog::addOneTeammateSet()
                 if(IDs[ID1] != IDs[ID2])
                 {
                     //we have at least one required/prevented teammate pair!
-                    teammatesSpecified = true;
-
                     if(whatType == gatherTeammatesDialog::required)
                     {
                         student[IDs[ID1]].requiredWith[IDs[ID2]] = true;
@@ -231,8 +226,6 @@ void gatherTeammatesDialog::addOneTeammateSet()
             if(baseStudent != IDs[ID1])
             {
                 //we have at least one requested teammate pair!
-                teammatesSpecified = true;
-
                 student[baseStudent].requestedWith[IDs[ID1]] = true;
             }
         }
@@ -250,8 +243,6 @@ void gatherTeammatesDialog::clearAllTeammateSets()
         resetSaveOrLoad->setCurrentIndex(0);
         return;
     }
-
-    teammatesSpecified = false;
 
     for(int ID1 = 0; ID1 < numStudents; ID1++)
     {
@@ -479,8 +470,6 @@ bool gatherTeammatesDialog::loadCSVFile()
             if(IDs[0] != IDs[ID])
             {
                 //we have at least one specified teammate pair!
-                teammatesSpecified = true;
-
                 if(whatType == gatherTeammatesDialog::required)
                 {
                     student[IDs[0]].requiredWith[IDs[ID]] = true;
@@ -569,13 +558,13 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
-    for(int team = 0; team < teammates.size(); team++)
+    for(const auto &teammate : teammates)
     {
         QList<int> IDs;
-        for(int searchStudent = 0; searchStudent < teammates.at(team).size(); searchStudent++)  // searchStudent is the name we're looking for
+        for(int searchStudent = 0; searchStudent < teammate.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) && (teammates.at(team).at(searchStudent)) != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
+            while((knownStudent < numStudents) && (teammate.at(searchStudent)) != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
             {
                 knownStudent++;
             }
@@ -591,7 +580,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
                 QMultiMap<int, QString> possibleStudents;
                 for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
                 {
-                    possibleStudents.insert(levenshtein::distance(teammates.at(team).at(searchStudent),
+                    possibleStudents.insert(levenshtein::distance(teammate.at(searchStudent),
                                             student[knownStudent].firstname + " " + student[knownStudent].lastname),
                                             student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
                 }
@@ -602,7 +591,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
                 choiceWindow->setWindowTitle("Choose student");
                 auto *grid = new QGridLayout(choiceWindow);
                 auto *text = new QLabel(choiceWindow);
-                text->setText(tr("An exact match for") + " <b>" + teammates.at(team).at(searchStudent) + "</b> " +
+                text->setText(tr("An exact match for") + " <b>" + teammate.at(searchStudent) + "</b> " +
                               tr("could not be found.<br>Please select this student from the list:"));
                 grid->addWidget(text, 0, 0, 1, -1);
                 auto *names = new QComboBox(choiceWindow);
@@ -636,8 +625,6 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
                 if(IDs[ID1] != IDs[ID2])
                 {
                     //we have at least one required/prevented teammate pair!
-                    teammatesSpecified = true;
-
                     if(whatType == gatherTeammatesDialog::required)
                     {
                         student[IDs[ID1]].requiredWith[IDs[ID2]] = true;
@@ -678,8 +665,9 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->setColumnCount(1);
     currentListOfTeammatesTable->setHorizontalHeaderItem(0, new QTableWidgetItem(typeText + tr(" Teammate #1")));
     currentListOfTeammatesTable->setRowCount(0);
+    teammatesSpecified = false;     // assume no teammates specified until we find one
 
-    QList<studentRecord> studentAs;
+    QList<StudentRecord> studentAs;
     for(int ID = 0; ID < numStudents; ID++)
     {
         if((sectionName == "") || (sectionName == student[ID].section))
@@ -687,35 +675,36 @@ void gatherTeammatesDialog::refreshDisplay()
             studentAs << student[ID];
         }
     }
-    std::sort(studentAs.begin(), studentAs.end(), [](const studentRecord &A, const studentRecord &B)
+    std::sort(studentAs.begin(), studentAs.end(), [](const StudentRecord &A, const StudentRecord &B)
                                                     {return ((A.lastname+A.firstname) < (B.lastname+B.firstname));});
 
     int row=0, column;
     bool atLeastOneTeammate;
-    for(QList<studentRecord>::iterator studentA = studentAs.begin(); studentA != studentAs.end(); studentA++)
+    for(const auto &studentA : studentAs)
     {
         atLeastOneTeammate = false;
         column = 0;
         currentListOfTeammatesTable->setRowCount(row+1);
-        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(studentA->lastname + ", " + studentA->firstname));
+        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(studentA.lastname + ", " + studentA.firstname));
         bool printStudent;
         for(int studentBID = 0; studentBID < numStudents; studentBID++)
         {
             if(whatType == gatherTeammatesDialog::required)
             {
-                printStudent = studentA->requiredWith[studentBID];
+                printStudent = studentA.requiredWith[studentBID];
             }
             else if(whatType == gatherTeammatesDialog::prevented)
             {
-                printStudent = studentA->preventedWith[studentBID];
+                printStudent = studentA.preventedWith[studentBID];
             }
             else
             {
-                printStudent = studentA->requestedWith[studentBID];
+                printStudent = studentA.requestedWith[studentBID];
             }
             if(printStudent)
             {
                 atLeastOneTeammate = true;
+                teammatesSpecified = true;
                 if(currentListOfTeammatesTable->columnCount() < column+1)
                 {
                     currentListOfTeammatesTable->setColumnCount(column+1);
@@ -726,7 +715,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 auto *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
                 remover->setFlat(true);
                 remover->setIconSize(QSize(15, 15));
-                remover->setProperty("studentAID", studentA->ID);
+                remover->setProperty("studentAID", studentA.ID);
                 remover->setProperty("studentBID", studentBID);
                 if(whatType == gatherTeammatesDialog::required)
                 {
@@ -914,7 +903,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
     for(int i = 0; i < numTeams; i++)
     {
         teamNumberLabel[i].setText(tr("Team ") + QString::number(i+1));
-        theGrid->addWidget(&teamNumberLabel[i], (i/4), 2*(i%4));
+        theGrid->addWidget(&teamNumberLabel[i], (i/4), 2*(i%4), Qt::AlignRight);
         theGrid->setColumnStretch(2*(i%4), 1);
         teamName[i].setPlaceholderText(tr("Custom name"));
         if(i < teamNames.size())
@@ -1174,7 +1163,7 @@ void whichFilesDialog::boxToggled()
 // A dialog to show/edit student data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions,
+editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions &dataOptions,
                                                const QStringList &sectionNames, QWidget *parent)
     :QDialog (parent)
 {
@@ -1227,7 +1216,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const studentRecord &studentToBeE
     {
         explanation[field].setText(tr("Gender identity"));
         databox[field].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary/unknown"));
-        databox[field].setCurrentText(student.gender==studentRecord::woman?tr("woman"):(student.gender==studentRecord::man?tr("man"):tr("nonbinary/unknown")));
+        databox[field].setCurrentText(student.gender == StudentRecord::woman? tr("woman") : (student.gender == StudentRecord::man? tr("man") : tr("nonbinary/unknown")));
         connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(&databox[field], field, 1);
@@ -1317,8 +1306,8 @@ void editOrAddStudentDialog::recordEdited()
     int field = 4;
     if(dataOptions.genderIncluded)
     {
-        student.gender = (databox[field].currentText() == tr("woman")? studentRecord::woman :
-                                                                       (databox[field].currentText()==tr("man")? studentRecord::man : studentRecord::neither));
+        student.gender = (databox[field].currentText() == tr("woman")? StudentRecord::woman :
+                                                                       (databox[field].currentText()==tr("man")? StudentRecord::man : StudentRecord::neither));
         field++;
     }
     if(dataOptions.URMIncluded)
@@ -1485,7 +1474,7 @@ void gatherIncompatibleResponsesDialog::addValues()
             }
         }
     }
-    std::sort(incompatibleResponses.begin(), incompatibleResponses.end(), [](const QPair<int,int> &a, const QPair<int,int> &b){return (a.first*100+a.second) < (b.first*100+b.second);});
+    std::sort(incompatibleResponses.begin(), incompatibleResponses.end(), [](const QPair<int,int> a, const QPair<int,int> b){return (a.first*100+a.second) < (b.first*100+b.second);});
     updateExplanation();
 
     // reset checkboxes
@@ -1520,7 +1509,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOption
     theGrid = new QGridLayout(this);
 
     explanation = new QLabel(this);
-    explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity."
+    explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity. "
                             "Which of these should be considered underrepresented?<hr></html>"));
     explanation->setWordWrap(true);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
@@ -1689,6 +1678,13 @@ void progressDialog::updateCountdown()
     {
         stopHere->animateClick();
     }
+}
+
+void progressDialog::reject()
+{
+    // If closing the window with click on close or hitting 'Esc', stop the optimization, too
+    stopHere->animateClick();
+    QDialog::reject();
 }
 
 void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)

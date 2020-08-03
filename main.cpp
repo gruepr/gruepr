@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019
+// Copyright (C) 2019 - 2020
 // Joshua Hertz
 // gruepr@gmail.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +31,17 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - further cleaning up UI
+// - further cleaning up / modernization of code
+// - significantly sped up optimization:
+//      - replace all the Adj values in getTeamScores with a single penaltyPoints[team]
+//      - replaced repeated deep lookups with constants
+// - fixed bug in attribute responses that are categorical yet start with decimal values (e.g., GPA range as response)
+// - made the wording of the schedule question more flexible:
+//      - question now must include only the word "check" followed somewhere with "times"
+//      - if the question includes either of the words "free" or "available", counts as asking for free time not busy time
 //
 // TO DO:
+// - separate "asktosavedefaultsonexit" from "savedefaultsonexit"
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
@@ -68,13 +76,12 @@ int main(int argc, char *argv[])
     splash->setPixmap(pic);
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter, Qt::white);
     splash->show();
-    QThread::sleep(1);
 
     // Create application choice (gruepr or SurveyMaker) window
     QMessageBox *startWindow = new QMessageBox;
     QFont *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize()+8);
     startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    startWindow->setWindowTitle(" ");
+    startWindow->setWindowTitle("gruepr");
     startWindow->setFont(*boxFont); startWindow->setText("Select an app to run:");
 
     // Button metrics
@@ -169,7 +176,7 @@ int main(int argc, char *argv[])
             QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
             QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
-            if(!(networkReply->bytesAvailable()))
+            if(networkReply->bytesAvailable() == 0)
             {
                 //no internet right now
                 QMessageBox::critical(startWindow, "No Internet Connection", "There does not seem to be an internet connection.\n"

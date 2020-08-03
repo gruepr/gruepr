@@ -90,16 +90,16 @@ private:
 
         // reading survey data file
     bool loadSurveyData(const QString &fileName);       // returns false if file is invalid
-    studentRecord *student = nullptr;                   // array to hold the students' data
+    StudentRecord *student = nullptr;                   // array to hold the students' data
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     int numStudents = maxStudents;
-    studentRecord readOneRecordFromFile(const QStringList &fields);
+    StudentRecord readOneRecordFromFile(const QStringList &fields);
     QStringList ReadCSVLine(const QString &line, int minFields = -1); // read one line from CSV file, smartly handling commas inside quotation mark-encased fields
                                                                // if line is non-empty and minFields is given, append empty fields so returned QStringList
                                                                // always has >= minFields
     void refreshStudentDisplay();
-    QString createAToolTip(const studentRecord &info, bool duplicateRecord);
+    QString createAToolTip(const StudentRecord &info, bool duplicateRecord);
 
         // score calculation
     float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
@@ -121,8 +121,7 @@ private:
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;
 #endif
-    float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, int **incompatAttribAdj, float *schedScore,
-                        int *genderAdj, int *URMAdj, int *reqTeammateAdj, int *prevTeammateAdj, int *requestedTeammateAdj);
+    float getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *penaltyPoints);
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
@@ -130,7 +129,7 @@ private:
     bool keepOptimizing = false;
 
         // reporting results
-    teamInfo *teams = nullptr;
+    TeamInfo *teams = nullptr;
     void refreshTeamInfo(QList<int> teamNums = {-1});
     void refreshTeamToolTips(QList<int> teamNums = {-1});
     void resetTeamDisplay();

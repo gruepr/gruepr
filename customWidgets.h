@@ -37,6 +37,7 @@ class TeamTreeWidget : public QTreeWidget
 public:
     TeamTreeWidget(QWidget *parent = nullptr);
     void collapseItem(QTreeWidgetItem *item);           // when collapsing parent, summarize the children's data
+    void collapseAll();
     void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing data summary
 
 protected:
@@ -55,8 +56,8 @@ signals:
     void updateTeamOrder();
 
 private:
-    QTreeWidgetItem* draggedItem;
-    QTreeWidgetItem* droppedItem;
+    QTreeWidgetItem *draggedItem = nullptr;
+    QTreeWidgetItem *droppedItem = nullptr;
 };
 
 class TeamTreeWidgetItem : public QTreeWidgetItem

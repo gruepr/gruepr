@@ -24,11 +24,11 @@ class gatherTeammatesDialog : public QDialog
 
 public:
     enum typeOfTeammates{required, prevented, requested};
-    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const studentRecord studentrecs[], int numStudentsComingIn, const QString &sectionname, QWidget *parent = nullptr);
+    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn, const QString &sectionname, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
 
-    studentRecord *student;
-    bool teammatesSpecified;
+    StudentRecord *student;
+    bool teammatesSpecified = false;
 
 private slots:
     void addOneTeammateSet();
@@ -157,10 +157,10 @@ class editOrAddStudentDialog : public QDialog
     Q_OBJECT
 
 public:
-    editOrAddStudentDialog(const studentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent = nullptr);
+    editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent = nullptr);
     ~editOrAddStudentDialog();
 
-    studentRecord student;
+    StudentRecord student;
 
 private slots:
     void recordEdited();
@@ -238,6 +238,7 @@ public:
 private slots:
     void statsButtonPushed(QtCharts::QChartView *chart);
     void updateCountdown();
+    void reject();
 
 signals:
     void letsStop();

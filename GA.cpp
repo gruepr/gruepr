@@ -4,7 +4,7 @@
 //////////////////
 // Select two parents from the genepool using tournament selection
 //////////////////
-void GA::tournamentSelectParents(int **genePool, int *orderedIndex, int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
+void GA::tournamentSelectParents(int **genePool, const int *orderedIndex, int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
     std::uniform_int_distribution<unsigned int> randGenome(0, populationSize-1);
@@ -12,9 +12,9 @@ void GA::tournamentSelectParents(int **genePool, int *orderedIndex, int **ancest
     //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
     //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
     int tourneyPick[tournamentSize];
-    for(int player = 0; player < tournamentSize; player++)
+    for(int &player : tourneyPick)
     {
-        tourneyPick[player] = randGenome(pRNG);
+        player = randGenome(pRNG);
     }
     std::sort(tourneyPick, tourneyPick+tournamentSize);
 
@@ -73,6 +73,7 @@ void GA::tournamentSelectParents(int **genePool, int *orderedIndex, int **ancest
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;
     for(int generation = 1; generation < numGenerationsOfAncestors; generation++)
     {
+        //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up
         for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++)
         {
             parentage[ancestor] = ancestors[momsindex][ancestor-startAncestor+prevStartAncestor];

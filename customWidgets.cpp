@@ -79,6 +79,16 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
     }
 }
 
+void TeamTreeWidget::collapseAll()
+{
+    QTreeWidget::collapseAll();
+
+    for(int column = 0; column < columnCount(); column++)
+    {
+        header()->resizeSection(column, std::max(header()->sectionSizeHint(column), this->sizeHintForColumn(column)));
+    }
+}
+
 void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
 {
     if(item->parent())    // only expand the top level items (teams, not students on the team)

@@ -49,7 +49,8 @@ Description of gruepr:
                      "Non-binary", etc.)
                ~ [optional] self-reported racial/ethnic/cultural background
                ~ [0 to 15 values] text responses to "attribute" questions, each in own field
-               ~ [0 to 7 values] semicolon-separated list of times each day that the student is unavailable to work
+               ~ [0 to 7 values] semicolon-separated list of times each day that the student is either available or
+                     unavailable to work
                ~ [optional] section
                ~ [optional] any additional notes for student (all remaining columns will get swallowed into this
                      field)

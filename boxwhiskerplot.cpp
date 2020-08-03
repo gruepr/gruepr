@@ -1,8 +1,8 @@
 #include "boxwhiskerplot.h"
 
-BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle)
-    : QtCharts::QChart()
+BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle, QWidget *parent)
 {
+    (void)parent;
     QFont titleFont("Oxygen Mono");
     setTheme(QtCharts::QChart::ChartThemeBlueIcy);
     legend()->setVisible(false);
@@ -93,5 +93,5 @@ float BoxWhiskerPlot::median(const QVector<float> &vals, const int *orderedIndex
 
     float right = vals.at(orderedIndex[count/2 + begin]);
     float left = vals.at(orderedIndex[count/2 - 1 + begin]);
-    return (right + left) / 2.0f;
+    return (right + left) / 2.0F;
 }

@@ -11,7 +11,7 @@ class BoxWhiskerPlot : public QtCharts::QChart
     Q_OBJECT
 
 public:
-    BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "");
+    BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "", QWidget *parent = nullptr);
     void loadNextVals(const QVector<float> &vals, const int *orderedIndex);
     const int plotFrequency = 5;
 

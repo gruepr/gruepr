@@ -112,11 +112,11 @@ void SurveyMaker::refreshPreview()
             preview += QTime(time, 0).toString("hA") + "&nbsp;&nbsp;&nbsp;&nbsp;";
         }
         preview += "</p>";
-        for(int day = 0; day < 7; day++)
+        for(const auto & dayName : dayNames)
         {
-            if(!(dayNames[day].isEmpty()))
+            if(!(dayName.isEmpty()))
             {
-                preview += "<p>&nbsp;&nbsp;&nbsp;" + dayNames[day] + "</p>";
+                preview += "<p>&nbsp;&nbsp;&nbsp;" + dayName + "</p>";
             }
         }
         preview += "<hr>";
@@ -217,15 +217,15 @@ void SurveyMaker::postGoogleURL(SurveyMaker *survey)
     URL += "start=" + QString::number(survey->startTime) + "&end=" + QString::number(survey->endTime);
     QString allDayNames;
     bool firstDay = true;
-    for(int day = 0; day < 7; day++)
+    for(const auto & dayName : survey->dayNames)
     {
-        if(!(survey->dayNames[day].isEmpty()))
+        if(!(dayName.isEmpty()))
         {
             if(!firstDay)
             {
                 allDayNames += ",";
             }
-            allDayNames += QUrl::toPercentEncoding(survey->dayNames[day]);
+            allDayNames += QUrl::toPercentEncoding(dayName);
             firstDay = false;
         }
     }
@@ -357,14 +357,14 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                         textFileContents += QTime(time, 0).toString("hA") + "    ";
                     }
                     textFileContents += "\n";
-                    for(int day = 0; day < 7; day++)
+                    for(const auto & dayName : survey->dayNames)
                     {
-                        if(!(survey->dayNames[day].isEmpty()))
+                        if(!(dayName.isEmpty()))
                         {
-                            textFileContents += "\n      " + survey->dayNames[day] + "\n";
+                            textFileContents += "\n      " + dayName + "\n";
                             csvFileContents += ",Check the times that you are";
                             csvFileContents += ((survey->busyOrFree == busy)? " BUSY and will be UNAVAILABLE " : " FREE and will be AVAILABLE ");
-                            csvFileContents += "for group work. [" + survey->dayNames[day] + "]";
+                            csvFileContents += "for group work. [" + dayName + "]";
                         }
                     }
                 }
