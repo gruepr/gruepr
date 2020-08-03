@@ -2124,7 +2124,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
     QVector<int> scheduleFields;
     while(field.contains(QRegularExpression(".*(check).+(times).+", QRegularExpression::CaseInsensitiveOption)) && fieldnum < TotNumQuestions)
     {
-        if(field.contains(QRegularExpression(".+(free|available).+", QRegularExpression::CaseInsensitiveOption)))   // if even one field has this language, all are interpreted as free time
+        if(field.contains(QRegularExpression(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption)))   // if even one field has this language, all are interpreted as free time
         {
             dataOptions.scheduleDataIsFreetime = true;
         }
@@ -2461,9 +2461,12 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     for(int day = 0; day < dataOptions.dayNames.size(); day++)
     {
         QString field = fields.at(fieldnum).toUtf8();
+        QRegularExpression timename;
+        timename.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
         for(int time = 0; time < dataOptions.timeNames.size(); time++)
         {
-            student.unavailable[(day*dataOptions.timeNames.size())+time] = field.contains(dataOptions.timeNames.at(time).toUtf8(), Qt::CaseInsensitive);
+            timename.setPattern("\\b"+dataOptions.timeNames.at(time).toUtf8()+"\\b");
+            student.unavailable[(day*dataOptions.timeNames.size())+time] = timename.match(field).hasMatch();
             if(dataOptions.scheduleDataIsFreetime)
             {
                 student.unavailable[(day*dataOptions.timeNames.size())+time] = !student.unavailable[(day*dataOptions.timeNames.size())+time];
