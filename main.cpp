@@ -31,17 +31,11 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - further cleaning up / modernization of code
-// - significantly sped up optimization:
-//      - replace all the Adj values in getTeamScores with a single penaltyPoints[team]
-//      - replaced repeated deep lookups with constants
-// - fixed bug in attribute responses that are categorical yet start with decimal values (e.g., GPA range as response)
-// - made the wording of the schedule question more flexible:
-//      - question now must include only the word "check" followed somewhere with "times"
-//      - if the question includes either of the words "free" or "available", counts as asking for free time not busy time
+// - recognize integer alone in attribute response as being numerical, not categorical
+// - separate "asktosavedefaultsonexit" from "savedefaultsonexit"
+// - fix crash in add/edit student dialog with "missing" attribute values (as in responses include "1. aa"; "2. bb"; and "4. dd" but no response 3.
 //
 // TO DO:
-// - separate "asktosavedefaultsonexit" from "savedefaultsonexit"
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

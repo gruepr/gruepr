@@ -1026,14 +1026,14 @@ void gruepr::on_attributeScrollBar_valueChanged(int value)
     if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
     {
         QString questionWithResponses = "<html>" + dataOptions.attributeQuestionText.at(value) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
+        QRegularExpression startsWithInteger("^(\\d++)([\\.\\,]?$|[\\.\\,]\\D|[^\\.\\,])");
         for(int response = 0; response < dataOptions.attributeQuestionResponses[value].size(); response++)
         {
             if(dataOptions.attributeIsOrdered[value])
             {
-                // show reponse with starting number in bold
-                QRegularExpression startsWithNumber("^(\\d+)(.+)");
-                QRegularExpressionMatch match = startsWithNumber.match(dataOptions.attributeQuestionResponses[value].at(response));
-                questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + match.captured(2);
+                // show response with starting number in bold
+                QRegularExpressionMatch match = startsWithInteger.match(dataOptions.attributeQuestionResponses[value].at(response));
+                questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + dataOptions.attributeQuestionResponses[value].at(response).mid(match.capturedLength(1));
             }
             else
             {
@@ -1517,8 +1517,7 @@ void gruepr::optimizationComplete()
     ui->label_14->setEnabled(true);
     ui->label_23->setEnabled(true);
     ui->teamNamesComboBox->setEnabled(true);
-    bool signalsCurrentlyBlocked = ui->teamNamesComboBox->signalsBlocked();    // reset teamnames box to arabic numerals (without signaling the change)
-    ui->teamNamesComboBox->blockSignals(true);
+    bool signalsCurrentlyBlocked = ui->teamNamesComboBox->blockSignals(true);   // reset teamnames box to arabic numerals (without signaling the change)
     ui->teamNamesComboBox->setCurrentIndex(0);
     ui->teamNamesComboBox->blockSignals(signalsCurrentlyBlocked);
 #ifdef Q_OS_WIN32
@@ -2103,7 +2102,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
         dataOptions.URMIncluded = false;
     }
 
-    // Count the number of attributes by counting number of questions from here until one includes "check...times," "In which section are you enrolled", or end of the line is reached.
+    // Count the number of attributes by counting number of questions from here until one includes "...check...times...", "in which section are you enrolled", or end-of-line is reached.
     // Save these attribute question texts, if any, into string list.
     dataOptions.numAttributes = 0;                              // how many skill/attitude rankings are there?
     while(!(field.contains(QRegularExpression(".*(check).+(times).+", QRegularExpression::CaseInsensitiveOption)))
@@ -2119,7 +2118,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
         }
     }
 
-    // Count the number of days in the schedule by counting number of questions that includes "Check...times".
+    // Count the number of days in the schedule by counting number of questions that includes "...check...times..."
     // Save the day names and save which fields they are for use later in getting the time names
     QVector<int> scheduleFields;
     while(field.contains(QRegularExpression(".*(check).+(times).+", QRegularExpression::CaseInsensitiveOption)) && fieldnum < TotNumQuestions)
@@ -2244,27 +2243,26 @@ bool gruepr::loadSurveyData(const QString &fileName)
         sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
         std::sort(dataOptions.attributeQuestionResponses[attrib].begin(), dataOptions.attributeQuestionResponses[attrib].end(), sortAlphanumerically);
 
-        // if every response starts with an integer but not decimal, then it is ordered (numerical); if any response is missing this, then it is categorical
+        // if every response starts with an integer, then it is ordered (numerical); if any response is missing this, then it is categorical
+        // regex is: digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character besides digits; OR digit(s) then any character besides "." or ","
+        QRegularExpression startsWithInteger("^(\\d++)([\\.\\,]?$|[\\.\\,]\\D|[^\\.\\,])");
         dataOptions.attributeIsOrdered[attrib] = true;
-        QRegularExpression startsWithDecimal("^\\d+\\.\\d+");   // leading decimal value: 1+ digits, decimal point, 1+ digits
-        QRegularExpression startsWithInteger("^\\d+\\D");       // leading integer value: 1+ digits, 1 non-digits
         for(int response = 0; response < dataOptions.attributeQuestionResponses[attrib].size(); response++)
         {
-            dataOptions.attributeIsOrdered[attrib] &= (startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).hasMatch() &&
-                                                       !startsWithDecimal.match(dataOptions.attributeQuestionResponses[attrib].at(response)).hasMatch());
+            dataOptions.attributeIsOrdered[attrib] &= (startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).hasMatch());
         }
 
         if(dataOptions.attributeIsOrdered[attrib])
         {
             // ordered/numerical values. attribute scores will be based on number at the first and last response
-            dataOptions.attributeMin[attrib] = startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].first()).captured().chopped(1).toInt();
-            dataOptions.attributeMax[attrib] = startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].last()).captured().chopped(1).toInt();
+            dataOptions.attributeMin[attrib] = startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].first()).captured(1).toInt();
+            dataOptions.attributeMax[attrib] = startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].last()).captured(1).toInt();
             // set numerical value of students' attribute responses according to the number at the start of the response
             for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
             {
                 if(!student[ID].attributeResponse[attrib].isEmpty())
                 {
-                    student[ID].attribute[attrib] = startsWithInteger.match(student[ID].attributeResponse[attrib]).captured().chopped(1).toInt();
+                    student[ID].attribute[attrib] = startsWithInteger.match(student[ID].attributeResponse[attrib]).captured(1).toInt();
                 }
                 else
                 {
@@ -2453,6 +2451,7 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
         QString field = fields.at(fieldnum).toUtf8();
+        field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
         student.attributeResponse[attribute] = field;
         fieldnum++;
     }
@@ -2461,8 +2460,7 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     for(int day = 0; day < dataOptions.dayNames.size(); day++)
     {
         QString field = fields.at(fieldnum).toUtf8();
-        QRegularExpression timename;
-        timename.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
+        QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
         for(int time = 0; time < dataOptions.timeNames.size(); time++)
         {
             timename.setPattern("\\b"+dataOptions.timeNames.at(time).toUtf8()+"\\b");
@@ -2520,7 +2518,7 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
 //////////////////
 // Read one line from a CSV file, smartly handling commas within fields that are enclosed by quotation marks
 //////////////////
-QStringList gruepr::ReadCSVLine(const QString &line, int minFields)
+QStringList gruepr::ReadCSVLine(const QString &line, const int minFields)
 {
     enum State {Normal, Quote} state = Normal;
     QStringList fields;
@@ -4343,8 +4341,9 @@ void gruepr::closeEvent(QCloseEvent *event)
     savedSettings.setValue("windowGeometry", saveGeometry());
     savedSettings.setValue("dataFileLocation", dataOptions.dataFile.canonicalFilePath());
     bool dontActuallyExit = false;
+    bool saveSettings = savedSettings.value("saveDefaultsOnExit", false).toBool();
 
-    if(savedSettings.value("askToSaveDefaultsOnExit",true).toBool())
+    if(savedSettings.value("askToSaveDefaultsOnExit", true).toBool())
     {
         QApplication::beep();
         QMessageBox saveOptionsOnClose(this);
@@ -4353,13 +4352,35 @@ void gruepr::closeEvent(QCloseEvent *event)
 
         saveOptionsOnClose.setIcon(QMessageBox::Question);
         saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
-        saveOptionsOnClose.setText(tr("Before exiting, should we save all of the\ncurrent teaming options as defaults?"));
+        saveOptionsOnClose.setText(tr("Before exiting, should we save the\ncurrent teaming options as defaults?"));
         saveOptionsOnClose.setCheckBox(&neverShowAgain);
         saveOptionsOnClose.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         saveOptionsOnClose.setButtonText(QMessageBox::Discard, tr("Don't Save"));
-
         saveOptionsOnClose.exec();
+
         if(saveOptionsOnClose.result() == QMessageBox::Save)
+        {
+            saveSettings = true;
+        }
+        else if(saveOptionsOnClose.result() == QMessageBox::Cancel)
+        {
+            dontActuallyExit = true;
+        }
+
+        if(neverShowAgain.checkState() == Qt::Checked)
+        {
+            savedSettings.setValue("askToSaveDefaultsOnExit", false);
+            savedSettings.setValue("saveDefaultsOnExit", saveSettings);
+        }
+    }
+
+    if(dontActuallyExit)
+    {
+        event->ignore();
+    }
+    else
+    {
+        if(saveSettings)
         {
             savedSettings.setValue("idealTeamSize", ui->idealTeamSizeBox->value());
             savedSettings.setValue("isolatedWomenPrevented", teamingOptions.isolatedWomenPrevented);
@@ -4390,23 +4411,7 @@ void gruepr::closeEvent(QCloseEvent *event)
             savedSettings.endArray();
             savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
         }
-        else if(saveOptionsOnClose.result() == QMessageBox::Cancel)
-        {
-            dontActuallyExit = true;
-        }
 
-        if(neverShowAgain.checkState() == Qt::Checked)
-        {
-            savedSettings.setValue("askToSaveDefaultsOnExit", false);
-        }
-    }
-
-    if(dontActuallyExit)
-    {
-        event->ignore();
-    }
-    else
-    {
         event->accept();
     }
 }

@@ -1163,8 +1163,7 @@ void whichFilesDialog::boxToggled()
 // A dialog to show/edit student data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions &dataOptions,
-                                               const QStringList &sectionNames, QWidget *parent)
+editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent)
     :QDialog (parent)
 {
     student = studentToBeEdited;
@@ -1323,17 +1322,27 @@ void editOrAddStudentDialog::recordEdited()
     for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
     {
         QSpinBox *spinbox = (dataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
-        if(spinbox->value() != 0)
-        {
-            student.attribute[attrib] = spinbox->value();
-            student.attributeResponse[attrib] = dataOptions.attributeQuestionResponses[attrib].at(spinbox->value() - 1);
-            spinbox->setStyleSheet("QSpinBox { }");
-        }
-        else
+        if(spinbox->value() == 0)
         {
             student.attribute[attrib] = -1;
             student.attributeResponse[attrib] = "";
             spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+        }
+        else
+        {
+            student.attribute[attrib] = spinbox->value();
+            QRegularExpression startsWithInteger("^(\\d++)([\\.\\,]?$|[\\.\\,]\\D|[^\\.\\,])");
+            int response = 0;
+            while((response < dataOptions.attributeQuestionResponses[attrib].size()) &&
+                  (spinbox->value() != startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).captured(1).toInt()))
+            {
+                response++;
+            }
+            if(response == dataOptions.attributeQuestionResponses[attrib].size())
+            {
+                student.attributeResponse[attrib] = "--";
+            }
+            spinbox->setStyleSheet("QSpinBox { }");
         }
         field++;
     }
