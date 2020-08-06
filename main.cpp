@@ -36,6 +36,7 @@
 // - fix crash in add/edit student dialog with "missing" attribute values (as in responses include "1. aa"; "2. bb"; and "4. dd" but no response 3.
 //
 // TO DO:
+// - fix crash in testdata_lotsofnotes w/ team size 2 or 3
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
