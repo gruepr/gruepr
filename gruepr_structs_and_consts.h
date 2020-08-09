@@ -173,6 +173,8 @@ struct TeamingOptions
     int smallerTeamsNumTeams = 1;
     int largerTeamsSizes[maxStudents] = {0};
     int largerTeamsNumTeams = 1;
+    int numTeamsDesired = 1;
+    int teamSizesDesired[maxStudents] = {0};
     // initialize all attribute weights to 1, desires to heterogeneous, and no incompatible attribute values
     inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1; incompatibleAttributeValues[i].clear();}}
 };

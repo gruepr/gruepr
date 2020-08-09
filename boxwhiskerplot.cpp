@@ -35,7 +35,7 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 }
 
 
-void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *orderedIndex)
+void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const orderedIndex)
 {
     //adds a new distribution to the graph window; QVector vals is not sorted, but the indexes in sorted order is given in orderedIndex
     const int numValsNeededForBoxAndWhisker = 5;
@@ -83,7 +83,7 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *ordered
 }
 
 
-float BoxWhiskerPlot::median(const QVector<float> &vals, const int *orderedIndex, int begin, int end)
+float BoxWhiskerPlot::median(const QVector<float> &vals, const int *const orderedIndex, const int begin, const int end)
 {
     int count = end - begin;
     if ((count % 2) != 0)

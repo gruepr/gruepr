@@ -4,7 +4,7 @@
 //////////////////
 // Select two parents from the genepool using tournament selection
 //////////////////
-void GA::tournamentSelectParents(int **genePool, const int *orderedIndex, int **ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
+void GA::tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
     std::uniform_int_distribution<unsigned int> randGenome(0, populationSize-1);
@@ -34,6 +34,10 @@ void GA::tournamentSelectParents(int **genePool, const int *orderedIndex, int **
         dadsindex++;
     }
 
+    //convert momsindex from ordinal value within tournament to index within the genepool
+    //using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
+    momsindex = orderedIndex[tourneyPick[momsindex%tournamentSize]];
+
     //now make sure partners do not have any common ancestors going back numGenerationsOfAncestors generations
     bool potentialMatesAreRelated;
     do
@@ -46,8 +50,8 @@ void GA::tournamentSelectParents(int **genePool, const int *orderedIndex, int **
             {
                 for(int dadsAncestor = startAncestor; dadsAncestor < endAncestor; dadsAncestor++)
                 {
-                    potentialMatesAreRelated |=
-                            (ancestors[orderedIndex[tourneyPick[momsindex%tournamentSize]]][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%tournamentSize]]][dadsAncestor]);
+                    potentialMatesAreRelated = potentialMatesAreRelated ||
+                            (ancestors[momsindex][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%tournamentSize]]][dadsAncestor]);
                 }
             }
             startAncestor = endAncestor;
@@ -58,9 +62,7 @@ void GA::tournamentSelectParents(int **genePool, const int *orderedIndex, int **
     while(potentialMatesAreRelated);
     dadsindex--;    //need to subtract off that last increment
 
-    //convert indexes from ordinal value within tournament to index within the genepool
-    //using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
-    momsindex = orderedIndex[tourneyPick[momsindex%tournamentSize]];
+    //as done for momsindex before, convert dadsindex from ordinal value within tournament to index within the genepool
     dadsindex = orderedIndex[tourneyPick[dadsindex%tournamentSize]];
 
     //return the selected genomes into mom and dad
@@ -92,7 +94,7 @@ void GA::tournamentSelectParents(int **genePool, const int *orderedIndex, int **
 //////////////////
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
-void GA::mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[], int genomeSize, std::mt19937 &pRNG)
+void GA::mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const int genomeSize, std::mt19937 &pRNG)
 {
 
     //randomly choose two team boundaries in the genome from which to cut an allele
@@ -140,7 +142,7 @@ void GA::mate(int *mom, int *dad, const int teamSize[], int numTeams, int child[
 //////////////////
 // Randomly swap two sites in given genome
 //////////////////
-void GA::mutate(int genome[], int genomeSize, std::mt19937 &pRNG)
+void GA::mutate(int genome[], const int genomeSize, std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randSite(0, genomeSize-1);
     std::swap(genome[randSite(pRNG)], genome[randSite(pRNG)]);

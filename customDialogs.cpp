@@ -81,7 +81,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     theGrid->addWidget(explanation, 1, 0, 1, -1);
 
     //Next rows - the selection of students
-    QList<StudentRecord> studentsInComboBoxes;
+    QVector<StudentRecord> studentsInComboBoxes;
     //Add to combobox a list of all the student names (in this section)
     for(int ID = 0; ID < numStudentsComingIn; ID++)
     {
@@ -558,7 +558,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
-    for(const auto &teammate : teammates)
+    for(const auto &teammate : qAsConst(teammates))
     {
         QList<int> IDs;
         for(int searchStudent = 0; searchStudent < teammate.size(); searchStudent++)  // searchStudent is the name we're looking for
@@ -667,7 +667,7 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->setRowCount(0);
     teammatesSpecified = false;     // assume no teammates specified until we find one
 
-    QList<StudentRecord> studentAs;
+    QVector<StudentRecord> studentAs;
     for(int ID = 0; ID < numStudents; ID++)
     {
         if((sectionName == "") || (sectionName == student[ID].section))
@@ -680,7 +680,7 @@ void gatherTeammatesDialog::refreshDisplay()
 
     int row=0, column;
     bool atLeastOneTeammate;
-    for(const auto &studentA : studentAs)
+    for(const auto &studentA : qAsConst(studentAs))
     {
         atLeastOneTeammate = false;
         column = 0;
@@ -1358,8 +1358,7 @@ void editOrAddStudentDialog::recordEdited()
 // A dialog to gather which attribute values should be disallowed on the same team
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions,
-                                                                     const QList< QPair<int,int> > &currIncompats, QWidget *parent)
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QList< QPair<int,int> > &currIncompats, QWidget *parent)
     :QDialog (parent)
 {
     numPossibleValues = dataOptions.attributeQuestionResponses[attribute].size() + 1;

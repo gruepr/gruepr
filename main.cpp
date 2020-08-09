@@ -31,14 +31,11 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - recognize integer alone in attribute response as being numerical, not categorical
-// - separate "asktosavedefaultsonexit" from "savedefaultsonexit"
-// - fix crash in add/edit student dialog with "missing" attribute values (as in responses include "1. aa"; "2. bb"; and "4. dd" but no response 3.
+// - further code modernization and optimization
 //
 // TO DO:
-// - fix crash in testdata_lotsofnotes w/ team size 2 or 3
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
-
+//
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

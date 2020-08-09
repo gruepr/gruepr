@@ -1,5 +1,6 @@
 #include "ui_gruepr.h"
 #include "gruepr.h"
+#include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
 #include <QJsonDocument>
@@ -12,7 +13,6 @@
 #include <QTextStream>
 #include <QtConcurrent>
 #include <QtNetwork>
-#include <QDesktopServices>
 #include <random>
 #include <set>
 
@@ -571,30 +571,32 @@ void gruepr::on_studentTable_cellEntered(int row, int column)
     // select the current row, reset the background color of the edit and remover buttons in previously selected row and change their color in the current row
     ui->studentTable->selectRow(row);
     static int prevID = -1;
+    const int numCols = ui->studentTable->columnCount();
+    const int numRows = ui->studentTable->rowCount();
     if(prevID != -1)
     {
         int prevRow = 0;
-        while((prevRow < ui->studentTable->rowCount()) && (prevID != ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("StudentID").toInt()))
+        while((prevRow < numRows) && (prevID != ui->studentTable->cellWidget(prevRow, numCols-1)->property("StudentID").toInt()))
         {
             prevRow++;
         }
-        if(prevRow < ui->studentTable->rowCount())
+        if(prevRow < numRows)
         {
-            if(ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->property("duplicate").toBool())
+            if(ui->studentTable->cellWidget(prevRow, numCols-1)->property("duplicate").toBool())
             {
-                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
-                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-2)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+                ui->studentTable->cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+                ui->studentTable->cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
             }
             else
             {
-                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-1)->setStyleSheet("");
-                ui->studentTable->cellWidget(prevRow, ui->studentTable->columnCount()-2)->setStyleSheet("");
+                ui->studentTable->cellWidget(prevRow, numCols-1)->setStyleSheet("");
+                ui->studentTable->cellWidget(prevRow, numCols-2)->setStyleSheet("");
             }
         }
     }
-    prevID = ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->property("StudentID").toInt();
-    ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
-    ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
+    prevID = ui->studentTable->cellWidget(row, numCols-1)->property("StudentID").toInt();
+    ui->studentTable->cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
+    ui->studentTable->cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
 }
 
 
@@ -1209,9 +1211,9 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 {
     ui->teamSizeBox->clear();
 
-    numTeams = std::max(1, numStudents/arg1);
-    teamingOptions.smallerTeamsNumTeams = numTeams;
-    teamingOptions.largerTeamsNumTeams = numTeams;
+    teamingOptions.numTeamsDesired = std::max(1, numStudents/arg1);
+    teamingOptions.smallerTeamsNumTeams = teamingOptions.numTeamsDesired;
+    teamingOptions.largerTeamsNumTeams = teamingOptions.numTeamsDesired;
 
     if(numStudents%arg1 != 0)       //if teams can't be evenly divided into this size
     {
@@ -1225,7 +1227,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
         }
 
         // What are the team sizes when desiredTeamSize represents a maximum size?
-        teamingOptions.smallerTeamsNumTeams = numTeams+1;
+        teamingOptions.smallerTeamsNumTeams = teamingOptions.numTeamsDesired+1;
         for(int student = 0; student < numStudents; student++)      // run through every student
         {
             // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
@@ -1236,7 +1238,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
         smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
 
         // And what are the team sizes when desiredTeamSize represents a minimum size?
-        teamingOptions.largerTeamsNumTeams = numTeams;
+        teamingOptions.largerTeamsNumTeams = teamingOptions.numTeamsDesired;
         for(int student = 0; student < numStudents; student++)	// run through every student
         {
             // add one student to each team in turn until we run out of students
@@ -1261,14 +1263,14 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
                 smallerTeamOption += "s";
             }
         }
-        if((numSmallerATeams > 0) && ((numTeams+1-numSmallerATeams) > 0))
+        if((numSmallerATeams > 0) && ((teamingOptions.numTeamsDesired+1-numSmallerATeams) > 0))
         {
             smallerTeamOption += " + ";
         }
-        if((numTeams+1-numSmallerATeams) > 0)
+        if((teamingOptions.numTeamsDesired+1-numSmallerATeams) > 0)
         {
-            smallerTeamOption += QString::number(numTeams+1-numSmallerATeams) + tr(" team");
-            if((numTeams+1-numSmallerATeams) > 1)
+            smallerTeamOption += QString::number(teamingOptions.numTeamsDesired+1-numSmallerATeams) + tr(" team");
+            if((teamingOptions.numTeamsDesired+1-numSmallerATeams) > 1)
             {
                 smallerTeamOption += "s";
             }
@@ -1281,10 +1283,10 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 
         // Add second option to selection box
         QString largerTeamOption;
-        if((numTeams-numLargerATeams) > 0)
+        if((teamingOptions.numTeamsDesired-numLargerATeams) > 0)
         {
-            largerTeamOption += QString::number(numTeams-numLargerATeams) + tr(" team");
-            if((numTeams-numLargerATeams) > 1)
+            largerTeamOption += QString::number(teamingOptions.numTeamsDesired-numLargerATeams) + tr(" team");
+            if((teamingOptions.numTeamsDesired-numLargerATeams) > 1)
             {
                 largerTeamOption += "s";
             }
@@ -1294,7 +1296,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
                 largerTeamOption += "s";
             }
         }
-        if(((numTeams-numLargerATeams) > 0) && (numLargerATeams > 0))
+        if(((teamingOptions.numTeamsDesired-numLargerATeams) > 0) && (numLargerATeams > 0))
         {
             largerTeamOption += " + ";
         }
@@ -1317,7 +1319,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
     }
     else
     {
-        ui->teamSizeBox->addItem(QString::number(numTeams) + tr(" teams of ") + QString::number(arg1) + tr(" students"));
+        ui->teamSizeBox->addItem(QString::number(teamingOptions.numTeamsDesired) + tr(" teams of ") + QString::number(arg1) + tr(" students"));
     }
     ui->teamSizeBox->insertSeparator(ui->teamSizeBox->count());
     ui->teamSizeBox->addItem(tr("Custom team sizes"));
@@ -1326,7 +1328,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 
 void gruepr::on_teamSizeBox_currentIndexChanged(int index)
 {
-    if(ui->teamSizeBox->currentText() == (QString::number(numTeams) + tr(" teams of ") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
+    if(ui->teamSizeBox->currentText() == (QString::number(teamingOptions.numTeamsDesired) + tr(" teams of ") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
     {
         // Evenly divisible teams, all same size
         setTeamSizes(ui->idealTeamSizeBox->value());
@@ -1340,7 +1342,7 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
         int reply = win->exec();
         if(reply == QDialog::Accepted)
         {
-            numTeams = win->numTeams;
+            teamingOptions.numTeamsDesired = win->numTeams;
             setTeamSizes(win->teamsizes);
         }
         else
@@ -1348,7 +1350,7 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
             // Set to smaller teams if cancelled
             bool oldState = ui->teamSizeBox->blockSignals(true);
             ui->teamSizeBox->setCurrentIndex(0);
-            numTeams = teamingOptions.smallerTeamsNumTeams;
+            teamingOptions.numTeamsDesired = teamingOptions.smallerTeamsNumTeams;
             setTeamSizes(teamingOptions.smallerTeamsSizes);
             ui->teamSizeBox->blockSignals(oldState);
         }
@@ -1358,13 +1360,13 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
     else if(index == 0)
     {
         // Smaller teams desired
-        numTeams = teamingOptions.smallerTeamsNumTeams;
+        teamingOptions.numTeamsDesired = teamingOptions.smallerTeamsNumTeams;
         setTeamSizes(teamingOptions.smallerTeamsSizes);
     }
     else if (index == 1)
     {
         // Larger teams desired
-        numTeams = teamingOptions.largerTeamsNumTeams;
+        teamingOptions.numTeamsDesired = teamingOptions.largerTeamsNumTeams;
         setTeamSizes(teamingOptions.largerTeamsSizes);
     }
 }
@@ -1372,6 +1374,7 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
 
 void gruepr::on_letsDoItButton_clicked()
 {
+    // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions.URMIncluded && teamingOptions.isolatedURMPrevented && teamingOptions.URMResponsesConsideredUR.isEmpty())
     {
         int resp = QMessageBox::warning(this, tr("gruepr"),
@@ -1386,6 +1389,7 @@ void gruepr::on_letsDoItButton_clicked()
             return;
         }
     }
+
     // Update UI
     ui->sectionSelectionBox->setEnabled(false);
     ui->teamSizeBox->setEnabled(false);
@@ -1399,6 +1403,15 @@ void gruepr::on_letsDoItButton_clicked()
     ui->letsDoItButton->setEnabled(false);
     ui->actionCreate_Teams->setEnabled(false);
     teamDataTree->setEnabled(false);
+
+    // Set actual numer of teams and teamsizes and create the teams
+    numTeams = teamingOptions.numTeamsDesired;
+    delete[] teams;
+    teams = new TeamInfo[numTeams];
+    for(int team = 0; team < numTeams; team++)	// run through every team
+    {
+        teams[team].size = teamingOptions.teamSizesDesired[team];
+    }
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
     realNumScoringFactors = dataOptions.numAttributes + (dataOptions.dayNames.isEmpty()? 0 : 1);
@@ -1454,7 +1467,7 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability)
+void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability)
 {
     if((generation % (progressChart->plotFrequency)) == 0)
     {
@@ -1536,15 +1549,15 @@ void gruepr::optimizationComplete()
     int ID = 0;
     for(int team = 0; team < numTeams; team++)
     {
-        teams[team].studentIDs.clear();
-        for(int stud = 0; stud < teams[team].size; stud++)
+        auto &IDList = teams[team].studentIDs;
+        IDList.clear();
+        for(int studentNum = 0, size = teams[team].size; studentNum < size; studentNum++)
         {
-            teams[team].studentIDs << bestTeamSet.at(ID);
+            IDList << bestTeamSet.at(ID);
             ID++;
         }
         //sort teammates within a team alphabetically by lastname,firstname
-        std::sort(teams[team].studentIDs.begin(), teams[team].studentIDs.end(),
-                  [this] (const int a, const int b) {return ( (student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname) );});
+        std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b) {return ( (student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname) );});
     }
 
     // Get scores and other student info loaded
@@ -1604,12 +1617,6 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TeamNumber).toInt();
     }
 
-    if(teamDataTree->sortColumn() == 0)
-    {
-        teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
-        teamDataTree->headerItem()->setIcon(0, QIcon(QIcon(":/icons/updown_arrow.png")));
-    }
-
     // Set team names to:
     if(index == 0)
     {
@@ -1650,6 +1657,11 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         {
             QStringList teamNames = teamNameLists.at(index).split((","));
             teams[teamDisplayNum.at(team)].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
+            if(index == 3 || index == 4)
+            {
+                // Team name is just letters, so remove spaces between letters
+                teams[teamDisplayNum.at(team)].name.remove(' ');
+            }
         }
         prevIndex = index;
     }
@@ -1738,7 +1750,13 @@ void gruepr::on_saveTeamsButton_clicked()
             bool problemSaving = false;
             if(window->instructorFiletxt->isChecked())
             {
-                QFile instructorsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix());
+                QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
+                if(window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked())
+                {
+                    fullFilename += tr("_instructor");
+                }
+                fullFilename += "." + QFileInfo(baseFileName).suffix();
+                QFile instructorsFile(fullFilename);
                 if(instructorsFile.open(QIODevice::WriteOnly | QIODevice::Text))
                 {
                     QTextStream out(&instructorsFile);
@@ -1752,7 +1770,13 @@ void gruepr::on_saveTeamsButton_clicked()
             }
             if(window->studentFiletxt->isChecked())
             {
-                QFile studentsFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix());
+                QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
+                if(window->instructorFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked())
+                {
+                    fullFilename += tr("_student");
+                }
+                fullFilename += "." + QFileInfo(baseFileName).suffix();
+                QFile studentsFile(fullFilename);
                 if(studentsFile.open(QIODevice::WriteOnly | QIODevice::Text))
                 {
                     QTextStream out(&studentsFile);
@@ -1766,7 +1790,13 @@ void gruepr::on_saveTeamsButton_clicked()
             }
             if(window->spreadsheetFiletxt->isChecked())
             {
-                QFile spreadsheetFile(QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_spreadsheet." + QFileInfo(baseFileName).suffix());
+                QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
+                if(window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked())
+                {
+                    fullFilename += tr("_spreadsheet");
+                }
+                fullFilename += "." + QFileInfo(baseFileName).suffix();
+                QFile spreadsheetFile(fullFilename);
                 if(spreadsheetFile.open(QIODevice::WriteOnly | QIODevice::Text))
                 {
                     QTextStream out(&spreadsheetFile);
@@ -2037,20 +2067,16 @@ void gruepr::loadDefaultSettings()
 //////////////////
 void gruepr::setTeamSizes(const int teamSizes[])
 {
-    delete[] teams;
-    teams = new TeamInfo[numTeams];
-    for(int team = 0; team < numTeams; team++)	// run through every team
+    for(int team = 0; team < teamingOptions.numTeamsDesired; team++)	// run through every team
     {
-        teams[team].size = teamSizes[team];
+        teamingOptions.teamSizesDesired[team] = teamSizes[team];
     }
 }
 void gruepr::setTeamSizes(const int singleSize)
 {
-    delete[] teams;
-    teams = new TeamInfo[numTeams];
-    for(int team = 0; team < numTeams; team++)	// run through every team
+    for(int team = 0; team < teamingOptions.numTeamsDesired; team++)	// run through every team
     {
-        teams[team].size = singleSize;
+        teamingOptions.teamSizesDesired[team] = singleSize;
     }
 }
 
@@ -2106,8 +2132,8 @@ bool gruepr::loadSurveyData(const QString &fileName)
     // Save these attribute question texts, if any, into string list.
     dataOptions.numAttributes = 0;                              // how many skill/attitude rankings are there?
     while(!(field.contains(QRegularExpression(".*(check).+(times).+", QRegularExpression::CaseInsensitiveOption)))
-                    && !(field.contains("in which section are you enrolled", Qt::CaseInsensitive))
-                    && (fieldnum < TotNumQuestions) )
+           && !(field.contains("in which section are you enrolled", Qt::CaseInsensitive))
+           && (fieldnum < TotNumQuestions) )
     {
         dataOptions.attributeQuestionText << field;
         dataOptions.numAttributes++;
@@ -2249,7 +2275,8 @@ bool gruepr::loadSurveyData(const QString &fileName)
         dataOptions.attributeIsOrdered[attrib] = true;
         for(int response = 0; response < dataOptions.attributeQuestionResponses[attrib].size(); response++)
         {
-            dataOptions.attributeIsOrdered[attrib] &= (startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).hasMatch());
+            dataOptions.attributeIsOrdered[attrib] = dataOptions.attributeIsOrdered[attrib] &&
+                                                     (startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).hasMatch());
         }
 
         if(dataOptions.attributeIsOrdered[attrib])
@@ -2662,6 +2689,7 @@ void gruepr::refreshStudentDisplay()
         studentNames << (student[ID].firstname + student[ID].lastname);
         studentEmails << student[ID].email;
     }
+    studentEmails.removeAll("");
 
     numStudents = 0;
     for(int ID = 0; ID < dataOptions.numStudentsInSystem; ID++)
@@ -2755,7 +2783,7 @@ void gruepr::refreshStudentDisplay()
 ////////////////////////////////////////////
 // Create a tooltip for a student
 ////////////////////////////////////////////
-QString gruepr::createAToolTip(const StudentRecord &info, bool duplicateRecord)
+QString gruepr::createAToolTip(const StudentRecord &info, const bool duplicateRecord)
 {
     QString toolTip = "<html>";
     if(duplicateRecord)
@@ -2824,7 +2852,7 @@ QString gruepr::createAToolTip(const StudentRecord &info, bool duplicateRecord)
 ////////////////////////////////////////////
 // Create and optimize teams using genetic algorithm
 ////////////////////////////////////////////
-QList<int> gruepr::optimizeTeams(const int *studentIDs)
+QList<int> gruepr::optimizeTeams(const int *const studentIDs)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
     std::random_device randDev;
@@ -2844,11 +2872,11 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     int **ancestors = new int*[populationSize];
     int **tempAncestors = new int*[populationSize];
     int numAncestors = 2;           //always track mom & dad
-    for(int gen = 0; gen < numGenerationsOfAncestors; gen++)
+    for(int generation = 0; generation < numGenerationsOfAncestors; generation++)
     {
-        numAncestors += (4<<gen);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
+        numAncestors += (4<<generation);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
     }
-    for(int genome = 0; genome < populationSize; ++genome)
+    for(int genome = 0; genome < populationSize; genome++)
     {
         genePool[genome] = new int[numStudents];
         tempPool[genome] = new int[numStudents];
@@ -2857,7 +2885,7 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     }
     // allocate memory for array of indexes, to be sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
     int *orderedIndex = new int[populationSize];
-    for(int genome = 0; genome < populationSize; ++genome)
+    for(int genome = 0; genome < populationSize; genome++)
     {
         orderedIndex[genome] = genome;
     }
@@ -2880,7 +2908,7 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
     }
     delete[] randPerm;
 
-    // just use random values for the initial "ancestor" values, since none of these are related and so all matings should be permitted
+    // just use random values for the initial "ancestor" values
     std::uniform_int_distribution<unsigned int> randAncestor(0, populationSize);
     for(int genome = 0; genome < populationSize; genome++)
     {
@@ -3019,15 +3047,15 @@ QList<int> gruepr::optimizeTeams(const int *studentIDs)
             std::sort(orderedIndex, orderedIndex+populationSize, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
 
             // determine best score, save in historical record, and calculate score stability
-            bestScores[generation%generationsOfStability] = scores[orderedIndex[0]];	//the best scores from the most recent generationsOfStability, wrapping around the storage location
-            auto mmScores = std::minmax_element(bestScores, bestScores+generationsOfStability);
-            if(*mmScores.second == *mmScores.first)
+            float minScore = bestScores[(generation-1)%generationsOfStability], maxScore = scores[orderedIndex[0]];
+            bestScores[generation%generationsOfStability] = maxScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
+            if(minScore == maxScore)
             {
-                scoreStability = scores[orderedIndex[0]] / (0.0001);
+                scoreStability = maxScore / (0.0001);
             }
             else
             {
-                scoreStability = scores[orderedIndex[0]] / (*mmScores.second - *mmScores.first);
+                scoreStability = maxScore / (maxScore - minScore);
             }
 
             emit generationComplete(scores, orderedIndex, generation, scoreStability);
@@ -3129,10 +3157,10 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     }
                 }
 
-                if(realAttributeWeights[attrib] > 0)
+                // Remove attribute values of -1 (unknown/not set) and then determine attribute scores assuming we have any
+                attributeLevelsInTeam.erase(-1);
+                if((realAttributeWeights[attrib] > 0) && (!attributeLevelsInTeam.empty()))
                 {
-                    // Remove attribute values of -1 (unknown/not set) and then determine attribute scores
-                    attributeLevelsInTeam.erase(-1);
                     int attributeRangeInTeam;
                     if(dataOptions.attributeIsOrdered[attrib])
                     {
@@ -3520,74 +3548,76 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
     delete[] genome;
 
     //determine other team info
-    for(QList<int>::iterator team = teamNums.begin(); team != teamNums.end(); team++)
+    for(const int &teamNum : qAsConst(teamNums))
     {
+        auto &team = teams[teamNum];
         //re-zero values
-        teams[*team].numWomen = 0;
-        teams[*team].numMen = 0;
-        teams[*team].numNeither = 0;
-        teams[*team].numURM = 0;
-        teams[*team].numStudentsWithAmbiguousSchedules = 0;
+        team.numWomen = 0;
+        team.numMen = 0;
+        team.numNeither = 0;
+        team.numURM = 0;
+        team.numStudentsWithAmbiguousSchedules = 0;
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
-            teams[*team].attributeVals[attribute].clear();
+            team.attributeVals[attribute].clear();
         }
         for(int day = 0; day < dataOptions.dayNames.size(); day++)
         {
             for(int time = 0; time < dataOptions.timeNames.size(); time++)
             {
-                teams[*team].numStudentsAvailable[day][time] = 0;
+                team.numStudentsAvailable[day][time] = 0;
             }
         }
 
         //set values
-        for(int teammate = 0; teammate < teams[*team].size; teammate++)
+        for(int teammate = 0; teammate < team.size; teammate++)
         {
+            const StudentRecord &stu = student[team.studentIDs[teammate]];
             if(dataOptions.genderIncluded)
             {
-                if(student[teams[*team].studentIDs[teammate]].gender == StudentRecord::woman)
+                if(stu.gender == StudentRecord::woman)
                 {
-                    teams[*team].numWomen++;
+                    team.numWomen++;
                 }
-                else if(student[teams[*team].studentIDs[teammate]].gender == StudentRecord::man)
+                else if(stu.gender == StudentRecord::man)
                 {
-                    teams[*team].numMen++;
+                    team.numMen++;
                 }
                 else
                 {
-                    teams[*team].numNeither++;
+                    team.numNeither++;
                 }
             }
             if(dataOptions.URMIncluded)
             {
-                if(student[teams[*team].studentIDs[teammate]].URM)
+                if(stu.URM)
                 {
-                    teams[*team].numURM++;
+                    team.numURM++;
                 }
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                if(!teams[*team].attributeVals[attribute].contains(student[teams[*team].studentIDs[teammate]].attribute[attribute]))
+                if(!team.attributeVals[attribute].contains(stu.attribute[attribute]))
                 {
-                    teams[*team].attributeVals[attribute] << student[teams[*team].studentIDs[teammate]].attribute[attribute];
+                    team.attributeVals[attribute] << stu.attribute[attribute];
                 }
             }
-            if(!student[teams[*team].studentIDs[teammate]].ambiguousSchedule)
+            if(!stu.ambiguousSchedule)
             {
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
                     for(int time = 0; time < dataOptions.timeNames.size(); time++)
                     {
-                        if(!student[teams[*team].studentIDs[teammate]].unavailable[(day*dataOptions.timeNames.size())+time])
+                        if(!stu.unavailable[(day*dataOptions.timeNames.size())+time])
                         {
-                            teams[*team].numStudentsAvailable[day][time]++;
+                            team.numStudentsAvailable[day][time]++;
                         }
                     }
                 }
             }
             else
             {
-                teams[*team].numStudentsWithAmbiguousSchedules++;
+                team.numStudentsWithAmbiguousSchedules++;
             }
         }
     }
@@ -3611,99 +3641,109 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
 
 
     // create tooltips
-    for(QList<int>::iterator team = teamNums.begin(); team != teamNums.end(); team++)
+    for(const int &teamNum : qAsConst(teamNums))
     {
-        teams[*team].tooltip = "<html>" + tr("Team ") + teams[*team].name + "<br>";
+        auto &team = teams[teamNum];
+        QString teamTooltip;
+        teamTooltip = "<html>" + tr("Team ") + team.name + "<br>";
         if(dataOptions.genderIncluded)
         {
-            teams[*team].tooltip += tr("Gender") + ":  ";
-            if(teams[*team].numWomen > 0)
+            teamTooltip += tr("Gender") + ":  ";
+            if(team.numWomen > 0)
             {
-                teams[*team].tooltip += QString::number(teams[*team].numWomen) + (teams[*team].numWomen > 1? tr(" women") : tr(" woman"));
+                teamTooltip += QString::number(team.numWomen) + (team.numWomen > 1? tr(" women") : tr(" woman"));
             }
-            if(teams[*team].numWomen > 0 && teams[*team].numMen > 0)
+            if(team.numWomen > 0 && team.numMen > 0)
             {
-                teams[*team].tooltip += ", ";
+                teamTooltip += ", ";
             }
-            if(teams[*team].numMen > 0)
+            if(team.numMen > 0)
             {
-                teams[*team].tooltip += QString::number(teams[*team].numMen) + (teams[*team].numMen > 1? tr(" men") : tr(" man"));
+                teamTooltip += QString::number(team.numMen) + (team.numMen > 1? tr(" men") : tr(" man"));
             }
-            if((teams[*team].numWomen > 0 || teams[*team].numMen > 0) && teams[*team].numNeither > 0)
+            if((team.numWomen > 0 || team.numMen > 0) && team.numNeither > 0)
             {
-                teams[*team].tooltip += ", ";
+                teamTooltip += ", ";
             }
-            if(teams[*team].numNeither > 0)
+            if(team.numNeither > 0)
             {
-                teams[*team].tooltip += QString::number(teams[*team].numNeither) + tr(" non-binary/unknown");
+                teamTooltip += QString::number(team.numNeither) + tr(" non-binary/unknown");
             }
         }
         if(dataOptions.URMIncluded)
         {
-            teams[*team].tooltip += "<br>" + tr("URM") + ":  " + QString::number(teams[*team].numURM);
+            teamTooltip += "<br>" + tr("URM") + ":  " + QString::number(team.numURM);
         }
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
-            teams[*team].tooltip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+            teamTooltip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
             if(dataOptions.attributeIsOrdered[attribute])
             {
                 // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
-                QList<int> teamVals = teams[*team].attributeVals[attribute];
+                QList<int> teamVals = team.attributeVals[attribute];
                 teamVals.removeAll(-1);
-                auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
-                if(*mm.first == *mm.second)
+                if(!teamVals.empty())
                 {
-                    teams[*team].tooltip += QString::number(*mm.first);
+                    auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
+                    if(*mm.first == *mm.second)
+                    {
+                        teamTooltip += QString::number(*mm.first);
+                    }
+                    else
+                    {
+                        teamTooltip += QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                    }
                 }
                 else
                 {
-                    teams[*team].tooltip += QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                    teamTooltip += "?";
                 }
             }
             else
             {
                 // attribute is categorical, so important info is the list of values
-                std::sort(teams[*team].attributeVals[attribute].begin(), teams[*team].attributeVals[attribute].end());
+                std::sort(team.attributeVals[attribute].begin(), team.attributeVals[attribute].end());
                 // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-                teams[*team].tooltip += (teams[*team].attributeVals[attribute].at(0) <= 26 ? QString(char(teams[*team].attributeVals[attribute].at(0)-1 + 'A')) :
-                                         QString(char((teams[*team].attributeVals[attribute].at(0)-1)%26 + 'A')).repeated(1+((teams[*team].attributeVals[attribute].at(0)-1)/26)));
-                for(int val = 1; val < teams[*team].attributeVals[attribute].size(); val++)
+                teamTooltip += (team.attributeVals[attribute].at(0) <= 26 ? QString(char(team.attributeVals[attribute].at(0)-1 + 'A')) :
+                                         QString(char((team.attributeVals[attribute].at(0)-1)%26 + 'A')).repeated(1+((team.attributeVals[attribute].at(0)-1)/26)));
+                for(int val = 1; val < team.attributeVals[attribute].size(); val++)
                 {
-                    teams[*team].tooltip += ", " + (teams[*team].attributeVals[attribute].at(val) <= 26 ? QString(char(teams[*team].attributeVals[attribute].at(val)-1 + 'A')) :
-                        QString(char((teams[*team].attributeVals[attribute].at(val)-1)%26 + 'A')).repeated(1+((teams[*team].attributeVals[attribute].at(val)-1)/26)));
+                    teamTooltip += ", " + (team.attributeVals[attribute].at(val) <= 26 ? QString(char(team.attributeVals[attribute].at(val)-1 + 'A')) :
+                        QString(char((team.attributeVals[attribute].at(val)-1)%26 + 'A')).repeated(1+((team.attributeVals[attribute].at(val)-1)/26)));
                 }
             }
         }
         if(!dataOptions.dayNames.isEmpty())
         {
-            teams[*team].tooltip += "<br>--<br>" + tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
+            teamTooltip += "<br>--<br>" + tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
             for(int day = 0; day < dataOptions.dayNames.size(); day++)
             {
                 // using first 3 characters in day name as abbreviation
-                teams[*team].tooltip += "<th>" + dataOptions.dayNames.at(day).left(3) + "</th>";
+                teamTooltip += "<th>" + dataOptions.dayNames.at(day).left(3) + "</th>";
             }
-            teams[*team].tooltip += "</tr>";
+            teamTooltip += "</tr>";
 
             for(int time = 0; time < dataOptions.timeNames.size(); time++)
             {
-                teams[*team].tooltip += "<tr><th>" + dataOptions.timeNames.at(time) + "</th>";
+                teamTooltip += "<tr><th>" + dataOptions.timeNames.at(time) + "</th>";
                 for(int day = 0; day < dataOptions.dayNames.size(); day++)
                 {
-                    QString percentage = QString::number((100*teams[*team].numStudentsAvailable[day][time]) / (teams[*team].size-teams[*team].numStudentsWithAmbiguousSchedules)) + "% ";
+                    QString percentage = QString::number((100*team.numStudentsAvailable[day][time]) / (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
                     if(percentage == "100% ")
                     {
-                        teams[*team].tooltip += "<td align='center' bgcolor='PaleGreen'><b>" + percentage + "</b></td>";
+                        teamTooltip += "<td align='center' bgcolor='PaleGreen'><b>" + percentage + "</b></td>";
                     }
                     else
                     {
-                        teams[*team].tooltip += "<td align='center'>" + percentage + "</td>";
+                        teamTooltip += "<td align='center'>" + percentage + "</td>";
                     }
                 }
-                teams[*team].tooltip += "</tr>";
+                teamTooltip += "</tr>";
             }
-            teams[*team].tooltip += "</table></html>";
+            teamTooltip += "</table></html>";
         }
+        team.tooltip = teamTooltip;
     }
 }
 
@@ -3793,79 +3833,90 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
 
     //iterate through teams to update the tree of teams and students
     int numTeamsUpdated = 0;
-    for(QList<int>::iterator team = teamNums.begin(); team != teamNums.end(); team++)
+    for(const int &teamNum : qAsConst(teamNums))
     {
+        TeamTreeWidgetItem *teamItem = parentItem[teamNum];
+        TeamInfo &team = teams[teamNum];
         //create team items and fill in information
         int column = 0;
-        parentItem[*team]->setText(column, tr("Team ") + teams[*team].name);
-        parentItem[*team]->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
-        parentItem[*team]->setData(column, TeamInfoDisplay, tr("Team ") + teams[*team].name);
-        parentItem[*team]->setData(column, TeamInfoSort, student[teams[*team].studentIDs[0]].lastname+student[teams[*team].studentIDs[0]].firstname);
-        parentItem[*team]->setData(column, TeamNumber, *team);
-        parentItem[*team]->setToolTip(column, teams[*team].tooltip);
+        teamItem->setText(column, tr("Team ") + team.name);
+        teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+        teamItem->setData(column, TeamInfoDisplay, tr("Team ") + team.name);
+        teamItem->setData(column, TeamInfoSort, student[team.studentIDs[0]].lastname+student[team.studentIDs[0]].firstname);
+        teamItem->setData(column, TeamNumber, teamNum);
+        teamItem->setToolTip(column, team.tooltip);
         column++;
-        parentItem[*team]->setText(column, QString::number(double(teams[*team].score), 'f', 2));
-        parentItem[*team]->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
-        parentItem[*team]->setData(column, TeamInfoDisplay, QString::number(double(teams[*team].score), 'f', 2));
-        parentItem[*team]->setData(column, TeamInfoSort, teams[*team].score);
-        parentItem[*team]->setToolTip(column, teams[*team].tooltip);
+        teamItem->setText(column, QString::number(double(team.score), 'f', 2));
+        teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+        teamItem->setData(column, TeamInfoDisplay, QString::number(double(team.score), 'f', 2));
+        teamItem->setData(column, TeamInfoSort, team.score);
+        teamItem->setToolTip(column, team.tooltip);
         column++;
         if(dataOptions.genderIncluded)
         {
             QString genderText;
-            if(teams[*team].numWomen > 0)
+            if(team.numWomen > 0)
             {
-                genderText += QString::number(teams[*team].numWomen) + tr("W");
+                genderText += QString::number(team.numWomen) + tr("W");
             }
-            if(teams[*team].numWomen > 0 && (teams[*team].numMen > 0 || teams[*team].numNeither > 0))
-            {
-                genderText += ", ";
-            }
-            if(teams[*team].numMen > 0)
-            {
-                genderText += QString::number(teams[*team].numMen) + tr("M");
-            }
-            if(teams[*team].numMen > 0 && teams[*team].numNeither > 0)
+            if(team.numWomen > 0 && (team.numMen > 0 || team.numNeither > 0))
             {
                 genderText += ", ";
             }
-            if(teams[*team].numNeither > 0)
+            if(team.numMen > 0)
             {
-                genderText += QString::number(teams[*team].numNeither) + tr("X");
+                genderText += QString::number(team.numMen) + tr("M");
             }
-            parentItem[*team]->setData(column, TeamInfoDisplay, genderText);
-            parentItem[*team]->setData(column, TeamInfoSort, teams[*team].numMen - teams[*team].numWomen);
-            parentItem[*team]->setToolTip(column, teams[*team].tooltip);
-            parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
+            if(team.numMen > 0 && team.numNeither > 0)
+            {
+                genderText += ", ";
+            }
+            if(team.numNeither > 0)
+            {
+                genderText += QString::number(team.numNeither) + tr("X");
+            }
+            teamItem->setData(column, TeamInfoDisplay, genderText);
+            teamItem->setData(column, TeamInfoSort, team.numMen - team.numWomen);
+            teamItem->setToolTip(column, team.tooltip);
+            teamItem->setTextAlignment(column, Qt::AlignCenter);
             column++;
         }
         if(dataOptions.URMIncluded)
         {
-            parentItem[*team]->setData(column, TeamInfoDisplay, QString::number(teams[*team].numURM));
-            parentItem[*team]->setData(column, TeamInfoSort, teams[*team].numURM);
-            parentItem[*team]->setToolTip(column, teams[*team].tooltip);
-            parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
+            teamItem->setData(column, TeamInfoDisplay, QString::number(team.numURM));
+            teamItem->setData(column, TeamInfoSort, team.numURM);
+            teamItem->setToolTip(column, team.tooltip);
+            teamItem->setTextAlignment(column, Qt::AlignCenter);
             column++;
         }
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             QString attributeText;
             int sortData;
-            QList<int> teamVals = teams[*team].attributeVals[attribute];
-            teamVals.removeAll(-1);
+            QList<int> teamVals = team.attributeVals[attribute];
             if(dataOptions.attributeIsOrdered[attribute])
             {
-                // attribute is ordered/numbered, so important info is the range of values
-                auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
-                if(*mm.first == *mm.second)
+                teamVals.removeAll(-1);
+                if(!teamVals.empty())
                 {
-                    attributeText = QString::number(*mm.first);
+                    // attribute is ordered/numbered, so important info is the range of values
+                    auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
+                    if(*mm.first == *mm.second)
+                    {
+                        attributeText = QString::number(*mm.first);
+                    }
+                    else
+                    {
+                        attributeText = QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                    }
+                    sortData = *mm.first * 1000 + *mm.second;
                 }
                 else
                 {
-                    attributeText = QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                    //all unknown attribute values
+                    attributeText = "?";
+                    sortData = -1;
                 }
-                sortData = *mm.first * 1000 + *mm.second;
             }
             else
             {
@@ -3880,40 +3931,41 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
                 }
                 sortData = (teamVals.at(0) * 10000) + (teamVals.size() * 100) + (teamVals.size() > 1 ? teamVals.at(1) : 0);   // sort by first item, then number of items, then second item
             }
-            parentItem[*team]->setData(column, TeamInfoDisplay, attributeText);
-            parentItem[*team]->setData(column, TeamInfoSort, sortData);
-            parentItem[*team]->setToolTip(column, teams[*team].tooltip);
-            parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
+            teamItem->setData(column, TeamInfoDisplay, attributeText);
+            teamItem->setData(column, TeamInfoSort, sortData);
+            teamItem->setToolTip(column, team.tooltip);
+            teamItem->setTextAlignment(column, Qt::AlignCenter);
             column++;
         }
         if(!dataOptions.dayNames.isEmpty())
         {
-            parentItem[*team]->setData(column, TeamInfoDisplay, QString::number(teams[*team].tooltip.count("100%")));
-            parentItem[*team]->setData(column, TeamInfoSort, teams[*team].tooltip.count("100%"));
-            parentItem[*team]->setToolTip(column, teams[*team].tooltip);
-            parentItem[*team]->setTextAlignment(column, Qt::AlignCenter);
+            teamItem->setData(column, TeamInfoDisplay, QString::number(team.tooltip.count("100%")));
+            teamItem->setData(column, TeamInfoSort, team.tooltip.count("100%"));
+            teamItem->setToolTip(column, team.tooltip);
+            teamItem->setTextAlignment(column, Qt::AlignCenter);
             column++;
         }
 
         // expand each team now, but remember if we should re-collapse later
-        expanded[*team] = parentItem[*team]->isExpanded();
-        parentItem[*team]->setExpanded(true);
+        expanded[teamNum] = teamItem->isExpanded();
+        teamItem->setExpanded(true);
 
         //remove all student items in the team
-        foreach(auto i, parentItem[*team]->takeChildren())
+        for(auto i : teamItem->takeChildren())
         {
-            parentItem[*team]->removeChild(i);
+            teamItem->removeChild(i);
             delete i;
         }
 
         //add new student items
-        for(int stud = 0; stud < teams[*team].size; stud++)
+        for(int studentNum = 0, numStudentsOnTeam = team.size; studentNum < numStudentsOnTeam; studentNum++)
         {
-            QString studentToolTip = createAToolTip(student[teams[*team].studentIDs[stud]], false);
-            auto *childItem = new TeamTreeWidgetItem(parentItem[*team]);
+            const StudentRecord &stu = student[team.studentIDs[studentNum]];
+            QString studentToolTip = createAToolTip(stu, false);
+            auto *childItem = new TeamTreeWidgetItem(teamItem);
             int column = 0;
-            childItem->setText(column, student[teams[*team].studentIDs[stud]].firstname + " " + student[teams[*team].studentIDs[stud]].lastname);
-            childItem->setData(column, Qt::UserRole, student[teams[*team].studentIDs[stud]].ID);
+            childItem->setText(column, stu.firstname + " " + stu.lastname);
+            childItem->setData(column, Qt::UserRole, stu.ID);
             childItem->setToolTip(column, studentToolTip);
             childItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
             teamDataTree->resizeColumnToContents(column);
@@ -3921,12 +3973,12 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             column++;   // skip the teamscore column
             if(dataOptions.genderIncluded)
             {
-                if(student[teams[*team].studentIDs[stud]].gender == StudentRecord::woman)
+                if(stu.gender == StudentRecord::woman)
                 {
                    childItem->setText(column,tr("woman"));
 
                 }
-                else if(student[teams[*team].studentIDs[stud]].gender == StudentRecord::man)
+                else if(stu.gender == StudentRecord::man)
                 {
                     childItem->setText(column,tr("man"));
                 }
@@ -3941,7 +3993,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             }
             if(dataOptions.URMIncluded)
             {
-                if(student[teams[*team].studentIDs[stud]].URM)
+                if(stu.URM)
                 {
                    childItem->setText(column,tr("yes"));
 
@@ -3957,7 +4009,7 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                int value = student[teams[*team].studentIDs[stud]].attribute[attribute];
+                int value = stu.attribute[attribute];
                 if(value != -1)
                 {
                     if(dataOptions.attributeIsOrdered[attribute])
@@ -3980,14 +4032,14 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             }
             if(!dataOptions.dayNames.isEmpty())
             {
-                int availableTimes = student[teams[*team].studentIDs[stud]].availabilityChart.count("√");
+                int availableTimes = stu.availabilityChart.count("√");
                 childItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
                 childItem->setToolTip(column, studentToolTip);
                 childItem->setTextAlignment(column, Qt::AlignCenter);
             }
         }
 
-        parentItem[*team]->setExpanded(expanded[*team]);
+        teamItem->setExpanded(expanded[teamNum]);
 
         // to prevent hanging while tree is populated, redisplay every 10 teams
         if(++numTeamsUpdated%10 == 0)

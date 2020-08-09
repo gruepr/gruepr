@@ -57,7 +57,7 @@ private slots:
     void on_requestedTeammatesButton_clicked();
     void on_requestedTeammateNumberBox_valueChanged(int arg1);
     void on_letsDoItButton_clicked();
-    void updateOptimizationProgress(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability);
+    void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability);
     void optimizationComplete();
     void on_expandAllButton_clicked();
     void on_collapseAllButton_clicked();
@@ -99,7 +99,7 @@ private:
                                                                             // if line is non-empty and minFields is given, append empty fields so returned QStringList
                                                                             // always has >= minFields
     void refreshStudentDisplay();
-    QString createAToolTip(const StudentRecord &info, bool duplicateRecord);
+    QString createAToolTip(const StudentRecord &info, const bool duplicateRecord);
 
         // score calculation
     float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
@@ -111,10 +111,10 @@ private:
     bool haveAnyIncompatibleAttributes[maxAttributes];  // (initialized in constructor)
 
         // team set optimization
-    int *studentIDs = nullptr;                          // array of the IDs of students to be placed on teams
-    QList<int> optimizeTeams(const int *studentIDs);    // returns a single permutation-of-IDs
-    QFuture<QList<int> > future;                        // needed so that optimization can happen in a separate thread
-    QFutureWatcher<void> futureWatcher;                 // used for signaling of optimization completion
+    int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams
+    QList<int> optimizeTeams(const int *const studentIDs);  // returns a single permutation-of-IDs
+    QFuture<QList<int> > future;                            // needed so that optimization can happen in a separate thread
+    QFutureWatcher<void> futureWatcher;                     // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
 #ifdef Q_OS_WIN32
