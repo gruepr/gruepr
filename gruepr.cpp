@@ -3049,7 +3049,7 @@ QList<int> gruepr::optimizeTeams(const int *const studentIDs)
             std::sort(orderedIndex, orderedIndex+populationSize, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
 
             // determine best score, save in historical record, and calculate score stability
-            float minScore = bestScores[(generation-1)%generationsOfStability], maxScore = scores[orderedIndex[0]];
+            float minScore = bestScores[(generation+1)%generationsOfStability], maxScore = scores[orderedIndex[0]];
             bestScores[generation%generationsOfStability] = maxScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
             if(minScore == maxScore)
             {
