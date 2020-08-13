@@ -363,7 +363,7 @@
         </item>
         <item>
          <property name="text">
-          <string>saved files</string>
+          <string>text files</string>
          </property>
         </item>
        </widget>
@@ -1056,7 +1056,7 @@
       <bool>true</bool>
      </property>
      <addaction name="actionGoogle_form"/>
-     <addaction name="actionSaved_files"/>
+     <addaction name="actionText_files"/>
     </widget>
     <addaction name="actionOpenSurvey"/>
     <addaction name="actionSaveSurvey"/>
@@ -1094,7 +1094,7 @@
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="gruepr.qrc">
+    <iconset>
      <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
    </property>
    <property name="text">
@@ -1127,7 +1127,7 @@
   </action>
   <action name="actionOpenSurvey">
    <property name="icon">
-    <iconset resource="gruepr.qrc">
+    <iconset>
      <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
    </property>
    <property name="text">
@@ -1166,9 +1166,9 @@
     <string>Upload the survey to your Google Drive.</string>
    </property>
   </action>
-  <action name="actionSaved_files">
+  <action name="actionText_files">
    <property name="text">
-    <string>saved files...</string>
+    <string>text files...</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;Create a text file with the required question texts and a csv file to paste the results in afterwards.&lt;/html&gt;</string>

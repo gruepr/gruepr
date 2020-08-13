@@ -11,6 +11,7 @@
 #include <QString>
 #include <QDateTime>
 #include <QFileInfo>
+#include <set>
 #include "GA.h"
 
 
@@ -35,7 +36,8 @@ const char teamNameNames[] {"Arabic numbers,"
                             "Roman numerals,"
                             "Hexadecimal numbers,"
                             "English letters,"
-                            "Greek letters,"
+                            "Greek letters (uppercase),"
+                            "Greek letters (lowercase),"
                             "NATO phonetic alphabet,"
                             "Chemical elements,"
                             "Constellations,"
@@ -51,7 +53,8 @@ const char listOfTeamNames[] {";"
                               ";"
                               ";"
                               "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z;"
-                              "α,β,γ,δ,ε,ζ,η,θ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,σ,τ,ϒ,φ,χ,ψ,ω;"
+                              "Α,Β,Γ,Δ,Ε,Ζ,Η,Θ,Ι,Κ,Λ,Μ,Ν,Ξ,Ο,Π,Ρ,Σ,Τ,ϒ,Φ,Χ,Ψ,Ω;"
+                              "α,β,γ,δ,ε,ζ,η,θ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,σ,τ,υ,φ,χ,ψ,ω;"
                               "Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,Lima,Mike,"
                                  "November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu;"
                               "Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
@@ -71,8 +74,8 @@ const char listOfTeamNames[] {";"
                                  "Stephen,Theodore,Urban,Victor,Zosimus;"
                               "Afrobeat,Blues,Country,Doo-Wop,EDM,Folk,Gospel,Hip-Hop,Indie,Jazz,K-Pop,Lullaby,Mariachi,New Age,Opera,Punk,"
                                  "Qawwali,Reggae,Soundtrack,Tejano,Underground,Vocal,Western Swing,Xhosa,Yodeling,Zydeco;"
-                              "Aquamarine,Burnt Sienna,Chartreuse,Dandelion,Eggplant,Fuchsia,Goldenrod,Hot Magenta,Indigo,Jungle Green,Laser Lemon,"
-                                 "Mulberry,Neon Carrot,Orchid,Periwinkle,Razzmatazz,Scarlet,Thistle,Ultra Orange,Vivid Tangerine,Wisteria,Yellow;"
+                              "Aquamarine,Burnt Sienna,Chartreuse,Dandelion,Emerald,Fuchsia,Goldenrod,Hot Magenta,Indigo,Jungle Green,Laser Lemon,Mulberry,"
+                                 "Neon Carrot,Orchid,Periwinkle,Razzmatazz,Scarlet,Thistle,Ultra Orange,Vivid Tangerine,Wisteria,Yosemite Campfire,Zircon;"
                               "Taming of the Shrew,Henry VI,Two Gentlemen of Verona,Titus Andronicus,Richard III,Comedy of Errors,"
                                  "Love's Labour's Lost,Midsummer Night's Dream,Romeo and Juliet,Richard II,King John,Merchant of Venice,"
                                  "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,Merry Wives of Windsor,"
@@ -120,7 +123,7 @@ struct TeamInfo
     int numMen;
     int numNeither;
     int numURM;
-    QList<int> attributeVals[maxAttributes];
+    std::set<int> attributeVals[maxAttributes];
     int numStudentsAvailable[7][24] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     QList<int> studentIDs;

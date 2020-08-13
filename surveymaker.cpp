@@ -23,7 +23,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
                                                                      generateSurvey = &SurveyMaker::postGoogleURL;
                                                                      on_makeSurveyButton_clicked();
                                                                      generateSurvey = prevSurveyMethod;});
-    connect(ui->actionSaved_files, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
+    connect(ui->actionText_files, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
                                                                      generateSurvey = &SurveyMaker::createFiles;
                                                                      on_makeSurveyButton_clicked();
                                                                      generateSurvey = prevSurveyMethod;});
@@ -420,7 +420,7 @@ void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg
         ui->makeSurveyButton->setToolTip("<html>Upload the survey to your Google Drive.</html>");
         generateSurvey = &SurveyMaker::postGoogleURL;
     }
-    else if(arg1 == "saved files")
+    else if(arg1 == "text files")
     {
         ui->makeSurveyButton->setToolTip("<html>Create a text file with the required question texts and a csv file to paste the results in afterwards.</html>");
         generateSurvey = &SurveyMaker::createFiles;

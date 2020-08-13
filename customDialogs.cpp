@@ -1047,7 +1047,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     studentFileLabel = new QPushButton(this);
     studentFileLabel->setFlat(true);
     studentFileLabel->setStyleSheet("Text-align:left");
-    connect(studentFileLabel, &QPushButton::clicked, studentFiletxt, &QCheckBox::toggle);
+    connect(studentFileLabel, &QPushButton::clicked, studentFiletxt, &QCheckBox::animateClick);
     studentFileLabel->setText(tr("Student's file:\nnames, email addresses, and team availability schedules."));
     theGrid->addWidget(studentFileLabel, 2, 3);
     if(saveDialog)
@@ -1056,7 +1056,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         studentFilepdf->resize(30,30);
         theGrid->addWidget(studentFilepdf, 2, 2);
         connect(studentFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
-        connect(studentFileLabel, &QPushButton::clicked, studentFilepdf, &QCheckBox::toggle);
+        connect(studentFileLabel, &QPushButton::clicked, studentFilepdf, &QCheckBox::animateClick);
     }
     if(!(previews.isEmpty()))
     {
@@ -1079,7 +1079,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     instructorFileLabel = new QPushButton(this);
     instructorFileLabel->setFlat(true);
     instructorFileLabel->setStyleSheet("Text-align:left");
-    connect(instructorFileLabel, &QPushButton::clicked, instructorFiletxt, &QCheckBox::toggle);
+    connect(instructorFileLabel, &QPushButton::clicked, instructorFiletxt, &QCheckBox::animateClick);
     instructorFileLabel->setText(tr("Instructor's file:\nFile data, teaming options, optimization data,\n"
                                     "names, email addresses, demographic and attribute data, and team availability schedule."));
     theGrid->addWidget(instructorFileLabel, 4, 3);
@@ -1089,7 +1089,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
         instructorFilepdf->resize(30,30);
         theGrid->addWidget(instructorFilepdf, 4, 2);
         connect(instructorFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
-        connect(instructorFileLabel, &QPushButton::clicked, instructorFilepdf, &QCheckBox::toggle);
+        connect(instructorFileLabel, &QPushButton::clicked, instructorFilepdf, &QCheckBox::animateClick);
     }
     if(!(previews.isEmpty()))
     {
@@ -1112,7 +1112,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     spreadsheetFileLabel = new QPushButton(this);
     spreadsheetFileLabel->setFlat(true);
     spreadsheetFileLabel->setStyleSheet("Text-align:left");
-    connect(spreadsheetFileLabel, &QPushButton::clicked, spreadsheetFiletxt, &QCheckBox::toggle);
+    connect(spreadsheetFileLabel, &QPushButton::clicked, spreadsheetFiletxt, &QCheckBox::animateClick);
     spreadsheetFileLabel->setText(tr("Spreadsheet file:\nsections, teams, names, and email addresses in a tabular format."));
     theGrid->addWidget(spreadsheetFileLabel, 6, 3);
     if(!(previews.isEmpty()))

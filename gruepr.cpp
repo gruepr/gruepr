@@ -14,7 +14,6 @@
 #include <QtConcurrent>
 #include <QtNetwork>
 #include <random>
-#include <set>
 
 
 gruepr::gruepr(QWidget *parent) :
@@ -1657,7 +1656,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         {
             QStringList teamNames = teamNameLists.at(index).split((","));
             teams[teamDisplayNum.at(team)].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
-            if(index == 3 || index == 4)
+            if(index == 3 || index == 4 || index == 5)
             {
                 // Team name is just letters, so remove spaces between letters
                 teams[teamDisplayNum.at(team)].name.remove(' ');
@@ -1715,12 +1714,13 @@ void gruepr::on_teamNamesComboBox_activated(int index)
 
     // Update team names in table and other data
     refreshTeamToolTips();
+    const int numColsForToolTips = teamDataTree->columnCount()-1;
     for(int team = 0; team < numTeams; team++)
     {
         parentItem[team]->setText(0, tr("Team ") + teams[team].name);
         parentItem[team]->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
         parentItem[team]->setData(0, TeamInfoDisplay, tr("Team ") + teams[team].name);
-        for(int column = 0; column < teamDataTree->columnCount()-1; column++)
+        for(int column = 0; column < numColsForToolTips; column++)
         {
             parentItem[team]->setToolTip(column, teams[team].tooltip);
         }
@@ -1839,9 +1839,9 @@ void gruepr::on_printTeamsButton_clicked()
     whichFilesDialog *window = new whichFilesDialog(whichFilesDialog::print, previews, this);
     int result = window->exec();
 
-    if(result == QDialogButtonBox::Ok && (window->instructorFilepdf->isChecked() || window->studentFilepdf->isChecked() || window->spreadsheetFiletxt->isChecked()))
+    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
     {
-        printFiles(window->instructorFilepdf->isChecked(), window->studentFilepdf->isChecked(), window->spreadsheetFiletxt->isChecked(), false);
+        printFiles(window->instructorFiletxt->isChecked(), window->studentFiletxt->isChecked(), window->spreadsheetFiletxt->isChecked(), false);
     }
     delete window;
 }
@@ -2484,17 +2484,19 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     }
 
     // next 0-7 fields; might be the schedule
-    for(int day = 0; day < dataOptions.dayNames.size(); day++)
+    const int numDays = dataOptions.dayNames.size();
+    const int numTimes = dataOptions.timeNames.size();
+    for(int day = 0; day < numDays; day++)
     {
         QString field = fields.at(fieldnum).toUtf8();
         QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
-        for(int time = 0; time < dataOptions.timeNames.size(); time++)
+        for(int time = 0; time < numTimes; time++)
         {
             timename.setPattern("\\b"+dataOptions.timeNames.at(time).toUtf8()+"\\b");
-            student.unavailable[(day*dataOptions.timeNames.size())+time] = timename.match(field).hasMatch();
+            student.unavailable[(day*numTimes)+time] = timename.match(field).hasMatch();
             if(dataOptions.scheduleDataIsFreetime)
             {
-                student.unavailable[(day*dataOptions.timeNames.size())+time] = !student.unavailable[(day*dataOptions.timeNames.size())+time];
+                student.unavailable[(day*numTimes)+time] = !student.unavailable[(day*numTimes)+time];
             }
         }
         fieldnum++;
@@ -2503,24 +2505,24 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     {
         student.availabilityChart = tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
-        for(int day = 0; day < dataOptions.dayNames.size(); day++)
+        for(int day = 0; day < numDays; day++)
         {
             student.availabilityChart += "<th>" + dataOptions.dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         student.availabilityChart += "</tr>";
-        for(int time = 0; time < dataOptions.timeNames.size(); time++)
+        for(int time = 0; time < numTimes; time++)
         {
             student.availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toUtf8() + "</th>";
-            for(int day = 0; day < dataOptions.dayNames.size(); day++)
+            for(int day = 0; day < numDays; day++)
             {
-                student.availabilityChart += QString(student.unavailable[(day*dataOptions.timeNames.size())+time]?
+                student.availabilityChart += QString(student.unavailable[(day*numTimes)+time]?
                                                   "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
             }
             student.availabilityChart += "</tr>";
         }
         student.availabilityChart += "</table>";
     }
-    student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (dataOptions.dayNames.size() * dataOptions.timeNames.size()));
+    student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (numDays * numTimes));
 
     // optional last fields; might be section and/or additional notes
     if(dataOptions.sectionIncluded)
@@ -3148,7 +3150,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 if(haveAnyIncompatibleAttributes[attrib])
                 {
                     // go through each pair found in teamingOptions.incompatibleAttributeValues[attrib] list and see if both int's found in attributeLevelsInTeam
-                    for(auto pair : qAsConst(teamingOptions.incompatibleAttributeValues[attrib]))
+                    for(const auto &pair : qAsConst(teamingOptions.incompatibleAttributeValues[attrib]))
                     {
                         if((attributeLevelsInTeam.count(pair.first) != 0) && (attributeLevelsInTeam.count(pair.second) != 0))
                         {
@@ -3200,6 +3202,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
 
             // combine each student's schedule array into a team schedule array
             bool teamAvailability[numTimeSlots];
+            int numStudentsWithAmbiguousSchedules = 0;
             for(int time = 0; time < numTimeSlots; time++)
             {
                 ID = firstStudentInTeam;
@@ -3210,10 +3213,15 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     {
                         teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
                     }
+                    else if(time == 0)
+                    {
+                        // count number of students with ambiguous schedules during the first timeslot
+                        numStudentsWithAmbiguousSchedules++;
+                    }
                     ID++;
                 }
             }
-
+/*
             // count number of students with ambiguous schedules
             int numStudentsWithAmbiguousSchedules = 0;
             ID = firstStudentInTeam;
@@ -3225,7 +3233,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 }
                 ID++;
             }
-
+*/
             // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
             if((teamSize <= 2) || (numStudentsWithAmbiguousSchedules < (teamSize-2)))
             {
@@ -3325,9 +3333,9 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         for(int team = 0; team < numTeams; team++)
         {
             const int teamSize = teams[team].size;
-            int numURM = 0;
 
             // Count how many URM on the team
+            int numURM = 0;
             for(int teammate = 0; teammate < teamSize; teammate++)
             {
                 if(student[teammates[ID]].URM)
@@ -3597,10 +3605,7 @@ void gruepr::refreshTeamInfo(QList<int> teamNums)
             }
             for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
             {
-                if(!team.attributeVals[attribute].contains(stu.attribute[attribute]))
-                {
-                    team.attributeVals[attribute] << stu.attribute[attribute];
-                }
+                team.attributeVals[attribute].insert(stu.attribute[attribute]);
             }
             if(!stu.ambiguousSchedule)
             {
@@ -3677,21 +3682,23 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
             teamTooltip += "<br>" + tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+            auto teamVals = team.attributeVals[attribute].begin();
             if(dataOptions.attributeIsOrdered[attribute])
             {
                 // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
-                QList<int> teamVals = team.attributeVals[attribute];
-                teamVals.removeAll(-1);
-                if(!teamVals.empty())
+                if(*teamVals == -1)
                 {
-                    auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
-                    if(*mm.first == *mm.second)
+                    teamVals++;
+                }
+                if(teamVals != team.attributeVals[attribute].end())
+                {
+                    if(*teamVals == *team.attributeVals[attribute].rbegin())
                     {
-                        teamTooltip += QString::number(*mm.first);
+                        teamTooltip += QString::number(*teamVals);
                     }
                     else
                     {
-                        teamTooltip += QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                        teamTooltip += QString::number(*teamVals) + " - " + QString::number(*team.attributeVals[attribute].rbegin());
                     }
                 }
                 else
@@ -3702,14 +3709,11 @@ void gruepr::refreshTeamToolTips(QList<int> teamNums)
             else
             {
                 // attribute is categorical, so important info is the list of values
-                std::sort(team.attributeVals[attribute].begin(), team.attributeVals[attribute].end());
                 // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-                teamTooltip += (team.attributeVals[attribute].at(0) <= 26 ? QString(char(team.attributeVals[attribute].at(0)-1 + 'A')) :
-                                         QString(char((team.attributeVals[attribute].at(0)-1)%26 + 'A')).repeated(1+((team.attributeVals[attribute].at(0)-1)/26)));
-                for(int val = 1; val < team.attributeVals[attribute].size(); val++)
+                teamTooltip += (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
+                for(teamVals++; teamVals != team.attributeVals[attribute].end(); teamVals++)
                 {
-                    teamTooltip += ", " + (team.attributeVals[attribute].at(val) <= 26 ? QString(char(team.attributeVals[attribute].at(val)-1 + 'A')) :
-                        QString(char((team.attributeVals[attribute].at(val)-1)%26 + 'A')).repeated(1+((team.attributeVals[attribute].at(val)-1)/26)));
+                    teamTooltip += ", " + (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
                 }
             }
         }
@@ -3893,27 +3897,31 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
         {
             QString attributeText;
             int sortData;
-            QList<int> teamVals = team.attributeVals[attribute];
+            auto firstTeamVal = team.attributeVals[attribute].begin();
+            auto lastTeamVal = team.attributeVals[attribute].rbegin();
             if(dataOptions.attributeIsOrdered[attribute])
             {
-                teamVals.removeAll(-1);
-                if(!teamVals.empty())
+                // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
+                if(*firstTeamVal == -1)
                 {
-                    // attribute is ordered/numbered, so important info is the range of values
-                    auto mm = std::minmax_element(teamVals.begin(), teamVals.end());
-                    if(*mm.first == *mm.second)
+                    firstTeamVal++;
+                }
+
+                if(firstTeamVal != team.attributeVals[attribute].end())
+                {
+                    if(*firstTeamVal == *lastTeamVal)
                     {
-                        attributeText = QString::number(*mm.first);
+                        attributeText = QString::number(*firstTeamVal);
                     }
                     else
                     {
-                        attributeText = QString::number(*mm.first) + " - " + QString::number(*mm.second);
+                        attributeText = QString::number(*firstTeamVal) + " - " + QString::number(*lastTeamVal);
                     }
-                    sortData = *mm.first * 1000 + *mm.second;
+                    sortData = *firstTeamVal * 100 + *lastTeamVal;
                 }
                 else
                 {
-                    //all unknown attribute values
+                    //only attribute value was -1
                     attributeText = "?";
                     sortData = -1;
                 }
@@ -3921,15 +3929,15 @@ void gruepr::refreshTeamDisplay(QList<int> teamNums)
             else
             {
                 // attribute is categorical, so important info is the list of values
-                std::sort(teamVals.begin(), teamVals.end());
                 // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-                attributeText = (teamVals.at(0) <= 26 ? QString(char(teamVals.at(0)-1 + 'A')) : QString(char((teamVals.at(0)-1)%26 + 'A')).repeated(1+((teamVals.at(0)-1)/26)));
-                for(int val = 1; val < teamVals.size(); val++)
+                attributeText = (*firstTeamVal <= 26 ? QString(char(*firstTeamVal - 1 + 'A')) : QString(char((*firstTeamVal - 1)%26 + 'A')).repeated(1+((*firstTeamVal - 1)/26)));
+                for(auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++)
                 {
                     attributeText += ", ";
-                    attributeText += (teamVals.at(val) <= 26 ? QString(char(teamVals.at(val)-1 + 'A')) : QString(char((teamVals.at(val)-1)%26 + 'A')).repeated(1+((teamVals.at(val)-1)/26)));
+                    attributeText += (*val <= 26 ? QString(char(*val - 1 + 'A')) : QString(char((*val - 1)%26 + 'A')).repeated(1+((*val - 1)/26)));
                 }
-                sortData = (teamVals.at(0) * 10000) + (teamVals.size() * 100) + (teamVals.size() > 1 ? teamVals.at(1) : 0);   // sort by first item, then number of items, then second item
+                // sort by first item, then number of items, then second item
+                sortData = (*firstTeamVal * 10000) + (team.attributeVals[attribute].size() * 100) + (team.attributeVals[attribute].size() > 1 ? *lastTeamVal : 0);
             }
             teamItem->setData(column, TeamInfoDisplay, attributeText);
             teamItem->setData(column, TeamInfoSort, sortData);
