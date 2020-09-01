@@ -141,7 +141,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+      <item row="1" column="3" alignment="Qt::AlignVCenter">
        <widget class="ComboBoxWithElidedContents" name="attributeComboBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1127,8 +1127,8 @@
   </action>
   <action name="actionOpenSurvey">
    <property name="icon">
-    <iconset>
-     <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/openFile.png</normaloff>:/icons/openFile.png</iconset>
    </property>
    <property name="text">
     <string>Open Survey...</string>
