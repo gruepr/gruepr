@@ -5,6 +5,7 @@
 #include <QDropEvent>
 #include <QPainter>
 #include <QStylePainter>
+#include <QGuiApplication>
 
 //////////////////
 // Table Widget Item for timestamps, allowing to sort chronologically
@@ -112,10 +113,61 @@ void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     draggedItem = currentItem();
     QTreeWidget::dragEnterEvent(event);
+
+    dragDropEventLabel = new QLabel;
+    dragDropEventLabel->setWindowFlag(Qt::ToolTip);
+    dragDropEventLabel->setTextFormat(Qt::RichText);
+    dragDropEventLabel->setStyleSheet("QLabel {background-color: #bdfff2; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
+}
+
+void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    QTreeWidget::dragMoveEvent(event);
+
+    // get the TeamTreeWidgetItem currently under the cursor
+    QTreeWidgetItem* itemUnderCursor = itemAt(event->pos());
+    if(itemUnderCursor == nullptr)
+    {
+        dragDropEventLabel->hide();
+        return;
+    }
+    TeamTreeWidgetItem* dropItem = dynamic_cast<TeamTreeWidgetItem*>(itemUnderCursor);
+
+    // adjust the location and text of the tooltip
+    dragDropEventLabel->move(QCursor::pos() + QPoint(32, 32));
+    if((draggedItem == dropItem) || (!draggedItem->parent() && dropItem->parent()) || (draggedItem->parent() == dropItem))
+    {
+        // dragging item onto itself, team->student, or student->own team
+        dragDropEventLabel->hide();
+    }
+    else if(draggedItem->parent() && dropItem->parent())
+    {
+        // dragging student->student
+        dragDropEventLabel->setText(tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + dropItem->text(0) + "</b>");
+        dragDropEventLabel->show();
+        dragDropEventLabel->adjustSize();
+    }
+    else if(draggedItem->parent() && !dropItem->parent())
+    {
+        // dragging student->team
+        dragDropEventLabel->setText(tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + dropItem->text(0) + "</b>");
+        dragDropEventLabel->show();
+        dragDropEventLabel->adjustSize();
+    }
+    else if(!draggedItem->parent() && !dropItem->parent())
+    {
+        // dragging team->team
+        dragDropEventLabel->setText(tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("to this position"));
+        dragDropEventLabel->show();
+        dragDropEventLabel->adjustSize();
+    }
 }
 
 void TeamTreeWidget::dropEvent(QDropEvent *event)
 {
+    dragDropEventLabel->hide();
+    delete dragDropEventLabel;
+
     droppedItem = itemAt(event->pos());
     QModelIndex droppedIndex = indexFromItem(droppedItem);
     if( !droppedIndex.isValid() )
@@ -133,7 +185,11 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     }
     else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
     {
-        emit swapParents((draggedItem->data(0,TeamNumber)).toInt(), (droppedItem->data(0,TeamNumber)).toInt());
+        emit reorderParents((draggedItem->data(0,TeamNumber)).toInt(), (droppedItem->data(0,TeamNumber)).toInt());
+    }
+    else if(draggedItem->parent() && !(droppedItem->parent()))  // dragging student onto team
+    {
+        emit moveChild((draggedItem->parent()->data(0,TeamNumber)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,TeamNumber)).toInt());
     }
     else
     {

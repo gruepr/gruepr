@@ -91,7 +91,8 @@ gruepr::gruepr(QWidget *parent) :
     teamDataTree->setGeometry(0,0,624,626);
     ui->teamDataLayout->insertWidget(0, teamDataTree);
     connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
-    connect(teamDataTree, &TeamTreeWidget::swapParents, this, &gruepr::swapTeams);
+    connect(teamDataTree, &TeamTreeWidget::reorderParents, this, &gruepr::reorderTeams);
+    connect(teamDataTree, &TeamTreeWidget::moveChild, this, &gruepr::moveTeammate);
     connect(teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &gruepr::reorderedTeams);
 
     //Initialize remaining parameters
@@ -1855,6 +1856,7 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
     }
 
     //maintain current sort order
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     if(studentAteam == studentBteam)
@@ -1879,12 +1881,16 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
 }
 
 
-void gruepr::swapTeams(int teamA, int teamB)
+void gruepr::reorderTeams(int teamA, int teamB)
 {
     if(teamA == teamB)
     {
         return;
     }
+
+    //maintain current sort order
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     // find the teamA and teamB top level items in teamDataTree
     int teamARow=0, teamBRow=0;
@@ -1900,26 +1906,93 @@ void gruepr::swapTeams(int teamA, int teamB)
         }
     }
 
-    int teamASortOrder = teamDataTree->topLevelItem(teamARow)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt();
-    int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt();
-    teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamBSortOrder);
-    teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamBSortOrder));
-    teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
-    teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamASortOrder);
-    teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamASortOrder));
-    teamDataTree->topLevelItem(teamBRow)->setText(teamDataTree->columnCount()-1, QString::number(teamASortOrder));
+    if(std::abs(teamARow - teamBRow) == 1)  // teams are just 1 row above or below each other
+    {
+        // swap sort column data
+        int teamASortOrder = teamDataTree->topLevelItem(teamARow)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt();
+        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt();
+        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamBSortOrder);
+        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamBSortOrder));
+        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamASortOrder);
+        teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamASortOrder));
+        teamDataTree->topLevelItem(teamBRow)->setText(teamDataTree->columnCount()-1, QString::number(teamASortOrder));
 
-    std::swap(expanded[teamA], expanded[teamB]);
+        // refresh display for these teams
+        refreshTeamDisplay({teamA, teamB});
+    }
+    else if(teamARow > teamBRow)            // dragging team onto a team listed earlier in the table
+    {
+        // backwards from teamA-1 up to teamB, increment sort column data
+        for(int row = teamARow-1; row > teamBRow; row--)
+        {
+            int teamBelowRow = teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt() + 1;
+            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamBelowRow);
+            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamBelowRow));
+            teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(teamBelowRow));
+        }
+        // set sort column data for teamA to teamB
+        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt();
+        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamBSortOrder);
+        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamBSortOrder));
+        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+
+        refreshTeamDisplay();
+    }
+    else                                    // dragging team onto a team listed later in the table
+    {
+        // remember where team B is
+        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt();
+
+        // backwards from teamB up to teamA, decrement sort column data
+        for(int row = teamBRow; row < teamARow; row++)
+        {
+            int teamAboveRow = teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TeamInfoSort).toInt() - 1;
+            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamAboveRow);
+            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamAboveRow));
+            teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(teamAboveRow));
+        }
+
+        // set sort column data for teamA to teamB
+        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoSort, teamBSortOrder);
+        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(teamBSortOrder));
+        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+
+        refreshTeamDisplay();
+    }
 
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
-    refreshTeamDisplay(QList<int>({teamA, teamB}));
+    // rewrite all of the sort column data, just to be sure (can remove these lines?)
     for(int team = 0; team < numTeams; team++)
     {
         teamDataTree->topLevelItem(team)->setData(teamDataTree->columnCount()-1, TeamInfoSort, team);
         teamDataTree->topLevelItem(team)->setData(teamDataTree->columnCount()-1, TeamInfoDisplay, QString::number(team));
         teamDataTree->topLevelItem(team)->setText(teamDataTree->columnCount()-1, QString::number(team));
     }
+}
+
+
+void gruepr::moveTeammate(int studentTeam, int studentID, int newTeam)
+{
+    if((studentTeam == newTeam) || (teams[studentTeam].size == 1))
+    {
+        return;
+    }
+
+    //maintain current sort order
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+
+    //remove student from old team and add to new team
+    teams[studentTeam].studentIDs.removeOne(studentID);
+    teams[studentTeam].size--;
+    teams[newTeam].studentIDs << studentID;
+    teams[newTeam].size++;
+
+    refreshTeamInfo(QList<int>({studentTeam, newTeam}));
+    refreshTeamToolTips(QList<int>({studentTeam, newTeam}));
+    refreshTeamDisplay(QList<int>({studentTeam, newTeam}));
 }
 
 
@@ -4177,7 +4250,8 @@ void gruepr::createFileContents()
                     }
                     else
                     {
-                        instructorsFileContents += (value <= 26 ? (QString(char(value-1 + 'A'))).leftJustified(3) : (QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26)))).leftJustified(3);
+                        instructorsFileContents += (value <= 26 ? (QString(char(value-1 + 'A'))).leftJustified(3) :
+                                                                  (QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26)))).leftJustified(3);
                     }
                 }
                 else

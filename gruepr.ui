@@ -1496,7 +1496,7 @@ Identities</string>
                </sizepolicy>
               </property>
               <property name="text">
-               <string>NOTE: You can swap the position of two students or two teams using drag-and-drop.</string>
+               <string>Use drag-and-drop to adjust the placement of teams and students.</string>
               </property>
              </widget>
             </item>

@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QComboBox>
+#include <QLabel>
 
 
 // a subclassed QTableWidgetItem that allows correct sorting according to data and time from timestamp text
@@ -42,6 +43,7 @@ public:
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);        // remember which item is being dragged
+    void dragMoveEvent(QDragMoveEvent *event);          // update tooltip during drag
     void dropEvent(QDropEvent *event);                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
 
 private slots:
@@ -51,13 +53,15 @@ public slots:
     void resorting(int column);
 
 signals:
-    void swapChildren(int studentAteam, int studentAID, int studentBteam, int studentBID);  // if drag-and-dropping children in the view, swap teammates
-    void swapParents(int teamA, int teamB);             // "   "    "     "     parents   "  "    "    "    teams
+    void swapChildren(int studentAteam, int studentAID, int studentBteam, int studentBID);  // if drag-and-dropping chid onto child, swap teammates
+    void reorderParents(int teamA, int teamB);             // if drag-and-dropping parent onto parent, reorder teams
+    void moveChild(int studentTeam, int studentID, int NewTeam);  // if drag-and-dropping child onto parent, move student
     void updateTeamOrder();
 
 private:
     QTreeWidgetItem *draggedItem = nullptr;
     QTreeWidgetItem *droppedItem = nullptr;
+    QLabel *dragDropEventLabel = nullptr;
 };
 
 class TeamTreeWidgetItem : public QTreeWidgetItem

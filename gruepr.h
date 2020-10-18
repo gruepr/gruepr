@@ -67,7 +67,8 @@ private slots:
     void loadOptionsFile();
     void saveOptionsFile();
     void swapTeammates(int studentAteam, int studentAID, int studentBteam, int studentBID);
-    void swapTeams(int teamA, int teamB);
+    void reorderTeams(int teamA, int teamB);
+    void moveTeammate(int studentTeam, int studentID, int newTeam);
     void reorderedTeams();
     void settingsWindow();
     void helpWindow();
