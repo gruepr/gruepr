@@ -117,47 +117,66 @@ void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
     dragDropEventLabel = new QLabel;
     dragDropEventLabel->setWindowFlag(Qt::ToolTip);
     dragDropEventLabel->setTextFormat(Qt::RichText);
-    dragDropEventLabel->setStyleSheet("QLabel {background-color: #bdfff2; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
 }
 
 void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 {
+    const int iconSize = 32;
+    const QString iconSizeStr = QString::number(iconSize);
+
     QTreeWidget::dragMoveEvent(event);
 
-    // get the TeamTreeWidgetItem currently under the cursor
+    // get the item currently under the cursor
     QTreeWidgetItem* itemUnderCursor = itemAt(event->pos());
     if(itemUnderCursor == nullptr)
     {
         dragDropEventLabel->hide();
         return;
     }
+
+    // ensure that the item is a TeamTreeWidgetItem
     TeamTreeWidgetItem* dropItem = dynamic_cast<TeamTreeWidgetItem*>(itemUnderCursor);
+    if(dropItem == nullptr)
+    {
+        dragDropEventLabel->hide();
+        return;
+    }
 
     // adjust the location and text of the tooltip
-    dragDropEventLabel->move(QCursor::pos() + QPoint(32, 32));
-    if((draggedItem == dropItem) || (!draggedItem->parent() && dropItem->parent()) || (draggedItem->parent() == dropItem))
+    dragDropEventLabel->move(QCursor::pos() + QPoint(iconSize, iconSize));
+    if((draggedItem == dropItem) || (!draggedItem->parent() && dropItem->parent()) || (draggedItem->parent() == dropItem))  // dragging item onto itself, team->student, or student->own team
     {
-        // dragging item onto itself, team->student, or student->own team
         dragDropEventLabel->hide();
     }
-    else if(draggedItem->parent() && dropItem->parent())
+    else if(draggedItem->parent() && dropItem->parent())            // dragging student->student
     {
-        // dragging student->student
-        dragDropEventLabel->setText(tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + dropItem->text(0) + "</b>");
+        dragDropEventLabel->setText("<img style=\"vertical-align:middle\" src=\":/icons/exchange.png\" width=\"" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                     + tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + dropItem->text(0) + "</b></div>");
+        dragDropEventLabel->setStyleSheet("QLabel {background-color: #d9ffdc; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
         dragDropEventLabel->show();
         dragDropEventLabel->adjustSize();
     }
-    else if(draggedItem->parent() && !dropItem->parent())
+    else if(draggedItem->parent() && !dropItem->parent() && (draggedItem->parent()->childCount() == 1))  // dragging student->team, but this is the only student left on the team
     {
-        // dragging student->team
-        dragDropEventLabel->setText(tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + dropItem->text(0) + "</b>");
+        dragDropEventLabel->setText(tr("Cannot move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto another team.<br>")
+                                     + " <b>" + draggedItem->parent()->text(0) + "</b> " + tr("cannot be left empty."));
+        dragDropEventLabel->setStyleSheet("QLabel {background-color: #ffbdbd; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
         dragDropEventLabel->show();
         dragDropEventLabel->adjustSize();
     }
-    else if(!draggedItem->parent() && !dropItem->parent())
+    else if(draggedItem->parent() && !dropItem->parent())           // dragging student->team
     {
-        // dragging team->team
-        dragDropEventLabel->setText(tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("to this position"));
+        dragDropEventLabel->setText("<img style=\"vertical-align:middle\" src=\":/icons/move.png\" width=\"" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                     + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + dropItem->text(0) + "</b></div>");
+        dragDropEventLabel->setStyleSheet("QLabel {background-color: #d9ffdc; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
+        dragDropEventLabel->show();
+        dragDropEventLabel->adjustSize();
+    }
+    else if(!draggedItem->parent() && !dropItem->parent())          // dragging team->team
+    {
+        dragDropEventLabel->setText("<img style=\"vertical-align:middle\" src=\":/icons/swap.png\" width=\"" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                     + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("above") + " <b>" + dropItem->text(0) + "</b></div>");
+        dragDropEventLabel->setStyleSheet("QLabel {background-color: #d9ffdc; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
         dragDropEventLabel->show();
         dragDropEventLabel->adjustSize();
     }
@@ -186,6 +205,11 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     else if(!(draggedItem->parent()) && !(droppedItem->parent()))   // two teams
     {
         emit reorderParents((draggedItem->data(0,TeamNumber)).toInt(), (droppedItem->data(0,TeamNumber)).toInt());
+    }
+    else if(draggedItem->parent() && !droppedItem->parent() && (draggedItem->parent()->childCount() == 1))   // dragging student onto team, but this is the only student left on the team
+    {
+        event->setDropAction(Qt::IgnoreAction);
+        event->ignore();
     }
     else if(draggedItem->parent() && !(droppedItem->parent()))  // dragging student onto team
     {

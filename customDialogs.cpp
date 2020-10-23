@@ -66,15 +66,13 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
                 "border-bottom: 1px solid black;"
                 "background-color:Gainsboro;"
                 "padding:4px;"
-                "font-weight:bold;"
-            "}"
+                "font-weight:bold;}"
             "QTableCornerButton::section{"
                 "border-top:0px solid #D8D8D8;"
                 "border-left:0px solid #D8D8D8;"
                 "border-right:1px solid black;"
                 "border-bottom: 1px solid black;"
-                "background-color:white;"
-            "}");
+                "background-color:white;}");
     theGrid->addWidget(currentListOfTeammatesTable, 0, 0, 1, -1);
 
     //Second row - text explanation
@@ -1512,8 +1510,10 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOption
 
     //Set up window with a grid layout
     setWindowTitle(tr("Select underrepresented race/ethnicity responses"));
-
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setSizeGripEnabled(true);
+    setMinimumSize(300, 300);
+
     theGrid = new QGridLayout(this);
 
     explanation = new QLabel(this);
@@ -1522,13 +1522,27 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOption
     explanation->setWordWrap(true);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
 
+    URMResponsesTable = new QTableWidget(this);
+    URMResponsesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    URMResponsesTable->setSelectionMode(QAbstractItemView::NoSelection);
+    URMResponsesTable->verticalHeader()->setHidden(true);
+    URMResponsesTable->horizontalHeader()->setHidden(true);
+    URMResponsesTable->setAlternatingRowColors(true);
+    URMResponsesTable->setShowGrid(false);
+    URMResponsesTable->setStyleSheet("QTableView::item{border-bottom: 1px solid black;}");
+    URMResponsesTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    theGrid->addWidget(URMResponsesTable, 1, 0, 1, -1);
+
     // a checkbox and a label for each response values
     enableValue = new QCheckBox[dataOptions.URMResponses.size()];
     responses = new QPushButton[dataOptions.URMResponses.size()];
+    URMResponsesTable->setRowCount(dataOptions.URMResponses.size());
+    URMResponsesTable->setColumnCount(2);
     for(int response = 0; response < dataOptions.URMResponses.size(); response++)
     {
         enableValue[response].setChecked(URMResponsesConsideredUR.contains(dataOptions.URMResponses.at(response)));
-        theGrid->addWidget(&enableValue[response], (response/4) + 1, 2*(response%4), 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        enableValue[response].setStyleSheet("Text-align:center; margin-left:10%; margin-right:10%;");
+        URMResponsesTable->setCellWidget(response, 0, &enableValue[response]);
         connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
                                                                                  if(state == Qt::Checked)
                                                                                    {URMResponsesConsideredUR << dataOptions.URMResponses.at(response);}
@@ -1539,14 +1553,15 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOption
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
         connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
-        theGrid->addWidget(&responses[response], (response/4) + 1, 2*(response%4) + 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+        URMResponsesTable->setCellWidget(response, 1, &responses[response]);
     }
-    theGrid->setColumnStretch(1, 1);    // set second column as the one to grow
+    URMResponsesTable->resizeColumnsToContents();
+    URMResponsesTable->adjustSize();
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(dataOptions.URMResponses.size() + 2, 20);
+    theGrid->setRowMinimumHeight(2, 20);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, dataOptions.URMResponses.size() + 3, 1, -1, -1);
+    theGrid->addWidget(buttonBox, 3, 1, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 

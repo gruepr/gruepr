@@ -45,5 +45,7 @@
         <file>icons/saveSettings.png</file>
         <file>icons/loadSettings.png</file>
         <file>icons/openFile.png</file>
+        <file>icons/swap.png</file>
+        <file>icons/move.png</file>
     </qresource>
 </RCC>

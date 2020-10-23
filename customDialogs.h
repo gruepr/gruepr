@@ -218,6 +218,7 @@ public:
 private:
     QGridLayout *theGrid;
     QLabel *explanation;
+    QTableWidget *URMResponsesTable;
     QCheckBox *enableValue;
     QPushButton *responses;
     QDialogButtonBox *buttonBox;
