@@ -72,7 +72,7 @@ private:
     QGridLayout *theGrid;
     QLabel numTeamsLabel;
     QComboBox numTeamsBox;
-    QLabel *teamNumberLabel;
+    QTableWidget *teamSizesTable;
     QSpinBox *teamsizeBox;
     QLabel remainingStudents;
     QDialogButtonBox *buttonBox;
@@ -95,7 +95,7 @@ private slots:
 private:
     int numTeams;
     QGridLayout *theGrid;
-    QLabel *teamNumberLabel;
+    QTableWidget *teamNamesTable;
     QPushButton *resetNamesButton;
     QDialogButtonBox *buttonBox;
 };
