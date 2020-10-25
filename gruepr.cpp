@@ -1347,11 +1347,19 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
         }
         else
         {
-            // Set to smaller teams if cancelled
+            // Set to index 0 if cancelled
             bool oldState = ui->teamSizeBox->blockSignals(true);
             ui->teamSizeBox->setCurrentIndex(0);
-            teamingOptions.numTeamsDesired = teamingOptions.smallerTeamsNumTeams;
-            setTeamSizes(teamingOptions.smallerTeamsSizes);
+            if(ui->teamSizeBox->currentText() == (QString::number(teamingOptions.numTeamsDesired) + tr(" teams of ") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
+            {
+                // Evenly divisible teams, all same size
+                setTeamSizes(ui->idealTeamSizeBox->value());
+            }
+            else
+            {
+                teamingOptions.numTeamsDesired = teamingOptions.smallerTeamsNumTeams;
+                setTeamSizes(teamingOptions.smallerTeamsSizes);
+            }
             ui->teamSizeBox->blockSignals(oldState);
         }
 
