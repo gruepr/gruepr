@@ -67,8 +67,8 @@ private slots:
     void loadOptionsFile();
     void saveOptionsFile();
     void swapTeammates(int studentAteam, int studentAID, int studentBteam, int studentBID);
-    void reorderTeams(int teamA, int teamB);
     void moveTeammate(int studentTeam, int studentID, int newTeam);
+    void reorderTeams(int teamA, int teamB);
     void reorderedTeams();
     void settingsWindow();
     void helpWindow();
@@ -113,8 +113,8 @@ private:
 
         // team set optimization
     int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams
-    QList<int> optimizeTeams(const int *const studentIDs);  // returns a single permutation-of-IDs
-    QFuture<QList<int> > future;                            // needed so that optimization can happen in a separate thread
+    QVector<int> optimizeTeams(const int *const studentIDs);  // returns a single permutation-of-IDs
+    QFuture< QVector<int> > future;                         // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                     // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
@@ -131,14 +131,15 @@ private:
 
         // reporting results
     TeamInfo *teams = nullptr;
-    void refreshTeamInfo(QList<int> teamNums = {-1});
-    void refreshTeamToolTips(QList<int> teamNums = {-1});
+    void refreshTeamInfo(QVector<int> teamNums = {-1});
+    void refreshTeamToolTips(QVector<int> teamNums = {-1});
     void resetTeamDisplay();
-    void refreshTeamDisplay(QList<int> teamNums = {-1});
-    bool *expanded = nullptr;
+    void refreshTeamDisplay();
+    void refreshTeamOnTeamDisplay(QTreeWidgetItem *teamItem, const TeamInfo &team, const int teamNum);
+    void refreshStudentOnTeamDisplay(TeamTreeWidgetItem *studentItem, const StudentRecord &stu);
+    QVector<int> getTeamNumbersInDisplayOrder();
     QString sectionName;
     TeamTreeWidget *teamDataTree = nullptr;
-    QList<TeamTreeWidgetItem*> parentItem;
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;

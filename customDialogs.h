@@ -182,10 +182,10 @@ class gatherIncompatibleResponsesDialog : public QDialog
     Q_OBJECT
 
 public:
-    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QList< QPair<int,int> > &currIncompats, QWidget *parent = nullptr);
+    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent = nullptr);
     ~gatherIncompatibleResponsesDialog();
 
-    QList< QPair<int,int> > incompatibleResponses;
+    QVector< QPair<int,int> > incompatibleResponses;
 
 private slots:
     void addValues();

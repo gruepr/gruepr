@@ -76,17 +76,24 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
 
     for(int column = 0; column < columnCount(); column++)
     {
-        header()->resizeSection(column, std::max(header()->sectionSizeHint(column), this->sizeHintForColumn(column)));
+        resizeColumnToContents(column);
     }
 }
 
 void TeamTreeWidget::collapseAll()
 {
-    QTreeWidget::collapseAll();
-
+    for(int i = 0; i < topLevelItemCount(); i++)
+    {
+        QTreeWidgetItem *item = topLevelItem(i);
+        for(int column = 2; column < columnCount(); column++)
+        {
+            item->setText(column, item->data(column, Qt::UserRole).toString());
+        }
+        QTreeWidget::collapseItem(item);
+    }
     for(int column = 0; column < columnCount(); column++)
     {
-        header()->resizeSection(column, std::max(header()->sectionSizeHint(column), this->sizeHintForColumn(column)));
+        resizeColumnToContents(column);
     }
 }
 
@@ -105,7 +112,25 @@ void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
 
     for(int column = 0; column < columnCount(); column++)
     {
-        header()->resizeSection(column, std::max(header()->sectionSizeHint(column), this->sizeHintForColumn(column)));
+        resizeColumnToContents(column);
+    }
+}
+
+void TeamTreeWidget::expandAll()
+{
+    for(int i = 0; i < topLevelItemCount(); i++)
+    {
+        QTreeWidgetItem *item = topLevelItem(i);
+        for(int column = 2; column < columnCount(); column++)
+        {
+            item->setText(column, "");
+        }
+        QTreeWidget::expandItem(item);
+    }
+
+    for(int column = 0; column < columnCount(); column++)
+    {
+        resizeColumnToContents(column);
     }
 }
 

@@ -39,7 +39,8 @@ public:
     TeamTreeWidget(QWidget *parent = nullptr);
     void collapseItem(QTreeWidgetItem *item);           // when collapsing parent, summarize the children's data
     void collapseAll();
-    void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing data summary
+    void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
+    void expandAll();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);        // remember which item is being dragged
@@ -67,8 +68,6 @@ private:
 class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-    TeamTreeWidgetItem(QTreeWidget *parent = nullptr, int type = 0) : QTreeWidgetItem (parent, type) {}
-    TeamTreeWidgetItem(QTreeWidgetItem *parent = nullptr, int type = 0) : QTreeWidgetItem (parent, type) {}
     bool operator<(const QTreeWidgetItem &other) const;
 };
 

@@ -361,7 +361,7 @@ bool gatherTeammatesDialog::loadCSVFile()
 
     // Process each row until there's an empty one. Load unique base names into basenames; load other names in the row into corresponding teammates list
     QStringList basenames;
-    QList<QStringList> teammates;
+    QVector<QStringList> teammates;
     while(!fields.isEmpty())
     {
         int pos = basenames.indexOf(fields.at(0)); // get index of this name
@@ -405,7 +405,7 @@ bool gatherTeammatesDialog::loadCSVFile()
 
     for(int basename = 0; basename < basenames.size(); basename++)
     {
-        QList<int> IDs;
+        QVector<int> IDs;
         for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
@@ -531,7 +531,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
 
     // Process each row until there's an empty one. Load unique team strings into teams; load new/matching names into corresponding teammates list
     QStringList teamnames;
-    QList<QStringList> teammates;
+    QVector<QStringList> teammates;
     while(!fields.isEmpty())
     {
         int pos = teamnames.indexOf(fields.at(1)); // get index of this team
@@ -558,7 +558,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     // Need to convert names to IDs and then work through all teammate pairings
     for(const auto &teammate : qAsConst(teammates))
     {
-        QList<int> IDs;
+        QVector<int> IDs;
         for(int searchStudent = 0; searchStudent < teammate.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
@@ -1383,7 +1383,7 @@ void editOrAddStudentDialog::recordEdited()
 // A dialog to gather which attribute values should be disallowed on the same team
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QList< QPair<int,int> > &currIncompats, QWidget *parent)
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent)
     :QDialog (parent)
 {
     numPossibleValues = dataOptions.attributeQuestionResponses[attribute].size() + 1;
@@ -1643,14 +1643,16 @@ progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart,
     explanationBox->addWidget(explanationText, 0, Qt::AlignLeft | Qt::AlignVCenter);
     explanationBox->addStretch(1);
 
+    theGrid->setRowMinimumHeight(2, 20);
+
     auto *line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Sunken);
-    theGrid->addWidget(line, 2, 0, 1, -1);
+    theGrid->addWidget(line, 3, 0, 1, -1);
 
     if(chart != nullptr)
     {
-        theGrid->addWidget(chart, 5, 0, 1, -1);
+        theGrid->addWidget(chart, 6, 0, 1, -1);
         chart->hide();
         graphShown = false;
 
@@ -1658,20 +1660,20 @@ progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart,
         showStatsButton->setIconSize(QSize(20, 20));
         showStatsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
         connect(showStatsButton, &QPushButton::clicked, this, [this, chart] {statsButtonPushed(chart);});
-        theGrid->addWidget(showStatsButton, 3, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(showStatsButton, 4, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
         theGrid->setColumnStretch(1,1);
     }
 
     onlyStopManually = new QCheckBox("Continue optimizing\nuntil I manually stop it.", this);
     onlyStopManually->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    theGrid->addWidget(onlyStopManually, 3, 2, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+    theGrid->addWidget(onlyStopManually, 4, 2, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
 
-    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Stop", this);
+    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Stop\nnow", this);
     stopHere->setIconSize(QSize(30, 30));
     stopHere->setToolTip(tr("Stop the optimization process immediately and show the best set of teams found so far."));
     stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     connect(stopHere, &QPushButton::clicked, this, [this] {emit letsStop();});
-    theGrid->addWidget(stopHere, 3, 3, 1, -1, Qt::AlignRight | Qt::AlignVCenter);
+    theGrid->addWidget(stopHere, 4, 3, 1, -1, Qt::AlignRight | Qt::AlignVCenter);
 
     countdownToClose = new QTimer(this);
     setText(text);
@@ -1681,11 +1683,11 @@ progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart,
 void progressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
 {
     QString explanation = "<html>" + tr("Generation ") + QString::number(generation) + " - "
-                          + tr("Top Score = ") + (score < 0? "— ": "") + QString::number(score) +
-                          "<br><span style=\"color:" + (autostopInProgress? "green" : "black") + ";\">" + text + "<br>";
+                          + tr("Top Score = ") + (score < 0? "<font face=\"serif\"> - </font>": "") + QString::number(std::abs(score)) +
+                          "<br><span style=\"color:" + (autostopInProgress? "green" : "black") + ";\">" + text;
     if(autostopInProgress && !onlyStopManually->isChecked())
     {
-        explanation += tr("Optimization will stop in ") + QString::number(secsLeftToClose) + tr(" seconds.");
+        explanation += "<br>" + tr("Optimization will stop in ") + QString::number(secsLeftToClose) + tr(" seconds.");
     }
     explanation += "</span></html>";
     explanationText->setText(explanation);
@@ -1745,13 +1747,14 @@ void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
 {
     graphShown = !graphShown;
 
-    int height;
+    int height, width;
     QIcon icon;
     QString butText;
     if(graphShown)
     {
         chart->show();
         height = 400;
+        width = QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).width("10 15 20 25 30 35 40 45 50 55 60 65 70");
         icon = QIcon(":/icons/up_arrow.png");
         butText = "Hide progress";
     }
@@ -1759,12 +1762,14 @@ void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
     {
         chart->hide();
         height = 0;
+        width = 0;
         icon = QIcon(":/icons/down_arrow.png");
         butText = "Show progress";
     }
-    int chartRow, x;
-    theGrid->getItemPosition(theGrid->indexOf(chart), &chartRow, &x, &x, &x);
+    int chartRow, chartCol, x;
+    theGrid->getItemPosition(theGrid->indexOf(chart), &chartRow, &chartCol, &x, &x);
     theGrid->setRowMinimumHeight(chartRow, height);
+    theGrid->setColumnMinimumWidth(chartCol, width);
     showStatsButton->setIcon(icon);
     showStatsButton->setText(butText);
     adjustSize();

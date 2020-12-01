@@ -31,7 +31,9 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - further code modernization and optimization
+// - replaced all QList with QVector
+// - highly sped up the team info table
+// - some UI updating
 //
 // TO DO:
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration

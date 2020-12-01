@@ -11,6 +11,7 @@
 #include <QString>
 #include <QDateTime>
 #include <QFileInfo>
+#include <QVector>
 #include <set>
 #include "GA.h"
 
@@ -35,6 +36,7 @@ const int timeMeanings[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,
 const char teamNameNames[] {"Arabic numbers,"
                             "Roman numerals,"
                             "Hexadecimal numbers,"
+                            "Binary numbers,"
                             "English letters,"
                             "Greek letters (uppercase),"
                             "Greek letters (lowercase),"
@@ -50,6 +52,7 @@ const char teamNameNames[] {"Arabic numbers,"
                             "Minor Simpsons characters"};
 
 const char listOfTeamNames[] {";"
+                              ";"
                               ";"
                               ";"
                               "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z;"
@@ -126,7 +129,7 @@ struct TeamInfo
     std::set<int> attributeVals[maxAttributes];
     int numStudentsAvailable[7][24] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
-    QList<int> studentIDs;
+    QVector<int> studentIDs;
     QString name;
     QString availabilityChart;
     QString tooltip;
@@ -169,7 +172,7 @@ struct TeamingOptions
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
     bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
     float attributeWeights[maxAttributes];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
-    QList< QPair<int,int> > incompatibleAttributeValues[maxAttributes]; // for each attribute, a list of incompatible attribute value pairs
+    QVector< QPair<int,int> > incompatibleAttributeValues[maxAttributes]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;
     int numberRequestedTeammatesGiven = 1;
     int smallerTeamsSizes[maxStudents] = {0};

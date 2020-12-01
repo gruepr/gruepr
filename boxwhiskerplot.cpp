@@ -4,6 +4,8 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 {
     (void)parent;
     QFont titleFont("Oxygen Mono");
+    QFont labelsFont(titleFont);
+    labelsFont.setPointSize(titleFont.pointSize()-2);
     setTheme(QtCharts::QChart::ChartThemeBlueIcy);
     legend()->setVisible(false);
 
@@ -23,6 +25,7 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
         axisX->append(QString::number(label*plotFrequency), label);
     }
     axisX->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
+    axisX->setLabelsFont(labelsFont);
     axisX->setTitleFont(titleFont);
     axisX->setTitleText(xAxisTitle);
 
@@ -30,6 +33,7 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     this->addAxis(axisY, Qt::AlignLeft);
     dataSeries->attachAxis(axisY);
     axisY->setRange(yAxisRange[0], yAxisRange[1]);
+    axisY->setLabelsFont(labelsFont);
     axisY->setTitleFont(titleFont);
     axisY->setTitleText(yAxisTitle);
 }
