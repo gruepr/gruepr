@@ -23,17 +23,16 @@
 <h3>Further details on the data file format</h3>
 <p>&nbsp; &nbsp;The datafile of student information has a specific required format. Using the Google Form allows you to download the data into exactly this file format without modification. The datafile must be a comma-separated-values (.csv) file with these contents:</p>
 <ul>
-<li>first a header row that contains the question texts</li>
-<li>next, each student on a separate row, starting at the row immediately after the header</li>
-<li>values within each row are, in order:</li>
+<li>a header row that contains the question texts, with specific wording needed in some of the questions for gruepr to recognize the question type</li>
+<li>each student on a separate row, starting at the row immediately after the header; values within each row are, in order:</li>
 <ul>
 <li>timestamp</li>
 <li>first name or preferred name</li>
 <li>last name</li>
 <li>email</li>
 <li>[optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say", "Non-binary", etc.)</li>
-<li>[optional] "yes" or "no", to indicate whether the student comes from an underrepresented minority group</li>
-<li>[0 to 9 values] text responses to "attribute" questions, each in own field</li>
+<li>[optional] student's self-identified racial / ethnic / cultural identity</li>
+<li>[0 to 15 values] text responses to "attribute" questions, each in own field</li>
 <li>[0 to 7 values] list of times within each day that the student is unavailable to work</li>
 <li>[optional] section</li>
 <li>[optional] any additional notes for student (all remaining columns will get swallowed into this field)</li>

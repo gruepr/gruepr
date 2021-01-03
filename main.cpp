@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019 - 2020
+// Copyright (C) 2019 - 2021
 // Joshua Hertz
 // gruepr@gmail.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,11 +31,10 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - replaced all QList with QVector
-// - highly sped up the team info table
-// - some UI updating
+// - code modernization
 //
 // TO DO:
+// - make mutation likelihood scale with genome size (i.e., numStudents)
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
@@ -65,15 +64,15 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont(":/fonts/OxygenMono-Regular.otf");
 
     // Show splash screen
-    QSplashScreen *splash = new QSplashScreen;
+    auto *splash = new QSplashScreen;
     QPixmap pic(":/icons/fish.png");
     splash->setPixmap(pic);
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter, Qt::white);
     splash->show();
 
     // Create application choice (gruepr or SurveyMaker) window
-    QMessageBox *startWindow = new QMessageBox;
-    QFont *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize()+8);
+    auto *startWindow = new QMessageBox;
+    auto *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize()+8);
     startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     startWindow->setWindowTitle("gruepr");
     startWindow->setFont(*boxFont); startWindow->setText("Select an app to run:");
@@ -85,15 +84,15 @@ int main(int argc, char *argv[])
     QSize defButtonSize(labelWidth+20,labelWidth);
 
     // Create and add buttons
-    QToolButton *leaveButton = new QToolButton(startWindow);
+    auto *leaveButton = new QToolButton(startWindow);
     leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
     leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit");
     leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    QToolButton *grueprButton = new QToolButton(startWindow);
+    auto *grueprButton = new QToolButton(startWindow);
     grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
     grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr");
     grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    QToolButton *survMakeButton = new QToolButton(startWindow);
+    auto *survMakeButton = new QToolButton(startWindow);
     survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
     survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker");
     survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -151,7 +150,7 @@ int main(int argc, char *argv[])
             gruepr w;
             w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
             w.show();
-            executionResult = a.exec();
+            executionResult = QApplication::exec();
             result = leaveButton;
         }
         else if(result == survMakeButton)
@@ -159,13 +158,13 @@ int main(int argc, char *argv[])
             SurveyMaker w;
             w.setWindowTitle("gruepr: SurveyMaker [*]");         // asterisk is placeholder, shown when there is unsaved work
             w.show();
-            executionResult = a.exec();
+            executionResult = QApplication::exec();
             result = leaveButton;
         }
         else
         {
             //make sure we can connect to google
-            QNetworkAccessManager *manager = new QNetworkAccessManager(startWindow);
+            auto *manager = new QNetworkAccessManager(startWindow);
             QEventLoop loop;
             QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
             QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -180,7 +179,7 @@ int main(int argc, char *argv[])
             else
             {
                 //we can connect, so gather name, institution, and email address for submission
-                registerDialog *window = new registerDialog(startWindow);
+                auto *window = new registerDialog(startWindow);
                 int reply = window->exec();
                 //If user clicks OK, email registration info and add to saved settings
                 if(reply == QDialog::Accepted)

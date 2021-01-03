@@ -10,7 +10,11 @@
   #include <QWinTaskbarProgress>
 #endif
 #include "customDialogs.h"
-#include "customWidgets.h"
+#include "comboBoxWithElidedContents.h"
+#include "categorialSpinBox.h"
+#include "pushButtonWithMouseEnter.h"
+#include "sortableTableWidgetItem.h"
+#include "teamTreeWidget.h"
 #include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
 
@@ -94,7 +98,7 @@ private:
     StudentRecord *student = nullptr;                   // array to hold the students' data
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
-    int numStudents = maxStudents;
+    int numStudents = MAX_STUDENTS;
     StudentRecord readOneRecordFromFile(const QStringList &fields);
     QStringList ReadCSVLine(const QString &line, const int minFields = -1); // read one line from CSV file, smartly handling commas inside quotation mark-encased fields
                                                                             // if line is non-empty and minFields is given, append empty fields so returned QStringList
@@ -103,13 +107,13 @@ private:
     QString createAToolTip(const StudentRecord &info, const bool duplicateRecord);
 
         // score calculation
-    float realAttributeWeights[maxAttributes];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
+    float realAttributeWeights[MAX_ATTRIBUTES];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
     float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
     int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
     bool haveAnyRequiredTeammates = false;
     bool haveAnyPreventedTeammates = false;
     bool haveAnyRequestedTeammates = false;
-    bool haveAnyIncompatibleAttributes[maxAttributes];  // (initialized in constructor)
+    bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];  // (initialized in constructor)
 
         // team set optimization
     int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams

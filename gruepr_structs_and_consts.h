@@ -16,24 +16,24 @@
 #include "GA.h"
 
 
-const int maxAttributes = 15;							// maximum number of skills/attitudes
-const int maxStudents = maxRecords;                     // each student is a "record" in the genetic algorithm
-const int maxTeams = maxStudents/2;
-const int maxTimeBlocks = 7*24;                         // resolution of scheduling is 1 hr, and scope is weekly
+const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes
+const int MAX_STUDENTS = MAX_RECORDS;                    // each student is a "record" in the genetic algorithm
+const int MAX_TEAMS = MAX_STUDENTS/2;
+const int MAX_TIMEBLOCKS = 7*24;                        // resolution of scheduling is 1 hr, and scope is weekly
 
-const int TeamInfoDisplay = Qt::UserRole;               // data with this role is stored in each column of the team info display tree, shown when team is collapsed
-const int TeamInfoSort = Qt::UserRole + 1;              // data with this role is stored in each column of the team info display tree, used when sorting the column
-const int TeamNumber = Qt::UserRole + 2;                // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
+const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown when team is collapsed
+const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
+const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
 
 //map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
-const char timeNames[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"
+const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"
                         "11am,11 am,11:00,12pm,12 pm,12:00,1pm,1 pm,13:00,2pm,2 pm,14:00,3pm,3 pm,15:00,4pm,4 pm,16:00,5pm,5 pm,17:00,6pm,6 pm,18:00,7pm,7 pm,19:00,8pm,8 pm,20:00,"
                         "9pm,9 pm,21:00,10pm,10 pm,22:00,11pm,11 pm,23:00,12am,12 am,0:00,noon,midnight"};
-const int timeMeanings[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,
+const int TIME_MEANINGS[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,
                           13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
 
 // Options for the team names. A name for each list of names must be given.
-const char teamNameNames[] {"Arabic numbers,"
+const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
                             "Roman numerals,"
                             "Hexadecimal numbers,"
                             "Binary numbers,"
@@ -51,7 +51,7 @@ const char teamNameNames[] {"Arabic numbers,"
                             "Cheeses,"
                             "Minor Simpsons characters"};
 
-const char listOfTeamNames[] {";"
+const char TEAMNAMELISTS[]   {";"
                               ";"
                               ";"
                               ";"
@@ -99,19 +99,19 @@ struct StudentRecord
     int ID;                                             // ID is assigned in order of appearance in the data file
     enum Gender {woman, man, neither} gender = StudentRecord::neither;  // neither represents non-binary, unknown, prefer not to say, etc.
     bool URM = false;                                   // true if this student is from an underrepresented minority group
-    bool unavailable[maxTimeBlocks] = {false};			// true if this is a busy block during week
+    bool unavailable[MAX_TIMEBLOCKS] = {false};			// true if this is a busy block during week
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
-    bool preventedWith[maxStudents] = {false};			// true if this student is prevented from working with the corresponding student
-    bool requiredWith[maxStudents] = {false};			// true if this student is required to work with the corresponding student
-    bool requestedWith[maxStudents] = {false};			// true if this student desires to work with the corresponding student
-    int attribute[maxAttributes] = {0};                 // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
+    bool preventedWith[MAX_STUDENTS] = {false};			// true if this student is prevented from working with the corresponding student
+    bool requiredWith[MAX_STUDENTS] = {false};			// true if this student is required to work with the corresponding student
+    bool requestedWith[MAX_STUDENTS] = {false};			// true if this student desires to work with the corresponding student
+    int attribute[MAX_ATTRIBUTES] = {0};                 // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;
     QString lastname;
     QString email;
     QString section;									// section data stored as text
     QString notes;										// any special notes for this student
-    QString attributeResponse[maxAttributes];           // the text of the response to each attribute question
+    QString attributeResponse[MAX_ATTRIBUTES];           // the text of the response to each attribute question
     QString URMResponse;                                // the text of the response the the race/ethnicity/culture question
     QString availabilityChart;
 };
@@ -126,7 +126,7 @@ struct TeamInfo
     int numMen;
     int numNeither;
     int numURM;
-    std::set<int> attributeVals[maxAttributes];
+    std::set<int> attributeVals[MAX_ATTRIBUTES];
     int numStudentsAvailable[7][24] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     QVector<int> studentIDs;
@@ -145,17 +145,17 @@ struct DataOptions
     bool notesIncluded = false;                         // are notes (or other additional info) included in the survey?
     bool scheduleDataIsFreetime = false;                // was the survey set up so that students are indicating their freetime in the schedule?
     int numAttributes = 0;                              // how many attribute questions are in the survey?
-    int attributeMin[maxAttributes];                    // what is the minimum value for each attribute?
-    int attributeMax[maxAttributes];                    // what is the maximum value for each attribute?
-    bool attributeIsOrdered[maxAttributes];             // is this attribute ordered (numerical) or purely categorical?
+    int attributeMin[MAX_ATTRIBUTES];                    // what is the minimum value for each attribute?
+    int attributeMax[MAX_ATTRIBUTES];                    // what is the maximum value for each attribute?
+    bool attributeIsOrdered[MAX_ATTRIBUTES];             // is this attribute ordered (numerical) or purely categorical?
     int numStudentsInSystem = 0;                        // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
-    QStringList attributeQuestionResponses[maxAttributes];      // the list of responses to each of the attribute questions
+    QStringList attributeQuestionResponses[MAX_ATTRIBUTES];      // the list of responses to each of the attribute questions
     QStringList URMResponses;                           // the list of responses to the race/ethnicity/culture question
     QFileInfo dataFile;
     QStringList dayNames;
     QStringList timeNames;
-    inline DataOptions(){for(int i = 0; i < maxAttributes; i++) {attributeMin[i] = 1; attributeMax[i] = 1; attributeIsOrdered[i] = true;}}
+    inline DataOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {attributeMin[i] = 1; attributeMax[i] = 1; attributeIsOrdered[i] = true;}}
 };
 
 
@@ -170,19 +170,19 @@ struct TeamingOptions
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
-    bool desireHomogeneous[maxAttributes]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
-    float attributeWeights[maxAttributes];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
-    QVector< QPair<int,int> > incompatibleAttributeValues[maxAttributes]; // for each attribute, a list of incompatible attribute value pairs
+    bool desireHomogeneous[MAX_ATTRIBUTES]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
+    float attributeWeights[MAX_ATTRIBUTES];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
+    QVector< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;
     int numberRequestedTeammatesGiven = 1;
-    int smallerTeamsSizes[maxStudents] = {0};
+    int smallerTeamsSizes[MAX_STUDENTS] = {0};
     int smallerTeamsNumTeams = 1;
-    int largerTeamsSizes[maxStudents] = {0};
+    int largerTeamsSizes[MAX_STUDENTS] = {0};
     int largerTeamsNumTeams = 1;
     int numTeamsDesired = 1;
-    int teamSizesDesired[maxStudents] = {0};
+    int teamSizesDesired[MAX_STUDENTS] = {0};
     // initialize all attribute weights to 1, desires to heterogeneous, and no incompatible attribute values
-    inline TeamingOptions(){for(int i = 0; i < maxAttributes; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1; incompatibleAttributeValues[i].clear();}}
+    inline TeamingOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1; incompatibleAttributeValues[i].clear();}}
 };
 
 

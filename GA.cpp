@@ -7,36 +7,36 @@
 void GA::tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-    std::uniform_int_distribution<unsigned int> randGenome(0, populationSize-1);
+    std::uniform_int_distribution<unsigned int> randGenome(0, POPULATIONSIZE-1);
 
     //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
     //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
-    int tourneyPick[tournamentSize];
+    int tourneyPick[TOURNAMENTSIZE];
     for(int &player : tourneyPick)
     {
         player = randGenome(pRNG);
     }
-    std::sort(tourneyPick, tourneyPick+tournamentSize);
+    std::sort(tourneyPick, tourneyPick+TOURNAMENTSIZE);
 
     //pick first genome from tournament, most likely from the beginning so that best genomes are more likely have offspring
     //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring genome in tournament)
     int momsindex = 0;
     //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
-    while(randProbability(pRNG) > topGenomeLikelihood)
+    while(randProbability(pRNG) > TOPGENOMELIKELIHOOD)
     {
         momsindex++;
     }
 
     //pick second genome from tournament in same way, but make sure to not pick the same genome
     int dadsindex = 0;
-    while((randProbability(pRNG) > topGenomeLikelihood) || (dadsindex == momsindex))
+    while((randProbability(pRNG) > TOPGENOMELIKELIHOOD) || (dadsindex == momsindex))
     {
         dadsindex++;
     }
 
     //convert momsindex from ordinal value within tournament to index within the genepool
     //using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
-    momsindex = orderedIndex[tourneyPick[momsindex%tournamentSize]];
+    momsindex = orderedIndex[tourneyPick[momsindex%TOURNAMENTSIZE]];
 
     //now make sure partners do not have any common ancestors going back numGenerationsOfAncestors generations
     bool potentialMatesAreRelated;
@@ -44,14 +44,14 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     {
         potentialMatesAreRelated = false;
         int startAncestor = 0, endAncestor = 2;
-        for(int generation = 0; generation < numGenerationsOfAncestors; generation++)
+        for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS; generation++)
         {
             for(int momsAncestor = startAncestor; momsAncestor < endAncestor; momsAncestor++)
             {
                 for(int dadsAncestor = startAncestor; dadsAncestor < endAncestor; dadsAncestor++)
                 {
                     potentialMatesAreRelated = potentialMatesAreRelated ||
-                            (ancestors[momsindex][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%tournamentSize]]][dadsAncestor]);
+                            (ancestors[momsindex][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]]][dadsAncestor]);
                 }
             }
             startAncestor = endAncestor;
@@ -63,7 +63,7 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     dadsindex--;    //need to subtract off that last increment
 
     //as done for momsindex before, convert dadsindex from ordinal value within tournament to index within the genepool
-    dadsindex = orderedIndex[tourneyPick[dadsindex%tournamentSize]];
+    dadsindex = orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]];
 
     //return the selected genomes into mom and dad
     mom = genePool[momsindex];
@@ -73,7 +73,7 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     parentage[0] = momsindex; //mom
     parentage[1] = dadsindex; //dad
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;
-    for(int generation = 1; generation < numGenerationsOfAncestors; generation++)
+    for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++)
     {
         //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up
         for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++)

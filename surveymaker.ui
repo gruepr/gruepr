@@ -1180,7 +1180,7 @@
   <customwidget>
    <class>ComboBoxWithElidedContents</class>
    <extends>QComboBox</extends>
-   <header>customWidgets.h</header>
+   <header>comboBoxWithElidedContents.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

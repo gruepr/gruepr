@@ -13,7 +13,8 @@
 #include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QCheckBox>
-#include "customWidgets.h"
+#include "comboBoxWithElidedContents.h"
+#include "categorialSpinBox.h"
 #include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
 

@@ -5,7 +5,6 @@
 #include <QRegularExpressionValidator>
 #include <QFileInfo>
 #include <QDate>
-#include "customDialogs.h"
 #include "gruepr_structs_and_consts.h"
 
 namespace Ui {class SurveyMaker;}
@@ -76,8 +75,8 @@ private:
     bool gender = true;
     bool URM = false;
     int numAttributes = 3;
-    QString attributeTexts[maxAttributes] = {""};
-    int attributeResponses[maxAttributes] = {0};
+    QString attributeTexts[MAX_ATTRIBUTES] = {""};
+    int attributeResponses[MAX_ATTRIBUTES] = {0};
     bool schedule = true;
     enum {busy, free} busyOrFree = busy;
     // local day names, using the fact that 1/1/2017 is a Sunday

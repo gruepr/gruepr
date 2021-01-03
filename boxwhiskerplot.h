@@ -1,6 +1,8 @@
 #ifndef BOXWHISKERPLOT_H
 #define BOXWHISKERPLOT_H
 
+// a box-and-whisker plot based on QChart
+
 #include <QChartView>
 #include <QBoxPlotSeries>
 #include <QCategoryAxis>

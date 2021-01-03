@@ -1,5 +1,6 @@
 #include "boxwhiskerplot.h"
 
+
 BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle, QWidget *parent)
 {
     (void)parent;
@@ -42,11 +43,11 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const orderedIndex)
 {
     //adds a new distribution to the graph window; QVector vals is not sorted, but the indexes in sorted order is given in orderedIndex
-    const int numValsNeededForBoxAndWhisker = 5;
-    const int ignoreLowestXPercentOfData = 5;  //drop outliers at low end
-    int count = vals.count() - (vals.count()*ignoreLowestXPercentOfData/100);
+    const int NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER = 5;
+    const int IGNORE_LOWEST_X_PERCENT_DATA = 5;  //drop outliers at low end
+    int count = vals.count() - (vals.count()*IGNORE_LOWEST_X_PERCENT_DATA/100);
 
-    if(count >= numValsNeededForBoxAndWhisker)
+    if(count >= NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER)
     {
         nextVals[0] = vals.at(orderedIndex[count]);                 //lower extreme (min)
         nextVals[1] = median(vals, orderedIndex, count/2, count);   //lower quartile

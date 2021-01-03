@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 9.11
-copyright_year = 2019-2020
+gruepr_version = 9.12.1
+copyright_year = 2019-2021
 
 QT       += core gui widgets concurrent network printsupport charts
 win32: QT += winextras
@@ -53,22 +53,30 @@ macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 SOURCES += \
         Levenshtein.cpp \
         boxwhiskerplot.cpp \
-        customWidgets.cpp \
+        categorialSpinBox.cpp \
+        comboBoxWithElidedContents.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
         customDialogs.cpp \
-        surveymaker.cpp
+        pushButtonWithMouseEnter.cpp \
+        sortableTableWidgetItem.cpp \
+        surveymaker.cpp \
+        teamTreeWidget.cpp
 
 HEADERS += \
         Levenshtein.h \
         boxwhiskerplot.h \
-        customWidgets.h \
+        categorialSpinBox.h \
+        comboBoxWithElidedContents.h \
         gruepr.h \
         GA.h \
         customDialogs.h \
         gruepr_structs_and_consts.h \
-        surveymaker.h
+        pushButtonWithMouseEnter.h \
+        sortableTableWidgetItem.h \
+        surveymaker.h \
+        teamTreeWidget.h
 
 FORMS += \
       gruepr.ui \

@@ -1,6 +1,7 @@
 #include "Levenshtein.h"
 #include "customDialogs.h"
 #include <QFileDialog>
+#include <QHeaderView>
 #include <QMessageBox>
 #include <QMovie>
 #include <QTextStream>
@@ -676,7 +677,7 @@ void gatherTeammatesDialog::refreshDisplay()
     std::sort(studentAs.begin(), studentAs.end(), [](const StudentRecord &A, const StudentRecord &B)
                                                     {return ((A.lastname+A.firstname) < (B.lastname+B.firstname));});
 
-    int row=0, column;
+    int row = 0, column;
     bool atLeastOneTeammate;
     for(const auto &studentA : qAsConst(studentAs))
     {
@@ -1356,7 +1357,7 @@ void editOrAddStudentDialog::recordEdited()
         else
         {
             student.attribute[attrib] = spinbox->value();
-            QRegularExpression startsWithInteger("^(\\d++)([\\.\\,]?$|[\\.\\,]\\D|[^\\.\\,])");
+            QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
             int response = 0;
             while((response < dataOptions.attributeQuestionResponses[attrib].size()) &&
                   (spinbox->value() != startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).captured(1).toInt()))
@@ -1629,7 +1630,7 @@ progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart,
 
     explanationIcon = new QLabel(this);
     explanationIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    QMovie *movie = new QMovie(":/icons/loading.gif");
+    auto *movie = new QMovie(":/icons/loading.gif");
     explanationIcon->setMovie(movie);
     movie->start();
 
