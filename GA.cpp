@@ -140,10 +140,14 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
 
 
 //////////////////
-// Randomly swap two sites in given genome
+// Swap the value at siteA in the gene with a randomly chosen site
 //////////////////
-void GA::mutate(int genome[], const int genomeSize, std::mt19937 &pRNG)
+void GA::mutate(int genome[], const int genomeSize, const int siteA, std::mt19937 &pRNG)
 {
+    if(siteA > genomeSize)
+    {
+        return;
+    }
     std::uniform_int_distribution<unsigned int> randSite(0, genomeSize-1);
-    std::swap(genome[randSite(pRNG)], genome[randSite(pRNG)]);
+    std::swap(genome[siteA], genome[randSite(pRNG)]);
 }

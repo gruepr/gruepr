@@ -1384,32 +1384,19 @@ void gruepr::on_letsDoItButton_clicked()
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions.URMIncluded && teamingOptions.isolatedURMPrevented && teamingOptions.URMResponsesConsideredUR.isEmpty())
     {
-        int resp = QMessageBox::warning(this, tr("gruepr"),
+        int buttonClicked = QMessageBox::warning(this, tr("gruepr"),
                                        tr("You have selected to prevented isolated URM students,\n"
                                           "however none of the race/ethnicity response values\n"
                                           "have been selected to be considered as underrepresented.\n\n"
-                                          "Click OK to continue or Cancel to go back and select URM responses."),
+                                          "Click OK to continue with no students considered URM,\n"
+                                          "or click Cancel to go back and select URM responses."),
                                        QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
-        if(resp == QMessageBox::Cancel)
+        if(buttonClicked == QMessageBox::Cancel)
         {
             ui->URMResponsesButton->setFocus();
             return;
         }
     }
-
-    // Update UI
-    ui->sectionSelectionBox->setEnabled(false);
-    ui->teamSizeBox->setEnabled(false);
-    ui->label_10->setEnabled(false);
-    ui->idealTeamSizeBox->setEnabled(false);
-    ui->loadSurveyFileButton->setEnabled(false);
-    ui->saveTeamsButton->setEnabled(false);
-    ui->printTeamsButton->setEnabled(false);
-    ui->actionSave_Teams->setEnabled(false);
-    ui->actionPrint_Teams->setEnabled(false);
-    ui->letsDoItButton->setEnabled(false);
-    ui->actionCreate_Teams->setEnabled(false);
-    teamDataTree->setEnabled(false);
 
     // Set actual numer of teams and teamsizes and create the teams
     numTeams = teamingOptions.numTeamsDesired;
@@ -1446,7 +1433,7 @@ void gruepr::on_letsDoItButton_clicked()
     chartView->setRenderHint(QPainter::Antialiasing);
 
     // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-    progressWindow = new progressDialog("", chartView, this);
+    progressWindow = new progressDialog(chartView, this);
     progressWindow->show();
     connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
                                                                      connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
@@ -1514,21 +1501,11 @@ void gruepr::optimizationComplete()
     QApplication::alert(this);
 
     // update UI
-    ui->sectionSelectionBox->setEnabled(ui->sectionSelectionBox->count() > 1);
-    ui->label_2->setEnabled(ui->sectionSelectionBox->count() > 1);
-    ui->label_22->setEnabled(ui->sectionSelectionBox->count() > 1);
-    ui->teamSizeBox->setEnabled(true);
-    ui->label_10->setEnabled(true);
-    ui->idealTeamSizeBox->setEnabled(true);
-    ui->loadSurveyFileButton->setEnabled(true);
-    ui->dataDisplayTabWidget->setCurrentIndex(1);
     ui->saveTeamsButton->setEnabled(true);
     ui->printTeamsButton->setEnabled(true);
     ui->actionSave_Teams->setEnabled(true);
     ui->actionPrint_Teams->setEnabled(true);
-    ui->letsDoItButton->setEnabled(true);
-    ui->actionCreate_Teams->setEnabled(true);
-    ui->teamDataLayout->setEnabled(true);
+    ui->dataDisplayTabWidget->setCurrentIndex(1);
     teamDataTree->setEnabled(true);
     teamDataTree->setHeaderHidden(false);
     teamDataTree->collapseAll();
@@ -1651,7 +1628,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     else if(index == 3)
     {
         // binary numbers
-        const int numDigitsInLargestTeam = QString::number(numTeams, 2).size();
+        const int numDigitsInLargestTeam = QString::number(numTeams-1, 2).size();       // the '-1' is because the first team is 0
         for(int team = 0; team < numTeams; team++)
         {
             teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits in all
@@ -2622,10 +2599,10 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
 
     // first 4 fields: timestamp, first or preferred name, last name, email address
     int fieldnum = 0;
-    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format when downloaded direct from Form
+    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Form
     if(student.surveyTimestamp.isNull())
     {
-        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt. format when downloaded direct from Form
+        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Form
         if(student.surveyTimestamp.isNull())
         {
             student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), TIMESTAMP_FORMAT3);   // format when downloaded from Results Spreadsheet
@@ -3235,13 +3212,16 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
                 }
             }
 
-            // mutate all but the single top-scoring elite with some probability--if a mutation occurs, mutate same genome again with same probability
+            // take all but the single top-scoring elite genome and mutate with some probability once per site in the gene (i.e., once per numStudent)
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 1; genome < POPULATIONSIZE; genome++)
             {
-                while(randProbability(pRNG) < MUTATIONLIKELIHOOD)
+                for(int possibleMutationSite = 0; possibleMutationSite < numStudents; possibleMutationSite++)
                 {
-                    GA::mutate(&nextGenGenePool[genome][0], numStudents, pRNG);
+                    if(randProbability(pRNG) <= MUTATIONLIKELIHOOD)
+                    {
+                        GA::mutate(&nextGenGenePool[genome][0], numStudents, possibleMutationSite, pRNG);
+                    }
                 }
             }
 
@@ -3285,7 +3265,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
             bestScores[generation%GENERATIONS_OF_STABILITY] = maxScore;	//the best scores from the most recent generationsOfStability, wrapping around the storage location
             if(minScore == maxScore)
             {
-                scoreStability = maxScore / (0.0001);
+                scoreStability = maxScore / 0.0001F;
             }
             else
             {

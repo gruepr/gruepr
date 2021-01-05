@@ -32,9 +32,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 // - code modernization
+// - made progress dialog modal to prevent bug-prone changing of any teaming variables during optimization
+// - made mutation likelihood scale with genome size by checking for low probability mutation once per genome site
 //
 // TO DO:
-// - make mutation likelihood scale with genome size (i.e., numStudents)
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

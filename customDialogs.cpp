@@ -1613,13 +1613,14 @@ gatherURMResponsesDialog::~gatherURMResponsesDialog()
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart, QWidget *parent)
+progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window with a grid layout
     setWindowTitle(tr("Optimizing teams..."));
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
     setSizeGripEnabled(true);
+    setModal(true);
     theGrid = new QGridLayout(this);
 
     statusText = new QLabel(this);
@@ -1677,7 +1678,7 @@ progressDialog::progressDialog(const QString &text, QtCharts::QChartView *chart,
     theGrid->addWidget(stopHere, 4, 3, 1, -1, Qt::AlignRight | Qt::AlignVCenter);
 
     countdownToClose = new QTimer(this);
-    setText(text);
+    setText("");
     adjustSize();
 }
 

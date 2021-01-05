@@ -31,7 +31,7 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setMouseTracking(true);
     setSelectionMode(QAbstractItemView::SingleSelection);
     setSelectionBehavior(QAbstractItemView::SelectRows);
-    connect(this, &QAbstractItemView::entered, this, &TeamTreeWidget::itemEntered);
+    connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::collapseItem);
     connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::expandItem);
 }
