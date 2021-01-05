@@ -18,13 +18,13 @@ const int MIN_GENERATIONS = 40;                         // will keep optimizing 
 const int MAX_GENERATIONS = 500;                        // will keep optimizing for at most maxGenerations
 const int GENERATIONS_OF_STABILITY = 25;                // after minGenerations, if score has not improved for generationsOfStability, stop optimizing
 const int MIN_SCORE_STABILITY = 100;                    // will keep optimizing until scoreStability (current score divided by range of scores within generationsOfStability) exceeds this
-const int MUTATIONLIKELIHOOD = 2;                       // percent likelihood of a mutation in each gene site
+const int MUTATIONLIKELIHOOD = 50;                      // percent likelihood of a mutation (when mutation occurs, another chance at mutation is given with same likelihood (iteratively))
 
 namespace GA
 {
     void tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
     void mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const int genomeSize, std::mt19937 &pRNG);
-    void mutate(int genome[], const int genomeSize, const int siteA, std::mt19937 &pRNG);
+    void mutate(int genome[], const int genomeSize, std::mt19937 &pRNG);
 };
 
 

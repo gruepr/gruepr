@@ -87,8 +87,8 @@ private:
         // setup
     Ui::gruepr *ui;
     void loadDefaultSettings();
-    DataOptions dataOptions;
-    TeamingOptions teamingOptions;
+    DataOptions *dataOptions = nullptr;
+    TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
@@ -105,15 +105,6 @@ private:
                                                                             // always has >= minFields
     void refreshStudentDisplay();
     QString createAToolTip(const StudentRecord &info, const bool duplicateRecord);
-
-        // score calculation
-    float realAttributeWeights[MAX_ATTRIBUTES];          // scoring weight of each attribute, normalized to total weight (initialized in constructor)
-    float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
-    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
-    bool haveAnyRequiredTeammates = false;
-    bool haveAnyPreventedTeammates = false;
-    bool haveAnyRequestedTeammates = false;
-    bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];  // (initialized in constructor)
 
         // team set optimization
     int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams

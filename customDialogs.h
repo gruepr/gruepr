@@ -158,7 +158,7 @@ class editOrAddStudentDialog : public QDialog
     Q_OBJECT
 
 public:
-    editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent = nullptr);
+    editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions *const dataOptions, const QStringList &sectionNames, QWidget *parent = nullptr);
     ~editOrAddStudentDialog();
 
     StudentRecord student;
@@ -167,7 +167,7 @@ private slots:
     void recordEdited();
 
 private:
-    DataOptions dataOptions;
+    DataOptions internalDataOptions;
     QGridLayout *theGrid;
     QLabel *explanation;
     QLineEdit *datatext;
@@ -183,7 +183,7 @@ class gatherIncompatibleResponsesDialog : public QDialog
     Q_OBJECT
 
 public:
-    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent = nullptr);
+    gatherIncompatibleResponsesDialog(const int attribute, const DataOptions *const dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent = nullptr);
     ~gatherIncompatibleResponsesDialog();
 
     QVector< QPair<int,int> > incompatibleResponses;
@@ -211,7 +211,7 @@ class gatherURMResponsesDialog : public QDialog
     Q_OBJECT
 
 public:
-    gatherURMResponsesDialog(const DataOptions &dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
+    gatherURMResponsesDialog(const DataOptions *const dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
     ~gatherURMResponsesDialog();
 
     QStringList URMResponsesConsideredUR;

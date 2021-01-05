@@ -145,9 +145,9 @@ struct DataOptions
     bool notesIncluded = false;                         // are notes (or other additional info) included in the survey?
     bool scheduleDataIsFreetime = false;                // was the survey set up so that students are indicating their freetime in the schedule?
     int numAttributes = 0;                              // how many attribute questions are in the survey?
-    int attributeMin[MAX_ATTRIBUTES];                    // what is the minimum value for each attribute?
-    int attributeMax[MAX_ATTRIBUTES];                    // what is the maximum value for each attribute?
-    bool attributeIsOrdered[MAX_ATTRIBUTES];             // is this attribute ordered (numerical) or purely categorical?
+    int attributeMin[MAX_ATTRIBUTES];                   // what is the minimum value for each attribute?
+    int attributeMax[MAX_ATTRIBUTES];                   // what is the maximum value for each attribute?
+    bool attributeIsOrdered[MAX_ATTRIBUTES];            // is this attribute ordered (numerical) or purely categorical?
     int numStudentsInSystem = 0;                        // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[MAX_ATTRIBUTES];      // the list of responses to each of the attribute questions
@@ -155,7 +155,10 @@ struct DataOptions
     QFileInfo dataFile;
     QStringList dayNames;
     QStringList timeNames;
-    inline DataOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {attributeMin[i] = 1; attributeMax[i] = 1; attributeIsOrdered[i] = true;}}
+
+    inline DataOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {attributeMin[i] = 1;
+                                                                  attributeMax[i] = 1;
+                                                                  attributeIsOrdered[i] = false;}}
 };
 
 
@@ -164,16 +167,23 @@ struct TeamingOptions
 {
     bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
     bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
-    bool singleGenderPrevented = false;                  // if true, will penalize teams with all men or all women
+    bool singleGenderPrevented = false;                 // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
     QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
     int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
-    bool desireHomogeneous[MAX_ATTRIBUTES]; 				// if true/false, tries to make all students on a team have similar/different levels of each attribute
-    float attributeWeights[MAX_ATTRIBUTES];              // weights for each attribute as displayed to the user (i.e., non-normalized values)
+    bool desireHomogeneous[MAX_ATTRIBUTES]; 			// if true/false, tries to make all students on a team have similar/different levels of each attribute
+    float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
+    float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight
+    bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];
     QVector< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;
+    float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
+    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
+    bool haveAnyRequiredTeammates = false;
+    bool haveAnyPreventedTeammates = false;
+    bool haveAnyRequestedTeammates = false;
     int numberRequestedTeammatesGiven = 1;
     int smallerTeamsSizes[MAX_STUDENTS] = {0};
     int smallerTeamsNumTeams = 1;
@@ -181,8 +191,22 @@ struct TeamingOptions
     int largerTeamsNumTeams = 1;
     int numTeamsDesired = 1;
     int teamSizesDesired[MAX_STUDENTS] = {0};
+
     // initialize all attribute weights to 1, desires to heterogeneous, and no incompatible attribute values
-    inline TeamingOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {desireHomogeneous[i] = false; attributeWeights[i] = 1; incompatibleAttributeValues[i].clear();}}
+    inline TeamingOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {desireHomogeneous[i] = false;
+                                                                     attributeWeights[i] = 1;
+                                                                     realAttributeWeights[i] = 1;
+                                                                     haveAnyIncompatibleAttributes[i] = false;
+                                                                     incompatibleAttributeValues[i].clear();}}
+
+    // reset the variables that depend on the datafile
+    inline void reset(){URMResponsesConsideredUR.clear();
+                        for(int i = 0; i < MAX_ATTRIBUTES; i++) {haveAnyIncompatibleAttributes[i] = false;
+                                                                 incompatibleAttributeValues[i].clear();}
+                        haveAnyRequiredTeammates = false;
+                        haveAnyPreventedTeammates = false;
+                        haveAnyRequestedTeammates = false;
+                        }
 };
 
 

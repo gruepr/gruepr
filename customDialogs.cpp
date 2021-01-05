@@ -1189,11 +1189,11 @@ void whichFilesDialog::boxToggled()
 // A dialog to show/edit student data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions &dataOptions, const QStringList &sectionNames, QWidget *parent)
+editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions *const dataOptions, const QStringList &sectionNames, QWidget *parent)
     :QDialog (parent)
 {
     student = studentToBeEdited;
-    this->dataOptions = dataOptions;
+    internalDataOptions = *dataOptions;
 
     //Set up window with a grid layout
     if(studentToBeEdited.surveyTimestamp.secsTo(QDateTime::currentDateTime()) < 10)     // if timestamp is within the past 10 seconds, it is a new student
@@ -1207,8 +1207,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
 
-    int numFields = 4 + (dataOptions.genderIncluded?1:0) + (dataOptions.URMIncluded?1:0) + (dataOptions.sectionIncluded?1:0) +
-                            dataOptions.numAttributes + (dataOptions.notesIncluded?1:0);
+    int numFields = 4 + (internalDataOptions.genderIncluded?1:0) + (internalDataOptions.URMIncluded?1:0) + (internalDataOptions.sectionIncluded?1:0) +
+                            internalDataOptions.numAttributes + (internalDataOptions.notesIncluded?1:0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[numFields];
     databox = new QComboBox[numFields];
@@ -1237,7 +1237,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
                                                       QString stylecolor = (validTimeStamp? "black" : "red");
                                                       datatext[0].setStyleSheet("QLineEdit {color: " + stylecolor + ";}");});
 
-    if(dataOptions.genderIncluded)
+    if(internalDataOptions.genderIncluded)
     {
         explanation[field].setText(tr("Gender identity"));
         databox[field].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary/unknown"));
@@ -1248,10 +1248,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         field++;
     }
 
-    if(dataOptions.URMIncluded)
+    if(internalDataOptions.URMIncluded)
     {
         explanation[field].setText(tr("Racial/ethnic/cultural identity"));
-        databox[field].addItems(dataOptions.URMResponses);
+        databox[field].addItems(internalDataOptions.URMResponses);
         databox[field].setEditable(true);
         databox[field].setCurrentText(student.URMResponse);
         connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
@@ -1260,7 +1260,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         field++;
     }
 
-    if(dataOptions.sectionIncluded)
+    if(internalDataOptions.sectionIncluded)
     {
         explanation[field].setText(tr("Section"));
         databox[field].addItems(sectionNames);
@@ -1272,13 +1272,13 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         field++;
     }
 
-    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    for(int attrib = 0; attrib < internalDataOptions.numAttributes; attrib++)
     {
         explanation[field].setText(tr("Attribute ") + QString::number(attrib + 1));
-        QSpinBox *spinbox = (dataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
-        datacategorical[field].setCategoricalValues(dataOptions.attributeQuestionResponses[attrib]);
+        QSpinBox *spinbox = (internalDataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
+        datacategorical[field].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attrib]);
         spinbox->setValue(student.attribute[attrib]);
-        spinbox->setRange(0, dataOptions.attributeMax[attrib]);
+        spinbox->setRange(0, internalDataOptions.attributeMax[attrib]);
         if(spinbox->value() == 0)
         {
             spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
@@ -1290,7 +1290,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         field++;
     }
 
-    if(dataOptions.notesIncluded)
+    if(internalDataOptions.notesIncluded)
     {
         explanation[field].setText(tr("Notes"));
         datatext[field].setText(student.notes);
@@ -1329,25 +1329,25 @@ void editOrAddStudentDialog::recordEdited()
     student.lastname = datatext[2].text();
     student.email = datatext[3].text();
     int field = 4;
-    if(dataOptions.genderIncluded)
+    if(internalDataOptions.genderIncluded)
     {
         student.gender = (databox[field].currentText() == tr("woman")? StudentRecord::woman :
                                                                        (databox[field].currentText()==tr("man")? StudentRecord::man : StudentRecord::neither));
         field++;
     }
-    if(dataOptions.URMIncluded)
+    if(internalDataOptions.URMIncluded)
     {
         student.URMResponse = databox[field].currentText();
         field++;
     }
-    if(dataOptions.sectionIncluded)
+    if(internalDataOptions.sectionIncluded)
     {
         student.section = databox[field].currentText();
         field++;
     }
-    for(int attrib = 0; attrib < dataOptions.numAttributes; attrib++)
+    for(int attrib = 0; attrib < internalDataOptions.numAttributes; attrib++)
     {
-        QSpinBox *spinbox = (dataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
+        QSpinBox *spinbox = (internalDataOptions.attributeIsOrdered[attrib] ? &datanumber[field] : &datacategorical[field]);
         if(spinbox->value() == 0)
         {
             student.attribute[attrib] = -1;
@@ -1359,12 +1359,12 @@ void editOrAddStudentDialog::recordEdited()
             student.attribute[attrib] = spinbox->value();
             QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
             int response = 0;
-            while((response < dataOptions.attributeQuestionResponses[attrib].size()) &&
-                  (spinbox->value() != startsWithInteger.match(dataOptions.attributeQuestionResponses[attrib].at(response)).captured(1).toInt()))
+            while((response < internalDataOptions.attributeQuestionResponses[attrib].size()) &&
+                  (spinbox->value() != startsWithInteger.match(internalDataOptions.attributeQuestionResponses[attrib].at(response)).captured(1).toInt()))
             {
                 response++;
             }
-            if(response == dataOptions.attributeQuestionResponses[attrib].size())
+            if(response == internalDataOptions.attributeQuestionResponses[attrib].size())
             {
                 student.attributeResponse[attrib] = "--";
             }
@@ -1372,7 +1372,7 @@ void editOrAddStudentDialog::recordEdited()
         }
         field++;
     }
-    if(dataOptions.notesIncluded)
+    if(internalDataOptions.notesIncluded)
     {
         student.notes = datatext[field].text();
         field++;
@@ -1384,10 +1384,10 @@ void editOrAddStudentDialog::recordEdited()
 // A dialog to gather which attribute values should be disallowed on the same team
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions &dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent)
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions *const dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent)
     :QDialog (parent)
 {
-    numPossibleValues = dataOptions.attributeQuestionResponses[attribute].size() + 1;
+    numPossibleValues = dataOptions->attributeQuestionResponses[attribute].size() + 1;
     incompatibleResponses = currIncompats;
 
     //Set up window with a grid layout
@@ -1397,7 +1397,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     theGrid = new QGridLayout(this);
 
     attributeDescription = new QLabel(this);
-    attributeDescription->setText("<html><br>" + dataOptions.attributeQuestionText.at(attribute) +
+    attributeDescription->setText("<html><br>" + dataOptions->attributeQuestionText.at(attribute) +
                          "<hr>" + tr("Prevent students with these responses from being placed on the same team:") + "<br></html>");
     attributeDescription->setWordWrap(true);
     theGrid->addWidget(attributeDescription, 0, 0, 1, -1);
@@ -1413,18 +1413,18 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
         {
             responses[response].setText(tr("-. value not set/unknown"));
         }
-        else if(dataOptions.attributeIsOrdered[attribute])
+        else if(dataOptions->attributeIsOrdered[attribute])
         {
             // show reponse with starting number
             QRegularExpression startsWithNumber("^(\\d+)(.+)");
-            QRegularExpressionMatch match = startsWithNumber.match(dataOptions.attributeQuestionResponses[attribute].at(response));
+            QRegularExpressionMatch match = startsWithNumber.match(dataOptions->attributeQuestionResponses[attribute].at(response));
             responses[response].setText(match.captured(1) + match.captured(2));
         }
         else
         {
             // show response with a preceding letter (letter repeated for responses after 26)
             responses[response].setText((response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))) +
-                                         ". " + dataOptions.attributeQuestionResponses[attribute].at(response));
+                                         ". " + dataOptions->attributeQuestionResponses[attribute].at(response));
         }
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
@@ -1531,7 +1531,7 @@ void gatherIncompatibleResponsesDialog::clearAllValues()
 // A dialog to gather which racial/ethnic/cultural identities should be considered underrepresented
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
+gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions *const dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
     :QDialog (parent)
 {
     URMResponsesConsideredUR = currURMResponsesConsideredUR;
@@ -1563,24 +1563,24 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions &dataOption
     theGrid->addWidget(URMResponsesTable, 1, 0, 1, -1);
 
     // a checkbox and a label for each response values
-    enableValue = new QCheckBox[dataOptions.URMResponses.size()];
-    responses = new QPushButton[dataOptions.URMResponses.size()];
-    URMResponsesTable->setRowCount(dataOptions.URMResponses.size());
+    enableValue = new QCheckBox[dataOptions->URMResponses.size()];
+    responses = new QPushButton[dataOptions->URMResponses.size()];
+    URMResponsesTable->setRowCount(dataOptions->URMResponses.size());
     URMResponsesTable->setColumnCount(2);
-    for(int response = 0; response < dataOptions.URMResponses.size(); response++)
+    for(int response = 0; response < dataOptions->URMResponses.size(); response++)
     {
-        enableValue[response].setChecked(URMResponsesConsideredUR.contains(dataOptions.URMResponses.at(response)));
+        enableValue[response].setChecked(URMResponsesConsideredUR.contains(dataOptions->URMResponses.at(response)));
         enableValue[response].setStyleSheet("Text-align:center; margin-left:10%; margin-right:10%;");
         URMResponsesTable->setCellWidget(response, 0, &enableValue[response]);
         connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
                                                                                  if(state == Qt::Checked)
-                                                                                   {URMResponsesConsideredUR << dataOptions.URMResponses.at(response);
+                                                                                   {URMResponsesConsideredUR << dataOptions->URMResponses.at(response);
                                                                                     responses[response].setStyleSheet("Text-align:left;font-weight: bold;");}
                                                                                  else
-                                                                                   {URMResponsesConsideredUR.removeAll(dataOptions.URMResponses.at(response));
+                                                                                   {URMResponsesConsideredUR.removeAll(dataOptions->URMResponses.at(response));
                                                                                     responses[response].setStyleSheet("Text-align:left;");}
                                                                                  });
-        responses[response].setText(dataOptions.URMResponses.at(response));
+        responses[response].setText(dataOptions->URMResponses.at(response));
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
         connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);

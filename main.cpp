@@ -31,9 +31,8 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - code modernization
-// - made progress dialog modal to prevent bug-prone changing of any teaming variables during optimization
-// - made mutation likelihood scale with genome size by checking for low probability mutation once per genome site
+// - revert the mutation behavior, as it does much better with larger genomes
+// - cleaned up use of dataOptions and teamingOptions
 //
 // TO DO:
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
