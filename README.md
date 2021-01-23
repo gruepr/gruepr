@@ -46,7 +46,7 @@ Description of gruepr:
                ~ last name
                ~ email
                ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
-                     "Non-binary", etc.)
+                     "Nonbinary", etc.)
                ~ [optional] self-reported racial/ethnic/cultural background
                ~ [0 to 15 values] text responses to "attribute" questions, each in own field
                ~ [0 to 7 values] semicolon-separated list of times each day that the student is either available or

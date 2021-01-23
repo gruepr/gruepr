@@ -82,7 +82,7 @@ void SurveyMaker::refreshPreview()
                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your email address?<br></p>";
     preview += gender?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;With which gender do you identify?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> non— binary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
+                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> nonbinary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
                 : "";
     preview += URM?
                 "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;How do you identify your race, ethnicity, or cultural heritage?<br></p>"
@@ -309,7 +309,7 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                 {
                     textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
                     textFileContents += tr("With which gender do you identify?");
-                    textFileContents += "\n     " + tr("choices: [woman | man | non-binary | prefer not to answer]");
+                    textFileContents += "\n     " + tr("choices: [woman | man | nonbinary | prefer not to answer]");
                     csvFileContents += ",With which gender do you identify?";
                 }
                 if(survey->URM)

@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2019 - 2021
@@ -31,10 +31,10 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - revert the mutation behavior, as it does much better with larger genomes
-// - cleaned up use of dataOptions and teamingOptions
+// - added the ability to prevent isolated nonbinary students; better handling of nonbinary vs. unknown gender
 //
 // TO DO:
+// - more granular scheduling option, down to the 15 minute level at least
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

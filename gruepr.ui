@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>872</width>
-    <height>669</height>
+    <height>684</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -224,6 +224,31 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </property>
              <property name="text">
               <string>Prevent Isolated Men</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="isolatedNonbinaryCheckBox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>18</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>If selected, gruepr will try to prevent forming teams that have exactly one woman.</string>
+             </property>
+             <property name="text">
+              <string>Prevent Isolated Nonbinary Students</string>
              </property>
             </widget>
            </item>

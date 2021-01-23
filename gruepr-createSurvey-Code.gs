@@ -56,7 +56,7 @@ function doGet(e) {
   if(includeGender) {
     form.addMultipleChoiceItem()
       .setTitle('With which gender do you identify?')
-      .setChoiceValues(['Woman','Man','Non-binary','Prefer Not to Answer'])
+      .setChoiceValues(['Woman','Man','Nonbinary','Prefer Not to Answer'])
       .showOtherOption(false)
       .setRequired(true);
   }

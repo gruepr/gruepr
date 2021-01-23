@@ -97,7 +97,7 @@ const char TEAMNAMELISTS[]   {";"
 struct StudentRecord
 {
     int ID;                                             // ID is assigned in order of appearance in the data file
-    enum Gender {woman, man, neither} gender = StudentRecord::neither;  // neither represents non-binary, unknown, prefer not to say, etc.
+    enum Gender {woman, man, nonbinary, unknown} gender = StudentRecord::unknown;
     bool URM = false;                                   // true if this student is from an underrepresented minority group
     bool unavailable[MAX_TIMEBLOCKS] = {false};			// true if this is a busy block during week
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
@@ -124,7 +124,8 @@ struct TeamInfo
     int size;
     int numWomen;
     int numMen;
-    int numNeither;
+    int numNonbinary;
+    int numUnknown;
     int numURM;
     std::set<int> attributeVals[MAX_ATTRIBUTES];
     int numStudentsAvailable[7][24] = {{0}};
@@ -167,6 +168,7 @@ struct TeamingOptions
 {
     bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
     bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
+    bool isolatedNonbinaryPrevented = false;            // if true, will prevent teams with an isolated nonbinary student
     bool singleGenderPrevented = false;                 // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
     QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented

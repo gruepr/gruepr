@@ -1240,8 +1240,23 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     if(internalDataOptions.genderIncluded)
     {
         explanation[field].setText(tr("Gender identity"));
-        databox[field].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary/unknown"));
-        databox[field].setCurrentText(student.gender == StudentRecord::woman? tr("woman") : (student.gender == StudentRecord::man? tr("man") : tr("nonbinary/unknown")));
+        databox[field].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary") << tr("unknown"));
+        if(student.gender == StudentRecord::woman)
+        {
+            databox[field].setCurrentText(tr("woman"));
+        }
+        else if(student.gender == StudentRecord::man)
+        {
+            databox[field].setCurrentText(tr("man"));
+        }
+        else if(student.gender == StudentRecord::nonbinary)
+        {
+            databox[field].setCurrentText(tr("nonbinary"));
+        }
+        else
+        {
+           databox[field].setCurrentText(tr("unknown"));
+        }
         connect(&databox[field], &QComboBox::currentTextChanged, this, &editOrAddStudentDialog::recordEdited);
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(&databox[field], field, 1);
@@ -1331,8 +1346,22 @@ void editOrAddStudentDialog::recordEdited()
     int field = 4;
     if(internalDataOptions.genderIncluded)
     {
-        student.gender = (databox[field].currentText() == tr("woman")? StudentRecord::woman :
-                                                                       (databox[field].currentText()==tr("man")? StudentRecord::man : StudentRecord::neither));
+        if(databox[field].currentText() == tr("woman"))
+        {
+            student.gender = StudentRecord::woman;
+        }
+        else if(databox[field].currentText() == tr("man"))
+        {
+            student.gender = StudentRecord::man;
+        }
+        else if(databox[field].currentText() == tr("nonbinary"))
+        {
+            student.gender = StudentRecord::nonbinary;
+        }
+        else
+        {
+            student.gender = StudentRecord::unknown;
+        }
         field++;
     }
     if(internalDataOptions.URMIncluded)

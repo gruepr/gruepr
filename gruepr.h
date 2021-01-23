@@ -47,6 +47,7 @@ private slots:
     void on_incompatibleResponsesButton_clicked();
     void on_isolatedWomenCheckBox_stateChanged(int arg1);
     void on_isolatedMenCheckBox_stateChanged(int arg1);
+    void on_isolatedNonbinaryCheckBox_stateChanged(int arg1);
     void on_mixedGenderCheckBox_stateChanged(int arg1);
     void on_isolatedURMCheckBox_stateChanged(int arg1);
     void on_URMResponsesButton_clicked();

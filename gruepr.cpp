@@ -180,6 +180,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
         ui->dataDisplayTabWidget->setCurrentIndex(0);
         ui->isolatedWomenCheckBox->setEnabled(false);
         ui->isolatedMenCheckBox->setEnabled(false);
+        ui->isolatedNonbinaryCheckBox->setEnabled(false);
         ui->mixedGenderCheckBox->setEnabled(false);
         ui->label_15->setEnabled(false);
         ui->isolatedURMCheckBox->setEnabled(false);
@@ -325,6 +326,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
             {
                 ui->isolatedWomenCheckBox->setEnabled(true);
                 ui->isolatedMenCheckBox->setEnabled(true);
+                ui->isolatedNonbinaryCheckBox->setEnabled(true);
                 ui->mixedGenderCheckBox->setEnabled(true);
                 ui->label_15->setEnabled(true);
             }
@@ -393,6 +395,11 @@ void gruepr::loadOptionsFile()
             {
                 teamingOptions->isolatedMenPrevented = loadObject["isolatedMenPrevented"].toBool();
                 ui->isolatedMenCheckBox->setChecked(teamingOptions->isolatedMenPrevented);
+            }
+            if(loadObject.contains("isolatedNonbinaryPrevented") && loadObject["isolatedNonbinaryPrevented"].isBool())
+            {
+                teamingOptions->isolatedNonbinaryPrevented = loadObject["isolatedNonbinaryPrevented"].toBool();
+                ui->isolatedNonbinaryCheckBox->setChecked(teamingOptions->isolatedNonbinaryPrevented);
             }
             if(loadObject.contains("singleGenderPrevented") && loadObject["singleGenderPrevented"].isBool())
             {
@@ -496,6 +503,7 @@ void gruepr::saveOptionsFile()
             saveObject["idealTeamSize"] = ui->idealTeamSizeBox->value();
             saveObject["isolatedWomenPrevented"] = teamingOptions->isolatedWomenPrevented;
             saveObject["isolatedMenPrevented"] = teamingOptions->isolatedMenPrevented;
+            saveObject["isolatedNonbinaryPrevented"] = teamingOptions->isolatedNonbinaryPrevented;
             saveObject["singleGenderPrevented"] = teamingOptions->singleGenderPrevented;
             saveObject["isolatedURMPrevented"] = teamingOptions->isolatedURMPrevented;
             saveObject["URMResponsesConsideredUR"] = teamingOptions->URMResponsesConsideredUR.join(';');
@@ -886,7 +894,23 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                 out << student[ID].surveyTimestamp.toString(Qt::ISODate) << ",\"" << student[ID].firstname << "\",\"" << student[ID].lastname << "\",\"" << student[ID].email << "\"";
                 if(dataOptions->genderIncluded)
                 {
-                    out << "," << (student[ID].gender == StudentRecord::woman? tr("woman") : (student[ID].gender == StudentRecord::man? tr("man") : tr("nonbinary/unknown")));
+                    out << ",";
+                    if(student[ID].gender == StudentRecord::woman)
+                    {
+                        out << tr("woman");
+                    }
+                    else if(student[ID].gender == StudentRecord::man)
+                    {
+                        out << tr("man");
+                    }
+                    else if(student[ID].gender == StudentRecord::nonbinary)
+                    {
+                        out << tr("nonbinary");
+                    }
+                    else
+                    {
+                        out << tr("unknown");
+                    }
                 }
                 if(dataOptions->URMIncluded)
                 {
@@ -963,6 +987,12 @@ void gruepr::on_isolatedWomenCheckBox_stateChanged(int arg1)
 void gruepr::on_isolatedMenCheckBox_stateChanged(int arg1)
 {
     teamingOptions->isolatedMenPrevented = (arg1 != 0);
+}
+
+
+void gruepr::on_isolatedNonbinaryCheckBox_stateChanged(int arg1)
+{
+    teamingOptions->isolatedNonbinaryPrevented = (arg1 != 0);
 }
 
 
@@ -2220,6 +2250,8 @@ void gruepr::loadDefaultSettings()
     ui->isolatedWomenCheckBox->setChecked(teamingOptions->isolatedWomenPrevented);
     teamingOptions->isolatedMenPrevented = savedSettings.value("isolatedMenPrevented", false).toBool();
     ui->isolatedMenCheckBox->setChecked(teamingOptions->isolatedMenPrevented);
+    teamingOptions->isolatedNonbinaryPrevented = savedSettings.value("isolatedNonbinaryPrevented", false).toBool();
+    ui->isolatedNonbinaryCheckBox->setChecked(teamingOptions->isolatedNonbinaryPrevented);
     teamingOptions->singleGenderPrevented = savedSettings.value("singleGenderPrevented", false).toBool();
     ui->mixedGenderCheckBox->setChecked(teamingOptions->singleGenderPrevented);
     teamingOptions->isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
@@ -2648,15 +2680,19 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
         {
             student.gender = StudentRecord::man;
         }
+        else if(field.contains(tr("non"), Qt::CaseInsensitive) && field.contains(tr("binary"), Qt::CaseInsensitive))
+        {
+            student.gender = StudentRecord::nonbinary;
+        }
         else
         {
-            student.gender = StudentRecord::neither;
+            student.gender = StudentRecord::unknown;
         }
         fieldnum++;
     }
     else
     {
-        student.gender = StudentRecord::neither;
+        student.gender = StudentRecord::unknown;
     }
 
     // optional next field in line; might be underrpresented minority status
@@ -3006,10 +3042,15 @@ QString gruepr::createAToolTip(const StudentRecord &info, const bool duplicateRe
         {
             toolTip += tr("man");
         }
+        else if(info.gender == StudentRecord::nonbinary)
+        {
+            toolTip += tr("nonbinary");
+        }
         else
         {
-            toolTip += tr("nonbinary/unknown");
+            toolTip += tr("unknown");
         }
+
     }
     if(dataOptions->URMIncluded)
     {
@@ -3468,7 +3509,8 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     }
 
     // Determine gender adjustments
-    if(dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented || teamingOptions->singleGenderPrevented))
+    if(dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented ||
+                                       teamingOptions->isolatedNonbinaryPrevented || teamingOptions->singleGenderPrevented))
     {
         ID = 0;
         for(int team = 0; team < numTeams; team++)
@@ -3478,6 +3520,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
             // Count how many of each gender on the team
             int numWomen = 0;
             int numMen = 0;
+            int numNonbinary = 0;
             for(int teammate = 0; teammate < teamSize; teammate++)
             {
                 if(student[teammates[ID]].gender == StudentRecord::man)
@@ -3488,6 +3531,10 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 {
                     numWomen++;
                 }
+                else if(student[teammates[ID]].gender == StudentRecord::nonbinary)
+                {
+                    numNonbinary++;
+                }
                 ID++;
             }
 
@@ -3497,6 +3544,10 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 penaltyPoints[team]++;
             }
             if(teamingOptions->isolatedMenPrevented && numMen == 1)
+            {
+                penaltyPoints[team]++;
+            }
+            if(teamingOptions->isolatedNonbinaryPrevented && numNonbinary == 1)
             {
                 penaltyPoints[team]++;
             }
@@ -3743,7 +3794,8 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
         //re-zero values
         team.numWomen = 0;
         team.numMen = 0;
-        team.numNeither = 0;
+        team.numNonbinary = 0;
+        team.numUnknown = 0;
         team.numURM = 0;
         team.numStudentsWithAmbiguousSchedules = 0;
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
@@ -3772,9 +3824,13 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
                 {
                     team.numMen++;
                 }
+                else if(stu.gender == StudentRecord::nonbinary)
+                {
+                    team.numNonbinary++;
+                }
                 else
                 {
-                    team.numNeither++;
+                    team.numUnknown++;
                 }
             }
             if(dataOptions->URMIncluded)
@@ -3839,7 +3895,7 @@ void gruepr::refreshTeamToolTips(QVector<int> teamNums)
             {
                 teamTooltip += QString::number(team.numWomen) + (team.numWomen > 1? tr(" women") : tr(" woman"));
             }
-            if(team.numWomen > 0 && team.numMen > 0)
+            if(team.numWomen > 0 && (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0))
             {
                 teamTooltip += ", ";
             }
@@ -3847,13 +3903,21 @@ void gruepr::refreshTeamToolTips(QVector<int> teamNums)
             {
                 teamTooltip += QString::number(team.numMen) + (team.numMen > 1? tr(" men") : tr(" man"));
             }
-            if((team.numWomen > 0 || team.numMen > 0) && team.numNeither > 0)
+            if(team.numMen > 0 && (team.numNonbinary > 0 || team.numUnknown > 0))
             {
                 teamTooltip += ", ";
             }
-            if(team.numNeither > 0)
+            if(team.numNonbinary > 0)
             {
-                teamTooltip += QString::number(team.numNeither) + tr(" non-binary/unknown");
+                teamTooltip += QString::number(team.numNonbinary) + tr(" nonbinary");
+            }
+            if(team.numNonbinary > 0 && team.numUnknown > 0)
+            {
+                teamTooltip += ", ";
+            }
+            if(team.numUnknown > 0)
+            {
+                teamTooltip += QString::number(team.numUnknown) + tr(" unknown");
             }
         }
         if(dataOptions->URMIncluded)
@@ -4070,7 +4134,7 @@ void gruepr::refreshTeamOnTeamDisplay(QTreeWidgetItem *teamItem, const TeamInfo 
         {
             genderText += QString::number(team.numWomen) + tr("W");
         }
-        if(team.numWomen > 0 && (team.numMen > 0 || team.numNeither > 0))
+        if(team.numWomen > 0 && (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0))
         {
             genderText += ", ";
         }
@@ -4078,13 +4142,21 @@ void gruepr::refreshTeamOnTeamDisplay(QTreeWidgetItem *teamItem, const TeamInfo 
         {
             genderText += QString::number(team.numMen) + tr("M");
         }
-        if(team.numMen > 0 && team.numNeither > 0)
+        if(team.numMen > 0 && (team.numNonbinary > 0 || team.numUnknown > 0))
         {
             genderText += ", ";
         }
-        if(team.numNeither > 0)
+        if(team.numNonbinary > 0)
         {
-            genderText += QString::number(team.numNeither) + tr("X");
+            genderText += QString::number(team.numNonbinary) + tr("X");
+        }
+        if(team.numNonbinary > 0 && team.numUnknown > 0)
+        {
+            genderText += ", ";
+        }
+        if(team.numUnknown > 0)
+        {
+            genderText += QString::number(team.numUnknown) + tr("?");
         }
         teamItem->setText(column, genderText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -4189,10 +4261,15 @@ void gruepr::refreshStudentOnTeamDisplay(TeamTreeWidgetItem *studentItem, const 
         {
             studentItem->setText(column,tr("man"));
         }
+        else if(stu.gender == StudentRecord::nonbinary)
+        {
+            studentItem->setText(column,tr("nonbinary"));
+        }
         else
         {
-            studentItem->setText(column,tr("non-binary/unknown"));
+            studentItem->setText(column,tr("unknown"));
         }
+
         studentItem->setToolTip(column, studentToolTip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;
@@ -4258,6 +4335,7 @@ void gruepr::createFileContents()
     {
         instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
         instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
+        instructorsFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
         instructorsFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
     }
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented)
@@ -4636,6 +4714,7 @@ void gruepr::closeEvent(QCloseEvent *event)
             savedSettings.setValue("idealTeamSize", ui->idealTeamSizeBox->value());
             savedSettings.setValue("isolatedWomenPrevented", teamingOptions->isolatedWomenPrevented);
             savedSettings.setValue("isolatedMenPrevented", teamingOptions->isolatedMenPrevented);
+            savedSettings.setValue("isolatedNonbinaryPrevented", teamingOptions->isolatedNonbinaryPrevented);
             savedSettings.setValue("singleGenderPrevented", teamingOptions->singleGenderPrevented);
             savedSettings.setValue("isolatedURMPrevented", teamingOptions->isolatedURMPrevented);
             savedSettings.setValue("minTimeBlocksOverlap", teamingOptions->minTimeBlocksOverlap);
