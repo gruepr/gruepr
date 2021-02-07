@@ -56,6 +56,9 @@ private slots:
     void on_timeEndEdit_timeChanged(QTime time);
     void on_sectionCheckBox_clicked(bool checked);
     void on_sectionNamesTextEdit_textChanged();
+    void on_preferredTeammatesCheckBox_clicked(bool checked);
+    void on_preferredNonTeammatesCheckBox_clicked(bool checked);
+    void on_numAllowedSpinBox_valueChanged(int arg1);
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
@@ -92,6 +95,9 @@ private:
     int endTime = 17;
     bool section = false;
     QStringList sectionNames = {""};
+    bool preferredTeammates = false;
+    bool preferredNonTeammates = false;
+    int numPreferredAllowed = 1;
     bool additionalQuestions = false;
     static void postGoogleURL(SurveyMaker *survey = nullptr);
     static void createFiles(SurveyMaker *survey = nullptr);

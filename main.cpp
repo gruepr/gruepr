@@ -31,10 +31,23 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-// - added the ability to prevent isolated nonbinary students; better handling of nonbinary vs. unknown gender
+// - bugfix: newlines within a csv field are now handled properly
+// - bugfix: save file after adding or editing a student mishandled attribute values
+// - attribute response texts now always show in attribute value selection box in add/edit student dialog
+// - now distinguishes nonbinary from unknown gender in instructor's save file
+// - doesn't mark students as duplicate just because they have blank email adresses
+//
+// IN PROGRESS:
+// - change incompatible response dialog / behavior to add incompatible same responses (1 with 1) [I think done]
+// - An option in the survey to have students put in their group mates and have them put that data directly into 'prevent teammates' [I think done here, need to add to google]
 //
 // TO DO:
+// - bugfix: sometimes required/prevented/requested not used in scoring?
+// - add "load roster" option to populate student table or compare with existing data
+// - check if pairing is both (required or requested) and prevented
+// - add select-multiple attribute question option
 // - more granular scheduling option, down to the 15 minute level at least
+// - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

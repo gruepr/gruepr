@@ -121,7 +121,7 @@ void SurveyMaker::refreshPreview()
         }
         preview += "<hr>";
     }
-    if(section || additionalQuestions)
+    if(section || preferredTeammates || preferredNonTeammates || additionalQuestions)
     {
         preview += "<h3>Some final questions.</h3>";
         if(section)
@@ -137,6 +137,34 @@ void SurveyMaker::refreshPreview()
                 preview += sectionNames[sect];
             }
             preview += "</i><b> }</b></small></p>";
+        }
+        if(preferredTeammates)
+        {
+            if(numPreferredAllowed == 1)
+            {
+                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please write the name of someone who you would like to have on your team. "
+                            "Write their first and last name only.</p>";
+            }
+            else
+            {
+                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please list the name(s) of up to " + QString::number(numPreferredAllowed) +
+                            " people who you would like to have on your team. "
+                            "Write their first and last name, and put a comma between multiple names.</p>";
+            }
+        }
+        if(preferredNonTeammates)
+        {
+            if(numPreferredAllowed == 1)
+            {
+                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please write the name of someone who you would like to NOT have on your team. "
+                            "Write their first and last name only.</p>";
+            }
+            else
+            {
+                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please list the name(s) of up to " + QString::number(numPreferredAllowed) +
+                            " people who you would like to NOT have on your team. "
+                            "Write their first and last name, and put a comma between multiple names.</p>";
+            }
         }
         if(additionalQuestions)
         {
@@ -244,6 +272,9 @@ void SurveyMaker::postGoogleURL(SurveyMaker *survey)
         }
     }
     URL += "sects=" + allSectionNames + "&";
+    URL += "prefmate=" + QString(survey->preferredTeammates? "true" : "false") + "&";
+    URL += "prefnon=" + QString(survey->preferredNonTeammates? "true" : "false") + "&";
+    URL += "numprefs=" + QString::number(survey->numPreferredAllowed) + "&";
     URL += "addl=" + QString(survey->additionalQuestions? "true" : "false");
     //qDebug() << URL;
 
@@ -368,7 +399,7 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                         }
                     }
                 }
-                if(survey->section || survey->additionalQuestions)
+                if(survey->section || survey->preferredTeammates || survey->preferredNonTeammates || survey->additionalQuestions)
                 {
                     textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Additional Information") + ":";
                     if(survey->section)
@@ -387,6 +418,40 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                         }
                         textFileContents += " ]";
                         csvFileContents += ",In which section are you enrolled?";
+                    }
+                    if(survey->preferredTeammates)
+                    {
+                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                        if(survey->numPreferredAllowed == 1)
+                        {
+                            textFileContents += tr("{Please write the name of someone you would like to have on your team. "
+                                                   "Write their first and last name only.}");
+                            csvFileContents += ",Please write the name of someone who you would like to have on your team.";
+                        }
+                        else
+                        {
+                            textFileContents += tr("{Please list the name(s) of up to ") + QString::number(survey->numPreferredAllowed) +
+                                                tr( " people who you would like to have on your team. "
+                                                   "Write their first and last name, and put a comma between multiple names.}");
+                            csvFileContents += ",Please list the name(s) of people who you would like to have on your team.";
+                        }
+                    }
+                    if(survey->preferredNonTeammates)
+                    {
+                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                        if(survey->numPreferredAllowed == 1)
+                        {
+                            textFileContents += tr("{Please write the name of someone you would like to NOT have on your team. "
+                                                   "Write their first and last name only.}");
+                            csvFileContents += ",Please write the name of someone who you would like to NOT have on your team.";
+                        }
+                        else
+                        {
+                            textFileContents += tr("{Please list the name(s) of up to ") + QString::number(survey->numPreferredAllowed) +
+                                                tr( " people who you would like to NOT have on your team. "
+                                                   "Write their first and last name, and put a comma between multiple names.}");
+                            csvFileContents += ",Please list the name(s) of people who you would like to NOT have on your team.";
+                        }
                     }
                     if(survey->additionalQuestions)
                     {
@@ -868,6 +933,28 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     refreshPreview();
 }
 
+void SurveyMaker::on_preferredTeammatesCheckBox_clicked(bool checked)
+{
+    preferredTeammates = checked;
+    ui->numAllowedLabel->setEnabled(preferredTeammates || preferredNonTeammates);
+    ui->numAllowedSpinBox->setEnabled(preferredTeammates || preferredNonTeammates);
+    refreshPreview();
+}
+
+void SurveyMaker::on_preferredNonTeammatesCheckBox_clicked(bool checked)
+{
+    preferredNonTeammates = checked;
+    ui->numAllowedLabel->setEnabled(preferredTeammates || preferredNonTeammates);
+    ui->numAllowedSpinBox->setEnabled(preferredTeammates || preferredNonTeammates);
+    refreshPreview();
+}
+
+void SurveyMaker::on_numAllowedSpinBox_valueChanged(int arg1)
+{
+    numPreferredAllowed = arg1;
+    refreshPreview();
+}
+
 void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
 {
     additionalQuestions = checked;
@@ -1024,6 +1111,21 @@ void SurveyMaker::openSurvey()
             {
                 ui->sectionNamesTextEdit->setPlainText(loadObject["SectionNames"].toString().replace(',', '\n'));
             }
+            if(loadObject.contains("PreferredTeammates") && loadObject["PreferredTeammates"].isBool())
+            {
+                ui->preferredTeammatesCheckBox->setChecked(loadObject["PreferredTeammates"].toBool());
+                on_preferredTeammatesCheckBox_clicked(loadObject["PreferredTeammates"].toBool());
+            }
+            if(loadObject.contains("PreferredNonTeammates") && loadObject["PreferredNonTeammates"].isBool())
+            {
+                ui->preferredNonTeammatesCheckBox->setChecked(loadObject["PreferredNonTeammates"].toBool());
+                on_preferredNonTeammatesCheckBox_clicked(loadObject["PreferredNonTeammates"].toBool());
+            }
+            if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble())
+            {
+                ui->numAllowedSpinBox->setValue(loadObject["numPrefTeammates"].toInt());
+                on_numAllowedSpinBox_valueChanged(loadObject["numPrefTeammates"].toInt());
+            }
             if(loadObject.contains("AdditionalQuestions") && loadObject["AdditionalQuestions"].isBool())
             {
                 ui->additionalQuestionsCheckBox->setChecked(loadObject["AdditionalQuestions"].toBool());
@@ -1084,6 +1186,9 @@ void SurveyMaker::saveSurvey()
             saveObject["scheduleEndHour"] = endTime;
             saveObject["Section"] = section;
             saveObject["SectionNames"] = sectionNames.join(',');
+            saveObject["PreferredTeammates"] = preferredTeammates;
+            saveObject["PreferredNonTeammates"] = preferredNonTeammates;
+            saveObject["numPrefTeammates"] = numPreferredAllowed;
             saveObject["AdditionalQuestions"] = additionalQuestions;
 
             QJsonDocument saveDoc(saveObject);

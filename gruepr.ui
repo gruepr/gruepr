@@ -245,7 +245,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </size>
              </property>
              <property name="toolTip">
-              <string>If selected, gruepr will try to prevent forming teams that have exactly one woman.</string>
+              <string>If selected, gruepr will try to prevent forming teams that have exactly one nonbinary student.</string>
              </property>
              <property name="text">
               <string>Prevent Isolated Nonbinary Students</string>

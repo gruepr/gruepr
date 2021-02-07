@@ -104,14 +104,16 @@ struct StudentRecord
     bool preventedWith[MAX_STUDENTS] = {false};			// true if this student is prevented from working with the corresponding student
     bool requiredWith[MAX_STUDENTS] = {false};			// true if this student is required to work with the corresponding student
     bool requestedWith[MAX_STUDENTS] = {false};			// true if this student desires to work with the corresponding student
-    int attribute[MAX_ATTRIBUTES] = {0};                 // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
+    int attribute[MAX_ATTRIBUTES] = {0};                // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;
     QString lastname;
     QString email;
     QString section;									// section data stored as text
+    QString prefTeammates;
+    QString prefNonTeammates;
     QString notes;										// any special notes for this student
-    QString attributeResponse[MAX_ATTRIBUTES];           // the text of the response to each attribute question
+    QString attributeResponse[MAX_ATTRIBUTES];          // the text of the response to each attribute question
     QString URMResponse;                                // the text of the response the the race/ethnicity/culture question
     QString availabilityChart;
 };
@@ -149,6 +151,8 @@ struct DataOptions
     int attributeMin[MAX_ATTRIBUTES];                   // what is the minimum value for each attribute?
     int attributeMax[MAX_ATTRIBUTES];                   // what is the maximum value for each attribute?
     bool attributeIsOrdered[MAX_ATTRIBUTES];            // is this attribute ordered (numerical) or purely categorical?
+    bool prefTeammatesIncluded = false;                 // did students get to include preferred teammates?
+    bool prefNonTeammatesIncluded = false;              // did students get to include preferred non-teammates?
     int numStudentsInSystem = 0;                        // total number of students in the file
     QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[MAX_ATTRIBUTES];      // the list of responses to each of the attribute questions

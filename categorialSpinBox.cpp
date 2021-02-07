@@ -11,13 +11,22 @@ void CategoricalSpinBox::setCategoricalValues(const QStringList &categoricalValu
 
 QString CategoricalSpinBox::textFromValue(int value) const
 {
-    return ((value > 0) ? (value <= 26 ? QString(char(value + 'A' - 1)) :
-                                         QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + categoricalValues.at(value - 1) : "0");
+    if(whatTypeOfValue == letter)
+    {
+        return ((value > 0) ? (value <= 26 ? QString(char(value - 1 + 'A')) :
+                                             QString(char((value - 1)%26 + 'A')).repeated(1 + ((value-1)/26))) + " - " + categoricalValues.at(value - 1) : "0");
+    }
+    return ((value > 0) ? categoricalValues.at(value - 1) : "0");
 }
 
 int CategoricalSpinBox::valueFromText(const QString &text) const
 {
-    return (categoricalValues.indexOf(text.split(" - ").last()) + 1);
+    if(whatTypeOfValue == letter)
+    {
+        return (categoricalValues.indexOf(text.split(" - ").last()) + 1);
+
+    }
+    return (categoricalValues.indexOf(text) + 1);
 }
 
 QValidator::State CategoricalSpinBox::validate (QString &input, int &pos) const

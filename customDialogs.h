@@ -13,6 +13,8 @@
 #include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QButtonGroup>
 #include "comboBoxWithElidedContents.h"
 #include "categorialSpinBox.h"
 #include "boxwhiskerplot.h"
@@ -25,7 +27,8 @@ class gatherTeammatesDialog : public QDialog
 
 public:
     enum typeOfTeammates{required, prevented, requested};
-    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn, const QString &sectionname, QWidget *parent = nullptr);
+    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn,
+                          const DataOptions *const dataOptions, const QString &sectionname, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
 
     StudentRecord *student;
@@ -37,6 +40,7 @@ private slots:
 
 private:
     typeOfTeammates whatType;
+    bool requestsInSurvey = false;
     QString sectionName;
     int numStudents;
     QGridLayout *theGrid;
@@ -49,6 +53,7 @@ private:
     void refreshDisplay();
     bool saveCSVFile();                                    // returns true on success, false on fail
     bool loadCSVFile();
+    bool loadStudentPrefs();
     bool loadSpreadsheetFile();
 };
 
@@ -158,7 +163,7 @@ class editOrAddStudentDialog : public QDialog
     Q_OBJECT
 
 public:
-    editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions *const dataOptions, const QStringList &sectionNames, QWidget *parent = nullptr);
+    editOrAddStudentDialog(const StudentRecord &studentToBeEdited, const DataOptions *const dataOptions, QStringList sectionNames, QWidget *parent = nullptr);
     ~editOrAddStudentDialog();
 
     StudentRecord student;
@@ -172,7 +177,6 @@ private:
     QLabel *explanation;
     QLineEdit *datatext;
     QComboBox *databox;
-    QSpinBox *datanumber;
     CategoricalSpinBox *datacategorical;
     QDialogButtonBox *buttonBox;
 };
@@ -196,9 +200,13 @@ private:
     void updateExplanation();
     int numPossibleValues;
     QGridLayout *theGrid;
-    QLabel *attributeDescription;
-    QCheckBox *enableValue;
-    QPushButton *responses;
+    QLabel *attributeDescriptionPart1;
+    QLabel *attributeDescriptionPart2;
+    QRadioButton *primaryValues;
+    QPushButton *primaryResponses;
+    QButtonGroup *primaryValuesGroup;
+    QCheckBox *incompatValues;
+    QPushButton *incompatResponses;
     QPushButton *addValuesButton;
     QPushButton *resetValuesButton;
     QDialogButtonBox *buttonBox;
