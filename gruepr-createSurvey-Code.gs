@@ -20,6 +20,12 @@ function doGet(e) {
   var dayNames = (dataAll["days"]).split(",");
   var includeSection = (dataAll["sect"]=="true");
   var sectionNames = (dataAll["sects"]).split(",");
+  var includePrefTeammates = (dataAll["prefmate"]=="true");
+  var includePrefNonTeammates = (dataAll["prefnon"]=="true");
+  var numPrefMates = 1;
+  if('numprefs' in dataAll) {
+    numPrefMates = parseInt(dataAll["numprefs"], 10);
+  }
   var includeAdditional = (dataAll["addl"]=="true");
   
   if(title=='') {
@@ -74,7 +80,7 @@ function doGet(e) {
     form.addPageBreakItem()
       .setTitle('This set of questions is about your past experiences/education or teamwork preferences.')
       .setHelpText('All responses are acceptable.');
-    var allResponseTexts=[' ', 'Yes / No', 'Yes / Maybe / No', 'Definitely / Probably / Maybe / Probably not / Definitely not', 'Strongly preferred / Preferred / Opposed / Strongly opposed', 'True / False', 'Like me / Not like me', 'Agree / Disagree', 'Strongly agree / Agree / Undecided / Disagree / Strongly disagree', '4.0 — 3.75 / 3.74 — 3.5 / 3.49 — 3.25 / 3.24 — 3.0 / 2.99 — 2.75 / 2.74 — 2.5 / 2.49 — 2.0 / Below 2.0 / Not sure, or prefer not to say', '100 — 90 / 89 — 80 / 79 — 70 / 69 — 60 / 59 — 50 / Below 50 / Not sure, or prefer not to say', 'A / B / C / D / F / Not sure, or prefer not to say', 'Very high / Above average / Average / Below average / Very low', 'Excellent / Very good / Good / Fair / Poor', 'Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative', 'A lot of experience / Some experience / Little experience / No experience', 'Extremely / Very / Moderately / Slightly / Not at all', 'A lot / Some / Very Little / None', 'Much more / More / About the same / Less / Much less', 'Most of the time / Some of the time / Seldom / Never', 'Available / Available, but prefer not to / Not available', 'Very frequently / Frequently / Occasionally / Rarely / Never', 'Definitely will / Probably will / Probably won\'t / Definitely won\'t', 'Very important / Important / Somewhat important / Not important', 'Leader / Mix of leader and follower / Follower', 'Highly confident / Moderately confident / Somewhat confident / Not confident', ' /  /  / ', ' /  /  /  / ', ' /  /  /  /  / ', ' /  /  /  /  /  / ', ' /  /  /  /  /  /  / ', ' /  /  /  /  /  /  /  / ', ' /  /  /  /  /  /  /  /  / ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
+    var allResponseTexts=[' ', 'Yes / No', 'Yes / Maybe / No', 'Definitely / Probably / Maybe / Probably not / Definitely not', 'Strongly preferred / Preferred / Opposed / Strongly opposed', 'True / False', 'Like me / Not like me', 'Agree / Disagree', 'Strongly agree / Agree / Undecided / Disagree / Strongly disagree', '4.0 - 3.75 / 3.74 - 3.5 / 3.49 - 3.25 / 3.24 - 3.0 / 2.99 - 2.75 / 2.74 - 2.5 / 2.49 - 2.0 / Below 2.0 / Not sure, or prefer not to say', '100 - 90 / 89 - 80 / 79 - 70 / 69 - 60 / 59 - 50 / Below 50 / Not sure, or prefer not to say', 'A / B / C / D / F / Not sure, or prefer not to say', 'Very high / Above average / Average / Below average / Very low', 'Excellent / Very good / Good / Fair / Poor', 'Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative', 'A lot of experience / Some experience / Little experience / No experience', 'Extremely / Very / Moderately / Slightly / Not at all', 'A lot / Some / Very Little / None', 'Much more / More / About the same / Less / Much less', 'Most of the time / Some of the time / Seldom / Never', 'Available / Available, but prefer not to / Not available', 'Very frequently / Frequently / Occasionally / Rarely / Never', 'Definitely will / Probably will / Probably won\'t / Definitely won\'t', 'Very important / Important / Somewhat important / Not important', 'Leader / Mix of leader and follower / Follower', 'Highly confident / Moderately confident / Somewhat confident / Not confident', ' /  /  / ', ' /  /  /  / ', ' /  /  /  /  / ', ' /  /  /  /  /  / ', ' /  /  /  /  /  /  / ', ' /  /  /  /  /  /  /  / ', ' /  /  /  /  /  /  /  /  / ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
     for(var attribute = 0; attribute < numAttributes; attribute++) {
       if(attributeResponses[attribute] == 0 || attributeResponses[attribute] >= 33) {
         numAttributesWOResponseText++;
@@ -136,7 +142,7 @@ function doGet(e) {
   }
 
   // Create section and other questions page
-  if(includeSection || includeAdditional)
+  if(includeSection || includePrefTeammates || includePrefNonTeammates || includeAdditional)
   {
     form.addPageBreakItem()
       .setTitle('Some final questions.');
@@ -146,6 +152,28 @@ function doGet(e) {
         .setChoiceValues(sectionNames)
         .showOtherOption(false)
         .setRequired(true);
+    }
+    if(includePrefTeammates) {
+      if(numPrefMates == 1) {
+        form.addTextItem()
+        .setTitle('Please write the name of someone you would like to have on your team. Write their first and last name only.')
+        .setRequired(false);
+      } else {
+        form.addTextItem()
+        .setTitle('Please list the name(s) of up to ' + numPrefMates +' people who you would like to have on your team. Write their first and last name, and put a comma between multiple names.')
+        .setRequired(false);
+      }
+    }
+    if(includePrefNonTeammates) {
+      if(numPrefMates == 1) {
+        form.addTextItem()
+        .setTitle('Please write the name of someone you would like to NOT have on your team. Write their first and last name only.')
+        .setRequired(false);
+      } else {
+        form.addTextItem()
+        .setTitle('Please list the name(s) of up to ' + numPrefMates +' people who you would like to NOT have on your team. Write their first and last name, and put a comma between multiple names.')
+        .setRequired(false);
+      }
     }
     if(includeAdditional) {
       form.addTextItem()

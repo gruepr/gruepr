@@ -1439,7 +1439,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
 
     if(internalDataOptions.prefTeammatesIncluded)
     {
-        explanation[field].setText(tr("Preferred Teammates"));
+        explanation[field].setTextFormat(Qt::RichText);
+        explanation[field].setText(tr("Preferred Teammates") + tr("<br><i>&nbsp;&nbsp;Firstname Lastname<br>&nbsp;&nbsp;Enter each name on a separate line</i>"));
         datamultiline[field].setPlainText(student.prefTeammates);
         datamultiline[field].setFixedHeight(rowOfTextHeight * 3);
         connect(&datamultiline[field], &QPlainTextEdit::textChanged, this, &editOrAddStudentDialog::recordEdited);
@@ -1450,7 +1451,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
 
     if(internalDataOptions.prefNonTeammatesIncluded)
     {
-        explanation[field].setText(tr("Preferred Non-teammates"));
+        explanation[field].setTextFormat(Qt::RichText);
+        explanation[field].setText(tr("Preferred Non-teammates") + tr("<br><i>&nbsp;&nbsp;Firstname Lastname<br>&nbsp;&nbsp;Enter each name on a separate line</i>"));
         datamultiline[field].setPlainText(student.prefNonTeammates);
         datamultiline[field].setFixedHeight(rowOfTextHeight * 3);
         connect(&datamultiline[field], &QPlainTextEdit::textChanged, this, &editOrAddStudentDialog::recordEdited);
@@ -1606,6 +1608,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
 
     attributeQuestion = new QLabel(this);
     attributeQuestion->setText(attributeDescription + "</html>");
+    attributeQuestion->setWordWrap(true);
     theGrid->addWidget(attributeQuestion, 0, 0, 1, -1);
 
     auto *hline = new QFrame(this);
