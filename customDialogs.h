@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QCheckBox>
 #include <QRadioButton>
 #include <QButtonGroup>
@@ -55,6 +56,22 @@ private:
     bool loadCSVFile();
     bool loadStudentPrefs();
     bool loadSpreadsheetFile();
+};
+
+
+class findMatchingNameDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    findMatchingNameDialog(int knownStudent, int numStudents, StudentRecord *student, const QString &searchName, QWidget *parent = nullptr);
+
+    QComboBox *namesList;
+
+private:
+    QGridLayout *theGrid;
+    QLabel *explanation;
+    QDialogButtonBox *buttonBox;
 };
 
 
@@ -176,6 +193,7 @@ private:
     QGridLayout *theGrid;
     QLabel *explanation;
     QLineEdit *datatext;
+    QPlainTextEdit *datamultiline;
     QComboBox *databox;
     CategoricalSpinBox *datacategorical;
     QDialogButtonBox *buttonBox;
@@ -200,8 +218,9 @@ private:
     void updateExplanation();
     int numPossibleValues;
     QGridLayout *theGrid;
-    QLabel *attributeDescriptionPart1;
-    QLabel *attributeDescriptionPart2;
+    QLabel *attributeQuestion;
+    QLabel *incompatAttributePart1;
+    QLabel *incompatAttributePart2;
     QRadioButton *primaryValues;
     QPushButton *primaryResponses;
     QButtonGroup *primaryValuesGroup;
@@ -219,7 +238,7 @@ class gatherURMResponsesDialog : public QDialog
     Q_OBJECT
 
 public:
-    gatherURMResponsesDialog(const DataOptions *const dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
+    gatherURMResponsesDialog(const QStringList &URMResponses, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
     ~gatherURMResponsesDialog();
 
     QStringList URMResponsesConsideredUR;

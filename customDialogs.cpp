@@ -456,41 +456,10 @@ bool gatherTeammatesDialog::loadCSVFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                QMultiMap<int, QString> possibleStudents;
-                for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
-                {
-                    possibleStudents.insert(levenshtein::distance(teammates.at(basename).at(searchStudent),
-                                            student[knownStudent].firstname + " " + student[knownStudent].lastname),
-                                            student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
-                }
-
-                // Create student selection window
-                auto *choiceWindow = new QDialog(this);
-                choiceWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-                choiceWindow->setWindowTitle("Choose student");
-                auto *grid = new QGridLayout(choiceWindow);
-                auto *text = new QLabel(choiceWindow);
-                text->setText(tr("An exact match for") + " <b>" + teammates.at(basename).at(searchStudent) + "</b> " +
-                              tr("could not be found.<br>Please select this student from the list:"));
-                grid->addWidget(text, 0, 0, 1, -1);
-                auto *names = new QComboBox(choiceWindow);
-                QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
-                while (i != possibleStudents.constEnd())
-                {
-                    QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
-                    names->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
-                    i++;
-                }
-                grid->addWidget(names, 1, 0, 1, -1);
-                grid->setRowMinimumHeight(2, 20);
-                auto *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
-                OKCancel->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
-                connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
-                connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
-                grid->addWidget(OKCancel, 3, 0, 1, -1);
+                auto *choiceWindow = new findMatchingNameDialog(knownStudent, numStudents, student, teammates.at(basename).at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
-                    IDs << (names->currentData(Qt::UserRole)).toInt();
+                    IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
                 }
                 delete choiceWindow;
             }
@@ -527,7 +496,6 @@ bool gatherTeammatesDialog::loadStudentPrefs()
     // Need to convert names to IDs and then add all to the preferences
     for(int basestudent = 0; basestudent < numStudents; basestudent++)
     {
-        QVector<int> IDs;
         QStringList prefs;
         if(whatType == prevented)
         {
@@ -539,6 +507,9 @@ bool gatherTeammatesDialog::loadStudentPrefs()
         }
         prefs.removeAll("");
         prefs.prepend(student[basestudent].firstname + " " + student[basestudent].lastname);
+
+        QVector<int> IDs;
+        IDs.reserve(prefs.size());
         for(int searchStudent = 0; searchStudent < prefs.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
@@ -555,40 +526,10 @@ bool gatherTeammatesDialog::loadStudentPrefs()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                QMultiMap<int, QString> possibleStudents;
-                for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
-                {
-                    possibleStudents.insert(levenshtein::distance(prefs.at(searchStudent), student[knownStudent].firstname + " " + student[knownStudent].lastname),
-                                            student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
-                }
-
-                // Create student selection window
-                auto *choiceWindow = new QDialog(this);
-                choiceWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-                choiceWindow->setWindowTitle("Choose student");
-                auto *grid = new QGridLayout(choiceWindow);
-                auto *text = new QLabel(choiceWindow);
-                text->setText(tr("An exact match for") + " <b>" + prefs.at(searchStudent) + "</b> " + tr("could not be found.") + "<br>" +
-                              tr("Please select this student from the list:"));
-                grid->addWidget(text, 0, 0, 1, -1);
-                auto *names = new QComboBox(choiceWindow);
-                QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
-                while (i != possibleStudents.constEnd())
-                {
-                    QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
-                    names->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
-                    i++;
-                }
-                grid->addWidget(names, 1, 0, 1, -1);
-                grid->setRowMinimumHeight(2, 20);
-                auto *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
-                OKCancel->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
-                connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
-                connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
-                grid->addWidget(OKCancel, 3, 0, 1, -1);
+                auto *choiceWindow = new findMatchingNameDialog(knownStudent, numStudents, student, prefs.at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
-                    IDs << (names->currentData(Qt::UserRole)).toInt();
+                    IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
                 }
                 delete choiceWindow;
             }
@@ -690,6 +631,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     for(const auto &teammate : qAsConst(teammates))
     {
         QVector<int> IDs;
+        IDs.reserve(teammate.size());
         for(int searchStudent = 0; searchStudent < teammate.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
@@ -706,41 +648,10 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                QMultiMap<int, QString> possibleStudents;
-                for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
-                {
-                    possibleStudents.insert(levenshtein::distance(teammate.at(searchStudent),
-                                            student[knownStudent].firstname + " " + student[knownStudent].lastname),
-                                            student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
-                }
-
-                // Create student selection window
-                auto *choiceWindow = new QDialog(this);
-                choiceWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-                choiceWindow->setWindowTitle("Choose student");
-                auto *grid = new QGridLayout(choiceWindow);
-                auto *text = new QLabel(choiceWindow);
-                text->setText(tr("An exact match for") + " <b>" + teammate.at(searchStudent) + "</b> " +
-                              tr("could not be found.<br>Please select this student from the list:"));
-                grid->addWidget(text, 0, 0, 1, -1);
-                auto *names = new QComboBox(choiceWindow);
-                QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
-                while (i != possibleStudents.constEnd())
-                {
-                    QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
-                    names->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
-                    i++;
-                }
-                grid->addWidget(names, 1, 0, 1, -1);
-                grid->setRowMinimumHeight(2, 20);
-                auto *OKCancel = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, choiceWindow);
-                OKCancel->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
-                connect(OKCancel, &QDialogButtonBox::accepted, choiceWindow, &QDialog::accept);
-                connect(OKCancel, &QDialogButtonBox::rejected, choiceWindow, &QDialog::reject);
-                grid->addWidget(OKCancel, 3, 0, 1, -1);
+                auto *choiceWindow = new findMatchingNameDialog(knownStudent, numStudents, student, teammate.at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
-                    IDs << (names->currentData(Qt::UserRole)).toInt();
+                    IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
                 }
                 delete choiceWindow;
             }
@@ -931,6 +842,46 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->resizeRowsToContents();
 
     resetSaveOrLoad->setCurrentIndex(0);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// A dialog to select a name from a list when a perfect match is not found
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+findMatchingNameDialog::findMatchingNameDialog(int knownStudent, int numStudents, StudentRecord *student, const QString &searchName, QWidget *parent)
+    :QDialog(parent)
+{
+    QMultiMap<int, QString> possibleStudents;
+    for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
+    {
+        possibleStudents.insert(levenshtein::distance(searchName, student[knownStudent].firstname + " " + student[knownStudent].lastname),
+                                student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
+    }
+
+    // Create student selection window
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    setWindowTitle("Choose student");
+    theGrid = new QGridLayout(this);
+    explanation = new QLabel(this);
+    explanation->setText(tr("An exact match for") + " <b>" + searchName + "</b> " + tr("could not be found.<br>Please select this student from the list:"));
+    theGrid->addWidget(explanation, 0, 0, 1, -1);
+    namesList = new QComboBox(this);
+    QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
+    while (i != possibleStudents.constEnd())
+    {
+        QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
+        namesList->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
+        i++;
+    }
+    theGrid->addWidget(namesList, 1, 0, 1, -1);
+    theGrid->setRowMinimumHeight(2, 20);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    buttonBox->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    theGrid->addWidget(buttonBox, 3, 0, 1, -1);
+
+    adjustSize();
 }
 
 
@@ -1373,16 +1324,24 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     {
         setWindowTitle(tr("Edit student record"));
     }
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
+    setSizeGripEnabled(true);
     theGrid = new QGridLayout(this);
 
     int numFields = 4 + (internalDataOptions.genderIncluded?1:0) + (internalDataOptions.URMIncluded?1:0) + (internalDataOptions.sectionIncluded?1:0) +
-                            internalDataOptions.numAttributes + (internalDataOptions.notesIncluded?1:0);
+                         internalDataOptions.numAttributes + (internalDataOptions.prefTeammatesIncluded?1:0) +
+                        (internalDataOptions.prefNonTeammatesIncluded?1:0) + (internalDataOptions.notesIncluded?1:0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[numFields];
+    datamultiline = new QPlainTextEdit[numFields];
     databox = new QComboBox[numFields];
     datacategorical = new CategoricalSpinBox[numFields];
     int field = 0;
+
+    // calculate the height of 1 row of text in the multilines
+    QFontMetrics fm(datamultiline[0].document()->defaultFont());
+    QMargins margin = datamultiline[0].contentsMargins();
+    const int rowOfTextHeight = fm.lineSpacing() + qRound(datamultiline[0].document()->documentMargin()) + datamultiline[0].frameWidth() * 2 + margin.top() + margin.bottom();
 
     //Row 1 through 4--the required data
     QStringList fieldNames = {tr("Survey timestamp"), tr("First name"), tr("Last name"), tr("Email address")};
@@ -1469,22 +1428,45 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         spinbox->setRange(0, internalDataOptions.attributeMax[attrib]);
         if(spinbox->value() == 0)
         {
-            spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+            spinbox->setStyleSheet("QSpinBox {background-color: #DCDCDC;}");
         }
         connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int /*unused new value*/){ recordEdited(); });
         spinbox->setSpecialValueText(tr("not set/unknown"));
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(spinbox, field, 1);
         field++;
+    }   
+
+    if(internalDataOptions.prefTeammatesIncluded)
+    {
+        explanation[field].setText(tr("Preferred Teammates"));
+        datamultiline[field].setPlainText(student.prefTeammates);
+        datamultiline[field].setFixedHeight(rowOfTextHeight * 3);
+        connect(&datamultiline[field], &QPlainTextEdit::textChanged, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&datamultiline[field], field, 1);
+        field++;
+    }
+
+    if(internalDataOptions.prefNonTeammatesIncluded)
+    {
+        explanation[field].setText(tr("Preferred Non-teammates"));
+        datamultiline[field].setPlainText(student.prefNonTeammates);
+        datamultiline[field].setFixedHeight(rowOfTextHeight * 3);
+        connect(&datamultiline[field], &QPlainTextEdit::textChanged, this, &editOrAddStudentDialog::recordEdited);
+        theGrid->addWidget(&explanation[field], field, 0);
+        theGrid->addWidget(&datamultiline[field], field, 1);
+        field++;
     }
 
     if(internalDataOptions.notesIncluded)
     {
         explanation[field].setText(tr("Notes"));
-        datatext[field].setText(student.notes);
-        connect(&datatext[field], &QLineEdit::editingFinished, this, &editOrAddStudentDialog::recordEdited);
+        datamultiline[field].setPlainText(student.notes);
+        datamultiline[field].setFixedHeight(rowOfTextHeight * 3);
+        connect(&datamultiline[field], &QPlainTextEdit::textChanged, this, &editOrAddStudentDialog::recordEdited);
         theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datatext[field], field, 1);
+        theGrid->addWidget(&datamultiline[field], field, 1);
         field++;
     }
 
@@ -1504,6 +1486,7 @@ editOrAddStudentDialog::~editOrAddStudentDialog()
     //delete dynamically allocated arrays created in class constructor
     delete [] explanation;
     delete [] datatext;
+    delete [] datamultiline;
     delete [] databox;
     delete [] datacategorical;
 }
@@ -1548,19 +1531,28 @@ void editOrAddStudentDialog::recordEdited()
     }
     for(int attrib = 0; attrib < internalDataOptions.numAttributes; attrib++)
     {
-        QSpinBox *spinbox = &datacategorical[field];
-        if(spinbox->value() == 0)
+        if(datacategorical[field].value() == 0)
         {
             student.attribute[attrib] = -1;
             student.attributeResponse[attrib] = "";
-            spinbox->setStyleSheet("QSpinBox { background-color: #DCDCDC;}");
+            datacategorical[field].setStyleSheet("QSpinBox {background-color: #DCDCDC;}");
         }
         else
         {
-            student.attribute[attrib] = spinbox->value();
-            student.attributeResponse[attrib] = internalDataOptions.attributeQuestionResponses[attrib].at(spinbox->value() - 1);
-            spinbox->setStyleSheet("QSpinBox { }");
+            student.attribute[attrib] = datacategorical[field].value();
+            student.attributeResponse[attrib] = internalDataOptions.attributeQuestionResponses[attrib].at(datacategorical[field].value() - 1);
+            datacategorical[field].setStyleSheet("QSpinBox {}");
         }
+        field++;
+    }
+    if(internalDataOptions.prefTeammatesIncluded)
+    {
+        student.prefTeammates = datamultiline[field].toPlainText();
+        field++;
+    }
+    if(internalDataOptions.prefNonTeammatesIncluded)
+    {
+        student.prefNonTeammates = datamultiline[field].toPlainText();
         field++;
     }
     if(internalDataOptions.notesIncluded)
@@ -1575,7 +1567,8 @@ void editOrAddStudentDialog::recordEdited()
 // A dialog to gather which attribute values should be disallowed on the same team
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions *const dataOptions, const QVector< QPair<int,int> > &currIncompats, QWidget *parent)
+gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int attribute, const DataOptions *const dataOptions,
+                                                                     const QVector< QPair<int,int> > &currIncompats, QWidget *parent)
     :QDialog (parent)
 {
     numPossibleValues = dataOptions->attributeQuestionResponses[attribute].size() + 1;
@@ -1587,11 +1580,43 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
 
-    attributeDescriptionPart1 = new QLabel(this);
-    attributeDescriptionPart1->setText("<html><br><b>" + tr("Attribute") + " " + QString::number(attribute + 1) + ":<br>" +
-                                       dataOptions->attributeQuestionText.at(attribute) +"<hr>" + tr("Prevent students with this response:") + "</b><br></html>");
-    attributeDescriptionPart1->setWordWrap(true);
-    theGrid->addWidget(attributeDescriptionPart1, 0, 0, 1, -1);
+    QString attributeDescription = "<html><br><b>" + tr("Attribute") + " " + QString::number(attribute + 1) + ":</b><br>";
+    attributeDescription += dataOptions->attributeQuestionText.at(attribute) +"<hr>";
+    for(int response = 0; response < numPossibleValues; response++)
+    {
+        if(response == numPossibleValues - 1)
+        {
+            attributeDescription += tr("-. value not set/unknown");
+        }
+        else if(dataOptions->attributeIsOrdered[attribute])
+        {
+            // show reponse with starting number
+            QRegularExpression startsWithNumber("^(\\d+)(.+)");
+            QRegularExpressionMatch match = startsWithNumber.match(dataOptions->attributeQuestionResponses[attribute].at(response));
+            attributeDescription += match.captured(1) + match.captured(2);
+        }
+        else
+        {
+            // show response with a preceding letter (letter repeated for responses after 26)
+            attributeDescription += (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))) +
+                                         ". " + dataOptions->attributeQuestionResponses[attribute].at(response);
+        }
+        attributeDescription += "<br>";
+    }
+
+    attributeQuestion = new QLabel(this);
+    attributeQuestion->setText(attributeDescription + "</html>");
+    theGrid->addWidget(attributeQuestion, 0, 0, 1, -1);
+
+    auto *hline = new QFrame(this);
+    hline->setFrameShape(QFrame::HLine);
+    hline->setFrameShadow(QFrame::Sunken);
+    theGrid->addWidget(hline, 1, 0, 1, -1);
+
+    incompatAttributePart1 = new QLabel(this);
+    incompatAttributePart1->setText("<html>" + tr("Prevent placing students with this response:") + "</html>");
+    incompatAttributePart1->setWordWrap(true);
+    theGrid->addWidget(incompatAttributePart1, 2, 0, 1, 2);
 
     // a checkbox and a label for each response value to set the primary
     primaryValues = new QRadioButton[numPossibleValues];
@@ -1599,90 +1624,96 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     primaryValuesGroup = new QButtonGroup(this);
     for(int response = 0; response < numPossibleValues; response++)
     {
-        theGrid->addWidget(&primaryValues[response], response + 1, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(&primaryValues[response], response + 3, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
         primaryValuesGroup->addButton(&primaryValues[response]);
 
         if(response == numPossibleValues - 1)
         {
-            primaryResponses[response].setText(tr("-. value not set/unknown"));
+            primaryResponses[response].setText(tr("-"));
         }
         else if(dataOptions->attributeIsOrdered[attribute])
         {
             // show reponse with starting number
             QRegularExpression startsWithNumber("^(\\d+)(.+)");
             QRegularExpressionMatch match = startsWithNumber.match(dataOptions->attributeQuestionResponses[attribute].at(response));
-            primaryResponses[response].setText(match.captured(1) + match.captured(2));
+            primaryResponses[response].setText(match.captured(1));
         }
         else
         {
             // show response with a preceding letter (letter repeated for responses after 26)
-            primaryResponses[response].setText((response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))) +
-                                                ". " + dataOptions->attributeQuestionResponses[attribute].at(response));
+            primaryResponses[response].setText((response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))));
         }
         primaryResponses[response].setFlat(true);
         primaryResponses[response].setStyleSheet("Text-align:left");
         connect(&primaryResponses[response], &QPushButton::clicked, &primaryValues[response], &QRadioButton::toggle);
-        theGrid->addWidget(&primaryResponses[response], response + 1, 1, 1, -1,  Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(&primaryResponses[response], response + 3, 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
     }
-    theGrid->setColumnStretch(1, 1);    // set second column as the one to grow
 
-    attributeDescriptionPart2 = new QLabel(this);
-    attributeDescriptionPart2->setText("<html><hr><b>" + tr("from being placed on the same team as students with these responses:") + "</b><br></html>");
-    attributeDescriptionPart2->setWordWrap(true);
-    theGrid->addWidget(attributeDescriptionPart2, numPossibleValues + 2, 0, 1, -1);
+    auto *vline = new QFrame(this);
+    vline->setFrameShape(QFrame::VLine);
+    vline->setFrameShadow(QFrame::Sunken);
+    theGrid->addWidget(vline, 2, 2, numPossibleValues + 1, 1);
+
+    incompatAttributePart2 = new QLabel(this);
+    incompatAttributePart2->setText("<html>" + tr("on the same team as students with these responses:") + "</html>");
+    incompatAttributePart2->setWordWrap(true);
+    theGrid->addWidget(incompatAttributePart2, 2, 3, 1, -1);
 
     // a checkbox and a label for each response value to set the ones incompatible with the primary
     incompatValues = new QCheckBox[numPossibleValues];
     incompatResponses = new QPushButton[numPossibleValues];
     for(int response = 0; response < numPossibleValues; response++)
     {
-        theGrid->addWidget(&incompatValues[response], numPossibleValues + response + 3, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(&incompatValues[response], response + 3, 3, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
 
         if(response == numPossibleValues - 1)
         {
-            incompatResponses[response].setText(tr("-. value not set/unknown"));
+            incompatResponses[response].setText(tr("-"));
         }
         else if(dataOptions->attributeIsOrdered[attribute])
         {
             // show reponse with starting number
             QRegularExpression startsWithNumber("^(\\d+)(.+)");
             QRegularExpressionMatch match = startsWithNumber.match(dataOptions->attributeQuestionResponses[attribute].at(response));
-            incompatResponses[response].setText(match.captured(1) + match.captured(2));
+            incompatResponses[response].setText(match.captured(1));
         }
         else
         {
             // show response with a preceding letter (letter repeated for responses after 26)
-            incompatResponses[response].setText((response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))) +
-                                         ". " + dataOptions->attributeQuestionResponses[attribute].at(response));
+            incompatResponses[response].setText((response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26))));
         }
         incompatResponses[response].setFlat(true);
         incompatResponses[response].setStyleSheet("Text-align:left");
         connect(&incompatResponses[response], &QPushButton::clicked, &incompatValues[response], &QCheckBox::toggle);
-        theGrid->addWidget(&incompatResponses[response], numPossibleValues + response + 3, 1, 1, -1,  Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(&incompatResponses[response], response + 3, 4, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
     }
+
+    // set second and fifth columns as the ones to grow
+    theGrid->setColumnStretch(1, 1);
+    theGrid->setColumnStretch(4, 1);
 
     //button to add the currently checked values as incompatible pairs
     addValuesButton = new QPushButton(this);
-    addValuesButton->setText(tr("Add these\nincompatible\nresponses"));
+    addValuesButton->setText(tr("&Add these incompatible responses"));
     addValuesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(addValuesButton, &QPushButton::clicked, this, &gatherIncompatibleResponsesDialog::addValues);
-    theGrid->addWidget(addValuesButton, 2*numPossibleValues + 3, 0, 1, -1);
+    theGrid->addWidget(addValuesButton, numPossibleValues + 4, 0, 1, -1, Qt::AlignCenter);
 
     //explanatory text of which response pairs will be considered incompatible
     explanation = new QLabel(this);
     explanation->clear();
-    theGrid->addWidget(explanation, 2*numPossibleValues + 4, 0, 1, -1);
-    theGrid->setRowStretch(2*numPossibleValues + 5, 1);
+    theGrid->addWidget(explanation, numPossibleValues + 5, 0, 1, -1);
+    theGrid->setRowStretch(numPossibleValues + 6, 1);
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(2*numPossibleValues + 6, 20);
+    theGrid->setRowMinimumHeight(numPossibleValues + 7, 20);
     resetValuesButton = new QPushButton(this);
-    resetValuesButton->setText(tr("&Clear all\nvalues"));
+    resetValuesButton->setText(tr("&Clear all values"));
     resetValuesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    theGrid->addWidget(resetValuesButton, 2*numPossibleValues + 7, 0, 1, 2);
+    theGrid->addWidget(resetValuesButton, numPossibleValues + 8, 0, 1, 2);
     connect(resetValuesButton, &QPushButton::clicked, this, &gatherIncompatibleResponsesDialog::clearAllValues);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, 2*numPossibleValues + 7, 3, -1, -1);
+    theGrid->addWidget(buttonBox, numPossibleValues + 8, 3, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
@@ -1763,7 +1794,7 @@ void gatherIncompatibleResponsesDialog::clearAllValues()
 // A dialog to gather which racial/ethnic/cultural identities should be considered underrepresented
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions *const dataOptions, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
+gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMResponses, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
     :QDialog (parent)
 {
     URMResponsesConsideredUR = currURMResponsesConsideredUR;
@@ -1795,28 +1826,30 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const DataOptions *const data
     theGrid->addWidget(URMResponsesTable, 1, 0, 1, -1);
 
     // a checkbox and a label for each response values
-    enableValue = new QCheckBox[dataOptions->URMResponses.size()];
-    responses = new QPushButton[dataOptions->URMResponses.size()];
-    URMResponsesTable->setRowCount(dataOptions->URMResponses.size());
+    const int numResponses = URMResponses.size();
+    enableValue = new QCheckBox[numResponses];
+    responses = new QPushButton[numResponses];
+    URMResponsesTable->setRowCount(numResponses);
     URMResponsesTable->setColumnCount(2);
-    for(int response = 0; response < dataOptions->URMResponses.size(); response++)
+    for(int response = 0; response < numResponses; response++)
     {
-        enableValue[response].setChecked(URMResponsesConsideredUR.contains(dataOptions->URMResponses.at(response)));
+        const QString &responseText = URMResponses.at(response);
+        enableValue[response].setChecked(URMResponsesConsideredUR.contains(responseText));
         enableValue[response].setStyleSheet("Text-align:center; margin-left:10%; margin-right:10%;");
         URMResponsesTable->setCellWidget(response, 0, &enableValue[response]);
-        connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
-                                                                                 if(state == Qt::Checked)
-                                                                                   {URMResponsesConsideredUR << dataOptions->URMResponses.at(response);
-                                                                                    responses[response].setStyleSheet("Text-align:left;font-weight: bold;");}
-                                                                                 else
-                                                                                   {URMResponsesConsideredUR.removeAll(dataOptions->URMResponses.at(response));
-                                                                                    responses[response].setStyleSheet("Text-align:left;");}
-                                                                                 });
-        responses[response].setText(dataOptions->URMResponses.at(response));
+        responses[response].setText(responseText);
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
-        connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
         URMResponsesTable->setCellWidget(response, 1, &responses[response]);
+        connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
+        connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
+                                                                                 if(state == Qt::Checked)
+                                                                                   {URMResponsesConsideredUR << responses[response].text();
+                                                                                    responses[response].setStyleSheet("Text-align:left;font-weight: bold;");}
+                                                                                 else
+                                                                                   {URMResponsesConsideredUR.removeAll(responses[response].text());
+                                                                                    responses[response].setStyleSheet("Text-align:left;");}
+                                                                                 });
     }
     URMResponsesTable->resizeColumnToContents(0);
     URMResponsesTable->adjustSize();

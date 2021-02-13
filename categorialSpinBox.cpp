@@ -29,9 +29,16 @@ int CategoricalSpinBox::valueFromText(const QString &text) const
     return (categoricalValues.indexOf(text) + 1);
 }
 
-QValidator::State CategoricalSpinBox::validate (QString &input, int &pos) const
+QValidator::State CategoricalSpinBox::validate(QString &input, int &pos) const
 {
     (void)input;
     (void)pos;
     return QValidator::Acceptable;
+}
+
+void CategoricalSpinBox::stepBy(int steps)
+{
+    // overriding so that the text in the box gets deselected after hitting an arrow up/down
+    QSpinBox::stepBy(steps);
+    lineEdit()->deselect();
 }

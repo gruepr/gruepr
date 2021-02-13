@@ -210,6 +210,8 @@ void gruepr::on_loadSurveyFileButton_clicked()
         {
             // Check for duplicate student names and/or emails; warn if found
             QStringList studentNames, studentEmails;
+            studentNames.reserve(dataOptions->numStudentsInSystem);
+            studentEmails.reserve(dataOptions->numStudentsInSystem);
             bool duplicatesExist = false;
             for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
             {
@@ -235,17 +237,37 @@ void gruepr::on_loadSurveyFileButton_clicked()
             }
             if(duplicatesExist)
             {
-                QMessageBox::warning(this, tr("Possible duplicate submissions"), tr("There appears to be at least one student with multiple survey submissions.\n"
+                QMessageBox::warning(this, tr("Possible duplicate submissions"), tr("There appears to be at least one student with multiple survey submissions. "
                                                                                     "Possible duplicates are marked with a yellow background in the table."));
             }
 
             if(dataOptions->prefTeammatesIncluded || dataOptions->prefNonTeammatesIncluded)
             {
-                QMessageBox::information(this, tr("Teammate preferences found in survey"), tr("Students were asked to indicate people they prefer to have or not have as teammates.\n"
-                                                                                              "To import those preferences, use the \"import from the survey\" action\n"
-                                                                                              "in the Required, Prevented, and/or Preferred Teammate options."));
+                QString message = tr("This survey included") + " ";
+                if(dataOptions->prefTeammatesIncluded && dataOptions->prefNonTeammatesIncluded)
+                {
+                    message += tr("questions");
+                }
+                else
+                {
+                    message += tr("a question");
+                }
+                message += " " + tr("about students' preferences for") + " ";
+                if(dataOptions->prefTeammatesIncluded)
+                {
+                    message += tr("people to be on their team");
+                }
+                if(dataOptions->prefTeammatesIncluded && dataOptions->prefNonTeammatesIncluded)
+                {
+                    message += " " + tr("and") + " ";
+                }
+                if(dataOptions->prefNonTeammatesIncluded)
+                {
+                    message += tr("people to not be on their team");
+                }
+                message += ". " + tr("To import those preferences, use the \"import from the survey\" action in the Required, Prevented, and/or Preferred Teammate options.");
+                QMessageBox::information(this, tr("Teammate preferences found in survey"),message);
             }
-
 
             ui->statusBar->showMessage("File: " + dataOptions->dataFile.fileName());
             ui->studentTable->setEnabled(true);
@@ -893,6 +915,14 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
             {
                 out << ",In which section are you enrolled?";
             }
+            if(dataOptions->prefTeammatesIncluded)
+            {
+                out << ",Please list name(s) of people you would like to have on your team";
+            }
+            if(dataOptions->prefNonTeammatesIncluded)
+            {
+                out << ",Please list name(s) of people you would like to not have on your team";
+            }
             if(dataOptions->notesIncluded)
             {
                 out << ",Notes";
@@ -962,6 +992,14 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                 {
                     out << ",\"" << student[ID].section << "\"";
                 }
+                if(dataOptions->prefTeammatesIncluded)
+                {
+                    out << ",\"" << student[ID].prefTeammates.replace('\n',";") << "\"";
+                }
+                if(dataOptions->prefNonTeammatesIncluded)
+                {
+                    out << ",\"" << student[ID].prefNonTeammates.replace('\n',";") << "\"";
+                }
                 if(dataOptions->notesIncluded)
                 {
                     out << ",\"" << student[ID].notes << "\"";
@@ -1027,7 +1065,7 @@ void gruepr::on_isolatedURMCheckBox_stateChanged(int arg1)
 void gruepr::on_URMResponsesButton_clicked()
 {
     // open window to decide which values are to be considered underrepresented
-    auto *win = new gatherURMResponsesDialog(dataOptions, teamingOptions->URMResponsesConsideredUR, this);
+    auto *win = new gatherURMResponsesDialog(dataOptions->URMResponses, teamingOptions->URMResponsesConsideredUR, this);
 
     //If user clicks OK, replace the responses considered underrepresented with the set from the window
     int reply = win->exec();
@@ -1689,6 +1727,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     {
         // Open specialized dialog box to collect teamnames
         QStringList teamNames;
+        teamNames.reserve(numTeams);
         for(int team = 0; team < numTeams; team++)
         {
             teamNames << teams[teamDisplayNums.at(team)].name;
@@ -2170,6 +2209,7 @@ void gruepr::reorderedTeams()
 QVector<int> gruepr::getTeamNumbersInDisplayOrder()
 {
     QVector<int> teamDisplayNums;
+    teamDisplayNums.reserve(numTeams);
     for(int order = 0; order < numTeams; order++)
     {
         int row = 0;
@@ -2439,7 +2479,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
         if(TotNumQuestions > fieldnum)                              // if there are any more fields
         {
             field = fields.at(fieldnum).toUtf8();
-            if(field.contains(QRegularExpression(".*(name).+(you would like to have on your team).+", QRegularExpression::CaseInsensitiveOption)))
+            if(field.contains(QRegularExpression(".*(name).*(you would like to have on your team).*", QRegularExpression::CaseInsensitiveOption)))
             {
                 fieldnum++;
                 dataOptions->prefTeammatesIncluded = true;
@@ -2451,7 +2491,7 @@ bool gruepr::loadSurveyData(const QString &fileName)
             if(TotNumQuestions > fieldnum)                          // if there are any more fields
             {
                 field = fields.at(fieldnum).toUtf8();
-                if(field.contains(QRegularExpression(".*(name).+(you would like to not have on your team).+", QRegularExpression::CaseInsensitiveOption)))
+                if(field.contains(QRegularExpression(".*(name).*(you would like to not have on your team).*", QRegularExpression::CaseInsensitiveOption)))
                 {
                     fieldnum++;
                     dataOptions->prefNonTeammatesIncluded = true;
@@ -2834,7 +2874,7 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     if(dataOptions->prefTeammatesIncluded)
     {
         student.prefTeammates = fields.at(fieldnum).toUtf8();
-        student.prefTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");
+        student.prefTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
         student.prefTeammates = student.prefTeammates.trimmed();
         fieldnum++;
     }
@@ -2843,7 +2883,7 @@ StudentRecord gruepr::readOneRecordFromFile(const QStringList &fields)
     if(dataOptions->prefNonTeammatesIncluded)
     {
         student.prefNonTeammates = fields.at(fieldnum).toUtf8();
-        student.prefNonTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");
+        student.prefNonTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
         student.prefNonTeammates = student.prefNonTeammates.trimmed();
         fieldnum++;
     }
@@ -3008,6 +3048,8 @@ void gruepr::refreshStudentDisplay()
 
     // compile all the student names and emails so that we can mark duplicates
     QStringList studentNames, studentEmails;
+    studentNames.reserve(dataOptions->numStudentsInSystem);
+    studentEmails.reserve(dataOptions->numStudentsInSystem);
     for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
     {
         studentNames << (student[ID].firstname + student[ID].lastname);
@@ -3180,6 +3222,10 @@ QString gruepr::createAToolTip(const StudentRecord &info, const bool duplicateRe
     if(dataOptions->notesIncluded)
     {
         QString note = info.notes;
+        if(note.size() > 300)
+        {
+            note = note.mid(0, 297) + "...";
+        }
         toolTip += "<br>--<br>" + tr("Notes") + ":<br>" + (note.isEmpty()? ("<i>" + tr("none") + "</i>") : note.replace("\n","<br>"));
     }
     toolTip += "</html>";
@@ -3482,18 +3528,20 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     // go through each pair found in teamingOptions->incompatibleAttributeValues[attrib] list and see if both int's found in attributeLevelsInTeam
                     for(const auto &pair : qAsConst(teamingOptions->incompatibleAttributeValues[attrib]))
                     {
+                        int n = attributeLevelsInTeam.count(pair.first);
                         if(pair.first == pair.second)
                         {
-                            if(attributeLevelsInTeam.count(pair.first) > 1)
+                            if(n > 1)
                             {
-                                penaltyPoints[team]++;
+                                penaltyPoints[team] +=  n * (n-1) / 2;  // number of incompatible pairings is the sum 1 -> n-1
                             }
                         }
                         else
                         {
-                            if((attributeLevelsInTeam.count(pair.first) != 0) && (attributeLevelsInTeam.count(pair.second) != 0))
+                            int m = attributeLevelsInTeam.count(pair.second);
+                            if((n != 0) && (m != 0))
                             {
-                                penaltyPoints[team]++;
+                                penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions;
                             }
                         }
                     }
@@ -3603,7 +3651,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 }
 
                 // convert counts to a schedule score
-                if(schedScore[team] > teamingOptions->desiredTimeBlocksOverlap)		// if team has more than desiredTimeBlocksOverlap, the "extra credit" is 1/6 of the additional overlaps
+                if(schedScore[team] > teamingOptions->desiredTimeBlocksOverlap)		// if team has > desiredTimeBlocksOverlap, the "extra credit" is 1/6 of the additional overlaps
                 {
                     schedScore[team] = 1 + ((schedScore[team] - teamingOptions->desiredTimeBlocksOverlap) / (6*teamingOptions->desiredTimeBlocksOverlap));
                 }
@@ -3622,7 +3670,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         }
     }
 
-    // Determine gender adjustments
+    // Determine gender penalties
     if(dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented ||
                                        teamingOptions->isolatedNonbinaryPrevented || teamingOptions->singleGenderPrevented))
     {
@@ -3672,7 +3720,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         }
     }
 
-    // Determine URM adjustments
+    // Determine URM penalties
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented)
     {
         ID = 0;
@@ -3699,7 +3747,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         }
     }
 
-    // Determine adjustments for required teammates NOT on same team
+    // Determine penalties for required teammates NOT on same team
     if(teamingOptions->haveAnyRequiredTeammates)
     {
         bool noSectionChosen = (ui->sectionSelectionBox->currentIndex() == 0);
@@ -3836,14 +3884,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         if(teamScores[team] <= 0)
         {
             float mean = std::accumulate(teamScores, teamScores+numTeams, float(0.0))/float(numTeams);
-            if(mean < 0)
-            {
-                return(mean + (mean/2));
-            }
-            else
-            {
-                return(mean - (mean/2));
-            }
+            return(mean - (std::abs(mean)/2));
         }
         harmonicSum += 1/teamScores[team];
     }
@@ -4494,6 +4535,7 @@ void gruepr::createFileContents()
 
     // get team numbers in the order that they are currently displayed/sorted
     QVector<int> teamDisplayNum;
+    teamDisplayNum.reserve(numTeams);
     for(int row = 0; row < numTeams; row++)
     {
         int team = 0;

@@ -33,16 +33,16 @@
 // DONE:
 // - bugfix: newlines within a csv field are now handled properly
 // - bugfix: save file after adding or editing a student mishandled attribute values
-// - attribute response texts now always show in attribute value selection box in add/edit student dialog
+// - bugfix: Gather URM Response dialog crash in some cases
+// - attribute response texts now always show in attribute value selection box in add/edit student dialog; better GUI behavior on those boxes
 // - now distinguishes nonbinary from unknown gender in instructor's save file
 // - doesn't mark students as duplicate just because they have blank email adresses
-//
-// IN PROGRESS:
-// - change incompatible response dialog / behavior to add incompatible same responses (1 with 1) [I think done]
-// - An option in the survey to have students put in their group mates and have them put that data directly into 'prevent teammates' [I think done here, need to add to google]
+// - An option in the survey to have students put in preferred teammates / non-teammates and allow to import those as required/requested/prevented
+// - create Levenshtein dialog to replace repeated code in gather teammates dialog
+// - change incompatible response dialog / behavior to add incompatible same responses (1 with 1)
+// - add penalty point per incompatible pair found
 //
 // TO DO:
-// - bugfix: sometimes required/prevented/requested not used in scoring?
 // - add "load roster" option to populate student table or compare with existing data
 // - check if pairing is both (required or requested) and prevented
 // - add select-multiple attribute question option

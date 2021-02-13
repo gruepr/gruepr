@@ -4,6 +4,7 @@
 // a subclassed QSpinBox that replaces numerical values with categorical attribute responses in display
 
 #include <QSpinBox>
+#include <QLineEdit>
 
 
 class CategoricalSpinBox : public QSpinBox
@@ -12,7 +13,7 @@ class CategoricalSpinBox : public QSpinBox
 
 public:
     enum typeOfValue{letter, numerical};
-    CategoricalSpinBox(QWidget *parent = nullptr) : QSpinBox(parent) {}
+    CategoricalSpinBox(QWidget *parent = nullptr) : QSpinBox(parent) {lineEdit()->setReadOnly(true);}
     void setWhatTypeOfValue(typeOfValue tOV) {whatTypeOfValue = tOV;};
     void setCategoricalValues(const QStringList &categoricalValues);
     QString textFromValue(int value) const;
@@ -22,6 +23,7 @@ public:
 private:
     QStringList categoricalValues;
     typeOfValue whatTypeOfValue = letter;
+    void stepBy(int steps);
 };
 
 
