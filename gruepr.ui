@@ -1741,6 +1741,8 @@ Identities</string>
     <addaction name="actionLoad_Survey_File"/>
     <addaction name="actionSave_Survey_File"/>
     <addaction name="separator"/>
+    <addaction name="actionLoad_Student_Roster"/>
+    <addaction name="separator"/>
     <addaction name="actionLoad_Teaming_Options_File"/>
     <addaction name="actionSave_Teaming_Options_File"/>
     <addaction name="separator"/>
@@ -1919,6 +1921,18 @@ Identities</string>
    </property>
    <property name="text">
     <string>Create Teams</string>
+   </property>
+  </action>
+  <action name="actionLoad_Student_Roster">
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/loadRoster.png</normaloff>:/icons/loadRoster.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Student Roster</string>
+   </property>
+   <property name="toolTip">
+    <string>Load student names and email addresses from a csv file containing a class roster</string>
    </property>
   </action>
  </widget>

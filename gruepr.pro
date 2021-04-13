@@ -40,15 +40,24 @@ QMAKE_CXXFLAGS_RELEASE -= -O
 QMAKE_CXXFLAGS_RELEASE -= -O1
 QMAKE_CXXFLAGS_RELEASE -= -O3
 QMAKE_CXXFLAGS_RELEASE -= -Os
-
 # add the desired -O2 if not present
 QMAKE_CXXFLAGS_RELEASE += -O2
 
 # add OpenMP
-win32: QMAKE_CXXFLAGS += -fopenmp
+win32: QMAKE_CXXFLAGS += -fopenmp #use -fopenmp for mingw, -openmp for msvc
 win32: LIBS += -fopenmp
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
 macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
+
+# static builds
+QTPREFIX=$$[QT_INSTALL_PREFIX]
+equals(QTPREFIX, "C:/Qt/5.15.2/mingw81_64_static"){
+    message("--STATIC BUILD--")
+    CONFIG += qt static
+    QMAKE_LFLAGS += -static-libgcc -static-libstdc++
+} else {
+    message("--NON-STATIC BUILD--")
+}
 
 SOURCES += \
         Levenshtein.cpp \
@@ -61,6 +70,7 @@ SOURCES += \
         customDialogs.cpp \
         pushButtonWithMouseEnter.cpp \
         sortableTableWidgetItem.cpp \
+        studentRecord.cpp \
         surveymaker.cpp \
         teamTreeWidget.cpp
 
@@ -75,6 +85,7 @@ HEADERS += \
         gruepr_structs_and_consts.h \
         pushButtonWithMouseEnter.h \
         sortableTableWidgetItem.h \
+        studentRecord.h \
         surveymaker.h \
         teamTreeWidget.h
 

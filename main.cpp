@@ -19,7 +19,7 @@
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
 
 //    This software incorporates code from the open source Qt libraries,
-//    using version 5.12 or 5.13. These can be freely downloaded from
+//    using version 5.15. These can be freely downloaded from
 //    < http://qt.io/download >.
 
 //    Icons were originally created by Icons8 < https://icons8.com >.
@@ -36,15 +36,23 @@
 // - bugfix: Gather URM Response dialog crash in some cases
 // - attribute response texts now always show in attribute value selection box in add/edit student dialog; better GUI behavior on those boxes
 // - now distinguishes nonbinary from unknown gender in instructor's save file
+// - expansion of what gets recognized for gender response: woman OR female; man OR male; anything that includes "trans", "queer", or any combination of "non" and "binary"
 // - doesn't mark students as duplicate just because they have blank email adresses
 // - An option in the survey to have students put in preferred teammates / non-teammates and allow to import those as required/requested/prevented
 // - create Levenshtein dialog to replace repeated code in gather teammates dialog
 // - change incompatible response dialog / behavior to add incompatible same responses (1 with 1)
 // - add penalty point per incompatible pair found
+// - moved studentRecord to a separate class, with tooltip creation as member function
+// - ancestors of elites now created (using elite genome as mom and dad)
+// - code modernization and organization
+// - moved code to Qt v5.15 standards
+// - add "load roster" option to populate student table or compare with existing data
 //
 // TO DO:
-// - add "load roster" option to populate student table or compare with existing data
+// - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
+// - change the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
 // - check if pairing is both (required or requested) and prevented
+// - allow for section question later in the "additional questions"
 // - add select-multiple attribute question option
 // - more granular scheduling option, down to the 15 minute level at least
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)

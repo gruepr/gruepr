@@ -20,6 +20,7 @@
 #include "categorialSpinBox.h"
 #include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
+#include "studentRecord.h"
 
 
 class gatherTeammatesDialog : public QDialog
@@ -64,9 +65,10 @@ class findMatchingNameDialog : public QDialog
     Q_OBJECT
 
 public:
-    findMatchingNameDialog(int knownStudent, int numStudents, StudentRecord *student, const QString &searchName, QWidget *parent = nullptr);
+    findMatchingNameDialog(int numStudents, StudentRecord *student, const QString &searchName, const bool addStudentOption = false, QWidget *parent = nullptr);
 
     QComboBox *namesList;
+    bool addStudent = false;
 
 private:
     QGridLayout *theGrid;

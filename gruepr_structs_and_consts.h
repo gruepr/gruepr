@@ -17,7 +17,7 @@
 
 
 const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes
-const int MAX_STUDENTS = MAX_RECORDS;                    // each student is a "record" in the genetic algorithm
+const int MAX_STUDENTS = MAX_RECORDS;                   // each student is a "record" in the genetic algorithm
 const int MAX_TEAMS = MAX_STUDENTS/2;
 const int MAX_TIMEBLOCKS = 7*24;                        // resolution of scheduling is 1 hr, and scope is weekly
 
@@ -27,30 +27,29 @@ const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role i
 
 //map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
 const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"
-                        "11am,11 am,11:00,12pm,12 pm,12:00,1pm,1 pm,13:00,2pm,2 pm,14:00,3pm,3 pm,15:00,4pm,4 pm,16:00,5pm,5 pm,17:00,6pm,6 pm,18:00,7pm,7 pm,19:00,8pm,8 pm,20:00,"
-                        "9pm,9 pm,21:00,10pm,10 pm,22:00,11pm,11 pm,23:00,12am,12 am,0:00,noon,midnight"};
+                         "11am,11 am,11:00,12pm,12 pm,12:00,1pm,1 pm,13:00,2pm,2 pm,14:00,3pm,3 pm,15:00,4pm,4 pm,16:00,5pm,5 pm,17:00,6pm,6 pm,18:00,7pm,7 pm,19:00,8pm,8 pm,20:00,"
+                         "9pm,9 pm,21:00,10pm,10 pm,22:00,11pm,11 pm,23:00,12am,12 am,0:00,noon,midnight"};
 const int TIME_MEANINGS[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,
-                          13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
+                           13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
 
 // Options for the team names. A name for each list of names must be given.
 const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
-                            "Roman numerals,"
-                            "Hexadecimal numbers,"
-                            "Binary numbers,"
-                            "English letters,"
-                            "Greek letters (uppercase),"
-                            "Greek letters (lowercase),"
-                            "NATO phonetic alphabet,"
-                            "Chemical elements,"
-                            "Constellations,"
-                            "Popes,"
-                            "Genres of music,"
-                            "Crayola crayon colors,"
-                            "Shakespeare plays (RSC chron.),"
-                            "Discontinued Olympic sports,"
-                            "Cheeses,"
-                            "Minor Simpsons characters"};
-
+                                 "Roman numerals,"
+                                 "Hexadecimal numbers,"
+                                 "Binary numbers,"
+                                 "English letters,"
+                                 "Greek letters (uppercase),"
+                                 "Greek letters (lowercase),"
+                                 "NATO phonetic alphabet,"
+                                 "Chemical elements,"
+                                 "Constellations,"
+                                 "Popes,"
+                                 "Genres of music,"
+                                 "Crayola crayon colors,"
+                                 "Shakespeare plays (RSC chron.),"
+                                 "Discontinued Olympic sports,"
+                                 "Cheeses,"
+                                 "Minor Simpsons characters"};
 const char TEAMNAMELISTS[]   {";"
                               ";"
                               ";"
@@ -92,31 +91,6 @@ const char TEAMNAMELISTS[]   {";"
                               "Artie Ziff,Brunella Pommelhorst,Cleetus,Disco Stu,Edna Krabappel,Frank 'Grimy' Grimes,Ginger Flanders,"
                                  "Helen Lovejoy,Itchy,Jebediah Springfield,Kent Brockman,Luann Van Houten,Mayor Quimby,Ned Flanders,Professor Frink,"
                                  "Queen Helvetica,Ruth Powers,Sideshow Bob,Troy McClure,Uter Zorker,Waylon Smithers,Xoxchitla,Yes Guy,Zelda"};
-
-//struct defining survey data from one student
-struct StudentRecord
-{
-    int ID;                                             // ID is assigned in order of appearance in the data file
-    enum Gender {woman, man, nonbinary, unknown} gender = StudentRecord::unknown;
-    bool URM = false;                                   // true if this student is from an underrepresented minority group
-    bool unavailable[MAX_TIMEBLOCKS] = {false};			// true if this is a busy block during week
-    bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
-    bool preventedWith[MAX_STUDENTS] = {false};			// true if this student is prevented from working with the corresponding student
-    bool requiredWith[MAX_STUDENTS] = {false};			// true if this student is required to work with the corresponding student
-    bool requestedWith[MAX_STUDENTS] = {false};			// true if this student desires to work with the corresponding student
-    int attribute[MAX_ATTRIBUTES] = {0};                // rating for each attribute (each rating is numerical value from 1 -> attributeLevels[attribute])
-    QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
-    QString firstname;
-    QString lastname;
-    QString email;
-    QString section;									// section data stored as text
-    QString prefTeammates;
-    QString prefNonTeammates;
-    QString notes;										// any special notes for this student
-    QString attributeResponse[MAX_ATTRIBUTES];          // the text of the response to each attribute question
-    QString URMResponse;                                // the text of the response the the race/ethnicity/culture question
-    QString availabilityChart;
-};
 
 
 //class defining one team
@@ -164,6 +138,17 @@ struct DataOptions
     inline DataOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {attributeMin[i] = 1;
                                                                   attributeMax[i] = 1;
                                                                   attributeIsOrdered[i] = false;}}
+
+    inline void reset(){numStudentsInSystem = 0;
+                        numAttributes = 0;
+                        attributeQuestionText.clear();
+                        for(auto & attributeQuestionResponse : attributeQuestionResponses)
+                        {
+                            attributeQuestionResponse.clear();
+                        }
+                        dayNames.clear();
+                        timeNames.clear();
+                        }
 };
 
 
@@ -198,7 +183,7 @@ struct TeamingOptions
     int numTeamsDesired = 1;
     int teamSizesDesired[MAX_STUDENTS] = {0};
 
-    // initialize all attribute weights to 1, desires to heterogeneous, and no incompatible attribute values
+    // initialize all attribute weights to 1, desires to heterogeneous, and incompatible attribute values to none
     inline TeamingOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {desireHomogeneous[i] = false;
                                                                      attributeWeights[i] = 1;
                                                                      realAttributeWeights[i] = 1;

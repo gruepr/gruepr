@@ -123,7 +123,7 @@ DISCLAIMER:
         You should have received a copy of the GNU General Public License along with this program.  If not, see
         < https://www.gnu.org/licenses/ >.
 
-        This software incorporates code from the open source Qt libraries, using version 5.12 or 5.13. These can be
+        This software incorporates code from the open source Qt libraries, using version 5.15. These can be
         freely downloaded from < http://qt.io/download >.
 
         Icons were originally created by Icons8 < https://icons8.com >. These icons have been made available under

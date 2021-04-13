@@ -176,7 +176,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         else
         {
             resetSaveOrLoad->setItemData(6, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
-            auto model = qobject_cast< QStandardItemModel * >(resetSaveOrLoad->model());
+            auto model = (qobject_cast< QStandardItemModel * >(resetSaveOrLoad->model()));
             auto item = model->item(6);
             item->setEnabled(false);
         }
@@ -456,7 +456,7 @@ bool gatherTeammatesDialog::loadCSVFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(knownStudent, numStudents, student, teammates.at(basename).at(searchStudent), this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), false, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
@@ -526,7 +526,7 @@ bool gatherTeammatesDialog::loadStudentPrefs()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(knownStudent, numStudents, student, prefs.at(searchStudent), this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), false, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
@@ -648,7 +648,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(knownStudent, numStudents, student, teammate.at(searchStudent), this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammate.at(searchStudent), false, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
@@ -848,11 +848,11 @@ void gatherTeammatesDialog::refreshDisplay()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to select a name from a list when a perfect match is not found
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-findMatchingNameDialog::findMatchingNameDialog(int knownStudent, int numStudents, StudentRecord *student, const QString &searchName, QWidget *parent)
+findMatchingNameDialog::findMatchingNameDialog(int numStudents, StudentRecord *student, const QString &searchName, const bool addStudentOption, QWidget *parent)
     :QDialog(parent)
 {
     QMultiMap<int, QString> possibleStudents;
-    for(knownStudent = 0; knownStudent < numStudents; knownStudent++)
+    for(int knownStudent = 0; knownStudent < numStudents; knownStudent++)
     {
         possibleStudents.insert(levenshtein::distance(searchName, student[knownStudent].firstname + " " + student[knownStudent].lastname),
                                 student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
@@ -875,7 +875,17 @@ findMatchingNameDialog::findMatchingNameDialog(int knownStudent, int numStudents
     }
     theGrid->addWidget(namesList, 1, 0, 1, -1);
     theGrid->setRowMinimumHeight(2, 20);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    if(!addStudentOption)
+    {
+        buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    }
+    else
+    {
+        buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+        auto *addButton = buttonBox->button(QDialogButtonBox::Save);
+        addButton->setText("Add as a new student");
+        connect(addButton, &QPushButton::clicked, this, [this]{addStudent = true;});
+    }
     buttonBox->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -1424,7 +1434,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         QSpinBox *spinbox = &datacategorical[field];
         datacategorical[field].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attrib] ? CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
         datacategorical[field].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attrib]);
-        spinbox->setValue(student.attribute[attrib]);
+        spinbox->setValue(student.attributeVal[attrib]);
         spinbox->setRange(0, internalDataOptions.attributeMax[attrib]);
         if(spinbox->value() == 0)
         {
@@ -1531,18 +1541,18 @@ void editOrAddStudentDialog::recordEdited()
         student.section = databox[field].currentText();
         field++;
     }
-    for(int attrib = 0; attrib < internalDataOptions.numAttributes; attrib++)
+    for(int attribute = 0; attribute < internalDataOptions.numAttributes; attribute++)
     {
         if(datacategorical[field].value() == 0)
         {
-            student.attribute[attrib] = -1;
-            student.attributeResponse[attrib] = "";
+            student.attributeVal[attribute] = -1;
+            student.attributeResponse[attribute] = "";
             datacategorical[field].setStyleSheet("QSpinBox {background-color: #DCDCDC;}");
         }
         else
         {
-            student.attribute[attrib] = datacategorical[field].value();
-            student.attributeResponse[attrib] = internalDataOptions.attributeQuestionResponses[attrib].at(datacategorical[field].value() - 1);
+            student.attributeVal[attribute] = datacategorical[field].value();
+            student.attributeResponse[attribute] = internalDataOptions.attributeQuestionResponses[attribute].at(datacategorical[field].value() - 1);
             datacategorical[field].setStyleSheet("QSpinBox {}");
         }
         field++;
@@ -2024,7 +2034,7 @@ void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
     {
         chart->show();
         height = 400;
-        width = QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).width("10 15 20 25 30 35 40 45 50 55 60 65 70");
+        width = QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("10 15 20 25 30 35 40 45 50 55 60 65 70");
         icon = QIcon(":/icons/up_arrow.png");
         butText = "Hide progress";
     }

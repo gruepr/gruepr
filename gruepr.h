@@ -14,6 +14,7 @@
 #include "categorialSpinBox.h"
 #include "pushButtonWithMouseEnter.h"
 #include "sortableTableWidgetItem.h"
+#include "studentRecord.h"
 #include "teamTreeWidget.h"
 #include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
@@ -35,9 +36,10 @@ protected:
 
 private slots:
     void on_loadSurveyFileButton_clicked();
+    void loadStudentRoster();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
     void on_studentTable_cellEntered(int row, int column);
-    void removeAStudent();
+    void removeAStudent(const QString &name = "");
     void editAStudent();
     void on_addStudentPushButton_clicked();
     void on_saveSurveyFilePushButton_clicked();
@@ -88,6 +90,8 @@ private:
         // setup
     Ui::gruepr *ui;
     void loadDefaultSettings();
+    void resetUI();
+    void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
@@ -105,7 +109,6 @@ private:
                                                                             // -encased fields. If line is non-empty and minFields is given, append empty fields so returned
                                                                             // QStringList always has >= minFields
     void refreshStudentDisplay();
-    QString createAToolTip(const StudentRecord &info, const bool duplicateRecord);
 
         // team set optimization
     int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams
