@@ -52,6 +52,7 @@
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
 // - change the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
 // - check if pairing is both (required or requested) and prevented
+// - create csv import dialog box to select columns
 // - allow for section question later in the "additional questions"
 // - add select-multiple attribute question option
 // - more granular scheduling option, down to the 15 minute level at least

@@ -89,6 +89,7 @@ signals:
 private:
         // setup
     Ui::gruepr *ui;
+    QLabel *statusBarLabel;
     void loadDefaultSettings();
     void resetUI();
     void loadUI();

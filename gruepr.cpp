@@ -23,6 +23,8 @@ gruepr::gruepr(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/gruepr.png"));
+    statusBarLabel = new QLabel("");
+    ui->statusBar->addWidget(statusBarLabel);
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
     //Setup the main window menu items
@@ -315,6 +317,10 @@ void gruepr::loadStudentRoster()
                             student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
                             student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
                             student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
+                            for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+                            {
+                                student[dataOptions->numStudentsInSystem].attributeVal[attribute] = -1;
+                            }
                             dataOptions->numStudentsInSystem++;
                             numStudents = dataOptions->numStudentsInSystem;
 
@@ -347,20 +353,40 @@ void gruepr::loadStudentRoster()
                 }
             }
 
+            bool keepAsking = true, deleteTheStudent = false;
+            int i = 0;
             for(auto &name : namesNotFound)
             {
-                auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
-                                                           "<b>" + name + "</b>" + tr(" was not found in the roster file.<br>Should this record be kept or deleted?"),
-                                                           QMessageBox::Ok | QMessageBox::Cancel, this);
-                keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep"));
-                connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
-                keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Delete"));
-                connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
-                if(keepOrDeleteWindow->exec() == QDialog::Rejected)
+                if(keepAsking)
+                {
+                    auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
+                                                               "<b>" + name + "</b>" + tr(" was not found in the roster file.<br>Should this record be kept or deleted?"),
+                                                               QMessageBox::Ok | QMessageBox::Cancel, this);
+                    keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep"));
+                    connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
+                    keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Delete"));
+                    connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
+                    auto *applyToAll = new QCheckBox(tr("Apply to all (") + QString::number(namesNotFound.size() - i) + tr(" remaining)"));
+                    keepOrDeleteWindow->setCheckBox(applyToAll);
+                    connect(applyToAll, &QCheckBox::stateChanged, this, [&keepAsking](int state){keepAsking = (static_cast<Qt::CheckState>(state) == Qt::CheckState::Unchecked);});
+
+                    if(keepOrDeleteWindow->exec() == QDialog::Rejected)
+                    {
+                        deleteTheStudent = true;
+                        removeAStudent(name);
+                    }
+                    else
+                    {
+                        deleteTheStudent = false;
+                    }
+
+                    delete keepOrDeleteWindow;
+                }
+                else if(deleteTheStudent)
                 {
                     removeAStudent(name);
                 }
-                delete keepOrDeleteWindow;
+                i++;
             }
         }
         else    // no student records already; treat this as if survey file with only names and emails
@@ -2490,7 +2516,7 @@ void gruepr::resetUI()
 void gruepr::loadUI()
 {
 
-    ui->statusBar->showMessage("File: " + dataOptions->dataFile.fileName());
+    statusBarLabel->setText("File: " + dataOptions->dataFile.fileName());
     ui->studentTable->setEnabled(true);
     ui->addStudentPushButton->setEnabled(true);
     ui->teamDataLayout->setEnabled(true);
@@ -3407,7 +3433,7 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->setRowCount(numStudents);
 
     QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0? "All sections" : " Section: " + sectionName);
-    ui->statusBar->showMessage(ui->statusBar->currentMessage().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
+    statusBarLabel->setText(statusBarLabel->text().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
 
     ui->studentTable->resizeColumnsToContents();
     ui->studentTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);

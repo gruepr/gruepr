@@ -1803,7 +1803,7 @@ Identities</string>
     <string>gruepr Homepage...</string>
    </property>
    <property name="toolTip">
-    <string>Open the gruepr homepage in a browser</string>
+    <string>Open the gruepr homepage in a browser.</string>
    </property>
   </action>
   <action name="actionLoad_Survey_File">
@@ -1830,7 +1830,7 @@ Identities</string>
     <string>Save Survey File...</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;Save the current dataset to a survey file.&lt;/html&gt;</string>
+    <string>Save the current dataset to a survey file.</string>
    </property>
   </action>
   <action name="actionLoad_Teaming_Options_File">
@@ -1929,10 +1929,10 @@ Identities</string>
      <normaloff>:/icons/loadRoster.png</normaloff>:/icons/loadRoster.png</iconset>
    </property>
    <property name="text">
-    <string>Load Student Roster</string>
+    <string>Load Student Roster...</string>
    </property>
    <property name="toolTip">
-    <string>Load student names and email addresses from a csv file containing a class roster</string>
+    <string>Load student names and email addresses from a csv file containing a class roster.</string>
    </property>
   </action>
  </widget>
