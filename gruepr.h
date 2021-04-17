@@ -9,6 +9,7 @@
   #include <QWinTaskbarButton>
   #include <QWinTaskbarProgress>
 #endif
+#include "csvfile.h"
 #include "customDialogs.h"
 #include "comboBoxWithElidedContents.h"
 #include "categorialSpinBox.h"
@@ -100,15 +101,13 @@ private:
     void setTeamSizes(const int singleSize);
 
         // reading survey data file
-    bool loadSurveyData(const QString &fileName);       // returns false if file is invalid
+    bool loadSurveyData(CsvFile &surveyFile);           // returns false if file is invalid
+    bool loadRosterData(CsvFile &surveyFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; loads fullnames and emails into lists
     StudentRecord *student = nullptr;                   // array to hold the students' data
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     int numStudents = MAX_STUDENTS;
-    StudentRecord readOneRecordFromFile(const QStringList &fields);
-    QStringList ReadCSVLine(QTextStream &stream, const int minFields = -1); // read one line from CSV file, smartly handling commas and newlines inside quotation mark
-                                                                            // -encased fields. If line is non-empty and minFields is given, append empty fields so returned
-                                                                            // QStringList always has >= minFields
+    StudentRecord parseOneRecord(const QStringList &fields);
     void refreshStudentDisplay();
 
         // team set optimization

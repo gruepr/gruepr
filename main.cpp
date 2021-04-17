@@ -48,12 +48,15 @@
 // - moved code to Qt v5.15 standards
 // - add "load roster" option to populate student table or compare with existing data
 //
+// IN PROGRESS:
+// - use csv import dialog box to select columns when loading survey
+// - allow for section question later in the "additional questions"
+// - reduce time for removing many students when comparing roster to existing survey data
+//
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
 // - change the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
 // - check if pairing is both (required or requested) and prevented
-// - create csv import dialog box to select columns
-// - allow for section question later in the "additional questions"
 // - add select-multiple attribute question option
 // - more granular scheduling option, down to the 15 minute level at least
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)

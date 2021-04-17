@@ -64,6 +64,7 @@ SOURCES += \
         boxwhiskerplot.cpp \
         categorialSpinBox.cpp \
         comboBoxWithElidedContents.cpp \
+        csvfile.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -79,6 +80,7 @@ HEADERS += \
         boxwhiskerplot.h \
         categorialSpinBox.h \
         comboBoxWithElidedContents.h \
+        csvfile.h \
         gruepr.h \
         GA.h \
         customDialogs.h \

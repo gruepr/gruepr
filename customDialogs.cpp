@@ -883,9 +883,10 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, StudentRecord *s
     {
         buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Save | QDialogButtonBox::Cancel);
         auto *addButton = buttonBox->button(QDialogButtonBox::Save);
-        addButton->setText("Add as a new student");
+        addButton->setText(tr("Add ") + searchName + tr(" as a new student"));
         connect(addButton, &QPushButton::clicked, this, [this]{addStudent = true;});
     }
+    buttonBox->button(QDialogButtonBox::Ok)->setText("Select match");
     buttonBox->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
