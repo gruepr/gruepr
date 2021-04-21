@@ -5,8 +5,8 @@
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QStandardItemModel>
 #include <QString>
-#include <QTableWidget>
 
 CsvFile::CsvFile() = default;
 
@@ -75,7 +75,12 @@ bool CsvFile::readHeader()
 {
     stream->seek(0);
     headerValues = getLine();
-    fieldMeanings.reserve(headerValues.size());
+    numFields = headerValues.size();
+    fieldMeanings.reserve(numFields);
+    for(int i = 0; i < numFields; i++)
+    {
+        fieldMeanings << "";
+    }
     return !headerValues.isEmpty();
 }
 
@@ -83,9 +88,9 @@ bool CsvFile::readHeader()
 //////////////////
 // Read the a line from the file, splitting & saving field texts into fieldValues
 //////////////////
-bool CsvFile::readDataRow(const int minFields)
+bool CsvFile::readDataRow()
 {
-    fieldValues = getLine(minFields);
+    fieldValues = getLine(numFields);
     return !fieldValues.isEmpty();
 }
 
@@ -93,27 +98,30 @@ bool CsvFile::readDataRow(const int minFields)
 //////////////////
 // Open dialog box to let user choose which columns correspond to which fields
 //////////////////
-QDialog* CsvFile::chooseFieldMeaningsDialog(const QStringList &possibleFieldMeanings, const QStringList &possibleMeaningMatchPatterns, QWidget *parent)
+QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
 {
-    // if not already set, preload fieldMeanings with meanings, based on matches to the patterns, if given
-    if(fieldMeanings.isEmpty())
+    // if any of the fieldMeanings are empty, preload with possibleFieldMeaning based on matches to the patterns, if given
+    for(int i = 0; i < numFields; i++)
     {
-        for(auto &headerVal : headerValues)
+        if(fieldMeanings.at(i).isEmpty())
         {
+            const QString &headerVal = headerValues.at(i);
             int matchPattern = 0;
-            while((matchPattern < possibleMeaningMatchPatterns.size()) &&
-                  !headerVal.contains(QRegularExpression(possibleMeaningMatchPatterns.at(matchPattern), QRegularExpression::CaseInsensitiveOption)))
+            QString match = std::get<1>(possibleFieldMeanings.at(matchPattern));
+            while((matchPattern < possibleFieldMeanings.size()) &&
+                  !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)))
             {
                 matchPattern++;
+                match = std::get<1>(possibleFieldMeanings.at(matchPattern));
             }
 
-            if(matchPattern != possibleMeaningMatchPatterns.size())
+            if(matchPattern != possibleFieldMeanings.size())
             {
-                fieldMeanings << possibleFieldMeanings.at(matchPattern);
+                fieldMeanings[i] = std::get<0>(possibleFieldMeanings.at(matchPattern));
             }
             else
             {
-                fieldMeanings << "Unused";
+                fieldMeanings[i] = "Unused";
             }
         }
     }
@@ -123,52 +131,54 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QStringList &possibleFieldMean
     window->setWindowTitle("Select column definitions");
     window->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     window->setSizeGripEnabled(true);
-    window->setMinimumSize(300, 300);
+    window->setMinimumSize(500, 300);
 
     auto *theGrid = new QGridLayout(window);
 
     auto *explanation = new QLabel(window);
-    explanation->setText("<html>The following column headers were found. "
-                         "Select the the information contained in each column.<hr></html>");
+    explanation->setText("<html>The following column headers were found in the file. "
+                         "Please verify the category of information contained in each column. Select \"Unused\" for any field(s) that should be ignored.<hr></html>");
     explanation->setWordWrap(true);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
 
-    auto *table = new QTableWidget(window);
+    table = new QTableWidget(numFields, 2, window);
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionMode(QAbstractItemView::NoSelection);
     table->verticalHeader()->hide();
-    table->horizontalHeader()->hide();
     table->setAlternatingRowColors(true);
     table->setShowGrid(false);
-    table->setStyleSheet("QTableView::item{border-bottom: 1px solid black;}");
+    table->setStyleSheet("QTableView::item{border-top: 2px solid black; padding: 3px;}");
     table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    table->horizontalHeader()->setStretchLastSection(true);
     theGrid->addWidget(table, 1, 0, 1, -1);
 
     // a label and combobox for each column
-    const int numFields = headerValues.size();
-    table->setRowCount(numFields);
-    table->setColumnCount(2);
+    table->horizontalHeader()->show();
     table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
-
+    table->setHorizontalHeaderLabels(QStringList({"<b>Header Text</b>","<b>Category</b>"}));
     for(int row = 0; row < numFields; row++)
     {
         auto *label = new QLabel();
-        label->setText(headerValues.at(row));
+        label->setText("\n" + headerValues.at(row) + "\n");
         label->setWordWrap(true);
+        label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         table->setCellWidget(row, 0, label);
 
         auto *selector = new QComboBox();
-        selector->addItems(possibleFieldMeanings);
+        for(auto &meaning : possibleFieldMeanings)
+        {
+            selector->addItem(std::get<0>(meaning), std::get<2>(meaning));
+        }
         selector->insertItem(0, "Unused");
+        auto *model = qobject_cast<QStandardItemModel *>(selector->model());
+        model->item(0)->setForeground(Qt::darkRed);
         selector->insertSeparator(1);
         selector->setCurrentText(fieldMeanings.at(row));
-        selector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+        selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
         table->setCellWidget(row, 1, selector);
 
-        connect(selector, &QComboBox::currentTextChanged, this, [this, row] (const QString &text){fieldMeanings[row] = text;});
+        connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
     }
+    validateFieldSelectorBoxes();
     table->resizeColumnsToContents();
     table->resizeRowsToContents();
     table->adjustSize();
@@ -186,6 +196,135 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QStringList &possibleFieldMean
 
 
 //////////////////
+// Validate the selector boxes in the choose field meaning dialog--one per field unless there's an asterisk in the name, in which case there are as many as the number after
+//////////////////
+void CsvFile::validateFieldSelectorBoxes(int callingRow)
+{
+    // get list of rows in top-to-bottom order, but if this function is getting called by a selector box, then put its row at the front of the line
+    QVector<int> rows(numFields);
+    std::iota(rows.begin(), rows.end(), 0);
+    if(callingRow != -1)
+    {
+        rows.remove(callingRow);
+        rows.prepend(callingRow);
+    }
+
+    // start by counting all the values to count how many times each are used, and which are fully used
+    std::map<QString, int> takenValues;     // mapping fieldMeaning -> number of fields selected with this meaning
+    std::map<QString, int> fullyUsedValues; // mapping the same, but saving how many extra fields with this meaning
+    for(auto row : rows)
+    {
+        // get the selected fieldMeaning
+        const auto box = qobject_cast<QComboBox *>(table->cellWidget(row, 1));
+        QString selection = box->currentText();
+
+        // set it in the CsvFile's data
+        fieldMeanings[row] = selection;
+
+        // add this occurence in the takenValues mapping
+        if(takenValues.count(selection) == 0)
+        {
+            // first ocurrence of this field; create the key/value
+            takenValues[selection] = 1;
+        }
+        else
+        {
+            // key already exists
+            takenValues[selection]++;
+        }
+
+        // if we are at or above the allowed number of ocurrences, note it
+        if(takenValues[selection] >= box->currentData().toInt())
+        {
+            // add this occurence in the takenValues mapping
+            if(fullyUsedValues.count(selection) == 0)
+            {
+                // first ocurrence of this field; create the key/value
+                fullyUsedValues[selection] = 1;
+            }
+            else
+            {
+                // key already exists; we have MORE than are allowed
+                fullyUsedValues[selection]++;
+            }
+        }
+        else
+        {
+            fullyUsedValues[selection] = 0;
+        }
+    }
+
+    // Now go back through in reverse order and:
+    //  1) replacing overused values with "Unused",
+    //  2) setting fully used values in other boxes to red with a tooltip,
+    //  3) clearing formatting of all non-overused values (except "Unused") and the fully used values that are currently chosen.
+    // Then:
+    //  4) clearing formatting of all items unchosen in any box (except "Unused").
+    for(auto row = rows.rbegin(); row != rows.rend(); ++row)
+    {
+        auto box = qobject_cast<QComboBox *>(table->cellWidget(*row, 1));
+        box->blockSignals(true);
+        auto *model = qobject_cast<QStandardItemModel *>(box->model());
+        for(auto &takenValue : takenValues)
+        {
+            QString fieldval = takenValue.first;
+            int numAllowed = box->itemData(box->findText(fieldval)).toInt();
+            QStandardItem *item = model->item(box->findText(fieldval));
+            if((fullyUsedValues[fieldval] > 1) && (box->currentText() == fieldval))
+            {
+                // number exceeds max. allowed somehow, so set to unused
+                box->setCurrentText("Unused");
+                fieldMeanings[*row] = "Unused";
+                fullyUsedValues[fieldval]--;
+                if(numAllowed == 1)
+                {
+                    item->setToolTip("The \"" + fieldval + "\" field has already been assigned."
+                                     "\nSelecting this will de-select it elsewhere.");
+                }
+                else
+                {
+                    item->setToolTip("All " + QString::number(numAllowed) + " \"" + fieldval + "\" fields have already been assigned."
+                                     "\nSelecting this will de-select it elsewhere.");
+                }
+            }
+            else if((fullyUsedValues[fieldval] == 1) && (box->currentText() != fieldval))
+            {
+                // at capacity, and not selected in this box
+                item->setForeground(Qt::darkRed);
+                if(numAllowed == 1)
+                {
+                    item->setToolTip("The \"" + fieldval + "\" field has already been assigned."
+                                     "\nSelecting this will de-select it elsewhere.");
+                }
+                else
+                {
+                    item->setToolTip("All " + QString::number(numAllowed) + " \"" + fieldval + "\" fields have already been assigned."
+                                     "\nSelecting this will de-select it elsewhere.");
+                }
+            }
+            else if(fieldval != "Unused")
+            {
+                // below capacity or at capacity including this one
+                item->setForeground(Qt::black);
+                item->setToolTip("");
+            }
+        }
+
+        // clearing formatting of all unchosen items except "Unused"
+        for(int itemNum = 0; itemNum < box->count(); itemNum++)
+        {
+            if((takenValues.count(box->itemText(itemNum)) == 0) && (box->itemText(itemNum) != "Unused"))
+            {
+                model->item(itemNum)->setForeground(Qt::black);
+                model->item(itemNum)->setToolTip("");
+            }
+        }
+        box->blockSignals(false);
+    }
+}
+
+
+//////////////////
 // Read one line from the file
 //////////////////
 QStringList CsvFile::getLine(const int minFields)
@@ -195,7 +334,7 @@ QStringList CsvFile::getLine(const int minFields)
 
 
 //////////////////
-// Read one line from a textStream, smartly handling commas within fields that are enclosed by quotation marks; returns fields as list of strings
+// Static function: Read one line from a textStream, smartly handling commas within fields that are enclosed by quotation marks; returns fields as list of strings
 //////////////////
 QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields)
 {

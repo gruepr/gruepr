@@ -1341,7 +1341,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
 
     int numFields = 4 + (internalDataOptions.genderIncluded?1:0) + (internalDataOptions.URMIncluded?1:0) + (internalDataOptions.sectionIncluded?1:0) +
                          internalDataOptions.numAttributes + (internalDataOptions.prefTeammatesIncluded?1:0) +
-                        (internalDataOptions.prefNonTeammatesIncluded?1:0) + (internalDataOptions.notesIncluded?1:0);
+                        (internalDataOptions.prefNonTeammatesIncluded?1:0) + ((internalDataOptions.numNotes > 0)?1:0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[numFields];
     datamultiline = new QPlainTextEdit[numFields];
@@ -1472,7 +1472,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         field++;
     }
 
-    if(internalDataOptions.notesIncluded)
+    if(internalDataOptions.numNotes > 0)
     {
         explanation[field].setText(tr("Notes"));
         datamultiline[field].setPlainText(student.notes);
@@ -1568,7 +1568,7 @@ void editOrAddStudentDialog::recordEdited()
         student.prefNonTeammates = datamultiline[field].toPlainText();
         field++;
     }
-    if(internalDataOptions.notesIncluded)
+    if(internalDataOptions.numNotes > 0)
     {
         student.notes = datatext[field].text();
         field++;

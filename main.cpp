@@ -46,12 +46,10 @@
 // - ancestors of elites now created (using elite genome as mom and dad)
 // - code modernization and organization
 // - moved code to Qt v5.15 standards
-// - add "load roster" option to populate student table or compare with existing data
-//
-// IN PROGRESS:
+// - add "load roster" option to compare against survey data, updating email addresses and offering to add missing students and remove extra students
 // - use csv import dialog box to select columns when loading survey
 // - allow for section question later in the "additional questions"
-// - reduce time for removing many students when comparing roster to existing survey data
+//
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed

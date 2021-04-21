@@ -78,7 +78,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         QString note = prefNonTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Non-teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions->notesIncluded)
+    if(dataOptions->numNotes > 0)
     {
         QString note = notes;
         if(note.size() > 300)

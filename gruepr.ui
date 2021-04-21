@@ -1924,6 +1924,9 @@ Identities</string>
    </property>
   </action>
   <action name="actionLoad_Student_Roster">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="gruepr.qrc">
      <normaloff>:/icons/loadRoster.png</normaloff>:/icons/loadRoster.png</iconset>
@@ -1932,7 +1935,7 @@ Identities</string>
     <string>Load Student Roster...</string>
    </property>
    <property name="toolTip">
-    <string>Load student names and email addresses from a csv file containing a class roster.</string>
+    <string>Compare the student names and email addresses to a class roster csv file.</string>
    </property>
   </action>
  </widget>

@@ -40,7 +40,7 @@ private slots:
     void loadStudentRoster();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
     void on_studentTable_cellEntered(int row, int column);
-    void removeAStudent(const QString &name = "");
+    void removeAStudent(const QString &name = "", bool delayVisualUpdate = false);
     void editAStudent();
     void on_addStudentPushButton_clicked();
     void on_saveSurveyFilePushButton_clicked();

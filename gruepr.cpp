@@ -206,121 +206,121 @@ void gruepr::loadStudentRoster()
         QStringList names, emails;
         if(loadRosterData(rosterFile, names, emails))
         {
-            if(dataOptions->numStudentsInSystem != 0)       // some students already loaded; check against records and add / offer to remove as appropriate
+            // load all current names and then later remove them as they're found
+            QStringList namesNotFound;
+            namesNotFound.reserve(dataOptions->numStudentsInSystem);
+            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
             {
-                // load all current names and then later remove them as they're found
-                QStringList namesNotFound;
-                namesNotFound.reserve(dataOptions->numStudentsInSystem);
-                for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+                namesNotFound << student[ID].firstname + " " + student[ID].lastname;
+            }
+
+            for(auto &name : names)
+            {
+                int knownStudent = 0;     // start at first student in database and look until we find a matching firstname + " " +last name
+                while((knownStudent < dataOptions->numStudentsInSystem) &&
+                      (name.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
                 {
-                    namesNotFound << student[ID].firstname + " " + student[ID].lastname;
+                    knownStudent++;
                 }
 
-                for(auto &name : names)
+                if(knownStudent != dataOptions->numStudentsInSystem)
                 {
-                    int knownStudent = 0;     // start at first student in database and look until we find a matching firstname + " " +last name
-                    while((knownStudent < dataOptions->numStudentsInSystem) &&
-                          (name.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                    // Exact match found
+                    namesNotFound.removeAll(student[knownStudent].firstname + " " + student[knownStudent].lastname);
+                    if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
                     {
-                        knownStudent++;
+                        // Email in survey doesn't match roster. For now, replace email with roster value. In the future, make this an option with a dialog that asks.
+                        student[knownStudent].email = emails.at(names.indexOf(name));
                     }
-
-                    if(knownStudent != dataOptions->numStudentsInSystem)
+                }
+                else
+                {
+                    // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
+                    auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, true, this);
+                    if(choiceWindow->exec() == QDialog::Accepted)   // not ignoring this student
                     {
-                        // Exact match found
-                        namesNotFound.removeAll(student[knownStudent].firstname + " " + student[knownStudent].lastname);
-                        if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
+                        if(choiceWindow->addStudent)    // add as a new student
                         {
-                            // Email in survey doesn't match roster. For now, replace email with roster value. In the future, make this an option with a dialog that asks.
-                            student[knownStudent].email = emails.at(names.indexOf(name));
+                            student[dataOptions->numStudentsInSystem].ID = dataOptions->numStudentsInSystem;
+                            student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
+                            student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
+                            student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
+                            student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
+                            for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+                            {
+                                student[dataOptions->numStudentsInSystem].attributeVal[attribute] = -1;
+                            }
+                            dataOptions->numStudentsInSystem++;
+                            numStudents = dataOptions->numStudentsInSystem;
+
+                            //Enable save data file option, since data set is now edited
+                            ui->saveSurveyFilePushButton->setEnabled(true);
+                            ui->actionSave_Survey_File->setEnabled(true);
+
+                            refreshStudentDisplay();
+                            ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+
+                            ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
+                            on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
                         }
+                        else    // selected an inexact match
+                        {
+                            namesNotFound.removeAll(choiceWindow->namesList->currentText());
+                            knownStudent = 0;
+                            while(choiceWindow->namesList->currentText() != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
+                            {
+                                knownStudent++;
+                            }
+                            if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
+                            {
+                                // Email in survey doesn't match roster. For now, replace email with roster value. In the future, make this an option with a dialog that asks.
+                                student[knownStudent].email = emails.at(names.indexOf(name));
+                            }
+                        }
+                    }
+                    delete choiceWindow;
+                }
+            }
+
+            bool keepAsking = true, deleteTheStudent = false;
+            int i = 0;
+            for(auto &name : namesNotFound)
+            {
+                if(keepAsking)
+                {
+                    auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
+                                                               "<b>" + name + "</b>" + tr(" was not found in the roster file.<br>Should this record be kept or deleted?"),
+                                                               QMessageBox::Ok | QMessageBox::Cancel, this);
+                    keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep") + " " + name);
+                    connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
+                    keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Delete") + " " + name);
+                    connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
+                    auto *applyToAll = new QCheckBox(tr("Apply to all (") + QString::number(namesNotFound.size() - i) + tr(" remaining)"));
+                    keepOrDeleteWindow->setCheckBox(applyToAll);
+                    connect(applyToAll, &QCheckBox::stateChanged, this, [&keepAsking](int state){keepAsking = (static_cast<Qt::CheckState>(state) == Qt::CheckState::Unchecked);});
+
+                    if(keepOrDeleteWindow->exec() == QDialog::Rejected)
+                    {
+                        deleteTheStudent = true;
+                        removeAStudent(name);
                     }
                     else
                     {
-                        // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
-                        auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, true, this);
-                        if(choiceWindow->exec() == QDialog::Accepted)   // not ignoring this student
-                        {
-                            if(choiceWindow->addStudent)    // add as a new student
-                            {
-                                student[dataOptions->numStudentsInSystem].ID = dataOptions->numStudentsInSystem;
-                                student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
-                                student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
-                                student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
-                                student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
-                                for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-                                {
-                                    student[dataOptions->numStudentsInSystem].attributeVal[attribute] = -1;
-                                }
-                                dataOptions->numStudentsInSystem++;
-                                numStudents = dataOptions->numStudentsInSystem;
-
-                                //Enable save data file option, since data set is now edited
-                                ui->saveSurveyFilePushButton->setEnabled(true);
-                                ui->actionSave_Survey_File->setEnabled(true);
-
-                                refreshStudentDisplay();
-                                ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
-
-                                ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
-                                on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
-                            }
-                            else    // selected an inexact match
-                            {
-                                namesNotFound.removeAll(choiceWindow->namesList->currentText());
-                                knownStudent = 0;
-                                while(choiceWindow->namesList->currentText() != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
-                                {
-                                    knownStudent++;
-                                }
-                                if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
-                                {
-                                    // Email in survey doesn't match roster. For now, replace email with roster value. In the future, make this an option with a dialog that asks.
-                                    student[knownStudent].email = emails.at(names.indexOf(name));
-                                }
-                            }
-                        }
-                        delete choiceWindow;
+                        deleteTheStudent = false;
                     }
-                }
 
-                bool keepAsking = true, deleteTheStudent = false;
-                int i = 0;
-                for(auto &name : namesNotFound)
+                    delete keepOrDeleteWindow;
+                }
+                else if(deleteTheStudent)
                 {
-                    if(keepAsking)
-                    {
-                        auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
-                                                                   "<b>" + name + "</b>" + tr(" was not found in the roster file.<br>Should this record be kept or deleted?"),
-                                                                   QMessageBox::Ok | QMessageBox::Cancel, this);
-                        keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep"));
-                        connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
-                        keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Delete"));
-                        connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
-                        auto *applyToAll = new QCheckBox(tr("Apply to all (") + QString::number(namesNotFound.size() - i) + tr(" remaining)"));
-                        keepOrDeleteWindow->setCheckBox(applyToAll);
-                        connect(applyToAll, &QCheckBox::stateChanged, this, [&keepAsking](int state){keepAsking = (static_cast<Qt::CheckState>(state) == Qt::CheckState::Unchecked);});
-
-                        if(keepOrDeleteWindow->exec() == QDialog::Rejected)
-                        {
-                            deleteTheStudent = true;
-                            removeAStudent(name);
-                        }
-                        else
-                        {
-                            deleteTheStudent = false;
-                        }
-
-                        delete keepOrDeleteWindow;
-                    }
-                    else if(deleteTheStudent)
-                    {
-                        removeAStudent(name);
-                    }
-                    i++;
+                    removeAStudent(name, i != namesNotFound.size()-1);
                 }
+                i++;
             }
-            else    // no student records already; treat this as if survey file with only names and emails
+
+/* This code is useful if allowing to load a roster without already loading survey
+ * If using, put the code above (up to the if(loadRosterData()) inside an else{} below this if{}
+            if(dataOptions->numStudentsInSystem == 0)       // no student records already; treat this as if survey file with only names and emails
             {
 
                 if(names.size() < 4)
@@ -354,6 +354,8 @@ void gruepr::loadStudentRoster()
 
                 loadUI();
             }
+*/
+
         }
         rosterFile.close();
     }
@@ -701,7 +703,7 @@ void gruepr::editAStudent()
 }
 
 
-void gruepr::removeAStudent(const QString &name)
+void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
 {
     int knownID;
 
@@ -756,8 +758,11 @@ void gruepr::removeAStudent(const QString &name)
     ui->saveSurveyFilePushButton->setEnabled(true);
     ui->actionSave_Survey_File->setEnabled(true);
 
-    refreshStudentDisplay();
-    ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+    if(!delayVisualUpdate)
+    {
+        refreshStudentDisplay();
+        ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+    }
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
@@ -939,7 +944,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
             {
                 out << ",Please list name(s) of people you would like to not have on your team";
             }
-            if(dataOptions->notesIncluded)
+            if(dataOptions->numNotes > 0)
             {
                 out << ",Notes";
             }
@@ -1016,7 +1021,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                 {
                     out << ",\"" << student[ID].prefNonTeammates.replace('\n',";") << "\"";
                 }
-                if(dataOptions->notesIncluded)
+                if(dataOptions->numNotes > 0)
                 {
                     out << ",\"" << student[ID].notes << "\"";
                 }
@@ -1408,7 +1413,10 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
     ui->teamSizeBox->addItem(tr("Custom team sizes"));
 
     // if we have fewer than 4 students somehow, disable the form teams button
-    ui->letsDoItButton->setEnabled(numStudents >= 4);
+    if(numStudents < 4)
+    {
+        ui->letsDoItButton->setEnabled(false);
+    }
 }
 
 
@@ -2438,6 +2446,7 @@ void gruepr::resetUI()
     ui->actionCreate_Teams->setEnabled(false);
     ui->saveTeamsButton->setEnabled(false);
     ui->printTeamsButton->setEnabled(false);
+    ui->actionLoad_Student_Roster->setEnabled(false);
     ui->actionSave_Teams->setEnabled(false);
     ui->actionPrint_Teams->setEnabled(false);
 }
@@ -2449,6 +2458,7 @@ void gruepr::resetUI()
 void gruepr::loadUI()
 {
     statusBarLabel->setText("File: " + dataOptions->dataFile.fileName());
+    ui->actionLoad_Student_Roster->setEnabled(true);
     ui->studentTable->setEnabled(true);
     ui->addStudentPushButton->setEnabled(true);
     ui->teamDataLayout->setEnabled(true);
@@ -2613,148 +2623,95 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             return false;
         }
 
-        // Start parsing the header row names to get assumed meanings of columns
-        // Read the optional gender/URM/attribute questions
-        int fieldnum = 4;           // skipping past required fields: timestamp(0), first name(1), last name(2), email address(3)
-        QString field = surveyFile.headerValues.at(fieldnum).toUtf8();
-        // See if gender data is included
-        if(field.contains(tr("gender"), Qt::CaseInsensitive))
+        // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
+        auto lastKnownMeaningfulField = QRegularExpression("(.*(name).*(like to not have on your team).*)|"
+                                                           "(.*(name).*(like to have on your team).*)|.*(in which section are you enrolled).*|"
+                                                           "(.*(check).+(times).+)", QRegularExpression::CaseInsensitiveOption);
+        int notesFieldsProbBeginAt = 1 + surveyFile.headerValues.lastIndexOf(lastKnownMeaningfulField);
+        if((notesFieldsProbBeginAt != -1) && (notesFieldsProbBeginAt != surveyFile.headerValues.size()))
         {
-            dataOptions->genderIncluded = true;
-            fieldnum++;
-            field = surveyFile.headerValues.at(fieldnum).toUtf8();
-        }
-        else
-        {
-            dataOptions->genderIncluded = false;
-        }
-
-        // See if URM data is included
-        if(field.contains(tr("minority"), Qt::CaseInsensitive) || field.contains(tr("ethnic"), Qt::CaseInsensitive))
-        {
-            dataOptions->URMIncluded = true;
-            fieldnum++;
-            field = surveyFile.headerValues.at(fieldnum).toUtf8();
-        }
-        else
-        {
-            dataOptions->URMIncluded = false;
-        }
-
-        // Count the number of attributes by counting number of questions from here until one reaches
-        // "...check...times...", "in which section are you enrolled", "name...you would like...on your team", or end-of-line.
-        // Save these attribute question texts, if any, into string list.
-        dataOptions->numAttributes = 0;                              // how many skill/attitude rankings are there?
-        while(!(field.contains(QRegularExpression(".*(check).+(times).+", QRegularExpression::CaseInsensitiveOption)))
-              && !(field.contains("in which section are you enrolled", Qt::CaseInsensitive))
-              && !(field.contains(QRegularExpression(".*(name).+(you would like).+(on your team).+", QRegularExpression::CaseInsensitiveOption)))
-              && (fieldnum < TotNumQuestions) )
-        {
-            dataOptions->attributeQuestionText << field;
-            dataOptions->numAttributes++;
-            fieldnum++;
-            if(fieldnum < TotNumQuestions)
+            //if notesFieldsProbBeginAt == -1 then none of these questions exist, so assume no notes, just attributes
+            //and if notesFieldsProbBeginAt == headervalues size then one of these questions is the last one, so assume no notes
+            for(int field = notesFieldsProbBeginAt; field < surveyFile.fieldMeanings.size(); field++)
             {
-                field = surveyFile.headerValues.at(fieldnum).toUtf8();				// move on to next field
+                surveyFile.fieldMeanings[field] = "Notes";
             }
         }
 
-        // Count the number of days in the schedule by counting number of questions that includes "...check...times..."
-        // Save the day names and save which fields they are for use later in getting the time names
-        QVector<int> scheduleFields;
-        while(field.contains(QRegularExpression(".*(check).+(times).+", QRegularExpression::CaseInsensitiveOption)) && fieldnum < TotNumQuestions)
+        // Ask user what the columns mean
+        QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                        {"Last Name", "((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
+                                                        {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                        {"Schedule", "(check).+(times)", 7}, {"Section", "in which section are you enrolled", 1},
+                                                        {"Preferred Teammates", "(name).*(like to have on your team)", 1},
+                                                        {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
+                                                        {"Attribute", ".*", 15}, {"Notes", "", MAX_NOTES_FIELDS}};
+        QApplication::restoreOverrideCursor();
+        if(surveyFile.chooseFieldMeaningsDialog(surveyFieldOptions, this)->exec() == QDialog::Rejected)
         {
-            if(field.contains(QRegularExpression(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption)))   // if >=1 field has this language, all interpreted as free time
+            return false;
+        }
+        QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+        // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
+        dataOptions->timestampField = surveyFile.fieldMeanings.indexOf("Timestamp");
+        dataOptions->firstNameField = surveyFile.fieldMeanings.indexOf("First Name");
+        dataOptions->lastNameField = surveyFile.fieldMeanings.indexOf("Last Name");
+        dataOptions->emailField = surveyFile.fieldMeanings.indexOf("Email Address");
+        dataOptions->genderField = surveyFile.fieldMeanings.indexOf("Gender");
+        dataOptions->genderIncluded = (dataOptions->genderField != -1);
+        dataOptions->URMField = surveyFile.fieldMeanings.indexOf("Racial/ethnic identity");
+        dataOptions->URMIncluded = (dataOptions->URMField != -1);
+        dataOptions->sectionField = surveyFile.fieldMeanings.indexOf("Section");
+        dataOptions->sectionIncluded = (dataOptions->sectionField != -1);
+        dataOptions->prefTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Teammates");
+        dataOptions->prefTeammatesIncluded = (dataOptions->prefTeammatesField != -1);
+        dataOptions->prefNonTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Non-teammates");
+        dataOptions->prefNonTeammatesIncluded = (dataOptions->prefNonTeammatesField != -1);
+
+        // get the notes fields
+        int lastFoundIndex = 0;
+        dataOptions->numNotes = surveyFile.fieldMeanings.count("Notes");
+        for(int note = 0; note < dataOptions->numNotes; note++)
+        {
+            dataOptions->notesField[note] = surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex);
+            lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex));
+        }
+        // get the attribute fields
+        lastFoundIndex = 0;
+        dataOptions->numAttributes = surveyFile.fieldMeanings.count("Attribute");
+        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+        {
+            dataOptions->attributeField[attribute] = surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex);
+            dataOptions->attributeQuestionText << surveyFile.headerValues.at(dataOptions->attributeField[attribute]);
+            lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex));
+        }
+        // get the schedule fields
+        lastFoundIndex = 0;
+        for(int scheduleQuestion = 0, numScheduleFields = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleFields; scheduleQuestion++)
+        {
+            dataOptions->scheduleField[scheduleQuestion] = surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex);
+            QString scheduleQuestionText = surveyFile.headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
+            if(scheduleQuestionText.contains(QRegularExpression(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption)))
             {
+                // if >=1 field has this language, all interpreted as free time
                 dataOptions->scheduleDataIsFreetime = true;
             }
-            QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at the end of the field (that's where Google Forms puts column titles in matrix questions)
-            QRegularExpressionMatch dayName = dayNameFinder.match(field);
+            QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at end of field (that's where Google Forms puts column titles in matrix questions)
+            QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
             if(dayName.hasMatch())
             {
                 dataOptions->dayNames << dayName.captured(1);
             }
             else
             {
-                dataOptions->dayNames << " " + QString::number(scheduleFields.size()+1) + " ";
+                dataOptions->dayNames << " " + QString::number(scheduleQuestion+1) + " ";
             }
-            scheduleFields << fieldnum;
-            fieldnum++;
-            if(fieldnum < TotNumQuestions)
-            {
-                field = surveyFile.headerValues.at(fieldnum).toUtf8();				// move on to next field
-            }
-        }
-
-        // Look for any remaining questions
-        if(TotNumQuestions > fieldnum)                                  // There is at least 1 additional field in header
-        {
-            field = surveyFile.headerValues.at(fieldnum).toUtf8();
-            if(field.contains("in which section are you enrolled", Qt::CaseInsensitive))    // next field is a section question
-            {
-                fieldnum++;
-                dataOptions->sectionIncluded = true;
-            }
-            else
-            {
-                dataOptions->sectionIncluded = false;
-            }
-            if(TotNumQuestions > fieldnum)                              // if there are any more fields
-            {
-                field = surveyFile.headerValues.at(fieldnum).toUtf8();
-                if(field.contains(QRegularExpression(".*(name).*(you would like to have on your team).*", QRegularExpression::CaseInsensitiveOption)))
-                {
-                    fieldnum++;
-                    dataOptions->prefTeammatesIncluded = true;
-                }
-                else
-                {
-                    dataOptions->prefTeammatesIncluded = false;
-                }
-                if(TotNumQuestions > fieldnum)                          // if there are any more fields
-                {
-                    field = surveyFile.headerValues.at(fieldnum).toUtf8();
-                    if(field.contains(QRegularExpression(".*(name).*(you would like to not have on your team).*", QRegularExpression::CaseInsensitiveOption)))
-                    {
-                        fieldnum++;
-                        dataOptions->prefNonTeammatesIncluded = true;
-                    }
-                    else
-                    {
-                        dataOptions->prefNonTeammatesIncluded = false;
-                    }
-                    if(TotNumQuestions > fieldnum)                      // if there are any more fields
-                    {
-                        dataOptions->notesIncluded = true;
-                    }
-                    else
-                    {
-                        dataOptions->notesIncluded = false;
-                    }
-                }
-                else
-                {
-                    dataOptions->prefNonTeammatesIncluded = false;
-                    dataOptions->notesIncluded = false;
-                }
-            }
-            else
-            {
-                dataOptions->prefTeammatesIncluded = false;
-                dataOptions->prefNonTeammatesIncluded = false;
-                dataOptions->notesIncluded = false;
-            }
-        }
-        else
-        {
-            dataOptions->sectionIncluded = false;
-            dataOptions->prefTeammatesIncluded = false;
-            dataOptions->prefNonTeammatesIncluded = false;
-            dataOptions->notesIncluded = false;
+            lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex));
         }
 
         // read one line of data; if no data after header row then file is invalid
-        if(!surveyFile.readDataRow(TotNumQuestions))
+        if(!surveyFile.readDataRow())
         {
             QMessageBox::critical(this, tr("Insufficient number of students."),
                                   tr("There are no survey responses in this file."), QMessageBox::Ok);
@@ -2768,9 +2725,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             QStringList allTimeNames;
             do
             {
-                for(auto i : qAsConst(scheduleFields))
+                for(int scheduleQuestion = 0; scheduleQuestion < surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion++)
                 {
-                    QString scheduleFieldText = QString(surveyFile.fieldValues.at(i).toUtf8()).toLower().split(';').join(',');
+                    QString scheduleFieldText = QString(surveyFile.fieldValues.at(dataOptions->scheduleField[scheduleQuestion]).toUtf8()).toLower().split(';').join(',');
                     QTextStream scheduleFieldStream(&scheduleFieldText);
                     allTimeNames << CsvFile::getLine(scheduleFieldStream);
                 }
@@ -2788,7 +2745,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         // Having read the header row and determined time names, if any, read each remaining row as a student record
         surveyFile.readHeader();    // put cursor back to end of header row
         numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
-        while(surveyFile.readDataRow(TotNumQuestions) && numStudents < MAX_STUDENTS)
+        while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS)
         {
             student[numStudents] = parseOneRecord(surveyFile.fieldValues);
             student[numStudents].ID = numStudents;
@@ -2906,14 +2863,14 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         if(numStudents == MAX_STUDENTS)
         {
             QMessageBox::warning(this, tr("Reached maximum number of students."),
-                                 tr("The maximum number of students have been read from the file."
-                                " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
+                                       tr("The maximum number of students have been read from the file."
+                                       " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
         }
         else if(numStudents < 4)
         {
             QMessageBox::critical(this, tr("Insufficient number of students."),
-                                  tr("There are not enough survey responses in the file."
-                                " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
+                                        tr("There are not enough survey responses in the file."
+                                        " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
             //reset the data
             delete[] student;
             student = new StudentRecord[MAX_STUDENTS];
@@ -2942,67 +2899,52 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
 {
     StudentRecord student;
 
-    // fields are: 1) timestamp, 2) firstname, 3) lastname, 4) email, 5) gender, 5-6) URM, 5-15) attributes, 5-22) days in schedule, 5-23) section, 5-24) notes
-
-    // first 4 fields: timestamp, first or preferred name, last name, email address
-    int fieldnum = 0;
-    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Form
-    if(student.surveyTimestamp.isNull())
+    int fieldnum = dataOptions->timestampField;
+    if(fieldnum != -1)
     {
-        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum).left(fields.at(fieldnum).lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Form
+        const QString &timestampText = fields.at(fieldnum);
+        QVector<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::SystemLocaleShortDate, Qt::SystemLocaleLongDate, Qt::RFC2822Date};
+
+        student.surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
         if(student.surveyTimestamp.isNull())
         {
-            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), TIMESTAMP_FORMAT3);   // format when downloaded from Results Spreadsheet
+            student.surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Google Form
             if(student.surveyTimestamp.isNull())
             {
-                student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), TIMESTAMP_FORMAT4);   // format when saving a csv edited in Excel
+                student.surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT3);
                 if(student.surveyTimestamp.isNull())
                 {
-                    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::TextDate);
-                    if(student.surveyTimestamp.isNull())
+                    student.surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT4);
+                    int i = 0;
+                    while(i < stdTimestampFormats.size() && student.surveyTimestamp.isNull())
                     {
-                        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::ISODate);
-                        if(student.surveyTimestamp.isNull())
-                        {
-                            student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::ISODateWithMs);
-                            if(student.surveyTimestamp.isNull())
-                            {
-                                student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::SystemLocaleShortDate);
-                                if(student.surveyTimestamp.isNull())
-                                {
-                                    student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::SystemLocaleLongDate);
-                                    if(student.surveyTimestamp.isNull())
-                                    {
-                                        student.surveyTimestamp = QDateTime::fromString(fields.at(fieldnum), Qt::RFC2822Date);
-                                        if(student.surveyTimestamp.isNull())
-                                        {
-                                            student.surveyTimestamp = QDateTime::currentDateTime();
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        student.surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
+                        i++;
                     }
                 }
             }
         }
     }
+    if(student.surveyTimestamp.isNull())
+    {
+        student.surveyTimestamp = QDateTime::currentDateTime();
+    }
 
-    fieldnum++;
+    fieldnum = dataOptions->firstNameField;
     student.firstname = fields.at(fieldnum).toUtf8().trimmed();
     student.firstname[0] = student.firstname[0].toUpper();
 
-    fieldnum++;
+    fieldnum = dataOptions->lastNameField;
     student.lastname = fields.at(fieldnum).toUtf8().trimmed();
     student.lastname[0] = student.lastname[0].toUpper();
 
-    fieldnum++;
+    fieldnum = dataOptions->emailField;
     student.email = fields.at(fieldnum).toUtf8().trimmed();
 
-    // optional 5th field in line; might be the gender
-    fieldnum++;
+    // optional gender
     if(dataOptions->genderIncluded)
     {
+        fieldnum = dataOptions->genderField;
         QString field = fields.at(fieldnum).toUtf8();
         if(field.contains(tr("woman"), Qt::CaseInsensitive) || field.contains(tr("female"), Qt::CaseInsensitive))
         {
@@ -3022,43 +2964,43 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
         {
             student.gender = StudentRecord::unknown;
         }
-        fieldnum++;
     }
     else
     {
         student.gender = StudentRecord::unknown;
     }
 
-    // optional next field in line; might be underrpresented minority status
+    // optional race/ethnicity status
     if(dataOptions->URMIncluded)
     {
+        fieldnum = dataOptions->URMField;
         QString field = fields.at(fieldnum).toUtf8().toLower().simplified();
         if(field == "")
         {
             field = tr("--");
         }
         student.URMResponse = field;
-        fieldnum++;
     }
     else
     {
         student.URM = false;
     }
 
-    // optional next fields in line; might be the attributes
+    // optional attributes
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
+        fieldnum = dataOptions->attributeField[attribute];
         QString field = fields.at(fieldnum).toUtf8();
         field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
         student.attributeResponse[attribute] = field;
-        fieldnum++;
     }
 
-    // next 0-7 fields; might be the schedule
+    // optional schedule days
     const int numDays = dataOptions->dayNames.size();
     const int numTimes = dataOptions->timeNames.size();
     for(int day = 0; day < numDays; day++)
     {
+        fieldnum = dataOptions->scheduleField[day];
         QString field = fields.at(fieldnum).toUtf8();
         QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
         for(int time = 0; time < numTimes; time++)
@@ -3070,7 +3012,6 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
                 student.unavailable[(day*numTimes)+time] = !student.unavailable[(day*numTimes)+time];
             }
         }
-        fieldnum++;
     }
     if(!dataOptions->dayNames.isEmpty())
     {
@@ -3095,39 +3036,44 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
     }
     student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (numDays * numTimes));
 
-    // optional next field; might be section
+    // optional section
     if(dataOptions->sectionIncluded)
     {
+        fieldnum = dataOptions->sectionField;
         student.section = fields.at(fieldnum).toUtf8().trimmed();
         if(student.section.startsWith("section",Qt::CaseInsensitive))
         {
             student.section = student.section.right(student.section.size()-7).trimmed();    //removing as redundant the word "section" if at the start of the section name
         }
-        fieldnum++;
     }
 
-    // optional next field; might be preferred teammates (in comma-separated list?)
+    // optional preferred teammates
     if(dataOptions->prefTeammatesIncluded)
     {
+        fieldnum = dataOptions->prefTeammatesField;
         student.prefTeammates = fields.at(fieldnum).toUtf8();
         student.prefTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
         student.prefTeammates = student.prefTeammates.trimmed();
-        fieldnum++;
     }
 
-    // optional next field; might be preferred non-teammates (in comma-separated list?)
+    // optional preferred non-teammates
     if(dataOptions->prefNonTeammatesIncluded)
     {
+        fieldnum = dataOptions->prefNonTeammatesField;
         student.prefNonTeammates = fields.at(fieldnum).toUtf8();
         student.prefNonTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
         student.prefNonTeammates = student.prefNonTeammates.trimmed();
-        fieldnum++;
     }
 
-    // optional next field; might be notes
-    if(dataOptions->notesIncluded)
+    // optional notes
+    for(int note = 0; note < dataOptions->numNotes; note++)
     {
-        student.notes = fields.mid(fieldnum).join('\n').toUtf8().trimmed();     //all remaining fields
+        fieldnum = dataOptions->notesField[note];
+        if(note > 0)
+        {
+            student.notes += "\n";
+        }
+        student.notes += fields.at(fieldnum).toUtf8().trimmed();     // join each one with a newline after
     }
 
     return student;
@@ -3149,9 +3095,12 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
 
     // Ask user what the columns mean
     // Preloading the selector boxes with "unused" except first time "email", "first name", "last name", and "name" are found
-    QStringList options = {"First Name", "Last Name", "Email Address", "Full Name (First Last)", "Full Name (Last, First)"};
-    QStringList matchPatterns = {".*((first)|(given)|(preferred)).*(name).*", ".*((last)|(sur)|(family)).*(name).*", ".*(e).*(mail).*", ".*(name).*"};
-    if(rosterFile.chooseFieldMeaningsDialog(options, matchPatterns)->exec() == QDialog::Rejected)
+    QVector<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                     {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
+                                                     {"Email Address", "(e).*(mail)", 1},
+                                                     {"Full Name (First Last)", "(name)", 1},
+                                                     {"Full Name (Last, First)", "(name)", 1}};;
+    if(rosterFile.chooseFieldMeaningsDialog(rosterFieldOptions, this)->exec() == QDialog::Rejected)
     {
         return false;
     }
