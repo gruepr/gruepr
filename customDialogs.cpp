@@ -62,6 +62,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     currentListOfTeammatesTable = new QTableWidget(this);
     currentListOfTeammatesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     currentListOfTeammatesTable->setSelectionMode(QAbstractItemView::NoSelection);
+    currentListOfTeammatesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     currentListOfTeammatesTable->setAlternatingRowColors(true);
     currentListOfTeammatesTable->setStyleSheet(
             "QTableView{gridline-color: black;}"
@@ -932,6 +933,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     teamSizesTable = new QTableWidget(this);
     teamSizesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     teamSizesTable->setSelectionMode(QAbstractItemView::NoSelection);
+    teamSizesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     teamSizesTable->setShowGrid(false);
     teamSizesTable->setAlternatingRowColors(true);
     teamSizesTable->setStyleSheet("QTableView::item{border-bottom: 1px solid black; padding: 10px;}");
@@ -1047,6 +1049,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
     teamNamesTable = new QTableWidget(this);
     teamNamesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     teamNamesTable->setSelectionMode(QAbstractItemView::NoSelection);
+    teamNamesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     teamNamesTable->setShowGrid(false);
     teamNamesTable->setAlternatingRowColors(true);
     teamNamesTable->setStyleSheet("QTableView::item{border-bottom: 1px solid black; padding: 10px;}");
@@ -1830,6 +1833,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     URMResponsesTable = new QTableWidget(this);
     URMResponsesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     URMResponsesTable->setSelectionMode(QAbstractItemView::NoSelection);
+    URMResponsesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     URMResponsesTable->verticalHeader()->setHidden(true);
     URMResponsesTable->horizontalHeader()->setHidden(true);
     URMResponsesTable->setAlternatingRowColors(true);

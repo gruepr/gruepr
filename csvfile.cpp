@@ -144,6 +144,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     table = new QTableWidget(numFields, 2, window);
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionMode(QAbstractItemView::NoSelection);
+    table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     table->verticalHeader()->hide();
     table->setAlternatingRowColors(true);
     table->setShowGrid(false);
@@ -154,7 +155,8 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     // a label and combobox for each column
     table->horizontalHeader()->show();
     table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    table->setHorizontalHeaderLabels(QStringList({"<b>Header Text</b>","<b>Category</b>"}));
+    table->horizontalHeader()->setStyleSheet("QHeaderView{font: bold large}");
+    table->setHorizontalHeaderLabels(QStringList({"Header Text","Category"}));
     for(int row = 0; row < numFields; row++)
     {
         auto *label = new QLabel();
@@ -239,7 +241,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
             // add this occurence in the takenValues mapping
             if(fullyUsedValues.count(selection) == 0)
             {
-                // first ocurrence of this field; create the key/value
+                // field has just reached capacity; create the key/value
                 fullyUsedValues[selection] = 1;
             }
             else
