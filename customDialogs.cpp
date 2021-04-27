@@ -2,13 +2,13 @@
 #include "Levenshtein.h"
 #include <QCollator>
 #include <QFileDialog>
-#include <QHeaderView>
 #include <QMessageBox>
 #include <QMovie>
 #include <QStandardItemModel>
 #include <QTextStream>
 #include <QTimer>
 #include <QToolTip>
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog window to select sets of required, prevented, or requested teammates
@@ -849,6 +849,7 @@ void gatherTeammatesDialog::refreshDisplay()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to select a name from a list when a perfect match is not found
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 findMatchingNameDialog::findMatchingNameDialog(int numStudents, StudentRecord *student, const QString &searchName, const bool addStudentOption, QWidget *parent)
     :QDialog(parent)
 {
@@ -902,21 +903,16 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, StudentRecord *s
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize, QWidget *parent)
-    :QDialog (parent)
+    :listTableDialog(tr("Choose custom team sizes"), true, true, parent)
 {
     this->numStudents = numStudents;
     //At most, there are as many teams as students
     teamsizes = new int[numStudents];
     teamsizeBox = new QSpinBox[numStudents];
 
-    //Set up window with a grid layout
-    setWindowTitle(tr("Choose custom team sizes"));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    setSizeGripEnabled(true);
     setMinimumSize(200, 200);
-    theGrid = new QGridLayout(this);
 
-    //Rows 1-2 - the number of teams selector and a spacer
+    //Rows 1&2 - the number of teams selector and a spacer
     numTeamsLabel.setText(tr("Number of teams: "));
     theGrid->addWidget(&numTeamsLabel, 0, 0, 1, 1, Qt::AlignRight);
     for(int i = 0; i < numStudents; i++)
@@ -927,46 +923,26 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     numTeamsBox.setCurrentIndex(startingNumTeams);
     connect(&numTeamsBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &customTeamsizesDialog::refreshDisplay);
     theGrid->addWidget(&numTeamsBox, 0, 1, 1, -1, Qt::AlignLeft);
-    theGrid->setRowMinimumHeight(1, 20);
+    addSpacerRow(1);
 
     //Row 3 - table of the size choices
-    teamSizesTable = new QTableWidget(this);
-    teamSizesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    teamSizesTable->setSelectionMode(QAbstractItemView::NoSelection);
-    teamSizesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    teamSizesTable->setShowGrid(false);
-    teamSizesTable->setAlternatingRowColors(true);
-    teamSizesTable->setStyleSheet("QTableView::item{border-bottom: 1px solid black; padding: 10px;}");
-    teamSizesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    teamSizesTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    teamSizesTable->horizontalHeader()->setHidden(true);
-    teamSizesTable->verticalHeader()->setHidden(true);
-    teamSizesTable->setRowCount(numStudents);
-    teamSizesTable->setColumnCount(2);
-    teamSizesTable->horizontalHeader()->setStretchLastSection(true);;
-    theGrid->addWidget(teamSizesTable, 2, 0, 1, -1);
-
+    theTable->setRowCount(numStudents);
     for(int i = 0; i < numStudents; i++)
     {
-        teamSizesTable->setCellWidget(i, 0, new QLabel(tr("Team ") + QString::number(i+1) + " "));
+        theTable->setCellWidget(i, 0, new QLabel(tr("Team ") + QString::number(i+1) + " "));
         teamsizeBox[i].setRange(1, numStudents);
         teamsizeBox[i].setValue(idealTeamsize);
         QFontMetrics fm(teamsizeBox[i].font());
         teamsizeBox[i].setMaximumWidth(fm.horizontalAdvance(QString::number(numStudents*100)) + 20);
         connect(&teamsizeBox[i], QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::teamsizeChanged);
-        teamSizesTable->setCellWidget(i, 1, &teamsizeBox[i]);
+        theTable->setCellWidget(i, 1, &teamsizeBox[i]);
     }
-    teamSizesTable->resizeColumnsToContents();
-    teamSizesTable->adjustSize();
+    theTable->resizeColumnToContents(0);
+    theTable->adjustSize();
 
-    //Rows 4 - 7 - a spacer then remaining students label then a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(3, 20);
+    //Rows 4&5 - a spacer and remaining students label
+    addSpacerRow(3);
     theGrid->addWidget(&remainingStudents, 4, 0, 1, -1, Qt::AlignCenter);
-    theGrid->setRowMinimumHeight(5, 20);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, 6, 0, 1, -1);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     refreshDisplay(numTeamsBox.currentIndex());
     adjustSize();
@@ -993,11 +969,11 @@ void customTeamsizesDialog::refreshDisplay(int numTeamsBoxIndex)
         if(i < numTeams)
         {
             studentsOnATeamCount += teamsizeBox[i].value();
-            teamSizesTable->showRow(i);
+            theTable->showRow(i);
         }
         else
         {
-            teamSizesTable->hideRow(i);
+            theTable->hideRow(i);
         }
     }
     remainingStudents.setText(tr("Remaining students: ") + QString::number(numStudents-studentsOnATeamCount));
@@ -1011,9 +987,6 @@ void customTeamsizesDialog::refreshDisplay(int numTeamsBoxIndex)
         remainingStudents.setStyleSheet("QLabel { color : black; }");
         buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     }
-
-    teamSizesTable->adjustSize();
-    adjustSize();
 }
 
 
@@ -1033,58 +1006,33 @@ void customTeamsizesDialog::teamsizeChanged(int /*unused*/)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &teamNames, QWidget *parent)
-    :QDialog (parent)
+    :listTableDialog (tr("Choose custom team names"), true, true, parent)
 {
     this->numTeams = numTeams;
     teamName = new QLineEdit[numTeams];
 
-    //Set up window with a grid layout
-    setWindowTitle(tr("Choose custom team names"));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    setSizeGripEnabled(true);
     setMinimumSize(300, 300);
-    theGrid = new QGridLayout(this);
 
-    //Row 1 - the table of team names
-    teamNamesTable = new QTableWidget(this);
-    teamNamesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    teamNamesTable->setSelectionMode(QAbstractItemView::NoSelection);
-    teamNamesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    teamNamesTable->setShowGrid(false);
-    teamNamesTable->setAlternatingRowColors(true);
-    teamNamesTable->setStyleSheet("QTableView::item{border-bottom: 1px solid black; padding: 10px;}");
-    teamNamesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    teamNamesTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    teamNamesTable->horizontalHeader()->setHidden(true);
-    teamNamesTable->verticalHeader()->setHidden(true);
-    teamNamesTable->setRowCount(numTeams);
-    teamNamesTable->setColumnCount(2);
-    teamNamesTable->horizontalHeader()->setStretchLastSection(true);
-    theGrid->addWidget(teamNamesTable, 0, 0, 1, -1);
-
+    //Table of team names
+    theTable->setRowCount(numTeams);
     for(int i = 0; i < numTeams; i++)
     {
-        teamNamesTable->setCellWidget(i, 0, new QLabel(tr("Team ") + QString::number(i+1) + " "));
+        theTable->setCellWidget(i, 0, new QLabel(tr("Team ") + QString::number(i+1) + " "));
         teamName[i].setPlaceholderText(tr("Custom name"));
         if(i < teamNames.size())
         {
             teamName[i].setText((teamNames.at(i) == QString::number(i+1))? "" : teamNames.at(i));
         }
-        teamNamesTable->setCellWidget(i, 1, &teamName[i]);
+        theTable->setCellWidget(i, 1, &teamName[i]);
     }
-    teamNamesTable->resizeColumnToContents(0);
-    teamNamesTable->adjustSize();
+    theTable->resizeColumnToContents(0);
+    theTable->adjustSize();
 
-    //Rows 2 and 3 - a spacer then reset table/ok/cancel buttons
-    theGrid->setRowMinimumHeight(1, 20);
+    //A reset table button
     resetNamesButton = new QPushButton(this);
     resetNamesButton->setText(tr("&Clear All Names"));
-    theGrid->addWidget(resetNamesButton, 2, 0, 1, 1);
+    theGrid->addWidget(resetNamesButton, buttonBoxRowInGrid, 0, 1, 1);
     connect(resetNamesButton, &QPushButton::clicked, this, &customTeamnamesDialog::clearAllNames);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, 2, 1, 1, -1);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     adjustSize();
 }
@@ -1812,53 +1760,35 @@ void gatherIncompatibleResponsesDialog::clearAllValues()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMResponses, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
-    :QDialog (parent)
+    :listTableDialog (tr("Select underrepresented race/ethnicity responses"), true, true, parent)
 {
     URMResponsesConsideredUR = currURMResponsesConsideredUR;
 
-    //Set up window with a grid layout
-    setWindowTitle(tr("Select underrepresented race/ethnicity responses"));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    setSizeGripEnabled(true);
     setMinimumSize(300, 300);
 
-    theGrid = new QGridLayout(this);
-
+    // Rows 1&2 - explanation and spacer
     explanation = new QLabel(this);
     explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity. "
                             "Which of these should be considered underrepresented?<hr></html>"));
     explanation->setWordWrap(true);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
+    addSpacerRow(1);
 
-    URMResponsesTable = new QTableWidget(this);
-    URMResponsesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    URMResponsesTable->setSelectionMode(QAbstractItemView::NoSelection);
-    URMResponsesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    URMResponsesTable->verticalHeader()->setHidden(true);
-    URMResponsesTable->horizontalHeader()->setHidden(true);
-    URMResponsesTable->setAlternatingRowColors(true);
-    URMResponsesTable->setShowGrid(false);
-    URMResponsesTable->setStyleSheet("QTableView::item{border-bottom: 1px solid black;}");
-    URMResponsesTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    URMResponsesTable->horizontalHeader()->setStretchLastSection(true);
-    theGrid->addWidget(URMResponsesTable, 1, 0, 1, -1);
-
-    // a checkbox and a label for each response values
+    // In table, a checkbox and a label for each response values
     const int numResponses = URMResponses.size();
     enableValue = new QCheckBox[numResponses];
     responses = new QPushButton[numResponses];
-    URMResponsesTable->setRowCount(numResponses);
-    URMResponsesTable->setColumnCount(2);
+    theTable->setRowCount(numResponses);
     for(int response = 0; response < numResponses; response++)
     {
         const QString &responseText = URMResponses.at(response);
         enableValue[response].setChecked(URMResponsesConsideredUR.contains(responseText));
         enableValue[response].setStyleSheet("Text-align:center; margin-left:10%; margin-right:10%;");
-        URMResponsesTable->setCellWidget(response, 0, &enableValue[response]);
+        theTable->setCellWidget(response, 0, &enableValue[response]);
         responses[response].setText(responseText);
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
-        URMResponsesTable->setCellWidget(response, 1, &responses[response]);
+        theTable->setCellWidget(response, 1, &responses[response]);
         connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
         connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
                                                                                  if(state == Qt::Checked)
@@ -1869,15 +1799,8 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
                                                                                     responses[response].setStyleSheet("Text-align:left;");}
                                                                                  });
     }
-    URMResponsesTable->resizeColumnToContents(0);
-    URMResponsesTable->adjustSize();
-
-    //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(2, 20);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, 3, 1, -1, -1);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    theTable->resizeColumnToContents(0);
+    theTable->adjustSize();
 
     adjustSize();
 }

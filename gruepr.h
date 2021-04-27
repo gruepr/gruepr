@@ -102,7 +102,7 @@ private:
 
         // reading survey data file
     bool loadSurveyData(CsvFile &surveyFile);           // returns false if file is invalid
-    bool loadRosterData(CsvFile &surveyFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; loads fullnames and emails into lists
+    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; loads fullnames and emails into lists
     StudentRecord *student = nullptr;                   // array to hold the students' data
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column

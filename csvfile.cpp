@@ -1,14 +1,14 @@
 #include "csvfile.h"
 #include <QComboBox>
-#include <QDialogButtonBox>
 #include <QFileDialog>
-#include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QStandardItemModel>
 #include <QString>
 
-CsvFile::CsvFile() = default;
+CsvFile::CsvFile(QObject *parent) : QObject(parent)
+{
+}
 
 CsvFile::~CsvFile()
 {
@@ -126,44 +126,29 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         }
     }
 
-    window = new QDialog(parent);
+    window = new listTableDialog(tr("Select column definitions"), false, false, parent);
     //Set up window with a grid layout
-    window->setWindowTitle("Select column definitions");
-    window->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    window->setSizeGripEnabled(true);
     window->setMinimumSize(500, 300);
-
-    auto *theGrid = new QGridLayout(window);
 
     auto *explanation = new QLabel(window);
     explanation->setText("<html>The following column headers were found in the file. "
                          "Please verify the category of information contained in each column. Select \"Unused\" for any field(s) that should be ignored.<hr></html>");
     explanation->setWordWrap(true);
-    theGrid->addWidget(explanation, 0, 0, 1, -1);
-
-    table = new QTableWidget(numFields, 2, window);
-    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    table->setSelectionMode(QAbstractItemView::NoSelection);
-    table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    table->verticalHeader()->hide();
-    table->setAlternatingRowColors(true);
-    table->setShowGrid(false);
-    table->setStyleSheet("QTableView::item{border-top: 2px solid black; padding: 3px;}");
-    table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    theGrid->addWidget(table, 1, 0, 1, -1);
+    window->theGrid->addWidget(explanation, 0, 0, 1, -1);
+    window->addSpacerRow(1);
 
     // a label and combobox for each column
-    table->horizontalHeader()->show();
-    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    table->horizontalHeader()->setStyleSheet("QHeaderView{font: bold large}");
-    table->setHorizontalHeaderLabels(QStringList({"Header Text","Category"}));
+    window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView{font: bold large}");
+    window->theTable->setHorizontalHeaderLabels(QStringList({"Header Text","Category"}));
+    window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++)
     {
         auto *label = new QLabel();
         label->setText("\n" + headerValues.at(row) + "\n");
         label->setWordWrap(true);
         label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-        table->setCellWidget(row, 0, label);
+        window->theTable->setCellWidget(row, 0, label);
 
         auto *selector = new QComboBox();
         for(auto &meaning : possibleFieldMeanings)
@@ -176,21 +161,14 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         selector->insertSeparator(1);
         selector->setCurrentText(fieldMeanings.at(row));
         selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-        table->setCellWidget(row, 1, selector);
+        window->theTable->setCellWidget(row, 1, selector);
 
         connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
     }
     validateFieldSelectorBoxes();
-    table->resizeColumnsToContents();
-    table->resizeRowsToContents();
-    table->adjustSize();
-
-    //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(2, 20);
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, window);
-    theGrid->addWidget(buttonBox, 3, 1, -1, -1);
-    connect(buttonBox, &QDialogButtonBox::accepted, window, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, window, &QDialog::reject);
+    window->theTable->resizeColumnsToContents();
+    window->theTable->resizeRowsToContents();
+    window->theTable->adjustSize();
 
     window->adjustSize();
     return window;
@@ -217,7 +195,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     for(auto row : rows)
     {
         // get the selected fieldMeaning
-        const auto box = qobject_cast<QComboBox *>(table->cellWidget(row, 1));
+        const auto box = qobject_cast<QComboBox *>(window->theTable->cellWidget(row, 1));
         QString selection = box->currentText();
 
         // set it in the CsvFile's data
@@ -264,7 +242,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     //  4) clearing formatting of all items unchosen in any box (except "Unused").
     for(auto row = rows.rbegin(); row != rows.rend(); ++row)
     {
-        auto box = qobject_cast<QComboBox *>(table->cellWidget(*row, 1));
+        auto box = qobject_cast<QComboBox *>(window->theTable->cellWidget(*row, 1));
         box->blockSignals(true);
         auto *model = qobject_cast<QStandardItemModel *>(box->model());
         for(auto &takenValue : takenValues)
@@ -336,7 +314,7 @@ QStringList CsvFile::getLine(const int minFields)
 
 
 //////////////////
-// Static function: Read one line from a textStream, smartly handling commas within fields that are enclosed by quotation marks; returns fields as list of strings
+// Static function: Read one line from a textStream, smartly handling commas and newlines within fields that are enclosed by quotation marks; returns fields as list of strings
 //////////////////
 QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields)
 {

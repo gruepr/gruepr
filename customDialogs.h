@@ -16,10 +16,11 @@
 #include <QCheckBox>
 #include <QRadioButton>
 #include <QButtonGroup>
+#include "boxwhiskerplot.h"
 #include "comboBoxWithElidedContents.h"
 #include "categorialSpinBox.h"
-#include "boxwhiskerplot.h"
 #include "gruepr_structs_and_consts.h"
+#include "listTableDialog.h"
 #include "studentRecord.h"
 
 
@@ -77,7 +78,7 @@ private:
 };
 
 
-class customTeamsizesDialog : public QDialog
+class customTeamsizesDialog : public listTableDialog
 {
     Q_OBJECT
 
@@ -94,17 +95,14 @@ private slots:
 
 private:
     int numStudents;
-    QGridLayout *theGrid;
     QLabel numTeamsLabel;
     QComboBox numTeamsBox;
-    QTableWidget *teamSizesTable;
     QSpinBox *teamsizeBox;
     QLabel remainingStudents;
-    QDialogButtonBox *buttonBox;
 };
 
 
-class customTeamnamesDialog : public QDialog
+class customTeamnamesDialog : public listTableDialog
 {
     Q_OBJECT
 
@@ -119,10 +117,7 @@ private slots:
 
 private:
     int numTeams;
-    QGridLayout *theGrid;
-    QTableWidget *teamNamesTable;
     QPushButton *resetNamesButton;
-    QDialogButtonBox *buttonBox;
 };
 
 
@@ -235,7 +230,7 @@ private:
 };
 
 
-class gatherURMResponsesDialog : public QDialog
+class gatherURMResponsesDialog : public listTableDialog
 {
     Q_OBJECT
 
@@ -246,12 +241,9 @@ public:
     QStringList URMResponsesConsideredUR;
 
 private:
-    QGridLayout *theGrid;
     QLabel *explanation;
-    QTableWidget *URMResponsesTable;
     QCheckBox *enableValue;
     QPushButton *responses;
-    QDialogButtonBox *buttonBox;
 };
 
 

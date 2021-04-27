@@ -1,12 +1,12 @@
 #ifndef CSVFILE_H
 #define CSVFILE_H
 
-#include <QDialog>
+#include <QFile>
+#include <QFileInfo>
 #include <QString>
 #include <QTableWidget>
 #include <QTextStream>
-#include <QFile>
-#include <QFileInfo>
+#include "listTableDialog.h"
 
 typedef  std::tuple<QString, QString, int> possFieldMeaning;
 
@@ -15,7 +15,7 @@ class CsvFile : public QObject
     Q_OBJECT
 
 public:
-    CsvFile();
+    CsvFile(QObject *parent = nullptr);
     ~CsvFile();
 
     bool open(QWidget *parent = nullptr, const QString &caption = "", const QString &filepath = "", const QString &filetypeDescriptor = "");
@@ -34,8 +34,7 @@ public:
 private:
     QFile *file = nullptr;
     QTextStream *stream = nullptr;
-    QDialog *window = nullptr;
-    QTableWidget *table = nullptr;
+    listTableDialog *window = nullptr;
     int numFields = 0;
     QStringList getLine(const int minFields = -1);
     void validateFieldSelectorBoxes(int callingRow = -1);

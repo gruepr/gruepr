@@ -65,6 +65,7 @@ SOURCES += \
         categorialSpinBox.cpp \
         comboBoxWithElidedContents.cpp \
         csvfile.cpp \
+        listTableDialog.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -85,6 +86,7 @@ HEADERS += \
         GA.h \
         customDialogs.h \
         gruepr_structs_and_consts.h \
+        listTableDialog.h \
         pushButtonWithMouseEnter.h \
         sortableTableWidgetItem.h \
         studentRecord.h \
