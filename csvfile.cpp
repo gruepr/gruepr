@@ -6,8 +6,13 @@
 #include <QStandardItemModel>
 #include <QString>
 
-CsvFile::CsvFile(QObject *parent) : QObject(parent)
+CsvFile::CsvFile(Delimiter dlmtr, QObject *parent) : QObject(parent)
 {
+    if(dlmtr == tab)
+    {
+        delimiter = '\t';
+    }
+
 }
 
 CsvFile::~CsvFile()
@@ -20,31 +25,41 @@ CsvFile::~CsvFile()
     delete window;
 }
 
+
 //////////////////
-// Open CSV file from Dialog Box, returning QFile (blank if unsuccessful)
+// Open a CSV file for reading from Dialog Box, returning QFile (blank if unsuccessful)
 //////////////////
-bool CsvFile::open(QWidget *parent, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
+bool CsvFile::open(QWidget *parent, Oprtn oprtn, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
 {
     file = nullptr;
     stream = nullptr;
 
-    QString actualCaption = caption;
-    if(actualCaption == "")
+    QString fileName;
+    if(oprtn == read)
     {
-        actualCaption = "Open csv File";
+        fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
+        if (!fileName.isEmpty())
+        {
+            file = new QFile(fileName);
+            file->open(QIODevice::ReadOnly);
+            stream = new QTextStream(file);
+        }
+    }
+    else
+    {
+        fileName = QFileDialog::getSaveFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
+        if (!fileName.isEmpty())
+        {
+            file = new QFile(fileName);
+            file->open(QIODevice::WriteOnly | QIODevice::Text);
+            stream = new QTextStream(file);
+        }
     }
 
-    QString fileName = QFileDialog::getOpenFileName(parent, actualCaption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
-
-    if (!fileName.isEmpty())
-    {
-        file = new QFile(fileName);
-        file->open(QIODevice::ReadOnly);
-        stream = new QTextStream(file);
-    }
 
     return (stream != nullptr);
 }
+
 
 //////////////////
 // Retrieve the fileInfo
@@ -86,12 +101,74 @@ bool CsvFile::readHeader()
 
 
 //////////////////
-// Read the a line from the file, splitting & saving field texts into fieldValues
+// Read a line from the file, splitting & saving field texts into fieldValues
 //////////////////
 bool CsvFile::readDataRow()
 {
     fieldValues = getLine(numFields);
     return !fieldValues.isEmpty();
+}
+
+
+//////////////////
+// Write the first line of the file
+//////////////////
+bool CsvFile::writeHeader()
+{
+    bool first = true;
+    if(stream->seek(0) && !headerValues.empty())
+    {
+        for(auto &value : headerValues)
+        {
+            if(!first)
+            {
+                *stream << delimiter;
+            }
+            first = false;
+            if(value.contains(delimiter))
+            {
+                *stream << "\"" << value << "\"";
+            }
+            else
+            {
+                *stream << value;
+            }
+        }
+        *stream << Qt::endl;
+        numFields = headerValues.size();
+        return true;
+    }
+    return false;
+}
+
+
+//////////////////
+// Read a line from the file, splitting & saving field texts into fieldValues
+//////////////////
+void CsvFile::writeDataRow()
+{
+    bool first = true;
+    for(auto &value : fieldValues)
+    {
+        if(!first)
+        {
+            *stream << delimiter;
+        }
+        first = false;
+        if(value.contains(delimiter))
+        {
+            *stream << "\"" << value << "\"";
+        }
+        else
+        {
+            *stream << value;
+        }
+    }
+    for(int i = fieldValues.size(); i < numFields; i++)
+    {
+        *stream << delimiter;
+    }
+    *stream << Qt::endl;
 }
 
 
@@ -309,14 +386,14 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
 //////////////////
 QStringList CsvFile::getLine(const int minFields)
 {
-    return getLine(*stream, minFields);
+    return getLine(*stream, minFields, delimiter);
 }
 
 
 //////////////////
 // Static function: Read one line from a textStream, smartly handling commas and newlines within fields that are enclosed by quotation marks; returns fields as list of strings
 //////////////////
-QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields)
+QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, const char delimiter)
 {
     // read up to a newline
     QString line = externalStream.readLine();
@@ -338,7 +415,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields)
         if (state == Normal)
         {
             // Comma
-            if (current == ',')
+            if (current == delimiter)
             {
                 // Save field
                 fields.append(value.trimmed());

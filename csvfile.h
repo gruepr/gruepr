@@ -15,17 +15,23 @@ class CsvFile : public QObject
     Q_OBJECT
 
 public:
-    CsvFile(QObject *parent = nullptr);
+    enum Delimiter {comma, tab};
+
+    CsvFile(Delimiter dlmtr = comma, QObject *parent = nullptr);
     ~CsvFile();
 
-    bool open(QWidget *parent = nullptr, const QString &caption = "", const QString &filepath = "", const QString &filetypeDescriptor = "");
+    enum Oprtn {read, write};
+    bool open(QWidget *parent = nullptr, Oprtn oprtn = read, const QString &caption = tr("Open csv File"),
+              const QString &filepath = "", const QString &filetypeDescriptor = "");
+    QFileInfo fileInfo();
+    void close();
     bool readHeader();
     QDialog* chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
     bool readDataRow();
-    QFileInfo fileInfo();
-    void close();
+    bool writeHeader();
+    void writeDataRow();
 
-    static QStringList getLine(QTextStream &externalStream, const int minFields = -1);
+    static QStringList getLine(QTextStream &externalStream, const int minFields = -1, const char delimiter = ',');
 
     QStringList headerValues;
     QStringList fieldMeanings;
@@ -34,8 +40,9 @@ public:
 private:
     QFile *file = nullptr;
     QTextStream *stream = nullptr;
-    listTableDialog *window = nullptr;
     int numFields = 0;
+    char delimiter = ',';
+    listTableDialog *window = nullptr;
     QStringList getLine(const int minFields = -1);
     void validateFieldSelectorBoxes(int callingRow = -1);
 };

@@ -7,7 +7,19 @@
 #include <QTreeWidget>
 #include <QHeaderView>
 #include <QLabel>
+#include "gruepr_structs_and_consts.h"
+#include "studentRecord.h"
 
+
+///////////////////////////////////////////////////////////////////////
+
+class TeamTreeWidgetItem : public QTreeWidgetItem
+{
+public:
+    bool operator<(const QTreeWidgetItem &other) const;
+};
+
+///////////////////////////////////////////////////////////////////////
 
 class TeamTreeWidget : public QTreeWidget
 {
@@ -19,6 +31,9 @@ public:
     void collapseAll();
     void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
     void expandAll();
+    void resetDisplay(const DataOptions *const dataOptions);
+    void refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions);
+    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);        // remember which item is being dragged
@@ -45,14 +60,6 @@ private:
 
 ///////////////////////////////////////////////////////////////////////
 
-class TeamTreeWidgetItem : public QTreeWidgetItem
-{
-public:
-    bool operator<(const QTreeWidgetItem &other) const;
-};
-
-///////////////////////////////////////////////////////////////////////
-
 class TeamTreeHeaderView : public QHeaderView
 {
     Q_OBJECT
@@ -61,5 +68,6 @@ public:
     TeamTreeHeaderView(TeamTreeWidget *parent = nullptr);
 };
 
+///////////////////////////////////////////////////////////////////////
 
 #endif // TEAMTREEWIDGET

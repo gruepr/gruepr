@@ -101,14 +101,14 @@ private:
     void setTeamSizes(const int singleSize);
 
         // reading survey data file
-    bool loadSurveyData(CsvFile &surveyFile);           // returns false if file is invalid
-    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; loads fullnames and emails into lists
+    int numStudents = MAX_STUDENTS;
     StudentRecord *student = nullptr;                   // array to hold the students' data
+    bool loadSurveyData(CsvFile &surveyFile);           // returns false if file is invalid
+    StudentRecord parseOneRecord(const QStringList &fields);
+    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; loads fullnames and emails into lists
+    void refreshStudentDisplay();
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
-    int numStudents = MAX_STUDENTS;
-    StudentRecord parseOneRecord(const QStringList &fields);
-    void refreshStudentDisplay();
 
         // team set optimization
     int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams
@@ -132,10 +132,7 @@ private:
     TeamInfo *teams = nullptr;
     void refreshTeamInfo(QVector<int> teamNums = {-1});
     void refreshTeamToolTips(QVector<int> teamNums = {-1});
-    void resetTeamDisplay();
     void refreshTeamDisplay();
-    void refreshTeamOnTeamDisplay(QTreeWidgetItem *teamItem, const TeamInfo &team, const int teamNum);
-    void refreshStudentOnTeamDisplay(TeamTreeWidgetItem *studentItem, const StudentRecord &stu);
     QVector<int> getTeamNumbersInDisplayOrder();
     QString sectionName;
     TeamTreeWidget *teamDataTree = nullptr;

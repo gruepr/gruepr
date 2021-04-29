@@ -111,6 +111,262 @@ void TeamTreeWidget::expandAll()
     }
 }
 
+void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
+{
+    QStringList headerLabels;
+    headerLabels << tr("name") << tr("team\nscore");
+    if(dataOptions->genderIncluded)
+    {
+        headerLabels << tr("gender");
+    }
+    if(dataOptions->URMIncluded)
+    {
+        headerLabels << tr("URM");
+    }
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    {
+        headerLabels << tr("attribute ") + QString::number(attribute+1);
+    }
+    if(!dataOptions->dayNames.isEmpty())
+    {
+        headerLabels << tr("available\nmeeting\nhours");
+    }
+    headerLabels << tr("display_order");
+
+    setColumnCount(headerLabels.size());
+    for(int i = 0; i < headerLabels.size()-1; i++)
+    {
+        showColumn(i);
+    }
+    hideColumn(headerLabels.size()-1);
+
+    auto *headerTextWithIcon = new QTreeWidgetItem;
+    for(int i = 0; i < headerLabels.size(); i++)
+    {
+        headerTextWithIcon->setIcon(i, QIcon(":/icons/updown_arrow.png"));
+        headerTextWithIcon->setText(i, headerLabels.at(i));
+    }
+    setHeaderItem(headerTextWithIcon);
+    setSortingEnabled(false);
+    header()->setDefaultAlignment(Qt::AlignCenter);
+    header()->setSectionResizeMode(QHeaderView::Interactive);
+
+    setFocus();
+    clear();
+}
+
+
+void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions)
+{
+    //create team items and fill in information
+    int column = 0;
+    teamItem->setText(column, tr("Team ") + team.name);
+    teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, tr("Team ") + team.name);
+    teamItem->setData(column, TEAMINFO_SORT_ROLE, firstStudentName);
+    teamItem->setData(column, TEAM_NUMBER_ROLE, teamNum);
+    teamItem->setToolTip(column, team.tooltip);
+    column++;
+    teamItem->setText(column, QString::number(double(team.score), 'f', 2));
+    teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(double(team.score), 'f', 2));
+    teamItem->setData(column, TEAMINFO_SORT_ROLE, team.score);
+    teamItem->setToolTip(column, team.tooltip);
+    column++;
+    if(dataOptions->genderIncluded)
+    {
+        QString genderText;
+        if(team.numWomen > 0)
+        {
+            genderText += QString::number(team.numWomen) + tr("W");
+        }
+        if(team.numWomen > 0 && (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0))
+        {
+            genderText += ", ";
+        }
+        if(team.numMen > 0)
+        {
+            genderText += QString::number(team.numMen) + tr("M");
+        }
+        if(team.numMen > 0 && (team.numNonbinary > 0 || team.numUnknown > 0))
+        {
+            genderText += ", ";
+        }
+        if(team.numNonbinary > 0)
+        {
+            genderText += QString::number(team.numNonbinary) + tr("X");
+        }
+        if(team.numNonbinary > 0 && team.numUnknown > 0)
+        {
+            genderText += ", ";
+        }
+        if(team.numUnknown > 0)
+        {
+            genderText += QString::number(team.numUnknown) + tr("?");
+        }
+        teamItem->setText(column, genderText);
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, genderText);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numMen - team.numWomen);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
+    if(dataOptions->URMIncluded)
+    {
+        teamItem->setText(column, QString::number(team.numURM));
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(team.numURM));
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numURM);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    {
+        QString attributeText;
+        int sortData;
+        auto firstTeamVal = team.attributeVals[attribute].begin();
+        auto lastTeamVal = team.attributeVals[attribute].rbegin();
+        if(dataOptions->attributeIsOrdered[attribute])
+        {
+            // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
+            if(*firstTeamVal == -1)
+            {
+                firstTeamVal++;
+            }
+
+            if(firstTeamVal != team.attributeVals[attribute].end())
+            {
+                if(*firstTeamVal == *lastTeamVal)
+                {
+                    attributeText = QString::number(*firstTeamVal);
+                }
+                else
+                {
+                    attributeText = QString::number(*firstTeamVal) + " - " + QString::number(*lastTeamVal);
+                }
+                sortData = *firstTeamVal * 100 + *lastTeamVal;
+            }
+            else
+            {
+                //only attribute value was -1
+                attributeText = "?";
+                sortData = -1;
+            }
+        }
+        else
+        {
+            // attribute is categorical, so important info is the list of values
+            // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
+            attributeText = (*firstTeamVal <= 26 ? QString(char(*firstTeamVal - 1 + 'A')) : QString(char((*firstTeamVal - 1)%26 + 'A')).repeated(1+((*firstTeamVal - 1)/26)));
+            for(auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++)
+            {
+                attributeText += ", ";
+                attributeText += (*val <= 26 ? QString(char(*val - 1 + 'A')) : QString(char((*val - 1)%26 + 'A')).repeated(1+((*val - 1)/26)));
+            }
+            // sort by first item, then number of items, then second item
+            sortData = (*firstTeamVal * 10000) + (team.attributeVals[attribute].size() * 100) + (team.attributeVals[attribute].size() > 1 ? *lastTeamVal : 0);
+        }
+        teamItem->setText(column, attributeText);
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, attributeText);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
+    if(!dataOptions->dayNames.isEmpty())
+    {
+        int numAvailTimes = team.tooltip.count("100%");
+        teamItem->setText(column, QString::number(numAvailTimes));
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(numAvailTimes));
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, numAvailTimes);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
+}
+
+
+void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions)
+{
+    int column = 0;
+    studentItem->setText(column, stu.firstname + " " + stu.lastname);
+    studentItem->setData(column, Qt::UserRole, stu.ID);
+    studentItem->setToolTip(column, stu.tooltip);
+    studentItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+    column++;
+    column++;   // skip the teamscore column
+    if(dataOptions->genderIncluded)
+    {
+        if(stu.gender == StudentRecord::woman)
+        {
+            studentItem->setText(column,tr("woman"));
+
+        }
+        else if(stu.gender == StudentRecord::man)
+        {
+            studentItem->setText(column,tr("man"));
+        }
+        else if(stu.gender == StudentRecord::nonbinary)
+        {
+            studentItem->setText(column,tr("nonbinary"));
+        }
+        else
+        {
+            studentItem->setText(column,tr("unknown"));
+        }
+
+        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, Qt::AlignCenter);
+        column++;
+    }
+    if(dataOptions->URMIncluded)
+    {
+        if(stu.URM)
+        {
+            studentItem->setText(column,tr("yes"));
+
+        }
+        else
+        {
+            studentItem->setText(column,"");
+        }
+        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, Qt::AlignCenter);
+        column++;
+    }
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    {
+        int value = stu.attributeVal[attribute];
+        if(value != -1)
+        {
+            if(dataOptions->attributeIsOrdered[attribute])
+            {
+                studentItem->setText(column, QString::number(value));
+            }
+            else
+            {
+                studentItem->setText(column, (value <= 26 ? QString(char(value-1 + 'A')) : QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26))));
+            }
+        }
+        else
+        {
+            studentItem->setText(column, "?");
+        }
+        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, Qt::AlignCenter);
+        column++;
+    }
+    if(!dataOptions->dayNames.isEmpty())
+    {
+        int availableTimes = stu.ambiguousSchedule? 0 : stu.availabilityChart.count("√");
+        studentItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
+        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, Qt::AlignCenter);
+    }
+}
+
+
+
 void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     draggedItem = currentItem();

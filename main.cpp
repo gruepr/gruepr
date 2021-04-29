@@ -49,6 +49,8 @@
 // - add "load roster" option to compare against survey data, updating email addresses and offering to add missing students and remove extra students
 // - use csv import dialog box to select columns when loading survey
 // - allow for section question later in the "additional questions"
+// - unify reading/writing of csv files throughout
+// - brought relevant functions for teamTreeWidget as member functions
 //
 //
 // TO DO:

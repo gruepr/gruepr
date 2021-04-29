@@ -1,3 +1,4 @@
+#include "csvfile.h"
 #include "customDialogs.h"
 #include "Levenshtein.h"
 #include <QCollator>
@@ -303,85 +304,80 @@ void gatherTeammatesDialog::clearAllTeammateSets()
 
 bool gatherTeammatesDialog::saveCSVFile()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)"));
-    if(fileName.isEmpty())
+    resetSaveOrLoad->setCurrentIndex(0);
+
+    CsvFile csvFile;
+    if(!csvFile.open(this, CsvFile::write, tr("Save File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)")))
     {
-        resetSaveOrLoad->setCurrentIndex(0);
         return false;
     }
 
-    QFile outputFile(fileName);
-    QTextStream out(&outputFile);
-    QString csvFileContents = "basename";
-
-    for(int i = 1; i <= currentListOfTeammatesTable->columnCount(); i++)
+    // write header
+    csvFile.headerValues << tr("basename");
+    int firstDataCol = requestsInSurvey? 1 : 0;
+    int lastDataCol = currentListOfTeammatesTable->columnCount() - firstDataCol;
+    for(int i = 1; i <= lastDataCol; i++)
     {
-        csvFileContents += ",name" + QString::number(i);
+        csvFile.headerValues << tr("name") + QString::number(i);
     }
-    csvFileContents += "\n";
+    if(!csvFile.writeHeader())
+    {
+        QMessageBox::critical(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
+        return false;
+    }
 
+    // write data rows
     for(int basename = 0; basename < currentListOfTeammatesTable->rowCount(); basename++)
     {
+        csvFile.fieldValues.clear();
         QStringList lastnameFirstname = currentListOfTeammatesTable->verticalHeaderItem(basename)->text().split(',');
-        csvFileContents += lastnameFirstname.at(1).trimmed() + " " + lastnameFirstname.at(0).trimmed();
-        for(int teammate = 0; teammate < currentListOfTeammatesTable->columnCount(); teammate++)
+        csvFile.fieldValues << lastnameFirstname.at(1).trimmed() + " " + lastnameFirstname.at(0).trimmed();
+        for(int teammate = firstDataCol; teammate <= lastDataCol; teammate++)
         {
-            QStringList lastnameFirstname = {"",""};
             QWidget *teammateItem(currentListOfTeammatesTable->cellWidget(basename,teammate));
             if (teammateItem != nullptr)
             {
                 lastnameFirstname = teammateItem->property("studentName").toString().split(',');
+                csvFile.fieldValues << lastnameFirstname.at(1).trimmed() + " " + lastnameFirstname.at(0).trimmed();
             }
-            csvFileContents += "," + lastnameFirstname.at(1).trimmed() + " " + lastnameFirstname.at(0).trimmed();
         }
-        csvFileContents += "\n";
+        csvFile.writeDataRow();
     }
 
-    if(outputFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QTextStream out(&outputFile);
-        out << csvFileContents;
-        outputFile.close();
-    }
-    else
-    {
-        QMessageBox::critical(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
-    }
-
-    refreshDisplay();
+    csvFile.close();
     return true;
 }
 
 
 bool gatherTeammatesDialog::loadCSVFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)"));
-    if(fileName.isEmpty())
+    resetSaveOrLoad->setCurrentIndex(0);
+
+    CsvFile csvFile;
+    if(!csvFile.open(this, CsvFile::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)")))
     {
-        resetSaveOrLoad->setCurrentIndex(0);
         return false;
     }
 
-    QFile inputFile(fileName);
-    inputFile.open(QIODevice::ReadOnly);
-    QTextStream in(&inputFile);
-
-    // Read the header row and make sure file format is correct. If so, read next line to make sure it has data
+    // Read the header row and first data row to make sure file format is correct.
     bool formattedCorrectly = true;
-    QStringList fields = in.readLine().split(',');
-    int numFields = fields.size();
+    int numFields = 0;
+    if(csvFile.readHeader())
+    {
+        numFields = csvFile.headerValues.size();
+    }
     if(numFields < 2)       // should be basename, name1, name2, name3, ..., nameN
     {
         formattedCorrectly = false;
     }
     else
     {
-        if((fields.at(0).toLower() != tr("basename")) || (!fields.at(1).toLower().startsWith(tr("name"))))
+        if((csvFile.headerValues.at(0).toLower() != tr("basename")) || (!csvFile.headerValues.at(1).toLower().startsWith(tr("name"))))
         {
             formattedCorrectly = false;
         }
-        fields = in.readLine().split(',');
-        if(fields.size() < numFields)
+        csvFile.readDataRow();
+        if(csvFile.fieldValues.size() < numFields)
         {
             formattedCorrectly = false;
         }
@@ -389,24 +385,26 @@ bool gatherTeammatesDialog::loadCSVFile()
     if(!formattedCorrectly)
     {
         QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
-        inputFile.close();
+        csvFile.close();
         return false;
     }
 
-    // Process each row until there's an empty one. Load unique base names into basenames; load other names in the row into corresponding teammates list
+    // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
+    // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
     QStringList basenames;
     QVector<QStringList> teammates;
-    while(!fields.isEmpty())
+    csvFile.readHeader();
+    while(csvFile.readDataRow())
     {
-        int pos = basenames.indexOf(fields.at(0)); // get index of this name
+        int pos = basenames.indexOf(csvFile.fieldValues.at(0).trimmed()); // get index of this name
 
         if(pos == -1)   // basename is not yet found in basenames list
         {
-            basenames << fields.at(0).trimmed();
+            basenames << csvFile.fieldValues.at(0).trimmed();
             teammates.append(QStringList());
             for(int i = 1; i < numFields; i++)
             {
-                QString teammate = fields.at(i).trimmed();
+                QString teammate = csvFile.fieldValues.at(i).trimmed();
                 if(!teammate.isEmpty())
                 {
                     teammates.last() << teammate;
@@ -416,17 +414,11 @@ bool gatherTeammatesDialog::loadCSVFile()
         else
         {
             QMessageBox::critical(this, tr("File error."), tr("This file has an error in its format:\nThe same name appears more than once in the first column."), QMessageBox::Ok);
-            inputFile.close();
+            csvFile.close();
             return false;
         }
-
-        // read next row. If row is empty, then make fields empty
-        fields = in.readLine().split(',');
-        if(fields.size() == 1 && fields.at(0) == "")
-        {
-            fields.clear();
-        }
     }
+    csvFile.close();
 
     // Now we have list of basenames and corresponding lists of teammates by name
     // Need to convert names to IDs and then add each teammate to the basename
@@ -475,10 +467,12 @@ bool gatherTeammatesDialog::loadCSVFile()
                 if(whatType == required)
                 {
                     student[IDs[0]].requiredWith[IDs[ID]] = true;
+                    student[IDs[ID]].requiredWith[IDs[0]] = true;
                 }
                 else if(whatType == prevented)
                 {
                     student[IDs[0]].preventedWith[IDs[ID]] = true;
+                    student[IDs[ID]].preventedWith[IDs[0]] = true;
                 }
                 else    //whatType == requested
                 {
@@ -491,6 +485,7 @@ bool gatherTeammatesDialog::loadCSVFile()
     refreshDisplay();
     return true;
 }
+
 
 bool gatherTeammatesDialog::loadStudentPrefs()
 {
@@ -545,10 +540,12 @@ bool gatherTeammatesDialog::loadStudentPrefs()
                 if(whatType == required)
                 {
                     student[IDs[0]].requiredWith[IDs[ID]] = true;
+                    student[IDs[ID]].requiredWith[IDs[0]] = true;
                 }
                 else if(whatType == prevented)
                 {
                     student[IDs[0]].preventedWith[IDs[ID]] = true;
+                    student[IDs[ID]].preventedWith[IDs[0]] = true;
                 }
                 else    //whatType == requested
                 {
@@ -562,35 +559,36 @@ bool gatherTeammatesDialog::loadStudentPrefs()
     return true;
 }
 
+
 bool gatherTeammatesDialog::loadSpreadsheetFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)"));
-    if(fileName.isEmpty())
+    CsvFile spreadsheetFile(CsvFile::tab);
+    if(!spreadsheetFile.open(this, CsvFile::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)")))
     {
         resetSaveOrLoad->setCurrentIndex(0);
         return false;
     }
 
-    QFile inputFile(fileName);
-    inputFile.open(QIODevice::ReadOnly);
-    QTextStream in(&inputFile);
-
     // Read the header row and make sure file format is correct. If so, read next line to make sure it has data
     bool formattedCorrectly = true;
-    QStringList fields = in.readLine().split('\t');
-    if(fields.size() < 4)       // should be section, team, name, email
+    int numFields = 0;
+    if(spreadsheetFile.readHeader())
+    {
+        numFields = spreadsheetFile.headerValues.size();
+    }
+    if(numFields < 4)       // should be section, team, name, email
     {
         formattedCorrectly = false;
     }
     else
     {
-        if((fields.at(0).toLower() != tr("section")) || (fields.at(1).toLower() != tr("team"))
-                || (fields.at(2).toLower() != tr("name")) || (fields.at(3).toLower() != tr("email")))
+        if((spreadsheetFile.headerValues.at(0).toLower() != tr("section")) || (spreadsheetFile.headerValues.at(1).toLower() != tr("team"))
+                || (spreadsheetFile.headerValues.at(2).toLower() != tr("name")) || (spreadsheetFile.headerValues.at(3).toLower() != tr("email")))
         {
             formattedCorrectly = false;
         }
-        fields = in.readLine().split('\t');
-        if(fields.size() < 4)
+        spreadsheetFile.readDataRow();
+        if(spreadsheetFile.fieldValues.size() < 4)
         {
             formattedCorrectly = false;
         }
@@ -598,34 +596,30 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     if(!formattedCorrectly)
     {
         QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
-        inputFile.close();
+        spreadsheetFile.close();
         return false;
     }
 
-    // Process each row until there's an empty one. Load unique team strings into teams; load new/matching names into corresponding teammates list
+    // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
+    // Process each row by loading unique team strings into teams and new/matching names into corresponding teammates list
     QStringList teamnames;
     QVector<QStringList> teammates;
-    while(!fields.isEmpty())
+    spreadsheetFile.readHeader();
+    while(spreadsheetFile.readDataRow())
     {
-        int pos = teamnames.indexOf(fields.at(1)); // get index of this team
+        int pos = teamnames.indexOf(spreadsheetFile.fieldValues.at(1).trimmed()); // get index of this team
 
         if(pos == -1)   // team is not yet found in teams list
         {
-            teamnames << fields.at(1);
-            teammates.append(QStringList(fields.at(2)));
+            teamnames << spreadsheetFile.fieldValues.at(1).trimmed();
+            teammates.append(QStringList(spreadsheetFile.fieldValues.at(2).trimmed()));
         }
         else
         {
-            teammates[pos].append(fields.at(2));
-        }
-
-        // read next row. If row is empty, then make fields empty
-        fields = in.readLine().split('\t');
-        if(fields.size() == 1 && fields.at(0) == "")
-        {
-            fields.clear();
+            teammates[pos].append(spreadsheetFile.fieldValues.at(2).trimmed());
         }
     }
+    spreadsheetFile.close();
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
@@ -788,7 +782,8 @@ void gatherTeammatesDialog::refreshDisplay()
                 if(currentListOfTeammatesTable->columnCount() < column+1)
                 {
                     currentListOfTeammatesTable->setColumnCount(column+1);
-                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #")+QString::number(column+1)));
+                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #") +
+                                                                                                      QString::number(column + (requestsInSurvey? 0:1))));
                 }
                 auto *box = new QHBoxLayout;
                 auto *label = new QLabel(student[studentBID].lastname + ", " + student[studentBID].firstname);
@@ -1735,7 +1730,8 @@ void gatherIncompatibleResponsesDialog::addValues()
             }
         }
     }
-    std::sort(incompatibleResponses.begin(), incompatibleResponses.end(), [](const QPair<int,int> a, const QPair<int,int> b){return (a.first*100+a.second) < (b.first*100+b.second);});
+    std::sort(incompatibleResponses.begin(), incompatibleResponses.end(), [](const QPair<int,int> a, const QPair<int,int> b)
+                                                                            {return (a.first != b.first? a.first < b.first : a.second < b.second);});
     updateExplanation();
 
     // reset checkboxes
