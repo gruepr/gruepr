@@ -75,27 +75,14 @@ gruepr::gruepr(QWidget *parent) :
         }
     adjustSize();
 
-    //Disallow sorting on last two columns of student table
-    connect(ui->studentTable->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int column)
-                        {if(column < ui->studentTable->columnCount()-2)
-                            {ui->studentTable->sortByColumn(column, ui->studentTable->horizontalHeader()->sortIndicatorOrder());
-                             ui->studentTable->horizontalHeaderItem(column)->setIcon(QIcon(":/icons/blank_arrow.png"));
-                             if(column != prevSortColumn)
-                                {ui->studentTable->horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons/updown_arrow.png"));}
-                             prevSortColumn = column;
-                             prevSortOrder = ui->studentTable->horizontalHeader()->sortIndicatorOrder();}
-                         else
-                            {ui->studentTable->sortByColumn(prevSortColumn, prevSortOrder);
-                             ui->studentTable->horizontalHeader()->setSortIndicator(prevSortColumn, prevSortOrder);}});
+    //Set up the drag/drop behavior and expandall / collapseall buttons of team table
+    connect(ui->teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
+    connect(ui->teamDataTree, &TeamTreeWidget::reorderParents, this, &gruepr::reorderTeams);
+    connect(ui->teamDataTree, &TeamTreeWidget::moveChild, this, &gruepr::moveTeammate);
+    connect(ui->teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &gruepr::reorderedTeams);
+    connect(ui->expandAllButton, &QPushButton::clicked, ui->teamDataTree, &TeamTreeWidget::expandAll);
+    connect(ui->collapseAllButton, &QPushButton::clicked, ui->teamDataTree, &TeamTreeWidget::collapseAll);
 
-    //Add the teamDataTree widget
-    teamDataTree = new TeamTreeWidget(this);
-    teamDataTree->setGeometry(0,0,624,626);
-    ui->teamDataLayout->insertWidget(0, teamDataTree);
-    connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &gruepr::swapTeammates);
-    connect(teamDataTree, &TeamTreeWidget::reorderParents, this, &gruepr::reorderTeams);
-    connect(teamDataTree, &TeamTreeWidget::moveChild, this, &gruepr::moveTeammate);
-    connect(teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &gruepr::reorderedTeams);
 
     //create options structs
     teamingOptions = new TeamingOptions;
@@ -105,16 +92,16 @@ gruepr::gruepr(QWidget *parent) :
     ui->teamNamesComboBox->insertItems(0, QString(TEAMNAMECATEGORIES).split(","));
 
     //Connect genetic algorithm progress signals to slots
-    connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress);
+    connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
     // load all of the default values
     loadDefaultSettings();
+    ui->letsDoItButton->setEnabled(false);
 }
 
 gruepr::~gruepr()
 {
-    delete teamDataTree;
     delete[] student;
     delete dataOptions;
     delete teamingOptions;
@@ -263,7 +250,7 @@ void gruepr::loadStudentRoster()
                             ui->actionSave_Survey_File->setEnabled(true);
 
                             refreshStudentDisplay();
-                            ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+                            ui->studentTable->clearSortIndicator();
 
                             ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
                             on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
@@ -458,7 +445,8 @@ void gruepr::loadOptionsFile()
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)) &&
                       loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)].isString())
                 {
-                    QStringList incoRes = loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)].toString().split(',');
+                    QStringList incoRes = loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" +
+                                            QString::number(incompatibleResponseNum+1)].toString().split(',');
                     setOfIncompatibleResponses << QPair<int,int>(incoRes.at(0).toInt(),incoRes.at(1).toInt());
                     incompatibleResponseNum++;
                 }
@@ -545,45 +533,9 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
     sectionName = desiredSection;
 
     refreshStudentDisplay();
-    ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
-
+    ui->studentTable->clearSortIndicator();
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
-}
-
-
-void gruepr::on_studentTable_cellEntered(int row, int column)
-{
-    (void)column;
-    // select the current row, reset the background color of the edit and remover buttons in previously selected row and change their color in the current row
-    ui->studentTable->selectRow(row);
-    static int prevID = -1;
-    const int numCols = ui->studentTable->columnCount();
-    const int numRows = ui->studentTable->rowCount();
-    if(prevID != -1)
-    {
-        int prevRow = 0;
-        while((prevRow < numRows) && (prevID != ui->studentTable->cellWidget(prevRow, numCols-1)->property("StudentID").toInt()))
-        {
-            prevRow++;
-        }
-        if(prevRow < numRows)
-        {
-            if(ui->studentTable->cellWidget(prevRow, numCols-1)->property("duplicate").toBool())
-            {
-                ui->studentTable->cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
-                ui->studentTable->cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
-            }
-            else
-            {
-                ui->studentTable->cellWidget(prevRow, numCols-1)->setStyleSheet("");
-                ui->studentTable->cellWidget(prevRow, numCols-2)->setStyleSheet("");
-            }
-        }
-    }
-    prevID = ui->studentTable->cellWidget(row, numCols-1)->property("StudentID").toInt();
-    ui->studentTable->cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
-    ui->studentTable->cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
 }
 
 
@@ -625,7 +577,7 @@ void gruepr::editAStudent()
         for(int ID2 = 0; ID2 < dataOptions->numStudentsInSystem; ID2++)
         {
             if((ID != ID2) && ((student[ID].firstname + student[ID].lastname == student[ID2].firstname + student[ID2].lastname) ||
-                               ((student[numStudents].email == student[ID].email) && !student[numStudents].email.isEmpty())))
+                               ((student[ID].email == student[ID2].email) && !student[ID].email.isEmpty())))
             {
                 student[ID].duplicateRecord = true;
                 student[ID2].duplicateRecord = true;
@@ -701,7 +653,7 @@ void gruepr::editAStudent()
         ui->actionSave_Survey_File->setEnabled(true);
 
         refreshStudentDisplay();
-        ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+        ui->studentTable->clearSortIndicator();
     }
 
     delete win;
@@ -710,27 +662,18 @@ void gruepr::editAStudent()
 
 void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
 {
-    int knownID;
-
-    if(name == "")  // sent from the remover button in the student info display
+    // find the ID from the name
+    int IDBeingRemoved = 0;
+    while(name != student[IDBeingRemoved].firstname + " " + student[IDBeingRemoved].lastname)
     {
-        knownID = sender()->property("StudentID").toInt();
-    }
-    else            // sent from elsewhere; we have a name and need first to find the ID
-    {
-        int ID = 0;
-        while(name != student[ID].firstname + " " + student[ID].lastname)
-        {
-            ID++;
-        }
-        knownID = ID;
+        IDBeingRemoved++;
     }
 
     //Search through all the students and, once we found the one with the matching ID, move all remaining ones ahead by one and decrement numStudentsInSystem
     bool foundIt = false;
     for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
     {
-        if(knownID == student[ID].ID)
+        if(IDBeingRemoved == student[ID].ID)
         {
             foundIt = true;
         }
@@ -749,7 +692,7 @@ void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
         for(int ID2 = 0; ID2 < ID; ID2++)
         {
             if((student[ID].firstname + student[ID].lastname == student[ID2].firstname + student[ID2].lastname) ||
-                    ((student[ID].email == student[ID2].email) && !student[numStudents].email.isEmpty()))
+                    ((student[ID].email == student[ID2].email) && !student[ID].email.isEmpty()))
             {
                 student[ID].duplicateRecord = true;
                 student[ID2].duplicateRecord = true;
@@ -766,7 +709,7 @@ void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
     if(!delayVisualUpdate)
     {
         refreshStudentDisplay();
-        ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+        ui->studentTable->clearSortIndicator();
     }
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
@@ -799,21 +742,22 @@ void gruepr::on_addStudentPushButton_clicked()
         int reply = win->exec();
         if(reply == QDialog::Accepted)
         {
-            student[dataOptions->numStudentsInSystem] = win->student;
+            const int newID = dataOptions->numStudentsInSystem;
+            student[newID] = win->student;
             // see if this record is a duplicate; assume it isn't and then check
-            student[dataOptions->numStudentsInSystem].duplicateRecord = false;
-            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+            student[newID].duplicateRecord = false;
+            for(int ID = 0; ID < newID; ID++)
             {
-                if((student[dataOptions->numStudentsInSystem].firstname + student[dataOptions->numStudentsInSystem].lastname == student[ID].firstname + student[ID].lastname)
-                      || ((student[dataOptions->numStudentsInSystem].email == student[ID].email) && !student[dataOptions->numStudentsInSystem].email.isEmpty()))
+                if((student[newID].firstname + student[newID].lastname == student[ID].firstname + student[ID].lastname)
+                      || ((student[newID].email == student[ID].email) && !student[newID].email.isEmpty()))
                 {
-                    student[dataOptions->numStudentsInSystem].duplicateRecord = true;
+                    student[newID].duplicateRecord = true;
                     student[ID].duplicateRecord = true;
                     student[ID].createTooltip(dataOptions);
                 }
             }
-            student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
-            student[dataOptions->numStudentsInSystem].URM = teamingOptions->URMResponsesConsideredUR.contains(student[dataOptions->numStudentsInSystem].URMResponse);
+            student[newID].createTooltip(dataOptions);
+            student[newID].URM = teamingOptions->URMResponsesConsideredUR.contains(student[newID].URMResponse);
 
             dataOptions->numStudentsInSystem++;
 
@@ -883,7 +827,7 @@ void gruepr::on_addStudentPushButton_clicked()
             ui->actionSave_Survey_File->setEnabled(true);
 
             refreshStudentDisplay();
-            ui->studentTable->horizontalHeaderItem(ui->studentTable->horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+            ui->studentTable->clearSortIndicator();
 
             ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
             on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
@@ -1410,10 +1354,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
     ui->teamSizeBox->addItem(tr("Custom team sizes"));
 
     // if we have fewer than 4 students somehow, disable the form teams button
-    if(numStudents < 4)
-    {
-        ui->letsDoItButton->setEnabled(false);
-    }
+    ui->letsDoItButton->setEnabled(numStudents >= 4);
 }
 
 
@@ -1441,7 +1382,8 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
             // Set to index 0 if cancelled
             bool oldState = ui->teamSizeBox->blockSignals(true);
             ui->teamSizeBox->setCurrentIndex(0);
-            if(ui->teamSizeBox->currentText() == (QString::number(teamingOptions->numTeamsDesired) + tr(" teams of ") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
+            if(ui->teamSizeBox->currentText() == (QString::number(teamingOptions->numTeamsDesired) + tr(" teams of ") +
+                                                  QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
             {
                 // Evenly divisible teams, all same size
                 setTeamSizes(ui->idealTeamSizeBox->value());
@@ -1598,9 +1540,9 @@ void gruepr::optimizationComplete()
     ui->actionSave_Teams->setEnabled(true);
     ui->actionPrint_Teams->setEnabled(true);
     ui->dataDisplayTabWidget->setCurrentIndex(1);
-    teamDataTree->setEnabled(true);
-    teamDataTree->setHeaderHidden(false);
-    teamDataTree->collapseAll();
+    ui->teamDataTree->setEnabled(true);
+    ui->teamDataTree->setHeaderHidden(false);
+    ui->teamDataTree->collapseAll();
     ui->expandAllButton->setEnabled(true);
     ui->collapseAllButton->setEnabled(true);
     ui->label_14->setEnabled(true);
@@ -1633,15 +1575,17 @@ void gruepr::optimizationComplete()
             ID++;
         }
         //sort teammates within a team alphabetically by lastname,firstname
-        std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b) {return ( (student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname) );});
+        std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b)
+                                                        {return ((student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname));});
     }
 
     // Get scores and other student info loaded
     refreshTeamInfo();
 
     // Sort teams by student name and set default teamnames
-    std::sort(teams, teams+numTeams, [this](const TeamInfo &a, const TeamInfo &b) {return ( (student[a.studentIDs.at(0)].lastname + student[a.studentIDs.at(0)].firstname) <
-                (student[b.studentIDs.at(0)].lastname + student[b.studentIDs.at(0)].firstname) );});
+    std::sort(teams, teams+numTeams, [this](const TeamInfo &a, const TeamInfo &b)
+                                            {return ((student[a.studentIDs.at(0)].lastname + student[a.studentIDs.at(0)].firstname) <
+                                                    (student[b.studentIDs.at(0)].lastname + student[b.studentIDs.at(0)].firstname));});
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].name = QString::number(team+1);
@@ -1650,29 +1594,13 @@ void gruepr::optimizationComplete()
 
     // Display the results
     ui->dataDisplayTabWidget->setCurrentIndex(1);
-    teamDataTree->resetDisplay(dataOptions);
+    ui->teamDataTree->resetDisplay(dataOptions);
     refreshTeamDisplay();
 
     // Sort by first student's name and load initial order into currentSort column
-    teamDataTree->sortByColumn(0, Qt::AscendingOrder);
-    teamDataTree->headerItem()->setIcon(0, QIcon(":/icons/blank_arrow.png"));
+    ui->teamDataTree->sortByColumn(0, Qt::AscendingOrder);
+    ui->teamDataTree->headerItem()->setIcon(0, QIcon(":/icons/blank_arrow.png"));
     reorderedTeams();
-}
-
-
-void gruepr::on_expandAllButton_clicked()
-{
-    teamDataTree->setUpdatesEnabled(false);
-    teamDataTree->expandAll();
-    teamDataTree->setUpdatesEnabled(true);
-}
-
-
-void gruepr::on_collapseAllButton_clicked()
-{
-    teamDataTree->setUpdatesEnabled(false);
-    teamDataTree->collapseAll();
-    teamDataTree->setUpdatesEnabled(true);
 }
 
 
@@ -1682,8 +1610,8 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     QStringList teamNameLists = QString(TEAMNAMELISTS).split(";");
 
     // Maintain current sort order and then get team numbers in the order that they are currently displayed/sorted
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
-    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+    ui->teamDataTree->headerItem()->setIcon(ui->teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    ui->teamDataTree->sortByColumn(ui->teamDataTree->columnCount()-1, Qt::AscendingOrder);
     QVector<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
 
     // Set team names to:
@@ -1797,15 +1725,15 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     refreshTeamToolTips();
     for(int team = 0; team < numTeams; team++)
     {
-        teamDataTree->topLevelItem(team)->setText(0, tr("Team ") + teams[teamDisplayNums.at(team)].name);
-        teamDataTree->topLevelItem(team)->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
-        teamDataTree->topLevelItem(team)->setData(0, TEAMINFO_DISPLAY_ROLE, tr("Team ") + teams[teamDisplayNums.at(team)].name);
-        for(int column = 0, numColsForToolTips = teamDataTree->columnCount()-1; column < numColsForToolTips; column++)
+        ui->teamDataTree->topLevelItem(team)->setText(0, tr("Team ") + teams[teamDisplayNums.at(team)].name);
+        ui->teamDataTree->topLevelItem(team)->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
+        ui->teamDataTree->topLevelItem(team)->setData(0, TEAMINFO_DISPLAY_ROLE, tr("Team ") + teams[teamDisplayNums.at(team)].name);
+        for(int column = 0, numColsForToolTips = ui->teamDataTree->columnCount()-1; column < numColsForToolTips; column++)
         {
-            teamDataTree->topLevelItem(team)->setToolTip(column, teams[teamDisplayNums.at(team)].tooltip);
+            ui->teamDataTree->topLevelItem(team)->setToolTip(column, teams[teamDisplayNums.at(team)].tooltip);
         }
     }
-    teamDataTree->resizeColumnToContents(0);
+    ui->teamDataTree->resizeColumnToContents(0);
 }
 
 
@@ -1934,11 +1862,11 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
         return;
     }
 
-    teamDataTree->setUpdatesEnabled(false);
+    ui->teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
-    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+    ui->teamDataTree->headerItem()->setIcon(ui->teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    ui->teamDataTree->sortByColumn(ui->teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     if(studentAteam == studentBteam)
     {
@@ -1951,11 +1879,11 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
         //get the team item in the tree
         QTreeWidgetItem *teamItem = nullptr;
         int row = 0;
-        while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentAteam) && (row < numTeams))
+        while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentAteam) && (row < numTeams))
         {
             row++;
         }
-        teamItem = teamDataTree->topLevelItem(row);
+        teamItem = ui->teamDataTree->topLevelItem(row);
 
         //clear and refresh student items in table
         for(auto &child : teamItem->takeChildren())
@@ -1967,8 +1895,8 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
         childItems.reserve(numStudentsOnTeam);
         for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++)
         {
-            childItems[studentNum] = new TeamTreeWidgetItem;
-            teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIDs[studentNum]], dataOptions);
+            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIDs[studentNum]], dataOptions);
             teamItem->addChild(childItems[studentNum]);
         }
     }
@@ -1980,39 +1908,25 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
         //get the team items in the tree
         QTreeWidgetItem *teamAItem = nullptr, *teamBItem = nullptr;
         int row = 0;
-        while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentAteam) && (row < numTeams))
+        while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentAteam) && (row < numTeams))
         {
             row++;
         }
-        teamAItem = teamDataTree->topLevelItem(row);
+        teamAItem = ui->teamDataTree->topLevelItem(row);
         row = 0;
-        while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentBteam) && (row < numTeams))
+        while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentBteam) && (row < numTeams))
         {
             row++;
         }
-        teamBItem = teamDataTree->topLevelItem(row);
+        teamBItem = ui->teamDataTree->topLevelItem(row);
 
         //refresh the info for both teams
         refreshTeamInfo(QVector<int>({studentAteam, studentBteam}));
         refreshTeamToolTips(QVector<int>({studentAteam, studentBteam}));
         QString firstStudentName = student[teams[studentAteam].studentIDs[0]].lastname+student[teams[studentAteam].studentIDs[0]].firstname;
-        teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, dataOptions);
+        ui->teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, dataOptions);
         firstStudentName = student[teams[studentBteam].studentIDs[0]].lastname+student[teams[studentBteam].studentIDs[0]].firstname;
-        teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, dataOptions);
-        if(teamAItem->isExpanded())
-        {
-            for(int column = 2; column < teamDataTree->columnCount(); column++)
-            {
-                teamAItem->setText(column, "");
-            }
-        }
-        if(teamBItem->isExpanded())
-        {
-            for(int column = 2; column < teamDataTree->columnCount(); column++)
-            {
-                teamBItem->setText(column, "");
-            }
-        }
+        ui->teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, dataOptions);
 
         //clear and refresh student items on both teams in table
         for(auto &child : teamAItem->takeChildren())
@@ -2029,20 +1943,20 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
         childItems.reserve(std::max(numStudentsOnTeamA, numStudentsOnTeamB));
         for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++)
         {
-            childItems[studentNum] = new TeamTreeWidgetItem;
-            teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIDs[studentNum]], dataOptions);
+            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIDs[studentNum]], dataOptions);
             teamAItem->addChild(childItems[studentNum]);
         }
         childItems.clear();
         for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++)
         {
-            childItems[studentNum] = new TeamTreeWidgetItem;
-            teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentBteam].studentIDs[studentNum]], dataOptions);
+            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentBteam].studentIDs[studentNum]], dataOptions);
             teamBItem->addChild(childItems[studentNum]);
         }
     }
 
-    teamDataTree->setUpdatesEnabled(true);
+    ui->teamDataTree->setUpdatesEnabled(true);
 }
 
 
@@ -2053,11 +1967,11 @@ void gruepr::moveTeammate(int studentTeam, int studentID, int newTeam)
         return;
     }
 
-    teamDataTree->setUpdatesEnabled(false);
+    ui->teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
-    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+    ui->teamDataTree->headerItem()->setIcon(ui->teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    ui->teamDataTree->sortByColumn(ui->teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     //remove student from old team and add to new team
     teams[studentTeam].studentIDs.removeOne(studentID);
@@ -2068,40 +1982,25 @@ void gruepr::moveTeammate(int studentTeam, int studentID, int newTeam)
     //get the team items in the tree
     QTreeWidgetItem *studentTeamItem = nullptr, *newTeamItem = nullptr;
     int row = 0;
-    while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentTeam) && (row < numTeams))
+    while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentTeam) && (row < numTeams))
     {
         row++;
     }
-    studentTeamItem = teamDataTree->topLevelItem(row);
+    studentTeamItem = ui->teamDataTree->topLevelItem(row);
     row = 0;
-    while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != newTeam) && (row < numTeams))
+    while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != newTeam) && (row < numTeams))
     {
         row++;
     }
-    newTeamItem = teamDataTree->topLevelItem(row);
+    newTeamItem = ui->teamDataTree->topLevelItem(row);
 
     //refresh the info for both teams
     refreshTeamInfo(QVector<int>({studentTeam, newTeam}));
     refreshTeamToolTips(QVector<int>({studentTeam, newTeam}));
     QString firstStudentName = student[teams[studentTeam].studentIDs[0]].lastname+student[teams[studentTeam].studentIDs[0]].firstname;
-    teamDataTree->refreshTeam(studentTeamItem, teams[studentTeam], studentTeam, firstStudentName, dataOptions);
+    ui->teamDataTree->refreshTeam(studentTeamItem, teams[studentTeam], studentTeam, firstStudentName, dataOptions);
     firstStudentName = student[teams[newTeam].studentIDs[0]].lastname+student[teams[newTeam].studentIDs[0]].firstname;
-    teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, dataOptions);
-
-    if(studentTeamItem->isExpanded())
-    {
-        for(int column = 2; column < teamDataTree->columnCount(); column++)
-        {
-            studentTeamItem->setText(column, "");
-        }
-    }
-    if(newTeamItem->isExpanded())
-    {
-        for(int column = 2; column < teamDataTree->columnCount(); column++)
-        {
-            newTeamItem->setText(column, "");
-        }
-    }
+    ui->teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, dataOptions);
 
     //clear and refresh student items on both teams in table
     for(auto &child : studentTeamItem->takeChildren())
@@ -2119,19 +2018,19 @@ void gruepr::moveTeammate(int studentTeam, int studentID, int newTeam)
     childItems.reserve(std::max(numStudentsOnStudentTeam, numStudentsOnNewTeam));
     for(int studentNum = 0; studentNum < numStudentsOnStudentTeam; studentNum++)
     {
-        childItems[studentNum] = new TeamTreeWidgetItem;
-        teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentTeam].studentIDs[studentNum]], dataOptions);
+        childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+        ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentTeam].studentIDs[studentNum]], dataOptions);
         studentTeamItem->addChild(childItems[studentNum]);
     }
     childItems.clear();
     for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++)
     {
-        childItems[studentNum] = new TeamTreeWidgetItem;
-        teamDataTree->refreshStudent(childItems[studentNum], student[teams[newTeam].studentIDs[studentNum]], dataOptions);
+        childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+        ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[newTeam].studentIDs[studentNum]], dataOptions);
         newTeamItem->addChild(childItems[studentNum]);
     }
 
-    teamDataTree->setUpdatesEnabled(true);
+    ui->teamDataTree->setUpdatesEnabled(true);
 }
 
 
@@ -2142,21 +2041,21 @@ void gruepr::reorderTeams(int teamA, int teamB)
         return;
     }
 
-    teamDataTree->setUpdatesEnabled(false);
+    ui->teamDataTree->setUpdatesEnabled(false);
 
     //maintain current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
-    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+    ui->teamDataTree->headerItem()->setIcon(ui->teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    ui->teamDataTree->sortByColumn(ui->teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
-    // find the teamA and teamB top level items in teamDataTree
+    // find the teamA and teamB top level items in ui->teamDataTree
     int teamARow=0, teamBRow=0;
     for(int row = 0; row < numTeams; row++)
     {
-        if(teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamA)
+        if(ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamA)
         {
             teamARow = row;
         }
-        else if(teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamB)
+        else if(ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamB)
         {
             teamBRow = row;
         }
@@ -2169,57 +2068,57 @@ void gruepr::reorderTeams(int teamA, int teamB)
     else if(teamARow - teamBRow == 1)       // dragging just one row above ==> just swap the two
     {
         // swap sort column data
-        int teamASortOrder = teamDataTree->topLevelItem(teamARow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamASortOrder);
-        teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamASortOrder));
-        teamDataTree->topLevelItem(teamBRow)->setText(teamDataTree->columnCount()-1, QString::number(teamASortOrder));
+        int teamASortOrder = ui->teamDataTree->topLevelItem(teamARow)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        int teamBSortOrder = ui->teamDataTree->topLevelItem(teamBRow)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        ui->teamDataTree->topLevelItem(teamARow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
+        ui->teamDataTree->topLevelItem(teamARow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
+        ui->teamDataTree->topLevelItem(teamARow)->setText(ui->teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        ui->teamDataTree->topLevelItem(teamBRow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamASortOrder);
+        ui->teamDataTree->topLevelItem(teamBRow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamASortOrder));
+        ui->teamDataTree->topLevelItem(teamBRow)->setText(ui->teamDataTree->columnCount()-1, QString::number(teamASortOrder));
     }
     else if(teamARow > teamBRow)            // dragging team onto a team listed earlier in the table
     {
         // backwards from teamA-1 up to teamB, increment sort column data
         for(int row = teamARow-1; row > teamBRow; row--)
         {
-            int teamBelowRow = teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() + 1;
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBelowRow);
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBelowRow));
-            teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(teamBelowRow));
+            int teamBelowRow = ui->teamDataTree->topLevelItem(row)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() + 1;
+            ui->teamDataTree->topLevelItem(row)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBelowRow);
+            ui->teamDataTree->topLevelItem(row)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBelowRow));
+            ui->teamDataTree->topLevelItem(row)->setText(ui->teamDataTree->columnCount()-1, QString::number(teamBelowRow));
         }
         // set sort column data for teamA to teamB
-        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        int teamBSortOrder = ui->teamDataTree->topLevelItem(teamBRow)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        ui->teamDataTree->topLevelItem(teamARow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
+        ui->teamDataTree->topLevelItem(teamARow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
+        ui->teamDataTree->topLevelItem(teamARow)->setText(ui->teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
     }
     else                                    // dragging team onto a team listed later in the table
     {
         // remember where team B is
-        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        int teamBSortOrder = ui->teamDataTree->topLevelItem(teamBRow)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
 
         // backwards from teamB up to teamA, decrement sort column data
         for(int row = teamBRow; row < teamARow; row++)
         {
-            int teamAboveRow = teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() - 1;
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamAboveRow);
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamAboveRow));
-            teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(teamAboveRow));
+            int teamAboveRow = ui->teamDataTree->topLevelItem(row)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() - 1;
+            ui->teamDataTree->topLevelItem(row)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamAboveRow);
+            ui->teamDataTree->topLevelItem(row)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamAboveRow));
+            ui->teamDataTree->topLevelItem(row)->setText(ui->teamDataTree->columnCount()-1, QString::number(teamAboveRow));
         }
 
         // set sort column data for teamA to teamB
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        ui->teamDataTree->topLevelItem(teamARow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
+        ui->teamDataTree->topLevelItem(teamARow)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
+        ui->teamDataTree->topLevelItem(teamARow)->setText(ui->teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
     }
 
-    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+    ui->teamDataTree->sortByColumn(ui->teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     // rewrite all of the sort column data, just to be sure (can remove this line?)
     reorderedTeams();
 
-    teamDataTree->setUpdatesEnabled(true);
+    ui->teamDataTree->setUpdatesEnabled(true);
 }
 
 
@@ -2229,9 +2128,9 @@ void gruepr::reorderedTeams()
     QCoreApplication::processEvents();  // make sure any sorting happens first
     for(int row = 0; row < numTeams; row++)
     {
-        teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, row);
-        teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(row));
-        teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(row));
+        ui->teamDataTree->topLevelItem(row)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, row);
+        ui->teamDataTree->topLevelItem(row)->setData(ui->teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(row));
+        ui->teamDataTree->topLevelItem(row)->setText(ui->teamDataTree->columnCount()-1, QString::number(row));
     }
 }
 
@@ -2243,11 +2142,11 @@ QVector<int> gruepr::getTeamNumbersInDisplayOrder()
     for(int order = 0; order < numTeams; order++)
     {
         int row = 0;
-        while((teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != order) && (row < numTeams))
+        while((ui->teamDataTree->topLevelItem(row)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != order) && (row < numTeams))
         {
             row++;
         }
-        teamDisplayNums << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
+        teamDisplayNums << ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
     }
     return teamDisplayNums;
 }
@@ -2425,7 +2324,7 @@ void gruepr::resetUI()
     ui->saveSurveyFilePushButton->setEnabled(false);
     ui->actionSave_Survey_File->setEnabled(false);
     ui->teamDataLayout->setEnabled(false);
-    teamDataTree->setEnabled(false);
+    ui->teamDataTree->setEnabled(false);
     ui->label_23->setEnabled(false);
     ui->expandAllButton->setEnabled(false);
     ui->collapseAllButton->setEnabled(false);
@@ -2511,10 +2410,7 @@ void gruepr::loadUI()
 
     refreshStudentDisplay();
 
-    ui->studentTable->sortByColumn(0, Qt::AscendingOrder);
-    ui->studentTable->horizontalHeader()->setSortIndicatorShown(true);
-    ui->studentTable->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
-    ui->studentTable->horizontalHeaderItem(0)->setIcon(QIcon(":/icons/blank_arrow.png"));
+    ui->studentTable->resetTable();
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
@@ -3154,24 +3050,22 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->setUpdatesEnabled(false);
     ui->dataDisplayTabWidget->setCurrentIndex(0);
     ui->studentTable->clear();
-    ui->studentTable->setSortingEnabled(false); // have to disable sorting temporarily while adding items
+    ui->studentTable->setSortingEnabled(false);
+
     ui->studentTable->setColumnCount(dataOptions->sectionIncluded? 6 : 5);
     QIcon unsortedIcon(":/icons/updown_arrow.png");
-    ui->studentTable->setHorizontalHeaderItem(0, new QTableWidgetItem(unsortedIcon, tr("Survey\nSubmission\nTime")));
-    ui->studentTable->setHorizontalHeaderItem(1, new QTableWidgetItem(unsortedIcon, tr("First Name")));
-    ui->studentTable->setHorizontalHeaderItem(2, new QTableWidgetItem(unsortedIcon, tr("Last Name")));
-    int column = 3;
+    int column = 0;
+    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("Survey\nSubmission\nTime")));
+    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("First Name")));
+    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("Last Name")));
     if(dataOptions->sectionIncluded)
     {
-        ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(unsortedIcon, tr("Section")));
-        column++;
+        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("Section")));
     }
-    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Edit")));
-    column++;
+    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(tr("Edit")));
     ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Remove")));
 
     ui->studentTable->setRowCount(dataOptions->numStudentsInSystem);
-
     numStudents = 0;
     for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
     {
@@ -3227,7 +3121,15 @@ void gruepr::refreshStudentDisplay()
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
             connect(editButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, editButton]
-            {int row=0; while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2)) {row++;} on_studentTable_cellEntered(row,0);});
+                                                                                {int row=0;
+                                                                                 while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
+                                                                                    {row++;}
+                                                                                 ui->studentTable->cellEntered(row);});
+            connect(editButton, &PushButtonWithMouseEnter::mouseLeft, this, [this, editButton]
+                                                                                {int row=0;
+                                                                                 while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
+                                                                                     {row++;}
+                                                                                 ui->studentTable->cellLeft(row);});
             ui->studentTable->setCellWidget(numStudents, column, editButton);
             column++;
 
@@ -3239,10 +3141,20 @@ void gruepr::refreshStudentDisplay()
             {
                 removerButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
             }
-            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this] {removeAStudent();});
+            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, ID, removerButton]
+                                                                             {removerButton->disconnect();
+                                                                              removeAStudent(student[ID].firstname + " " + student[ID].lastname);});
             // pass on mouse enter events onto cell in table
             connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, removerButton]
-            {int row=0; while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1)) {row++;} on_studentTable_cellEntered(row,0);});
+                                                                                   {int row=0;
+                                                                                    while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
+                                                                                        {row++;}
+                                                                                    ui->studentTable->cellEntered(row);});
+            connect(removerButton, &PushButtonWithMouseEnter::mouseLeft, this, [this, removerButton]
+                                                                                {int row=0;
+                                                                                 while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
+                                                                                     {row++;}
+                                                                                 ui->studentTable->cellLeft(row);});
             ui->studentTable->setCellWidget(numStudents, column, removerButton);
 
             numStudents++;
@@ -3255,7 +3167,6 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();
-    ui->studentTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     ui->studentTable->setSortingEnabled(true);
 }
 
@@ -4221,9 +4132,9 @@ void gruepr::refreshTeamDisplay()
     int studentNum = 0;
     for(int teamNum = 0; teamNum < numTeams; teamNum++)
     {
-        parentItems[teamNum] = new TeamTreeWidgetItem;
+        parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, ui->teamDataTree->columnCount());
         QString firstStudentName = student[teams[teamNum].studentIDs[0]].lastname+student[teams[teamNum].studentIDs[0]].firstname;
-        teamDataTree->refreshTeam(parentItems[teamNum], teams[teamNum], teamNum, firstStudentName, dataOptions);
+        ui->teamDataTree->refreshTeam(parentItems[teamNum], teams[teamNum], teamNum, firstStudentName, dataOptions);
 
         //remove all student items in the team
         for(auto &studentItem : parentItems[teamNum]->takeChildren())
@@ -4236,8 +4147,8 @@ void gruepr::refreshTeamDisplay()
         int numStudentsOnTeam = teams[teamNum].size;
         for(int studentOnTeam = 0; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
         {
-            childItems[studentNum] = new TeamTreeWidgetItem;
-            teamDataTree->refreshStudent(childItems[studentNum], student[teams[teamNum].studentIDs[studentOnTeam]], dataOptions);
+            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[teamNum].studentIDs[studentOnTeam]], dataOptions);
             parentItems[teamNum]->addChild(childItems[studentNum]);
             studentNum++;
         }
@@ -4246,19 +4157,19 @@ void gruepr::refreshTeamDisplay()
     }
 
     // Finally, put each team in the table for display
-    teamDataTree->setUpdatesEnabled(false);
-    teamDataTree->clear();
+    ui->teamDataTree->setUpdatesEnabled(false);
+    ui->teamDataTree->clear();
     for(int teamNum = 0; teamNum < numTeams; teamNum++)
     {
-        teamDataTree->addTopLevelItem(parentItems[teamNum]);
+        ui->teamDataTree->addTopLevelItem(parentItems[teamNum]);
     }
-    for(int column = 0; column < teamDataTree->columnCount(); column++)
+    for(int column = 0; column < ui->teamDataTree->columnCount(); column++)
     {
-        teamDataTree->resizeColumnToContents(column);
+        ui->teamDataTree->resizeColumnToContents(column);
     }
-    teamDataTree->setUpdatesEnabled(true);
+    ui->teamDataTree->setUpdatesEnabled(true);
 
-    teamDataTree->setSortingEnabled(true);
+    ui->teamDataTree->setSortingEnabled(true);
 
     setWindowModified(true);
 }
@@ -4327,11 +4238,11 @@ void gruepr::createFileContents()
     for(int row = 0; row < numTeams; row++)
     {
         int team = 0;
-        while(teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != team)
+        while(ui->teamDataTree->topLevelItem(row)->data(ui->teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != team)
         {
             team++;
         }
-        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
+        teamDisplayNum << ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
     }
 
     //loop through every team

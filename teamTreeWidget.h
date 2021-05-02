@@ -16,6 +16,8 @@
 class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
+    enum TreeItemType{team, student};
+    TeamTreeWidgetItem(TreeItemType type, int columns = 0);
     bool operator<(const QTreeWidgetItem &other) const;
 };
 
@@ -39,6 +41,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event);        // remember which item is being dragged
     void dragMoveEvent(QDragMoveEvent *event);          // update tooltip during drag
     void dropEvent(QDropEvent *event);                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
+    void leaveEvent(QEvent *event);
 
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
@@ -56,6 +59,7 @@ private:
     QTreeWidgetItem *draggedItem = nullptr;
     QTreeWidgetItem *droppedItem = nullptr;
     QLabel *dragDropEventLabel = nullptr;
+
 };
 
 ///////////////////////////////////////////////////////////////////////

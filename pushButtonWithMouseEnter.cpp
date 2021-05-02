@@ -18,3 +18,9 @@ void PushButtonWithMouseEnter::enterEvent(QEvent *event)
     emit mouseEntered();
     event->ignore();
 }
+
+void PushButtonWithMouseEnter::leaveEvent(QEvent *event)
+{
+    emit mouseLeft();
+    event->ignore();
+}

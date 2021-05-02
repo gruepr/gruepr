@@ -9,32 +9,14 @@
 TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     :QTreeWidget(parent)
 {
-    setStyleSheet("QHeaderView::section{border-top:0px solid #D8D8D8;border-left:0px solid #D8D8D8;border-right:1px solid black;"
-                  "border-bottom: 1px solid black;background-color:Gainsboro;padding:4px;font-weight:bold;}"
-                  "QHeaderView::down-arrow{image: url(:/icons/down_arrow.png);width:18px;subcontrol-origin:padding;subcontrol-position:bottom left;}"
-                  "QHeaderView::up-arrow{image: url(:/icons/up_arrow.png);width:18px;subcontrol-origin:padding;subcontrol-position:top left;}"
-                  "QTreeWidget::item:selected{color: black;background-color: #85cbf8;}"
-                  "QTreeWidget::item:hover{color: black;background-color: #85cbf8;}"
-                  "QTreeWidget::branch{background-color: white;}"
-                  "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons/branch-more.png);}"
-                  "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons/branch-end.png);}"
-                  "QTreeView::branch:has-children:!has-siblings:closed,"
-                  "QTreeView::branch:closed:has-children:has-siblings {border-image: none; image: url(:/icons/branch-closed.png);}"
-                  "QTreeView::branch:open:has-children:!has-siblings,"
-                  "QTreeView::branch:open:has-children:has-siblings {border-image: none; image: url(:/icons/branch-open.png);}");
     setHeader(new TeamTreeHeaderView(this));
     header()->setSectionResizeMode(QHeaderView::Interactive);
-    setDragDropMode(QAbstractItemView::InternalMove);
-    setSortingEnabled(false);
-    setAlternatingRowColors(true);
-    setHeaderHidden(true);
-    setMouseTracking(true);
-    setSelectionMode(QAbstractItemView::SingleSelection);
-    setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
+    connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::collapseItem);
     connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::expandItem);
 }
+
 
 void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
 {
@@ -42,10 +24,6 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
     if(itemIsStudent)    // only collapse the top level items (teams, not students on the team)
     {
         return;
-    }
-    for(int column = 2; column < columnCount(); column++)
-    {
-        item->setText(column, item->data(column, Qt::UserRole).toString());
     }
 
     QTreeWidget::collapseItem(item);
@@ -56,22 +34,22 @@ void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
     }
 }
 
+
 void TeamTreeWidget::collapseAll()
 {
+    setUpdatesEnabled(false);
     for(int i = 0; i < topLevelItemCount(); i++)
     {
         QTreeWidgetItem *item = topLevelItem(i);
-        for(int column = 2; column < columnCount(); column++)
-        {
-            item->setText(column, item->data(column, Qt::UserRole).toString());
-        }
         QTreeWidget::collapseItem(item);
     }
     for(int column = 0; column < columnCount(); column++)
     {
         resizeColumnToContents(column);
     }
+    setUpdatesEnabled(true);
 }
+
 
 void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
 {
@@ -79,10 +57,6 @@ void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
     if(itemIsStudent)    // only expand the top level items (teams, not students on the team)
     {
         return;
-    }
-    for(int column = 2; column < columnCount(); column++)
-    {
-        item->setText(column, "");
     }
 
     QTreeWidget::expandItem(item);
@@ -93,15 +67,13 @@ void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
     }
 }
 
+
 void TeamTreeWidget::expandAll()
 {
+    setUpdatesEnabled(false);
     for(int i = 0; i < topLevelItemCount(); i++)
     {
         QTreeWidgetItem *item = topLevelItem(i);
-        for(int column = 2; column < columnCount(); column++)
-        {
-            item->setText(column, "");
-        }
         QTreeWidget::expandItem(item);
     }
 
@@ -109,7 +81,9 @@ void TeamTreeWidget::expandAll()
     {
         resizeColumnToContents(column);
     }
+    setUpdatesEnabled(true);
 }
+
 
 void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
 {
@@ -366,7 +340,6 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
 }
 
 
-
 void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     draggedItem = currentItem();
@@ -376,6 +349,7 @@ void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
     dragDropEventLabel->setWindowFlag(Qt::ToolTip);
     dragDropEventLabel->setTextFormat(Qt::RichText);
 }
+
 
 void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 {
@@ -434,6 +408,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     }
 }
 
+
 void TeamTreeWidget::dropEvent(QDropEvent *event)
 {
     dragDropEventLabel->hide();
@@ -469,6 +444,7 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     }
 }
 
+
 void TeamTreeWidget::resorting(int column)
 {
     for(int i = 0; i < columnCount(); i++)
@@ -485,12 +461,40 @@ void TeamTreeWidget::resorting(int column)
     emit updateTeamOrder();
 }
 
+
 void TeamTreeWidget::itemEntered(const QModelIndex &index)
 {
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
 
+
+void TeamTreeWidget::leaveEvent(QEvent *event)
+{
+    selectionModel()->clearSelection();
+    if(event != nullptr)
+    {
+        QWidget::leaveEvent(event);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////
+
+TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns)
+{
+    if(type == team && columns > 0)
+    {
+        QFont teamFont = this->font(0);
+        teamFont.setBold(true);
+        const QBrush teamColor = QColor(0xce, 0xea, 0xfb);
+
+        for(int col = 0; col < columns; col++)
+        {
+            setBackground(col, teamColor);
+            setFont(col, teamFont);
+        }
+    }
+}
+
 
 bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 {
@@ -507,8 +511,9 @@ bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
     }
 
     // sort using sortorder data in column, and use existing order to break ties
-    return((1000*data(sortColumn, TEAMINFO_SORT_ROLE).toInt() + data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt()) <
-           (1000*other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt() + other.data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt()));
+    return((data(sortColumn, TEAMINFO_SORT_ROLE).toInt() != other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt()) ?
+               (data(sortColumn, TEAMINFO_SORT_ROLE).toInt() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt()) :
+               (data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt() < other.data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt()));
 }
 
 ///////////////////////////////////////////////////////////////////////

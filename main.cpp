@@ -34,6 +34,7 @@
 // - bugfix: newlines within a csv field are now handled properly
 // - bugfix: save file after adding or editing a student mishandled attribute values
 // - bugfix: Gather URM Response dialog crash in some cases
+// - bugfix: crash when starting optimization at first update of progress dialog
 // - attribute response texts now always show in attribute value selection box in add/edit student dialog; better GUI behavior on those boxes
 // - now distinguishes nonbinary from unknown gender in instructor's save file
 // - expansion of what gets recognized for gender response: woman OR female; man OR male; anything that includes "trans", "queer", or any combination of "non" and "binary"
@@ -51,7 +52,10 @@
 // - allow for section question later in the "additional questions"
 // - unify reading/writing of csv files throughout
 // - brought relevant functions for teamTreeWidget as member functions
+// - changed display of team in teamTreeWidget to be always on, but bold and with colored background
 //
+// IN PROGRESS:
+// - make studentTable a subclass, using teamTreeWidget as example
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed

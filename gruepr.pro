@@ -73,6 +73,7 @@ SOURCES += \
         pushButtonWithMouseEnter.cpp \
         sortableTableWidgetItem.cpp \
         studentRecord.cpp \
+        studentTableWidget.cpp \
         surveymaker.cpp \
         teamTreeWidget.cpp
 
@@ -90,6 +91,7 @@ HEADERS += \
         pushButtonWithMouseEnter.h \
         sortableTableWidgetItem.h \
         studentRecord.h \
+        studentTableWidget.h \
         surveymaker.h \
         teamTreeWidget.h
 

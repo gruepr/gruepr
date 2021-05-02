@@ -39,8 +39,7 @@ private slots:
     void on_loadSurveyFileButton_clicked();
     void loadStudentRoster();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
-    void on_studentTable_cellEntered(int row, int column);
-    void removeAStudent(const QString &name = "", bool delayVisualUpdate = false);
+    void removeAStudent(const QString &name, bool delayVisualUpdate = false);
     void editAStudent();
     void on_addStudentPushButton_clicked();
     void on_saveSurveyFilePushButton_clicked();
@@ -67,8 +66,6 @@ private slots:
     void on_letsDoItButton_clicked();
     void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability);
     void optimizationComplete();
-    void on_expandAllButton_clicked();
-    void on_collapseAllButton_clicked();
     void on_teamNamesComboBox_activated(int index);
     void on_saveTeamsButton_clicked();
     void on_printTeamsButton_clicked();
@@ -135,7 +132,6 @@ private:
     void refreshTeamDisplay();
     QVector<int> getTeamNumbersInDisplayOrder();
     QString sectionName;
-    TeamTreeWidget *teamDataTree = nullptr;
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;

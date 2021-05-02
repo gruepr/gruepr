@@ -15,9 +15,11 @@ public:
 
 protected:
     void enterEvent(QEvent *event);
+    void leaveEvent(QEvent *event);
 
 signals:
     void mouseEntered();
+    void mouseLeft();
 };
 
 #endif // PUSHBUTTONWITHMOUSEENTER

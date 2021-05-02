@@ -1322,7 +1322,7 @@ Identities</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QTableWidget" name="studentTable">
+           <widget class="StudentTableWidget" name="studentTable">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1515,6 +1515,77 @@ Identities</string>
          <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
            <layout class="QVBoxLayout" name="teamDataLayout">
+            <item>
+             <widget class="TeamTreeWidget" name="teamDataTree">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="mouseTracking">
+               <bool>true</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QHeaderView::section{
+	border-top:0px solid #D8D8D8;
+	border-left:0px solid #D8D8D8;
+	border-right:1px solid black;
+	border-bottom: 1px solid black;
+	background-color:Gainsboro;
+	padding:4px;
+	font-weight:bold;}
+QHeaderView::down-arrow{
+	image: url(:/icons/down_arrow.png);
+	width:18px;
+	subcontrol-origin:padding;
+	subcontrol-position:bottom left;}
+QHeaderView::up-arrow{
+	image: url(:/icons/up_arrow.png);
+	width:18px;
+	subcontrol-origin:padding;
+	subcontrol-position:top left;}
+QTreeWidget::item:selected{
+	color: black;
+	background-color: #85cbf8;}
+QTreeWidget::item:hover{
+	color: black;
+	background-color: #85cbf8;}
+QTreeWidget::branch{background-color: white;}
+QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons/branch-more.png);}
+QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons/branch-end.png);}
+QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {
+	border-image: none; 
+	image: url(:/icons/branch-closed.png);}
+QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {
+	border-image: none;
+	image: url(:/icons/branch-open.png);}</string>
+              </property>
+              <property name="autoScroll">
+               <bool>false</bool>
+              </property>
+              <property name="showDropIndicator" stdset="0">
+               <bool>false</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::InternalMove</enum>
+              </property>
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="verticalScrollMode">
+               <enum>QAbstractItemView::ScrollPerPixel</enum>
+              </property>
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="headerStretchLastSection">
+               <bool>false</bool>
+              </attribute>
+              <column>
+               <property name="text">
+                <string notr="true">1</string>
+               </property>
+              </column>
+             </widget>
+            </item>
             <item>
              <widget class="QLabel" name="label_23">
               <property name="enabled">
@@ -1946,6 +2017,18 @@ Identities</string>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>TeamTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header>teamtreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>StudentTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>studenTtableWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="gruepr.qrc"/>
  </resources>

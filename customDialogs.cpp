@@ -1,6 +1,6 @@
-#include "csvfile.h"
 #include "customDialogs.h"
 #include "Levenshtein.h"
+#include "csvfile.h"
 #include <QCollator>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QToolTip>
+#include <chrono>
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,6 +65,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     currentListOfTeammatesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     currentListOfTeammatesTable->setSelectionMode(QAbstractItemView::NoSelection);
     currentListOfTeammatesTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    currentListOfTeammatesTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     currentListOfTeammatesTable->setAlternatingRowColors(true);
     currentListOfTeammatesTable->setStyleSheet(
             "QTableView{gridline-color: black;}"
@@ -1887,7 +1889,7 @@ progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
 void progressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
 {
     QString explanation = "<html>" + tr("Generation ") + QString::number(generation) + " - "
-                          + tr("Top Score = ") + (score < 0? "<font face=\"serif\"> - </font>": "") + QString::number(std::abs(score)) +
+                          + tr("Top Score = ") + (score < 0? "<span style=\"font-family:'Arial'\"> - </span>": "") + QString::number(std::abs(score)) +
                           "<br><span style=\"color:" + (autostopInProgress? "green" : "black") + ";\">" + text;
     if(autostopInProgress && !onlyStopManually->isChecked())
     {
@@ -1921,7 +1923,7 @@ void progressDialog::highlightStopButton()
     }
 
     connect(countdownToClose, &QTimer::timeout, this, &progressDialog::updateCountdown);
-    countdownToClose->start(1000);
+    countdownToClose->start(std::chrono::seconds(1));
 }
 
 void progressDialog::updateCountdown()
@@ -1951,22 +1953,21 @@ void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
 {
     graphShown = !graphShown;
 
-    int height, width;
+    int height = 0, width = 0;
+    const int numHorizontalAxisMarkers = 14;
     QIcon icon;
     QString butText;
     if(graphShown)
     {
         chart->show();
         height = 400;
-        width = QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("10 15 20 25 30 35 40 45 50 55 60 65 70");
+        width = numHorizontalAxisMarkers * QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("XX  ");
         icon = QIcon(":/icons/up_arrow.png");
         butText = "Hide progress";
     }
     else
     {
         chart->hide();
-        height = 0;
-        width = 0;
         icon = QIcon(":/icons/down_arrow.png");
         butText = "Show progress";
     }
