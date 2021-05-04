@@ -53,8 +53,6 @@
 // - unify reading/writing of csv files throughout
 // - brought relevant functions for teamTreeWidget as member functions
 // - changed display of team in teamTreeWidget to be always on, but bold and with colored background
-//
-// IN PROGRESS:
 // - make studentTable a subclass, using teamTreeWidget as example
 //
 // TO DO:

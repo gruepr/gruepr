@@ -45,6 +45,7 @@ private:
     listTableDialog *window = nullptr;
     QStringList getLine(const int minFields = -1);
     void validateFieldSelectorBoxes(int callingRow = -1);
+    const QString UNUSEDTEXT = tr("Unused");
 };
 
 #endif // CSVFILE_H

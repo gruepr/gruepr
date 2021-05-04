@@ -1,4 +1,5 @@
 #include "listTableDialog.h"
+#include <QEvent>
 #include <QHeaderView>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +23,7 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     theTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     theTable->setShowGrid(false);
     theTable->setAlternatingRowColors(true);
-    theTable->setStyleSheet("QTableView::item{border-top: 2px solid black; padding: 3px;}");
+    theTable->setStyleSheet("QTableView::item{border-top: 1px solid black; border-bottom: 1px solid black; padding: 3px;}");
     theTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     theTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     theTable->verticalHeader()->hide();
@@ -44,4 +45,16 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
 void listTableDialog::addSpacerRow(int row)
 {
     theGrid->setRowMinimumHeight(row, heightOfSpacerRow);
+}
+
+bool listTableDialog::eventFilter(QObject *object, QEvent *event)
+{
+    if(event->type() == QEvent::Wheel)
+    {
+        event->ignore();
+        return true;
+    }
+
+    event->accept();
+    return QDialog::eventFilter(object, event);
 }

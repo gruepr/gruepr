@@ -36,26 +36,31 @@ const int TIME_MEANINGS[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9
                            13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
 
 // Options for the team names. A name for each list of names must be given.
-const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
-                                 "Roman numerals,"
-                                 "Hexadecimal numbers,"
-                                 "Binary numbers,"
-                                 "English letters,"
-                                 "Greek letters (uppercase),"
-                                 "Greek letters (lowercase),"
-                                 "NATO phonetic alphabet,"
-                                 "Chemical elements,"
-                                 "Constellations,"
-                                 "Bones of the human skeleton,"
-                                 "Popes,"
-                                 "Genres of music,"
-                                 "Crayola crayon colors,"
-                                 "Shakespeare plays (RSC chron.),"
-                                 "Discontinued Olympic sports,"
-                                 "Cheeses,"
-                                 "All time best-selling albums,"
-                                 "Minor Simpsons characters,"
-                                 "Groups of animals"};
+// If name ends with period, names are numeric and increase without end
+// If name ends with asterisk, names beyond list get repeated (as in A, B, C... -> AA, BB, CC... -> AAA, BBB, CCC...)
+// If name ends with tilde, names beyond list get repeated with space between (as in A, B, C... -> A A, B B, C C... -> A A A, B B B, C C C...)
+// If name ends with hashtag, names beyond list get 'sequeled' (as in A, B, C... -> A 2, B 2, C 2... -> A 3, B 3, C 3...)
+// If name ends with at-sign, names order is randomized, and names beyond list are sequeled
+const char TEAMNAMECATEGORIES[] {"Arabic numbers.,"
+                                 "Roman numerals.,"
+                                 "Hexadecimal numbers.,"
+                                 "Binary numbers.,"
+                                 "English letters*,"
+                                 "Greek letters (uppercase)*,"
+                                 "Greek letters (lowercase)*,"
+                                 "NATO phonetic alphabet~,"
+                                 "Chemical elements#,"
+                                 "Constellations#,"
+                                 "Bones of the human skeleton@,"
+                                 "Popes#,"
+                                 "Genres of music#,"
+                                 "Crayola crayon colors#,"
+                                 "Shakespeare plays (RSC chron.)#,"
+                                 "Discontinued Olympic sports#,"
+                                 "Cheeses#,"
+                                 "All time best-selling albums#,"
+                                 "Minor Simpsons characters#,"
+                                 "Groups of animals#"};
 const char TEAMNAMELISTS[]   {";"
                               ";"
                               ";"

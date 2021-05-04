@@ -64,15 +64,15 @@ gruepr::gruepr(QWidget *parent) :
 #ifdef Q_OS_MACOS
     if(QGuiApplication::primaryScreen()->availableSize().height() < 800)
 #endif
-        {
-            ui->label_15->setMaximumSize(30,30);
-            ui->label_16->setMaximumSize(30,30);
-            ui->label_18->setMaximumSize(30,30);
-            ui->label_20->setMaximumSize(30,30);
-            ui->label_21->setMaximumSize(30,30);
-            ui->label_22->setMaximumSize(30,30);
-            ui->label_24->setMaximumSize(30,30);
-        }
+    {
+        ui->label_15->setMaximumSize(30,30);
+        ui->label_16->setMaximumSize(30,30);
+        ui->label_18->setMaximumSize(30,30);
+        ui->label_20->setMaximumSize(30,30);
+        ui->label_21->setMaximumSize(30,30);
+        ui->label_22->setMaximumSize(30,30);
+        ui->label_24->setMaximumSize(30,30);
+    }
     adjustSize();
 
     //Set up the drag/drop behavior and expandall / collapseall buttons of team table
@@ -89,7 +89,12 @@ gruepr::gruepr(QWidget *parent) :
     dataOptions = new DataOptions;
 
     //Load team name options into combo box
-    ui->teamNamesComboBox->insertItems(0, QString(TEAMNAMECATEGORIES).split(","));
+    QStringList teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
+    for(auto &teamnameCategory : teamnameCategories)
+    {
+        teamnameCategory.chop(1);
+    }
+    ui->teamNamesComboBox->insertItems(0, teamnameCategories);
 
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
@@ -1607,7 +1612,34 @@ void gruepr::optimizationComplete()
 void gruepr::on_teamNamesComboBox_activated(int index)
 {
     static int prevIndex = 0;   // hold on to previous index, so we can go back to it if cancelling custom team name dialog box
-    QStringList teamNameLists = QString(TEAMNAMELISTS).split(";");
+
+    const QStringList teamNameLists = QString(TEAMNAMELISTS).split(';');
+
+    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_structs_and_consts.h for how the teamname lists are signified
+    QVector<TeamNameType> teamNameTypes;
+    const QStringList types = QString(TEAMNAMECATEGORIES).split(',');
+    for(auto &type : types)
+    {
+        const char t = type.at(type.size()-1).toLatin1();
+        switch(t)
+        {
+            case '.':
+                teamNameTypes << numeric;
+            break;
+            case '*':
+                teamNameTypes << repeated;
+            break;
+            case '~':
+                teamNameTypes << repeated_spaced;
+            break;
+            case '#':
+                teamNameTypes << sequeled;
+            break;
+            case '@':
+                teamNameTypes << random_sequeled;
+            break;
+        }
+    }
 
     // Maintain current sort order and then get team numbers in the order that they are currently displayed/sorted
     ui->teamDataTree->headerItem()->setIcon(ui->teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
@@ -1659,15 +1691,34 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     else if(index < teamNameLists.size())
     {
         // Using one of the listed team names (given in gruepr_structs_and_consts.h)
-        // Cycle through list as often as needed, adding a repetition every time through the list
+        const QStringList teamNames = teamNameLists.at(index).split((","));
+        QVector<int> random_order(teamNames.size());
+        if(teamNameTypes.at(index) == random_sequeled)
+        {
+            std::iota(random_order.begin(), random_order.end(), 0);
+            std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};
+            std::shuffle(random_order.begin(), random_order.end(), pRNG);
+        }
         for(int team = 0; team < numTeams; team++)
         {
-            QStringList teamNames = teamNameLists.at(index).split((","));
-            teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
-            if(index == 4 || index == 5 || index == 6)
+            switch(teamNameTypes.at(index))
             {
-                // Team name is just letters, so remove spaces between letters
-                teams[teamDisplayNums.at(team)].name.remove(' ');
+                case numeric:
+                    break;
+                case repeated:
+                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]).repeated((team/teamNames.size())+1);
+                    break;
+                case repeated_spaced:
+                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
+                    break;
+                case sequeled:
+                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]) +
+                                                           ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
+                    break;
+                case random_sequeled:
+                    teams[teamDisplayNums.at(team)].name = (teamNames[random_order[team%(teamNames.size())]]) +
+                                                           ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
+                    break;
             }
         }
         prevIndex = index;
@@ -2641,8 +2692,8 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         allTimeNames.removeOne("");
         //sort allTimeNames smartly, using mapped string -> hour of day integer; any timeName not found is put at the beginning of the list
         QStringList timeNamesStrings = QString(TIME_NAMES).split(",");
-        std::sort(allTimeNames.begin(), allTimeNames.end(), [&timeNamesStrings] (const QString &a, const QString &b) -> bool
-        {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
+        std::sort(allTimeNames.begin(), allTimeNames.end(), [&timeNamesStrings] (const QString &a, const QString &b)
+                                                {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
         dataOptions->timeNames = allTimeNames;
     }
 
@@ -3177,8 +3228,7 @@ void gruepr::refreshStudentDisplay()
 QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
-    std::random_device randDev;
-    std::mt19937 pRNG(randDev());
+    std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};
 
     // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
     // Each genome in this generation stores (by permutation) which students are in which team.

@@ -3,6 +3,7 @@
 #include "csvfile.h"
 #include <QCollator>
 #include <QFileDialog>
+#include <QHeaderView>
 #include <QMessageBox>
 #include <QMovie>
 #include <QStandardItemModel>
@@ -924,17 +925,19 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
 
     //Row 3 - table of the size choices
     theTable->setRowCount(numStudents);
+    int widthCol0 = 0;
     for(int i = 0; i < numStudents; i++)
     {
-        theTable->setCellWidget(i, 0, new QLabel(tr("Team ") + QString::number(i+1) + " "));
+        auto label = new QLabel(tr("Team ") + QString::number(i+1) + " ");
+        theTable->setCellWidget(i, 0, label);
+        widthCol0 = std::max(widthCol0, label->width());
         teamsizeBox[i].setRange(1, numStudents);
         teamsizeBox[i].setValue(idealTeamsize);
-        QFontMetrics fm(teamsizeBox[i].font());
-        teamsizeBox[i].setMaximumWidth(fm.horizontalAdvance(QString::number(numStudents*100)) + 20);
+        teamsizeBox[i].installEventFilter(this);    // remove scrollwheel from affecting the value, as box is in a table inside a scroll area; easy to mistakenly change value
         connect(&teamsizeBox[i], QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::teamsizeChanged);
         theTable->setCellWidget(i, 1, &teamsizeBox[i]);
     }
-    theTable->resizeColumnToContents(0);
+    theTable->horizontalHeader()->resizeSection(0, widthCol0 * TABLECOLUMN0OVERWIDTH);
     theTable->adjustSize();
 
     //Rows 4&5 - a spacer and remaining students label
@@ -1012,9 +1015,12 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
 
     //Table of team names
     theTable->setRowCount(numTeams);
+    int widthCol0 = 0;
     for(int i = 0; i < numTeams; i++)
     {
-        theTable->setCellWidget(i, 0, new QLabel(tr("Team ") + QString::number(i+1) + " "));
+        auto label = new QLabel(tr("Team ") + QString::number(i+1) + " ");
+        theTable->setCellWidget(i, 0, label);
+        widthCol0 = std::max(widthCol0, label->width());
         teamName[i].setPlaceholderText(tr("Custom name"));
         if(i < teamNames.size())
         {
@@ -1022,7 +1028,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
         }
         theTable->setCellWidget(i, 1, &teamName[i]);
     }
-    theTable->resizeColumnToContents(0);
+    theTable->horizontalHeader()->resizeSection(0, widthCol0 * TABLECOLUMN0OVERWIDTH);
     theTable->adjustSize();
 
     //A reset table button
@@ -1777,12 +1783,14 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     enableValue = new QCheckBox[numResponses];
     responses = new QPushButton[numResponses];
     theTable->setRowCount(numResponses);
+    int widthCol0 = 0;
     for(int response = 0; response < numResponses; response++)
     {
         const QString &responseText = URMResponses.at(response);
         enableValue[response].setChecked(URMResponsesConsideredUR.contains(responseText));
         enableValue[response].setStyleSheet("Text-align:center; margin-left:10%; margin-right:10%;");
         theTable->setCellWidget(response, 0, &enableValue[response]);
+        widthCol0 = std::max(widthCol0, enableValue[response].width());
         responses[response].setText(responseText);
         responses[response].setFlat(true);
         responses[response].setStyleSheet("Text-align:left");
@@ -1797,7 +1805,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
                                                                                     responses[response].setStyleSheet("Text-align:left;");}
                                                                                  });
     }
-    theTable->resizeColumnToContents(0);
+    theTable->horizontalHeader()->resizeSection(0, widthCol0 * TABLECOLUMN0OVERWIDTH);
     theTable->adjustSize();
 
     adjustSize();

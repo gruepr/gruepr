@@ -198,7 +198,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
             }
             else
             {
-                fieldMeanings[i] = "Unused";
+                fieldMeanings[i] = UNUSEDTEXT;
             }
         }
     }
@@ -208,8 +208,8 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     window->setMinimumSize(500, 300);
 
     auto *explanation = new QLabel(window);
-    explanation->setText("<html>The following column headers were found in the file. "
-                         "Please verify the category of information contained in each column. Select \"Unused\" for any field(s) that should be ignored.<hr></html>");
+    explanation->setText(tr("<html>The following column headers were found in the file. "
+                         "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT + tr("\" for any field(s) that should be ignored.<hr></html>"));
     explanation->setWordWrap(true);
     window->theGrid->addWidget(explanation, 0, 0, 1, -1);
     window->addSpacerRow(1);
@@ -221,18 +221,19 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++)
     {
-        auto *label = new QLabel();
-        label->setText("\n" + headerValues.at(row) + "\n");
+        auto *label = new QLabel("\n" + headerValues.at(row) + "\n");
         label->setWordWrap(true);
         label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         window->theTable->setCellWidget(row, 0, label);
 
         auto *selector = new QComboBox();
+        selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        selector->installEventFilter(window);       // as it's too easy to mistake scrolling through the rows with changing the value
         for(auto &meaning : possibleFieldMeanings)
         {
             selector->addItem(std::get<0>(meaning), std::get<2>(meaning));
         }
-        selector->insertItem(0, "Unused");
+        selector->insertItem(0, UNUSEDTEXT);
         auto *model = qobject_cast<QStandardItemModel *>(selector->model());
         model->item(0)->setForeground(Qt::darkRed);
         selector->insertSeparator(1);
@@ -330,18 +331,18 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
             if((fullyUsedValues[fieldval] > 1) && (box->currentText() == fieldval))
             {
                 // number exceeds max. allowed somehow, so set to unused
-                box->setCurrentText("Unused");
-                fieldMeanings[*row] = "Unused";
+                box->setCurrentText(UNUSEDTEXT);
+                fieldMeanings[*row] = UNUSEDTEXT;
                 fullyUsedValues[fieldval]--;
                 if(numAllowed == 1)
                 {
-                    item->setToolTip("The \"" + fieldval + "\" field has already been assigned."
-                                     "\nSelecting this will de-select it elsewhere.");
+                    item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
+                                     "\nSelecting this will de-select it elsewhere."));
                 }
                 else
                 {
-                    item->setToolTip("All " + QString::number(numAllowed) + " \"" + fieldval + "\" fields have already been assigned."
-                                     "\nSelecting this will de-select it elsewhere.");
+                    item->setToolTip(tr("All ") + QString::number(numAllowed) + " \"" + fieldval + tr("\" fields have already been assigned."
+                                     "\nSelecting this will de-select it elsewhere."));
                 }
             }
             else if((fullyUsedValues[fieldval] == 1) && (box->currentText() != fieldval))
@@ -350,16 +351,16 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
                 item->setForeground(Qt::darkRed);
                 if(numAllowed == 1)
                 {
-                    item->setToolTip("The \"" + fieldval + "\" field has already been assigned."
-                                     "\nSelecting this will de-select it elsewhere.");
+                    item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
+                                     "\nSelecting this will de-select it elsewhere."));
                 }
                 else
                 {
-                    item->setToolTip("All " + QString::number(numAllowed) + " \"" + fieldval + "\" fields have already been assigned."
-                                     "\nSelecting this will de-select it elsewhere.");
+                    item->setToolTip(tr("All ") + QString::number(numAllowed) + " \"" + fieldval + tr("\" fields have already been assigned."
+                                     "\nSelecting this will de-select it elsewhere."));
                 }
             }
-            else if(fieldval != "Unused")
+            else if(fieldval != UNUSEDTEXT)
             {
                 // below capacity or at capacity including this one
                 item->setForeground(Qt::black);
@@ -370,7 +371,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
         // clearing formatting of all unchosen items except "Unused"
         for(int itemNum = 0; itemNum < box->count(); itemNum++)
         {
-            if((takenValues.count(box->itemText(itemNum)) == 0) && (box->itemText(itemNum) != "Unused"))
+            if((takenValues.count(box->itemText(itemNum)) == 0) && (box->itemText(itemNum) != UNUSEDTEXT))
             {
                 model->item(itemNum)->setForeground(Qt::black);
                 model->item(itemNum)->setToolTip("");
