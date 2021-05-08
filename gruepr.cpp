@@ -27,6 +27,10 @@ gruepr::gruepr(QWidget *parent) :
     ui->statusBar->addWidget(statusBarLabel);
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
+    //Put attribute label next to that tab widget
+    auto attlab = new QLabel("Attribute: ");
+    ui->attributesTabWidget->setCornerWidget(attlab, Qt::TopLeftCorner);
+
     //Setup the main window menu items
     connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
     connect(ui->actionLoad_Student_Roster, &QAction::triggered, this, &gruepr::loadStudentRoster);
@@ -110,6 +114,7 @@ gruepr::~gruepr()
     delete[] student;
     delete dataOptions;
     delete teamingOptions;
+    delete[] attributeTab;
     delete ui;
 }
 
@@ -456,14 +461,7 @@ void gruepr::loadOptionsFile()
                     incompatibleResponseNum++;
                 }
                 teamingOptions->incompatibleAttributeValues[attribute] = setOfIncompatibleResponses;
-            }
-            if(ui->attributeScrollBar->value() == 0)
-            {
-                on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
-            }
-            else
-            {
-                ui->attributeScrollBar->setValue(0);
+                attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
             }
 
             if(loadObject.contains("numberRequestedTeammatesGiven") && loadObject["numberRequestedTeammatesGiven"].isDouble())
@@ -1051,86 +1049,18 @@ void gruepr::on_URMResponsesButton_clicked()
 }
 
 
-void gruepr::on_attributeScrollBar_valueChanged(int value)
+void gruepr::incompatibleResponsesButton_clicked()
 {
-    if(value >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
-    {
-        QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(value) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
-        QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-        for(int response = 0; response < dataOptions->attributeQuestionResponses[value].size(); response++)
-        {
-            if(dataOptions->attributeIsOrdered[value])
-            {
-                // show response with starting number in bold
-                QRegularExpressionMatch match = startsWithInteger.match(dataOptions->attributeQuestionResponses[value].at(response));
-                questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + dataOptions->attributeQuestionResponses[value].at(response).mid(match.capturedLength(1));
-            }
-            else
-            {
-                // show response with a preceding letter in bold (letter repeated for responses after 26)
-                questionWithResponses += "<br><b>";
-                questionWithResponses += (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26)));
-                questionWithResponses += "</b>. " + dataOptions->attributeQuestionResponses[value].at(response);
-            }
-        }
-        questionWithResponses += "</div></html>";
-        ui->attributeTextEdit->setHtml(questionWithResponses);
-        if(dataOptions->attributeMin[value] == dataOptions->attributeMax[value])
-        {
-            teamingOptions->attributeWeights[value] = 0;
-            ui->attributeWeight->setEnabled(false);
-            ui->attributeWeight->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
-            ui->attributeHomogeneousBox->setEnabled(false);
-            ui->attributeHomogeneousBox->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
-            ui->incompatibleResponsesButton->setEnabled(false);
-            ui->incompatibleResponsesButton->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
-        }
-        else
-        {
-            ui->attributeWeight->setEnabled(true);
-            ui->attributeWeight->setToolTip(tr("The relative importance of this attribute in forming the teams"));
-            ui->attributeHomogeneousBox->setEnabled(true);
-            ui->attributeHomogeneousBox->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
-                                                       "If unselected, the students on a team will have a wide range of responses to this question."));
-            ui->incompatibleResponsesButton->setEnabled(true);
-            ui->incompatibleResponsesButton->setToolTip(tr("<html>Indicate response values that should prevent students from being on the same team.</html>"));
-        }
-        ui->attributeWeight->setValue(double(teamingOptions->attributeWeights[value]));
-        ui->attributeHomogeneousBox->setChecked(teamingOptions->desireHomogeneous[value]);
-        ui->attributeLabel->setText(tr("Attribute  ") + QString::number(value+1) + tr("  of  ") + QString::number(dataOptions->numAttributes));
-    }
-}
-
-
-void gruepr::on_attributeWeight_valueChanged(double arg1)
-{
-    if(ui->attributeScrollBar->value() >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
-    {
-        teamingOptions->attributeWeights[ui->attributeScrollBar->value()] = float(arg1);
-    }
-}
-
-
-void gruepr::on_attributeHomogeneousBox_stateChanged(int arg1)
-{
-    if(ui->attributeScrollBar->value() >= 0)    // needed for when scroll bar is cleared, when value gets set to -1
-    {
-        teamingOptions->desireHomogeneous[ui->attributeScrollBar->value()] = (arg1 != 0);
-    }
-}
-
-
-void gruepr::on_incompatibleResponsesButton_clicked()
-{
+    int currAttribute = ui->attributesTabWidget->currentIndex();
     //Open specialized dialog box to collect response pairings that should prevent students from being on the same team
-    auto *win = new gatherIncompatibleResponsesDialog(ui->attributeScrollBar->value(), dataOptions, teamingOptions->incompatibleAttributeValues[ui->attributeScrollBar->value()], this);
+    auto *win = new gatherIncompatibleResponsesDialog(currAttribute, dataOptions, teamingOptions->incompatibleAttributeValues[currAttribute], this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        teamingOptions->haveAnyIncompatibleAttributes[ui->attributeScrollBar->value()] = !(win->incompatibleResponses.isEmpty());
-        teamingOptions->incompatibleAttributeValues[ui->attributeScrollBar->value()] = win->incompatibleResponses;
+        teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleResponses.isEmpty());
+        teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleResponses;
     }
 
     delete win;
@@ -1696,7 +1626,13 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         if(teamNameTypes.at(index) == random_sequeled)
         {
             std::iota(random_order.begin(), random_order.end(), 0);
-            std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};
+#ifdef Q_OS_MACOS
+            std::random_device randDev;
+            std::mt19937 pRNG(randDev());
+#endif
+#ifdef Q_OS_WIN32
+            std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};     //minGW does not play well with std::random_device; not doing cryptography so this is enough
+#endif
             std::shuffle(random_order.begin(), random_order.end(), pRNG);
         }
         for(int team = 0; team < numTeams; team++)
@@ -2319,14 +2255,6 @@ void gruepr::loadDefaultSettings()
         savedSettings.endArray();
     }
     savedSettings.endArray();
-    if(ui->attributeScrollBar->value() == 0)
-    {
-        on_attributeScrollBar_valueChanged(0);      // displays the correct attribute weight, homogeneity, text in case scrollbar is already at 0
-    }
-    else
-    {
-        ui->attributeScrollBar->setValue(0);
-    }
     teamingOptions->numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
     ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
 }
@@ -2357,16 +2285,8 @@ void gruepr::resetUI()
     ui->sectionSelectionBox->setEnabled(false);
     ui->label_2->setEnabled(false);
     ui->label_22->setEnabled(false);
-    ui->attributeLabel->clear();
-    ui->attributeLabel->setEnabled(false);
-    ui->attributeScrollBar->setEnabled(false);
-    ui->attributeTextEdit->clear();
-    ui->attributeTextEdit->setEnabled(false);
-    ui->attributeWeight->setEnabled(false);
-    ui->attributeHomogeneousBox->setEnabled(false);
-    ui->incompatibleResponsesButton->setEnabled(false);
+    ui->attributesTabWidget->setEnabled(false);
     ui->label_21->setEnabled(false);
-    ui->label_5->setEnabled(false);
     ui->studentTable->clear();
     ui->studentTable->setRowCount(0);
     ui->studentTable->setColumnCount(0);
@@ -2466,6 +2386,10 @@ void gruepr::loadUI()
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
 
+    ui->attributesTabWidget->setUpdatesEnabled(false);
+    ui->attributesTabWidget->clear();
+    delete[] attributeTab;
+    attributeTab = new attributeTabItem[MAX_ATTRIBUTES];
     if(dataOptions->numAttributes > 0)
     {
         //(re)set the weight to zero for any attributes with just one value in the data
@@ -2475,25 +2399,23 @@ void gruepr::loadUI()
             {
                 teamingOptions->attributeWeights[attribute] = 0;
             }
+            ui->attributesTabWidget->addTab(&attributeTab[attribute], QString::number(attribute + 1));
+            attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+            connect(attributeTab[attribute].weight, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                        this, [this](double arg1){teamingOptions->attributeWeights[ui->attributesTabWidget->currentIndex()] = float(arg1);});
+            connect(attributeTab[attribute].homogeneous, &QCheckBox::stateChanged,
+                        this, [this](int arg1){teamingOptions->desireHomogeneous[ui->attributesTabWidget->currentIndex()] = (arg1 != 0);});
+            connect(attributeTab[attribute].incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
         }
-        ui->attributeScrollBar->setMinimum(0);
-        ui->attributeScrollBar->setMaximum(dataOptions->numAttributes-1);
-        ui->attributeScrollBar->setEnabled(dataOptions->numAttributes > 1);
-        ui->attributeScrollBar->setValue(0);
-        on_attributeScrollBar_valueChanged(0);
-        ui->attributeLabel->setText(tr("Attribute  1  of  ") + QString::number(dataOptions->numAttributes));
-        ui->attributeLabel->setEnabled(true);
-        ui->attributeTextEdit->setEnabled(true);
-        ui->attributeWeight->setEnabled(true);
-        ui->attributeHomogeneousBox->setEnabled(true);
-        ui->incompatibleResponsesButton->setEnabled(true);
         ui->label_21->setEnabled(true);
-        ui->label_5->setEnabled(true);
+        ui->attributesTabWidget->setEnabled(true);
+        ui->attributesTabWidget->setCurrentIndex(0);
     }
     else
     {
-        ui->attributeScrollBar->setMaximum(-1);     // auto-sets the value and the minimum to all equal -1
+        ui->attributesTabWidget->addTab(&attributeTab[0], "1");
     }
+    ui->attributesTabWidget->setUpdatesEnabled(true);
 
     if(dataOptions->genderIncluded)
     {
@@ -2597,10 +2519,10 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred)).*(name)", 1},
                                                     {"Last Name", "((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
                                                     {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                    {"Schedule", "(check).+(times)", 7}, {"Section", "in which section are you enrolled", 1},
+                                                    {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
                                                     {"Preferred Teammates", "(name).*(like to have on your team)", 1},
                                                     {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
-                                                    {"Attribute", ".*", 15}, {"Notes", "", MAX_NOTES_FIELDS}};
+                                                    {"Attribute", ".*", MAX_ATTRIBUTES}, {"Notes", "", MAX_NOTES_FIELDS}};
     QApplication::restoreOverrideCursor();
     if(surveyFile.chooseFieldMeaningsDialog(surveyFieldOptions, this)->exec() == QDialog::Rejected)
     {
@@ -3228,7 +3150,13 @@ void gruepr::refreshStudentDisplay()
 QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
-    std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};
+#ifdef Q_OS_MACOS
+            std::random_device randDev;
+            std::mt19937 pRNG(randDev());
+#endif
+#ifdef Q_OS_WIN32
+            std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};
+#endif
 
     // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
     // Each genome in this generation stores (by permutation) which students are in which team.

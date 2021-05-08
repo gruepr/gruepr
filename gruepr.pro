@@ -61,6 +61,7 @@ equals(QTPREFIX, "C:/Qt/5.15.2/mingw81_64_static"){
 
 SOURCES += \
         Levenshtein.cpp \
+        attributeTabItem.cpp \
         boxwhiskerplot.cpp \
         categorialSpinBox.cpp \
         comboBoxWithElidedContents.cpp \
@@ -79,6 +80,7 @@ SOURCES += \
 
 HEADERS += \
         Levenshtein.h \
+        attributeTabItem.h \
         boxwhiskerplot.h \
         categorialSpinBox.h \
         comboBoxWithElidedContents.h \

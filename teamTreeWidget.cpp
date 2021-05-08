@@ -490,6 +490,7 @@ TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns)
         for(int col = 0; col < columns; col++)
         {
             setBackground(col, teamColor);
+            setForeground(col, Qt::black);
             setFont(col, teamFont);
         }
     }

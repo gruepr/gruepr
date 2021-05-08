@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include <QScrollBar>
 #include <QTextBrowser>
 #include <QtNetwork>
 
@@ -53,7 +54,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
 
     //Add items to response options combobox
-    ui->attributeComboBox->addItem("Choose the response options...");
+    ui->attributeComboBox->addItem("Choose the response options for attribute 1...");
     ui->attributeComboBox->insertSeparator(1);
     for(int response = 0; response < responseOptions.size(); response++)
     {
@@ -523,18 +524,19 @@ void SurveyMaker::on_URMCheckBox_clicked(bool checked)
 void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 {
     numAttributes = arg1;
-    ui->attributeScrollBar->setMaximum(std::max(arg1-1,0));
-    ui->attributeScrollBar->setEnabled(numAttributes > 0);
+    ui->attributeSelector->setMaximum(std::max(arg1,1));
+    ui->attributeSelector->setEnabled(numAttributes > 1);
     ui->attributeTextEdit->setEnabled(numAttributes > 0);
     ui->attributeComboBox->setEnabled(numAttributes > 0);
     refreshPreview();
 }
 
-void SurveyMaker::on_attributeScrollBar_valueChanged(int value)
+void SurveyMaker::on_attributeSelector_valueChanged(int value)
 {
-    ui->attributeTextEdit->setPlainText(attributeTexts[value]);
-    ui->attributeTextEdit->setPlaceholderText(tr("Enter attribute question ") + QString::number(value+1) + ".");
-    ui->attributeComboBox->setCurrentIndex((attributeResponses[value] > 0) ? attributeResponses[value] + 1 : 0);
+    ui->attributeTextEdit->setPlainText(attributeTexts[value-1]);
+    ui->attributeTextEdit->setPlaceholderText(tr("Enter attribute question ") + QString::number(value) + ".");
+    ui->attributeComboBox->setItemText(0, tr("Choose the response options for attribute ") + QString::number(value) + "...");
+    ui->attributeComboBox->setCurrentIndex((attributeResponses[value-1] > 0) ? attributeResponses[value-1] + 1 : 0);
 }
 
 void SurveyMaker::on_attributeTextEdit_textChanged()
@@ -557,13 +559,13 @@ void SurveyMaker::on_attributeTextEdit_textChanged()
                                                           "A section question may be added using the \"Section\" checkbox."));
     }
 
-    attributeTexts[ui->attributeScrollBar->value()] = ui->attributeTextEdit->toPlainText().simplified();
+    attributeTexts[ui->attributeSelector->value()-1] = ui->attributeTextEdit->toPlainText().simplified();
     refreshPreview();
 }
 
 void SurveyMaker::on_attributeComboBox_currentIndexChanged(int index)
 {
-    attributeResponses[ui->attributeScrollBar->value()] = ((index>1) ? (index-1) : 0);
+    attributeResponses[ui->attributeSelector->value()-1] = ((index>1) ? (index-1) : 0);
     refreshPreview();
 }
 
@@ -1018,8 +1020,8 @@ void SurveyMaker::openSurvey()
                 }
             }
             // reload first attribute question and responses on screen
-            ui->attributeScrollBar->setValue(0);
-            on_attributeScrollBar_valueChanged(0);
+            ui->attributeSelector->setValue(1);
+            on_attributeSelector_valueChanged(1);
             if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
             {
                 ui->sectionCheckBox->setChecked(loadObject["Schedule"].toBool());

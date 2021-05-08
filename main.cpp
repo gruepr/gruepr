@@ -54,6 +54,7 @@
 // - brought relevant functions for teamTreeWidget as member functions
 // - changed display of team in teamTreeWidget to be always on, but bold and with colored background
 // - make studentTable a subclass, using teamTreeWidget as example
+// - works much better with dark mode / dark color schemes
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed

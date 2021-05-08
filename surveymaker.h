@@ -25,7 +25,7 @@ private slots:
     void on_genderCheckBox_clicked(bool checked);
     void on_URMCheckBox_clicked(bool checked);
     void on_attributeCountSpinBox_valueChanged(int arg1);
-    void on_attributeScrollBar_valueChanged(int value);
+    void on_attributeSelector_valueChanged(int value);
     void on_attributeTextEdit_textChanged();
     void on_attributeComboBox_currentIndexChanged(int index);
     void on_scheduleCheckBox_clicked(bool checked);

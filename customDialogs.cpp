@@ -77,7 +77,8 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
                 "border-bottom: 1px solid black;"
                 "background-color:Gainsboro;"
                 "padding:4px;"
-                "font-weight:bold;}"
+                "font-weight:bold;"
+                "color:black;}"
             "QTableCornerButton::section{"
                 "border-top:0px solid #D8D8D8;"
                 "border-left:0px solid #D8D8D8;"
@@ -722,7 +723,7 @@ void gatherTeammatesDialog::refreshDisplay()
     {
         currentListOfTeammatesTable->setColumnCount(1);
     }
-    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #1")));
+    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + "\n" + tr("Teammate #1")));
     currentListOfTeammatesTable->setRowCount(0);
     teammatesSpecified = false;     // assume no teammates specified until we find one
 
@@ -785,7 +786,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 if(currentListOfTeammatesTable->columnCount() < column+1)
                 {
                     currentListOfTeammatesTable->setColumnCount(column+1);
-                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + tr(" Teammate #") +
+                    currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + "\n" + tr("Teammate #") +
                                                                                                       QString::number(column + (requestsInSurvey? 0:1))));
                 }
                 auto *box = new QHBoxLayout;
