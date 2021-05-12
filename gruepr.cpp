@@ -1858,7 +1858,7 @@ void gruepr::swapTeammates(int studentAteam, int studentAID, int studentBteam, i
     if(studentAteam == studentBteam)
     {
         std::swap(teams[studentAteam].studentIDs[teams[studentAteam].studentIDs.indexOf(studentAID)],
-                teams[studentBteam].studentIDs[teams[studentBteam].studentIDs.indexOf(studentBID)]);
+                  teams[studentBteam].studentIDs[teams[studentBteam].studentIDs.indexOf(studentBID)]);
 
         refreshTeamInfo(QVector<int>({studentAteam}));
         refreshTeamToolTips(QVector<int>({studentAteam}));

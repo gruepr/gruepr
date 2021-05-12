@@ -7,7 +7,10 @@
 
 class StudentRecord
 {
-    public:
+public:
+    StudentRecord();
+    void createTooltip(const DataOptions* const dataOptions);
+
     int ID = -1;                                        // ID is assigned in order of appearance in the data file
     bool duplicateRecord = false;                       // another record exists with the same firstname+lastname or email address
     enum Gender {woman, man, nonbinary, unknown} gender = unknown;
@@ -31,8 +34,8 @@ class StudentRecord
     QString availabilityChart;
     QString tooltip;
 
-    StudentRecord();
-    void createTooltip(const DataOptions* const dataOptions);
+private:
+    const int SIZE_OF_NOTES_IN_TOOLTIP = 300;
 };
 
 #endif // STUDENTRECORD_H

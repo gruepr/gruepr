@@ -1,7 +1,6 @@
-// This is the script running on Google servers, used by the SurveyMaker API
-//
-// Execute this script by visiting: https://script.google.com/macros/s/.../exec
-// Execute with parameters by visiting: https://script.google.com/macros/s/.../exec?title=test1&gend=true&urm=true&numattr=3&attrtext=__text__&sched=true&busy=true&start=8&end=21&days=Monday,Tuesday,Wednesday,Thursday,Friday&sect=false&sects=11,12,13,14&addl=true
+// Execute this script by visiting: https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec
+// Execute with parameters by visiting: https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?title=test11&gend=true&urm=true&numattr=3&attrtext=__text__&sched=true&start=8&end=21&days=Sunday,Monday,Tuesday,Wednesday,Thursday,Friday&sect=false&sects=11,12,13,14&addl=true
+// Dev execute with parameters by visiting: https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/dev?title=test11&gend=true&urm=true&numattr=3&attrtext=__text__&sched=true&start=8&end=21&days=Sunday,Monday,Tuesday,Wednesday,Thursday,Friday&sect=false&sects=11,12,13,14&addl=true
 
 function doGet(e) {
   var dataAll = e.parameter;
@@ -13,6 +12,14 @@ function doGet(e) {
   var attributeText = (dataAll["attrtext"]).split(",");
   var attributeResponses = (dataAll["attrresps"]).split(",");
   var numAttributesWOResponseText = 0;
+  var includeTimezone = false;
+  if('tzone' in dataAll) {
+    includeTimezone = (dataAll["tzone"]=="true");
+  }
+  var baseTimezone = '';
+  if('bzone' in dataAll) {
+    baseTimezone = dataAll["bzone"];
+  }
   var includeSchedule = (dataAll["sched"]=="true");
   var scheduleMeansFree = (dataAll["busy"]=="false");
   var start = parseInt(dataAll["start"],10);
@@ -33,6 +40,8 @@ function doGet(e) {
   }
   
   var noSectionNames = sectionNames == '';
+  
+  var allTimezoneNames = ['1. Newfoundland', '2. Atlantic', '3. Eastern', '4. Central', '5. Mountain', '6. Pacific', '7. Alaska', '8. Hawaii–Aleutian', '9. American Samoa'];
     
   // Create a new form
   var form = FormApp.create(title);
@@ -60,10 +69,9 @@ function doGet(e) {
      .setRequired(true);
   
   if(includeGender) {
-    form.addMultipleChoiceItem()
+    form.addListItem()
       .setTitle('With which gender do you identify?')
       .setChoiceValues(['Woman','Man','Nonbinary','Prefer Not to Answer'])
-      .showOtherOption(false)
       .setRequired(true);
   }
   
@@ -78,36 +86,52 @@ function doGet(e) {
   if(numAttributes > 0)
   {
     form.addPageBreakItem()
-      .setTitle('This set of questions is about your past experiences/education or teamwork preferences.')
+      .setTitle('This set of questions is about you, your past experiences, and / or your teamwork preferences.')
       .setHelpText('All responses are acceptable.');
     var allResponseTexts=[' ', 'Yes / No', 'Yes / Maybe / No', 'Definitely / Probably / Maybe / Probably not / Definitely not', 'Strongly preferred / Preferred / Opposed / Strongly opposed', 'True / False', 'Like me / Not like me', 'Agree / Disagree', 'Strongly agree / Agree / Undecided / Disagree / Strongly disagree', '4.0 - 3.75 / 3.74 - 3.5 / 3.49 - 3.25 / 3.24 - 3.0 / 2.99 - 2.75 / 2.74 - 2.5 / 2.49 - 2.0 / Below 2.0 / Not sure, or prefer not to say', '100 - 90 / 89 - 80 / 79 - 70 / 69 - 60 / 59 - 50 / Below 50 / Not sure, or prefer not to say', 'A / B / C / D / F / Not sure, or prefer not to say', 'Very high / Above average / Average / Below average / Very low', 'Excellent / Very good / Good / Fair / Poor', 'Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative', 'A lot of experience / Some experience / Little experience / No experience', 'Extremely / Very / Moderately / Slightly / Not at all', 'A lot / Some / Very Little / None', 'Much more / More / About the same / Less / Much less', 'Most of the time / Some of the time / Seldom / Never', 'Available / Available, but prefer not to / Not available', 'Very frequently / Frequently / Occasionally / Rarely / Never', 'Definitely will / Probably will / Probably won\'t / Definitely won\'t', 'Very important / Important / Somewhat important / Not important', 'Leader / Mix of leader and follower / Follower', 'Highly confident / Moderately confident / Somewhat confident / Not confident', ' /  /  / ', ' /  /  /  / ', ' /  /  /  /  / ', ' /  /  /  /  /  / ', ' /  /  /  /  /  /  / ', ' /  /  /  /  /  /  /  / ', ' /  /  /  /  /  /  /  /  / ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
     for(var attribute = 0; attribute < numAttributes; attribute++) {
-      if(attributeResponses[attribute] == 0 || attributeResponses[attribute] >= 33) {
+      var thisResponse = attributeResponses[attribute];
+      
+      if(thisResponse == 0 || (thisResponse >= 33 && thisResponse != 101)) {
         numAttributesWOResponseText++;
       }
-      var allchoices=(allResponseTexts[attributeResponses[attribute]]).split(" / ");
-      var choices=[];
-      if(attributeResponses[attribute] > 0 && attributeResponses[attribute] <= 25) {
-        // 'regular' responses--add a number and dot before text
-       for(var i = 0; i < allchoices.length; i++) {
-         choices.push(i+1 + '. ' + allchoices[i]);
-       }
-      } else if (attributeResponses[attribute] > 25 && attributeResponses[attribute] < 33){
-        // numerical scale responses--add just the number and a space
-        for(var i = 0; i < allchoices.length; i++) {
-         choices.push(i+1 + ' ');
-       }
+      
+      if(thisResponse == 101) {
+        form.addListItem()
+          .setTitle('What time zone will you be based in during this class?')
+          .setChoiceValues(allTimezoneNames)
+          .setRequired(true);
       } else {
-        // unset response values--just give the user three blanks
-        choices.push(' ');
-        choices.push(' ');
-        choices.push(' ');
+        var allchoices = ' ';
+        if(thisResponse < allResponseTexts.length)
+        {
+          allchoices = (allResponseTexts[thisResponse]).split(" / ");
+        }
+      
+        var choices=[];
+        if(thisResponse > 0 && thisResponse <= 25) {
+          // 'regular' responses--add a number and dot before text
+          for(var i = 0; i < allchoices.length; i++) {
+            choices.push(i+1 + '. ' + allchoices[i]);
+          }
+        } else if (thisResponse > 25 && thisResponse < 33) {
+          // numerical scale responses--add just the number and a space
+          for(var i = 0; i < allchoices.length; i++) {
+            choices.push(i+1 + ' ');
+          }
+        } else {
+          // unset response values--just give the user three blanks
+          choices.push(' ');
+          choices.push(' ');
+          choices.push(' ');
+        }
+
+        form.addMultipleChoiceItem()
+          .setTitle(attributeText[attribute])
+          .setChoiceValues(choices)
+          .showOtherOption(false)
+          .setRequired(true);
       }
-    form.addMultipleChoiceItem()
-      .setTitle(attributeText[attribute])
-      .setChoiceValues(choices)
-      .showOtherOption(false)
-      .setRequired(true);
     }
   }
   
@@ -117,28 +141,40 @@ function doGet(e) {
       .setTitle('Please tell us about your weekly schedule.')
       .setHelpText('Use your best guess or estimate if necessary.');
     
+    if(includeTimezone) {
+      form.addListItem()
+        .setTitle('What time zone will you be based in during this class?')
+        .setChoiceValues(allTimezoneNames)
+        .setRequired(true);
+    }
+    
     // get the names of the times
-    var allTimeNames=['midnight', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM', 'noon', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM'];
-    var startTimeName=allTimeNames[start];
-    var endTimeName=allTimeNames[end];
-    var timeNames=[];
+    var allTimeNames = ['midnight', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM', 'noon', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM'];
+    var startTimeName = allTimeNames[start];
+    var endTimeName = allTimeNames[end];
+    var timeNames = [];
     for(var time = start; time <= end; time++) {
         timeNames.push(allTimeNames[time]);
     }
-
+    
+    var schedtitle = "";
     if(scheduleMeansFree) {
-      form.addCheckboxGridItem()
-        .setTitle('Check the times that you are FREE and will be AVAILABLE for group work.')
-        .setHelpText('You may need to scroll to see all columns (' + startTimeName + ' to ' + endTimeName + ').')
-        .setColumns(timeNames)
-        .setRows(dayNames);
+      schedtitle += 'Check the times that you are FREE and will be AVAILABLE for group work.';
     } else {
-      form.addCheckboxGridItem()
-        .setTitle('Check the times that you are BUSY and will be UNAVAILABLE for group work.')
-        .setHelpText('You may need to scroll to see all columns (' + startTimeName + ' to ' + endTimeName + ').')
-        .setColumns(timeNames)
-        .setRows(dayNames);
+      schedtitle += 'Check the times that you are BUSY and will be UNAVAILABLE for group work.';
     }
+    if(includeTimezone && (baseTimezone == '')) {
+      schedtitle += ' These times refer to your home timezone.';
+    }
+    if(baseTimezone != '') {
+      schedtitle += ' These times refer to ' + baseTimezone + ' time.';
+    }
+
+    form.addCheckboxGridItem()
+      .setTitle(schedtitle)
+      .setHelpText('You may need to scroll to see all columns (' + startTimeName + ' to ' + endTimeName + ').')
+      .setColumns(timeNames)
+      .setRows(dayNames);
   }
 
   // Create section and other questions page
@@ -147,10 +183,9 @@ function doGet(e) {
     form.addPageBreakItem()
       .setTitle('Some final questions.');
     if(includeSection) {
-      form.addMultipleChoiceItem()
+      form.addListItem()
         .setTitle('In which section are you enrolled?')
         .setChoiceValues(sectionNames)
-        .showOtherOption(false)
         .setRequired(true);
     }
     if(includePrefTeammates) {

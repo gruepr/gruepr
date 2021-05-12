@@ -81,9 +81,9 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
     if(dataOptions->numNotes > 0)
     {
         QString note = notes;
-        if(note.size() > 300)
+        if(note.size() > SIZE_OF_NOTES_IN_TOOLTIP)
         {
-            note = note.mid(0, 297) + "...";
+            note = note.mid(0, (SIZE_OF_NOTES_IN_TOOLTIP - 3)) + "...";
         }
         toolTip += "<br>--<br>" + QObject::tr("Notes") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }

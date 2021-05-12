@@ -45,7 +45,7 @@
 // - add penalty point per incompatible pair found
 // - moved studentRecord to a separate class, with tooltip creation as member function
 // - ancestors of elites now created (using elite genome as mom and dad)
-// - code modernization and organization
+// - LOTS of code modernization and organization
 // - moved code to Qt v5.15 standards
 // - add "load roster" option to compare against survey data, updating email addresses and offering to add missing students and remove extra students
 // - use csv import dialog box to select columns when loading survey
@@ -55,6 +55,7 @@
 // - changed display of team in teamTreeWidget to be always on, but bold and with colored background
 // - make studentTable a subclass, using teamTreeWidget as example
 // - works much better with dark mode / dark color schemes
+// - make attribute data in a tab in a tab widget for both surveymaker and gruepr, using new attributeTabItem subclass
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed

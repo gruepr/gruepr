@@ -5,6 +5,7 @@
 #include <QRegularExpressionValidator>
 #include <QFileInfo>
 #include <QDate>
+#include "attributeTabItem.h"
 #include "gruepr_structs_and_consts.h"
 
 namespace Ui {class SurveyMaker;}
@@ -25,33 +26,14 @@ private slots:
     void on_genderCheckBox_clicked(bool checked);
     void on_URMCheckBox_clicked(bool checked);
     void on_attributeCountSpinBox_valueChanged(int arg1);
-    void on_attributeSelector_valueChanged(int value);
-    void on_attributeTextEdit_textChanged();
-    void on_attributeComboBox_currentIndexChanged(int index);
+    void attributeTextChanged(int currAttribute);
+    void on_timezoneCheckBox_clicked(bool checked);
     void on_scheduleCheckBox_clicked(bool checked);
     void on_busyFreeComboBox_currentIndexChanged(const QString &arg1);
+    void on_baseTimezoneLineEdit_textChanged();
     void on_daysComboBox_currentIndexChanged(int index);
-    void on_day1CheckBox_toggled(bool checked);
-    void on_day2CheckBox_toggled(bool checked);
-    void on_day3CheckBox_toggled(bool checked);
-    void on_day4CheckBox_toggled(bool checked);
-    void on_day5CheckBox_toggled(bool checked);
-    void on_day6CheckBox_toggled(bool checked);
-    void on_day7CheckBox_toggled(bool checked);
-    void on_day1LineEdit_textChanged(const QString &arg1);
-    void on_day1LineEdit_editingFinished();
-    void on_day2LineEdit_textChanged(const QString &arg1);
-    void on_day2LineEdit_editingFinished();
-    void on_day3LineEdit_textChanged(const QString &arg1);
-    void on_day3LineEdit_editingFinished();
-    void on_day4LineEdit_textChanged(const QString &arg1);
-    void on_day4LineEdit_editingFinished();
-    void on_day5LineEdit_textChanged(const QString &arg1);
-    void on_day5LineEdit_editingFinished();
-    void on_day6LineEdit_textChanged(const QString &arg1);
-    void on_day6LineEdit_editingFinished();
-    void on_day7LineEdit_textChanged(const QString &arg1);
-    void on_day7LineEdit_editingFinished();
+    void day_CheckBox_toggled(bool checked, QLineEdit *dayLineEdit, const QString &dayname);
+    void day_LineEdit_textChanged(const QString &text, QLineEdit *dayLineEdit, QString &dayname);
     void on_timeStartEdit_timeChanged(QTime time);
     void on_timeEndEdit_timeChanged(QTime time);
     void on_sectionCheckBox_clicked(bool checked);
@@ -70,6 +52,7 @@ private slots:
 
 private:
     Ui::SurveyMaker *ui;
+    QVector<attributeTabItem*> attributeTab;
     void refreshPreview();
     void checkDays();
     bool surveyCreated = false;
@@ -82,15 +65,13 @@ private:
     int attributeResponses[MAX_ATTRIBUTES] = {0};
     bool schedule = true;
     enum {busy, free} busyOrFree = busy;
-    // local day names, using the fact that 1/1/2017 is a Sunday
-    const QString day1name = QDate(2017, 1, 1).toString("dddd");
-    const QString day2name = QDate(2017, 1, 2).toString("dddd");
-    const QString day3name = QDate(2017, 1, 3).toString("dddd");
-    const QString day4name = QDate(2017, 1, 4).toString("dddd");
-    const QString day5name = QDate(2017, 1, 5).toString("dddd");
-    const QString day6name = QDate(2017, 1, 6).toString("dddd");
-    const QString day7name = QDate(2017, 1, 7).toString("dddd");
-    QString dayNames[7] = {day1name,day2name,day3name,day4name,day5name,day6name,day7name};
+    bool timezone = false;
+    QString baseTimezone = "";
+    QStringList defaultDayNames;
+    QString dayNames[MAX_DAYS];
+    const QDate sunday = QDate(2017, 1, 1);
+    QLineEdit *dayLineEdits[MAX_DAYS] = {nullptr};
+    QCheckBox *dayCheckBoxes[MAX_DAYS] = {nullptr};
     int startTime = 10;
     int endTime = 17;
     bool section = false;
@@ -136,8 +117,9 @@ private:
         "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8",
         "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9",
         "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10",
-        "custom options, to be added after creating the form",
-    };
+        "custom options, to be added after creating the form",};
+    static const int LAST_LIKERT_RESPONSE = 25;
+    static const int TIMEZONE_RESPONSE_OPTION = 101;
 };
 
 #endif // SURVEYMAKER_H

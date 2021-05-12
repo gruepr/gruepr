@@ -1,6 +1,6 @@
 #include "attributeTabItem.h"
 
-attributeTabItem::attributeTabItem(QWidget *parent) : QWidget(parent)
+attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(parent)
 {
     setContentsMargins(0,0,0,0);
 
@@ -12,36 +12,54 @@ attributeTabItem::attributeTabItem(QWidget *parent) : QWidget(parent)
     setLayout(theGrid);
 
     attributeText = new QTextEdit(this);
-    attributeText->setContextMenuPolicy(Qt::NoContextMenu);
-    attributeText->setAcceptDrops(false);
-    attributeText->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
-    attributeText->setReadOnly(true);
-    attributeText->setUndoRedoEnabled(false);
+    if(tabType == gruepr)
+    {
+        attributeText->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
+        attributeText->setContextMenuPolicy(Qt::NoContextMenu);
+        attributeText->setAcceptDrops(false);
+        attributeText->setReadOnly(true);
+        attributeText->setUndoRedoEnabled(false);
+    }
+    else
+    {
+        attributeText->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+        attributeText->setAcceptDrops(true);
+        attributeText->setReadOnly(false);
+        attributeText->setUndoRedoEnabled(true);
+        attributeText->setPlaceholderText(tr("Enter attribute question."));
+    }
     attributeText->setEnabled(true);
-    attributeText->setPlaceholderText("Attribute question text");
     attributeText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     theGrid->addWidget(attributeText, 0, 0, 1, -1);
 
-    weightLabel = new QLabel("Weight:", this);
-    theGrid->addWidget(weightLabel, 1, 0, Qt::AlignCenter);
+    if(tabType == gruepr)
+    {
+        weightLabel = new QLabel("Weight:", this);
+        theGrid->addWidget(weightLabel, 1, 0, Qt::AlignCenter);
 
-    weight = new QDoubleSpinBox(this);
-    weight->setToolTip("<html>The relative importance of this attribute in forming the teams.</html>");
-    weight->setButtonSymbols(QAbstractSpinBox::NoButtons);
-    weight->setDecimals(1);
-    weight->setMinimum(0);
-    weight->setMaximum(100);
-    weight->setValue(1);
-    theGrid->addWidget(weight, 1, 1, Qt::AlignCenter);
+        weight = new QDoubleSpinBox(this);
+        weight->setToolTip("<html>The relative importance of this attribute in forming the teams.</html>");
+        weight->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        weight->setDecimals(1);
+        weight->setMinimum(0);
+        weight->setMaximum(100);
+        weight->setValue(1);
+        theGrid->addWidget(weight, 1, 1, Qt::AlignCenter);
 
-    homogeneous = new QCheckBox("Prefer Homogeneous", this);
-    homogeneous->setToolTip("If selected, all of the students on a team will have a similar response to this question.\n"
-                            "If unselected, the students on a team will have a wide range of responses to this question.");
-    theGrid->addWidget(homogeneous, 1, 2, Qt::AlignCenter);
+        homogeneous = new QCheckBox("Prefer Homogeneous", this);
+        homogeneous->setToolTip("If selected, all of the students on a team will have a similar response to this question.\n"
+                                "If unselected, the students on a team will have a wide range of responses to this question.");
+        theGrid->addWidget(homogeneous, 1, 2, Qt::AlignCenter);
 
-    incompatsButton = new QPushButton("Incompatible\nResponses", this);
-    incompatsButton->setToolTip("<html>Indicate response values that should prevent students from being on the same team.</html>");
-    theGrid->addWidget(incompatsButton, 1, 3, Qt::AlignLeft | Qt::AlignVCenter);
+        incompatsButton = new QPushButton("Incompatible\nResponses", this);
+        incompatsButton->setToolTip("<html>Indicate response values that should prevent students from being on the same team.</html>");
+        theGrid->addWidget(incompatsButton, 1, 3, Qt::AlignLeft | Qt::AlignVCenter);
+    }
+    else
+    {
+        attributeResponses = new ComboBoxWithElidedContents(this);
+        theGrid->addWidget(attributeResponses, 1, 0, 1, -1);
+    }
 }
 
 

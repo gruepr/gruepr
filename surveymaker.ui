@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>920</width>
-    <height>768</height>
+    <width>880</width>
+    <height>814</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>920</width>
+    <width>880</width>
     <height>0</height>
    </size>
   </property>
@@ -26,43 +26,38 @@
      <verstretch>1</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="2,0,2,0">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="2,0,2,0">
     <property name="verticalSpacing">
-     <number>3</number>
+     <number>2</number>
     </property>
-    <item row="17" column="0">
-     <widget class="Line" name="line_4">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+     <widget class="QLabel" name="OptionsLabel">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <underline>true</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Survey options</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
-    <item row="22" column="0">
-     <layout class="QHBoxLayout" name="sectionLayout" stretch="0,2">
-      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="sectionCheckBox">
-        <property name="text">
-         <string>Section</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPlainTextEdit" name="sectionNamesTextEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>2</horstretch>
-          <verstretch>2</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::NoContextMenu</enum>
-        </property>
-        <property name="placeholderText">
-         <string>Enter section names on separate lines.</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+    <item row="30" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+     <widget class="QCheckBox" name="additionalQuestionsCheckBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Add a placeholder for additional questions</string>
+      </property>
+     </widget>
     </item>
     <item row="4" column="2" colspan="2" alignment="Qt::AlignHCenter">
      <widget class="QLabel" name="PreviewLabel">
@@ -80,42 +75,39 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0" alignment="Qt::AlignVCenter">
-     <widget class="QLineEdit" name="surveyTitleLineEdit">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::NoContextMenu</enum>
-      </property>
-      <property name="placeholderText">
-       <string>Enter a Survey Title</string>
-      </property>
-     </widget>
-    </item>
-    <item row="13" column="0">
-     <widget class="Line" name="line_5">
+    <item row="11" column="0">
+     <widget class="Line" name="line_6">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-     <widget class="QLabel" name="OptionsLabel">
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <underline>true</underline>
-       </font>
+    <item row="12" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+     <widget class="QCheckBox" name="emailCheckBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>This question is required.</string>
       </property>
       <property name="text">
-       <string>Survey options</string>
+       <string>Email Address</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="23" column="0">
+     <widget class="Line" name="line_9">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
@@ -126,14 +118,7 @@
       </property>
      </widget>
     </item>
-    <item row="30" column="0">
-     <widget class="Line" name="line_11">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="19" column="0">
+    <item row="21" column="0">
      <widget class="Line" name="line_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -153,561 +138,29 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Include questions for:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="0">
-     <widget class="Line" name="line_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
     <item row="20" column="0">
-     <layout class="QHBoxLayout" name="scheduleLayout" stretch="0,0,1">
-      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="scheduleCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Schedule</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QGridLayout" name="scheduleGrid" columnstretch="0,1,0,0" columnminimumwidth="0,0,0,0">
-        <property name="verticalSpacing">
-         <number>3</number>
-        </property>
-        <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QLabel" name="daysLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Days</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2" alignment="Qt::AlignLeft">
-         <widget class="QComboBox" name="daysComboBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="sizeAdjustPolicy">
-           <enum>QComboBox::AdjustToContents</enum>
-          </property>
-          <item>
-           <property name="text">
-            <string>All Days</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Weekdays</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Weekends</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Custom Days</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="day1LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 1 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="day3LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 3 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QCheckBox" name="day5CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QLineEdit" name="day7LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 7 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QLabel" name="timeEndLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>End Time</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="day5LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 5 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QCheckBox" name="day7CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QLabel" name="timeStartLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Start Time</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QCheckBox" name="day2CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QCheckBox" name="day3CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="day4LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 4 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="day2LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 2 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QTimeEdit" name="timeStartEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="dateTime">
-           <datetime>
-            <hour>10</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumDateTime">
-           <datetime>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="minimumDateTime">
-           <datetime>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumTime">
-           <time>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="minimumTime">
-           <time>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="displayFormat">
-           <string>h   AP</string>
-          </property>
-          <property name="time">
-           <time>
-            <hour>10</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QCheckBox" name="day1CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QLabel" name="timesLabel">
-          <property name="text">
-           <string>Times</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QCheckBox" name="day6CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="3">
-         <widget class="QTimeEdit" name="timeEndEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="dateTime">
-           <datetime>
-            <hour>17</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumDateTime">
-           <datetime>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="minimumDateTime">
-           <datetime>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumTime">
-           <time>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="minimumTime">
-           <time>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="displayFormat">
-           <string>h   AP</string>
-          </property>
-          <property name="time">
-           <time>
-            <hour>17</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QCheckBox" name="day4CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLineEdit" name="day6LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 6 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="4">
-         <layout class="QHBoxLayout" name="busyFreeLayout">
-          <item alignment="Qt::AlignRight|Qt::AlignVCenter">
-           <widget class="QLabel" name="busyFreeLabel">
-            <property name="text">
-             <string>Ask when students are:</string>
-            </property>
-           </widget>
-          </item>
-          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-           <widget class="QComboBox" name="busyFreeComboBox">
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-            <item>
-             <property name="text">
-              <string>busy</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>free</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </item>
-    <item row="7" column="0">
-     <widget class="Line" name="line_8">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+     <widget class="QCheckBox" name="timezoneCheckBox">
+      <property name="toolTip">
+       <string>&lt;html&gt;If students will be in multiple timezones, this option adds a timezone question.&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Timezone</string>
       </property>
      </widget>
     </item>
-    <item row="8" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="firstNameCheckBox">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
+    <item row="5" column="0" alignment="Qt::AlignVCenter">
+     <widget class="QLineEdit" name="surveyTitleLineEdit">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
+       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+        <horstretch>1</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="toolTip">
-       <string>This question is required.</string>
+      <property name="contextMenuPolicy">
+       <enum>Qt::NoContextMenu</enum>
       </property>
-      <property name="text">
-       <string>First / Preferred Name</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
+      <property name="placeholderText">
+       <string>Enter a Survey Title</string>
       </property>
      </widget>
     </item>
@@ -721,119 +174,6 @@
       </property>
       <property name="text">
        <string>Gender</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="28" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="additionalQuestionsCheckBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Add a placeholder for additional questions</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="4">
-     <widget class="Line" name="line_12">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="23" column="0">
-     <widget class="Line" name="line_10">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="21" column="0">
-     <widget class="Line" name="line_9">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2" rowspan="26" colspan="2">
-     <widget class="QTextEdit" name="previewText">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>1</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>450</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>Oxygen Mono</family>
-        <pointsize>10</pointsize>
-        <weight>50</weight>
-        <italic>false</italic>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::NoContextMenu</enum>
-      </property>
-      <property name="acceptDrops">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font: 10pt &quot;Oxygen Mono&quot;;</string>
-      </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhNone</set>
-      </property>
-      <property name="undoRedoEnabled">
-       <bool>false</bool>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="0">
-     <widget class="Line" name="line_6">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="27" column="0">
-     <widget class="Line" name="line_13">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="lastNameCheckBox">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>This question is required.</string>
-      </property>
-      <property name="text">
-       <string>Last Name</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -944,119 +284,7 @@
       </item>
      </layout>
     </item>
-    <item row="12" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="emailCheckBox">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>This question is required.</string>
-      </property>
-      <property name="text">
-       <string>Email Address</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="18" column="0">
-     <layout class="QGridLayout" name="attributeLayout" rowstretch="100,0" columnstretch="0,0,0,100">
-      <item row="0" column="0" rowspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QSpinBox" name="attributeCountSpinBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>15</number>
-        </property>
-        <property name="value">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3" alignment="Qt::AlignVCenter">
-       <widget class="ComboBoxWithElidedContents" name="attributeComboBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>1</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" rowspan="2">
-       <widget class="QLabel" name="attributeLabel">
-        <property name="text">
-         <string>Attributes</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QPlainTextEdit" name="attributeTextEdit">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>2</horstretch>
-          <verstretch>2</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>250</width>
-          <height>50</height>
-         </size>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::NoContextMenu</enum>
-        </property>
-        <property name="placeholderText">
-         <string>Enter attribute question 1.</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" rowspan="2">
-       <widget class="QSlider" name="attributeSelector">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>3</number>
-        </property>
-        <property name="pageStep">
-         <number>1</number>
-        </property>
-        <property name="invertedAppearance">
-         <bool>true</bool>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>1</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="25" column="0">
+    <item row="27" column="0">
      <layout class="QGridLayout" name="teammatesGrid">
       <item row="0" column="1" rowspan="2">
        <widget class="QLabel" name="numAllowedLabel">
@@ -1131,10 +359,773 @@
       </item>
      </layout>
     </item>
-    <item row="4" column="1" rowspan="27" colspan="2">
+    <item row="4" column="1" rowspan="29" colspan="2">
      <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="18" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,100">
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QSpinBox" name="attributeCountSpinBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>15</number>
+        </property>
+        <property name="value">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QLabel" name="attributeLabel">
+        <property name="text">
+         <string>Attributes</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="attributesTabWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>100</horstretch>
+          <verstretch>100</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="t1">
+         <attribute name="title">
+          <string>1</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="10" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+     <widget class="QCheckBox" name="lastNameCheckBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>This question is required.</string>
+      </property>
+      <property name="text">
+       <string>Last Name</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="32" column="0">
+     <widget class="Line" name="line_11">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="0">
+     <widget class="Line" name="line_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="24" column="0">
+     <layout class="QHBoxLayout" name="sectionLayout" stretch="0,2">
+      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+       <widget class="QCheckBox" name="sectionCheckBox">
+        <property name="text">
+         <string>Section</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPlainTextEdit" name="sectionNamesTextEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>2</horstretch>
+          <verstretch>2</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::NoContextMenu</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Enter section names on separate lines.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="17" column="0">
+     <widget class="Line" name="line_4">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0">
+     <widget class="Line" name="line_8">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="22" column="0">
+     <layout class="QHBoxLayout" name="scheduleLayout" stretch="0,0,1">
+      <item>
+       <widget class="QCheckBox" name="scheduleCheckBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Schedule</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="scheduleGrid" columnstretch="0,0,0,0">
+        <property name="verticalSpacing">
+         <number>3</number>
+        </property>
+        <item row="10" column="0">
+         <widget class="QCheckBox" name="day7CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="4">
+         <layout class="QHBoxLayout" name="busyFreeLayout">
+          <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+           <widget class="QLabel" name="busyFreeLabel">
+            <property name="text">
+             <string>Ask when students are:</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QComboBox" name="busyFreeComboBox">
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::AdjustToContents</enum>
+            </property>
+            <item>
+             <property name="text">
+              <string>busy</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>free</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item row="9" column="0">
+         <widget class="QCheckBox" name="day6CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="day5LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 5 Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QCheckBox" name="day2CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="day2LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 2 Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QLabel" name="timeStartLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Start Time</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="2" alignment="Qt::AlignLeft">
+         <widget class="QComboBox" name="daysComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContents</enum>
+          </property>
+          <item>
+           <property name="text">
+            <string>All Days</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Weekdays</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Weekends</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Custom Days</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="4" column="3">
+         <widget class="QTimeEdit" name="timeStartEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="dateTime">
+           <datetime>
+            <hour>10</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2000</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="maximumDateTime">
+           <datetime>
+            <hour>23</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2000</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="minimumDateTime">
+           <datetime>
+            <hour>0</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2000</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="maximumTime">
+           <time>
+            <hour>23</hour>
+            <minute>0</minute>
+            <second>0</second>
+           </time>
+          </property>
+          <property name="minimumTime">
+           <time>
+            <hour>0</hour>
+            <minute>0</minute>
+            <second>0</second>
+           </time>
+          </property>
+          <property name="displayFormat">
+           <string>h   AP</string>
+          </property>
+          <property name="time">
+           <time>
+            <hour>10</hour>
+            <minute>0</minute>
+            <second>0</second>
+           </time>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QLineEdit" name="day7LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 7 Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QLineEdit" name="day6LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 6 Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="2">
+         <widget class="QLabel" name="timeEndLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>End Time</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QCheckBox" name="day5CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="day1LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 1 Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QCheckBox" name="day1CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLabel" name="timesLabel">
+          <property name="text">
+           <string>Times</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="4">
+         <widget class="QLineEdit" name="baseTimezoneLineEdit">
+          <property name="toolTip">
+           <string>&lt;html&gt;Description of a &quot;baseline&quot; timezone students should use when filling out the grid.&lt;b&gt;Note that the meaning of the times in the schedule question refers to students' home timezones if they are asked for their timezone and a base timezone is not given!&lt;/b&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="placeholderText">
+           <string>Base timezone (e.g., Boston)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="day3LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 3 Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QCheckBox" name="day3CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="3">
+         <widget class="QTimeEdit" name="timeEndEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="dateTime">
+           <datetime>
+            <hour>17</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2000</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="maximumDateTime">
+           <datetime>
+            <hour>23</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2000</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="minimumDateTime">
+           <datetime>
+            <hour>0</hour>
+            <minute>0</minute>
+            <second>0</second>
+            <year>2000</year>
+            <month>1</month>
+            <day>1</day>
+           </datetime>
+          </property>
+          <property name="maximumTime">
+           <time>
+            <hour>23</hour>
+            <minute>0</minute>
+            <second>0</second>
+           </time>
+          </property>
+          <property name="minimumTime">
+           <time>
+            <hour>0</hour>
+            <minute>0</minute>
+            <second>0</second>
+           </time>
+          </property>
+          <property name="displayFormat">
+           <string>h   AP</string>
+          </property>
+          <property name="time">
+           <time>
+            <hour>17</hour>
+            <minute>0</minute>
+            <second>0</second>
+           </time>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QCheckBox" name="day4CheckBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLabel" name="daysLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Days</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="day4LineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::NoContextMenu</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Day 4 Name</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>13</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item row="6" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Include questions for:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="25" column="0">
+     <widget class="Line" name="line_10">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2" rowspan="28" colspan="2">
+     <widget class="QTextEdit" name="previewText">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>450</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Oxygen Mono</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::NoContextMenu</enum>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 10pt &quot;Oxygen Mono&quot;;</string>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="undoRedoEnabled">
+       <bool>false</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="4">
+     <widget class="Line" name="line_12">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="29" column="0">
+     <widget class="Line" name="line_13">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="0">
+     <widget class="Line" name="line_5">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+     <widget class="QCheckBox" name="firstNameCheckBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>This question is required.</string>
+      </property>
+      <property name="text">
+       <string>First / Preferred Name</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="0">
+     <widget class="Line" name="line_14">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
@@ -1145,7 +1136,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>920</width>
+     <width>880</width>
      <height>21</height>
     </rect>
    </property>
@@ -1288,13 +1279,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>ComboBoxWithElidedContents</class>
-   <extends>QComboBox</extends>
-   <header>comboBoxWithElidedContents.h</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>daysComboBox</tabstop>
   <tabstop>day1CheckBox</tabstop>

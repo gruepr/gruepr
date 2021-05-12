@@ -9,6 +9,7 @@ ComboBoxWithElidedContents::ComboBoxWithElidedContents(QWidget *parent)
     :QComboBox(parent)
 {
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
 }
 
 QSize ComboBoxWithElidedContents::sizeHint() const
