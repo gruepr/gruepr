@@ -17,7 +17,6 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include "boxwhiskerplot.h"
-#include "comboBoxWithElidedContents.h"
 #include "categorialSpinBox.h"
 #include "gruepr_structs_and_consts.h"
 #include "listTableDialog.h"

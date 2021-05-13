@@ -5,9 +5,10 @@
 //////////////////
 // QComboBox that paints with elided contents
 //////////////////
-ComboBoxWithElidedContents::ComboBoxWithElidedContents(QWidget *parent)
+ComboBoxWithElidedContents::ComboBoxWithElidedContents(const QString &minWidthText, QWidget *parent)
     :QComboBox(parent)
 {
+    minText = minWidthText;
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
 }
@@ -19,7 +20,7 @@ QSize ComboBoxWithElidedContents::sizeHint() const
 
 QSize ComboBoxWithElidedContents::minimumSizeHint() const
 {
-    return {(QFontMetrics(this->font())).boundingRect("Very high / Above average / Average / Below average / Very low").width()+15, QComboBox::minimumSizeHint().height()};
+    return {(QFontMetrics(this->font())).boundingRect(minText).width()+PIXELS_TO_ADD_TO_MIN_TEXT, QComboBox::minimumSizeHint().height()};
 }
 
 void ComboBoxWithElidedContents::paintEvent(QPaintEvent *event)

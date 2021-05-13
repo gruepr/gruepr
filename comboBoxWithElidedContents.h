@@ -11,12 +11,16 @@ class ComboBoxWithElidedContents : public QComboBox
     Q_OBJECT
 
 public:
-    ComboBoxWithElidedContents(QWidget *parent = nullptr);
+    ComboBoxWithElidedContents(const QString &minWidthText, QWidget *parent = nullptr);
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
 protected:
     void paintEvent(QPaintEvent* event) override;
+
+private:
+    QString minText;
+    const int PIXELS_TO_ADD_TO_MIN_TEXT = 15;
 };
 
 #endif // COMBOBOXWITHELIDEDCONTENTS

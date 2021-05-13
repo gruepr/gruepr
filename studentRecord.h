@@ -35,7 +35,7 @@ public:
     QString tooltip;
 
 private:
-    const int SIZE_OF_NOTES_IN_TOOLTIP = 300;
+    static const int SIZE_OF_NOTES_IN_TOOLTIP = 300;
 };
 
 #endif // STUDENTRECORD_H

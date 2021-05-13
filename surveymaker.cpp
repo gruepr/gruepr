@@ -39,6 +39,27 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
+    //put timezones into combobox
+    QStringList timeZones = QString(TIMEZONENAMES).split(";");
+    baseTimezoneComboBox = new ComboBoxWithElidedContents("Pacific: US and Canada, Tijuana [GMT-08:00]", this);
+    baseTimezoneComboBox->setToolTip(tr("<html>Description of the timezone students should use to interpret the times in the grid.&nbsp;"
+                                        "<b>Be aware how the meaning of the times in the grid changes depending on this setting.</b></html>"));
+    baseTimezoneComboBox->insertItem(TimezoneType::noneOrHome, tr("[no timezone given]"));
+    baseTimezoneComboBox->insertSeparator(TimezoneType::noneOrHome+1);
+    baseTimezoneComboBox->insertItem(TimezoneType::custom, tr("Custom timezone:"));
+    baseTimezoneComboBox->insertSeparator(TimezoneType::custom+1);
+    for(int zone = 0; zone < timeZones.size(); zone++)
+    {
+        QString zonename = timeZones.at(zone);
+        zonename.remove('"');
+        baseTimezoneComboBox->insertItem(TimezoneType::set + zone, zonename);
+        baseTimezoneComboBox->setItemData(TimezoneType::set + zone, zonename, Qt::ToolTipRole);
+    }
+    ui->scheduleLayout->replaceWidget(ui->fillinTimezoneComboBox, baseTimezoneComboBox, Qt::FindChildrenRecursively);
+    ui->fillinTimezoneComboBox->setParent(nullptr);
+    ui->fillinTimezoneComboBox->deleteLater();
+    connect(baseTimezoneComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::baseTimezoneComboBox_currentIndexChanged);
+
     //put day-related ui into arrays, load in local day names, and connect to slots
     dayLineEdits[0] = ui->day1LineEdit;
     dayLineEdits[1] = ui->day2LineEdit;
@@ -62,7 +83,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         dayLineEdits[day]->setText(defaultDayNames.at(day));
         connect(dayLineEdits[day], &QLineEdit::textChanged, this, [this, day](const QString &text) {day_LineEdit_textChanged(text, dayLineEdits[day], dayNames[day]);});
         connect(dayLineEdits[day], &QLineEdit::editingFinished, this, [this, day] {if(dayNames[day].isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
-        connect(dayCheckBoxes[day], &QCheckBox::clicked, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames[day]);});
+        connect(dayCheckBoxes[day], &QCheckBox::toggled, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames[day]);});
     }
 
     //Restore window geometry
@@ -157,7 +178,7 @@ void SurveyMaker::refreshPreview()
 
         if(timezone && baseTimezone.isEmpty())
         {
-            preview += " These times refer to <u><strong>your home</strong></u> timezone.";
+            preview += tr(" These times refer to <u><strong>your home</strong></u> timezone.");
         }
         else if(!baseTimezone.isEmpty())
         {
@@ -168,7 +189,11 @@ void SurveyMaker::refreshPreview()
         preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
         for(int time = startTime; time <= endTime; time++)
         {
-            preview += QTime(time, 0).toString("hA") + "&nbsp;&nbsp;&nbsp;&nbsp;";
+            preview += QTime(time, 0).toString("hA");
+            if(time != endTime)
+            {
+                preview += "&nbsp;&nbsp;&nbsp;&nbsp;";
+            }
         }
         preview += "</p>";
         for(const auto & dayName : dayNames)
@@ -485,11 +510,7 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                             csvFileContents += ",Check the times that you are";
                             csvFileContents += ((survey->busyOrFree == busy)? " BUSY and will be UNAVAILABLE " : " FREE and will be AVAILABLE ");
                             csvFileContents += "for group work.";
-                            if(survey->timezone && survey->baseTimezone.isEmpty())
-                            {
-                                csvFileContents += " These times refer to your home timezone. ";
-                            }
-                            else if(!(survey->baseTimezone.isEmpty()))
+                            if(!(survey->baseTimezone.isEmpty()))
                             {
                                 csvFileContents += " These times refer to " + survey->baseTimezone + " time. ";
                             }
@@ -690,6 +711,16 @@ void SurveyMaker::on_timezoneCheckBox_clicked(bool checked)
         numAttributes = ui->attributeCountSpinBox->value();
     }
 
+
+    if(timezone && schedule)
+    {
+        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[student's home timezone]"));
+    }
+    else
+    {
+        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[no timezone given]"));
+    }
+
     refreshPreview();
 }
 
@@ -698,6 +729,7 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
     schedule = checked;
     ui->busyFreeLabel->setEnabled(checked);
     ui->busyFreeComboBox->setEnabled(checked);
+    baseTimezoneComboBox->setEnabled(checked);
     ui->baseTimezoneLineEdit->setEnabled(checked);
     ui->daysComboBox->setEnabled(checked);
     for(int day = 0; day < MAX_DAYS; day++)
@@ -728,6 +760,15 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
         numAttributes = ui->attributeCountSpinBox->value();
     }
 
+    if(timezone && schedule)
+    {
+        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[student's home timezone]"));
+    }
+    else
+    {
+        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[no timezone given]"));
+    }
+
     refreshPreview();
 }
 
@@ -737,8 +778,29 @@ void SurveyMaker::on_busyFreeComboBox_currentIndexChanged(const QString &arg1)
     refreshPreview();
 }
 
+void SurveyMaker::baseTimezoneComboBox_currentIndexChanged(int arg1)
+{
+    if(arg1 == TimezoneType::noneOrHome)
+    {
+        baseTimezone.clear();
+    }
+    else if(arg1 == TimezoneType::custom)
+    {
+        baseTimezone = ui->baseTimezoneLineEdit->text().simplified();
+        ui->baseTimezoneLineEdit->setFocus();
+    }
+    else
+    {
+        baseTimezone = baseTimezoneComboBox->currentText();
+    }
+
+    refreshPreview();
+}
+
 void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
 {
+    baseTimezoneComboBox->setCurrentIndex(TimezoneType::custom);
+
     //validate entry
     QString currText = ui->baseTimezoneLineEdit->text();
     int currPos = 0;
@@ -758,6 +820,10 @@ void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
     }
 
     baseTimezone = ui->baseTimezoneLineEdit->text().simplified();
+    if(baseTimezone.isEmpty())
+    {
+        baseTimezoneComboBox->setCurrentIndex(TimezoneType::noneOrHome);
+    }
     refreshPreview();
 }
 

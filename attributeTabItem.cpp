@@ -57,7 +57,7 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
     }
     else
     {
-        attributeResponses = new ComboBoxWithElidedContents(this);
+        attributeResponses = new ComboBoxWithElidedContents(tr("Very high / Above average / Average / Below average / Very low"), this);
         theGrid->addWidget(attributeResponses, 1, 0, 1, -1);
     }
 }

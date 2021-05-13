@@ -14,7 +14,6 @@
 #include "categorialSpinBox.h"
 #include "csvfile.h"
 #include "customDialogs.h"
-#include "comboBoxWithElidedContents.h"
 #include "pushButtonWithMouseEnter.h"
 #include "sortableTableWidgetItem.h"
 #include "studentRecord.h"

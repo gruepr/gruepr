@@ -56,6 +56,7 @@
 // - make studentTable a subclass, using teamTreeWidget as example
 // - works much better with dark mode / dark color schemes
 // - make attribute data in a tab in a tab widget for both surveymaker and gruepr, using new attributeTabItem subclass
+// - added timezone functionality to SurveyMaker and google code
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
