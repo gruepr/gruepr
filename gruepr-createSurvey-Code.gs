@@ -164,7 +164,7 @@ function doGet(e) {
       schedtitle += 'Check the times that you are BUSY and will be UNAVAILABLE for group work.';
     }
     if(includeTimezone && (baseTimezone == '')) {
-      schedtitle += ' These times refer to your home timezone.';
+      schedtitle += ' These times refer to YOUR HOME timezone.';
     }
     if(baseTimezone != '') {
       schedtitle += ' These times refer to ' + baseTimezone + ' time.';

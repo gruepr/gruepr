@@ -43,7 +43,8 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         toolTip += "<br>" + QObject::tr("Identity") + ":  ";
         toolTip += URMResponse;
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         if(attributeVal[attribute] != -1)
@@ -63,6 +64,12 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         {
             toolTip += "?";
         }
+    }
+    if(dataOptions->timezoneIncluded)
+    {
+        int hour = int(timezone);
+        int minutes = 60*(timezone - int(timezone));
+        toolTip += "<br>" + QObject::tr("Timezone") + QString(":  GMT %1%2:%3").arg(timezone >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));
     }
     if(!(availabilityChart.isEmpty()))
     {

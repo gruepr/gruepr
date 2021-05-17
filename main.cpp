@@ -58,6 +58,9 @@
 // - make attribute data in a tab in a tab widget for both surveymaker and gruepr, using new attributeTabItem subclass
 // - added timezone functionality to SurveyMaker and google code
 //
+// IN PROGRESS:
+// - test that "timezoneOffset" is correctly shifting times in schedule, esp. with wraparound between days
+//
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
 // - change the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes

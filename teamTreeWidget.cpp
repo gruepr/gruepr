@@ -97,9 +97,14 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
     {
         headerLabels << tr("URM");
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         headerLabels << tr("attribute ") + QString::number(attribute+1);
+    }
+    if(dataOptions->timezoneIncluded)
+    {
+        headerLabels << tr("timezone");
     }
     if(!dataOptions->dayNames.isEmpty())
     {
@@ -194,7 +199,8 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         QString attributeText;
         int sortData;
@@ -243,6 +249,37 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team
         teamItem->setText(column, attributeText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, attributeText);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
+    if(dataOptions->timezoneIncluded)
+    {
+        QString timezoneText;
+        int sortData;
+        auto firstTeamVal = team.timezoneVals.begin();
+        auto lastTeamVal = team.timezoneVals.rbegin();
+
+        if(*firstTeamVal == *lastTeamVal)
+        {
+            int hour = int(*firstTeamVal);
+            int minutes = 60*(*firstTeamVal - int(*firstTeamVal));
+            timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));;
+        }
+        else
+        {
+            int hourF = int(*firstTeamVal);
+            int minutesF = 60*(*firstTeamVal - int(*firstTeamVal));
+            int hourL = int(*lastTeamVal);
+            int minutesL = 60*(*lastTeamVal - int(*lastTeamVal));
+            timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(minutesF, 2, 10, QChar('0')) + " - " +
+                            QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(minutesL, 2, 10, QChar('0'));
+        }
+        sortData = *firstTeamVal * 100 + *lastTeamVal;
+
+        teamItem->setText(column, timezoneText);
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, timezoneText);
         teamItem->setData(column, TEAMINFO_SORT_ROLE, sortData);
         teamItem->setToolTip(column, team.tooltip);
         column++;
@@ -308,7 +345,8 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         int value = stu.attributeVal[attribute];
         if(value != -1)
@@ -326,6 +364,15 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         {
             studentItem->setText(column, "?");
         }
+        studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, Qt::AlignCenter);
+        column++;
+    }
+    if(dataOptions->timezoneIncluded)
+    {
+        int hour = int(stu.timezone);
+        int minutes = 60*(stu.timezone - int(stu.timezone));
+        studentItem->setText(column, QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0')));
         studentItem->setToolTip(column, stu.tooltip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;

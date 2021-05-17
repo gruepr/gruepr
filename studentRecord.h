@@ -16,6 +16,7 @@ public:
     enum Gender {woman, man, nonbinary, unknown} gender = unknown;
     bool URM = false;                                   // true if this student is from an underrepresented minority group
     bool unavailable[MAX_TIMEBLOCKS] = {false};			// true if this is a busy block during week
+    float timezone = 0;                                 // offset from GMT
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
     bool preventedWith[MAX_STUDENTS] = {false};			// true if this student is prevented from working with the corresponding student
     bool requiredWith[MAX_STUDENTS] = {false};			// true if this student is required to work with the corresponding student

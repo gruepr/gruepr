@@ -77,10 +77,10 @@ const char TEAMNAMECATEGORIES[] {"Arabic numbers.,"
                                  "NATO phonetic alphabet~,"
                                  "Chemical elements#,"
                                  "Constellations#,"
-                                 "Bones of the human skeleton@,"
+                                 "Bones of the human skeleton (rand.)@,"
                                  "Popes#,"
                                  "Genres of music#,"
-                                 "Minor league baseball teams@,"
+                                 "Minor league baseball teams (rand.)@,"
                                  "Crayola crayon colors#,"
                                  "Shakespeare plays (RSC chron.)#,"
                                  "Discontinued Olympic sports#,"
@@ -174,7 +174,8 @@ struct TeamInfo
     int numUnknown;
     int numURM;
     std::set<int> attributeVals[MAX_ATTRIBUTES];
-    int numStudentsAvailable[7][24] = {{0}};
+    std::set<float> timezoneVals;
+    int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     QVector<int> studentIDs;
     QString name;
@@ -204,6 +205,9 @@ struct DataOptions
     int attributeField[MAX_ATTRIBUTES];                 // which field(s) in surveyFile have attribute info? -1 if not included in survey
     int attributeMin[MAX_ATTRIBUTES];                   // what is the minimum value for each attribute?
     int attributeMax[MAX_ATTRIBUTES];                   // what is the maximum value for each attribute?
+    bool timezoneIncluded = false;                      // is timezone data included in the survey?
+    int timezoneField = -1;                             // which field has the timezone info?
+    float baseTimezone = 0;                             // offset from GMT for baseline timezone
     bool attributeIsOrdered[MAX_ATTRIBUTES];            // is this attribute ordered (numerical) or purely categorical?
     bool prefTeammatesIncluded = false;                 // did students get to include preferred teammates?
     int prefTeammatesField = -1;                        // which field in surveyFile has the preferred teammates info? -1 if not included in survey

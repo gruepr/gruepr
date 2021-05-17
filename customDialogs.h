@@ -254,7 +254,7 @@ public:
     progressDialog(QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog();
 
-   void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
+    void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
     void highlightStopButton();
 
 private slots:
@@ -276,6 +276,35 @@ private:
     QPushButton *showStatsButton;
     QTimer *countdownToClose;
     int secsLeftToClose = 5;
+};
+
+
+class dayNamesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    dayNamesDialog(QCheckBox *dayselectors[], QLineEdit *daynames[], QWidget *parent = nullptr);
+
+private:
+    QGridLayout *theGrid;
+    QDialogButtonBox *buttonBox;
+};
+
+
+class baseTimezoneDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    baseTimezoneDialog(QWidget *parent = nullptr);
+    float baseTimezoneVal = 0;
+
+private:
+    QGridLayout *theGrid;
+    QLabel *explanation;
+    QComboBox *timezones;
+    QDialogButtonBox *buttonBox;
 };
 
 

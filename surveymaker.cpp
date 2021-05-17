@@ -60,31 +60,22 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->fillinTimezoneComboBox->deleteLater();
     connect(baseTimezoneComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::baseTimezoneComboBox_currentIndexChanged);
 
-    //put day-related ui into arrays, load in local day names, and connect to slots
-    dayLineEdits[0] = ui->day1LineEdit;
-    dayLineEdits[1] = ui->day2LineEdit;
-    dayLineEdits[2] = ui->day3LineEdit;
-    dayLineEdits[3] = ui->day4LineEdit;
-    dayLineEdits[4] = ui->day5LineEdit;
-    dayLineEdits[5] = ui->day6LineEdit;
-    dayLineEdits[6] = ui->day7LineEdit;
-    dayCheckBoxes[0] = ui->day1CheckBox;
-    dayCheckBoxes[1] = ui->day2CheckBox;
-    dayCheckBoxes[2] = ui->day3CheckBox;
-    dayCheckBoxes[3] = ui->day4CheckBox;
-    dayCheckBoxes[4] = ui->day5CheckBox;
-    dayCheckBoxes[5] = ui->day6CheckBox;
-    dayCheckBoxes[6] = ui->day7CheckBox;
+    //load in local day names, and connect subwindow ui to slots
     defaultDayNames.reserve(MAX_DAYS);
     for(int day = 0; day < MAX_DAYS; day++)
     {
         defaultDayNames << sunday.addDays(day).toString("dddd");
         dayNames[day] = defaultDayNames.at(day);
+        dayCheckBoxes[day] = new QCheckBox;
+        dayLineEdits[day] = new QLineEdit;
+        dayCheckBoxes[day]->setChecked(true);
         dayLineEdits[day]->setText(defaultDayNames.at(day));
+        dayLineEdits[day]->setPlaceholderText(tr("Day ") + QString::number(day + 1) + tr(" name"));
         connect(dayLineEdits[day], &QLineEdit::textChanged, this, [this, day](const QString &text) {day_LineEdit_textChanged(text, dayLineEdits[day], dayNames[day]);});
         connect(dayLineEdits[day], &QLineEdit::editingFinished, this, [this, day] {if(dayNames[day].isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
         connect(dayCheckBoxes[day], &QCheckBox::toggled, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames[day]);});
     }
+    daysWindow = new dayNamesDialog(dayCheckBoxes, dayLineEdits, this);
 
     //Restore window geometry
     QSettings savedSettings;
@@ -186,21 +177,21 @@ void SurveyMaker::refreshPreview()
         }
 
         preview += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
-        preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
         for(int time = startTime; time <= endTime; time++)
         {
             preview += QTime(time, 0).toString("hA");
             if(time != endTime)
             {
-                preview += "&nbsp;&nbsp;&nbsp;&nbsp;";
+                preview += "&nbsp;&nbsp;&nbsp;";
             }
         }
-        preview += "</p>";
+        preview += "</small></p>";
         for(const auto & dayName : dayNames)
         {
             if(!(dayName.isEmpty()))
             {
-                preview += "<p>&nbsp;&nbsp;&nbsp;" + dayName + "</p>";
+                preview += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
             }
         }
         preview += "<hr>";
@@ -445,7 +436,8 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                     for(int attrib = 0; attrib < survey->numAttributes; attrib++)
                     {
                         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        textFileContents += survey->attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
+                        textFileContents += survey->attributeTexts[attrib].isEmpty()?
+                                                "{Attribute question " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
                         textFileContents += "\n     " + tr("choices") + ": [";
                         QStringList responses;
                         if(survey->attributeResponses[attrib] < survey->responseOptions.size())
@@ -470,7 +462,8 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                             textFileContents += responses.at(resp);
                         }
                         textFileContents += "]";
-                        csvFileContents += ",\"" + (survey->attributeTexts[attrib].isEmpty()? "Attribute question " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
+                        csvFileContents += ",\"" + (survey->attributeTexts[attrib].isEmpty()?
+                                                        "Attribute question " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
                     }
                 }
                 if(survey->schedule)
@@ -620,10 +613,12 @@ void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
     {
         ui->surveyTitleLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the survey title:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the survey title:\n"
+                                                          "    ,  &  <  >\n"
+                                                          "Other punctuation is allowed."));
     }
 
-    title = ui->surveyTitleLineEdit->text().trimmed();
+    title = currText.trimmed();
     refreshPreview();
 }
 
@@ -670,20 +665,22 @@ void SurveyMaker::attributeTextChanged(int currAttribute)
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        attributeTab[currAttribute]->attributeText->setPlainText(attributeTab.at(currAttribute)->attributeText->toPlainText().remove(',').remove('&').remove('<').remove('>'));
+        attributeTab[currAttribute]->attributeText->setPlainText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the question text:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the question text:\n"
+                                                          "    ,  &  <  >\n"
+                                                          "Other punctuation is allowed."));
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
-        attributeTab[currAttribute]->attributeText->setPlainText(attributeTab.at(currAttribute)->attributeText->toPlainText().replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
+        attributeTab[currAttribute]->attributeText->setPlainText(currText.replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, attribute questions may not containt the exact wording:\n"
                                                           "\"In which section are you enrolled\"\nwithin the question text.\n"
                                                           "A section question may be added using the \"Section\" checkbox."));
     }
 
-    attributeTexts[currAttribute] = attributeTab[currAttribute]->attributeText->toPlainText().simplified();
+    attributeTexts[currAttribute] = currText.simplified();
     refreshPreview();
 }
 
@@ -806,20 +803,22 @@ void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        ui->baseTimezoneLineEdit->setText(baseTimezone = ui->baseTimezoneLineEdit->text().remove(',').remove('&').remove('<').remove('>'));
+        ui->baseTimezoneLineEdit->setText(baseTimezone = currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the timezone name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the timezone name:\n"
+                                                          "    ,  &  <  >\n"
+                                                          "Other punctuation is allowed."));
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
-        ui->baseTimezoneLineEdit->setText(ui->baseTimezoneLineEdit->text().replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
+        ui->baseTimezoneLineEdit->setText(currText.replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, the timezone name may not containt the exact wording:\n"
                                                           "\"In which section are you enrolled\".\n"
                                                           "A section question may be added using the \"Section\" checkbox."));
     }
 
-    baseTimezone = ui->baseTimezoneLineEdit->text().simplified();
+    baseTimezone = currText.simplified();
     if(baseTimezone.isEmpty())
     {
         baseTimezoneComboBox->setCurrentIndex(TimezoneType::noneOrHome);
@@ -827,8 +826,9 @@ void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
     refreshPreview();
 }
 
-void SurveyMaker::on_daysComboBox_currentIndexChanged(int index)
+void SurveyMaker::on_daysComboBox_activated(int index)
 {
+    ui->daysComboBox->blockSignals(true);
     if(index == 0)
     {
         //All Days
@@ -859,8 +859,11 @@ void SurveyMaker::on_daysComboBox_currentIndexChanged(int index)
     }
     else
     {
-        //Custom Days
+        //Custom Days, open subwindow
+        daysWindow->exec();
+        checkDays();
     }
+    ui->daysComboBox->blockSignals(false);
 }
 
 void SurveyMaker::day_CheckBox_toggled(bool checked, QLineEdit *dayLineEdit, const QString &dayname)
@@ -905,10 +908,12 @@ void SurveyMaker::day_LineEdit_textChanged(const QString &text, QLineEdit *dayLi
     {
         dayLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n    ,  &  <  >\nOther punctuation is allowed."));
+        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n"
+                                                          "    ,  &  <  >\n"
+                                                          "Other punctuation is allowed."));
     }
 
-    dayname = dayLineEdit->text().trimmed();
+    dayname = currText.trimmed();
     refreshPreview();
 }
 
@@ -946,7 +951,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        ui->sectionNamesTextEdit->setPlainText(ui->sectionNamesTextEdit->toPlainText().remove(',').remove('&').remove('<').remove('>'));
+        ui->sectionNamesTextEdit->setPlainText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the section names:"
                                                           "\n    ,  &  <  >"
@@ -954,7 +959,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     }
 
     // split the input at every newline, then remove any blanks (including just spaces)
-    sectionNames = ui->sectionNamesTextEdit->toPlainText().split("\n");
+    sectionNames = currText.split("\n");
     for (int line = 0; line < sectionNames.size(); line++)
     {
         sectionNames[line] = sectionNames.at(line).trimmed();
@@ -1073,21 +1078,31 @@ void SurveyMaker::openSurvey()
             }
             if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString())
             {
-                ui->baseTimezoneLineEdit->setText(loadObject["baseTimezone"].toString());
+                int index = baseTimezoneComboBox->findText(loadObject["baseTimezone"].toString());
+                if(index == -1)
+                {
+                    ui->baseTimezoneLineEdit->setText(loadObject["baseTimezone"].toString());
+                }
+                else
+                {
+                    baseTimezoneComboBox->setCurrentIndex(index);
+                }
             }
             for(int day = 0; day < MAX_DAYS; day++)
             {
-                QString dayString = "scheduleDay" + QString::number(day+1);
-                if(loadObject.contains(dayString) && loadObject[dayString].isBool())
+                QString dayString1 = "scheduleDay" + QString::number(day+1);
+                QString dayString2 = dayString1 + "Name";
+                QString dayName = defaultDayNames[day];
+                if(loadObject.contains(dayString2) && loadObject[dayString2].isString())
                 {
-                    dayCheckBoxes[day]->setChecked(loadObject[dayString].toBool());
-                    day_CheckBox_toggled(loadObject[dayString].toBool(), dayLineEdits[day], defaultDayNames[day]);
+                    dayLineEdits[day]->setText(loadObject[dayString2].toString());
+                    dayName = loadObject[dayString2].toString();
                 }
 
-                dayString = "scheduleDay" + QString::number(day+1) + "Name";
-                if(loadObject.contains(dayString) && loadObject[dayString].isString())
+                if(loadObject.contains(dayString1) && loadObject[dayString1].isBool())
                 {
-                    dayLineEdits[day]->setText(loadObject[dayString].toString());
+                    dayCheckBoxes[day]->setChecked(loadObject[dayString1].toBool());
+                    day_CheckBox_toggled(loadObject[dayString1].toBool(), dayLineEdits[day], dayName);
                 }
             }
             if(loadObject.contains("scheduleStartHour") && loadObject["scheduleStartHour"].isDouble())

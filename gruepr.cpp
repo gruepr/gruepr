@@ -2520,7 +2520,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                                                     {"Last Name", "((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
                                                     {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                                     {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
-                                                    {"Preferred Teammates", "(name).*(like to have on your team)", 1},
+                                                    {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
                                                     {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
                                                     {"Attribute", ".*", MAX_ATTRIBUTES}, {"Notes", "", MAX_NOTES_FIELDS}};
     QApplication::restoreOverrideCursor();
@@ -2541,6 +2541,8 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     dataOptions->URMIncluded = (dataOptions->URMField != -1);
     dataOptions->sectionField = surveyFile.fieldMeanings.indexOf("Section");
     dataOptions->sectionIncluded = (dataOptions->sectionField != -1);
+    dataOptions->timezoneField = surveyFile.fieldMeanings.indexOf("Timezone");
+    dataOptions->timezoneIncluded = (dataOptions->timezoneField != -1);
     dataOptions->prefTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Teammates");
     dataOptions->prefTeammatesIncluded = (dataOptions->prefTeammatesField != -1);
     dataOptions->prefNonTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Non-teammates");
@@ -2554,7 +2556,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         dataOptions->notesField[note] = surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex);
         lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex));
     }
-    // get the attribute fields
+    // get the attribute fields, adding timezone field as an attribute if it exists
     lastFoundIndex = 0;
     dataOptions->numAttributes = surveyFile.fieldMeanings.count("Attribute");
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
@@ -2563,8 +2565,15 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         dataOptions->attributeQuestionText << surveyFile.headerValues.at(dataOptions->attributeField[attribute]);
         lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex));
     }
+    if(dataOptions->timezoneIncluded)
+    {
+        dataOptions->attributeField[dataOptions->numAttributes] = dataOptions->timezoneField;
+        dataOptions->attributeQuestionText << surveyFile.headerValues.at(dataOptions->timezoneField);
+        dataOptions->numAttributes++;
+    }
     // get the schedule fields
     lastFoundIndex = 0;
+    bool homeTimezoneUsed = false;
     for(int scheduleQuestion = 0, numScheduleFields = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleFields; scheduleQuestion++)
     {
         dataOptions->scheduleField[scheduleQuestion] = surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex);
@@ -2573,6 +2582,11 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         {
             // if >=1 field has this language, all interpreted as free time
             dataOptions->scheduleDataIsFreetime = true;
+        }
+        if(scheduleQuestionText.contains(QRegularExpression(".+\\b(your home)\\b.+", QRegularExpression::CaseInsensitiveOption)))
+        {
+            // if >=1 field has this language, all interpreted as referring to each student's home timezone
+            homeTimezoneUsed = true;
         }
         QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at end of field (that's where Google Forms puts column titles in matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
@@ -2619,8 +2633,17 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         dataOptions->timeNames = allTimeNames;
     }
 
+    // If each student's home timezone was used, ask what should be used as the base timezone that they should all be adjusted to
+    if(homeTimezoneUsed)
+    {
+        auto *window = new baseTimezoneDialog(this);
+        window->exec();
+        dataOptions->baseTimezone = window->baseTimezoneVal;
+        window->deleteLater();
+    }
+
     // Having read the header row and determined time names, if any, read each remaining row as a student record
-    surveyFile.readHeader();    // put cursor back to end of header row
+    surveyFile.readHeader();    // just to put cursor back to end of header row
     numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS)
     {
@@ -2694,8 +2717,18 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         else
         {
             // categorical values. attribute scores will count up to the number of responses
-            dataOptions->attributeMin[attribute] = 1;
-            dataOptions->attributeMax[attribute] = dataOptions->attributeQuestionResponses[attribute].size();
+            if(dataOptions->attributeField[attribute] != dataOptions->timezoneField)
+            {
+                // not timezone, so range of responses is
+                dataOptions->attributeMin[attribute] = 1;
+                dataOptions->attributeMax[attribute] = dataOptions->attributeQuestionResponses[attribute].size();
+            }
+            else
+            {
+                // for timezone, range of responses is 24 hours
+                dataOptions->attributeMin[attribute] = 1;
+                dataOptions->attributeMax[attribute] = 24;
+            }
             // set numerical value of students' attribute responses according to their place in the sorted list of responses
             for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
             {
@@ -2709,7 +2742,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                 }
             }
         }
-
     }
 
     // gather all unique URM question responses and sort
@@ -2868,6 +2900,21 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
     // optional schedule days
     const int numDays = dataOptions->dayNames.size();
     const int numTimes = dataOptions->timeNames.size();
+    int timezoneOffset = 0;
+    fieldnum = dataOptions->timezoneField;
+    if(fieldnum != -1)
+    {
+        QRegularExpression offsetFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
+        QRegularExpressionMatch offset = offsetFinder.match(fields.at(fieldnum).toUtf8());
+        if(offset.hasMatch())
+        {
+            int hours = offset.captured(1).toInt();
+            float minutes = offset.captured(2).toFloat();
+            student.timezone = hours + ((minutes/60) * (hours < 0? -1 : +1));
+            timezoneOffset = dataOptions->baseTimezone - student.timezone;
+        }
+    }
+    qDebug() << timezoneOffset;
     for(int day = 0; day < numDays; day++)
     {
         fieldnum = dataOptions->scheduleField[day];
@@ -2876,10 +2923,10 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
         for(int time = 0; time < numTimes; time++)
         {
             timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
-            student.unavailable[(day*numTimes)+time] = timename.match(field).hasMatch();
+            student.unavailable[(day*numTimes)+time + timezoneOffset] = timename.match(field).hasMatch();
             if(dataOptions->scheduleDataIsFreetime)
             {
-                student.unavailable[(day*numTimes)+time] = !student.unavailable[(day*numTimes)+time];
+                student.unavailable[(day*numTimes)+time + timezoneOffset] = !student.unavailable[(day*numTimes + timezoneOffset)+time];
             }
         }
     }
@@ -3449,9 +3496,15 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 const int teamSize = teams[team].size;
                 // gather all attribute values
                 std::multiset<int> attributeLevelsInTeam;
+                std::multiset<float> timezoneLevelsInTeam;
                 for(int teammate = 0; teammate < teamSize; teammate++)
                 {
                     attributeLevelsInTeam.insert(student[teammates[ID]].attributeVal[attribute]);
+                    if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
+                    {
+                        // this "attribute" is timezone; so also collect those
+                        timezoneLevelsInTeam.insert(student[teammates[ID]].timezone);
+                    }
                     ID++;
                 }
 
@@ -3485,7 +3538,12 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 if((teamingOptions->realAttributeWeights[attribute] > 0) && (!attributeLevelsInTeam.empty()))
                 {
                     int attributeRangeInTeam;
-                    if(dataOptions->attributeIsOrdered[attribute])
+                    if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
+                    {
+                        // "attribute" is timezone, so use timezone values
+                        attributeRangeInTeam = *timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin();
+                    }
+                    else if(dataOptions->attributeIsOrdered[attribute])
                     {
                         // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
                         attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();    // crbegin is last (i.e., largest) element; cbegin is first
@@ -3949,6 +4007,10 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
             else
             {
                 team.numStudentsWithAmbiguousSchedules++;
+            }
+            if(dataOptions->timezoneIncluded)
+            {
+                team.timezoneVals.insert(stu.timezone);
             }
         }
     }

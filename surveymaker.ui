@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>890</width>
-    <height>791</height>
+    <width>898</width>
+    <height>668</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>SurveyMaker</string>
@@ -26,7 +20,7 @@
      <verstretch>1</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,75,0,0,0,0,0,25,0,0,0,0,0,0,0,0" columnstretch="100,0,100,0">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,75,0,0,0,0,0,25,0,0,0,0,0,0,0,0" columnstretch="2,0,1,0">
     <property name="verticalSpacing">
      <number>2</number>
     </property>
@@ -150,7 +144,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Race/ethnicity/cultural heritage</string>
+       <string>Race / ethnicity / cultural identity</string>
       </property>
      </widget>
     </item>
@@ -273,9 +267,9 @@
     <item row="5" column="2" rowspan="26" colspan="2">
      <widget class="QTextEdit" name="previewText">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>1</horstretch>
-        <verstretch>1</verstretch>
+       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+        <horstretch>2</horstretch>
+        <verstretch>2</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
@@ -331,7 +325,10 @@
     </item>
     <item row="25" column="0">
      <layout class="QGridLayout" name="teammatesGrid">
-      <item row="0" column="1" rowspan="2">
+      <property name="verticalSpacing">
+       <number>2</number>
+      </property>
+      <item row="0" column="1" rowspan="2" alignment="Qt::AlignVCenter">
        <widget class="QLabel" name="numAllowedLabel">
         <property name="enabled">
          <bool>false</bool>
@@ -347,7 +344,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2" rowspan="2">
+      <item row="0" column="2" rowspan="2" alignment="Qt::AlignVCenter">
        <widget class="QSpinBox" name="numAllowedSpinBox">
         <property name="enabled">
          <bool>false</bool>
@@ -363,7 +360,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="0" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QCheckBox" name="preferredTeammatesCheckBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -376,7 +373,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="1" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QCheckBox" name="preferredNonTeammatesCheckBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -405,8 +402,8 @@
      </layout>
     </item>
     <item row="20" column="0">
-     <layout class="QHBoxLayout" name="scheduleLayout" stretch="0,100">
-      <item>
+     <layout class="QHBoxLayout" name="scheduleLayout" stretch="0,2">
+      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QCheckBox" name="scheduleCheckBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -423,133 +420,103 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="scheduleGrid" columnstretch="100,0,0,0,0,0">
-        <property name="verticalSpacing">
-         <number>3</number>
+       <layout class="QVBoxLayout" name="scheduleVerticalLayout">
+        <property name="spacing">
+         <number>4</number>
         </property>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="day3LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        <item>
+         <layout class="QHBoxLayout" name="timezoneLayout" stretch="2,1">
+          <property name="spacing">
+           <number>2</number>
           </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 3 Name</string>
-          </property>
-         </widget>
+          <item alignment="Qt::AlignVCenter">
+           <widget class="QComboBox" name="fillinTimezoneComboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>2</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;Description of the timezone students should use to interpret the times in the grid.&amp;nbsp;&lt;b&gt;Be aware how the meaning of the times in the grid changes depending on this setting.&lt;/b&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QLineEdit" name="baseTimezoneLineEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;Description of the timezone students should use to interpret the times in the grid.&lt;/html&gt;</string>
+            </property>
+            <property name="placeholderText">
+             <string>Custom timezone</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="day1LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        <item>
+         <layout class="QHBoxLayout" name="busyFreeLayout">
+          <property name="spacing">
+           <number>2</number>
           </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 1 Name</string>
-          </property>
-         </widget>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QLabel" name="busyFreeLabel">
+            <property name="text">
+             <string>Ask when students are:</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QComboBox" name="busyFreeComboBox">
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::AdjustToContents</enum>
+            </property>
+            <item>
+             <property name="text">
+              <string>busy</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>free</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
-        <item row="10" column="1">
-         <widget class="QLineEdit" name="day6LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 6 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="3">
-         <widget class="QLabel" name="timeStartLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Start Time</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QLabel" name="daysLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Days</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QCheckBox" name="day4CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QCheckBox" name="day1CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QCheckBox" name="day3CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0" colspan="2" alignment="Qt::AlignLeft">
+        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
          <widget class="QComboBox" name="daysComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -577,379 +544,200 @@
           </item>
           <item>
            <property name="text">
-            <string>Custom Days</string>
+            <string>Custom Days / Names</string>
            </property>
           </item>
          </widget>
         </item>
-        <item row="3" column="3" colspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-         <widget class="QLabel" name="timesLabel">
-          <property name="text">
-           <string>Times</string>
+        <item>
+         <layout class="QHBoxLayout" name="timeLayout">
+          <property name="spacing">
+           <number>2</number>
           </property>
-         </widget>
-        </item>
-        <item row="6" column="4">
-         <widget class="QTimeEdit" name="timeEndEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="dateTime">
-           <datetime>
-            <hour>17</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumDateTime">
-           <datetime>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="minimumDateTime">
-           <datetime>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumTime">
-           <time>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="minimumTime">
-           <time>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="displayFormat">
-           <string>h   AP</string>
-          </property>
-          <property name="time">
-           <time>
-            <hour>17</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="0">
-         <widget class="QCheckBox" name="day7CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLineEdit" name="day4LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 4 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QLineEdit" name="day5LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 5 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="6">
-         <layout class="QHBoxLayout" name="timezoneLayout" stretch="3,2">
-          <item>
-           <widget class="QComboBox" name="fillinTimezoneComboBox">
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QLabel" name="timeStartLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-              <horstretch>2</horstretch>
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>200</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;Description of the timezone students should use to interpret the times in the grid.&amp;nbsp;&lt;b&gt;Be aware how the meaning of the times in the grid changes depending on this setting.&lt;/b&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="baseTimezoneLineEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;Description of the timezone students should use to interpret the times in the grid.&lt;/html&gt;</string>
-            </property>
-            <property name="placeholderText">
-             <string>Custom timezone</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="9" column="0">
-         <widget class="QCheckBox" name="day5CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="5" rowspan="10">
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>13</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="10" column="0">
-         <widget class="QCheckBox" name="day6CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="day2LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 2 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="5">
-         <layout class="QHBoxLayout" name="busyFreeLayout">
-          <item alignment="Qt::AlignRight|Qt::AlignVCenter">
-           <widget class="QLabel" name="busyFreeLabel">
             <property name="text">
-             <string>Ask when students are:</string>
+             <string>Start time: </string>
             </property>
            </widget>
           </item>
           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-           <widget class="QComboBox" name="busyFreeComboBox">
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
+           <widget class="QTimeEdit" name="timeStartEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <item>
-             <property name="text">
-              <string>busy</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>free</string>
-             </property>
-            </item>
+            <property name="dateTime">
+             <datetime>
+              <hour>10</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="maximumDateTime">
+             <datetime>
+              <hour>23</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="minimumDateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="maximumTime">
+             <time>
+              <hour>23</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="minimumTime">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="displayFormat">
+             <string>h   AP</string>
+            </property>
+            <property name="time">
+             <time>
+              <hour>10</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
            </widget>
           </item>
+          <item>
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="timeEndLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>End time: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTimeEdit" name="timeEndEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="dateTime">
+             <datetime>
+              <hour>17</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="maximumDateTime">
+             <datetime>
+              <hour>23</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="minimumDateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="maximumTime">
+             <time>
+              <hour>23</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="minimumTime">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="displayFormat">
+             <string>h   AP</string>
+            </property>
+            <property name="time">
+             <time>
+              <hour>17</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
          </layout>
-        </item>
-        <item row="6" column="3">
-         <widget class="QLabel" name="timeEndLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>End Time</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QCheckBox" name="day2CheckBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="4">
-         <widget class="QTimeEdit" name="timeStartEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="dateTime">
-           <datetime>
-            <hour>10</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumDateTime">
-           <datetime>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="minimumDateTime">
-           <datetime>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-            <year>2000</year>
-            <month>1</month>
-            <day>1</day>
-           </datetime>
-          </property>
-          <property name="maximumTime">
-           <time>
-            <hour>23</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="minimumTime">
-           <time>
-            <hour>0</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-          <property name="displayFormat">
-           <string>h   AP</string>
-          </property>
-          <property name="time">
-           <time>
-            <hour>10</hour>
-            <minute>0</minute>
-            <second>0</second>
-           </time>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="1">
-         <widget class="QLineEdit" name="day7LineEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::NoContextMenu</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Day 7 Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2" rowspan="9">
-         <widget class="Line" name="line_8">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-         </widget>
         </item>
        </layout>
       </item>
@@ -972,8 +760,8 @@
      </widget>
     </item>
     <item row="16" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,100">
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+     <layout class="QHBoxLayout" name="attributesLayout" stretch="0,0,2">
+      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QSpinBox" name="attributeCountSpinBox">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -992,7 +780,7 @@
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QLabel" name="attributeLabel">
         <property name="text">
          <string>Attributes</string>
@@ -1002,15 +790,15 @@
       <item>
        <widget class="QTabWidget" name="attributesTabWidget">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>100</horstretch>
-          <verstretch>100</verstretch>
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+          <horstretch>2</horstretch>
+          <verstretch>2</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>50</width>
-          <height>100</height>
+          <width>300</width>
+          <height>125</height>
          </size>
         </property>
         <property name="currentIndex">
@@ -1144,7 +932,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>890</width>
+     <width>898</width>
      <height>21</height>
     </rect>
    </property>
@@ -1287,25 +1075,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <tabstops>
-  <tabstop>daysComboBox</tabstop>
-  <tabstop>day1CheckBox</tabstop>
-  <tabstop>day2CheckBox</tabstop>
-  <tabstop>day3CheckBox</tabstop>
-  <tabstop>day4CheckBox</tabstop>
-  <tabstop>day5CheckBox</tabstop>
-  <tabstop>day6CheckBox</tabstop>
-  <tabstop>day7CheckBox</tabstop>
-  <tabstop>day1LineEdit</tabstop>
-  <tabstop>day2LineEdit</tabstop>
-  <tabstop>day3LineEdit</tabstop>
-  <tabstop>day4LineEdit</tabstop>
-  <tabstop>day5LineEdit</tabstop>
-  <tabstop>day6LineEdit</tabstop>
-  <tabstop>day7LineEdit</tabstop>
-  <tabstop>timeStartEdit</tabstop>
-  <tabstop>timeEndEdit</tabstop>
- </tabstops>
  <resources>
   <include location="gruepr.qrc"/>
  </resources>

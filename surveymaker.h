@@ -7,6 +7,7 @@
 #include <QDate>
 #include "attributeTabItem.h"
 #include "comboBoxWithElidedContents.h"
+#include "customDialogs.h"
 #include "gruepr_structs_and_consts.h"
 
 namespace Ui {class SurveyMaker;}
@@ -33,7 +34,7 @@ private slots:
     void on_busyFreeComboBox_currentIndexChanged(const QString &arg1);
     void baseTimezoneComboBox_currentIndexChanged(int arg1);
     void on_baseTimezoneLineEdit_textChanged();
-    void on_daysComboBox_currentIndexChanged(int index);
+    void on_daysComboBox_activated(int index);
     void day_CheckBox_toggled(bool checked, QLineEdit *dayLineEdit, const QString &dayname);
     void day_LineEdit_textChanged(const QString &text, QLineEdit *dayLineEdit, QString &dayname);
     void on_timeStartEdit_timeChanged(QTime time);
@@ -76,6 +77,7 @@ private:
     const QDate sunday = QDate(2017, 1, 1);
     QLineEdit *dayLineEdits[MAX_DAYS] = {nullptr};
     QCheckBox *dayCheckBoxes[MAX_DAYS] = {nullptr};
+    dayNamesDialog *daysWindow = nullptr;
     int startTime = 10;
     int endTime = 17;
     bool section = false;
