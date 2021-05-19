@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>898</width>
-    <height>668</height>
+    <width>893</width>
+    <height>716</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
    </property>
    <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,75,0,0,0,0,0,25,0,0,0,0,0,0,0,0" columnstretch="2,0,1,0">
     <property name="verticalSpacing">
-     <number>2</number>
+     <number>4</number>
     </property>
     <item row="23" column="0">
      <widget class="Line" name="line_10">
@@ -451,22 +451,13 @@
           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
            <widget class="QLineEdit" name="baseTimezoneLineEdit">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>0</height>
-             </size>
-            </property>
             <property name="toolTip">
              <string>&lt;html&gt;Description of the timezone students should use to interpret the times in the grid.&lt;/html&gt;</string>
-            </property>
-            <property name="placeholderText">
-             <string>Custom timezone</string>
             </property>
            </widget>
           </item>
@@ -932,7 +923,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>898</width>
+     <width>893</width>
      <height>21</height>
     </rect>
    </property>

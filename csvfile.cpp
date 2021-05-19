@@ -12,7 +12,6 @@ CsvFile::CsvFile(Delimiter dlmtr, QObject *parent) : QObject(parent)
     {
         delimiter = '\t';
     }
-
 }
 
 CsvFile::~CsvFile()
@@ -55,7 +54,6 @@ bool CsvFile::open(QWidget *parent, Oprtn oprtn, const QString &caption, const Q
             stream = new QTextStream(file);
         }
     }
-
 
     return (stream != nullptr);
 }

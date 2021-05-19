@@ -31,6 +31,7 @@ private slots:
     void attributeTextChanged(int currAttribute);
     void on_timezoneCheckBox_clicked(bool checked);
     void on_scheduleCheckBox_clicked(bool checked);
+    void checkTimezoneAndSchedule();
     void on_busyFreeComboBox_currentIndexChanged(const QString &arg1);
     void baseTimezoneComboBox_currentIndexChanged(int arg1);
     void on_baseTimezoneLineEdit_textChanged();

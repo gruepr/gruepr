@@ -8,7 +8,7 @@
 #include <QTextStream>
 #include "listTableDialog.h"
 
-typedef  std::tuple<QString, QString, int> possFieldMeaning;
+typedef  std::tuple<QString, QString, int> possFieldMeaning;    // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that might have this meaning
 
 class CsvFile : public QObject
 {

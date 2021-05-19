@@ -82,6 +82,15 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
     saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
 
+    //Make sure we can read placeholder text in "custom timezone" box
+    QString placeholder = tr("Custom timezone");
+    ui->baseTimezoneLineEdit->setPlaceholderText(placeholder);
+    QFontMetrics fm(ui->baseTimezoneLineEdit->font());
+    QMargins margin = ui->baseTimezoneLineEdit->textMargins();
+    const int widthOfPlaceholder = fm.size(Qt::TextSingleLine, placeholder).width() + margin.left() + margin.right();
+    ui->baseTimezoneLineEdit->setMinimumWidth(widthOfPlaceholder);
+
+
     //Add tabs for each attribute and items to each response options combobox
     attributeTab.reserve(MAX_ATTRIBUTES);
     ui->attributesTabWidget->clear();
@@ -688,35 +697,7 @@ void SurveyMaker::on_timezoneCheckBox_clicked(bool checked)
 {
     timezone = checked;
 
-    if(timezone && !schedule)
-    {
-        if(ui->attributeCountSpinBox->value() == MAX_ATTRIBUTES)
-        {
-            ui->attributeCountSpinBox->setValue(MAX_ATTRIBUTES - 1);
-        }
-        else
-        {
-            attributeTexts[numAttributes] = "What time zone will you be based in during this class?";
-            attributeResponses[numAttributes] = TIMEZONE_RESPONSE_OPTION;
-            numAttributes = ui->attributeCountSpinBox->value() + 1;
-        }
-        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - 1);
-    }
-    else
-    {
-        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES);
-        numAttributes = ui->attributeCountSpinBox->value();
-    }
-
-
-    if(timezone && schedule)
-    {
-        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[student's home timezone]"));
-    }
-    else
-    {
-        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[no timezone given]"));
-    }
+    checkTimezoneAndSchedule();
 
     refreshPreview();
 }
@@ -724,6 +705,7 @@ void SurveyMaker::on_timezoneCheckBox_clicked(bool checked)
 void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
 {
     schedule = checked;
+
     ui->busyFreeLabel->setEnabled(checked);
     ui->busyFreeComboBox->setEnabled(checked);
     baseTimezoneComboBox->setEnabled(checked);
@@ -737,26 +719,28 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
     ui->timeStartEdit->setEnabled(checked);
     ui->timeEndEdit->setEnabled(checked);
 
-    if(timezone && !schedule)
+    checkTimezoneAndSchedule();
+
+    refreshPreview();
+}
+
+void SurveyMaker::checkTimezoneAndSchedule()
+{
+    // If user just turned on timezone but already had full number of attributes, need to first remove last attribute to make room
+    // Note that changing the spinbox value will automatically add the timezone question to the end of the attributes
+    if(timezone && ui->attributeCountSpinBox->value() == MAX_ATTRIBUTES)
     {
-        if(ui->attributeCountSpinBox->value() == MAX_ATTRIBUTES)
-        {
-            ui->attributeCountSpinBox->setValue(MAX_ATTRIBUTES - 1);
-        }
-        else
-        {
-            attributeTexts[numAttributes] = "What time zone will you be based in during this class?";
-            attributeResponses[numAttributes] = TIMEZONE_RESPONSE_OPTION;
-            numAttributes = ui->attributeCountSpinBox->value() + 1;
-        }
+        ui->attributeCountSpinBox->setValue(MAX_ATTRIBUTES - 1);
         ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - 1);
     }
     else
     {
-        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES);
-        numAttributes = ui->attributeCountSpinBox->value();
+        // reduce max attributes by 1 anytime we have timezone on, then refresh attribute questions
+        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - (timezone? 1 : 0));
+        on_attributeCountSpinBox_valueChanged(ui->attributeCountSpinBox->value());
     }
 
+    // if asking students about timezone and schedule, should require survey to define timezone of schedule
     if(timezone && schedule)
     {
         baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[student's home timezone]"));
@@ -765,8 +749,6 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
     {
         baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[no timezone given]"));
     }
-
-    refreshPreview();
 }
 
 void SurveyMaker::on_busyFreeComboBox_currentIndexChanged(const QString &arg1)
