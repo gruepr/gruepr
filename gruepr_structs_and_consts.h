@@ -21,12 +21,13 @@ const int MAX_STUDENTS = MAX_RECORDS;                   // each student is a "re
 const int MAX_TEAMS = MAX_STUDENTS/2;
 const int MAX_DAYS = 7;                                 // resolution of scheduling is 1 hr, and scope is weekly
 const int MAX_BLOCKS_PER_DAY = 24;
-const int MAX_TIMEBLOCKS = MAX_DAYS*MAX_BLOCKS_PER_DAY;
 const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
 
 const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown when team is collapsed
 const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
 const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
+
+const int DIALOG_SPACER_ROWHEIGHT = 20;
 
 //map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
 const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"
@@ -208,6 +209,8 @@ struct DataOptions
     bool timezoneIncluded = false;                      // is timezone data included in the survey?
     int timezoneField = -1;                             // which field has the timezone info?
     float baseTimezone = 0;                             // offset from GMT for baseline timezone
+    int earlyHourAsked = 0;                             // earliest hour asked in survey
+    int lateHourAsked = MAX_BLOCKS_PER_DAY;             // latest hour asked in survey
     bool attributeIsOrdered[MAX_ATTRIBUTES];            // is this attribute ordered (numerical) or purely categorical?
     bool prefTeammatesIncluded = false;                 // did students get to include preferred teammates?
     int prefTeammatesField = -1;                        // which field in surveyFile has the preferred teammates info? -1 if not included in survey

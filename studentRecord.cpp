@@ -3,6 +3,14 @@
 StudentRecord::StudentRecord()
 {
     surveyTimestamp = QDateTime::currentDateTime();
+
+    for(int day = 0; day < MAX_DAYS; day++)
+    {
+        for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++)
+        {
+            unavailable[day][time] = true;
+        }
+    }
 }
 
 ////////////////////////////////////////////

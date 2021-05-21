@@ -90,15 +90,14 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     const int widthOfPlaceholder = fm.size(Qt::TextSingleLine, placeholder).width() + margin.left() + margin.right();
     ui->baseTimezoneLineEdit->setMinimumWidth(widthOfPlaceholder);
 
-
     //Add tabs for each attribute and items to each response options combobox
     attributeTab.reserve(MAX_ATTRIBUTES);
     ui->attributesTabWidget->clear();
-    for(int i = 0; i < MAX_ATTRIBUTES; i++)
+    ui->fillinTab->deleteLater();
+    for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
     {
         attributeTab << new attributeTabItem(attributeTabItem::surveyMaker, this);
-        auto &responsesBox = attributeTab.at(i)->attributeResponses;
-        auto &questionText = attributeTab.at(i)->attributeText;
+        auto &responsesBox = attributeTab.at(tab)->attributeResponses;
         responsesBox->addItem("Choose the response options...");
         responsesBox->insertSeparator(1);
         for(int response = 0; response < responseOptions.size(); response++)
@@ -106,13 +105,15 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
             responsesBox->addItem(responseOptions.at(response));
             responsesBox->setItemData(response + 2, responseOptions.at(response), Qt::ToolTipRole);
         }
+        auto &questionText = attributeTab.at(tab)->attributeText;
+        questionText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
 
         connect(responsesBox, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged),
-                    this, [this, i] (int index) {attributeResponses[i] = ((index>1) ? (index-1) : 0); refreshPreview();});
-        connect(questionText, &QTextEdit::textChanged, this, [this, i] {attributeTextChanged(i);});
+                    this, [this, tab] (int index) {attributeResponses[tab] = ((index>1) ? (index-1) : 0); refreshPreview();});
+        connect(questionText, &QTextEdit::textChanged, this, [this, tab] {attributeTextChanged(tab);});
 
-        ui->attributesTabWidget->addTab(attributeTab.at(i), QString::number(i+1));
-        ui->attributesTabWidget->setTabVisible(i, i < numAttributes);
+        ui->attributesTabWidget->addTab(attributeTab.at(tab), QString::number(tab+1));
+        ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
     responseOptions.prepend("custom options, to be added after creating the form");
 

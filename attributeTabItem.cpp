@@ -26,7 +26,6 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         attributeText->setAcceptDrops(true);
         attributeText->setReadOnly(false);
         attributeText->setUndoRedoEnabled(true);
-        attributeText->setPlaceholderText(tr("Enter attribute question."));
     }
     attributeText->setEnabled(true);
     attributeText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

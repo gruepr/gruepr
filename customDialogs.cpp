@@ -146,7 +146,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
 
     //Rows 5&6 (or 6&7) - a spacer then reset table/loadFile/ok/cancel buttons
     row += 2;
-    theGrid->setRowMinimumHeight(row, 20);
+    theGrid->setRowMinimumHeight(row, DIALOG_SPACER_ROWHEIGHT);
     resetSaveOrLoad = new QComboBox(this);
     resetSaveOrLoad->setIconSize(QSize(15,15));
     resetSaveOrLoad->addItem(tr("Additional actions"));
@@ -876,7 +876,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, StudentRecord *s
         i++;
     }
     theGrid->addWidget(namesList, 1, 0, 1, -1);
-    theGrid->setRowMinimumHeight(2, 20);
+    theGrid->setRowMinimumHeight(2, DIALOG_SPACER_ROWHEIGHT);
     if(!addStudentOption)
     {
         buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -1098,7 +1098,7 @@ registerDialog::registerDialog(QWidget *parent)
                                               email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(4, 20);
+    theGrid->setRowMinimumHeight(4, DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     theGrid->addWidget(buttonBox, 5, 0);
@@ -1248,7 +1248,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     connect(buttonBox, &QDialogButtonBox::clicked, this, [this](QAbstractButton *button){QDialog::done(buttonBox->standardButton(button));});
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(7, 20);
+    theGrid->setRowMinimumHeight(7, DIALOG_SPACER_ROWHEIGHT);
     theGrid->addWidget(buttonBox, 8, 0, -1, -1);
 
     adjustSize();
@@ -1440,7 +1440,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     }
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(numFields+1, 20);
+    theGrid->setRowMinimumHeight(numFields+1, DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, numFields+2, 0, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -1676,7 +1676,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     theGrid->setRowStretch(numPossibleValues + 6, 1);
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(numPossibleValues + 7, 20);
+    theGrid->setRowMinimumHeight(numPossibleValues + 7, DIALOG_SPACER_ROWHEIGHT);
     resetValuesButton = new QPushButton(this);
     resetValuesButton->setText(tr("&Clear all values"));
     resetValuesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -1859,7 +1859,7 @@ progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
     explanationBox->addWidget(explanationText, 0, Qt::AlignLeft | Qt::AlignVCenter);
     explanationBox->addStretch(1);
 
-    theGrid->setRowMinimumHeight(2, 20);
+    theGrid->setRowMinimumHeight(2, DIALOG_SPACER_ROWHEIGHT);
 
     auto *line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
@@ -2015,7 +2015,7 @@ dayNamesDialog::dayNamesDialog(QCheckBox *dayselectors[], QLineEdit *daynames[],
     }
 
     //a spacer then ok button
-    theGrid->setRowMinimumHeight(MAX_DAYS, 20);
+    theGrid->setRowMinimumHeight(MAX_DAYS, DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
     theGrid->addWidget(buttonBox, MAX_DAYS + 1, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -2043,7 +2043,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
                             "The schedules will all be adjusted to correspond to this value.<hr></html>"));
     explanation->setWordWrap(true);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
-    theGrid->setRowMinimumHeight(1, 20);
+    theGrid->setRowMinimumHeight(1, DIALOG_SPACER_ROWHEIGHT);
 
     const QDateTime local(QDateTime::currentDateTime());
     const QDateTime UTC(local.date(), local.time(), Qt::UTC);
@@ -2062,7 +2062,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
         {
             int hours = offset.captured(1).toInt();
             float minutes = offset.captured(2).toFloat();
-            GMTOffset = hours + ((minutes/60) * (hours < 0? -1 : +1));
+            GMTOffset = hours + ((hours < 0)? (-minutes/60) : (minutes/60));
         }
         timezones->insertItem(zone, zonename);
         timezones->setItemData(zone, GMTOffset);
@@ -2074,7 +2074,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     theGrid->addWidget(timezones, 2, 0, 1, -1);
 
     //a spacer then ok button
-    theGrid->setRowMinimumHeight(3, 20);
+    theGrid->setRowMinimumHeight(3, DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
     theGrid->addWidget(buttonBox, 4, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);

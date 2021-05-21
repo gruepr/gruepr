@@ -941,7 +941,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
             {
                 if(dataOptions->scheduleDataIsFreetime)
                 {
-                    if(!student[ID].unavailable[(day*dataOptions->timeNames.size())+time])
+                    if(!student[ID].unavailable[day][time])
                     {
                         if(!first)
                         {
@@ -953,7 +953,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                 }
                 else
                 {
-                    if(student[ID].unavailable[(day*dataOptions->timeNames.size())+time])
+                    if(student[ID].unavailable[day][time])
                     {
                         if(!first)
                         {
@@ -2616,7 +2616,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         QStringList allTimeNames;
         do
         {
-            for(int scheduleQuestion = 0; scheduleQuestion < surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion++)
+            for(int scheduleQuestion = 0, numScheduleQuestions = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleQuestions; scheduleQuestion++)
             {
                 QString scheduleFieldText = QString(surveyFile.fieldValues.at(dataOptions->scheduleField[scheduleQuestion]).toUtf8()).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
@@ -2631,6 +2631,24 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         std::sort(allTimeNames.begin(), allTimeNames.end(), [&timeNamesStrings] (const QString &a, const QString &b)
                                                 {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
         dataOptions->timeNames = allTimeNames;
+        //pad the timeNames to include all 24 hours if we will be time-shifting student responses based on their home timezones later
+        if(homeTimezoneUsed)
+        {
+            dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()))];
+            dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constLast()))];
+            for(int hour = 0; hour < dataOptions->earlyHourAsked; hour++)
+            {
+                const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
+                int index = std::distance(TIME_MEANINGS, val);
+                dataOptions->timeNames.insert(hour, timeNamesStrings.at(index));
+            }
+            for(int hour = dataOptions->lateHourAsked + 1; hour < MAX_BLOCKS_PER_DAY; hour++)
+            {
+                const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
+                int index = std::distance(TIME_MEANINGS, val);
+                dataOptions->timeNames << timeNamesStrings.at(index);
+            }
+        }
     }
 
     // If each student's home timezone was used, ask what should be used as the base timezone that they should all be adjusted to
@@ -2727,7 +2745,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             {
                 // for timezone, range of responses is 24 hours
                 dataOptions->attributeMin[attribute] = 1;
-                dataOptions->attributeMax[attribute] = 24;
+                dataOptions->attributeMax[attribute] = MAX_BLOCKS_PER_DAY;
             }
             // set numerical value of students' attribute responses according to their place in the sorted list of responses
             for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
@@ -2910,11 +2928,10 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
         {
             int hours = offset.captured(1).toInt();
             float minutes = offset.captured(2).toFloat();
-            student.timezone = hours + ((minutes/60) * (hours < 0? -1 : +1));
-            timezoneOffset = dataOptions->baseTimezone - student.timezone;
+            student.timezone = hours + (hours < 0? (-minutes/60) : (minutes/60));
+            timezoneOffset = std::lround(dataOptions->baseTimezone - student.timezone);
         }
     }
-    qDebug() << timezoneOffset;
     for(int day = 0; day < numDays; day++)
     {
         fieldnum = dataOptions->scheduleField[day];
@@ -2923,10 +2940,28 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
         for(int time = 0; time < numTimes; time++)
         {
             timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
-            student.unavailable[(day*numTimes)+time + timezoneOffset] = timename.match(field).hasMatch();
             if(dataOptions->scheduleDataIsFreetime)
             {
-                student.unavailable[(day*numTimes)+time + timezoneOffset] = !student.unavailable[(day*numTimes + timezoneOffset)+time];
+                // need to ignore when we're outside the bounds of the array, or we're not looking at all 7 days and this one wraps around the day
+                if(((day + time + timezoneOffset) >= 0) &&
+                   (((day * numTimes) + time + timezoneOffset) <= (numDays * numTimes)) &&
+                   ((numDays == MAX_DAYS) || (((time + timezoneOffset) >= 0) && ((time + timezoneOffset) <= MAX_BLOCKS_PER_DAY))))
+                {
+                    student.unavailable[day][time + timezoneOffset] = !timename.match(field).hasMatch();
+                }
+            }
+            else
+            {
+                // need to ignore when we're outside the bounds of the array, when we're not looking at all 7 days and this one wraps around the day,
+                // or--since we asked when they're unavailable--any times that we didn't actually ask about
+                if(((day + time + timezoneOffset) >= 0) &&
+                   (((day * numTimes) + time + timezoneOffset) <= (numDays * numTimes)) &&
+                   (time >= dataOptions->earlyHourAsked) &&
+                   (time <= dataOptions->lateHourAsked) &&
+                   ((numDays == MAX_DAYS) || (((time + timezoneOffset) >= 0) && ((time + timezoneOffset) <= MAX_BLOCKS_PER_DAY))))
+                {
+                    student.unavailable[day][time + timezoneOffset] = timename.match(field).hasMatch();
+                }
             }
         }
     }
@@ -2944,7 +2979,7 @@ StudentRecord gruepr::parseOneRecord(const QStringList &fields)
             student.availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time).toUtf8() + "</th>";
             for(int day = 0; day < numDays; day++)
             {
-                student.availabilityChart += QString(student.unavailable[(day*numTimes)+time]?
+                student.availabilityChart += QString(student.unavailable[day][time]?
                             "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
             }
             student.availabilityChart += "</tr>";
@@ -3997,7 +4032,7 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
                 {
                     for(int time = 0; time < dataOptions->timeNames.size(); time++)
                     {
-                        if(!stu.unavailable[(day*dataOptions->timeNames.size())+time])
+                        if(!stu.unavailable[day][time])
                         {
                             team.numStudentsAvailable[day][time]++;
                         }

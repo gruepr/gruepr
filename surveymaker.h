@@ -68,7 +68,7 @@ private:
     QString attributeTexts[MAX_ATTRIBUTES] = {""};
     int attributeResponses[MAX_ATTRIBUTES] = {0};
     bool schedule = true;
-    enum {busy, free} busyOrFree = busy;
+    enum {busy, free} busyOrFree = free;
     bool timezone = false;
     QString baseTimezone = "";
     ComboBoxWithElidedContents *baseTimezoneComboBox = nullptr;

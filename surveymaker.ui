@@ -194,7 +194,7 @@
     <item row="5" column="0" alignment="Qt::AlignVCenter">
      <widget class="QLineEdit" name="surveyTitleLineEdit">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
         <horstretch>1</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -432,7 +432,7 @@
           <item alignment="Qt::AlignVCenter">
            <widget class="QComboBox" name="fillinTimezoneComboBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
               <horstretch>2</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -482,12 +482,12 @@
             </property>
             <item>
              <property name="text">
-              <string>busy</string>
+              <string>free</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>free</string>
+              <string>busy</string>
              </property>
             </item>
            </widget>
@@ -795,7 +795,7 @@
         <property name="currentIndex">
          <number>0</number>
         </property>
-        <widget class="QWidget" name="t1">
+        <widget class="QWidget" name="fillinTab">
          <attribute name="title">
           <string>1</string>
          </attribute>
@@ -830,9 +830,6 @@
           <horstretch>2</horstretch>
           <verstretch>2</verstretch>
          </sizepolicy>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::NoContextMenu</enum>
         </property>
         <property name="placeholderText">
          <string>Enter section names on separate lines.</string>
