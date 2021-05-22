@@ -7,8 +7,10 @@
 #include <QTreeWidget>
 #include <QHeaderView>
 #include <QLabel>
-#include "gruepr_structs_and_consts.h"
+#include "dataOptions.h"
+#include "gruepr_consts.h"
 #include "studentRecord.h"
+#include "teamRecord.h"
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -34,7 +36,7 @@ public:
     void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
     void expandAll();
     void resetDisplay(const DataOptions *const dataOptions);
-    void refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions);
+    void refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions);
     void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions);
 
 protected:

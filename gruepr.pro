@@ -66,6 +66,7 @@ SOURCES += \
         categorialSpinBox.cpp \
         comboBoxWithElidedContents.cpp \
         csvfile.cpp \
+        dataOptions.cpp \
         listTableDialog.cpp \
         main.cpp \
         gruepr.cpp \
@@ -76,7 +77,9 @@ SOURCES += \
         studentRecord.cpp \
         studentTableWidget.cpp \
         surveymaker.cpp \
-        teamTreeWidget.cpp
+        teamRecord.cpp \
+        teamTreeWidget.cpp \
+        teamingOptions.cpp
 
 HEADERS += \
         Levenshtein.h \
@@ -85,17 +88,20 @@ HEADERS += \
         categorialSpinBox.h \
         comboBoxWithElidedContents.h \
         csvfile.h \
+        dataOptions.h \
         gruepr.h \
         GA.h \
         customDialogs.h \
-        gruepr_structs_and_consts.h \
+        gruepr_consts.h \
         listTableDialog.h \
         pushButtonWithMouseEnter.h \
         sortableTableWidgetItem.h \
         studentRecord.h \
         studentTableWidget.h \
         surveymaker.h \
-        teamTreeWidget.h
+        teamRecord.h \
+        teamTreeWidget.h \
+        teamingOptions.h
 
 FORMS += \
       gruepr.ui \

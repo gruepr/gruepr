@@ -14,11 +14,13 @@
 #include "categorialSpinBox.h"
 #include "csvfile.h"
 #include "customDialogs.h"
+#include "dataOptions.h"
 #include "pushButtonWithMouseEnter.h"
 #include "sortableTableWidgetItem.h"
 #include "studentRecord.h"
+#include "teamRecord.h"
 #include "teamTreeWidget.h"
-#include "gruepr_structs_and_consts.h"
+#include "gruepr_consts.h"
 
 
 namespace Ui {class gruepr;}
@@ -124,7 +126,7 @@ private:
     bool keepOptimizing = false;
 
         // reporting results
-    TeamInfo *teams = nullptr;
+    TeamRecord *teams = nullptr;
     void refreshTeamInfo(QVector<int> teamNums = {-1});
     void refreshTeamToolTips(QVector<int> teamNums = {-1});
     void refreshTeamDisplay();

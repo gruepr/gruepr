@@ -1,5 +1,5 @@
-#ifndef GRUEPR_STRUCTS_AND_CONSTS
-#define GRUEPR_STRUCTS_AND_CONSTS
+#ifndef GRUEPR_CONSTS
+#define GRUEPR_CONSTS
 
 #define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
 #define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
@@ -8,11 +8,7 @@
 
 #define USER_REGISTRATION_URL "https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"
 
-#include <QString>
-#include <QDateTime>
-#include <QFileInfo>
-#include <QVector>
-#include <set>
+#include <Qt>
 #include "GA.h"
 
 
@@ -163,130 +159,4 @@ const char TEAMNAMELISTS[]   {";"
                                  "String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
                                  "Committee of Vultures,Colony of Weasels"};
 
-
-//class defining one team
-struct TeamInfo
-{
-    float score;
-    int size;
-    int numWomen;
-    int numMen;
-    int numNonbinary;
-    int numUnknown;
-    int numURM;
-    std::set<int> attributeVals[MAX_ATTRIBUTES];
-    std::set<float> timezoneVals;
-    int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
-    int numStudentsWithAmbiguousSchedules = 0;
-    QVector<int> studentIDs;
-    QString name;
-    QString availabilityChart;
-    QString tooltip;
-};
-
-
-//struct defining the options set by what is found in the survey data file
-struct DataOptions
-{
-    int timestampField = -1;
-    int emailField = -1;
-    int firstNameField = -1;
-    int lastNameField = -1;
-    bool genderIncluded = false;                        // is gender data included in the survey?
-    int genderField = -1;                               // which field in surveyFile has the gender info? -1 if not included in survey
-    bool URMIncluded = false;                           // is URM data included in the survey?
-    int URMField = -1;                                  // which field in surveyFile has the ethnicity info? -1 if not included in survey
-    bool sectionIncluded = false;                       // is section data included in the survey?
-    int sectionField = -1;                              // which field in surveyFile has the section info? -1 if not included in survey
-    int notesField[MAX_NOTES_FIELDS];                   // which field(s) in surveyFile has additional notes? -1 if not included in survey
-    int numNotes = 0;                                   // how many notes (or other additional info) included in the survey?
-    bool scheduleDataIsFreetime = false;                // was the survey set up so that students are indicating their freetime in the schedule?
-    int scheduleField[MAX_DAYS];                        // which field(s) in surveyFile have schedule info? -1 if not included in survey
-    int numAttributes = 0;                              // how many attribute questions are in the survey?
-    int attributeField[MAX_ATTRIBUTES];                 // which field(s) in surveyFile have attribute info? -1 if not included in survey
-    int attributeMin[MAX_ATTRIBUTES];                   // what is the minimum value for each attribute?
-    int attributeMax[MAX_ATTRIBUTES];                   // what is the maximum value for each attribute?
-    bool timezoneIncluded = false;                      // is timezone data included in the survey?
-    int timezoneField = -1;                             // which field has the timezone info?
-    float baseTimezone = 0;                             // offset from GMT for baseline timezone
-    int earlyHourAsked = 0;                             // earliest hour asked in survey
-    int lateHourAsked = MAX_BLOCKS_PER_DAY;             // latest hour asked in survey
-    bool attributeIsOrdered[MAX_ATTRIBUTES];            // is this attribute ordered (numerical) or purely categorical?
-    bool prefTeammatesIncluded = false;                 // did students get to include preferred teammates?
-    int prefTeammatesField = -1;                        // which field in surveyFile has the preferred teammates info? -1 if not included in survey
-    bool prefNonTeammatesIncluded = false;              // did students get to include preferred non-teammates?
-    int prefNonTeammatesField = -1;                     // which field in surveyFile has the preferred non-teammates info? -1 if not included in survey
-    int numStudentsInSystem = 0;                        // total number of students in the file
-    QStringList attributeQuestionText;                  // the actual attribute questions asked of the students
-    QStringList attributeQuestionResponses[MAX_ATTRIBUTES];      // the list of responses to each of the attribute questions
-    QStringList URMResponses;                           // the list of responses to the race/ethnicity/culture question
-    QFileInfo dataFile;
-    QStringList dayNames;
-    QStringList timeNames;
-
-    inline DataOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {attributeField[i] = -1; attributeMin[i] = 1; attributeMax[i] = 1; attributeIsOrdered[i] = false;}
-                         for(int i = 0; i < MAX_NOTES_FIELDS; i++) {notesField[i] = -1;}
-                         for(int i = 0; i < MAX_DAYS; i++) {scheduleField[i] = -1;}}
-
-    inline void reset(){numStudentsInSystem = 0;
-                        numAttributes = 0;
-                        attributeQuestionText.clear();
-                        for(auto &attributeQuestionResponse : attributeQuestionResponses)
-                        {
-                            attributeQuestionResponse.clear();
-                        }
-                        dayNames.clear();
-                        timeNames.clear();
-                        }
-};
-
-
-//struct defining the teaming options set by the user
-struct TeamingOptions
-{
-    bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
-    bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
-    bool isolatedNonbinaryPrevented = false;            // if true, will prevent teams with an isolated nonbinary student
-    bool singleGenderPrevented = false;                 // if true, will penalize teams with all men or all women
-    bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
-    QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented
-    int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
-    int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
-    int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
-    bool desireHomogeneous[MAX_ATTRIBUTES]; 			// if true/false, tries to make all students on a team have similar/different levels of each attribute
-    float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
-    float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight
-    bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];
-    QVector< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
-    float scheduleWeight = 1;
-    float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
-    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
-    bool haveAnyRequiredTeammates = false;
-    bool haveAnyPreventedTeammates = false;
-    bool haveAnyRequestedTeammates = false;
-    int numberRequestedTeammatesGiven = 1;
-    int smallerTeamsSizes[MAX_STUDENTS] = {0};
-    int smallerTeamsNumTeams = 1;
-    int largerTeamsSizes[MAX_STUDENTS] = {0};
-    int largerTeamsNumTeams = 1;
-    int numTeamsDesired = 1;
-    int teamSizesDesired[MAX_STUDENTS] = {0};
-
-    // initialize all attribute weights to 1, desires to heterogeneous, and incompatible attribute values to none
-    inline TeamingOptions(){for(int i = 0; i < MAX_ATTRIBUTES; i++) {desireHomogeneous[i] = false;
-                                                                     attributeWeights[i] = 1;
-                                                                     realAttributeWeights[i] = 1;
-                                                                     haveAnyIncompatibleAttributes[i] = false;
-                                                                     incompatibleAttributeValues[i].clear();}}
-
-    // reset the variables that depend on the datafile
-    inline void reset(){URMResponsesConsideredUR.clear();
-                        for(int i = 0; i < MAX_ATTRIBUTES; i++) {haveAnyIncompatibleAttributes[i] = false;
-                                                                 incompatibleAttributeValues[i].clear();}
-                                                                 haveAnyRequiredTeammates = false;
-                                                                 haveAnyPreventedTeammates = false;
-                                                                 haveAnyRequestedTeammates = false;}
-};
-
-
-#endif // GRUEPR_STRUCTS_AND_CONSTS
+#endif // GRUEPR_CONSTS

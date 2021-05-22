@@ -1370,7 +1370,7 @@ void gruepr::on_letsDoItButton_clicked()
     // Set actual numer of teams and teamsizes and create the teams
     numTeams = teamingOptions->numTeamsDesired;
     delete[] teams;
-    teams = new TeamInfo[numTeams];
+    teams = new TeamRecord[numTeams];
     for(int team = 0; team < numTeams; team++)	// run through every team
     {
         teams[team].size = teamingOptions->teamSizesDesired[team];
@@ -1518,7 +1518,7 @@ void gruepr::optimizationComplete()
     refreshTeamInfo();
 
     // Sort teams by student name and set default teamnames
-    std::sort(teams, teams+numTeams, [this](const TeamInfo &a, const TeamInfo &b)
+    std::sort(teams, teams+numTeams, [this](const TeamRecord &a, const TeamRecord &b)
                                             {return ((student[a.studentIDs.at(0)].lastname + student[a.studentIDs.at(0)].firstname) <
                                                     (student[b.studentIDs.at(0)].lastname + student[b.studentIDs.at(0)].firstname));});
     for(int team = 0; team < numTeams; team++)

@@ -18,7 +18,7 @@
 #include <QButtonGroup>
 #include "boxwhiskerplot.h"
 #include "categorialSpinBox.h"
-#include "gruepr_structs_and_consts.h"
+#include "dataOptions.h"
 #include "listTableDialog.h"
 #include "studentRecord.h"
 

@@ -57,9 +57,8 @@
 // - works much better with dark mode / dark color schemes
 // - make attribute data in a tab in a tab widget for both surveymaker and gruepr, using new attributeTabItem subclass
 // - added timezone functionality to SurveyMaker and google code
-//
-// IN PROGRESS:
-// - test that "timezoneOffset" is correctly shifting times in schedule, esp. with wraparound between days
+// - allow students to fill out survey's schedule in their own timezone and then correct/shift into the "class timezone" each after collecting the results
+// - improved scoring of teams with one student
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed

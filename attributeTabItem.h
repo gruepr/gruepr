@@ -9,7 +9,8 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include "comboBoxWithElidedContents.h"
-#include "gruepr_structs_and_consts.h"
+#include "dataOptions.h"
+#include "teamingOptions.h"
 
 class attributeTabItem : public QWidget
 {

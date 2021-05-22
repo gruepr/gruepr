@@ -8,7 +8,7 @@
 #include "attributeTabItem.h"
 #include "comboBoxWithElidedContents.h"
 #include "customDialogs.h"
-#include "gruepr_structs_and_consts.h"
+#include "gruepr_consts.h"
 
 namespace Ui {class SurveyMaker;}
 

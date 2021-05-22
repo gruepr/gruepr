@@ -1,5 +1,5 @@
 #include "teamTreeWidget.h"
-#include "gruepr_structs_and_consts.h"
+#include "gruepr_consts.h"
 #include <QDropEvent>
 
 
@@ -135,7 +135,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
 }
 
 
-void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions)
+void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions)
 {
     //create team items and fill in information
     int column = 0;
