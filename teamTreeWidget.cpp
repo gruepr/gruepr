@@ -146,7 +146,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team
     teamItem->setData(column, TEAM_NUMBER_ROLE, teamNum);
     teamItem->setToolTip(column, team.tooltip);
     column++;
-    teamItem->setText(column, QString::number(double(team.score), 'f', 2));
+    teamItem->setText(column, ((team.size > 1)? (QString::number(double(team.score), 'f', 2)) : ("  --  ")));
     teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
     teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(double(team.score), 'f', 2));
     teamItem->setData(column, TEAMINFO_SORT_ROLE, team.score);
@@ -275,7 +275,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team
             timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(minutesF, 2, 10, QChar('0')) + " - " +
                             QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(minutesL, 2, 10, QChar('0'));
         }
-        sortData = *firstTeamVal * 100 + *lastTeamVal;
+        sortData = int(*firstTeamVal * 100 + *lastTeamVal);
 
         teamItem->setText(column, timezoneText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -287,10 +287,10 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamInfo &team
     if(!dataOptions->dayNames.isEmpty())
     {
         int numAvailTimes = team.tooltip.count("100%");
-        teamItem->setText(column, QString::number(numAvailTimes));
+        teamItem->setText(column, ((team.size > 1)? (QString::number(numAvailTimes)) : ("  --  ")));
         teamItem->setTextAlignment(column, Qt::AlignCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(numAvailTimes));
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, numAvailTimes);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, ((team.size > 1)? numAvailTimes : 0));
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }

@@ -3300,12 +3300,18 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
         }
     }
 
+    int *teamSizes = new int[MAX_TEAMS];
+    for(int team = 0; team < numTeams; team++)
+    {
+        teamSizes[team] = teams[team].size;
+    }
+
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     QVector<float> scores(POPULATIONSIZE);
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
-#pragma omp parallel default(none) shared(scores, genePool) private(unusedTeamScores, attributeScore, schedScore, penaltyPoints)
+#pragma omp parallel default(none) shared(scores, genePool, teamSizes) private(unusedTeamScores, attributeScore, schedScore, penaltyPoints)
     {
         unusedTeamScores = new float[numTeams];
         attributeScore = new float*[dataOptions->numAttributes];
@@ -3318,7 +3324,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
 #pragma omp for
         for(int genome = 0; genome < POPULATIONSIZE; genome++)
         {
-            scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, penaltyPoints);
+            scores[genome] = getTeamScores(&genePool[genome][0], &teamSizes[0], unusedTeamScores, attributeScore, schedScore, penaltyPoints);
         }
         delete[] penaltyPoints;
         delete[] schedScore;
@@ -3340,11 +3346,6 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
     float scoreStability = 0;
     int generation = 0;
     bool localOptimizationStopped = false;
-    int teamSize[MAX_TEAMS] = {0};
-    for(int team = 0; team < numTeams; team++)
-    {
-        teamSize[team] = teams[team].size;
-    }
 
     // now optimize
     do						// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
@@ -3385,7 +3386,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
                 GA::tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
-                GA::mate(mom, dad, teamSize, numTeams, child, numStudents, pRNG);
+                GA::mate(mom, dad, teamSizes, numTeams, child, numStudents, pRNG);
                 for(int ID = 0; ID < numStudents; ID++)
                 {
                     nextGenGenePool[genome][ID] = child[ID];
@@ -3409,7 +3410,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
             generation++;
 
             // calculate this generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-#pragma omp parallel default(none) shared(scores, genePool) private(unusedTeamScores, attributeScore, schedScore, penaltyPoints)
+#pragma omp parallel default(none) shared(scores, genePool, teamSizes) private(unusedTeamScores, attributeScore, schedScore, penaltyPoints)
             {
                 unusedTeamScores = new float[numTeams];
                 attributeScore = new float*[dataOptions->numAttributes];
@@ -3422,7 +3423,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
 #pragma omp for
                 for(int genome = 0; genome < POPULATIONSIZE; genome++)
                 {
-                    scores[genome] = getTeamScores(&genePool[genome][0], unusedTeamScores, attributeScore, schedScore, penaltyPoints);
+                    scores[genome] = getTeamScores(&genePool[genome][0], &teamSizes[0], unusedTeamScores, attributeScore, schedScore, penaltyPoints);
                 }
                 delete[] penaltyPoints;
                 delete[] schedScore;
@@ -3495,6 +3496,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
     delete[] nextGenAncestors;
     delete[] ancestors;
     delete[] orderedIndex;
+    delete[] teamSizes;
 
     return bestTeamSet;
 }
@@ -3503,7 +3505,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
 //////////////////
 // Calculate team scores, returning the total score (which is, typically, the harmonic mean of all team scores)
 //////////////////
-float gruepr::getTeamScores(const int teammates[], float teamScores[], float **attributeScore, float *schedScore, int *penaltyPoints)
+float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float teamScores[], float **attributeScore, float *schedScore, int *penaltyPoints)
 {
     // Initialize each component score
     for(int team = 0; team < numTeams; team++)
@@ -3516,7 +3518,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         penaltyPoints[team] = 0;
     }
 
-    int ID, firstStudentInTeam = 0;
+    int ID = 0, firstStudentInTeam = 0;
 
     // Calculate each component score:
 
@@ -3528,11 +3530,14 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
             ID = 0;
             for(int team = 0; team < numTeams; team++)
             {
-                const int teamSize = teams[team].size;
+                if(teamSizes[team] == 1)
+                {
+                    continue;
+                }
                 // gather all attribute values
                 std::multiset<int> attributeLevelsInTeam;
                 std::multiset<float> timezoneLevelsInTeam;
-                for(int teammate = 0; teammate < teamSize; teammate++)
+                for(int teammate = 0; teammate < teamSizes[team]; teammate++)
                 {
                     attributeLevelsInTeam.insert(student[teammates[ID]].attributeVal[attribute]);
                     if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
@@ -3615,47 +3620,55 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     {
         const int numDays = dataOptions->dayNames.size();
         const int numTimes = dataOptions->timeNames.size();
-        const int numTimeSlots = numDays * numTimes;
 
+        // combine each student's schedule array into a team schedule array
+        // For compiling with MSVC, which doesn't have runtime array sizes, replace next line w/ smth like (then reserve 2D size): QVector< QVector<bool> > teamAvailability;
+        bool teamAvailability[numDays][numTimes];
         ID = 0;
         for(int team = 0; team < numTeams; team++)
         {
-            const int teamSize = teams[team].size;
-            int firstStudentInTeam = ID;
-
-            // combine each student's schedule array into a team schedule array
-            // For compiling with MSVC, which doesn't have runtime array sizes, replace next line with: QVector<bool> teamAvailability(numTimeSlots);
-            bool teamAvailability[numTimeSlots];
-            int numStudentsWithAmbiguousSchedules = 0;
-            for(int time = 0; time < numTimeSlots; time++)
+            if(teamSizes[team] == 1)
             {
-                ID = firstStudentInTeam;
-                teamAvailability[time] = true;
-                for(int teammate = 0; teammate < teamSize; teammate++)
+                continue;
+            }
+
+            int firstStudentInTeam = ID;
+            int numStudentsWithAmbiguousSchedules = 0;
+            for(int day = 0; day < numDays; day++)
+            {
+                for(int time = 0; time < numTimes; time++)
                 {
-                    if(!student[teammates[ID]].ambiguousSchedule)
+                    ID = firstStudentInTeam;
+                    teamAvailability[day][time] = true;
+                    for(int teammate = 0; teammate < teamSizes[team]; teammate++)
                     {
-                        teamAvailability[time] = teamAvailability[time] && !student[teammates[ID]].unavailable[time];	// logical "and" each student's not-unavailability
+                        if(!student[teammates[ID]].ambiguousSchedule)
+                        {
+                            teamAvailability[day][time] = teamAvailability[day][time] && !student[teammates[ID]].unavailable[day][time];	// "and" each student's not-unavailability
+                        }
+                        else if(time == 0)
+                        {
+                            // count number of students with ambiguous schedules during the first timeslot
+                            numStudentsWithAmbiguousSchedules++;
+                        }
+                        ID++;
                     }
-                    else if(time == 0)
-                    {
-                        // count number of students with ambiguous schedules during the first timeslot
-                        numStudentsWithAmbiguousSchedules++;
-                    }
-                    ID++;
                 }
             }
             // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
-            if((teamSize - numStudentsWithAmbiguousSchedules) >= 2)
+            if((teamSizes[team] - numStudentsWithAmbiguousSchedules) >= 2)
             {
                 // count how many free time blocks there are
                 if(teamingOptions->meetingBlockSize == 1)
                 {
-                    for(int time = 0; time < numTimeSlots; time++)
+                    for(int day = 0; day < numDays; day++)
                     {
-                        if(teamAvailability[time])
+                        for(int time = 0; time < numTimes; time++)
                         {
-                            schedScore[team]++;
+                            if(teamAvailability[day][time])
+                            {
+                                schedScore[team]++;
+                            }
                         }
                     }
                 }
@@ -3665,10 +3678,10 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     {
                         for(int time = 0; time < numTimes-1; time++)
                         {
-                            if(teamAvailability[(day*numTimes)+time])
+                            if(teamAvailability[day][time])
                             {
                                 time++;
-                                if(teamAvailability[(day*numTimes)+time])
+                                if(teamAvailability[day][time])
                                 {
                                     schedScore[team]++;
                                 }
@@ -3704,13 +3717,16 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         ID = 0;
         for(int team = 0; team < numTeams; team++)
         {
-            const int teamSize = teams[team].size;
+            if(teamSizes[team] == 1)
+            {
+                continue;
+            }
 
             // Count how many of each gender on the team
             int numWomen = 0;
             int numMen = 0;
             int numNonbinary = 0;
-            for(int teammate = 0; teammate < teamSize; teammate++)
+            for(int teammate = 0; teammate < teamSizes[team]; teammate++)
             {
                 if(student[teammates[ID]].gender == StudentRecord::man)
                 {
@@ -3753,11 +3769,14 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         ID = 0;
         for(int team = 0; team < numTeams; team++)
         {
-            const int teamSize = teams[team].size;
+            if(teamSizes[team] == 1)
+            {
+                continue;
+            }
 
             // Count how many URM on the team
             int numURM = 0;
-            for(int teammate = 0; teammate < teamSize; teammate++)
+            for(int teammate = 0; teammate < teamSizes[team]; teammate++)
             {
                 if(student[teammates[ID]].URM)
                 {
@@ -3782,9 +3801,8 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         // Loop through each team
         for(int team = 0; team < numTeams; team++)
         {
-            const int teamSize = teams[team].size;
             //loop through all students in team
-            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize); studentA++)
+            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSizes[team]); studentA++)
             {
                 const bool *studentAsRequireds = student[teammates[studentA]].requiredWith;
                 //loop through ALL other students
@@ -3796,7 +3814,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     {
                         //loop through all of studentA's current teammates until if/when we find studentB
                         int currMates = firstStudentInTeam;
-                        while((teammates[currMates] != studB) && currMates < (firstStudentInTeam + teamSize))
+                        while((teammates[currMates] != studB) && currMates < (firstStudentInTeam + teamSizes[team]))
                         {
                             currMates++;
                         }
@@ -3808,7 +3826,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     }
                 }
             }
-            firstStudentInTeam += teamSize;
+            firstStudentInTeam += teamSizes[team];
         }
     }
 
@@ -3819,13 +3837,16 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         // Loop through each team
         for(int team = 0; team < numTeams; team++)
         {
-            const int teamSize = teams[team].size;
+            if(teamSizes[team] == 1)
+            {
+                continue;
+            }
             //loop studentA from first student in team to 2nd-to-last student in team
-            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSize-1)); studentA++)
+            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSizes[team]-1)); studentA++)
             {
                 const bool *studentAsPreventeds = student[teammates[studentA]].preventedWith;
                 //loop studentB from studentA+1 to last student in team
-                for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSize); studentB++)
+                for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSizes[team]); studentB++)
                 {
                     //if pairing prevented, then add a penalty point
                     if(studentAsPreventeds[teammates[studentB]])
@@ -3834,7 +3855,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     }
                 }
             }
-            firstStudentInTeam += teamSize;
+            firstStudentInTeam += teamSizes[team];
         }
     }
 
@@ -3846,9 +3867,8 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         // Loop through each team
         for(int team = 0; team < numTeams; team++)
         {
-            const int teamSize = teams[team].size;
             //loop studentA from first student in team to last student in team
-            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSize); studentA++)
+            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSizes[team]); studentA++)
             {
                 const bool *studentAsRequesteds = student[teammates[studentA]].requestedWith;
                 numRequestedTeammates = 0;
@@ -3864,7 +3884,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                 {
                     numRequestedTeammatesFound = 0;
                     //next loop count how many requested teammates are found on their team
-                    for(int studentB = firstStudentInTeam; studentB < (firstStudentInTeam + teamSize); studentB++)
+                    for(int studentB = firstStudentInTeam; studentB < (firstStudentInTeam + teamSizes[team]); studentB++)
                     {
                         if(studentAsRequesteds[teammates[studentB]])
                         {
@@ -3878,7 +3898,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
                     }
                 }
             }
-            firstStudentInTeam += teamSize;
+            firstStudentInTeam += teamSizes[team];
         }
     }
 
@@ -3886,7 +3906,6 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     //final team scores are normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < numTeams; team++)
     {
-
         // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
         if((schedScore[team] > teamingOptions->realScheduleWeight) && (penaltyPoints[team] > 0))
         {
@@ -3904,8 +3923,16 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
     //Use the harmonic mean for the "total score"
     //This value, the inverse of the average of the inverses, is skewed towards the smaller members so that we optimize for better values of the worse teams
     float harmonicSum = 0;
+    int numTeamsScored = 0;
     for(int team = 0; team < numTeams; team++)
     {
+        //ignore unpenalized teams of one since they cannot have a meaningful score
+        if(teamSizes[team] == 1 && teamScores[team] == 0)
+        {
+            continue;
+        }
+        numTeamsScored++;
+
         //very poor teams have 0 or negative scores, and this makes the harmonic mean meaningless
         //if any teamScore is <= 0, return the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean
         if(teamScores[team] <= 0)
@@ -3916,7 +3943,7 @@ float gruepr::getTeamScores(const int teammates[], float teamScores[], float **a
         harmonicSum += 1/teamScores[team];
     }
 
-    return(float(numTeams)/harmonicSum);
+    return(float(numTeamsScored)/harmonicSum);
 }
 
 
@@ -3938,8 +3965,10 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
     // get scores for each team
     int *genome = new int[numStudents];
     int ID = 0;
+    int *teamSizes = new int[MAX_TEAMS];
     for(int team = 0; team < numTeams; team++)
     {
+        teamSizes[team] = teams[team].size;
         for(int teammate = 0; teammate < teams[team].size; teammate++)
         {
             genome[ID] = teams[team].studentIDs.at(teammate);
@@ -3954,7 +3983,7 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
     }
     auto *schedScore = new float[numTeams];
     int *penaltyPoints = new int[numTeams];
-    getTeamScores(genome, teamScores, attributeScore, schedScore, penaltyPoints);
+    getTeamScores(genome, teamSizes, teamScores, attributeScore, schedScore, penaltyPoints);
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].score = teamScores[team];
@@ -3967,6 +3996,7 @@ void gruepr::refreshTeamInfo(QVector<int> teamNums)
     }
     delete[] attributeScore;
     delete[] teamScores;
+    delete[] teamSizes;
     delete[] genome;
 
     //determine other team info
