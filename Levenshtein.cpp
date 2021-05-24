@@ -1,5 +1,5 @@
 #include "Levenshtein.h"
-#include <QVector>
+#include <vector>
 
 int levenshtein::distance(const QString &source, const QString &target, const Qt::CaseSensitivity cs)
 {
@@ -59,13 +59,12 @@ int levenshtein::distance(const QString &source, const QString &target, const Qt
     }
 
     //levenshtein algorithm begins here
-    QVector< int > col;
-    col.fill(0, targetLength + 1);
-    QVector< int > prevCol;
+    std::vector<int> col(targetLength+1, 0);
+    std::vector<int> prevCol;
     prevCol.reserve(targetLength + 1);
     for (int i = 0; i < targetLength + 1; ++i)
     {
-      prevCol << i;
+      prevCol.push_back(i);
     }
     const QChar *s2start = s2Char;
     for (int i = 0; i < sourceLength; ++i)
