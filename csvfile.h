@@ -46,6 +46,8 @@ private:
     QStringList getLine(const int minFields = -1);
     void validateFieldSelectorBoxes(int callingRow = -1);
     const QString UNUSEDTEXT = tr("Unused");
+    const int DIALOGWIDTH = 500;
+    const int DIALOGHEIGHT = 300;
 };
 
 #endif // CSVFILE_H

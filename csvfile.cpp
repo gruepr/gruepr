@@ -203,7 +203,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
 
     window = new listTableDialog(tr("Select column definitions"), false, false, parent);
     //Set up window with a grid layout
-    window->setMinimumSize(500, 300);
+    window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);
 
     auto *explanation = new QLabel(window);
     explanation->setText(tr("<html>The following column headers were found in the file. "
@@ -404,6 +404,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 
     enum State {Normal, Quote} state = Normal;
     QStringList fields;
+    fields.reserve(std::max(minFields, line.count(',')));
     QString value;
 
     for(int i = 0; i < line.size(); i++)

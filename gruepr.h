@@ -70,10 +70,10 @@ private slots:
     void on_printTeamsButton_clicked();
     void loadOptionsFile();
     void saveOptionsFile();
-    void swapTeammates(int studentAteam, int studentAID, int studentBteam, int studentBID);
-    void moveTeammate(int studentTeam, int studentID, int newTeam);
-    void reorderTeams(int teamA, int teamB);
-    void reorderedTeams();
+    void swapStudents(int studentAteam, int studentAID, int studentBteam, int studentBID);
+    void moveAStudent(int oldTeam, int studentID, int newTeam);
+    void moveATeam(int teamA, int teamB);
+    void refreshDisplayOrder();
     void settingsWindow();
     void helpWindow();
     void aboutWindow();
@@ -119,6 +119,7 @@ private:
     QWinTaskbarProgress *taskbarProgress = nullptr;
 #endif
     float getTeamScores(const int teammates[], const int teamSizes[], float teamScores[], float **attributeScore, float *schedScore, int *penaltyPoints);
+    void refreshCurrTeamScores();
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
@@ -127,8 +128,6 @@ private:
 
         // reporting results
     TeamRecord *teams = nullptr;
-    void refreshTeamInfo(QVector<int> teamNums = {-1});
-    void refreshTeamToolTips(QVector<int> teamNums = {-1});
     void refreshTeamDisplay();
     QVector<int> getTeamNumbersInDisplayOrder();
     QString sectionName;

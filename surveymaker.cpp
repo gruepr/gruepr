@@ -1221,7 +1221,7 @@ void SurveyMaker::helpWindow()
     helpContents.setOpenExternalLinks(true);
     helpContents.setFrameShape(QFrame::NoFrame);
     theGrid.addWidget(&helpContents, 0, 0, -1, -1);
-    helpWindow.resize(600,600);
+    helpWindow.resize(LG_DLG_SIZE, LG_DLG_SIZE);
     helpWindow.exec();
 }
 

@@ -276,6 +276,7 @@ private:
     QPushButton *showStatsButton;
     QTimer *countdownToClose;
     int secsLeftToClose = 5;
+    const int CHARTHEIGHT = 400;
 };
 
 

@@ -59,7 +59,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     setWindowTitle(tr("Select ") + typeText + tr(" Teammates"));
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     setSizeGripEnabled(true);
-    setMinimumSize(600, 600);
+    setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     theGrid = new QGridLayout(this);
 
     //First row - the current data
@@ -1013,7 +1013,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
     this->numTeams = numTeams;
     teamName = new QLineEdit[numTeams];
 
-    setMinimumSize(300, 300);
+    setMinimumSize(SM_DLG_SIZE, SM_DLG_SIZE);
 
     //Table of team names
     theTable->setRowCount(numTeams);
@@ -1770,7 +1770,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
 {
     URMResponsesConsideredUR = currURMResponsesConsideredUR;
 
-    setMinimumSize(300, 300);
+    setMinimumSize(SM_DLG_SIZE, SM_DLG_SIZE);
 
     // Rows 1&2 - explanation and spacer
     explanation = new QLabel(this);
@@ -1970,7 +1970,7 @@ void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
     if(graphShown)
     {
         chart->show();
-        height = 400;
+        height = CHARTHEIGHT;
         width = numHorizontalAxisMarkers * QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("XX  ");
         icon = QIcon(":/icons/up_arrow.png");
         butText = "Hide progress";
