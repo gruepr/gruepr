@@ -1153,7 +1153,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     }
 
     studentFiletxt = new QCheckBox(this);
-    studentFiletxt->resize(30,30);
+    studentFiletxt->resize(CHECKBOXSIZE,CHECKBOXSIZE);
     theGrid->addWidget(studentFiletxt, 2, 0);
     connect(studentFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
 
@@ -1166,7 +1166,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     if(saveDialog)
     {
         studentFilepdf = new QCheckBox(this);
-        studentFilepdf->resize(30,30);
+        studentFilepdf->resize(CHECKBOXSIZE,CHECKBOXSIZE);
         theGrid->addWidget(studentFilepdf, 2, 2);
         connect(studentFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
         connect(studentFileLabel, &QPushButton::clicked, studentFilepdf, &QCheckBox::animateClick);
@@ -1186,7 +1186,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     theGrid->addWidget(belowStudentLine, 3, 0, 1, -1);
 
     instructorFiletxt = new QCheckBox(this);
-    instructorFiletxt->resize(30,30);
+    instructorFiletxt->resize(CHECKBOXSIZE,CHECKBOXSIZE);
     theGrid->addWidget(instructorFiletxt, 4, 0);
     connect(instructorFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
     instructorFileLabel = new QPushButton(this);
@@ -1199,7 +1199,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     if(saveDialog)
     {
         instructorFilepdf = new QCheckBox(this);
-        instructorFilepdf->resize(30,30);
+        instructorFilepdf->resize(CHECKBOXSIZE,CHECKBOXSIZE);
         theGrid->addWidget(instructorFilepdf, 4, 2);
         connect(instructorFilepdf, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
         connect(instructorFileLabel, &QPushButton::clicked, instructorFilepdf, &QCheckBox::animateClick);
@@ -1219,7 +1219,7 @@ whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &
     theGrid->addWidget(belowInstructorLine, 5, 0, 1, -1);
 
     spreadsheetFiletxt = new QCheckBox(this);
-    spreadsheetFiletxt->resize(30,30);
+    spreadsheetFiletxt->resize(CHECKBOXSIZE,CHECKBOXSIZE);
     theGrid->addWidget(spreadsheetFiletxt, 6, 0);
     connect(spreadsheetFiletxt, &QCheckBox::clicked, this, &whichFilesDialog::boxToggled);
     spreadsheetFileLabel = new QPushButton(this);

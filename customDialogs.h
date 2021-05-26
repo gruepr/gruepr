@@ -168,6 +168,7 @@ private:
     QPushButton *spreadsheetFileLabel;
     QDialogButtonBox *buttonBox;
     QFont previousToolTipFont;
+    const int CHECKBOXSIZE = 30;
 };
 
 
