@@ -3434,7 +3434,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
                 }
                 schedScore = new float[numTeams];
                 penaltyPoints = new int[numTeams];
-#pragma omp for
+#pragma omp for nowait
                 for(int genome = 0; genome < POPULATIONSIZE; genome++)
                 {
                     scores[genome] = getTeamScores(&genePool[genome][0], &teamSizes[0], unusedTeamScores, attributeScore, schedScore, penaltyPoints);
