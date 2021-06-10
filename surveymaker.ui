@@ -961,8 +961,10 @@
     </property>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
-    <addaction name="actionAbout"/>
+    <addaction name="actionBugReport"/>
     <addaction name="actiongruepr_Homepage"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -1059,6 +1061,15 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;Create a text file with the required question texts and a csv file to paste the results in afterwards.&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionBugReport">
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/bug.png</normaloff>:/icons/bug.png</iconset>
+   </property>
+   <property name="text">
+    <string>Report a Bug or Feature Request...</string>
    </property>
   </action>
  </widget>

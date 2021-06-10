@@ -1672,8 +1672,10 @@ QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-chi
     </property>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
-    <addaction name="actionAbout"/>
+    <addaction name="actionBugReport"/>
     <addaction name="actiongruepr_Homepage"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuTeams">
     <property name="title">
@@ -1851,6 +1853,15 @@ QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-chi
    </property>
    <property name="toolTip">
     <string>Compare the student names and email addresses to a class roster csv file.</string>
+   </property>
+  </action>
+  <action name="actionBugReport">
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/bug.png</normaloff>:/icons/bug.png</iconset>
+   </property>
+   <property name="text">
+    <string>Report a Bug or Feature Request...</string>
    </property>
   </action>
  </widget>

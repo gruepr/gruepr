@@ -48,6 +48,7 @@ gruepr::gruepr(QWidget *parent) :
     ui->actionAbout->setMenuRole(QAction::AboutRole);
     connect(ui->actionAbout, &QAction::triggered, this, &gruepr::aboutWindow);
     connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
+    connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("http://bit.ly/grueprBugReportFromApp"));});
 
     //Set alternate fonts on some UI features
     QFont altFont = this->font();

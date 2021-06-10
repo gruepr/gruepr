@@ -36,6 +36,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->actionAbout->setMenuRole(QAction::AboutRole);
     connect(ui->actionAbout, &QAction::triggered, this, &SurveyMaker::aboutWindow);
     connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
+    connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("http://bit.ly/grueprBugReportFromApp"));});
 
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 

@@ -48,5 +48,6 @@
         <file>icons/swap.png</file>
         <file>icons/move.png</file>
         <file>icons/loadRoster.png</file>
+        <file>icons/bug.png</file>
     </qresource>
 </RCC>
