@@ -30,35 +30,6 @@
 //    Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk)
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// DONE:
-// - bugfix: newlines within a csv field are now handled properly
-// - bugfix: save file after adding or editing a student mishandled attribute values
-// - bugfix: Gather URM Response dialog crash in some cases
-// - bugfix: crash when starting optimization at first update of progress dialog
-// - attribute response texts now always show in attribute value selection box in add/edit student dialog; better GUI behavior on those boxes
-// - now distinguishes nonbinary from unknown gender in instructor's save file
-// - expansion of what gets recognized for gender response: woman OR female; man OR male; anything that includes "trans", "queer", or any combination of "non" and "binary"
-// - doesn't mark students as duplicate just because they have blank email adresses
-// - An option in the survey to have students put in preferred teammates / non-teammates and allow to import those as required/requested/prevented
-// - create Levenshtein dialog to replace repeated code in gather teammates dialog
-// - change incompatible response dialog / behavior to add incompatible same responses (1 with 1)
-// - add penalty point per incompatible pair found
-// - moved studentRecord to a separate class, with tooltip creation as member function
-// - ancestors of elites now created (using elite genome as mom and dad)
-// - LOTS of code modernization and organization
-// - moved code to Qt v5.15 standards
-// - add "load roster" option to compare against survey data, updating email addresses and offering to add missing students and remove extra students
-// - use csv import dialog box to select columns when loading survey
-// - allow for section question later in the "additional questions"
-// - unify reading/writing of csv files throughout
-// - brought relevant functions for teamTreeWidget as member functions
-// - changed display of team in teamTreeWidget to be always on, but bold and with colored background
-// - make studentTable a subclass, using teamTreeWidget as example
-// - works much better with dark mode / dark color schemes
-// - make attribute data in a tab in a tab widget for both surveymaker and gruepr, using new attributeTabItem subclass
-// - added timezone functionality to SurveyMaker and google code
-// - allow students to fill out survey's schedule in their own timezone and then correct/shift into the "class timezone" each after collecting the results
-// - improved scoring of teams with one student
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
