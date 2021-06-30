@@ -462,7 +462,10 @@ void gruepr::loadOptionsFile()
                     incompatibleResponseNum++;
                 }
                 teamingOptions->incompatibleAttributeValues[attribute] = setOfIncompatibleResponses;
-                attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+                if(attribute < dataOptions->numAttributes)
+                {
+                    attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+                }
             }
 
             if(loadObject.contains("numberRequestedTeammatesGiven") && loadObject["numberRequestedTeammatesGiven"].isDouble())
