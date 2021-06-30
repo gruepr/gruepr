@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.0.1
+gruepr_version = 10.0.2
 copyright_year = 2019-2021
 
 QT       += core gui widgets concurrent network printsupport charts
