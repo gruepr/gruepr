@@ -41,7 +41,7 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         weight->setButtonSymbols(QAbstractSpinBox::NoButtons);
         weight->setDecimals(1);
         weight->setMinimum(0);
-        weight->setMaximum(100);
+        weight->setMaximum(TeamingOptions::MAXWEIGHT);
         weight->setValue(1);
         theGrid->addWidget(weight, 1, 1, Qt::AlignCenter);
 
@@ -64,6 +64,14 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
 
 void attributeTabItem::setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions)
 {
+    if(attribute >= dataOptions->numAttributes)
+    {
+        attributeText->setHtml("<html>N/A</html>");
+        weight->setEnabled(false);
+        homogeneous->setEnabled(false);
+        incompatsButton->setEnabled(false);
+        return;
+    }
     QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(attribute) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
     QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
     for(int response = 0; response < dataOptions->attributeQuestionResponses[attribute].size(); response++)
