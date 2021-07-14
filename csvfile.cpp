@@ -28,13 +28,13 @@ CsvFile::~CsvFile()
 //////////////////
 // Open a CSV file for reading from Dialog Box, returning QFile (blank if unsuccessful)
 //////////////////
-bool CsvFile::open(QWidget *parent, Oprtn oprtn, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
+bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption, const QString &filepath, const QString &filetypeDescriptor)
 {
     file = nullptr;
     stream = nullptr;
 
     QString fileName;
-    if(oprtn == read)
+    if(operation == read)
     {
         fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
         if (!fileName.isEmpty())

@@ -20,8 +20,8 @@ public:
     CsvFile(Delimiter dlmtr = comma, QObject *parent = nullptr);
     ~CsvFile();
 
-    enum Oprtn {read, write};
-    bool open(QWidget *parent = nullptr, Oprtn oprtn = read, const QString &caption = tr("Open csv File"),
+    enum Operation {read, write};
+    bool open(QWidget *parent = nullptr, Operation operation = read, const QString &caption = tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     QFileInfo fileInfo();
     void close();

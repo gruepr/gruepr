@@ -2510,8 +2510,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         return false;
     }
 
-    int TotNumQuestions = surveyFile.headerValues.size();
-    if(TotNumQuestions < 4)       // need at least timestamp, first name, last name, email address
+    if(surveyFile.headerValues.size() < 4)
     {
         QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
         surveyFile.close();
@@ -2548,7 +2547,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
+    // set field values now according to uer's selection of field meanings (defaulting to -1 if not chosen)
     dataOptions->timestampField = surveyFile.fieldMeanings.indexOf("Timestamp");
     dataOptions->firstNameField = surveyFile.fieldMeanings.indexOf("First Name");
     dataOptions->lastNameField = surveyFile.fieldMeanings.indexOf("Last Name");
@@ -2565,8 +2564,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     dataOptions->prefTeammatesIncluded = (dataOptions->prefTeammatesField != -1);
     dataOptions->prefNonTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Non-teammates");
     dataOptions->prefNonTeammatesIncluded = (dataOptions->prefNonTeammatesField != -1);
-
-    // get the notes fields
+    // notes fields
     int lastFoundIndex = 0;
     dataOptions->numNotes = surveyFile.fieldMeanings.count("Notes");
     for(int note = 0; note < dataOptions->numNotes; note++)
@@ -2574,7 +2572,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         dataOptions->notesField[note] = surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex);
         lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex));
     }
-    // get the attribute fields, adding timezone field as an attribute if it exists
+    // attribute fields, adding timezone field as an attribute if it exists
     lastFoundIndex = 0;
     dataOptions->numAttributes = surveyFile.fieldMeanings.count("Attribute");
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
@@ -2589,7 +2587,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         dataOptions->attributeQuestionText << surveyFile.headerValues.at(dataOptions->timezoneField);
         dataOptions->numAttributes++;
     }
-    // get the schedule fields
+    // schedule fields
     lastFoundIndex = 0;
     bool homeTimezoneUsed = false;
     for(int scheduleQuestion = 0, numScheduleFields = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleFields; scheduleQuestion++)
@@ -2617,6 +2615,13 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             dataOptions->dayNames << " " + QString::number(scheduleQuestion+1) + " ";
         }
         lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex));
+    }
+
+    if(!surveyFile.fieldMeanings.contains("Schedule") && !surveyFile.fieldMeanings.contains("Attribute"))
+    {
+        QMessageBox::critical(this, tr("File error."), tr("A survey file must contain at least one schedule question or one attribute question."), QMessageBox::Ok);
+        surveyFile.close();
+        return false;
     }
 
     // read one line of data; if no data after header row then file is invalid

@@ -11,12 +11,12 @@ Description of gruepr:
 
         All the student data is read from a file, and the students are split into teams of any desired size(s). A
         good distribution of students into teams is determined by a numerical score. The score can be based on:
-           1) preventing isolated women, isolated men, and/or single-gender teams;
+           1) preventing isolated women, isolated men, isolated non-binary persons, and/or single-gender teams;
            2) preventing isolated URM students;
            3) achieving within each team either homogeneity or heterogeneity of up to 15 "attributes", which could
               be skills assessments, work preferences, attitudes, major, or any other categorical/Likert question;
            4) preventing students with incompatible attributes from being on the same team;
-           5) achieving a high degree of overlap in schedule freetime;
+           5) achieving a high degree of overlap in schedule freetime (with timezone awareness);
            6) preventing any particular students from being on the same team;
            7) requiring any particular students to be on the same team; and/or
            8) requiring at least a certain number of students from a particular list to be on the same team.
@@ -24,7 +24,7 @@ Description of gruepr:
         After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams
         are displayed showing the students names, emails, gender, URM status, and attribute values. Each team's
         score is also shown along with a table of student availability at each time slot throughout the week. You
-        can choose whether to save this teamset, adjust this teamset by swapping pairs of students, or throw away
+        can choose whether to save this teamset, adjust this teamset by rearranging teams or students, or throw away
         the teamset entirely and start over. If you save the teamset, three files can be saved: 1) an instructor's
         file containing all the team and student information; 2) a student's file showing the same but without
         listing team scores or student demographics/attributes; and 3) the section, team, and student names in a
@@ -40,11 +40,11 @@ Description of gruepr:
         The datafile must be a comma-separated-values (.csv) file with these contents:
            - header row, contains only the comma-separated question texts
            - each student on a separate row, starting at the row immediately after the header
-           - in each row, comma-separated values are, in order:
+           - in each row, comma-separated values are:
                ~ timestamp
                ~ first name or preferred name
                ~ last name
-               ~ email
+               ~ [optional] email
                ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
                      "Nonbinary", etc.)
                ~ [optional] self-reported racial/ethnic/cultural background
@@ -52,8 +52,7 @@ Description of gruepr:
                ~ [0 to 7 values] semicolon-separated list of times each day that the student is either available or
                      unavailable to work
                ~ [optional] section
-               ~ [optional] any additional notes for student (all remaining columns will get swallowed into this
-                     field)
+               ~ [optional] any additional notes for student additional columns can be included and left ignored
 
         COMPILING NOTES: Need C++11 and OpenMP. Using gcc/mingw, enabling the speed optimization of -O2 seems to
         offer significant speed boost.
