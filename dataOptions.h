@@ -33,6 +33,7 @@ public:
     int attributeMax[MAX_ATTRIBUTES];                   // what is the maximum value for each attribute?
     bool timezoneIncluded = false;                      // is timezone data included in the survey?
     int timezoneField = -1;                             // which field has the timezone info?
+    bool homeTimezoneUsed = false;                      // whether the students' schedules refer to their own timezone
     float baseTimezone = 0;                             // offset from GMT for baseline timezone
     int earlyHourAsked = 0;                             // earliest hour asked in survey
     int lateHourAsked = MAX_BLOCKS_PER_DAY;             // latest hour asked in survey

@@ -100,8 +100,7 @@ private:
     int numStudents = MAX_STUDENTS;
     StudentRecord *student = nullptr;                   // array to hold the students' data
     bool loadSurveyData(CsvFile &surveyFile);           // returns false if file is invalid
-    StudentRecord parseOneRecord(const QStringList &fields);
-    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; loads fullnames and emails into lists
+    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; checks survey names and emails against roster
     void refreshStudentDisplay();
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column

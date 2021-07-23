@@ -2518,13 +2518,12 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
 
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
-    auto lastKnownMeaningfulField = QRegularExpression("(.*(name).*(like to not have on your team).*)|"
-                                                           "(.*(name).*(like to have on your team).*)|.*(in which section are you enrolled).*|"
-                                                           "(.*(check).+(times).+)", QRegularExpression::CaseInsensitiveOption);
+    auto lastKnownMeaningfulField = QRegularExpression("(.*(name).*(like to not have on your team).*)|(.*(name).*(like to have on your team).*)|"
+                                                       ".*(in which section are you enrolled).*|(.*(check).+(times).*)", QRegularExpression::CaseInsensitiveOption);
     int notesFieldsProbBeginAt = 1 + surveyFile.headerValues.lastIndexOf(lastKnownMeaningfulField);
-    if((notesFieldsProbBeginAt != -1) && (notesFieldsProbBeginAt != surveyFile.headerValues.size()))
+    if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile.headerValues.size()))
     {
-        //if notesFieldsProbBeginAt == -1 then none of these questions exist, so assume no notes, just attributes
+        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes, just attributes
         //and if notesFieldsProbBeginAt == headervalues size then one of these questions is the last one, so assume no notes
         for(int field = notesFieldsProbBeginAt; field < surveyFile.fieldMeanings.size(); field++)
         {
@@ -2533,8 +2532,8 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
 
     // Ask user what the columns mean
-    QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred)).*(name)", 1},
-                                                    {"Last Name", "((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
+    QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+                                                    {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
                                                     {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                                     {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
                                                     {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
@@ -2589,7 +2588,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
     // schedule fields
     lastFoundIndex = 0;
-    bool homeTimezoneUsed = false;
     for(int scheduleQuestion = 0, numScheduleFields = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleFields; scheduleQuestion++)
     {
         dataOptions->scheduleField[scheduleQuestion] = surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex);
@@ -2602,7 +2600,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         if(scheduleQuestionText.contains(QRegularExpression(".+\\b(your home)\\b.+", QRegularExpression::CaseInsensitiveOption)))
         {
             // if >=1 field has this language, all interpreted as referring to each student's home timezone
-            homeTimezoneUsed = true;
+            dataOptions->homeTimezoneUsed = true;
         }
         QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at end of field (that's where Google Forms puts column titles in matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
@@ -2655,7 +2653,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                                                 {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
         dataOptions->timeNames = allTimeNames;
         //pad the timeNames to include all 24 hours if we will be time-shifting student responses based on their home timezones later
-        if(homeTimezoneUsed)
+        if(dataOptions->homeTimezoneUsed)
         {
             dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()))];
             dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constLast()))];
@@ -2675,7 +2673,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
 
     // If each student's home timezone was used, ask what should be used as the base timezone that they should all be adjusted to
-    if(homeTimezoneUsed)
+    if(dataOptions->homeTimezoneUsed)
     {
         auto *window = new baseTimezoneDialog(this);
         window->exec();
@@ -2688,7 +2686,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS)
     {
-        student[numStudents] = parseOneRecord(surveyFile.fieldValues);
+        student[numStudents].parseRecordFromStringList(surveyFile.fieldValues, dataOptions);
         student[numStudents].ID = numStudents;
 
         // see if this record is a duplicate; assume it isn't and then check
@@ -2832,226 +2830,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
 
     surveyFile.close();
     return true;
-}
-
-
-//////////////////
-// Parse the data from one student's info from the survey datafile
-//////////////////
-StudentRecord gruepr::parseOneRecord(const QStringList &fields)
-{
-    StudentRecord student;
-
-    int fieldnum = dataOptions->timestampField;
-    if(fieldnum != -1)
-    {
-        const QString &timestampText = fields.at(fieldnum);
-        QVector<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::SystemLocaleShortDate, Qt::SystemLocaleLongDate, Qt::RFC2822Date};
-
-        student.surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
-        if(student.surveyTimestamp.isNull())
-        {
-            student.surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Google Form
-            if(student.surveyTimestamp.isNull())
-            {
-                student.surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT3);
-                if(student.surveyTimestamp.isNull())
-                {
-                    student.surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT4);
-                    int i = 0;
-                    while(i < stdTimestampFormats.size() && student.surveyTimestamp.isNull())
-                    {
-                        student.surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
-                        i++;
-                    }
-                }
-            }
-        }
-    }
-    if(student.surveyTimestamp.isNull())
-    {
-        student.surveyTimestamp = QDateTime::currentDateTime();
-    }
-
-    fieldnum = dataOptions->firstNameField;
-    student.firstname = fields.at(fieldnum).toUtf8().trimmed();
-    student.firstname[0] = student.firstname[0].toUpper();
-
-    fieldnum = dataOptions->lastNameField;
-    student.lastname = fields.at(fieldnum).toUtf8().trimmed();
-    student.lastname[0] = student.lastname[0].toUpper();
-
-    fieldnum = dataOptions->emailField;
-    student.email = fields.at(fieldnum).toUtf8().trimmed();
-
-    // optional gender
-    if(dataOptions->genderIncluded)
-    {
-        fieldnum = dataOptions->genderField;
-        QString field = fields.at(fieldnum).toUtf8();
-        if(field.contains(tr("woman"), Qt::CaseInsensitive) || field.contains(tr("female"), Qt::CaseInsensitive))
-        {
-            student.gender = StudentRecord::woman;
-        }
-        else if(field.contains(tr("man"), Qt::CaseInsensitive) || field.contains(tr("male"), Qt::CaseInsensitive))
-        {
-            student.gender = StudentRecord::man;
-        }
-        else if((field.contains(tr("non"), Qt::CaseInsensitive) && field.contains(tr("binary"), Qt::CaseInsensitive)) ||
-                 field.contains(tr("queer"), Qt::CaseInsensitive) ||
-                 field.contains(tr("trans"), Qt::CaseInsensitive))
-        {
-            student.gender = StudentRecord::nonbinary;
-        }
-        else
-        {
-            student.gender = StudentRecord::unknown;
-        }
-    }
-    else
-    {
-        student.gender = StudentRecord::unknown;
-    }
-
-    // optional race/ethnicity status
-    if(dataOptions->URMIncluded)
-    {
-        fieldnum = dataOptions->URMField;
-        QString field = fields.at(fieldnum).toUtf8().toLower().simplified();
-        if(field == "")
-        {
-            field = tr("--");
-        }
-        student.URMResponse = field;
-    }
-    else
-    {
-        student.URM = false;
-    }
-
-    // optional attributes
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-    {
-        fieldnum = dataOptions->attributeField[attribute];
-        QString field = fields.at(fieldnum).toUtf8();
-        field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
-        student.attributeResponse[attribute] = field;
-    }
-
-    // optional schedule days
-    const int numDays = dataOptions->dayNames.size();
-    const int numTimes = dataOptions->timeNames.size();
-    int timezoneOffset = 0;
-    fieldnum = dataOptions->timezoneField;
-    if(fieldnum != -1)
-    {
-        QRegularExpression offsetFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
-        QRegularExpressionMatch offset = offsetFinder.match(fields.at(fieldnum).toUtf8());
-        if(offset.hasMatch())
-        {
-            int hours = offset.captured(1).toInt();
-            float minutes = offset.captured(2).toFloat();
-            student.timezone = hours + (hours < 0? (-minutes/60) : (minutes/60));
-            timezoneOffset = std::lround(dataOptions->baseTimezone - student.timezone);
-        }
-    }
-    for(int day = 0; day < numDays; day++)
-    {
-        fieldnum = dataOptions->scheduleField[day];
-        QString field = fields.at(fieldnum).toUtf8();
-        QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
-        for(int time = 0; time < numTimes; time++)
-        {
-            timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
-            if(dataOptions->scheduleDataIsFreetime)
-            {
-                // need to ignore when we're outside the bounds of the array, or we're not looking at all 7 days and this one wraps around the day
-                if(((day + time + timezoneOffset) >= 0) &&
-                   (((day * numTimes) + time + timezoneOffset) <= (numDays * numTimes)) &&
-                   ((numDays == MAX_DAYS) || (((time + timezoneOffset) >= 0) && ((time + timezoneOffset) <= MAX_BLOCKS_PER_DAY))))
-                {
-                    student.unavailable[day][time + timezoneOffset] = !timename.match(field).hasMatch();
-                }
-            }
-            else
-            {
-                // need to ignore when we're outside the bounds of the array, when we're not looking at all 7 days and this one wraps around the day,
-                // or--since we asked when they're unavailable--any times that we didn't actually ask about
-                if(((day + time + timezoneOffset) >= 0) &&
-                   (((day * numTimes) + time + timezoneOffset) <= (numDays * numTimes)) &&
-                   (time >= dataOptions->earlyHourAsked) &&
-                   (time <= dataOptions->lateHourAsked) &&
-                   ((numDays == MAX_DAYS) || (((time + timezoneOffset) >= 0) && ((time + timezoneOffset) <= MAX_BLOCKS_PER_DAY))))
-                {
-                    student.unavailable[day][time + timezoneOffset] = timename.match(field).hasMatch();
-                }
-            }
-        }
-    }
-    if(!dataOptions->dayNames.isEmpty())
-    {
-        student.availabilityChart = tr("Availability:");
-        student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
-        for(int day = 0; day < numDays; day++)
-        {
-            student.availabilityChart += "<th>" + dataOptions->dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
-        }
-        student.availabilityChart += "</tr>";
-        for(int time = 0; time < numTimes; time++)
-        {
-            student.availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time).toUtf8() + "</th>";
-            for(int day = 0; day < numDays; day++)
-            {
-                student.availabilityChart += QString(student.unavailable[day][time]?
-                            "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
-            }
-            student.availabilityChart += "</tr>";
-        }
-        student.availabilityChart += "</table>";
-    }
-    student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (numDays * numTimes));
-
-    // optional section
-    if(dataOptions->sectionIncluded)
-    {
-        fieldnum = dataOptions->sectionField;
-        student.section = fields.at(fieldnum).toUtf8().trimmed();
-        if(student.section.startsWith("section",Qt::CaseInsensitive))
-        {
-            student.section = student.section.right(student.section.size()-7).trimmed();    //removing as redundant the word "section" if at the start of the section name
-        }
-    }
-
-    // optional preferred teammates
-    if(dataOptions->prefTeammatesIncluded)
-    {
-        fieldnum = dataOptions->prefTeammatesField;
-        student.prefTeammates = fields.at(fieldnum).toUtf8();
-        student.prefTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
-        student.prefTeammates = student.prefTeammates.trimmed();
-    }
-
-    // optional preferred non-teammates
-    if(dataOptions->prefNonTeammatesIncluded)
-    {
-        fieldnum = dataOptions->prefNonTeammatesField;
-        student.prefNonTeammates = fields.at(fieldnum).toUtf8();
-        student.prefNonTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
-        student.prefNonTeammates = student.prefNonTeammates.trimmed();
-    }
-
-    // optional notes
-    for(int note = 0; note < dataOptions->numNotes; note++)
-    {
-        fieldnum = dataOptions->notesField[note];
-        if(note > 0)
-        {
-            student.notes += "\n";
-        }
-        student.notes += fields.at(fieldnum).toUtf8().trimmed();     // join each one with a newline after
-    }
-
-    return student;
 }
 
 
@@ -4045,8 +3823,7 @@ void gruepr::refreshTeamDisplay()
         }
 
         //add new student items
-        int numStudentsOnTeam = teams[teamNum].size;
-        for(int studentOnTeam = 0; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
+        for(int studentOnTeam = 0, numStudentsOnTeam = teams[teamNum].size; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
             ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[teamNum].studentIDs[studentOnTeam]], dataOptions);

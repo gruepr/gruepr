@@ -43,7 +43,8 @@ void TeamRecord::createTooltip(const DataOptions* const dataOptions)
     {
         toolTip += "<br>" + QObject::tr("URM") + ":  " + QString::number(numURM);
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         auto teamVals = attributeVals[attribute].begin();
@@ -80,6 +81,17 @@ void TeamRecord::createTooltip(const DataOptions* const dataOptions)
                 toolTip += ", " + (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
             }
         }
+    }
+    if(dataOptions->timezoneIncluded)
+    {
+        float timezoneA = *timezoneVals.cbegin();
+        float timezoneB = *timezoneVals.crbegin();
+        int hourA = int(timezoneA);
+        int hourB = int(timezoneB);
+        int minutesA = 60*(timezoneA - int(timezoneA));
+        int minutesB = 60*(timezoneB - int(timezoneB));
+        toolTip += "<br>" + QObject::tr("Timezones") + QString(":  GMT%1%2:%3 \u2192 %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(minutesA, 2, 10, QChar('0'))
+                                                                                              .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(minutesB, 2, 10, QChar('0'));
     }
     if(!dataOptions->dayNames.isEmpty())
     {

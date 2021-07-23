@@ -11,6 +11,7 @@ class StudentRecord
 {
 public:
     StudentRecord();
+    void parseRecordFromStringList(const QStringList &fields, const DataOptions* const dataOptions);
     void createTooltip(const DataOptions* const dataOptions);
 
     int ID = -1;                                        // ID is assigned in order of appearance in the data file

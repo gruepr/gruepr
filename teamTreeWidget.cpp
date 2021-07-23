@@ -272,7 +272,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
             int minutesF = 60*(*firstTeamVal - int(*firstTeamVal));
             int hourL = int(*lastTeamVal);
             int minutesL = 60*(*lastTeamVal - int(*lastTeamVal));
-            timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(minutesF, 2, 10, QChar('0')) + " - " +
+            timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(minutesF, 2, 10, QChar('0')) + " \u2192 " +
                             QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(minutesL, 2, 10, QChar('0'));
         }
         sortData = int(*firstTeamVal * 100 + *lastTeamVal);
