@@ -3448,7 +3448,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                         {
                             teamAvailability[day][time] = teamAvailability[day][time] && !student[teammates[ID]].unavailable[day][time];	// "and" each student's not-unavailability
                         }
-                        else if(time == 0)
+                        else if((day == 0) && (time == 0))
                         {
                             // count number of students with ambiguous schedules during the first timeslot
                             numStudentsWithAmbiguousSchedules++;
@@ -3457,16 +3457,36 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                     }
                 }
             }
+
             // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
-            if((teamSizes[team] - numStudentsWithAmbiguousSchedules) >= 2)
+            if((teamSizes[team] - numStudentsWithAmbiguousSchedules) < 2)
             {
-                // count how many free time blocks there are
-                if(teamingOptions->meetingBlockSize == 1)
+                continue;
+            }
+
+            // count how many free time blocks there are
+            if(teamingOptions->meetingBlockSize == 1)
+            {
+                for(int day = 0; day < numDays; day++)
                 {
-                    for(int day = 0; day < numDays; day++)
+                    for(int time = 0; time < numTimes; time++)
                     {
-                        for(int time = 0; time < numTimes; time++)
+                        if(teamAvailability[day][time])
                         {
+                            schedScore[team]++;
+                        }
+                    }
+                }
+            }
+            else    //user wants to count only 2-hr time blocks, but don't count wrap-around block from end of 1 day to beginning of next!
+            {
+                for(int day = 0; day < numDays; day++)
+                {
+                    for(int time = 0; time < numTimes-1; time++)
+                    {
+                        if(teamAvailability[day][time])
+                        {
+                            time++;
                             if(teamAvailability[day][time])
                             {
                                 schedScore[team]++;
@@ -3474,41 +3494,24 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                         }
                     }
                 }
-                else    //user wants to count only 2-hr time blocks, but don't count wrap-around block from end of 1 day to beginning of next!
-                {
-                    for(int day = 0; day < numDays; day++)
-                    {
-                        for(int time = 0; time < numTimes-1; time++)
-                        {
-                            if(teamAvailability[day][time])
-                            {
-                                time++;
-                                if(teamAvailability[day][time])
-                                {
-                                    schedScore[team]++;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // convert counts to a schedule score
-                if(schedScore[team] > teamingOptions->desiredTimeBlocksOverlap)		// if team has > desiredTimeBlocksOverlap, the "extra credit" is 1/6 of the additional overlaps
-                {
-                    schedScore[team] = 1 + ((schedScore[team] - teamingOptions->desiredTimeBlocksOverlap) / (6*teamingOptions->desiredTimeBlocksOverlap));
-                }
-                else if(schedScore[team] >= teamingOptions->minTimeBlocksOverlap)	// if team has between minimum and desired amount of schedule overlap
-                {
-                    schedScore[team] /= teamingOptions->desiredTimeBlocksOverlap;	// normal schedule score is number of overlaps / desired number of overlaps
-                }
-                else													// if team has fewer than minTimeBlocksOverlap, apply penalty
-                {
-                    schedScore[team] = 0;
-                    penaltyPoints[team]++;
-                }
-
-                schedScore[team] *= teamingOptions->realScheduleWeight;
             }
+
+            // convert counts to a schedule score
+            if(schedScore[team] > teamingOptions->desiredTimeBlocksOverlap)		// if team has > desiredTimeBlocksOverlap, the "extra credit" is 1/6 of the additional overlaps
+            {
+                schedScore[team] = 1 + ((schedScore[team] - teamingOptions->desiredTimeBlocksOverlap) / (6*teamingOptions->desiredTimeBlocksOverlap));
+            }
+            else if(schedScore[team] >= teamingOptions->minTimeBlocksOverlap)	// if team has between minimum and desired amount of schedule overlap
+            {
+                schedScore[team] /= teamingOptions->desiredTimeBlocksOverlap;	// normal schedule score is number of overlaps / desired number of overlaps
+            }
+            else													// if team has fewer than minTimeBlocksOverlap, apply penalty
+            {
+                schedScore[team] = 0;
+                penaltyPoints[team]++;
+            }
+
+            schedScore[team] *= teamingOptions->realScheduleWeight;
         }
     }
 
