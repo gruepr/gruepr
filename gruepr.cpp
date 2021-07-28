@@ -248,6 +248,7 @@ void gruepr::loadStudentRoster()
                             student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
                             student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
                             student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
+                            student[dataOptions->numStudentsInSystem].ambiguousSchedule = true;
                             student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
                             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
                             {
