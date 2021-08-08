@@ -14,11 +14,10 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QCheckBox>
-#include <QRadioButton>
 #include <QButtonGroup>
-#include "boxwhiskerplot.h"
 #include "categorialSpinBox.h"
 #include "dataOptions.h"
+#include "findMatchingNameDialog.h"
 #include "listTableDialog.h"
 #include "studentRecord.h"
 
@@ -57,23 +56,6 @@ private:
     bool loadCSVFile();
     bool loadStudentPrefs();
     bool loadSpreadsheetFile();
-};
-
-
-class findMatchingNameDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    findMatchingNameDialog(int numStudents, StudentRecord *student, const QString &searchName, const bool addStudentOption = false, QWidget *parent = nullptr);
-
-    QComboBox *namesList;
-    bool addStudent = false;
-
-private:
-    QGridLayout *theGrid;
-    QLabel *explanation;
-    QDialogButtonBox *buttonBox;
 };
 
 
@@ -117,24 +99,6 @@ private slots:
 private:
     int numTeams;
     QPushButton *resetNamesButton;
-};
-
-
-class registerDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    registerDialog(QWidget *parent = nullptr);
-
-    QLineEdit *name;
-    QLineEdit *institution;
-    QLineEdit *email;
-
-private:
-    QGridLayout *theGrid;
-    QLabel *explanation;
-    QDialogButtonBox *buttonBox;
 };
 
 
@@ -228,86 +192,5 @@ private:
     QDialogButtonBox *buttonBox;
     QLabel *explanation;
 };
-
-
-class gatherURMResponsesDialog : public listTableDialog
-{
-    Q_OBJECT
-
-public:
-    gatherURMResponsesDialog(const QStringList &URMResponses, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
-    ~gatherURMResponsesDialog();
-
-    QStringList URMResponsesConsideredUR;
-
-private:
-    QLabel *explanation;
-    QCheckBox *enableValue;
-    QPushButton *responses;
-};
-
-
-class progressDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    progressDialog(QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
-    ~progressDialog();
-
-    void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
-    void highlightStopButton();
-
-private slots:
-    void statsButtonPushed(QtCharts::QChartView *chart);
-    void updateCountdown();
-    void reject();
-
-signals:
-    void letsStop();
-
-private:
-    bool graphShown;
-    QGridLayout *theGrid;
-    QLabel *statusText;
-    QLabel *explanationText;
-    QLabel *explanationIcon;
-    QCheckBox *onlyStopManually;
-    QPushButton *stopHere;
-    QPushButton *showStatsButton;
-    QTimer *countdownToClose;
-    int secsLeftToClose = 5;
-    const int CHARTHEIGHT = 400;
-};
-
-
-class dayNamesDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    dayNamesDialog(QCheckBox *dayselectors[], QLineEdit *daynames[], QWidget *parent = nullptr);
-
-private:
-    QGridLayout *theGrid;
-    QDialogButtonBox *buttonBox;
-};
-
-
-class baseTimezoneDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    baseTimezoneDialog(QWidget *parent = nullptr);
-    float baseTimezoneVal = 0;
-
-private:
-    QGridLayout *theGrid;
-    QLabel *explanation;
-    QComboBox *timezones;
-    QDialogButtonBox *buttonBox;
-};
-
 
 #endif // CUSTOMDIALOGS

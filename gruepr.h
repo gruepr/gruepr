@@ -11,15 +11,13 @@
 #endif
 #include "attributeTabItem.h"
 #include "boxwhiskerplot.h"
-#include "categorialSpinBox.h"
 #include "csvfile.h"
 #include "customDialogs.h"
 #include "dataOptions.h"
+#include "progressDialog.h"
 #include "pushButtonWithMouseEnter.h"
-#include "sortableTableWidgetItem.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
-#include "teamTreeWidget.h"
 #include "gruepr_consts.h"
 
 

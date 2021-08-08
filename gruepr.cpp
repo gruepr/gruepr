@@ -1,5 +1,10 @@
-#include "ui_gruepr.h"
 #include "gruepr.h"
+#include "baseTimeZoneDialog.h"
+#include "findMatchingNameDialog.h"
+#include "gatherURMResponsesDialog.h"
+#include "sortableTableWidgetItem.h"
+#include "teamTreeWidget.h"
+#include "ui_gruepr.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -64,19 +69,19 @@ gruepr::gruepr(QWidget *parent) :
 
     //Reduce size of the options icons if the screen is small
 #ifdef Q_OS_WIN32
-    if(QGuiApplication::primaryScreen()->availableSize().height() < 900)
+    if(QGuiApplication::primaryScreen()->availableSize().height() < SMALL_SCREENSIZE_WIN)
 #endif
 #ifdef Q_OS_MACOS
-    if(QGuiApplication::primaryScreen()->availableSize().height() < 800)
+    if(QGuiApplication::primaryScreen()->availableSize().height() < SMALL_SCREENSIZE_MAC)
 #endif
     {
-        ui->label_15->setMaximumSize(30,30);
-        ui->label_16->setMaximumSize(30,30);
-        ui->label_18->setMaximumSize(30,30);
-        ui->label_20->setMaximumSize(30,30);
-        ui->label_21->setMaximumSize(30,30);
-        ui->label_22->setMaximumSize(30,30);
-        ui->label_24->setMaximumSize(30,30);
+        ui->label_15->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
+        ui->label_16->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
+        ui->label_18->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
+        ui->label_20->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
+        ui->label_21->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
+        ui->label_22->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
+        ui->label_24->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
     }
     adjustSize();
 
@@ -209,13 +214,19 @@ void gruepr::loadStudentRoster()
         QStringList names, emails;
         if(loadRosterData(rosterFile, names, emails))
         {
-            // load all current names and then later remove them as they're found
+            bool dataHasChanged = false;
+
+            // load all current names from the survey so we can later remove them as they're found in the roster and be left with problem cases
             QStringList namesNotFound;
             namesNotFound.reserve(dataOptions->numStudentsInSystem);
             for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
             {
                 namesNotFound << student[ID].firstname + " " + student[ID].lastname;
             }
+
+            // create a place to save info for names with mismatched emails
+            QVector <int> studentsWithDiffEmail;
+            studentsWithDiffEmail.reserve(dataOptions->numStudentsInSystem);
 
             for(auto &name : names)
             {
@@ -232,53 +243,53 @@ void gruepr::loadStudentRoster()
                     namesNotFound.removeAll(student[knownStudent].firstname + " " + student[knownStudent].lastname);
                     if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
                     {
-                        // Email in survey doesn't match roster. For now, replace email with roster value. In the future, make this an option with a dialog that asks.
-                        student[knownStudent].email = emails.at(names.indexOf(name));
+                        // Email in survey doesn't match roster
+                        studentsWithDiffEmail << knownStudent;
                     }
                 }
                 else
                 {
                     // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
-                    auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, true, this);
+                    auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, this, true, emails.at(names.indexOf(name)));
                     if(choiceWindow->exec() == QDialog::Accepted)   // not ignoring this student
                     {
                         if(choiceWindow->addStudent)    // add as a new student
                         {
+                            dataHasChanged = true;
                             student[dataOptions->numStudentsInSystem].ID = dataOptions->numStudentsInSystem;
                             student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
                             student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
                             student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
                             student[dataOptions->numStudentsInSystem].ambiguousSchedule = true;
-                            student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
                             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
                             {
                                 student[dataOptions->numStudentsInSystem].attributeVal[attribute] = -1;
                             }
+                            student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
                             dataOptions->numStudentsInSystem++;
                             numStudents = dataOptions->numStudentsInSystem;
-
-                            //Enable save data file option, since data set is now edited
-                            ui->saveSurveyFilePushButton->setEnabled(true);
-                            ui->actionSave_Survey_File->setEnabled(true);
-
-                            refreshStudentDisplay();
-                            ui->studentTable->clearSortIndicator();
-
-                            ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
-                            on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
                         }
-                        else    // selected an inexact match
+                        else   // selected an inexact match
                         {
-                            namesNotFound.removeAll(choiceWindow->namesList->currentText());
+                            QString surveyName = choiceWindow->currSurveyName;   // need to split off and remove email address
+                            namesNotFound.removeAll(surveyName);
                             knownStudent = 0;
-                            while(choiceWindow->namesList->currentText() != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
+                            while(surveyName != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
                             {
                                 knownStudent++;
                             }
-                            if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
+                            if(choiceWindow->useRosterEmail)
                             {
-                                // Email in survey doesn't match roster. For now, replace email with roster value. In the future, make this an option with a dialog that asks.
+                                dataHasChanged = true;
                                 student[knownStudent].email = emails.at(names.indexOf(name));
+                                student[knownStudent].createTooltip(dataOptions);
+                            }
+                            if(choiceWindow->useRosterName)
+                            {
+                                dataHasChanged = true;
+                                student[knownStudent].firstname = name.split(" ").first();
+                                student[knownStudent].lastname = name.split(" ").mid(1).join(" ");
+                                student[knownStudent].createTooltip(dataOptions);
                             }
                         }
                     }
@@ -286,38 +297,89 @@ void gruepr::loadStudentRoster()
                 }
             }
 
-            bool keepAsking = true, deleteTheStudent = false;
+            // Now handle the times where the roster and survey have different email addresses
+            bool keepAsking = true, makeTheChange = false;
             int i = 0;
+            for(auto &studentNum : studentsWithDiffEmail)
+            {
+                QString surveyName = student[studentNum].firstname + " " + student[studentNum].lastname;
+                QString surveyEmail = student[studentNum].email;
+                if(keepAsking)
+                {
+                    auto *whichEmailWindow = new QMessageBox(QMessageBox::Question, tr("Email addresses do not match"),
+                                                             tr("This student:") +
+                                                             "<br><b>" + surveyName + "</b><br>" +
+                                                             tr("has a different email address in the roster.") + "<br>" +
+                                                             tr("Survey: ") + "<b>" + surveyEmail + "</b><br>" +
+                                                             tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br><br>" +
+                                                             tr("Should we use the address from the survey or the roster?"),
+                                                             QMessageBox::Ok | QMessageBox::Cancel, this);
+                    auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(studentsWithDiffEmail.size() - i) + tr(" students)"));
+                    whichEmailWindow->setCheckBox(applyToAll);
+                    connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
+                    whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use the\nSurvey File Email"));
+                    connect(whichEmailWindow->button(QMessageBox::Ok), &QPushButton::clicked, whichEmailWindow, &QDialog::accept);
+                    whichEmailWindow->button(QMessageBox::Cancel)->setText(tr("Use the\nRoster File Email"));
+                    connect(whichEmailWindow->button(QMessageBox::Cancel), &QPushButton::clicked, whichEmailWindow, &QDialog::reject);
+
+                    if(whichEmailWindow->exec() == QDialog::Rejected)
+                    {
+                        dataHasChanged = true;
+                        makeTheChange = true;
+                        student[studentNum].email = emails.at(names.indexOf(surveyName));
+                        student[studentNum].createTooltip(dataOptions);
+                    }
+                    else
+                    {
+                        makeTheChange = false;
+                    }
+                    delete whichEmailWindow;
+                }
+                else if(makeTheChange)
+                {
+                    student[studentNum].email = emails.at(names.indexOf(surveyName));
+                    student[studentNum].createTooltip(dataOptions);
+                }
+                i++;
+            }
+
+            // Finally, handle the names on the survey that were not found in the roster
+            keepAsking = true, makeTheChange = false;
+            i = 0;
             for(auto &name : namesNotFound)
             {
                 if(keepAsking)
                 {
                     auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
-                                                               "<b>" + name + "</b>" + tr(" was not found in the roster file.<br>Should this record be kept or deleted?"),
+                                                               tr("This student:") +
+                                                               "<br><b>" + name + "</b><br>" +
+                                                               tr("was in the survey but was not found in the roster file.") + "<br><br>" +
+                                                               tr("Should we keep this student or remove them?"),
                                                                QMessageBox::Ok | QMessageBox::Cancel, this);
-                    keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep") + " " + name);
-                    connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
-                    keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Delete") + " " + name);
-                    connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
-                    auto *applyToAll = new QCheckBox(tr("Apply to all (") + QString::number(namesNotFound.size() - i) + tr(" remaining)"));
+                    auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"));
                     keepOrDeleteWindow->setCheckBox(applyToAll);
-                    connect(applyToAll, &QCheckBox::stateChanged, this, [&keepAsking](int state){keepAsking = (static_cast<Qt::CheckState>(state) == Qt::CheckState::Unchecked);});
+                    connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
+                    keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep\n") + name);
+                    connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
+                    keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Remove\n") + name);
+                    connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
 
                     if(keepOrDeleteWindow->exec() == QDialog::Rejected)
                     {
-                        deleteTheStudent = true;
-                        removeAStudent(name);
+                        dataHasChanged = true;
+                        makeTheChange = true;
+                        removeAStudent(name, true);
                     }
                     else
                     {
-                        deleteTheStudent = false;
+                        makeTheChange = false;
                     }
 
                     delete keepOrDeleteWindow;
                 }
-                else if(deleteTheStudent)
+                else if(makeTheChange)
                 {
-                    removeAStudent(name, i != namesNotFound.size()-1);
+                    removeAStudent(name, true);
                 }
                 i++;
             }
@@ -351,6 +413,7 @@ void gruepr::loadStudentRoster()
                     student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
                     student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
                     student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
+                    student[dataOptions->numStudentsInSystem].ambiguousSchedule = true;
                     student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
                     dataOptions->numStudentsInSystem++;
                 }
@@ -359,7 +422,17 @@ void gruepr::loadStudentRoster()
                 loadUI();
             }
 */
+            if(dataHasChanged)
+            {
+                ui->saveSurveyFilePushButton->setEnabled(true);                 //Enable save data file option
+                ui->actionSave_Survey_File->setEnabled(true);
 
+                refreshStudentDisplay();
+                ui->studentTable->clearSortIndicator();
+
+                ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));    // load new team sizes in selection box
+                on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());
+            }
         }
         rosterFile.close();
     }
@@ -710,18 +783,22 @@ void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
         student[ID].createTooltip(dataOptions);
     }
 
-    //Enable save data file option, since data set is now edited
+    if(delayVisualUpdate)
+    {
+        return;
+    }
+
+    // Enable save data file option, since data set is now edited
     ui->saveSurveyFilePushButton->setEnabled(true);
     ui->actionSave_Survey_File->setEnabled(true);
 
-    if(!delayVisualUpdate)
-    {
-        refreshStudentDisplay();
-        ui->studentTable->clearSortIndicator();
-    }
+    // Refresh student table data
+    refreshStudentDisplay();
+    ui->studentTable->clearSortIndicator();
 
+    // Load new team sizes in selection box, if necessary
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());
 }
 
 

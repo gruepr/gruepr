@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.0.5
+gruepr_version = 10.0.6
 copyright_year = 2019-2021
 
 QT       += core gui widgets concurrent network printsupport charts
@@ -62,17 +62,23 @@ equals(QTPREFIX, "C:/Qt/5.15.2/mingw81_64_static"){
 SOURCES += \
         Levenshtein.cpp \
         attributeTabItem.cpp \
+        baseTimeZoneDialog.cpp \
         boxwhiskerplot.cpp \
         categorialSpinBox.cpp \
         comboBoxWithElidedContents.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dayNamesDialog.cpp \
+        findMatchingNameDialog.cpp \
+        gatherURMResponsesDialog.cpp \
         listTableDialog.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
         customDialogs.cpp \
+        progressDialog.cpp \
         pushButtonWithMouseEnter.cpp \
+        registerDialog.cpp \
         sortableTableWidgetItem.cpp \
         studentRecord.cpp \
         studentTableWidget.cpp \
@@ -84,17 +90,23 @@ SOURCES += \
 HEADERS += \
         Levenshtein.h \
         attributeTabItem.h \
+        baseTimeZoneDialog.h \
         boxwhiskerplot.h \
         categorialSpinBox.h \
         comboBoxWithElidedContents.h \
         csvfile.h \
         dataOptions.h \
+        dayNamesDialog.h \
+        findMatchingNameDialog.h \
+        gatherURMResponsesDialog.h \
         gruepr.h \
         GA.h \
         customDialogs.h \
         gruepr_consts.h \
         listTableDialog.h \
+        progressDialog.h \
         pushButtonWithMouseEnter.h \
+        registerDialog.h \
         sortableTableWidgetItem.h \
         studentRecord.h \
         studentTableWidget.h \

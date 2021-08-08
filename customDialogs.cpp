@@ -1,17 +1,15 @@
 #include "customDialogs.h"
 #include "Levenshtein.h"
 #include "csvfile.h"
+#include <QButtonGroup>
 #include <QCollator>
 #include <QDateTime>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QMovie>
 #include <QStandardItemModel>
 #include <QTextStream>
-#include <QTimer>
 #include <QToolTip>
-#include <chrono>
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,27 +148,28 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     resetSaveOrLoad = new QComboBox(this);
     resetSaveOrLoad->setIconSize(QSize(15,15));
     resetSaveOrLoad->addItem(tr("Additional actions"));
-    resetSaveOrLoad->insertSeparator(1);
+    int itemnum = 1;
+    resetSaveOrLoad->insertSeparator(itemnum++);
     resetSaveOrLoad->addItem(QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
-    resetSaveOrLoad->setItemData(2, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
+    resetSaveOrLoad->setItemData(itemnum++, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
     resetSaveOrLoad->addItem(QIcon(":/icons/save.png"), tr("Save the current set to a CSV file..."));
-    resetSaveOrLoad->setItemData(3, tr("Save the current table to a csv file"), Qt::ToolTipRole);
+    resetSaveOrLoad->setItemData(itemnum++, tr("Save the current table to a csv file"), Qt::ToolTipRole);
     resetSaveOrLoad->addItem(QIcon(":/icons/openFile.png"), tr("Load a CSV file of teammates..."));
-    resetSaveOrLoad->setItemData(4, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
+    resetSaveOrLoad->setItemData(itemnum++, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
     resetSaveOrLoad->addItem(QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
-    resetSaveOrLoad->setItemData(5, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
+    resetSaveOrLoad->setItemData(itemnum++, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
     resetSaveOrLoad->addItem(QIcon(":/icons/surveymaker.png"), tr("Import students' preferences from the survey"));
     if(whatType == required || whatType == requested)
     {
         if(requestsInSurvey)
         {
-            resetSaveOrLoad->setItemData(6, tr("Add the names of the preferred teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
+            resetSaveOrLoad->setItemData(itemnum, tr("Add the names of the preferred teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
         }
         else
         {
-            resetSaveOrLoad->setItemData(6, tr("Preferred teammate information was not found in the survey"), Qt::ToolTipRole);
+            resetSaveOrLoad->setItemData(itemnum, tr("Preferred teammate information was not found in the survey"), Qt::ToolTipRole);
             auto model = qobject_cast< QStandardItemModel * >(resetSaveOrLoad->model());
-            auto item = model->item(6);
+            auto item = model->item(itemnum);
             item->setEnabled(false);
         }
     }
@@ -178,21 +177,22 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     {
         if(requestsInSurvey)
         {
-            resetSaveOrLoad->setItemData(6, tr("Add the names of the preferred non-teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
+            resetSaveOrLoad->setItemData(itemnum, tr("Add the names of the preferred non-teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
         }
         else
         {
-            resetSaveOrLoad->setItemData(6, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
+            resetSaveOrLoad->setItemData(itemnum, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
             auto model = (qobject_cast< QStandardItemModel * >(resetSaveOrLoad->model()));
-            auto item = model->item(6);
+            auto item = model->item(itemnum);
             item->setEnabled(false);
         }
     }
-    connect(resetSaveOrLoad, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {if(index == 2) {clearAllTeammateSets();}
-                                                                                                           else if(index == 3) {saveCSVFile();}
-                                                                                                           else if(index == 4) {loadCSVFile();}
-                                                                                                           else if(index == 5) {loadSpreadsheetFile();}
-                                                                                                           else if(index == 6) {loadStudentPrefs();}});
+    connect(resetSaveOrLoad, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {int itemnum = 2;
+                                                                                                           if(index == itemnum++) {clearAllTeammateSets();}
+                                                                                                           else if(index == itemnum++) {saveCSVFile();}
+                                                                                                           else if(index == itemnum++) {loadCSVFile();}
+                                                                                                           else if(index == itemnum++) {loadSpreadsheetFile();}
+                                                                                                           else if(index == itemnum++) {loadStudentPrefs();}});
     theGrid->addWidget(resetSaveOrLoad, row+1, 0, 1, 3);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, row+1, 3, -1, -1);
@@ -454,10 +454,10 @@ bool gatherTeammatesDialog::loadCSVFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), false, this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
-                    IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
+                    IDs << choiceWindow->currSurveyID;
                 }
                 delete choiceWindow;
             }
@@ -527,10 +527,10 @@ bool gatherTeammatesDialog::loadStudentPrefs()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), false, this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
-                    IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
+                    IDs << choiceWindow->currSurveyID;
                 }
                 delete choiceWindow;
             }
@@ -648,10 +648,10 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammate.at(searchStudent), false, this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammate.at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
-                    IDs << (choiceWindow->namesList->currentData(Qt::UserRole)).toInt();
+                    IDs << choiceWindow->currSurveyID;
                 }
                 delete choiceWindow;
             }
@@ -847,58 +847,6 @@ void gatherTeammatesDialog::refreshDisplay()
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to select a name from a list when a perfect match is not found
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-findMatchingNameDialog::findMatchingNameDialog(int numStudents, StudentRecord *student, const QString &searchName, const bool addStudentOption, QWidget *parent)
-    :QDialog(parent)
-{
-    QMultiMap<int, QString> possibleStudents;
-    for(int knownStudent = 0; knownStudent < numStudents; knownStudent++)
-    {
-        possibleStudents.insert(levenshtein::distance(searchName, student[knownStudent].firstname + " " + student[knownStudent].lastname),
-                                student[knownStudent].firstname + " " + student[knownStudent].lastname + "&ID=" + QString::number(student[knownStudent].ID));
-    }
-
-    // Create student selection window
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    setWindowTitle("Choose student");
-    theGrid = new QGridLayout(this);
-    explanation = new QLabel(this);
-    explanation->setText(tr("An exact match for") + " <b>" + searchName + "</b> " + tr("could not be found.<br>Please select this student from the list:"));
-    theGrid->addWidget(explanation, 0, 0, 1, -1);
-    namesList = new QComboBox(this);
-    QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
-    while (i != possibleStudents.constEnd())
-    {
-        QStringList nameAndID = i.value().split("&ID=");    // split off the ID to use as the UserData role
-        namesList->addItem(nameAndID.at(0), nameAndID.at(1).toInt());
-        i++;
-    }
-    theGrid->addWidget(namesList, 1, 0, 1, -1);
-    theGrid->setRowMinimumHeight(2, DIALOG_SPACER_ROWHEIGHT);
-    if(!addStudentOption)
-    {
-        buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    }
-    else
-    {
-        buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Save | QDialogButtonBox::Cancel);
-        auto *addButton = buttonBox->button(QDialogButtonBox::Save);
-        addButton->setText(tr("Add ") + searchName + tr(" as a new student"));
-        connect(addButton, &QPushButton::clicked, this, [this]{addStudent = true;});
-    }
-    buttonBox->button(QDialogButtonBox::Ok)->setText("Select match");
-    buttonBox->button(QDialogButtonBox::Cancel)->setText("Ignore this student");
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    theGrid->addWidget(buttonBox, 3, 0, 1, -1);
-
-    adjustSize();
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to choose custom team sizes
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -910,7 +858,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     teamsizes = new int[numStudents];
     teamsizeBox = new QSpinBox[numStudents];
 
-    setMinimumSize(200, 200);
+    setMinimumSize(XS_DLG_SIZE, XS_DLG_SIZE);
 
     //Rows 1&2 - the number of teams selector and a spacer
     numTeamsLabel.setText(tr("Number of teams: "));
@@ -1056,63 +1004,6 @@ void customTeamnamesDialog::clearAllNames()
     {
         teamName[i].clear();
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to register the software
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-registerDialog::registerDialog(QWidget *parent)
-    :QDialog (parent)
-{
-    //Set up window with a grid layout
-    setWindowTitle(tr("Register your copy of gruepr"));
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    theGrid = new QGridLayout(this);
-
-    explanation = new QLabel(this);
-    explanation->setText(tr("\nThank you for registering your copy of gruepr.\n"
-                            "Doing so enables me to best support\nthe community of educators that uses it.\n"
-                            "\t-Josh\n"
-                            "\t gruepr@gmail.com\n"));
-    theGrid->addWidget(explanation, 0, 0);
-
-    name = new QLineEdit(this);
-    name->setPlaceholderText(tr("full name [required]"));
-    theGrid->addWidget(name, 1, 0);
-
-    institution = new QLineEdit(this);
-    institution->setPlaceholderText(tr("institution [required]"));
-    theGrid->addWidget(institution, 2, 0);
-
-    email = new QLineEdit(this);
-    email->setPlaceholderText(tr("email address [required]"));
-    theGrid->addWidget(email, 3, 0);
-    //force an email address-like input
-    //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
-    QRegularExpression emailAddressFormat("^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$", QRegularExpression::CaseInsensitiveOption);
-    email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
-    connect(email, &QLineEdit::textChanged, this, [this]()
-                                             {QString stylecolor = (email->hasAcceptableInput())? "black" : "red";
-                                              email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
-
-    //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(4, DIALOG_SPACER_ROWHEIGHT);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    theGrid->addWidget(buttonBox, 5, 0);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-    connect(name, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(institution, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-    connect(email, &QLineEdit::textChanged, this, [this]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
-                                                   email->hasAcceptableInput() && !(name->text().isEmpty()) && !(institution->text().isEmpty()));});
-
-    adjustSize();
 }
 
 
@@ -1625,7 +1516,7 @@ gatherIncompatibleResponsesDialog::gatherIncompatibleResponsesDialog(const int a
     theGrid->addWidget(vline, 2, 2, numPossibleValues + 1, 1);
 
     incompatAttributePart2 = new QLabel(this);
-    incompatAttributePart2->setText("<html>" + tr("on the same team as students with these responses:") + "</html>");
+    incompatAttributePart2->setText("<html>" + tr("on the same team as students with any of these responses:") + "</html>");
     incompatAttributePart2->setWordWrap(true);
     theGrid->addWidget(incompatAttributePart2, 2, 3, 1, -1);
 
@@ -1757,327 +1648,4 @@ void gatherIncompatibleResponsesDialog::clearAllValues()
 {
     incompatibleResponses.clear();
     updateExplanation();
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to gather which racial/ethnic/cultural identities should be considered underrepresented
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMResponses, const QStringList &currURMResponsesConsideredUR, QWidget *parent)
-    :listTableDialog (tr("Select underrepresented race/ethnicity responses"), true, true, parent)
-{
-    URMResponsesConsideredUR = currURMResponsesConsideredUR;
-
-    setMinimumSize(SM_DLG_SIZE, SM_DLG_SIZE);
-
-    // Rows 1&2 - explanation and spacer
-    explanation = new QLabel(this);
-    explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity. "
-                            "Which of these should be considered underrepresented?<hr></html>"));
-    explanation->setWordWrap(true);
-    theGrid->addWidget(explanation, 0, 0, 1, -1);
-    addSpacerRow(1);
-
-    // In table, a checkbox and a label for each response values
-    const int numResponses = URMResponses.size();
-    enableValue = new QCheckBox[numResponses];
-    responses = new QPushButton[numResponses];
-    theTable->setRowCount(numResponses);
-    int widthCol0 = 0;
-    for(int response = 0; response < numResponses; response++)
-    {
-        const QString &responseText = URMResponses.at(response);
-        enableValue[response].setChecked(URMResponsesConsideredUR.contains(responseText));
-        enableValue[response].setStyleSheet("Text-align:center; margin-left:10%; margin-right:10%;");
-        theTable->setCellWidget(response, 0, &enableValue[response]);
-        widthCol0 = std::max(widthCol0, enableValue[response].width());
-        responses[response].setText(responseText);
-        responses[response].setFlat(true);
-        responses[response].setStyleSheet("Text-align:left");
-        theTable->setCellWidget(response, 1, &responses[response]);
-        connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
-        connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
-                                                                                 if(state == Qt::Checked)
-                                                                                   {URMResponsesConsideredUR << responses[response].text();
-                                                                                    responses[response].setStyleSheet("Text-align:left;font-weight: bold;");}
-                                                                                 else
-                                                                                   {URMResponsesConsideredUR.removeAll(responses[response].text());
-                                                                                    responses[response].setStyleSheet("Text-align:left;");}
-                                                                                 });
-    }
-    theTable->horizontalHeader()->resizeSection(0, widthCol0 * TABLECOLUMN0OVERWIDTH);
-    theTable->adjustSize();
-
-    adjustSize();
-}
-
-
-gatherURMResponsesDialog::~gatherURMResponsesDialog()
-{
-    //delete dynamically allocated arrays created in class constructor
-    delete [] enableValue;
-    delete [] responses;
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to show progress in optimization
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
-    :QDialog (parent)
-{
-    //Set up window with a grid layout
-    setWindowTitle(tr("Optimizing teams..."));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
-    setSizeGripEnabled(true);
-    setModal(true);
-    theGrid = new QGridLayout(this);
-
-    statusText = new QLabel(this);
-    QFont defFont("Oxygen Mono");
-    statusText->setFont(defFont);
-    statusText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    theGrid->addWidget(statusText, 0, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
-
-    explanationIcon = new QLabel(this);
-    explanationIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    auto *movie = new QMovie(":/icons/loading.gif");
-    explanationIcon->setMovie(movie);
-    movie->start();
-
-    explanationText = new QLabel(this);
-    explanationText->setFont(defFont);
-    explanationText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-    auto explanationBox = new QHBoxLayout;
-    theGrid->addLayout(explanationBox, 1, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
-    explanationBox->addWidget(explanationIcon, 0, Qt::AlignHCenter | Qt::AlignVCenter);
-    explanationBox->addWidget(explanationText, 0, Qt::AlignLeft | Qt::AlignVCenter);
-    explanationBox->addStretch(1);
-
-    theGrid->setRowMinimumHeight(2, DIALOG_SPACER_ROWHEIGHT);
-
-    auto *line = new QFrame(this);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    theGrid->addWidget(line, 3, 0, 1, -1);
-
-    if(chart != nullptr)
-    {
-        theGrid->addWidget(chart, 6, 0, 1, -1);
-        chart->hide();
-        graphShown = false;
-
-        showStatsButton = new QPushButton(QIcon(":/icons/down_arrow.png"), "Show progress", this);
-        showStatsButton->setIconSize(QSize(20, 20));
-        showStatsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        connect(showStatsButton, &QPushButton::clicked, this, [this, chart] {statsButtonPushed(chart);});
-        theGrid->addWidget(showStatsButton, 4, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
-        theGrid->setColumnStretch(1,1);
-    }
-
-    onlyStopManually = new QCheckBox("Continue optimizing\nuntil I manually stop it.", this);
-    onlyStopManually->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    theGrid->addWidget(onlyStopManually, 4, 2, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
-
-    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Stop\nnow", this);
-    stopHere->setIconSize(QSize(30, 30));
-    stopHere->setToolTip(tr("Stop the optimization process immediately and show the best set of teams found so far."));
-    stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    connect(stopHere, &QPushButton::clicked, this, [this] {emit letsStop();});
-    theGrid->addWidget(stopHere, 4, 3, 1, -1, Qt::AlignRight | Qt::AlignVCenter);
-
-    countdownToClose = new QTimer(this);
-    setText("");
-    adjustSize();
-}
-
-void progressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
-{
-    QString explanation = "<html>" + tr("Generation ") + QString::number(generation) + " - "
-                          + tr("Top Score = ") + (score < 0? "<span style=\"font-family:'Arial'\"> - </span>": "") + QString::number(std::abs(score)) +
-                          "<br><span style=\"color:" + (autostopInProgress? "green" : "black") + ";\">" + text;
-    if(autostopInProgress && !onlyStopManually->isChecked())
-    {
-        explanation += "<br>" + tr("Optimization will stop in ") + QString::number(secsLeftToClose) + tr(" seconds.");
-    }
-    explanation += "</span></html>";
-    explanationText->setText(explanation);
-
-    if(autostopInProgress)
-    {
-        explanationIcon->setPixmap(QIcon(":/icons/ok.png").pixmap(25, 25));
-    }
-
-    if(autostopInProgress && !onlyStopManually->isChecked())
-    {
-        statusText->setText(tr("Status: Finalizing..."));
-    }
-    else
-    {
-        statusText->setText(tr("Status: Optimizing..."));
-    }
-}
-
-void progressDialog::highlightStopButton()
-{
-    stopHere->setFocus();
-
-    if(countdownToClose->isActive() || onlyStopManually->isChecked())
-    {
-        return;
-    }
-
-    connect(countdownToClose, &QTimer::timeout, this, &progressDialog::updateCountdown);
-    countdownToClose->start(std::chrono::seconds(1));
-}
-
-void progressDialog::updateCountdown()
-{
-    if(onlyStopManually->isChecked())
-    {
-        secsLeftToClose = 5;
-        return;
-    }
-
-    secsLeftToClose--;
-    explanationText->setText(explanationText->text().replace(QRegularExpression(tr("stop in ") + "\\d*"), tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
-    if(secsLeftToClose == 0)
-    {
-        stopHere->animateClick();
-    }
-}
-
-void progressDialog::reject()
-{
-    // If closing the window with click on close or hitting 'Esc', stop the optimization, too
-    stopHere->animateClick();
-    QDialog::reject();
-}
-
-void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
-{
-    graphShown = !graphShown;
-
-    int height = 0, width = 0;
-    const int numHorizontalAxisMarkers = 14;
-    QIcon icon;
-    QString butText;
-    if(graphShown)
-    {
-        chart->show();
-        height = CHARTHEIGHT;
-        width = numHorizontalAxisMarkers * QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("XX  ");
-        icon = QIcon(":/icons/up_arrow.png");
-        butText = "Hide progress";
-    }
-    else
-    {
-        chart->hide();
-        icon = QIcon(":/icons/down_arrow.png");
-        butText = "Show progress";
-    }
-    int chartRow, chartCol, x;
-    theGrid->getItemPosition(theGrid->indexOf(chart), &chartRow, &chartCol, &x, &x);
-    theGrid->setRowMinimumHeight(chartRow, height);
-    theGrid->setColumnMinimumWidth(chartCol, width);
-    showStatsButton->setIcon(icon);
-    showStatsButton->setText(butText);
-    adjustSize();
-}
-
-progressDialog::~progressDialog()
-{
-    countdownToClose->stop();
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to select / name days for the schedule in the survey
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-dayNamesDialog::dayNamesDialog(QCheckBox *dayselectors[], QLineEdit *daynames[], QWidget *parent)
-    :QDialog (parent)
-{
-    //Set up window with a grid layout
-    setWindowTitle(tr("Schedule days"));
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    theGrid = new QGridLayout(this);
-
-    for(int day = 0; day < MAX_DAYS; day++)
-    {
-        theGrid->addWidget(dayselectors[day], day, 0);
-        theGrid->addWidget(daynames[day], day, 1);
-    }
-
-    //a spacer then ok button
-    theGrid->setRowMinimumHeight(MAX_DAYS, DIALOG_SPACER_ROWHEIGHT);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
-    theGrid->addWidget(buttonBox, MAX_DAYS + 1, 0, 1, -1);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-
-    adjustSize();
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to select base timezone for the class in the survey
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
-    :QDialog (parent)
-{
-    //Set up window with a grid layout
-    setWindowTitle(tr("Class timezone"));
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    theGrid = new QGridLayout(this);
-
-    //explanation and a spacer row
-    explanation = new QLabel(this);
-    explanation->setText(tr("<html>Students were asked to fill out their schedule using their home timezone. "
-                            "Which of these should be used as the base timezone for the class? "
-                            "The schedules will all be adjusted to correspond to this value.<hr></html>"));
-    explanation->setWordWrap(true);
-    theGrid->addWidget(explanation, 0, 0, 1, -1);
-    theGrid->setRowMinimumHeight(1, DIALOG_SPACER_ROWHEIGHT);
-
-    const QDateTime local(QDateTime::currentDateTime());
-    const QDateTime UTC(local.date(), local.time(), Qt::UTC);
-    const float hoursToGMTFromHere = (local.secsTo(UTC)/3600.0F) - (local.isDaylightTime()? 1 : 0);
-
-    QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");
-    timezones = new QComboBox(this);
-    for(int zone = 0; zone < timeZoneNames.size(); zone++)
-    {
-        QString zonename = timeZoneNames.at(zone);
-        zonename.remove('"');
-        float GMTOffset = 0;
-        QRegularExpression offsetFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
-        QRegularExpressionMatch offset = offsetFinder.match(zonename);
-        if(offset.hasMatch())
-        {
-            int hours = offset.captured(1).toInt();
-            float minutes = offset.captured(2).toFloat();
-            GMTOffset = hours + ((hours < 0)? (-minutes/60) : (minutes/60));
-        }
-        timezones->insertItem(zone, zonename);
-        timezones->setItemData(zone, GMTOffset);
-    }
-    int index = timezones->findData(hoursToGMTFromHere);
-    timezones->setCurrentIndex(index != -1? index : 0);
-    baseTimezoneVal = timezones->currentData().toFloat();
-    connect(timezones, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {baseTimezoneVal = timezones->currentData().toFloat();});
-    theGrid->addWidget(timezones, 2, 0, 1, -1);
-
-    //a spacer then ok button
-    theGrid->setRowMinimumHeight(3, DIALOG_SPACER_ROWHEIGHT);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
-    theGrid->addWidget(buttonBox, 4, 0, 1, -1);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-
-    adjustSize();
 }

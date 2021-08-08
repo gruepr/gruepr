@@ -1849,10 +1849,10 @@ QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-chi
      <normaloff>:/icons/loadRoster.png</normaloff>:/icons/loadRoster.png</iconset>
    </property>
    <property name="text">
-    <string>Load Student Roster...</string>
+    <string>Compare Students to Roster...</string>
    </property>
    <property name="toolTip">
-    <string>Compare the student names and email addresses to a class roster csv file.</string>
+    <string>Check the names and email addresses listed in the table against a class roster csv file.</string>
    </property>
   </action>
   <action name="actionBugReport">
