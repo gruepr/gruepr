@@ -305,7 +305,10 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     studentItem->setToolTip(column, stu.tooltip);
     studentItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
     column++;
-    column++;   // skip the teamscore column
+    // blank teamscore column, but show a tooltip if hovered
+    studentItem->setText(column, " ");
+    studentItem->setToolTip(column, stu.tooltip);
+    column++;
     if(dataOptions->genderIncluded)
     {
         if(stu.gender == StudentRecord::woman)
@@ -526,13 +529,21 @@ void TeamTreeWidget::leaveEvent(QEvent *event)
 
 ///////////////////////////////////////////////////////////////////////
 
-TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns)
+TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, bool teamHasBadScore)
 {
     if(type == team && columns > 0)
     {
         QFont teamFont = this->font(0);
         teamFont.setBold(true);
-        const QBrush teamColor = QColor(0xce, 0xea, 0xfb);
+        QBrush teamColor;
+        if(teamHasBadScore)
+        {
+            teamColor = QColor(0xfb, 0xcf, 0xce);
+        }
+        else
+        {
+            teamColor = QColor(0xce, 0xea, 0xfb);
+        }
 
         for(int col = 0; col < columns; col++)
         {

@@ -19,7 +19,7 @@ class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
     enum TreeItemType{team, student};
-    TeamTreeWidgetItem(TreeItemType type, int columns = 0);
+    TeamTreeWidgetItem(TreeItemType type, int columns = 0, bool teamHasBadScore = false);
     bool operator<(const QTreeWidgetItem &other) const;
 };
 

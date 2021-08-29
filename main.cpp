@@ -9,27 +9,32 @@
 //    it under the terms of the GNU General Public License as published by
 //    the Free Software Foundation, either version 3 of the License, or
 //    (at your option) any later version.
-
+//
 //    This program is distributed in the hope that it will be useful,
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //    GNU General Public License for more details.
-
+//
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
-
+//
 //    This software incorporates code from the open source Qt libraries,
 //    using version 5.15. These can be freely downloaded from
 //    < http://qt.io/download >.
-
+//
 //    Icons were originally created by Icons8 < https://icons8.com >.
 //    These icons have been made available under the creative commons license:
 //    Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
-
+//
 //    An embedded font is used, mostly for pdf and printer output:
 //    Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk)
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// DONE:
+// - add "Required attribute" feature--penalty point if team does not have at least one value on it
+// - make background color pink and change tooltip for teams with a score <= 0
+// - split customDialogs to give each subclassed dialog its own .h and .cpp file
 //
 // TO DO:
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed

@@ -12,7 +12,7 @@
 #include "attributeTabItem.h"
 #include "boxwhiskerplot.h"
 #include "csvfile.h"
-#include "customDialogs.h"
+#include "gatherTeammatesDialog.h"
 #include "dataOptions.h"
 #include "progressDialog.h"
 #include "pushButtonWithMouseEnter.h"
@@ -49,6 +49,7 @@ private slots:
     void on_mixedGenderCheckBox_stateChanged(int arg1);
     void on_isolatedURMCheckBox_stateChanged(int arg1);
     void on_URMResponsesButton_clicked();
+    void requiredResponsesButton_clicked();
     void incompatibleResponsesButton_clicked();
     void on_minMeetingTimes_valueChanged(int arg1);
     void on_desiredMeetingTimes_valueChanged(int arg1);

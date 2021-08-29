@@ -24,6 +24,8 @@ public:
     bool desireHomogeneous[MAX_ATTRIBUTES]; 			// if true/false, tries to make all students on a team have similar/different levels of each attribute
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
     float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight
+    bool haveAnyRequiredAttributes[MAX_ATTRIBUTES];
+    QVector<int> requiredAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of required attribute value
     bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];
     QVector< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;

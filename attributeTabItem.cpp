@@ -33,11 +33,11 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
 
     if(tabType == gruepr)
     {
-        weightLabel = new QLabel("Weight:", this);
+        weightLabel = new QLabel(tr("Weight:"), this);
         theGrid->addWidget(weightLabel, 1, 0, Qt::AlignCenter);
 
         weight = new QDoubleSpinBox(this);
-        weight->setToolTip("<html>The relative importance of this attribute in forming the teams.</html>");
+        weight->setToolTip(tr("<html>The relative importance of this attribute in forming the teams.</html>"));
         weight->setButtonSymbols(QAbstractSpinBox::NoButtons);
         weight->setDecimals(1);
         weight->setMinimum(0);
@@ -45,14 +45,18 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         weight->setValue(1);
         theGrid->addWidget(weight, 1, 1, Qt::AlignCenter);
 
-        homogeneous = new QCheckBox("Prefer Homogeneous", this);
-        homogeneous->setToolTip("If selected, all of the students on a team will have a similar response to this question.\n"
-                                "If unselected, the students on a team will have a wide range of responses to this question.");
+        homogeneous = new QCheckBox(tr("Prefer Homogeneous"), this);
+        homogeneous->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
+                                   "If unselected, the students on a team will have a wide range of responses to this question."));
         theGrid->addWidget(homogeneous, 1, 2, Qt::AlignCenter);
 
-        incompatsButton = new QPushButton("Incompatible\nResponses", this);
-        incompatsButton->setToolTip("<html>Indicate response values that should prevent students from being on the same team.</html>");
-        theGrid->addWidget(incompatsButton, 1, 3, Qt::AlignLeft | Qt::AlignVCenter);
+        requiredButton = new QPushButton(tr("Required\nAttributes"), this);
+        requiredButton->setToolTip(tr("<html>Indicate attribute value(s) where each team should have at least one student with that value.</html>"));
+        theGrid->addWidget(requiredButton, 1, 3, Qt::AlignRight | Qt::AlignVCenter);
+
+        incompatsButton = new QPushButton(tr("Incompatible\nAttributes"), this);
+        incompatsButton->setToolTip(tr("<html>Indicate attribute value(s) that should prevent students from being on the same team.</html>"));
+        theGrid->addWidget(incompatsButton, 1, 4, Qt::AlignLeft | Qt::AlignVCenter);
     }
     else
     {
@@ -66,9 +70,10 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
 {
     if(attribute >= dataOptions->numAttributes)
     {
-        attributeText->setHtml("<html>N/A</html>");
+        attributeText->setHtml(tr("<html>N/A</html>"));
         weight->setEnabled(false);
         homogeneous->setEnabled(false);
+        requiredButton->setEnabled(false);
         incompatsButton->setEnabled(false);
         return;
     }
@@ -99,6 +104,8 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
         weight->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
         homogeneous->setEnabled(false);
         homogeneous->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
+        requiredButton->setEnabled(false);
+        requiredButton->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
         incompatsButton->setEnabled(false);
         incompatsButton->setToolTip(tr("With only one response value, this attribute cannot be used for teaming"));
     }
@@ -109,8 +116,10 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
         homogeneous->setEnabled(true);
         homogeneous->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
                                    "If unselected, the students on a team will have a wide range of responses to this question."));
+        requiredButton->setEnabled(true);
+        requiredButton->setToolTip(tr("<html>Indicate attribute value(s) where each team should have at least one student with that value.</html>"));
         incompatsButton->setEnabled(true);
-        incompatsButton->setToolTip(tr("<html>Indicate response values that should prevent students from being on the same team.</html>"));
+        incompatsButton->setToolTip(tr("<html>Indicate attribute value(s) that should prevent students from being on the same team.</html>"));
     }
     weight->setValue(double(teamingOptions->attributeWeights[attribute]));
     homogeneous->setChecked(teamingOptions->desireHomogeneous[attribute]);

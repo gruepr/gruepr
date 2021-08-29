@@ -1,10 +1,15 @@
 #include "gruepr.h"
 #include "baseTimeZoneDialog.h"
+#include "customTeamnamesDialog.h"
+#include "customTeamsizesDialog.h"
 #include "findMatchingNameDialog.h"
+#include "editOrAddStuentDialog.h"
+#include "gatherAttributeValuesDialog.h"
 #include "gatherURMResponsesDialog.h"
 #include "sortableTableWidgetItem.h"
 #include "teamTreeWidget.h"
 #include "ui_gruepr.h"
+#include "whichFilesDialog.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -1131,18 +1136,36 @@ void gruepr::on_URMResponsesButton_clicked()
 }
 
 
+void gruepr::requiredResponsesButton_clicked()
+{
+    int currAttribute = ui->attributesTabWidget->currentIndex();
+    //Open specialized dialog box to collect attribute values that are required on each team
+    auto *win = new gatherAttributeValuesDialog(currAttribute, dataOptions, teamingOptions, gatherAttributeValuesDialog::required, this);
+
+    //If user clicks OK, replace student database with copy that has had values added
+    int reply = win->exec();
+    if(reply == QDialog::Accepted)
+    {
+        teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
+        teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+    }
+
+    delete win;
+}
+
+
 void gruepr::incompatibleResponsesButton_clicked()
 {
     int currAttribute = ui->attributesTabWidget->currentIndex();
-    //Open specialized dialog box to collect response pairings that should prevent students from being on the same team
-    auto *win = new gatherIncompatibleResponsesDialog(currAttribute, dataOptions, teamingOptions->incompatibleAttributeValues[currAttribute], this);
+    //Open specialized dialog box to collect attribute pairings that should prevent students from being on the same team
+    auto *win = new gatherAttributeValuesDialog(currAttribute, dataOptions, teamingOptions, gatherAttributeValuesDialog::incompatible, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleResponses.isEmpty());
-        teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleResponses;
+        teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
+        teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
     }
 
     delete win;
@@ -2501,6 +2524,7 @@ void gruepr::loadUI()
                         this, [this](double arg1){teamingOptions->attributeWeights[ui->attributesTabWidget->currentIndex()] = float(arg1);});
             connect(attributeTab[attribute].homogeneous, &QCheckBox::stateChanged,
                         this, [this](int arg1){teamingOptions->desireHomogeneous[ui->attributesTabWidget->currentIndex()] = (arg1 != 0);});
+            connect(attributeTab[attribute].requiredButton, &QPushButton::clicked, this, &gruepr::requiredResponsesButton_clicked);
             connect(attributeTab[attribute].incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
         }
         ui->label_21->setEnabled(true);
@@ -3404,7 +3428,8 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
     // Calculate attribute scores and penalties for each attribute for each team:
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
-        if((teamingOptions->realAttributeWeights[attribute] > 0) || (teamingOptions->haveAnyIncompatibleAttributes[attribute]))
+        if((teamingOptions->realAttributeWeights[attribute] > 0) ||
+                (teamingOptions->haveAnyIncompatibleAttributes[attribute]) || (teamingOptions->haveAnyRequiredAttributes[attribute]))
         {
             ID = 0;
             for(int team = 0; team < numTeams; team++)
@@ -3430,7 +3455,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 // Add a penalty per pair of incompatible attribute responses found
                 if(teamingOptions->haveAnyIncompatibleAttributes[attribute])
                 {
-                    // go through each pair found in teamingOptions->incompatibleAttributeValues[attrib] list and see if both int's found in attributeLevelsInTeam
+                    // go through each pair found in teamingOptions->incompatibleAttributeValues[attrib] list and see if both are found in attributeLevelsInTeam
                     for(const auto &pair : qAsConst(teamingOptions->incompatibleAttributeValues[attribute]))
                     {
                         int n = attributeLevelsInTeam.count(pair.first);
@@ -3448,6 +3473,19 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                             {
                                 penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions;
                             }
+                        }
+                    }
+                }
+
+                // Add a penalty per required attribute response not found
+                if(teamingOptions->haveAnyRequiredAttributes[attribute])
+                {
+                    // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
+                    for(const auto value : teamingOptions->requiredAttributeValues[attribute])
+                    {
+                        if(attributeLevelsInTeam.count(value) == 0)
+                        {
+                            penaltyPoints[team]++;
                         }
                     }
                 }
@@ -3892,9 +3930,10 @@ void gruepr::refreshTeamDisplay()
     int studentNum = 0;
     for(int teamNum = 0; teamNum < numTeams; teamNum++)
     {
-        parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, ui->teamDataTree->columnCount());
-        QString firstStudentName = student[teams[teamNum].studentIDs[0]].lastname+student[teams[teamNum].studentIDs[0]].firstname;
-        ui->teamDataTree->refreshTeam(parentItems[teamNum], teams[teamNum], teamNum, firstStudentName, dataOptions);
+        const auto &currentTeam = teams[teamNum];
+        parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, ui->teamDataTree->columnCount(), currentTeam.score <= 0);
+        QString firstStudentName = student[currentTeam.studentIDs[0]].lastname+student[currentTeam.studentIDs[0]].firstname;
+        ui->teamDataTree->refreshTeam(parentItems[teamNum], currentTeam, teamNum, firstStudentName, dataOptions);
 
         //remove all student items in the team
         for(auto &studentItem : parentItems[teamNum]->takeChildren())
@@ -3904,10 +3943,10 @@ void gruepr::refreshTeamDisplay()
         }
 
         //add new student items
-        for(int studentOnTeam = 0, numStudentsOnTeam = teams[teamNum].size; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
+        for(int studentOnTeam = 0, numStudentsOnTeam = currentTeam.size; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[teamNum].studentIDs[studentOnTeam]], dataOptions);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[currentTeam.studentIDs[studentOnTeam]], dataOptions);
             parentItems[teamNum]->addChild(childItems[studentNum]);
             studentNum++;
         }

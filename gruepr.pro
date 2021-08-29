@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.0.6
+gruepr_version = 10.1
 copyright_year = 2019-2021
 
 QT       += core gui widgets concurrent network printsupport charts
@@ -64,18 +64,22 @@ SOURCES += \
         attributeTabItem.cpp \
         baseTimeZoneDialog.cpp \
         boxwhiskerplot.cpp \
-        categorialSpinBox.cpp \
+        categoricalSpinBox.cpp \
         comboBoxWithElidedContents.cpp \
         csvfile.cpp \
+        customTeamnamesDialog.cpp \
+        customTeamsizesDialog.cpp \
         dataOptions.cpp \
         dayNamesDialog.cpp \
+        editOrAddStuentDialog.cpp \
         findMatchingNameDialog.cpp \
+        gatherAttributeValuesDialog.cpp \
+        gatherTeammatesDialog.cpp \
         gatherURMResponsesDialog.cpp \
         listTableDialog.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
-        customDialogs.cpp \
         progressDialog.cpp \
         pushButtonWithMouseEnter.cpp \
         registerDialog.cpp \
@@ -85,23 +89,28 @@ SOURCES += \
         surveymaker.cpp \
         teamRecord.cpp \
         teamTreeWidget.cpp \
-        teamingOptions.cpp
+        teamingOptions.cpp \
+        whichFilesDialog.cpp
 
 HEADERS += \
         Levenshtein.h \
         attributeTabItem.h \
         baseTimeZoneDialog.h \
         boxwhiskerplot.h \
-        categorialSpinBox.h \
+        categoricalSpinBox.h \
         comboBoxWithElidedContents.h \
         csvfile.h \
+        customTeamnamesDialog.h \
+        customTeamsizesDialog.h \
         dataOptions.h \
         dayNamesDialog.h \
+        editOrAddStuentDialog.h \
         findMatchingNameDialog.h \
+        gatherAttributeValuesDialog.h \
+        gatherTeammatesDialog.h \
         gatherURMResponsesDialog.h \
         gruepr.h \
         GA.h \
-        customDialogs.h \
         gruepr_consts.h \
         listTableDialog.h \
         progressDialog.h \
@@ -113,7 +122,8 @@ HEADERS += \
         surveymaker.h \
         teamRecord.h \
         teamTreeWidget.h \
-        teamingOptions.h
+        teamingOptions.h \
+        whichFilesDialog.h
 
 FORMS += \
       gruepr.ui \

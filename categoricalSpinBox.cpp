@@ -1,4 +1,4 @@
-#include "categorialSpinBox.h"
+#include "categoricalSpinBox.h"
 
 
 //////////////////

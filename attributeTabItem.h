@@ -26,10 +26,9 @@ public:
     QTextEdit *attributeText = nullptr;
     QDoubleSpinBox *weight = nullptr;
     QCheckBox *homogeneous = nullptr;
+    QPushButton *requiredButton = nullptr;
     QPushButton *incompatsButton = nullptr;
     ComboBoxWithElidedContents *attributeResponses = nullptr;
-
-signals:
 
 private:
     QGridLayout *theGrid = nullptr;
