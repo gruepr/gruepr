@@ -31,18 +31,14 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// DONE:
-// - add "Required attribute" feature--penalty point if team does not have at least one value on it
-// - make background color pink and change tooltip for teams with a score <= 0
-// - split customDialogs to give each subclassed dialog its own .h and .cpp file
 //
 // TO DO:
+// - add select-multiple attribute question option
+// - check if pairing is both (required or requested) and prevented
+// - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
 //      - change the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
-// - check if pairing is both (required or requested) and prevented
-// - add select-multiple attribute question option
 // - more granular scheduling option, down to the 15 minute level at least
-// - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
