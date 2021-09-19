@@ -15,8 +15,12 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
     QMultiMap<int, QString> possibleStudents;
     for(int knownStudent = 0; knownStudent < numStudents; knownStudent++)
     {
-        possibleStudents.insert(levenshtein::distance(searchName, student[knownStudent].firstname + " " + student[knownStudent].lastname),
-                                student[knownStudent].firstname + " " + student[knownStudent].lastname + "&stunum=" + QString::number(knownStudent));
+        int rank = levenshtein::distance(searchName, student[knownStudent].firstname + " " + student[knownStudent].lastname);
+        if(!searchEmail.isEmpty() && searchEmail.compare(student[knownStudent].email, Qt::CaseInsensitive) == 0)
+        {
+            rank = 0;
+        }
+        possibleStudents.insert(rank, student[knownStudent].firstname + " " + student[knownStudent].lastname + "&stunum=" + QString::number(knownStudent));
     }
 
     // Create student selection window
@@ -106,6 +110,12 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         useSurveyEmailCheckbox->setChecked(true);
         useSurveyEmailCheckbox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         emailGroup->addButton(useSurveyEmailCheckbox);
+        if(searchEmail == currSurveyEmail)
+        {
+            useRosterEmailCheckbox->setEnabled(false);
+            useSurveyEmailCheckbox->setEnabled(false);
+            useSurveyEmailCheckbox->setText(tr("The survey email address matches the roster"));
+        }
 
         theGrid->setRowMinimumHeight(row++, DIALOG_SPACER_ROWHEIGHT);
         theGrid->addWidget(addButton, row++, 0, 1, 1);
@@ -130,13 +140,18 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         theGrid->addWidget(line3, row++, 0, 1, -1);
         theGrid->addWidget(ignoreButton, row, 0, 1, 1);
 
-        connect(namesList, &QComboBox::currentTextChanged, this, [this, &student](const QString &currText)
+        connect(namesList, &QComboBox::currentTextChanged, this, [this, searchEmail, &student](const QString &currText)
                                                                  {currSurveyName = currText;
                                                                   currSurveyEmail = student[namesList->currentData().toInt()].email;
                                                                   currSurveyID = student[namesList->currentData().toInt()].ID;
                                                                   useSurveyNameCheckbox->setText(tr("Use survey name") + ":  " + currSurveyName);
                                                                   useSurveyEmailCheckbox->setText(tr("Use survey email address")+ ":  " +
-                                                                                                  (currSurveyEmail.isEmpty()? tr("--") : currSurveyEmail));});
+                                                                                           (currSurveyEmail.isEmpty()? tr("--") : currSurveyEmail));
+                                                                  useRosterEmailCheckbox->setEnabled(searchEmail != currSurveyEmail);
+                                                                  useSurveyEmailCheckbox->setEnabled(searchEmail != currSurveyEmail);
+                                                                  if(searchEmail == currSurveyEmail)
+                                                                  {useSurveyEmailCheckbox->setText(tr("The survey email address matches the roster"));}
+                                                                  });
     }
 
     adjustSize();

@@ -6,7 +6,7 @@
 #include <QString>
 #include <QTableWidget>
 #include <QTextStream>
-#include "listTableDialog.h"
+#include "dialogs\listTableDialog.h"
 
 typedef  std::tuple<QString, QString, int> possFieldMeaning;    // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that might have this meaning
 
@@ -27,13 +27,14 @@ public:
     void close();
     bool readHeader();
     QDialog* chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
-    bool readDataRow();
+    bool readDataRow(bool resetToStart = false);
     bool writeHeader();
     void writeDataRow();
 
     static QStringList getLine(QTextStream &externalStream, const int minFields = -1, const char delimiter = ',');
 
     QStringList headerValues;
+    bool hasHeaderRow = true;
     QStringList fieldMeanings;
     QStringList fieldValues;
 
@@ -45,6 +46,9 @@ private:
     listTableDialog *window = nullptr;
     QStringList getLine(const int minFields = -1);
     void validateFieldSelectorBoxes(int callingRow = -1);
+    const QString HEADERTEXT = tr("Column Headers");
+    const QString CATEGORYTEXT = tr("Category");
+    const QString ROW1TEXT = tr("First Row of Data");
     const QString UNUSEDTEXT = tr("Unused");
     const int DIALOGWIDTH = 500;
     const int DIALOGHEIGHT = 300;

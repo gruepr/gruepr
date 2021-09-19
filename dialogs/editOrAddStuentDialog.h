@@ -7,7 +7,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPlainTextEdit>
-#include "categoricalSpinBox.h"
+#include "widgets\categoricalSpinBox.h"
 #include "dataOptions.h"
 #include "studentRecord.h"
 

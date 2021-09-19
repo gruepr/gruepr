@@ -139,30 +139,30 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     //Rows 5&6 (or 6&7) - a spacer then reset table/loadFile/ok/cancel buttons
     row += 2;
     theGrid->setRowMinimumHeight(row, DIALOG_SPACER_ROWHEIGHT);
-    resetSaveOrLoad = new QComboBox(this);
-    resetSaveOrLoad->setIconSize(QSize(15,15));
-    resetSaveOrLoad->addItem(tr("Additional actions"));
+    actionSelectBox = new QComboBox(this);
+    actionSelectBox->setIconSize(QSize(15,15));
+    actionSelectBox->addItem(tr("Additional actions"));
     int itemnum = 1;
-    resetSaveOrLoad->insertSeparator(itemnum++);
-    resetSaveOrLoad->addItem(QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
-    resetSaveOrLoad->setItemData(itemnum++, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
-    resetSaveOrLoad->addItem(QIcon(":/icons/save.png"), tr("Save the current set to a CSV file..."));
-    resetSaveOrLoad->setItemData(itemnum++, tr("Save the current table to a csv file"), Qt::ToolTipRole);
-    resetSaveOrLoad->addItem(QIcon(":/icons/openFile.png"), tr("Load a CSV file of teammates..."));
-    resetSaveOrLoad->setItemData(itemnum++, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
-    resetSaveOrLoad->addItem(QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
-    resetSaveOrLoad->setItemData(itemnum++, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
-    resetSaveOrLoad->addItem(QIcon(":/icons/surveymaker.png"), tr("Import students' preferences from the survey"));
+    actionSelectBox->insertSeparator(itemnum++);
+    actionSelectBox->addItem(QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
+    actionSelectBox->setItemData(itemnum++, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
+    actionSelectBox->addItem(QIcon(":/icons/save.png"), tr("Save the current set to a CSV file..."));
+    actionSelectBox->setItemData(itemnum++, tr("Save the current table to a csv file"), Qt::ToolTipRole);
+    actionSelectBox->addItem(QIcon(":/icons/openFile.png"), tr("Load a CSV file of teammates..."));
+    actionSelectBox->setItemData(itemnum++, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
+    actionSelectBox->addItem(QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
+    actionSelectBox->setItemData(itemnum++, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
+    actionSelectBox->addItem(QIcon(":/icons/surveymaker.png"), tr("Import students' preferences from the survey"));
     if(whatType == required || whatType == requested)
     {
         if(requestsInSurvey)
         {
-            resetSaveOrLoad->setItemData(itemnum, tr("Add the names of the preferred teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
+            actionSelectBox->setItemData(itemnum, tr("Add the names of the preferred teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
         }
         else
         {
-            resetSaveOrLoad->setItemData(itemnum, tr("Preferred teammate information was not found in the survey"), Qt::ToolTipRole);
-            auto model = qobject_cast< QStandardItemModel * >(resetSaveOrLoad->model());
+            actionSelectBox->setItemData(itemnum, tr("Preferred teammate information was not found in the survey"), Qt::ToolTipRole);
+            auto model = qobject_cast< QStandardItemModel * >(actionSelectBox->model());
             auto item = model->item(itemnum);
             item->setEnabled(false);
         }
@@ -171,23 +171,23 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     {
         if(requestsInSurvey)
         {
-            resetSaveOrLoad->setItemData(itemnum, tr("Add the names of the preferred non-teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
+            actionSelectBox->setItemData(itemnum, tr("Add the names of the preferred non-teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
         }
         else
         {
-            resetSaveOrLoad->setItemData(itemnum, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
-            auto model = (qobject_cast< QStandardItemModel * >(resetSaveOrLoad->model()));
+            actionSelectBox->setItemData(itemnum, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
+            auto model = (qobject_cast< QStandardItemModel * >(actionSelectBox->model()));
             auto item = model->item(itemnum);
             item->setEnabled(false);
         }
     }
-    connect(resetSaveOrLoad, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {int itemnum = 2;
+    connect(actionSelectBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {int itemnum = 2;
                                                                                                            if(index == itemnum++) {clearAllTeammateSets();}
                                                                                                            else if(index == itemnum++) {saveCSVFile();}
                                                                                                            else if(index == itemnum++) {loadCSVFile();}
                                                                                                            else if(index == itemnum++) {loadSpreadsheetFile();}
                                                                                                            else if(index == itemnum++) {loadStudentPrefs();}});
-    theGrid->addWidget(resetSaveOrLoad, row+1, 0, 1, 3);
+    theGrid->addWidget(actionSelectBox, row+1, 0, 1, 3);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, row+1, 3, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -272,7 +272,7 @@ void gatherTeammatesDialog::clearAllTeammateSets()
                                     QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if(resp == QMessageBox::No)
     {
-        resetSaveOrLoad->setCurrentIndex(0);
+        actionSelectBox->setCurrentIndex(0);
         return;
     }
 
@@ -303,7 +303,7 @@ void gatherTeammatesDialog::clearAllTeammateSets()
 
 bool gatherTeammatesDialog::saveCSVFile()
 {
-    resetSaveOrLoad->setCurrentIndex(0);
+    actionSelectBox->setCurrentIndex(0);
 
     CsvFile csvFile;
     if(!csvFile.open(this, CsvFile::write, tr("Save File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)")))
@@ -350,7 +350,7 @@ bool gatherTeammatesDialog::saveCSVFile()
 
 bool gatherTeammatesDialog::loadCSVFile()
 {
-    resetSaveOrLoad->setCurrentIndex(0);
+    actionSelectBox->setCurrentIndex(0);
 
     CsvFile csvFile;
     if(!csvFile.open(this, CsvFile::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)")))
@@ -564,7 +564,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     CsvFile spreadsheetFile(CsvFile::tab);
     if(!spreadsheetFile.open(this, CsvFile::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)")))
     {
-        resetSaveOrLoad->setCurrentIndex(0);
+        actionSelectBox->setCurrentIndex(0);
         return false;
     }
 
@@ -836,5 +836,5 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->resizeColumnsToContents();
     currentListOfTeammatesTable->resizeRowsToContents();
 
-    resetSaveOrLoad->setCurrentIndex(0);
+    actionSelectBox->setCurrentIndex(0);
 }

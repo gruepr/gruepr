@@ -1,4 +1,5 @@
 #include "csvfile.h"
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -101,8 +102,12 @@ bool CsvFile::readHeader()
 //////////////////
 // Read a line from the file, splitting & saving field texts into fieldValues
 //////////////////
-bool CsvFile::readDataRow()
+bool CsvFile::readDataRow(bool resetToStart)
 {
+    if(resetToStart)
+    {
+        stream->seek(0);
+    }
     fieldValues = getLine(numFields);
     return !fieldValues.isEmpty();
 }
@@ -182,22 +187,24 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         {
             const QString &headerVal = headerValues.at(i);
             int matchPattern = 0;
-            QString match = std::get<1>(possibleFieldMeanings.at(matchPattern));
-            while((matchPattern < possibleFieldMeanings.size()) &&
-                  !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)))
+            QString match;
+            do
             {
-                matchPattern++;
                 match = std::get<1>(possibleFieldMeanings.at(matchPattern));
+                matchPattern++;
             }
+            while((matchPattern < possibleFieldMeanings.size()) &&
+                  !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)));
 
             if(matchPattern != possibleFieldMeanings.size())
             {
-                fieldMeanings[i] = std::get<0>(possibleFieldMeanings.at(matchPattern));
+                fieldMeanings[i] = std::get<0>(possibleFieldMeanings.at(matchPattern - 1));
             }
             else
             {
                 fieldMeanings[i] = UNUSEDTEXT;
             }
+
         }
     }
 
@@ -206,22 +213,30 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);
 
     auto *explanation = new QLabel(window);
-    explanation->setText(tr("<html>The following column headers were found in the file. "
+    explanation->setText(tr("<html>The following fields were found in the first row of the file. "
                          "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT + tr("\" for any field(s) that should be ignored.<hr></html>"));
     explanation->setWordWrap(true);
     window->theGrid->addWidget(explanation, 0, 0, 1, -1);
-    window->addSpacerRow(1);
+
+    auto *hasHeaderRowCheckbox = new QCheckBox(window);
+    hasHeaderRowCheckbox->setText(tr("This file has a header row"));
+    hasHeaderRowCheckbox->setChecked(true);
+    window->theGrid->addWidget(hasHeaderRowCheckbox, 1, 0, 1, -1);
+    connect(hasHeaderRowCheckbox, &QCheckBox::clicked, this, [this, hasHeaderRowCheckbox]{hasHeaderRow = hasHeaderRowCheckbox->isChecked();
+                                                                                          if(hasHeaderRow)
+                                                                                            {window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));}
+                                                                                          else
+                                                                                            {window->theTable->setHorizontalHeaderLabels(QStringList({ROW1TEXT, CATEGORYTEXT}));}});
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     window->theTable->horizontalHeader()->setStyleSheet("QHeaderView{font: bold large}");
-    window->theTable->setHorizontalHeaderLabels(QStringList({"Header Text","Category"}));
+    window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++)
     {
         auto *label = new QLabel("\n" + headerValues.at(row) + "\n");
         label->setWordWrap(true);
-        label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         window->theTable->setCellWidget(row, 0, label);
 
         auto *selector = new QComboBox();
@@ -237,8 +252,10 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         selector->insertSeparator(1);
         selector->setCurrentText(fieldMeanings.at(row));
         selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
+        int width = selector->minimumSizeHint().width();
+        selector->setMinimumWidth(width);
+        selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         window->theTable->setCellWidget(row, 1, selector);
-
         connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
     }
     validateFieldSelectorBoxes();

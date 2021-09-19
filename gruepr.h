@@ -9,13 +9,13 @@
   #include <QWinTaskbarButton>
   #include <QWinTaskbarProgress>
 #endif
-#include "attributeTabItem.h"
+#include "widgets\attributeTabItem.h"
 #include "boxwhiskerplot.h"
 #include "csvfile.h"
-#include "gatherTeammatesDialog.h"
+#include "dialogs\gatherTeammatesDialog.h"
 #include "dataOptions.h"
-#include "progressDialog.h"
-#include "pushButtonWithMouseEnter.h"
+#include "dialogs\progressDialog.h"
+#include "widgets\pushButtonWithMouseEnter.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "gruepr_consts.h"
@@ -65,6 +65,7 @@ private slots:
     void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability);
     void optimizationComplete();
     void on_teamNamesComboBox_activated(int index);
+    void on_randTeamnamesCheckBox_clicked();
     void on_saveTeamsButton_clicked();
     void on_printTeamsButton_clicked();
     void loadOptionsFile();

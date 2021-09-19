@@ -37,7 +37,7 @@ private:
     static const int possibleNumIDs = 8;                // number of comboboxes in the dialog box, i.e., possible choices of teammates
     QComboBox possibleTeammates[possibleNumIDs + 1];    // +1 for the requesting student in typeOfTeammates == requested
     QPushButton *loadTeammates;
-    QComboBox *resetSaveOrLoad;
+    QComboBox *actionSelectBox;
     QDialogButtonBox *buttonBox;
     void refreshDisplay();
     bool saveCSVFile();                                    // returns true on success, false on fail

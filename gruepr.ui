@@ -1497,6 +1497,13 @@ QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-chi
                </spacer>
               </item>
               <item>
+               <widget class="Line" name="line_5">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QLabel" name="label_14">
                 <property name="enabled">
                  <bool>false</bool>
@@ -1528,6 +1535,16 @@ QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-chi
                   <string>Custom names</string>
                  </property>
                 </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="randTeamnamesCheckBox">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Randomize</string>
+                </property>
                </widget>
               </item>
               <item>
@@ -1870,17 +1887,17 @@ QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-chi
   <customwidget>
    <class>TeamTreeWidget</class>
    <extends>QTreeWidget</extends>
-   <header>teamTreeWidget.h</header>
+   <header>widgets\teamTreeWidget.h</header>
   </customwidget>
   <customwidget>
    <class>StudentTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>studentTableWidget.h</header>
+   <header>widgets\studentTableWidget.h</header>
   </customwidget>
   <customwidget>
    <class>attributeTabItem</class>
    <extends>QWidget</extends>
-   <header>attributeTabItem.h</header>
+   <header>widgets\attributeTabItem.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -31,8 +31,18 @@
 //    released under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// DONE:
+// - fixed bug that erased a student's notes field when editing the record
+// - removed "OK" button from small "setting up printer/pdfwriter" dialog
+// - eliminated the choice of whether to use roster or survey email address when they match
+// - when comparing student list to roster file, now uses both name and email address to find a match
+// - csv files can now be header-free; no longer crashes and, in fact, can be loaded succesfully
+// - saving/loading a teaming options file now includes the required attribute responses
+// - added randomize team names function
+// - organized code into dialogs and widgets subfolders
 //
 // TO DO:
+// - prevent crash on mac with add/edit student dialog when many attributes are present
 // - add select-multiple attribute question option
 // - check if pairing is both (required or requested) and prevented
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
@@ -46,7 +56,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr.h"
-#include "registerDialog.h"
+#include "dialogs\registerDialog.h"
 #include "surveymaker.h"
 #include <QApplication>
 #include <QCryptographicHash>

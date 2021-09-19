@@ -5,10 +5,10 @@
 #include <QRegularExpressionValidator>
 #include <QFileInfo>
 #include <QDate>
-#include "attributeTabItem.h"
-#include "comboBoxWithElidedContents.h"
-#include "gatherTeammatesDialog.h"
-#include "dayNamesDialog.h"
+#include "widgets\attributeTabItem.h"
+#include "widgets\comboBoxWithElidedContents.h"
+#include "dialogs\gatherTeammatesDialog.h"
+#include "dialogs\dayNamesDialog.h"
 #include "gruepr_consts.h"
 
 namespace Ui {class SurveyMaker;}

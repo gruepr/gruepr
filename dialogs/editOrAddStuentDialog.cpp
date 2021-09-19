@@ -117,19 +117,18 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     for(int attrib = 0; attrib < internalDataOptions.numAttributes; attrib++)
     {
         explanation[field].setText(tr("Attribute ") + QString::number(attrib + 1));
-        QSpinBox *spinbox = &datacategorical[field];
         datacategorical[field].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attrib] ? CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
         datacategorical[field].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attrib]);
-        spinbox->setValue(student.attributeVal[attrib]);
-        spinbox->setRange(0, internalDataOptions.attributeMax[attrib]);
-        if(spinbox->value() == 0)
+        datacategorical[field].setValue(student.attributeVal[attrib]);
+        datacategorical[field].setRange(0, internalDataOptions.attributeMax[attrib]);
+        if(datacategorical[field].value() == 0)
         {
-            spinbox->setStyleSheet("QSpinBox {background-color: #DCDCDC;}");
+            datacategorical[field].setStyleSheet("QSpinBox {background-color: #DCDCDC;}");
         }
-        connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int /*unused new value*/){ recordEdited(); });
-        spinbox->setSpecialValueText(tr("not set/unknown"));
+        connect(&datacategorical[field], QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int /*unused new value*/){ recordEdited(); });
+        datacategorical[field].setSpecialValueText(tr("not set/unknown"));
         theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(spinbox, field, 1);
+        theGrid->addWidget(&datacategorical[field], field, 1);
         field++;
     }
 
@@ -255,7 +254,7 @@ void editOrAddStudentDialog::recordEdited()
     }
     if(internalDataOptions.numNotes > 0)
     {
-        student.notes = datatext[field].text();
+        student.notes = datamultiline[field].toPlainText();
         field++;
     }
 }

@@ -1,15 +1,15 @@
 #include "gruepr.h"
-#include "baseTimeZoneDialog.h"
-#include "customTeamnamesDialog.h"
-#include "customTeamsizesDialog.h"
-#include "findMatchingNameDialog.h"
-#include "editOrAddStuentDialog.h"
-#include "gatherAttributeValuesDialog.h"
-#include "gatherURMResponsesDialog.h"
-#include "sortableTableWidgetItem.h"
-#include "teamTreeWidget.h"
+#include "dialogs\baseTimeZoneDialog.h"
+#include "dialogs\customTeamnamesDialog.h"
+#include "dialogs\customTeamsizesDialog.h"
+#include "dialogs\findMatchingNameDialog.h"
+#include "dialogs\editOrAddStuentDialog.h"
+#include "dialogs\gatherAttributeValuesDialog.h"
+#include "dialogs\gatherURMResponsesDialog.h"
+#include "widgets\sortableTableWidgetItem.h"
+#include "widgets\teamTreeWidget.h"
 #include "ui_gruepr.h"
-#include "whichFilesDialog.h"
+#include "dialogs\whichFilesDialog.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -358,7 +358,7 @@ void gruepr::loadStudentRoster()
                     auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
                                                                tr("This student:") +
                                                                "<br><b>" + name + "</b><br>" +
-                                                               tr("was in the survey but was not found in the roster file.") + "<br><br>" +
+                                                               tr("submitted a survey but was not found in the roster file.") + "<br><br>" +
                                                                tr("Should we keep this student or remove them?"),
                                                                QMessageBox::Ok | QMessageBox::Cancel, this);
                     auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"));
@@ -530,6 +530,15 @@ void gruepr::loadOptionsFile()
                         teamingOptions->attributeWeights[attribute] = 0;
                     }
                 }
+                int requiredResponseNum = 0;
+                QVector<int> setOfRequiredResponses;
+                while(loadObject.contains("Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)) &&
+                      loadObject["Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)].isDouble())
+                {
+                    setOfRequiredResponses << loadObject["Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)].toInt();
+                    requiredResponseNum++;
+                }
+                teamingOptions->requiredAttributeValues[attribute] = setOfRequiredResponses;
                 int incompatibleResponseNum = 0;
                 QVector< QPair<int,int> > setOfIncompatibleResponses;
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)) &&
@@ -587,6 +596,11 @@ void gruepr::saveOptionsFile()
             {
                 saveObject["Attribute" + QString::number(attribute+1)+"desireHomogeneous"] = teamingOptions->desireHomogeneous[attribute];
                 saveObject["Attribute" + QString::number(attribute+1)+"Weight"] = teamingOptions->attributeWeights[attribute];
+                for(int requiredResp = 0; requiredResp < teamingOptions->requiredAttributeValues[attribute].size(); requiredResp++)
+                {
+                    saveObject["Attribute" + QString::number(attribute+1)+"requiredResponse" + QString::number(requiredResp+1)] =
+                            teamingOptions->requiredAttributeValues[attribute].at(requiredResp);
+                }
                 for(int incompResp = 0; incompResp < teamingOptions->incompatibleAttributeValues[attribute].size(); incompResp++)
                 {
                     saveObject["Attribute" + QString::number(attribute+1)+"incompatibleResponse" + QString::number(incompResp+1)] =
@@ -1588,6 +1602,8 @@ void gruepr::optimizationComplete()
     ui->label_14->setEnabled(true);
     ui->label_23->setEnabled(true);
     ui->teamNamesComboBox->setEnabled(true);
+    ui->randTeamnamesCheckBox->setEnabled(false);
+    ui->randTeamnamesCheckBox->setChecked(false);
     bool signalsCurrentlyBlocked = ui->teamNamesComboBox->blockSignals(true);   // reset teamnames box to arabic numerals (without signaling the change)
     ui->teamNamesComboBox->setCurrentIndex(0);
     ui->teamNamesComboBox->blockSignals(signalsCurrentlyBlocked);
@@ -1653,6 +1669,12 @@ void gruepr::on_teamNamesComboBox_activated(int index)
     static int prevIndex = 0;   // hold on to previous index, so we can go back to it if cancelling custom team name dialog box
 
     const QStringList teamNameLists = QString(TEAMNAMELISTS).split(';');
+
+    if(index != prevIndex)      // reset the randomize teamnames checkbox if we just moved to a new index
+    {
+        ui->randTeamnamesCheckBox->setChecked(false);
+        ui->randTeamnamesCheckBox->setEnabled(index > 7 && index < teamNameLists.size());
+    }
 
     enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_structs_and_consts.h for how the teamname lists are signified
     QVector<TeamNameType> teamNameTypes;
@@ -1732,6 +1754,10 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         // Using one of the listed team names (given in gruepr_structs_and_consts.h)
         const QStringList teamNames = teamNameLists.at(index).split((","));
         QVector<int> random_order(teamNames.size());
+        if(ui->randTeamnamesCheckBox->isChecked())
+        {
+            teamNameTypes[index] = random_sequeled;
+        }
         if(teamNameTypes.at(index) == random_sequeled)
         {
             std::iota(random_order.begin(), random_order.end(), 0);
@@ -1830,6 +1856,12 @@ void gruepr::on_teamNamesComboBox_activated(int index)
         }
     }
     ui->teamDataTree->resizeColumnToContents(0);
+}
+
+
+void gruepr::on_randTeamnamesCheckBox_clicked()
+{
+    on_teamNamesComboBox_activated(ui->teamNamesComboBox->currentIndex());
 }
 
 
@@ -2420,6 +2452,8 @@ void gruepr::resetUI()
     ui->collapseAllButton->setEnabled(false);
     ui->label_14->setEnabled(false);
     ui->teamNamesComboBox->setEnabled(false);
+    ui->randTeamnamesCheckBox->setEnabled(false);
+    ui->randTeamnamesCheckBox->setChecked(false);
     ui->dataDisplayTabWidget->setCurrentIndex(0);
     ui->isolatedWomenCheckBox->setEnabled(false);
     ui->isolatedMenCheckBox->setEnabled(false);
@@ -2970,7 +3004,15 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
     // Process each row until there's an empty one. Load names and email addresses
     names.clear();
     emails.clear();
-    while(rosterFile.readDataRow())
+    if(rosterFile.hasHeaderRow)
+    {
+        rosterFile.readDataRow();
+    }
+    else
+    {
+        rosterFile.readDataRow(true);
+    }
+    do
     {
         if(firstLastNameField != -1)
         {
@@ -2996,6 +3038,9 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
             emails << rosterFile.fieldValues.at(emailField).trimmed();
         }
     }
+    while(rosterFile.readDataRow());
+
+
     return true;
 }
 
@@ -4166,7 +4211,7 @@ void gruepr::printFiles(bool printInstructorsFile, bool printStudentsFile, bool 
     auto *msgBox = new QMessageBox(this);
     msgBox->setIcon(QMessageBox::Information);
     msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
-    //msgBox->setStandardButtons(nullptr);        // no buttons (deprecated in Qt v5.15)
+    msgBox->setStandardButtons(QMessageBox::NoButton);
     msgBox->setModal(false);
     msgBox->show();
     QEventLoop loop;
