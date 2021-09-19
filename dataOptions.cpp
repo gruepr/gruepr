@@ -10,14 +10,14 @@ DataOptions::DataOptions()
         attributeIsOrdered[i] = false;
     }
 
-    for(int i = 0; i < MAX_NOTES_FIELDS; i++)
+    for(int &field : notesField)
     {
-        notesField[i] = -1;
+        field = -1;
     }
 
-    for(int i = 0; i < MAX_DAYS; i++)
+    for(int &field : scheduleField)
     {
-        scheduleField[i] = -1;
+        field = -1;
     }
 }
 

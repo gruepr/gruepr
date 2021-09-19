@@ -250,7 +250,7 @@ void gatherAttributeValuesDialog::updateExplanation()
         else
         {
             QString explanationText = tr("Each team will have at least one student with each of these responses:") + "<br>";
-            for(const auto val : requiredValues)
+            for(const auto val : qAsConst(requiredValues))
             {
                 explanationText += "&nbsp;&nbsp;&nbsp;&nbsp;" + selectMultipleOnesResponses[(val)-1].text().split('.').at(0) + "<br>";
             }

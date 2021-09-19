@@ -48,7 +48,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
                                                                                     responses[response].setStyleSheet("Text-align:left;");}
                                                                                  });
     }
-    theTable->horizontalHeader()->resizeSection(0, widthCol0 * TABLECOLUMN0OVERWIDTH);
+    theTable->horizontalHeader()->resizeSection(0, int(widthCol0 * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
 
     adjustSize();

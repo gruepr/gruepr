@@ -816,9 +816,9 @@ void SurveyMaker::on_daysComboBox_activated(int index)
     if(index == 0)
     {
         //All Days
-        for(int day = 0; day < MAX_DAYS; day++)
+        for(auto &dayCheckBox : dayCheckBoxes)
         {
-            dayCheckBoxes[day]->setChecked(true);
+            dayCheckBox->setChecked(true);
         }
     }
     else if(index == 1)

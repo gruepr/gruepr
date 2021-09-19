@@ -1,15 +1,15 @@
 #include "gruepr.h"
+#include "ui_gruepr.h"
 #include "dialogs\baseTimeZoneDialog.h"
 #include "dialogs\customTeamnamesDialog.h"
 #include "dialogs\customTeamsizesDialog.h"
-#include "dialogs\findMatchingNameDialog.h"
 #include "dialogs\editOrAddStuentDialog.h"
+#include "dialogs\findMatchingNameDialog.h"
 #include "dialogs\gatherAttributeValuesDialog.h"
 #include "dialogs\gatherURMResponsesDialog.h"
+#include "dialogs\whichFilesDialog.h"
 #include "widgets\sortableTableWidgetItem.h"
 #include "widgets\teamTreeWidget.h"
-#include "ui_gruepr.h"
-#include "dialogs\whichFilesDialog.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -1766,7 +1766,7 @@ void gruepr::on_teamNamesComboBox_activated(int index)
             std::mt19937 pRNG(randDev());
 #endif
 #ifdef Q_OS_WIN32
-            std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};     //minGW does not play well with std::random_device; not doing cryptography so this is enough
+            std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};     //minGW does not play well with std::random_device; not doing cryptography so this is enough
 #endif
             std::shuffle(random_order.begin(), random_order.end(), pRNG);
         }
@@ -3185,7 +3185,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
             std::mt19937 pRNG(randDev());
 #endif
 #ifdef Q_OS_WIN32
-            std::mt19937 pRNG{static_cast<long unsigned int>(time(0))};
+            std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};
 #endif
 
     // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
@@ -3526,7 +3526,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 if(teamingOptions->haveAnyRequiredAttributes[attribute])
                 {
                     // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
-                    for(const auto value : teamingOptions->requiredAttributeValues[attribute])
+                    for(const auto value : qAsConst(teamingOptions->requiredAttributeValues[attribute]))
                     {
                         if(attributeLevelsInTeam.count(value) == 0)
                         {

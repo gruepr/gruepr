@@ -122,7 +122,7 @@ void progressDialog::updateCountdown()
 {
     if(onlyStopManually->isChecked())
     {
-        secsLeftToClose = 5;
+        secsLeftToClose = SECSINCOUNTDOWNTIMER;
         return;
     }
 

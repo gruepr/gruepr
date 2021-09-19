@@ -31,7 +31,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
         }
         theTable->setCellWidget(i, 1, &teamName[i]);
     }
-    theTable->horizontalHeader()->resizeSection(0, widthCol0 * TABLECOLUMN0OVERWIDTH);
+    theTable->horizontalHeader()->resizeSection(0, int(widthCol0 * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
 
     //A reset table button
