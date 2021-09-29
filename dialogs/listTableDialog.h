@@ -1,8 +1,6 @@
 #ifndef LISTTABLEDIALOG_H
 #define LISTTABLEDIALOG_H
 
-#define TABLECOLUMN0OVERWIDTH 1.2   // factor to exapnd the first column of the table, as it often seems to be too small
-
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -23,7 +21,9 @@ protected:
     const int tableRowInGrid = 2;
     const int buttonBoxRowInGrid = 6;
     const int heightOfSpacerRow = 20;
-    bool eventFilter(QObject *object, QEvent *event);   // an event filter to remove scrollwheel events from widget(s) in the table, since table is in a scroll area
+    const float TABLECOLUMN0OVERWIDTH = 1.2;   // factor to exapnd the first column of the table, as it often seems to be too small
+    bool eventFilter(QObject *object, QEvent *event);   // an event filter to remove scrollwheel events from widget(s) in the table,
+                                                        // since table is in a scroll area
 };
 
 

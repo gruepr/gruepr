@@ -75,7 +75,7 @@ SOURCES += \
         dialogs\customTeamnamesDialog.cpp \
         dialogs\customTeamsizesDialog.cpp \
         dialogs\dayNamesDialog.cpp \
-        dialogs\editOrAddStuentDialog.cpp \
+        dialogs\editOrAddStudentDialog.cpp \
         dialogs\findMatchingNameDialog.cpp \
         dialogs\gatherAttributeValuesDialog.cpp \
         dialogs\gatherTeammatesDialog.cpp \
@@ -108,7 +108,7 @@ HEADERS += \
         dialogs\customTeamnamesDialog.h \
         dialogs\customTeamsizesDialog.h \
         dialogs\dayNamesDialog.h \
-        dialogs\editOrAddStuentDialog.h \
+        dialogs\editOrAddStudentDialog.h \
         dialogs\findMatchingNameDialog.h \
         dialogs\gatherAttributeValuesDialog.h \
         dialogs\gatherTeammatesDialog.h \

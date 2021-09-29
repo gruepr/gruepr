@@ -3,7 +3,7 @@
 #include "dialogs\baseTimeZoneDialog.h"
 #include "dialogs\customTeamnamesDialog.h"
 #include "dialogs\customTeamsizesDialog.h"
-#include "dialogs\editOrAddStuentDialog.h"
+#include "dialogs\editOrAddStudentDialog.h"
 #include "dialogs\findMatchingNameDialog.h"
 #include "dialogs\gatherAttributeValuesDialog.h"
 #include "dialogs\gatherURMResponsesDialog.h"
@@ -648,24 +648,8 @@ void gruepr::editAStudent()
         ID++;
     }
 
-    QStringList sectionNames;
-    if(dataOptions->sectionIncluded)
-    {
-        for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
-        {
-            if(!sectionNames.contains(student[ID].section))
-            {
-                sectionNames.append(student[ID].section);
-            }
-        }
-    }
-    QCollator sortAlphanumerically;
-    sortAlphanumerically.setNumericMode(true);
-    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-    std::sort(sectionNames.begin(), sectionNames.end(), sortAlphanumerically);
-
     //Open window with the student record in it
-    auto *win = new editOrAddStudentDialog(student[ID], dataOptions, sectionNames, this);
+    auto *win = new editOrAddStudentDialog(student[ID], dataOptions, this);
 
     //If user clicks OK, replace student in the database with edited copy
     int reply = win->exec();
@@ -715,27 +699,22 @@ void gruepr::editAStudent()
         {
             QString currentSection = ui->sectionSelectionBox->currentText();
             ui->sectionSelectionBox->clear();
-            //get number of sections
-            QStringList newSectionNames;
-            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+            if(!(dataOptions->sectionNames.contains(student[ID].section)))
             {
-                if(!newSectionNames.contains(student[ID].section))
-                {
-                    newSectionNames.append(student[ID].section);
-                }
+                dataOptions->sectionNames << student[ID].section;
             }
-            if(newSectionNames.size() > 1)
+            if(dataOptions->sectionNames.size() > 1)
             {
                 QCollator sortAlphanumerically;
                 sortAlphanumerically.setNumericMode(true);
                 sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                std::sort(newSectionNames.begin(), newSectionNames.end(), sortAlphanumerically);
+                std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
                 ui->sectionSelectionBox->setEnabled(true);
                 ui->label_2->setEnabled(true);
                 ui->label_22->setEnabled(true);
                 ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
                 ui->sectionSelectionBox->insertSeparator(1);
-                ui->sectionSelectionBox->addItems(newSectionNames);
+                ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
             }
             else
             {
@@ -825,22 +804,10 @@ void gruepr::on_addStudentPushButton_clicked()
 {
     if(dataOptions->numStudentsInSystem < MAX_STUDENTS)
     {
-        QStringList sectionNames;
-        if(dataOptions->sectionIncluded)
-        {
-            for(int ID = 0; ID < numStudents; ID++)
-            {
-                if(!sectionNames.contains(student[ID].section))
-                {
-                    sectionNames.append(student[ID].section);
-                }
-            }
-        }
-
         //Open window with a blank student record in it
         StudentRecord newStudent;
         newStudent.ID = dataOptions->numStudentsInSystem;
-        auto *win = new editOrAddStudentDialog(newStudent, dataOptions, sectionNames, this);
+        auto *win = new editOrAddStudentDialog(newStudent, dataOptions, this);
 
         //If user clicks OK, add student to the database
         int reply = win->exec();
@@ -893,27 +860,22 @@ void gruepr::on_addStudentPushButton_clicked()
             {
                 QString currentSection = ui->sectionSelectionBox->currentText();
                 ui->sectionSelectionBox->clear();
-                //get number of sections
-                QStringList newSectionNames;
-                for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+                if(!(dataOptions->sectionNames.contains(student[newID].section)))
                 {
-                    if(!newSectionNames.contains(student[ID].section))
-                    {
-                        newSectionNames.append(student[ID].section);
-                    }
+                    dataOptions->sectionNames << student[newID].section;
                 }
-                if(newSectionNames.size() > 1)
+                if(dataOptions->sectionNames.size() > 1)
                 {
                     QCollator sortAlphanumerically;
                     sortAlphanumerically.setNumericMode(true);
                     sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                    std::sort(newSectionNames.begin(), newSectionNames.end(), sortAlphanumerically);
+                    std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
                     ui->sectionSelectionBox->setEnabled(true);
                     ui->label_2->setEnabled(true);
                     ui->label_22->setEnabled(true);
                     ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
                     ui->sectionSelectionBox->insertSeparator(1);
-                    ui->sectionSelectionBox->addItems(newSectionNames);
+                    ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
                 }
                 else
                 {
@@ -2498,27 +2460,14 @@ void gruepr::loadUI()
     ui->sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded)
     {
-        //get number of sections
-        QStringList sectionNames;
-        for(int ID = 0; ID < numStudents; ID++)
+        if(dataOptions->sectionNames.size() > 1)
         {
-            if(!sectionNames.contains(student[ID].section))
-            {
-                sectionNames.append(student[ID].section);
-            }
-        }
-        if(sectionNames.size() > 1)
-        {
-            QCollator sortAlphanumerically;
-            sortAlphanumerically.setNumericMode(true);
-            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-            std::sort(sectionNames.begin(), sectionNames.end(), sortAlphanumerically);
             ui->sectionSelectionBox->setEnabled(true);
             ui->label_2->setEnabled(true);
             ui->label_22->setEnabled(true);
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
             ui->sectionSelectionBox->insertSeparator(1);
-            ui->sectionSelectionBox->addItems(sectionNames);
+            ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
         }
         else
         {
@@ -2919,12 +2868,16 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         }
     }
 
-    // gather all unique URM question responses and sort
+    // gather all unique URM and section question responses and sort
     for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
     {
         if(!dataOptions->URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
         {
             dataOptions->URMResponses << student[ID].URMResponse;
+        }
+        if(!(dataOptions->sectionNames.contains(student[ID].section, Qt::CaseInsensitive)))
+        {
+            dataOptions->sectionNames << student[ID].section;
         }
     }
     QCollator sortAlphanumerically;
@@ -2937,6 +2890,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         dataOptions->URMResponses.removeAll("--");
         dataOptions->URMResponses << "--";
     }
+    std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
 
     // set all of the students' tooltips
     for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
