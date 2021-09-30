@@ -29,6 +29,7 @@ private:
     QLineEdit *datatext;
     QPlainTextEdit *datamultiline;
     QComboBox *databox;
+    QTabWidget *attributeTabs;
     CategoricalSpinBox *datacategorical;
     QDialogButtonBox *buttonBox;
     const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email

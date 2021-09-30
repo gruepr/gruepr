@@ -26,12 +26,13 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
 
     int numFields = (internalDataOptions.timestampField != -1? 1 : 0) + (internalDataOptions.firstNameField != -1? 1 : 0) + (internalDataOptions.lastNameField != -1? 1 : 0) +
                     (internalDataOptions.emailField != -1? 1 : 0) + (internalDataOptions.genderIncluded? 1 : 0) + (internalDataOptions.URMIncluded? 1 : 0) +
-                    (internalDataOptions.sectionIncluded? 1 : 0) + internalDataOptions.numAttributes + (internalDataOptions.prefTeammatesIncluded? 1 : 0) +
+                    (internalDataOptions.sectionIncluded? 1 : 0) + ((internalDataOptions.numAttributes > 0)? 1 : 0) + (internalDataOptions.prefTeammatesIncluded? 1 : 0) +
                     (internalDataOptions.prefNonTeammatesIncluded? 1 : 0) + ((internalDataOptions.numNotes > 0)? 1 : 0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[NUMSINGLELINES];
     datamultiline = new QPlainTextEdit[NUMMULTILINES];
     databox = new QComboBox[NUMCOMBOBOXES];
+    attributeTabs = new QTabWidget;
     datacategorical = new CategoricalSpinBox[internalDataOptions.numAttributes];
     int field = 0;
 
@@ -129,16 +130,36 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
         field++;
     }
 
-    for(int attribute = 0; attribute < internalDataOptions.numAttributes; attribute++)
+    if(internalDataOptions.numAttributes != 0)
     {
-        explanation[field].setText(tr("Attribute ") + QString::number(attribute + 1));
-        datacategorical[attribute].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attribute] ? CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
-        datacategorical[attribute].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attribute]);
-        datacategorical[attribute].setValue(student.attributeVal[attribute]);
-        datacategorical[attribute].setRange(0, internalDataOptions.attributeMax[attribute]);
-        datacategorical[attribute].setSpecialValueText(tr("not set/unknown"));
+        for(int attribute = 0; attribute < internalDataOptions.numAttributes; attribute++)
+        {
+            datacategorical[attribute].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attribute] ? CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
+            datacategorical[attribute].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attribute]);
+            datacategorical[attribute].setValue(student.attributeVal[attribute]);
+            datacategorical[attribute].setRange(0, internalDataOptions.attributeMax[attribute]);
+            datacategorical[attribute].setSpecialValueText(tr("not set/unknown"));
+        }
+        if(internalDataOptions.numAttributes == 1)
+        {
+            explanation[field].setText(tr("Attribute"));
+            theGrid->addWidget(&datacategorical[0], field, 1);
+        }
+        else
+        {
+            explanation[field].setText(tr("Attributes"));
+            for(int attribute = 0; attribute < internalDataOptions.numAttributes; attribute++)
+            {
+                auto w = new QWidget;
+                auto layout = new QVBoxLayout;
+                layout->addWidget(&datacategorical[attribute], 0, Qt::AlignVCenter);
+                w->setLayout(layout);
+                attributeTabs->addTab(w, QString::number(attribute+1));
+            }
+            theGrid->addWidget(attributeTabs, field, 1);
+            theGrid->setRowMinimumHeight(field, DIALOG_SPACER_ROWHEIGHT * 3);
+        }
         theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datacategorical[attribute], field, 1);
         field++;
     }
 
