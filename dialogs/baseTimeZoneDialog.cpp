@@ -25,7 +25,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 
     const QDateTime local(QDateTime::currentDateTime());
     const QDateTime UTC(local.date(), local.time(), Qt::UTC);
-    const float hoursToGMTFromHere = (local.secsTo(UTC)/3600.0F) - (local.isDaylightTime()? 1 : 0);
+    const float hoursToGMTFromHere = (local.secsTo(UTC)/3600.0F) - (local.isDaylightTime()? 1.0F : 0.0F);
 
     QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");
     timezones = new QComboBox(this);
@@ -38,7 +38,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
         QRegularExpressionMatch offset = offsetFinder.match(zonename);
         if(offset.hasMatch())
         {
-            int hours = offset.captured(1).toInt();
+            float hours = offset.captured(1).toFloat();
             float minutes = offset.captured(2).toFloat();
             GMTOffset = hours + ((hours < 0)? (-minutes/60) : (minutes/60));
         }

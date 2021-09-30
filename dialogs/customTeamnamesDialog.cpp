@@ -19,17 +19,17 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
     //Table of team names
     theTable->setRowCount(numTeams);
     int widthCol0 = 0;
-    for(int i = 0; i < numTeams; i++)
+    for(int team = 0; team < numTeams; team++)
     {
-        auto label = new QLabel(tr("Team ") + QString::number(i+1) + " ");
-        theTable->setCellWidget(i, 0, label);
+        auto label = new QLabel(tr("Team ") + QString::number(team+1) + " ");
+        theTable->setCellWidget(team, 0, label);
         widthCol0 = std::max(widthCol0, label->width());
-        teamName[i].setPlaceholderText(tr("Custom name"));
-        if(i < teamNames.size())
+        teamName[team].setPlaceholderText(tr("Custom name"));
+        if(team < teamNames.size())
         {
-            teamName[i].setText((teamNames.at(i) == QString::number(i+1))? "" : teamNames.at(i));
+            teamName[team].setText((teamNames.at(team) == QString::number(team+1))? "" : teamNames.at(team));
         }
-        theTable->setCellWidget(i, 1, &teamName[i]);
+        theTable->setCellWidget(team, 1, &teamName[team]);
     }
     theTable->horizontalHeader()->resizeSection(0, int(widthCol0 * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
@@ -53,8 +53,8 @@ customTeamnamesDialog::~customTeamnamesDialog()
 
 void customTeamnamesDialog::clearAllNames()
 {
-    for(int i = 0; i < numTeams; i++)
+    for(int team = 0; team < numTeams; team++)
     {
-        teamName[i].clear();
+        teamName[team].clear();
     }
 }

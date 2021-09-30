@@ -24,9 +24,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     setSizeGripEnabled(true);
     theGrid = new QGridLayout(this);
 
-    int numFields = (internalDataOptions.timestampField != -1? 1 : 0) + (internalDataOptions.firstNameField != -1? 1 : 0) + (internalDataOptions.lastNameField != -1? 1 : 0) +
-                    (internalDataOptions.emailField != -1? 1 : 0) + (internalDataOptions.genderIncluded? 1 : 0) + (internalDataOptions.URMIncluded? 1 : 0) +
-                    (internalDataOptions.sectionIncluded? 1 : 0) + ((internalDataOptions.numAttributes > 0)? 1 : 0) + (internalDataOptions.prefTeammatesIncluded? 1 : 0) +
+    int numFields = (internalDataOptions.timestampField != -1? 1 : 0) + (internalDataOptions.firstNameField != -1? 1 : 0) +
+                    (internalDataOptions.lastNameField != -1? 1 : 0) + (internalDataOptions.emailField != -1? 1 : 0) +
+                    (internalDataOptions.genderIncluded? 1 : 0) + (internalDataOptions.URMIncluded? 1 : 0) + (internalDataOptions.sectionIncluded? 1 : 0) +
+                    ((internalDataOptions.numAttributes > 0)? 1 : 0) + (internalDataOptions.prefTeammatesIncluded? 1 : 0) +
                     (internalDataOptions.prefNonTeammatesIncluded? 1 : 0) + ((internalDataOptions.numNotes > 0)? 1 : 0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[NUMSINGLELINES];
@@ -39,7 +40,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     // calculate the height of 1 row of text in the multilines
     QFontMetrics fm(datamultiline[0].document()->defaultFont());
     QMargins margin = datamultiline[0].contentsMargins();
-    const int rowOfTextHeight = fm.lineSpacing() + qRound(datamultiline[0].document()->documentMargin()) + datamultiline[0].frameWidth() * 2 + margin.top() + margin.bottom();
+    const int rowOfTextHeight = fm.lineSpacing() + qRound(datamultiline[0].document()->documentMargin()) +
+                                datamultiline[0].frameWidth() * 2 + margin.top() + margin.bottom();
 
     if(internalDataOptions.timestampField != -1)
     {
@@ -134,7 +136,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     {
         for(int attribute = 0; attribute < internalDataOptions.numAttributes; attribute++)
         {
-            datacategorical[attribute].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attribute] ? CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
+            datacategorical[attribute].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attribute]?
+                                                          CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
             datacategorical[attribute].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attribute]);
             datacategorical[attribute].setValue(student.attributeVal[attribute]);
             datacategorical[attribute].setRange(0, internalDataOptions.attributeMax[attribute]);
@@ -157,7 +160,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
                 attributeTabs->addTab(w, QString::number(attribute+1));
             }
             theGrid->addWidget(attributeTabs, field, 1);
-            theGrid->setRowMinimumHeight(field, DIALOG_SPACER_ROWHEIGHT * 3);
+            theGrid->setRowMinimumHeight(field, rowOfTextHeight * 3);
         }
         theGrid->addWidget(&explanation[field], field, 0);
         field++;
@@ -166,7 +169,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     if(internalDataOptions.prefTeammatesIncluded)
     {
         explanation[field].setTextFormat(Qt::RichText);
-        explanation[field].setText(tr("Preferred Teammates") + tr("<br><i>&nbsp;&nbsp;Firstname Lastname<br>&nbsp;&nbsp;Enter each name on a separate line</i>"));
+        explanation[field].setText(tr("Preferred Teammates") + tr("<br><i>&nbsp;&nbsp;Firstname Lastname<br>"
+                                                                  "&nbsp;&nbsp;Enter each name on a separate line</i>"));
         datamultiline[prefTeammates].setPlainText(student.prefTeammates);
         datamultiline[prefTeammates].setFixedHeight(rowOfTextHeight * 3);
         theGrid->addWidget(&explanation[field], field, 0);
@@ -177,7 +181,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     if(internalDataOptions.prefNonTeammatesIncluded)
     {
         explanation[field].setTextFormat(Qt::RichText);
-        explanation[field].setText(tr("Preferred Non-teammates") + tr("<br><i>&nbsp;&nbsp;Firstname Lastname<br>&nbsp;&nbsp;Enter each name on a separate line</i>"));
+        explanation[field].setText(tr("Preferred Non-teammates") + tr("<br><i>&nbsp;&nbsp;Firstname Lastname<br>"
+                                                                       "&nbsp;&nbsp;Enter each name on a separate line</i>"));
         datamultiline[prefNonTeammates].setPlainText(student.prefNonTeammates);
         datamultiline[prefNonTeammates].setFixedHeight(rowOfTextHeight * 3);
         theGrid->addWidget(&explanation[field], field, 0);
@@ -196,7 +201,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     }
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(numFields+1, DIALOG_SPACER_ROWHEIGHT);
+    theGrid->setRowMinimumHeight(numFields+1, rowOfTextHeight);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, numFields+2, 0, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, [this]{updateRecord(); accept();});
