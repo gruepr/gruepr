@@ -98,7 +98,7 @@ void StudentTableWidget::cellEntered(const int row)
     if(prevID != -1)
     {
         int prevRow = 0;
-        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentID").toInt()))
+        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentIndex").toInt()))
         {
             prevRow++;
         }
@@ -116,7 +116,7 @@ void StudentTableWidget::cellEntered(const int row)
             }
         }
     }
-    prevID = cellWidget(row, numCols-1)->property("StudentID").toInt();
+    prevID = cellWidget(row, numCols-1)->property("StudentIndex").toInt();
     cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
     cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: #85cbf8; border: none;}");
 }

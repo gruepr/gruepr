@@ -20,7 +20,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         {
             rank = 0;
         }
-        possibleStudents.insert(rank, student[knownStudent].firstname + " " + student[knownStudent].lastname + "&stunum=" + QString::number(knownStudent));
+        possibleStudents.insert(rank, student[knownStudent].firstname + " " + student[knownStudent].lastname + "&index=" + QString::number(knownStudent));
     }
 
     // Create student selection window
@@ -51,7 +51,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
     QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
     while (i != possibleStudents.constEnd())
     {
-        QStringList nameAndNum = i.value().split("&stunum=");    // split off the student number to use as the UserData role
+        QStringList nameAndNum = i.value().split("&index=");    // split off the index to use as the UserData role
         namesList->addItem(nameAndNum.at(0), nameAndNum.at(1).toInt());
         i++;
     }

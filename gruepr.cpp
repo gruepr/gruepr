@@ -138,7 +138,8 @@ gruepr::~gruepr()
 void gruepr::on_loadSurveyFileButton_clicked()
 {
     CsvFile surveyFile;
-    if(!surveyFile.open(this, CsvFile::read, tr("Open Survey Data File"), dataOptions->dataFile.canonicalPath(), tr("Survey Data File (*.csv *.txt);;All Files (*)")))
+    if(!surveyFile.open(this, CsvFile::read, tr("Open Survey Data File"), dataOptions->dataFile.canonicalPath(),
+                        tr("Survey Data File (*.csv *.txt);;All Files (*)")))
     {
         return;
     }
@@ -163,9 +164,9 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
     // Check for duplicate students; warn if found
     bool duplicatesExist = false;
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        if(student[ID].duplicateRecord)
+        if(student[index].duplicateRecord)
         {
             duplicatesExist = true;
         }
@@ -224,9 +225,9 @@ void gruepr::loadStudentRoster()
             // load all current names from the survey so we can later remove them as they're found in the roster and be left with problem cases
             QStringList namesNotFound;
             namesNotFound.reserve(dataOptions->numStudentsInSystem);
-            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
-                namesNotFound << student[ID].firstname + " " + student[ID].lastname;
+                namesNotFound << student[index].firstname + " " + student[index].lastname;
             }
 
             // create a place to save info for names with mismatched emails
@@ -235,21 +236,21 @@ void gruepr::loadStudentRoster()
 
             for(auto &name : names)
             {
-                int knownStudent = 0;     // start at first student in database and look until we find a matching firstname + " " +last name
-                while((knownStudent < dataOptions->numStudentsInSystem) &&
-                      (name.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                int index = 0;     // start at first student in database and look until we find a matching firstname + " " +last name
+                while((index < dataOptions->numStudentsInSystem) &&
+                      (name.compare(student[index].firstname + " " + student[index].lastname, Qt::CaseInsensitive) != 0))
                 {
-                    knownStudent++;
+                    index++;
                 }
 
-                if(knownStudent != dataOptions->numStudentsInSystem)
+                if(index != dataOptions->numStudentsInSystem)
                 {
                     // Exact match found
-                    namesNotFound.removeAll(student[knownStudent].firstname + " " + student[knownStudent].lastname);
-                    if(student[knownStudent].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
+                    namesNotFound.removeAll(student[index].firstname + " " + student[index].lastname);
+                    if(student[index].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0)
                     {
                         // Email in survey doesn't match roster
-                        studentsWithDiffEmail << knownStudent;
+                        studentsWithDiffEmail << index;
                     }
                 }
                 else
@@ -261,7 +262,8 @@ void gruepr::loadStudentRoster()
                         if(choiceWindow->addStudent)    // add as a new student
                         {
                             dataHasChanged = true;
-                            student[dataOptions->numStudentsInSystem].ID = dataOptions->numStudentsInSystem;
+                            student[dataOptions->numStudentsInSystem].ID = dataOptions->latestStudentID;
+                            dataOptions->latestStudentID++;
                             student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
                             student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
                             student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
@@ -278,23 +280,23 @@ void gruepr::loadStudentRoster()
                         {
                             QString surveyName = choiceWindow->currSurveyName;   // need to split off and remove email address
                             namesNotFound.removeAll(surveyName);
-                            knownStudent = 0;
-                            while(surveyName != (student[knownStudent].firstname + " " + student[knownStudent].lastname))
+                            index = 0;
+                            while(surveyName != (student[index].firstname + " " + student[index].lastname))
                             {
-                                knownStudent++;
+                                index++;
                             }
                             if(choiceWindow->useRosterEmail)
                             {
                                 dataHasChanged = true;
-                                student[knownStudent].email = emails.at(names.indexOf(name));
-                                student[knownStudent].createTooltip(dataOptions);
+                                student[index].email = emails.at(names.indexOf(name));
+                                student[index].createTooltip(dataOptions);
                             }
                             if(choiceWindow->useRosterName)
                             {
                                 dataHasChanged = true;
-                                student[knownStudent].firstname = name.split(" ").first();
-                                student[knownStudent].lastname = name.split(" ").mid(1).join(" ");
-                                student[knownStudent].createTooltip(dataOptions);
+                                student[index].firstname = name.split(" ").first();
+                                student[index].lastname = name.split(" ").mid(1).join(" ");
+                                student[index].createTooltip(dataOptions);
                             }
                         }
                     }
@@ -312,9 +314,10 @@ void gruepr::loadStudentRoster()
                 if(keepAsking)
                 {
                     auto *whichEmailWindow = new QMessageBox(QMessageBox::Question, tr("Email addresses do not match"),
-                                                             tr("This student:") +
+                                                             tr("This student on the roster:") +
                                                              "<br><b>" + surveyName + "</b><br>" +
-                                                             tr("has a different email address in the roster.") + "<br>" +
+                                                             tr("has a different email address in the survey.") + "<br><br>" +
+                                                             tr("Select one of the following email addresses:") +
                                                              tr("Survey: ") + "<b>" + surveyEmail + "</b><br>" +
                                                              tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br><br>" +
                                                              tr("Should we use the address from the survey or the roster?"),
@@ -322,9 +325,9 @@ void gruepr::loadStudentRoster()
                     auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(studentsWithDiffEmail.size() - i) + tr(" students)"));
                     whichEmailWindow->setCheckBox(applyToAll);
                     connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
-                    whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use the\nSurvey File Email"));
+                    whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use survey\nemail address"));
                     connect(whichEmailWindow->button(QMessageBox::Ok), &QPushButton::clicked, whichEmailWindow, &QDialog::accept);
-                    whichEmailWindow->button(QMessageBox::Cancel)->setText(tr("Use the\nRoster File Email"));
+                    whichEmailWindow->button(QMessageBox::Cancel)->setText(tr("Use roster\nemail address"));
                     connect(whichEmailWindow->button(QMessageBox::Cancel), &QPushButton::clicked, whichEmailWindow, &QDialog::reject);
 
                     if(whichEmailWindow->exec() == QDialog::Rejected)
@@ -373,7 +376,7 @@ void gruepr::loadStudentRoster()
                     {
                         dataHasChanged = true;
                         makeTheChange = true;
-                        removeAStudent(name, true);
+                        removeAStudent(0, name, true);
                     }
                     else
                     {
@@ -384,7 +387,7 @@ void gruepr::loadStudentRoster()
                 }
                 else if(makeTheChange)
                 {
-                    removeAStudent(name, true);
+                    removeAStudent(0, name, true);
                 }
                 i++;
             }
@@ -414,7 +417,8 @@ void gruepr::loadStudentRoster()
                 // load students
                 for(auto &name : names)
                 {
-                    student[dataOptions->numStudentsInSystem].ID = dataOptions->numStudentsInSystem;
+                    student[dataOptions->numStudentsInSystem].ID = dataOptions->latestStudentID;
+                    dataOptions->latestStudentID++;
                     student[dataOptions->numStudentsInSystem].firstname = name.split(" ").first();
                     student[dataOptions->numStudentsInSystem].lastname = name.split(" ").mid(1).join(" ");
                     student[dataOptions->numStudentsInSystem].email = emails.at(names.indexOf(name));
@@ -429,14 +433,7 @@ void gruepr::loadStudentRoster()
 */
             if(dataHasChanged)
             {
-                ui->saveSurveyFilePushButton->setEnabled(true);                 //Enable save data file option
-                ui->actionSave_Survey_File->setEnabled(true);
-
-                refreshStudentDisplay();
-                ui->studentTable->clearSortIndicator();
-
-                ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));    // load new team sizes in selection box
-                on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());
+                rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
             }
         }
         rosterFile.close();
@@ -447,7 +444,8 @@ void gruepr::loadStudentRoster()
 void gruepr::loadOptionsFile()
 {
     //read all options from a text file
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), dataOptions->dataFile.canonicalFilePath(), tr("gruepr Settings File (*.json);;All Files (*)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), dataOptions->dataFile.canonicalFilePath(),
+                                                    tr("gruepr Settings File (*.json);;All Files (*)"));
     if( !(fileName.isEmpty()) )
     {
         QFile loadFile(fileName);
@@ -574,7 +572,8 @@ void gruepr::loadOptionsFile()
 
 void gruepr::saveOptionsFile()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), dataOptions->dataFile.canonicalPath(), tr("gruepr Settings File (*.json);;All Files (*)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), dataOptions->dataFile.canonicalPath(),
+                                                    tr("gruepr Settings File (*.json);;All Files (*)"));
     if( !(fileName.isEmpty()) )
     {
         QFile saveFile(fileName);
@@ -641,149 +640,178 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
 void gruepr::editAStudent()
 {
-    //Find the student record
-    int ID = 0;
-    while(sender()->property("StudentID").toInt() != student[ID].ID)
-    {
-        ID++;
-    }
+    int indexBeingEdited = sender()->property("StudentIndex").toInt();
 
     //Open window with the student record in it
-    auto *win = new editOrAddStudentDialog(student[ID], dataOptions, this);
+    auto *win = new editOrAddStudentDialog(student[indexBeingEdited], dataOptions, this);
 
     //If user clicks OK, replace student in the database with edited copy
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        student[ID] = win->student;
-        // see if this record is a duplicate; assume it isn't and then check
-        student[ID].duplicateRecord = false;
-        for(int ID2 = 0; ID2 < dataOptions->numStudentsInSystem; ID2++)
-        {
-            if((ID != ID2) && ((student[ID].firstname + student[ID].lastname == student[ID2].firstname + student[ID2].lastname) ||
-                               ((student[ID].email == student[ID2].email) && !student[ID].email.isEmpty())))
-            {
-                student[ID].duplicateRecord = true;
-                student[ID2].duplicateRecord = true;
-                student[ID2].createTooltip(dataOptions);
-            }
-        }
-        student[ID].createTooltip(dataOptions);
-        student[ID].URM = teamingOptions->URMResponsesConsideredUR.contains(student[ID].URMResponse);
+        student[indexBeingEdited] = win->student;
+        student[indexBeingEdited].createTooltip(dataOptions);
+        student[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(student[indexBeingEdited].URMResponse);
 
-        //Re-build the URM info
-        if(dataOptions->URMIncluded)
-        {
-            dataOptions->URMResponses.clear();
-            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
-            {
-                if(!dataOptions->URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
-                {
-                    dataOptions->URMResponses << student[ID].URMResponse;
-                }
-            }
-            QCollator sortAlphanumerically;
-            sortAlphanumerically.setNumericMode(true);
-            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-            std::sort(dataOptions->URMResponses.begin(), dataOptions->URMResponses.end(), sortAlphanumerically);
-            if(dataOptions->URMResponses.contains("--"))
-            {
-                // put the blank response option at the end of the list
-                dataOptions->URMResponses.removeAll("--");
-                dataOptions->URMResponses << "--";
-            }
-        }
-
-        //Re-build the section options in the selection box (in case user added a new section name)
-        if(dataOptions->sectionIncluded)
-        {
-            QString currentSection = ui->sectionSelectionBox->currentText();
-            ui->sectionSelectionBox->clear();
-            if(!(dataOptions->sectionNames.contains(student[ID].section)))
-            {
-                dataOptions->sectionNames << student[ID].section;
-            }
-            if(dataOptions->sectionNames.size() > 1)
-            {
-                QCollator sortAlphanumerically;
-                sortAlphanumerically.setNumericMode(true);
-                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
-                ui->sectionSelectionBox->setEnabled(true);
-                ui->label_2->setEnabled(true);
-                ui->label_22->setEnabled(true);
-                ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
-                ui->sectionSelectionBox->insertSeparator(1);
-                ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
-            }
-            else
-            {
-                ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
-            }
-
-            if(ui->sectionSelectionBox->findText(currentSection) != -1)
-            {
-                ui->sectionSelectionBox->setCurrentText(currentSection);
-            }
-        }
-
-        //Enable save data file option, since data set is now edited
-        ui->saveSurveyFilePushButton->setEnabled(true);
-        ui->actionSave_Survey_File->setEnabled(true);
-
-        refreshStudentDisplay();
-        ui->studentTable->clearSortIndicator();
+        rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     }
 
     delete win;
 }
 
 
-void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
+void gruepr::removeAStudent(int index, const QString &name, bool delayVisualUpdate)
 {
-    // find the ID from the name
-    int IDBeingRemoved = 0;
-    while(name != student[IDBeingRemoved].firstname + " " + student[IDBeingRemoved].lastname)
+    int indexBeingRemoved = index;
+    if(!name.isEmpty())
     {
-        IDBeingRemoved++;
+        // don't have index, need to search and locate based on name
+        while((indexBeingRemoved < dataOptions->numStudentsInSystem) &&
+              (name.compare(student[indexBeingRemoved].firstname + " " + student[indexBeingRemoved].lastname), Qt::CaseInsensitive) != 0)
+        {
+            indexBeingRemoved++;
+        }
     }
 
-    //Search through all the students and, once we found the one with the matching ID, move all remaining ones ahead by one and decrement numStudentsInSystem
-    bool foundIt = false;
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates)
     {
-        if(IDBeingRemoved == student[ID].ID)
+        // remove this student from all other students who have them as required/prevented/requested
+        for(int otherIndex = 0; otherIndex < dataOptions->numStudentsInSystem; otherIndex++)
         {
-            foundIt = true;
-        }
-        if(foundIt)
-        {
-            student[ID] = student[ID+1];
-            student[ID].ID = ID;
+            student[otherIndex].requiredWith[student[indexBeingRemoved].ID] = false;
+            student[otherIndex].preventedWith[student[indexBeingRemoved].ID] = false;
+            student[otherIndex].requestedWith[student[indexBeingRemoved].ID] = false;
         }
     }
+
+    //Remove the student by moving all subsequent ones in the array ahead by one
     dataOptions->numStudentsInSystem--;
-
-    // go back through all records to see if any are duplicates; assume each isn't and then check
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    for(int index = indexBeingRemoved; index < dataOptions->numStudentsInSystem; index++)
     {
-        student[ID].duplicateRecord = false;
-        for(int ID2 = 0; ID2 < ID; ID2++)
-        {
-            if((student[ID].firstname + student[ID].lastname == student[ID2].firstname + student[ID2].lastname) ||
-                    ((student[ID].email == student[ID2].email) && !student[ID].email.isEmpty()))
-            {
-                student[ID].duplicateRecord = true;
-                student[ID2].duplicateRecord = true;
-                student[ID2].createTooltip(dataOptions);
-            }
-        }
-        student[ID].createTooltip(dataOptions);
+        student[index] = student[index+1];
     }
 
     if(delayVisualUpdate)
     {
         return;
+    }
+
+    rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+}
+
+
+void gruepr::on_addStudentPushButton_clicked()
+{
+    if(dataOptions->numStudentsInSystem < MAX_STUDENTS)
+    {
+        //Open window with a blank student record in it
+        StudentRecord newStudent;
+        auto *win = new editOrAddStudentDialog(newStudent, dataOptions, this);
+
+        //If user clicks OK, add student to the database
+        int reply = win->exec();
+        if(reply == QDialog::Accepted)
+        {
+            const int newIndex = dataOptions->numStudentsInSystem;
+            student[newIndex] = win->student;
+            student[newIndex].ID = dataOptions->latestStudentID;
+            student[newIndex].createTooltip(dataOptions);
+            student[newIndex].URM = teamingOptions->URMResponsesConsideredUR.contains(student[newIndex].URMResponse);
+
+            dataOptions->latestStudentID++;
+            dataOptions->numStudentsInSystem++;
+
+            rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+        }
+
+        delete win;
+    }
+    else
+    {
+        QMessageBox::warning(this, tr("Cannot add student."),
+                             tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") +
+                             QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
+    }
+}
+
+
+void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
+{
+    // go back through all records to see if any are duplicates; assume each isn't and then check
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+    {
+        student[index].duplicateRecord = false;
+        for(int index2 = 0; index2 < index; index2++)
+        {
+            if((student[index].firstname + student[index].lastname == student[index2].firstname + student[index2].lastname) ||
+                    ((student[index].email == student[index2].email) && !student[index].email.isEmpty()))
+            {
+                student[index].duplicateRecord = true;
+                student[index2].duplicateRecord = true;
+                student[index2].createTooltip(dataOptions);
+            }
+        }
+        student[index].createTooltip(dataOptions);
+    }
+
+    // Re-build the URM info
+    if(dataOptions->URMIncluded)
+    {
+        dataOptions->URMResponses.clear();
+        for(int URMindex = 0; URMindex < dataOptions->numStudentsInSystem; URMindex++)
+        {
+            if(!dataOptions->URMResponses.contains(student[URMindex].URMResponse, Qt::CaseInsensitive))
+            {
+                dataOptions->URMResponses << student[URMindex].URMResponse;
+            }
+        }
+        QCollator sortAlphanumerically;
+        sortAlphanumerically.setNumericMode(true);
+        sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+        std::sort(dataOptions->URMResponses.begin(), dataOptions->URMResponses.end(), sortAlphanumerically);
+        if(dataOptions->URMResponses.contains("--"))
+        {
+            // put the blank response option at the end of the list
+            dataOptions->URMResponses.removeAll("--");
+            dataOptions->URMResponses << "--";
+        }
+    }
+
+    // Re-build the section options in the selection box
+    if(dataOptions->sectionIncluded)
+    {
+        QString currentSection = ui->sectionSelectionBox->currentText();
+        ui->sectionSelectionBox->clear();
+        dataOptions->sectionNames.clear();
+        for(int sectionIndex = 0; sectionIndex < dataOptions->numStudentsInSystem; sectionIndex++)
+        {
+            if(!dataOptions->sectionNames.contains(student[sectionIndex].section, Qt::CaseInsensitive))
+            {
+                dataOptions->sectionNames << student[sectionIndex].section;
+            }
+        }
+        if(dataOptions->sectionNames.size() > 1)
+        {
+            QCollator sortAlphanumerically;
+            sortAlphanumerically.setNumericMode(true);
+            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+            std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
+            ui->sectionSelectionBox->setEnabled(true);
+            ui->label_2->setEnabled(true);
+            ui->label_22->setEnabled(true);
+            ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
+            ui->sectionSelectionBox->insertSeparator(1);
+            ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
+        }
+        else
+        {
+            ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+        }
+
+        if(ui->sectionSelectionBox->findText(currentSection) != -1)
+        {
+            ui->sectionSelectionBox->setCurrentText(currentSection);
+        }
     }
 
     // Enable save data file option, since data set is now edited
@@ -794,118 +822,10 @@ void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
     refreshStudentDisplay();
     ui->studentTable->clearSortIndicator();
 
-    // Load new team sizes in selection box, if necessary
+    // Load new team sizes in selection box
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());
-}
 
-
-void gruepr::on_addStudentPushButton_clicked()
-{
-    if(dataOptions->numStudentsInSystem < MAX_STUDENTS)
-    {
-        //Open window with a blank student record in it
-        StudentRecord newStudent;
-        newStudent.ID = dataOptions->numStudentsInSystem;
-        auto *win = new editOrAddStudentDialog(newStudent, dataOptions, this);
-
-        //If user clicks OK, add student to the database
-        int reply = win->exec();
-        if(reply == QDialog::Accepted)
-        {
-            const int newID = dataOptions->numStudentsInSystem;
-            student[newID] = win->student;
-            // see if this record is a duplicate; assume it isn't and then check
-            student[newID].duplicateRecord = false;
-            for(int ID = 0; ID < newID; ID++)
-            {
-                if((student[newID].firstname + student[newID].lastname == student[ID].firstname + student[ID].lastname)
-                      || ((student[newID].email == student[ID].email) && !student[newID].email.isEmpty()))
-                {
-                    student[newID].duplicateRecord = true;
-                    student[ID].duplicateRecord = true;
-                    student[ID].createTooltip(dataOptions);
-                }
-            }
-            student[newID].createTooltip(dataOptions);
-            student[newID].URM = teamingOptions->URMResponsesConsideredUR.contains(student[newID].URMResponse);
-
-            dataOptions->numStudentsInSystem++;
-
-            //Re-build the URM info
-            if(dataOptions->URMIncluded)
-            {
-                dataOptions->URMResponses.clear();
-                for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
-                {
-                    if(!dataOptions->URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
-                    {
-                        dataOptions->URMResponses << student[ID].URMResponse;
-                    }
-                }
-                QCollator sortAlphanumerically;
-                sortAlphanumerically.setNumericMode(true);
-                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                std::sort(dataOptions->URMResponses.begin(), dataOptions->URMResponses.end(), sortAlphanumerically);
-                if(dataOptions->URMResponses.contains("--"))
-                {
-                    // put the blank response option at the end of the list
-                    dataOptions->URMResponses.removeAll("--");
-                    dataOptions->URMResponses << "--";
-                }
-            }
-
-            //Re-do the section options in the selection box (in case user added a new section name)
-            if(dataOptions->sectionIncluded)
-            {
-                QString currentSection = ui->sectionSelectionBox->currentText();
-                ui->sectionSelectionBox->clear();
-                if(!(dataOptions->sectionNames.contains(student[newID].section)))
-                {
-                    dataOptions->sectionNames << student[newID].section;
-                }
-                if(dataOptions->sectionNames.size() > 1)
-                {
-                    QCollator sortAlphanumerically;
-                    sortAlphanumerically.setNumericMode(true);
-                    sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-                    std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
-                    ui->sectionSelectionBox->setEnabled(true);
-                    ui->label_2->setEnabled(true);
-                    ui->label_22->setEnabled(true);
-                    ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
-                    ui->sectionSelectionBox->insertSeparator(1);
-                    ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
-                }
-                else
-                {
-                    ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
-                }
-
-                if(ui->sectionSelectionBox->findText(currentSection) != -1)
-                {
-                    ui->sectionSelectionBox->setCurrentText(currentSection);
-                }
-            }
-
-            //Enable save data file option, since data set is now edited
-            ui->saveSurveyFilePushButton->setEnabled(true);
-            ui->actionSave_Survey_File->setEnabled(true);
-
-            refreshStudentDisplay();
-            ui->studentTable->clearSortIndicator();
-
-            ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
-            on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
-        }
-
-        delete win;
-    }
-    else
-    {
-        QMessageBox::warning(this, tr("Cannot add student."),
-                             tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
-    }
 }
 
 
@@ -965,21 +885,22 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     }
 
     // Write each student's info
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
         newSurveyFile.fieldValues.clear();
-        newSurveyFile.fieldValues << student[ID].surveyTimestamp.toString(Qt::ISODate) << student[ID].firstname << student[ID].lastname << student[ID].email;
+        newSurveyFile.fieldValues << student[index].surveyTimestamp.toString(Qt::ISODate) <<
+                                     student[index].firstname << student[index].lastname << student[index].email;
         if(dataOptions->genderIncluded)
         {
-            if(student[ID].gender == StudentRecord::woman)
+            if(student[index].gender == StudentRecord::woman)
             {
                 newSurveyFile.fieldValues << tr("woman");
             }
-            else if(student[ID].gender == StudentRecord::man)
+            else if(student[index].gender == StudentRecord::man)
             {
                 newSurveyFile.fieldValues << tr("man");
             }
-            else if(student[ID].gender == StudentRecord::nonbinary)
+            else if(student[index].gender == StudentRecord::nonbinary)
             {
                 newSurveyFile.fieldValues << tr("nonbinary");
             }
@@ -990,11 +911,11 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
         }
         if(dataOptions->URMIncluded)
         {
-            newSurveyFile.fieldValues << (student[ID].URMResponse);
+            newSurveyFile.fieldValues << (student[index].URMResponse);
         }
         for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
         {
-            newSurveyFile.fieldValues << student[ID].attributeResponse[attrib];
+            newSurveyFile.fieldValues << student[index].attributeResponse[attrib];
         }
         for(int day = 0; day < dataOptions->dayNames.size(); day++)
         {
@@ -1004,7 +925,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
             {
                 if(dataOptions->scheduleDataIsFreetime)
                 {
-                    if(!student[ID].unavailable[day][time])
+                    if(!student[index].unavailable[day][time])
                     {
                         if(!first)
                         {
@@ -1016,7 +937,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                 }
                 else
                 {
-                    if(student[ID].unavailable[day][time])
+                    if(student[index].unavailable[day][time])
                     {
                         if(!first)
                         {
@@ -1031,19 +952,19 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
         }
         if(dataOptions->sectionIncluded)
         {
-            newSurveyFile.fieldValues << student[ID].section;
+            newSurveyFile.fieldValues << student[index].section;
         }
         if(dataOptions->prefTeammatesIncluded)
         {
-            newSurveyFile.fieldValues << student[ID].prefTeammates.replace('\n',";");
+            newSurveyFile.fieldValues << student[index].prefTeammates.replace('\n',";");
         }
         if(dataOptions->prefNonTeammatesIncluded)
         {
-            newSurveyFile.fieldValues << student[ID].prefNonTeammates.replace('\n',";");
+            newSurveyFile.fieldValues << student[index].prefNonTeammates.replace('\n',";");
         }
         if(dataOptions->numNotes > 0)
         {
-            newSurveyFile.fieldValues << student[ID].notes;
+            newSurveyFile.fieldValues << student[index].notes;
         }
         newSurveyFile.writeDataRow();
     }
@@ -1102,9 +1023,9 @@ void gruepr::on_URMResponsesButton_clicked()
         teamingOptions->URMResponsesConsideredUR = win->URMResponsesConsideredUR;
         teamingOptions->URMResponsesConsideredUR.removeDuplicates();
         //(re)apply these values to the student database
-        for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            student[ID].URM = teamingOptions->URMResponsesConsideredUR.contains(student[ID].URMResponse);
+            student[index].URM = teamingOptions->URMResponsesConsideredUR.contains(student[index].URMResponse);
         }
     }
 
@@ -1190,9 +1111,9 @@ void gruepr::on_requiredTeammatesButton_clicked()
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            this->student[ID] = win->student[ID];
+            this->student[index] = win->student[index];
         }
         teamingOptions->haveAnyRequiredTeammates = win->teammatesSpecified;
     }
@@ -1211,9 +1132,9 @@ void gruepr::on_preventedTeammatesButton_clicked()
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            this->student[ID] = win->student[ID];
+            this->student[index] = win->student[index];
         }
         teamingOptions->haveAnyPreventedTeammates = win->teammatesSpecified;
     }
@@ -1232,9 +1153,9 @@ void gruepr::on_requestedTeammatesButton_clicked()
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            this->student[ID] = win->student[ID];
+            this->student[index] = win->student[index];
         }
         teamingOptions->haveAnyRequestedTeammates = win->teammatesSpecified;
     }
@@ -1493,12 +1414,12 @@ void gruepr::on_letsDoItButton_clicked()
 
     // Get the IDs of students from desired section and change numStudents accordingly
     int numStudentsInSection = 0;
-    studentIDs = new int[dataOptions->numStudentsInSystem];
-    for(int recordNum = 0; recordNum < dataOptions->numStudentsInSystem; recordNum++)
+    studentIndexes = new int[dataOptions->numStudentsInSystem];
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == student[recordNum].section)
+        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == student[index].section)
         {
-            studentIDs[numStudentsInSection] = student[recordNum].ID;
+            studentIndexes[numStudentsInSection] = index;
             numStudentsInSection++;
         }
     }
@@ -1506,7 +1427,7 @@ void gruepr::on_letsDoItButton_clicked()
 
     // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
     optimizationStopped = false;
-    future = QtConcurrent::run(this, &gruepr::optimizeTeams, studentIDs);       // spin optimization off into a separate thread
+    future = QtConcurrent::run(this, &gruepr::optimizeTeams, studentIndexes);       // spin optimization off into a separate thread
     futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
 }
 
@@ -1576,24 +1497,24 @@ void gruepr::optimizationComplete()
     delete progressWindow;
 
     // free memory used to save array of IDs of students being teamed
-    delete[] studentIDs;
+    delete[] studentIndexes;
 
     // Get the results
     QVector<int> bestTeamSet = future.result();
 
     // Load students into teams
-    int ID = 0;
+    int indexInTeamset = 0;
     for(int team = 0; team < numTeams; team++)
     {
-        auto &IDList = teams[team].studentIDs;
-        IDList.clear();
+        auto &IndexList = teams[team].studentIndexes;
+        IndexList.clear();
         for(int studentNum = 0, size = teams[team].size; studentNum < size; studentNum++)
         {
-            IDList << bestTeamSet.at(ID);
-            ID++;
+            IndexList << bestTeamSet.at(indexInTeamset);
+            indexInTeamset++;
         }
         //sort teammates within a team alphabetically by lastname,firstname
-        std::sort(IDList.begin(), IDList.end(), [this] (const int a, const int b)
+        std::sort(IndexList.begin(), IndexList.end(), [this] (const int a, const int b)
                                                         {return ((student[a].lastname + student[a].firstname) < (student[b].lastname + student[b].firstname));});
     }
 
@@ -1606,8 +1527,8 @@ void gruepr::optimizationComplete()
 
     // Sort teams by student name, set default teamnames, and create tooltips
     std::sort(teams, teams+numTeams, [this](const TeamRecord &a, const TeamRecord &b)
-                                            {return ((student[a.studentIDs.at(0)].lastname + student[a.studentIDs.at(0)].firstname) <
-                                                    (student[b.studentIDs.at(0)].lastname + student[b.studentIDs.at(0)].firstname));});
+                                            {return ((student[a.studentIndexes.at(0)].lastname + student[a.studentIndexes.at(0)].firstname) <
+                                                    (student[b.studentIndexes.at(0)].lastname + student[b.studentIndexes.at(0)].firstname));});
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].name = QString::number(team+1);
@@ -1952,6 +1873,17 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
         return;
     }
 
+    //Get index for each ID
+    int studentAIndex = 0, studentBIndex = 0;
+    while((studentAIndex < dataOptions->numStudentsInSystem) && student[studentAIndex].ID != studentAID)
+    {
+        studentAIndex++;
+    }
+    while((studentBIndex < dataOptions->numStudentsInSystem) && student[studentBIndex].ID != studentBID)
+    {
+        studentBIndex++;
+    }
+
     ui->teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
@@ -1960,8 +1892,8 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
 
     if(studentAteam == studentBteam)
     {
-        std::swap(teams[studentAteam].studentIDs[teams[studentAteam].studentIDs.indexOf(studentAID)],
-                  teams[studentBteam].studentIDs[teams[studentBteam].studentIDs.indexOf(studentBID)]);
+        std::swap(teams[studentAteam].studentIndexes[teams[studentAteam].studentIndexes.indexOf(studentAIndex)],
+                  teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
         // Re-score the team and refresh all the info
         refreshCurrTeamScores();
@@ -1988,14 +1920,14 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
         for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIDs[studentNum]], dataOptions);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIndexes[studentNum]], dataOptions);
             teamItem->addChild(childItems[studentNum]);
         }
     }
     else
     {
-        teams[studentAteam].studentIDs.replace(teams[studentAteam].studentIDs.indexOf(studentAID), studentBID);
-        teams[studentBteam].studentIDs.replace(teams[studentBteam].studentIDs.indexOf(studentBID), studentAID);
+        teams[studentAteam].studentIndexes.replace(teams[studentAteam].studentIndexes.indexOf(studentAIndex), studentBIndex);
+        teams[studentBteam].studentIndexes.replace(teams[studentBteam].studentIndexes.indexOf(studentBIndex), studentAIndex);
 
         //get the team items in the tree
         QTreeWidgetItem *teamAItem = nullptr, *teamBItem = nullptr;
@@ -2019,9 +1951,9 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
         teams[studentBteam].refreshTeamInfo(dataOptions, student);
         teams[studentBteam].createTooltip(dataOptions);
 
-        QString firstStudentName = student[teams[studentAteam].studentIDs[0]].lastname+student[teams[studentAteam].studentIDs[0]].firstname;
+        QString firstStudentName = student[teams[studentAteam].studentIndexes[0]].lastname+student[teams[studentAteam].studentIndexes[0]].firstname;
         ui->teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, dataOptions);
-        firstStudentName = student[teams[studentBteam].studentIDs[0]].lastname+student[teams[studentBteam].studentIDs[0]].firstname;
+        firstStudentName = student[teams[studentBteam].studentIndexes[0]].lastname+student[teams[studentBteam].studentIndexes[0]].firstname;
         ui->teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, dataOptions);
 
         //clear and refresh student items on both teams in table
@@ -2040,14 +1972,14 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
         for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIDs[studentNum]], dataOptions);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentAteam].studentIndexes[studentNum]], dataOptions);
             teamAItem->addChild(childItems[studentNum]);
         }
         childItems.clear();
         for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentBteam].studentIDs[studentNum]], dataOptions);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[studentBteam].studentIndexes[studentNum]], dataOptions);
             teamBItem->addChild(childItems[studentNum]);
         }
     }
@@ -2063,6 +1995,13 @@ void gruepr::moveAStudent(int oldTeam, int studentID, int newTeam)
         return;
     }
 
+    //Get index for the ID
+    int studentIndex = 0;
+    while((studentIndex < dataOptions->numStudentsInSystem) && student[studentIndex].ID != studentID)
+    {
+        studentIndex++;
+    }
+
     ui->teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
@@ -2070,9 +2009,9 @@ void gruepr::moveAStudent(int oldTeam, int studentID, int newTeam)
     ui->teamDataTree->sortByColumn(ui->teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     //remove student from old team and add to new team
-    teams[oldTeam].studentIDs.removeOne(studentID);
+    teams[oldTeam].studentIndexes.removeOne(studentIndex);
     teams[oldTeam].size--;
-    teams[newTeam].studentIDs << studentID;
+    teams[newTeam].studentIndexes << studentIndex;
     teams[newTeam].size++;
 
     //get the team items in the tree
@@ -2097,9 +2036,9 @@ void gruepr::moveAStudent(int oldTeam, int studentID, int newTeam)
     teams[newTeam].refreshTeamInfo(dataOptions, student);
     teams[newTeam].createTooltip(dataOptions);
 
-    QString firstStudentName = student[teams[oldTeam].studentIDs[0]].lastname+student[teams[oldTeam].studentIDs[0]].firstname;
+    QString firstStudentName = student[teams[oldTeam].studentIndexes[0]].lastname+student[teams[oldTeam].studentIndexes[0]].firstname;
     ui->teamDataTree->refreshTeam(oldTeamItem, teams[oldTeam], oldTeam, firstStudentName, dataOptions);
-    firstStudentName = student[teams[newTeam].studentIDs[0]].lastname+student[teams[newTeam].studentIDs[0]].firstname;
+    firstStudentName = student[teams[newTeam].studentIndexes[0]].lastname+student[teams[newTeam].studentIndexes[0]].firstname;
     ui->teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, dataOptions);
 
     //clear and refresh student items on both teams in table
@@ -2119,14 +2058,14 @@ void gruepr::moveAStudent(int oldTeam, int studentID, int newTeam)
     for(int studentNum = 0; studentNum < numStudentsOnStudentTeam; studentNum++)
     {
         childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-        ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[oldTeam].studentIDs[studentNum]], dataOptions);
+        ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[oldTeam].studentIndexes[studentNum]], dataOptions);
         oldTeamItem->addChild(childItems[studentNum]);
     }
     childItems.clear();
     for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++)
     {
         childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-        ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[newTeam].studentIDs[studentNum]], dataOptions);
+        ui->teamDataTree->refreshStudent(childItems[studentNum], student[teams[newTeam].studentIndexes[studentNum]], dataOptions);
         newTeamItem->addChild(childItems[studentNum]);
     }
 
@@ -2772,17 +2711,18 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS)
     {
         student[numStudents].parseRecordFromStringList(surveyFile.fieldValues, dataOptions);
-        student[numStudents].ID = numStudents;
+        student[numStudents].ID = dataOptions->latestStudentID;
+        dataOptions->latestStudentID++;
 
         // see if this record is a duplicate; assume it isn't and then check
         student[numStudents].duplicateRecord = false;
-        for(int ID = 0; ID < numStudents; ID++)
+        for(int index = 0; index < numStudents; index++)
         {
-            if((student[numStudents].firstname + student[numStudents].lastname == student[ID].firstname + student[ID].lastname) ||
-                    ((student[numStudents].email == student[ID].email) && !student[numStudents].email.isEmpty()))
+            if((student[numStudents].firstname + student[numStudents].lastname == student[index].firstname + student[index].lastname) ||
+                    ((student[numStudents].email == student[index].email) && !student[numStudents].email.isEmpty()))
             {
                 student[numStudents].duplicateRecord = true;
-                student[ID].duplicateRecord = true;
+                student[index].duplicateRecord = true;
             }
         }
 
@@ -2794,11 +2734,11 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
     {
         // gather all unique attribute question responses, remove a blank response if it exists in a list with other responses, and then sort
-        for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            if(!dataOptions->attributeQuestionResponses[attribute].contains(student[ID].attributeResponse[attribute]))
+            if(!dataOptions->attributeQuestionResponses[attribute].contains(student[index].attributeResponse[attribute]))
             {
-                dataOptions->attributeQuestionResponses[attribute] << student[ID].attributeResponse[attribute];
+                dataOptions->attributeQuestionResponses[attribute] << student[index].attributeResponse[attribute];
             }
         }
         if(dataOptions->attributeQuestionResponses[attribute].size() > 1)
@@ -2826,15 +2766,15 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             dataOptions->attributeMin[attribute] = startsWithInteger.match(dataOptions->attributeQuestionResponses[attribute].first()).captured(1).toInt();
             dataOptions->attributeMax[attribute] = startsWithInteger.match(dataOptions->attributeQuestionResponses[attribute].last()).captured(1).toInt();
             // set numerical value of students' attribute responses according to the number at the start of the response
-            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
-                if(!student[ID].attributeResponse[attribute].isEmpty())
+                if(!student[index].attributeResponse[attribute].isEmpty())
                 {
-                    student[ID].attributeVal[attribute] = startsWithInteger.match(student[ID].attributeResponse[attribute]).captured(1).toInt();
+                    student[index].attributeVal[attribute] = startsWithInteger.match(student[index].attributeResponse[attribute]).captured(1).toInt();
                 }
                 else
                 {
-                    student[ID].attributeVal[attribute] = -1;
+                    student[index].attributeVal[attribute] = -1;
                 }
             }
         }
@@ -2854,30 +2794,30 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                 dataOptions->attributeMax[attribute] = MAX_BLOCKS_PER_DAY;
             }
             // set numerical value of students' attribute responses according to their place in the sorted list of responses
-            for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
-                if(!student[ID].attributeResponse[attribute].isEmpty())
+                if(!student[index].attributeResponse[attribute].isEmpty())
                 {
-                    student[ID].attributeVal[attribute] = dataOptions->attributeQuestionResponses[attribute].indexOf(student[ID].attributeResponse[attribute]) + 1;
+                    student[index].attributeVal[attribute] = dataOptions->attributeQuestionResponses[attribute].indexOf(student[index].attributeResponse[attribute]) + 1;
                 }
                 else
                 {
-                    student[ID].attributeVal[attribute] = -1;
+                    student[index].attributeVal[attribute] = -1;
                 }
             }
         }
     }
 
     // gather all unique URM and section question responses and sort
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        if(!dataOptions->URMResponses.contains(student[ID].URMResponse, Qt::CaseInsensitive))
+        if(!dataOptions->URMResponses.contains(student[index].URMResponse, Qt::CaseInsensitive))
         {
-            dataOptions->URMResponses << student[ID].URMResponse;
+            dataOptions->URMResponses << student[index].URMResponse;
         }
-        if(!(dataOptions->sectionNames.contains(student[ID].section, Qt::CaseInsensitive)))
+        if(!(dataOptions->sectionNames.contains(student[index].section, Qt::CaseInsensitive)))
         {
-            dataOptions->sectionNames << student[ID].section;
+            dataOptions->sectionNames << student[index].section;
         }
     }
     QCollator sortAlphanumerically;
@@ -2893,9 +2833,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
 
     // set all of the students' tooltips
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        student[ID].createTooltip(dataOptions);
+        student[index].createTooltip(dataOptions);
     }
 
     if(numStudents == MAX_STUDENTS)
@@ -3024,30 +2964,30 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(dataOptions->numStudentsInSystem);
     numStudents = 0;
-    for(int ID = 0; ID < dataOptions->numStudentsInSystem; ID++)
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        if((ui->sectionSelectionBox->currentIndex() == 0) || (student[ID].section == ui->sectionSelectionBox->currentText()))
+        if((ui->sectionSelectionBox->currentIndex() == 0) || (student[index].section == ui->sectionSelectionBox->currentText()))
         {
-            bool duplicate = student[ID].duplicateRecord;
+            bool duplicate = student[index].duplicateRecord;
 
-            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, student[ID].surveyTimestamp.toString(Qt::SystemLocaleShortDate));
-            timestamp->setToolTip(student[ID].tooltip);
+            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, student[index].surveyTimestamp.toString(Qt::SystemLocaleShortDate));
+            timestamp->setToolTip(student[index].tooltip);
             if(duplicate)
             {
                 timestamp->setBackground(QBrush(QColor(0xff, 0xff, 0x3b)));
             }
             ui->studentTable->setItem(numStudents, 0, timestamp);
 
-            auto *firstName = new QTableWidgetItem(student[ID].firstname);
-            firstName->setToolTip(student[ID].tooltip);
+            auto *firstName = new QTableWidgetItem(student[index].firstname);
+            firstName->setToolTip(student[index].tooltip);
             if(duplicate)
             {
                 firstName->setBackground(QBrush(QColor(0xff, 0xff, 0x3b)));
             }
             ui->studentTable->setItem(numStudents, 1, firstName);
 
-            auto *lastName = new QTableWidgetItem(student[ID].lastname);
-            lastName->setToolTip(student[ID].tooltip);
+            auto *lastName = new QTableWidgetItem(student[index].lastname);
+            lastName->setToolTip(student[index].tooltip);
             if(duplicate)
             {
                 lastName->setBackground(QBrush(QColor(0xff, 0xff, 0x3b)));
@@ -3057,8 +2997,8 @@ void gruepr::refreshStudentDisplay()
             int column = 3;
             if(dataOptions->sectionIncluded)
             {
-                auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::alphanumeric, student[ID].section);
-                section->setToolTip(student[ID].tooltip);
+                auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::alphanumeric, student[index].section);
+                section->setToolTip(student[index].tooltip);
                 if(duplicate)
                 {
                     section->setBackground(QBrush(QColor(0xff, 0xff, 0x3b)));
@@ -3068,8 +3008,8 @@ void gruepr::refreshStudentDisplay()
             }
 
             auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons/edit.png"), "", this);
-            editButton->setToolTip("<html>" + tr("Edit") + " " + student[ID].firstname + " " + student[ID].lastname + tr("'s data.") + "</html>");
-            editButton->setProperty("StudentID", student[ID].ID);
+            editButton->setToolTip("<html>" + tr("Edit") + " " + student[index].firstname + " " + student[index].lastname + tr("'s data.") + "</html>");
+            editButton->setProperty("StudentIndex", index);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
@@ -3091,16 +3031,16 @@ void gruepr::refreshStudentDisplay()
             column++;
 
             auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons/delete.png"), "", this);
-            removerButton->setToolTip("<html>" + tr("Remove") + " " + student[ID].firstname + " " + student[ID].lastname + " " + tr("from the current data set.") + "</html>");
-            removerButton->setProperty("StudentID", student[ID].ID);
+            removerButton->setToolTip("<html>" + tr("Remove") + " " + student[index].firstname + " " + student[index].lastname + " " + tr("from the current data set.") + "</html>");
+            removerButton->setProperty("StudentIndex", index);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
                 removerButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
             }
-            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, ID, removerButton]
-                                                                             {removerButton->disconnect();
-                                                                              removeAStudent(student[ID].firstname + " " + student[ID].lastname);});
+            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, index, removerButton] {
+                                                                                removerButton->disconnect();
+                                                                                removeAStudent(index);});
             // pass on mouse enter events onto cell in table
             connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, removerButton]
                                                                                    {int row=0;
@@ -3131,7 +3071,7 @@ void gruepr::refreshStudentDisplay()
 ////////////////////////////////////////////
 // Create and optimize teams using genetic algorithm
 ////////////////////////////////////////////
-QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
+QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
 #ifdef Q_OS_MACOS
@@ -3179,7 +3119,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIDs)
     int *randPerm = new int[numStudents];
     for(int i = 0; i < numStudents; i++)
     {
-        randPerm[i] = studentIDs[i];
+        randPerm[i] = studentIndexes[i];
     }
     // then make "populationSize" number of random permutations for initial population, store in genePool
     for(int genome = 0; genome < POPULATIONSIZE; genome++)
@@ -3420,58 +3360,55 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
         penaltyPoints[team] = 0;
     }
 
-    int ID = 0, firstStudentInTeam = 0;
+    int studentNum = 0;
 
     // Calculate each component score:
 
     // Calculate attribute scores and penalties for each attribute for each team:
+    std::multiset<int> attributeLevelsInTeam;
+    std::multiset<float> timezoneLevelsInTeam;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         if((teamingOptions->realAttributeWeights[attribute] > 0) ||
                 (teamingOptions->haveAnyIncompatibleAttributes[attribute]) || (teamingOptions->haveAnyRequiredAttributes[attribute]))
         {
-            ID = 0;
+            studentNum = 0;
             for(int team = 0; team < numTeams; team++)
             {
                 if(teamSizes[team] == 1)
                 {
                     continue;
                 }
+
                 // gather all attribute values
-                std::multiset<int> attributeLevelsInTeam;
-                std::multiset<float> timezoneLevelsInTeam;
+                attributeLevelsInTeam.clear();
+                timezoneLevelsInTeam.clear();
                 for(int teammate = 0; teammate < teamSizes[team]; teammate++)
                 {
-                    attributeLevelsInTeam.insert(student[teammates[ID]].attributeVal[attribute]);
+                    attributeLevelsInTeam.insert(student[teammates[studentNum]].attributeVal[attribute]);
                     if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
                     {
                         // this "attribute" is timezone; so also collect those
-                        timezoneLevelsInTeam.insert(student[teammates[ID]].timezone);
+                        timezoneLevelsInTeam.insert(student[teammates[studentNum]].timezone);
                     }
-                    ID++;
+                    studentNum++;
                 }
 
                 // Add a penalty per pair of incompatible attribute responses found
                 if(teamingOptions->haveAnyIncompatibleAttributes[attribute])
                 {
-                    // go through each pair found in teamingOptions->incompatibleAttributeValues[attrib] list and see if both are found in attributeLevelsInTeam
+                    // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
                     for(const auto &pair : qAsConst(teamingOptions->incompatibleAttributeValues[attribute]))
                     {
                         int n = attributeLevelsInTeam.count(pair.first);
                         if(pair.first == pair.second)
                         {
-                            if(n > 1)
-                            {
-                                penaltyPoints[team] +=  n * (n-1) / 2;  // number of incompatible pairings is the sum 1 -> n-1
-                            }
+                            penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (calculation = 0 if n == 0 or n == 1)
                         }
                         else
                         {
                             int m = attributeLevelsInTeam.count(pair.second);
-                            if((n != 0) && (m != 0))
-                            {
-                                penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions;
-                            }
+                            penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions (calculation = 0 if n == 0 or m == 0)
                         }
                     }
                 }
@@ -3493,7 +3430,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 attributeLevelsInTeam.erase(-1);
                 if((teamingOptions->realAttributeWeights[attribute] > 0) && (!attributeLevelsInTeam.empty()))
                 {
-                    int attributeRangeInTeam;
+                    float attributeRangeInTeam;
                     if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
                     {
                         // "attribute" is timezone, so use timezone values
@@ -3513,13 +3450,13 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                         {
                             if(currVal != prevVal)
                             {
-                                attributeRangeInTeam++;
+                                attributeRangeInTeam += 1;
                             }
                             prevVal = currVal;
                         }
                     }
 
-                    attributeScore[attribute][team] = float(attributeRangeInTeam) / (dataOptions->attributeMax[attribute] - dataOptions->attributeMin[attribute]);
+                    attributeScore[attribute][team] = attributeRangeInTeam / (dataOptions->attributeMax[attribute] - dataOptions->attributeMin[attribute]);
                     if(teamingOptions->desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
                     {
                         attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
@@ -3540,7 +3477,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
         // combine each student's schedule array into a team schedule array
         // For compiling with MSVC, which doesn't have runtime array sizes, replace next line w/ smth like (then reserve 2D size): QVector< QVector<bool> > teamAvailability;
         bool teamAvailability[numDays][numTimes];
-        ID = 0;
+        studentNum = 0;
         for(int team = 0; team < numTeams; team++)
         {
             if(teamSizes[team] == 1)
@@ -3548,26 +3485,26 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 continue;
             }
 
-            int firstStudentInTeam = ID;
+            int firstStudentInTeam = studentNum;
             int numStudentsWithAmbiguousSchedules = 0;
             for(int day = 0; day < numDays; day++)
             {
                 for(int time = 0; time < numTimes; time++)
                 {
-                    ID = firstStudentInTeam;
+                    studentNum = firstStudentInTeam;
                     teamAvailability[day][time] = true;
                     for(int teammate = 0; teammate < teamSizes[team]; teammate++)
                     {
-                        if(!student[teammates[ID]].ambiguousSchedule)
+                        if(!student[teammates[studentNum]].ambiguousSchedule)
                         {
-                            teamAvailability[day][time] = teamAvailability[day][time] && !student[teammates[ID]].unavailable[day][time];	// "and" each student's not-unavailability
+                            teamAvailability[day][time] = teamAvailability[day][time] && !student[teammates[studentNum]].unavailable[day][time];	// "and" each student's not-unavailability
                         }
                         else if((day == 0) && (time == 0))
                         {
                             // count number of students with ambiguous schedules during the first timeslot
                             numStudentsWithAmbiguousSchedules++;
                         }
-                        ID++;
+                        studentNum++;
                     }
                 }
             }
@@ -3633,7 +3570,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
     if(dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented ||
                                        teamingOptions->isolatedNonbinaryPrevented || teamingOptions->singleGenderPrevented))
     {
-        ID = 0;
+        studentNum = 0;
         for(int team = 0; team < numTeams; team++)
         {
             if(teamSizes[team] == 1)
@@ -3647,19 +3584,19 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
             int numNonbinary = 0;
             for(int teammate = 0; teammate < teamSizes[team]; teammate++)
             {
-                if(student[teammates[ID]].gender == StudentRecord::man)
+                if(student[teammates[studentNum]].gender == StudentRecord::man)
                 {
                     numMen++;
                 }
-                else if(student[teammates[ID]].gender == StudentRecord::woman)
+                else if(student[teammates[studentNum]].gender == StudentRecord::woman)
                 {
                     numWomen++;
                 }
-                else if(student[teammates[ID]].gender == StudentRecord::nonbinary)
+                else if(student[teammates[studentNum]].gender == StudentRecord::nonbinary)
                 {
                     numNonbinary++;
                 }
-                ID++;
+                studentNum++;
             }
 
             // Apply penalties as appropriate
@@ -3685,7 +3622,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
     // Determine URM penalties
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented)
     {
-        ID = 0;
+        studentNum = 0;
         for(int team = 0; team < numTeams; team++)
         {
             if(teamSizes[team] == 1)
@@ -3697,11 +3634,11 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
             int numURM = 0;
             for(int teammate = 0; teammate < teamSizes[team]; teammate++)
             {
-                if(student[teammates[ID]].URM)
+                if(student[teammates[studentNum]].URM)
                 {
                     numURM++;
                 }
-                ID++;
+                studentNum++;
             }
 
             // Apply penalties as appropriate
@@ -3712,100 +3649,91 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
         }
     }
 
-    // Determine penalties for required teammates NOT on same team
-    if(teamingOptions->haveAnyRequiredTeammates)
+    // Determine penalties for required teammates NOT on team, prevented teammates on team, and insufficient number of requested teammates on team
+    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyPreventedTeammates || teamingOptions->haveAnyRequestedTeammates)
     {
-        bool noSectionChosen = (ui->sectionSelectionBox->currentIndex() == 0);
-        firstStudentInTeam=0;
-        // Loop through each team
+        std::set<int> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
+        std::multiset<int> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
+        std::vector< std::set<int> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
+
+        // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
+        studentNum = 0;
         for(int team = 0; team < numTeams; team++)
         {
-            //loop through all students in team
-            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSizes[team]); studentA++)
+            for(int teammate = 0; teammate < teamSizes[team]; teammate++)
             {
-                const bool *studentAsRequireds = student[teammates[studentA]].requiredWith;
-                //loop through ALL other students
-                for(int studentB = 0; studentB < numStudents; studentB++)
+                IDsBeingTeamed.insert(student[teammates[studentNum]].ID);
+                studentNum++;
+            }
+        }
+
+        // Loop through each team
+        studentNum = 0;
+        StudentRecord *currStudent;
+        for(int team = 0; team < numTeams; team++)
+        {
+            IDsOnTeam.clear();
+            requiredIDsOnTeam.clear();
+            preventedIDsOnTeam.clear();
+            requestedIDs.clear();
+            //loop through each student on team and collect their ID and their required/prevented/requested IDs
+            for(int teammate = 0; teammate < teamSizes[team]; teammate++)
+            {
+                currStudent = &student[teammates[studentNum]];
+                IDsOnTeam.insert(currStudent->ID);
+                requestedIDsByStudent.clear();
+                for(const auto ID : IDsBeingTeamed)
                 {
-                    const int studB = teammates[studentB];
-                    //if this pairing is required and studentB is in a/the section being teamed, then we need to see if they are, in fact, teammates
-                    if(studentAsRequireds[studB] && (noSectionChosen || student[studB].section == sectionName))
+                    if(currStudent->requiredWith[ID])
                     {
-                        //loop through all of studentA's current teammates until if/when we find studentB
-                        int currMates = firstStudentInTeam;
-                        while((teammates[currMates] != studB) && currMates < (firstStudentInTeam + teamSizes[team]))
-                        {
-                            currMates++;
-                        }
-                        //if the pairing was not found, then add a penalty point
-                        if(teammates[currMates] != studB)
-                        {
-                            penaltyPoints[team]++;
-                        }
+                        requiredIDsOnTeam.insert(ID);
+                    }
+                    if(currStudent->preventedWith[ID])
+                    {
+                        preventedIDsOnTeam.insert(ID);
+                    }
+                    if(currStudent->requestedWith[ID])
+                    {
+                        requestedIDsByStudent.insert(ID);
                     }
                 }
+                requestedIDs.push_back(requestedIDsByStudent);
+                studentNum++;
             }
-            firstStudentInTeam += teamSizes[team];
-        }
-    }
 
-    // Determine adjustments for prevented teammates on same team
-    if(teamingOptions->haveAnyPreventedTeammates)
-    {
-        firstStudentInTeam=0;
-        // Loop through each team
-        for(int team = 0; team < numTeams; team++)
-        {
-            if(teamSizes[team] == 1)
+            if(teamingOptions->haveAnyRequiredTeammates)
             {
-                continue;
-            }
-            //loop studentA from first student in team to 2nd-to-last student in team
-            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + (teamSizes[team]-1)); studentA++)
-            {
-                const bool *studentAsPreventeds = student[teammates[studentA]].preventedWith;
-                //loop studentB from studentA+1 to last student in team
-                for(int studentB = (studentA+1); studentB < (firstStudentInTeam + teamSizes[team]); studentB++)
+                //loop through all the required IDs to see if each is present on the team--if not, increment penalty
+                for(const auto requiredIDOnTeam : requiredIDsOnTeam)
                 {
-                    //if pairing prevented, then add a penalty point
-                    if(studentAsPreventeds[teammates[studentB]])
+                    if(IDsOnTeam.count(requiredIDOnTeam) == 0)
                     {
                         penaltyPoints[team]++;
                     }
                 }
             }
-            firstStudentInTeam += teamSizes[team];
-        }
-    }
 
-    // Determine adjustments for not having at least N requested teammates
-    if(teamingOptions->haveAnyRequestedTeammates)
-    {
-        firstStudentInTeam = 0;
-        int numRequestedTeammates = 0, numRequestedTeammatesFound = 0;
-        // Loop through each team
-        for(int team = 0; team < numTeams; team++)
-        {
-            //loop studentA from first student in team to last student in team
-            for(int studentA = firstStudentInTeam; studentA < (firstStudentInTeam + teamSizes[team]); studentA++)
+            if(teamingOptions->haveAnyPreventedTeammates)
             {
-                const bool *studentAsRequesteds = student[teammates[studentA]].requestedWith;
-                numRequestedTeammates = 0;
-                //first count how many teammates this student has requested
-                for(int ID = 0; ID < numStudents; ID++)
+                //loop through all the prevented IDs to see if each is missing on the team--if not, increment penalty
+                for(const auto preventedIDOnTeam : preventedIDsOnTeam)
                 {
-                    if(studentAsRequesteds[ID])
+                    if(IDsOnTeam.count(preventedIDOnTeam) != 0)
                     {
-                        numRequestedTeammates++;
+                        penaltyPoints[team]++;
                     }
                 }
-                if(numRequestedTeammates > 0)
+            }
+
+            if(teamingOptions->haveAnyRequestedTeammates)
+            {
+                for(const auto &requestedIDSet : requestedIDs)
                 {
-                    numRequestedTeammatesFound = 0;
-                    //next loop count how many requested teammates are found on their team
-                    for(int studentB = firstStudentInTeam; studentB < (firstStudentInTeam + teamSizes[team]); studentB++)
+                    int numRequestedTeammates = 0, numRequestedTeammatesFound = 0;
+                    for(const auto requestedIDOnTeam : requestedIDSet)
                     {
-                        if(studentAsRequesteds[teammates[studentB]])
+                        numRequestedTeammates++;
+                        if(IDsOnTeam.count(requestedIDOnTeam) != 0)
                         {
                             numRequestedTeammatesFound++;
                         }
@@ -3817,7 +3745,6 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                     }
                 }
             }
-            firstStudentInTeam += teamSizes[team];
         }
     }
 
@@ -3894,7 +3821,7 @@ void gruepr::refreshCurrTeamScores()
         teamSizes[teamnum] = teams[teamnum].size;
         for(int teammate = 0; teammate < teams[teamnum].size; teammate++)
         {
-            genome[ID] = teams[teamnum].studentIDs.at(teammate);
+            genome[ID] = teams[teamnum].studentIndexes.at(teammate);
             ID++;
         }
     }
@@ -3931,7 +3858,7 @@ void gruepr::refreshTeamDisplay()
     {
         const auto &currentTeam = teams[teamNum];
         parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, ui->teamDataTree->columnCount(), currentTeam.score <= 0);
-        QString firstStudentName = student[currentTeam.studentIDs[0]].lastname+student[currentTeam.studentIDs[0]].firstname;
+        QString firstStudentName = student[currentTeam.studentIndexes[0]].lastname+student[currentTeam.studentIndexes[0]].firstname;
         ui->teamDataTree->refreshTeam(parentItems[teamNum], currentTeam, teamNum, firstStudentName, dataOptions);
 
         //remove all student items in the team
@@ -3945,7 +3872,7 @@ void gruepr::refreshTeamDisplay()
         for(int studentOnTeam = 0, numStudentsOnTeam = currentTeam.size; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            ui->teamDataTree->refreshStudent(childItems[studentNum], student[currentTeam.studentIDs[studentOnTeam]], dataOptions);
+            ui->teamDataTree->refreshStudent(childItems[studentNum], student[currentTeam.studentIndexes[studentOnTeam]], dataOptions);
             parentItems[teamNum]->addChild(childItems[studentNum]);
             studentNum++;
         }
@@ -4052,7 +3979,7 @@ void gruepr::createFileContents()
         //loop through each teammate in the team
         for(int teammate = 0; teammate < teams[team].size; teammate++)
         {
-            const auto &thisStudent = student[teams[team].studentIDs.at(teammate)];
+            const auto &thisStudent = student[teams[team].studentIndexes.at(teammate)];
             if(dataOptions->genderIncluded)
             {
                 if(thisStudent.gender == StudentRecord::woman)

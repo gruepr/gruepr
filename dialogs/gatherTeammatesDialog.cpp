@@ -18,9 +18,9 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     numStudents = numStudentsComingIn;
     sectionName = sectionname;
     student = new StudentRecord[numStudentsComingIn];
-    for(int i = 0; i < numStudentsComingIn; i++)
+    for(int index = 0; index < numStudentsComingIn; index++)
     {
-        student[i] = studentrecs[i];
+        student[index] = studentrecs[index];
     }
     whatType = whatTypeOfTeammate;
 
@@ -86,11 +86,11 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     //Next rows - the selection of students
     QVector<StudentRecord> studentsInComboBoxes;
     //Add to combobox a list of all the student names (in this section)
-    for(int ID = 0; ID < numStudentsComingIn; ID++)
+    for(int index = 0; index < numStudentsComingIn; index++)
     {
-        if((sectionName == "") || (sectionName == student[ID].section))
+        if((sectionName == "") || (sectionName == student[index].section))
         {
-            studentsInComboBoxes << student[ID];
+            studentsInComboBoxes << student[index];
         }
     }
     std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const StudentRecord &i, const StudentRecord &j)
@@ -223,26 +223,56 @@ void gatherTeammatesDialog::addOneTeammateSet()
         possibleTeammates[i].setCurrentIndex(0);
     }
 
-    //IN THE FUTURE--SHOULD DECOUPLE THIS USE OF INDEX IN student ARRAY AS CORRESPONDING TO THE ID NUMBER
     if(whatType != requested)
     {
+        StudentRecord *student1, *student2;
         //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
         for(int ID1 = 0; ID1 < count; ID1++)
         {
+            // find the student with ID1
+            int index = 0;
+            while((student[index].ID != IDs[ID1]) && (index < numStudents))
+            {
+                index++;
+            }
+            if(index < numStudents)
+            {
+                student1 = &student[index];
+            }
+            else
+            {
+                continue;
+            }
+
             for(int ID2 = ID1+1; ID2 < count; ID2++)
             {
                 if(IDs[ID1] != IDs[ID2])
                 {
-                    //we have at least one required/prevented teammate pair!
-                    if(whatType == required)
+                    // find the student with ID2
+                    index = 0;
+                    while((student[index].ID != IDs[ID2]) && (index < numStudents))
                     {
-                        student[IDs[ID1]].requiredWith[IDs[ID2]] = true;
-                        student[IDs[ID2]].requiredWith[IDs[ID1]] = true;
+                        index++;
+                    }
+                    if(index < numStudents)
+                    {
+                        student2 = &student[index];
                     }
                     else
                     {
-                        student[IDs[ID1]].preventedWith[IDs[ID2]] = true;
-                        student[IDs[ID2]].preventedWith[IDs[ID1]] = true;
+                        continue;
+                    }
+
+                    //we have at least one required/prevented teammate pair!
+                    if(whatType == required)
+                    {
+                        student1->requiredWith[IDs[ID2]] = true;
+                        student2->requiredWith[IDs[ID1]] = true;
+                    }
+                    else
+                    {
+                        student1->preventedWith[IDs[ID2]] = true;
+                        student2->preventedWith[IDs[ID1]] = true;
                     }
                 }
             }
@@ -250,17 +280,30 @@ void gatherTeammatesDialog::addOneTeammateSet()
     }
     else
     {
-        int baseStudent = possibleTeammates[possibleNumIDs].itemData(possibleTeammates[possibleNumIDs].currentIndex()).toInt();
-        //Reset combobox
-        possibleTeammates[possibleNumIDs].setCurrentIndex(0);
-        for(int ID1 = 0; ID1 < count; ID1++)
+        int baseStudentID = possibleTeammates[possibleNumIDs].itemData(possibleTeammates[possibleNumIDs].currentIndex()).toInt();
+        // find the student with this ID
+        StudentRecord *baseStudent;
+        int index = 0;
+        while((student[index].ID != baseStudentID) && (index < numStudents))
         {
-            if(baseStudent != IDs[ID1])
+            index++;
+        }
+        if(index < numStudents)
+        {
+            baseStudent = &student[index];
+
+            for(int ID1 = 0; ID1 < count; ID1++)
             {
-                //we have at least one requested teammate pair!
-                student[baseStudent].requestedWith[IDs[ID1]] = true;
+                if(baseStudentID != IDs[ID1])
+                {
+                    //we have at least one requested teammate pair!
+                    baseStudent->requestedWith[IDs[ID1]] = true;
+                }
             }
         }
+
+        //Reset combobox
+        possibleTeammates[possibleNumIDs].setCurrentIndex(0);
     }
     refreshDisplay();
 }
@@ -276,23 +319,23 @@ void gatherTeammatesDialog::clearAllTeammateSets()
         return;
     }
 
-    for(int ID1 = 0; ID1 < numStudents; ID1++)
+    for(int index1 = 0; index1 < numStudents; index1++)
     {
-        if((sectionName == "") || (sectionName == student[ID1].section))
+        if((sectionName == "") || (sectionName == student[index1].section))
         {
-            for(int ID2 = 0; ID2 < numStudents; ID2++)
+            for(int index2 = 0; index2 < numStudents; index2++)
             {
                 if(whatType == required)
                 {
-                    student[ID1].requiredWith[ID2] = false;
+                    student[index1].requiredWith[index2] = false;
                 }
                 else if(whatType == prevented)
                 {
-                    student[ID1].preventedWith[ID2] = false;
+                    student[index1].preventedWith[index2] = false;
                 }
                 else
                 {
-                    student[ID1].requestedWith[ID2] = false;
+                    student[index1].requestedWith[index2] = false;
                 }
             }
         }
@@ -423,14 +466,15 @@ bool gatherTeammatesDialog::loadCSVFile()
     // Need to convert names to IDs and then add each teammate to the basename
 
     // First prepend the basenames to each list of teammates
-    for(int basename = 0; basename < basenames.size(); basename++)
+    for(int basestudent = 0; basestudent < basenames.size(); basestudent++)
     {
-        teammates[basename].prepend(basenames.at(basename));
+        teammates[basestudent].prepend(basenames.at(basestudent));
     }
 
+    QVector<int> IDs;
     for(int basename = 0; basename < basenames.size(); basename++)
     {
-        QVector<int> IDs;
+        IDs.clear();
         for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
@@ -457,25 +501,56 @@ bool gatherTeammatesDialog::loadCSVFile()
             }
         }
 
-        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
-        for(int ID = 1; ID < IDs.size(); ID++)
+        // find the baseStudent
+        int index = 0;
+        StudentRecord *baseStudent, *student2;
+        while((student[index].ID != IDs[0]) && (index < numStudents))
         {
-            if(IDs[0] != IDs[ID])
+            index++;
+        }
+        if(index < numStudents)
+        {
+            baseStudent = &student[index];
+        }
+        else
+        {
+            continue;
+        }
+
+        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+        for(int ID2 = 1; ID2 < IDs.size(); ID2++)
+        {
+            if(IDs[0] != IDs[ID2])
             {
+                // find the student with ID2
+                index = 0;
+                while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                {
+                    index++;
+                }
+                if(index < numStudents)
+                {
+                    student2 = &student[index];
+                }
+                else
+                {
+                    continue;
+                }
+
                 //we have at least one specified teammate pair!
                 if(whatType == required)
                 {
-                    student[IDs[0]].requiredWith[IDs[ID]] = true;
-                    student[IDs[ID]].requiredWith[IDs[0]] = true;
+                    baseStudent->requiredWith[IDs[ID2]] = true;
+                    student2->requiredWith[IDs[0]] = true;
                 }
                 else if(whatType == prevented)
                 {
-                    student[IDs[0]].preventedWith[IDs[ID]] = true;
-                    student[IDs[ID]].preventedWith[IDs[0]] = true;
+                    baseStudent->preventedWith[IDs[ID2]] = true;
+                    student2->preventedWith[IDs[0]] = true;
                 }
                 else    //whatType == requested
                 {
-                    student[IDs[0]].requestedWith[IDs[ID]] = true;
+                    baseStudent->requestedWith[IDs[ID2]] = true;
                 }
             }
         }
@@ -508,7 +583,8 @@ bool gatherTeammatesDialog::loadStudentPrefs()
         for(int searchStudent = 0; searchStudent < prefs.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) && (prefs.at(searchStudent).compare((student[knownStudent].firstname + " " + student[knownStudent].lastname), Qt::CaseInsensitive) != 0))
+            while((knownStudent < numStudents) &&
+                  (prefs.at(searchStudent).compare((student[knownStudent].firstname + " " + student[knownStudent].lastname), Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -530,25 +606,56 @@ bool gatherTeammatesDialog::loadStudentPrefs()
             }
         }
 
-        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
-        for(int ID = 1; ID < IDs.size(); ID++)
+        // find the baseStudent
+        int index = 0;
+        StudentRecord *baseStudent, *student2;
+        while((student[index].ID != IDs[0]) && (index < numStudents))
         {
-            if(IDs[0] != IDs[ID])
+            index++;
+        }
+        if(index < numStudents)
+        {
+            baseStudent = &student[index];
+        }
+        else
+        {
+            continue;
+        }
+
+        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+        for(int ID2 = 1; ID2 < IDs.size(); ID2++)
+        {
+            if(IDs[0] != IDs[ID2])
             {
+                // find the student with ID2
+                index = 0;
+                while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                {
+                    index++;
+                }
+                if(index < numStudents)
+                {
+                    student2 = &student[index];
+                }
+                else
+                {
+                    continue;
+                }
+
                 //we have at least one specified teammate pair!
                 if(whatType == required)
                 {
-                    student[IDs[0]].requiredWith[IDs[ID]] = true;
-                    student[IDs[ID]].requiredWith[IDs[0]] = true;
+                    baseStudent->requiredWith[IDs[ID2]] = true;
+                    student2->requiredWith[IDs[0]] = true;
                 }
                 else if(whatType == prevented)
                 {
-                    student[IDs[0]].preventedWith[IDs[ID]] = true;
-                    student[IDs[ID]].preventedWith[IDs[0]] = true;
+                    baseStudent->preventedWith[IDs[ID2]] = true;
+                    student2->preventedWith[IDs[0]] = true;
                 }
                 else    //whatType == requested
                 {
-                    student[IDs[0]].requestedWith[IDs[ID]] = true;
+                    baseStudent->requestedWith[IDs[ID2]] = true;
                 }
             }
         }
@@ -622,14 +729,16 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
+    QVector<int> IDs;
     for(const auto &teammate : qAsConst(teammates))
     {
-        QVector<int> IDs;
+        IDs.clear();
         IDs.reserve(teammate.size());
         for(int searchStudent = 0; searchStudent < teammate.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) && (teammate.at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+            while((knownStudent < numStudents) &&
+                  (teammate.at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -652,27 +761,58 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
         }
 
         //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
+        StudentRecord *student1, *student2;
         for(int ID1 = 0; ID1 < IDs.size(); ID1++)
         {
+            // find the student with ID1
+            int index = 0;
+            while((student[index].ID != IDs[ID1]) && (index < numStudents))
+            {
+                index++;
+            }
+            if(index < numStudents)
+            {
+                student1 = &student[index];
+            }
+            else
+            {
+                continue;
+            }
+
             for(int ID2 = ID1+1; ID2 < IDs.size(); ID2++)
             {
                 if(IDs[ID1] != IDs[ID2])
                 {
+                    // find the student with ID2
+                    index = 0;
+                    while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                    {
+                        index++;
+                    }
+                    if(index < numStudents)
+                    {
+                        student2 = &student[index];
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
                     //we have at least one required/prevented teammate pair!
                     if(whatType == required)
                     {
-                        student[IDs[ID1]].requiredWith[IDs[ID2]] = true;
-                        student[IDs[ID2]].requiredWith[IDs[ID1]] = true;
+                        student1->requiredWith[IDs[ID2]] = true;
+                        student2->requiredWith[IDs[ID1]] = true;
                     }
                     else if(whatType == prevented)
                     {
-                        student[IDs[ID1]].preventedWith[IDs[ID2]] = true;
-                        student[IDs[ID2]].preventedWith[IDs[ID1]] = true;
+                        student1->preventedWith[IDs[ID2]] = true;
+                        student2->preventedWith[IDs[ID1]] = true;
                     }
                     else    //whatType == requested
                     {
-                        student[IDs[ID1]].requestedWith[IDs[ID2]] = true;
-                        student[IDs[ID2]].requestedWith[IDs[ID1]] = true;
+                        student1->requestedWith[IDs[ID2]] = true;
+                        student2->requestedWith[IDs[ID1]] = true;
                     }
                 }
             }
@@ -722,36 +862,37 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->setRowCount(0);
     teammatesSpecified = false;     // assume no teammates specified until we find one
 
-    QVector<StudentRecord> studentAs;
-    for(int ID = 0; ID < numStudents; ID++)
+    QVector<StudentRecord*> baseStudents;
+    for(int index = 0; index < numStudents; index++)
     {
-        if((sectionName == "") || (sectionName == student[ID].section))
+        if((sectionName == "") || (sectionName == student[index].section))
         {
-            studentAs << student[ID];
+            baseStudents << &student[index];
         }
     }
-    std::sort(studentAs.begin(), studentAs.end(), [](const StudentRecord &A, const StudentRecord &B) {return ((A.lastname+A.firstname) < (B.lastname+B.firstname));});
+    std::sort(baseStudents.begin(), baseStudents.end(), [](const StudentRecord *const A, const StudentRecord *const B)
+                                                        {return ((A->lastname+A->firstname) < (B->lastname+B->firstname));});
 
     int row = 0;
     bool atLeastOneTeammate;
-    for(const auto &studentA : qAsConst(studentAs))
+    for(auto baseStudent : baseStudents)
     {
         atLeastOneTeammate = false;
         column = 0;
 
         currentListOfTeammatesTable->setRowCount(row+1);
-        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(studentA.lastname + ", " + studentA.firstname));
+        currentListOfTeammatesTable->setVerticalHeaderItem(row, new QTableWidgetItem(baseStudent->lastname + ", " + baseStudent->firstname));
 
         if(requestsInSurvey)
         {
             QTableWidgetItem *stuPrefText = nullptr;
             if(whatType == prevented)
             {
-                stuPrefText = new QTableWidgetItem(studentA.prefNonTeammates);
+                stuPrefText = new QTableWidgetItem(baseStudent->prefNonTeammates);
             }
             else
             {
-                stuPrefText = new QTableWidgetItem(studentA.prefTeammates);
+                stuPrefText = new QTableWidgetItem(baseStudent->prefTeammates);
             }
             currentListOfTeammatesTable->setItem(row, column, stuPrefText);
             currentListOfTeammatesTable->item(row, column)->setFont(font);
@@ -760,24 +901,40 @@ void gatherTeammatesDialog::refreshDisplay()
         }
 
         bool printStudent;
-        for(int studentBID = 0; studentBID < numStudents; studentBID++)
+        for(int studentBID = 0; studentBID < MAX_IDS; studentBID++)
         {
             if(whatType == required)
             {
-                printStudent = studentA.requiredWith[studentBID];
+                printStudent = baseStudent->requiredWith[studentBID];
             }
             else if(whatType == prevented)
             {
-                printStudent = studentA.preventedWith[studentBID];
+                printStudent = baseStudent->preventedWith[studentBID];
             }
             else
             {
-                printStudent = studentA.requestedWith[studentBID];
+                printStudent = baseStudent->requestedWith[studentBID];
             }
             if(printStudent)
             {
                 atLeastOneTeammate = true;
                 teammatesSpecified = true;
+
+                // find studentB from their ID
+                StudentRecord *studentB;
+                int index = 0;
+                while((student[index].ID != studentBID) && (index < numStudents))
+                {
+                    index++;
+                }
+                if(index < numStudents)
+                {
+                    studentB = &student[index];
+                }
+                else
+                {
+                    continue;
+                }
                 if(currentListOfTeammatesTable->columnCount() < column+1)
                 {
                     currentListOfTeammatesTable->setColumnCount(column+1);
@@ -785,36 +942,28 @@ void gatherTeammatesDialog::refreshDisplay()
                                                                                                       QString::number(column + (requestsInSurvey? 0:1))));
                 }
                 auto *box = new QHBoxLayout;
-                auto *label = new QLabel(student[studentBID].lastname + ", " + student[studentBID].firstname);
+                auto *label = new QLabel(studentB->lastname + ", " + studentB->firstname);
                 auto *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
                 remover->setFlat(true);
                 remover->setIconSize(QSize(15, 15));
-                remover->setProperty("studentAID", studentA.ID);
-                remover->setProperty("studentBID", studentBID);
                 if(whatType == required)
                 {
-                    connect(remover, &QPushButton::clicked, this, [this, remover]
-                                                            {int studentAID = remover->property("studentAID").toInt();
-                                                             int studentBID = remover->property("studentBID").toInt();
-                                                             student[studentAID].requiredWith[studentBID] = false;
-                                                             student[studentBID].requiredWith[studentAID] = false;
+                    connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
+                                                            {baseStudent->requiredWith[studentB->ID] = false;
+                                                             studentB->requiredWith[baseStudent->ID] = false;
                                                              refreshDisplay();});
                 }
                 else if(whatType == prevented)
                 {
-                    connect(remover, &QPushButton::clicked, this, [this, remover]
-                                                            {int studentAID = remover->property("studentAID").toInt();
-                                                             int studentBID = remover->property("studentBID").toInt();
-                                                             student[studentAID].preventedWith[studentBID] = false;
-                                                             student[studentBID].preventedWith[studentAID] = false;
+                    connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
+                                                            {baseStudent->preventedWith[studentB->ID] = false;
+                                                             studentB->preventedWith[baseStudent->ID] = false;
                                                              refreshDisplay();});
                 }
                 else
                 {
-                    connect(remover, &QPushButton::clicked, this, [this, remover]
-                                                            {int studentAID = remover->property("studentAID").toInt();
-                                                             int studentBID = remover->property("studentBID").toInt();
-                                                             student[studentAID].requestedWith[studentBID] = false;
+                    connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
+                                                            {baseStudent->requestedWith[studentB->ID] = false;
                                                              refreshDisplay();});
                 }
                 box->addWidget(label);

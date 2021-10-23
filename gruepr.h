@@ -39,9 +39,10 @@ private slots:
     void on_loadSurveyFileButton_clicked();
     void loadStudentRoster();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
-    void removeAStudent(const QString &name, bool delayVisualUpdate = false);
     void editAStudent();
+    void removeAStudent(int index, const QString &name = "", bool delayVisualUpdate = false);
     void on_addStudentPushButton_clicked();
+    void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void on_saveSurveyFilePushButton_clicked();
     void on_isolatedWomenCheckBox_stateChanged(int arg1);
     void on_isolatedMenCheckBox_stateChanged(int arg1);
@@ -107,7 +108,7 @@ private:
     attributeTabItem *attributeTab = nullptr;
 
         // team set optimization
-    int *studentIDs = nullptr;                              // array of the IDs of students to be placed on teams
+    int *studentIndexes = nullptr;                              // array of the IDs of students to be placed on teams
     QVector<int> optimizeTeams(const int *const studentIDs);  // returns a single permutation-of-IDs
     QFuture< QVector<int> > future;                         // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                     // used for signaling of optimization completion

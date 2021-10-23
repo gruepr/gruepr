@@ -167,7 +167,7 @@ void TeamRecord::refreshTeamInfo(const DataOptions* const dataOptions, const Stu
     //set values
     for(int teammate = 0; teammate < size; teammate++)
     {
-        const StudentRecord &stu = student[studentIDs.at(teammate)];
+        const StudentRecord &stu = student[studentIndexes.at(teammate)];
         if(dataOptions->genderIncluded)
         {
             if(stu.gender == StudentRecord::woman)

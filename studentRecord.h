@@ -21,9 +21,9 @@ public:
     bool unavailable[MAX_DAYS][MAX_BLOCKS_PER_DAY];     // true if this is a busy block during week
     float timezone = 0;                                 // offset from GMT
     bool ambiguousSchedule = false;                     // true if added schedule is completely full or completely empty;
-    bool preventedWith[MAX_STUDENTS] = {false};			// true if this student is prevented from working with the corresponding student
-    bool requiredWith[MAX_STUDENTS] = {false};			// true if this student is required to work with the corresponding student
-    bool requestedWith[MAX_STUDENTS] = {false};			// true if this student desires to work with the corresponding student
+    bool preventedWith[MAX_IDS] = {false};              // true if this student is prevented from working with the student with this ID value
+    bool requiredWith[MAX_IDS] = {false};       		// true if this student is required to work with the student with this ID value
+    bool requestedWith[MAX_IDS] = {false};      		// true if this student desires to work with the student with this ID value
     int attributeVal[MAX_ATTRIBUTES] = {0};             // rating for each attribute (when set, each rating is numerical value from 1 -> attributeLevels[attribute])
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;

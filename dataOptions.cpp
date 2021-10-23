@@ -23,6 +23,7 @@ DataOptions::DataOptions()
 
 void DataOptions::reset()
 {
+    latestStudentID = 0;
     numStudentsInSystem = 0;
     numAttributes = 0;
     attributeQuestionText.clear();

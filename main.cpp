@@ -36,18 +36,19 @@
 // - removed "OK" button from small "setting up printer/pdfwriter" dialog
 // - eliminated the choice of whether to use roster or survey email address when they match
 // - when comparing student list to roster file, now uses both name and email address to find a match
-// - csv files can now be header-free; no longer crashes and, in fact, can be loaded succesfully
+// - csv files can now be header-row-free; no longer crashes
 // - saving/loading a teaming options file now includes the required attribute responses
 // - added randomize team names function
 // - organized code into dialogs and widgets subfolders
+// - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
+//      - changed the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
 //
 // TO DO:
+// - rescore, recreate tooltips, recheck background color of teams after swapping or moving students
 // - prevent crash on mac with add/edit student dialog when many attributes are present
 // - add select-multiple attribute question option
 // - check if pairing is both (required or requested) and prevented
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
-// - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
-//      - change the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
 // - more granular scheduling option, down to the 15 minute level at least
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //

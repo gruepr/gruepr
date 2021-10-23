@@ -420,7 +420,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     // adjust the location and text of the tooltip
     dragDropEventLabel->move(QCursor::pos() + QPoint(iconSize, iconSize));
     bool dragItemIsStudent = (draggedItem->parent() != nullptr), dropItemIsStudent = (dropItem->parent() != nullptr);
-    if((draggedItem == dropItem) || (!dragItemIsStudent && dropItemIsStudent) || (draggedItem->parent() == dropItem))  // dragging item onto itself, team->student, or student->own team
+    if((draggedItem == dropItem) || (!dragItemIsStudent && dropItemIsStudent) || (draggedItem->parent() == dropItem))  // dragging item onto self, team->student, or student->own team
     {
         dragDropEventLabel->hide();
     }

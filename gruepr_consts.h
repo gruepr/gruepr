@@ -14,6 +14,7 @@
 
 const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes
 const int MAX_STUDENTS = MAX_RECORDS;                   // each student is a "record" in the genetic algorithm
+const int MAX_IDS = 2 * MAX_STUDENTS;                   // since students can be removed and added yet IDs always increase, need more IDs than possible students
 const int MAX_TEAMS = MAX_STUDENTS/2;
 const int MAX_DAYS = 7;                                 // resolution of scheduling is 1 hr, and scope is weekly
 const int MAX_BLOCKS_PER_DAY = 24;
