@@ -317,17 +317,16 @@ void gruepr::loadStudentRoster()
                                                              tr("This student on the roster:") +
                                                              "<br><b>" + surveyName + "</b><br>" +
                                                              tr("has a different email address in the survey.") + "<br><br>" +
-                                                             tr("Select one of the following email addresses:") +
+                                                             tr("Select one of the following email addresses:") + "<br>" +
                                                              tr("Survey: ") + "<b>" + surveyEmail + "</b><br>" +
-                                                             tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br><br>" +
-                                                             tr("Should we use the address from the survey or the roster?"),
+                                                             tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br>",
                                                              QMessageBox::Ok | QMessageBox::Cancel, this);
                     auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(studentsWithDiffEmail.size() - i) + tr(" students)"));
                     whichEmailWindow->setCheckBox(applyToAll);
                     connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
-                    whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use survey\nemail address"));
+                    whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use survey email address"));
                     connect(whichEmailWindow->button(QMessageBox::Ok), &QPushButton::clicked, whichEmailWindow, &QDialog::accept);
-                    whichEmailWindow->button(QMessageBox::Cancel)->setText(tr("Use roster\nemail address"));
+                    whichEmailWindow->button(QMessageBox::Cancel)->setText(tr("Use roster email address"));
                     connect(whichEmailWindow->button(QMessageBox::Cancel), &QPushButton::clicked, whichEmailWindow, &QDialog::reject);
 
                     if(whichEmailWindow->exec() == QDialog::Rejected)
@@ -367,9 +366,9 @@ void gruepr::loadStudentRoster()
                     auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"));
                     keepOrDeleteWindow->setCheckBox(applyToAll);
                     connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
-                    keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep\n") + name);
+                    keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep ") + name);
                     connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
-                    keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Remove\n") + name);
+                    keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Remove ") + name);
                     connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
 
                     if(keepOrDeleteWindow->exec() == QDialog::Rejected)
@@ -1045,6 +1044,12 @@ void gruepr::requiredResponsesButton_clicked()
     {
         teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
         teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+        // replace the value representing "unknown/not set" to be -1
+        int indexOfUnknown = (teamingOptions->requiredAttributeValues[currAttribute].indexOf(dataOptions->attributeMax[currAttribute] + 1));
+        if(indexOfUnknown != -1)
+        {
+            teamingOptions->requiredAttributeValues[currAttribute].replace(indexOfUnknown, -1);
+        }
     }
 
     delete win;
@@ -1063,6 +1068,19 @@ void gruepr::incompatibleResponsesButton_clicked()
     {
         teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
         teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+        // replace the value representing "unknown/not set" to be -1
+        int unknown = dataOptions->attributeMax[currAttribute] + 1;
+        for(auto &valuePair : teamingOptions->incompatibleAttributeValues[currAttribute])
+        {
+            if(valuePair.first == unknown)
+            {
+                valuePair.first = -1;
+            }
+            if(valuePair.second == unknown)
+            {
+                valuePair.second = -1;
+            }
+        }
     }
 
     delete win;
@@ -1930,19 +1948,19 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
         teams[studentBteam].studentIndexes.replace(teams[studentBteam].studentIndexes.indexOf(studentBIndex), studentAIndex);
 
         //get the team items in the tree
-        QTreeWidgetItem *teamAItem = nullptr, *teamBItem = nullptr;
+        TeamTreeWidgetItem *teamAItem = nullptr, *teamBItem = nullptr;
         int row = 0;
         while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentAteam) && (row < numTeams))
         {
             row++;
         }
-        teamAItem = ui->teamDataTree->topLevelItem(row);
+        teamAItem = dynamic_cast<TeamTreeWidgetItem*>(ui->teamDataTree->topLevelItem(row));
         row = 0;
         while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentBteam) && (row < numTeams))
         {
             row++;
         }
-        teamBItem = ui->teamDataTree->topLevelItem(row);
+        teamBItem = dynamic_cast<TeamTreeWidgetItem*>(ui->teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
         refreshCurrTeamScores();
@@ -1955,6 +1973,8 @@ void gruepr::swapStudents(int studentAteam, int studentAID, int studentBteam, in
         ui->teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, dataOptions);
         firstStudentName = student[teams[studentBteam].studentIndexes[0]].lastname+student[teams[studentBteam].studentIndexes[0]].firstname;
         ui->teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, dataOptions);
+        teamAItem->setBackgroundColor(teams[studentAteam].score);
+        teamBItem->setBackgroundColor(teams[studentBteam].score);
 
         //clear and refresh student items on both teams in table
         for(auto &child : teamAItem->takeChildren())
@@ -2015,19 +2035,19 @@ void gruepr::moveAStudent(int oldTeam, int studentID, int newTeam)
     teams[newTeam].size++;
 
     //get the team items in the tree
-    QTreeWidgetItem *oldTeamItem = nullptr, *newTeamItem = nullptr;
+    TeamTreeWidgetItem *oldTeamItem = nullptr, *newTeamItem = nullptr;
     int row = 0;
     while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != oldTeam) && (row < numTeams))
     {
         row++;
     }
-    oldTeamItem = ui->teamDataTree->topLevelItem(row);
+    oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(ui->teamDataTree->topLevelItem(row));
     row = 0;
     while((ui->teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != newTeam) && (row < numTeams))
     {
         row++;
     }
-    newTeamItem = ui->teamDataTree->topLevelItem(row);
+    newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(ui->teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
     refreshCurrTeamScores();
@@ -2040,6 +2060,8 @@ void gruepr::moveAStudent(int oldTeam, int studentID, int newTeam)
     ui->teamDataTree->refreshTeam(oldTeamItem, teams[oldTeam], oldTeam, firstStudentName, dataOptions);
     firstStudentName = student[teams[newTeam].studentIndexes[0]].lastname+student[teams[newTeam].studentIndexes[0]].firstname;
     ui->teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, dataOptions);
+    oldTeamItem->setBackgroundColor(teams[oldTeam].score);
+    newTeamItem->setBackgroundColor(teams[newTeam].score);
 
     //clear and refresh student items on both teams in table
     for(auto &child : oldTeamItem->takeChildren())
@@ -3826,6 +3848,10 @@ void gruepr::refreshCurrTeamScores()
         }
     }
     getTeamScores(genome, teamSizes, teamScores, attributeScore, schedScore, penaltyPoints);
+    for(int teamnum = 0; teamnum < numTeams; teamnum++)
+    {
+        teams[teamnum].score = teamScores[teamnum];
+    }
     delete[] penaltyPoints;
     delete[] schedScore;
     for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
@@ -3833,10 +3859,6 @@ void gruepr::refreshCurrTeamScores()
         delete[] attributeScore[attrib];
     }
     delete[] attributeScore;
-    for(int teamnum = 0; teamnum < numTeams; teamnum++)
-    {
-        teams[teamnum].score = teamScores[teamnum];
-    }
     delete[] teamScores;
 }
 
@@ -3857,7 +3879,7 @@ void gruepr::refreshTeamDisplay()
     for(int teamNum = 0; teamNum < numTeams; teamNum++)
     {
         const auto &currentTeam = teams[teamNum];
-        parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, ui->teamDataTree->columnCount(), currentTeam.score <= 0);
+        parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, ui->teamDataTree->columnCount(), currentTeam.score);
         QString firstStudentName = student[currentTeam.studentIndexes[0]].lastname+student[currentTeam.studentIndexes[0]].firstname;
         ui->teamDataTree->refreshTeam(parentItems[teamNum], currentTeam, teamNum, firstStudentName, dataOptions);
 

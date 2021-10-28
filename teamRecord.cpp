@@ -7,10 +7,10 @@ TeamRecord::TeamRecord() = default;
 void TeamRecord::createTooltip(const DataOptions* const dataOptions)
 {
     QString toolTip = "<html>";
-    if(score <= 0)
+    if(score < 0)
     {
-        toolTip += "<table><tr><td bgcolor=#fbcfce><b>" + QObject::tr("This team has a compatibility score &lt;=0, indicating one or more teaming requirements cannot be met."
-                   "You may want to relax the constraints and try to form teams again.") + "</b></td></tr></table><br>";
+        toolTip += "<table><tr><td bgcolor=#fbcfce><b>" + QObject::tr("This team has a negative compatibility score, indicating one or more teaming requirements have not been met."
+                   " You may want to relax some constraints and try to form teams again.") + "</b></td></tr></table><br>";
     }
     toolTip += QObject::tr("Team ") + name + "<br>";
     if(dataOptions->genderIncluded)

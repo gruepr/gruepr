@@ -77,6 +77,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
     }
     else
     {
+        // buttons
         auto *addButton = new QPushButton("\n" + tr("Add ") + searchName + "\n" + tr("as a new student") + "\n", this);
         addButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
         connect(addButton, &QPushButton::clicked, this, [this]{addStudent = true; this->accept();});
@@ -87,6 +88,11 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         ignoreButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
         connect(ignoreButton, &QPushButton::clicked, this, &QDialog::reject);
 
+        // UI for add student
+        auto *addNameLabel = new QLabel(tr("Name") + ":  " + searchName, this);
+        auto *addEmailLabel = new QLabel(tr("Email address") + ":  " + (searchEmail.isEmpty()? tr("--") : searchEmail), this);
+
+        // UI for merge student
         auto *comboboxLabel = new QLabel(tr("The most closely matching names in the survey are:"), this);
 
         auto *nameGroup = new QButtonGroup(this);
@@ -117,8 +123,11 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
             useSurveyEmailCheckbox->setText(tr("The survey email address matches the roster"));
         }
 
+        // setting up grid
         theGrid->setRowMinimumHeight(row++, DIALOG_SPACER_ROWHEIGHT);
-        theGrid->addWidget(addButton, row++, 0, 1, 1);
+        theGrid->addWidget(addButton, row, 0, 2, 1);
+        theGrid->addWidget(addNameLabel, row++, 1, 1, -1, Qt::AlignBottom);
+        theGrid->addWidget(addEmailLabel, row++, 1, 1, -1, Qt::AlignTop);
         auto *line1 = new QFrame(this);
         line1->setFrameShape(QFrame::HLine);
         line1->setFrameShadow(QFrame::Sunken);

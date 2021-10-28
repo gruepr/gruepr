@@ -514,6 +514,7 @@ void TeamTreeWidget::resorting(int column)
 
 void TeamTreeWidget::itemEntered(const QModelIndex &index)
 {
+    // select the item cursor is hovered over
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 }
 
@@ -529,28 +530,38 @@ void TeamTreeWidget::leaveEvent(QEvent *event)
 
 ///////////////////////////////////////////////////////////////////////
 
-TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, bool teamHasBadScore)
+TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, float teamScore)
 {
     if(type == team && columns > 0)
     {
+        numColumns = columns;
         QFont teamFont = this->font(0);
         teamFont.setBold(true);
-        QBrush teamColor;
-        if(teamHasBadScore)
+        for(int col = 0; col < numColumns; col++)
         {
-            teamColor = QColor(0xfb, 0xcf, 0xce);
-        }
-        else
-        {
-            teamColor = QColor(0xce, 0xea, 0xfb);
-        }
-
-        for(int col = 0; col < columns; col++)
-        {
-            setBackground(col, teamColor);
-            setForeground(col, Qt::black);
             setFont(col, teamFont);
+            setForeground(col, Qt::black);
         }
+        setBackgroundColor(teamScore);
+    }
+}
+
+
+void TeamTreeWidgetItem::setBackgroundColor(float teamScore)
+{
+    QBrush teamColor;
+    if(teamScore < 0)
+    {
+        teamColor = QColor(0xfb, 0xcf, 0xce);
+    }
+    else
+    {
+        teamColor = QColor(0xce, 0xea, 0xfb);
+    }
+
+    for(int col = 0; col < numColumns; col++)
+    {
+        setBackground(col, teamColor);
     }
 }
 

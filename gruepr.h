@@ -108,10 +108,10 @@ private:
     attributeTabItem *attributeTab = nullptr;
 
         // team set optimization
-    int *studentIndexes = nullptr;                              // array of the IDs of students to be placed on teams
-    QVector<int> optimizeTeams(const int *const studentIDs);  // returns a single permutation-of-IDs
-    QFuture< QVector<int> > future;                         // needed so that optimization can happen in a separate thread
-    QFutureWatcher<void> futureWatcher;                     // used for signaling of optimization completion
+    int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams
+    QVector<int> optimizeTeams(const int *const studentIndexes);    // returns a single permutation-of-indexes
+    QFuture< QVector<int> > future;                                 // needed so that optimization can happen in a separate thread
+    QFutureWatcher<void> futureWatcher;                             // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
 #ifdef Q_OS_WIN32

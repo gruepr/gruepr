@@ -40,8 +40,8 @@ private:
     QRadioButton *selectOneValues;
     QPushButton *selectOneResponses;
     QButtonGroup *selectOneValuesGroup;
-    QCheckBox *selectMultipleOnesValues;
-    QPushButton *selectMultipleOnesResponses;
+    QCheckBox *selectMultipleValues;
+    QPushButton *selectMultipleResponses;
     QPushButton *addValuesButton;
     QPushButton *resetValuesButton;
     QDialogButtonBox *buttonBox;

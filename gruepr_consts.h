@@ -87,7 +87,7 @@ const char TEAMNAMECATEGORIES[] {"Arabic numbers.,"
                                  "Shakespeare plays (RSC chron.)#,"
                                  "All time best-selling albums in US#,"
                                  "Minor Simpsons characters#,"
-                                 "Human skeleton bones (rand.)@,"
+                                 "Bones of the human skeleton (rand.)@,"
                                  "Minor league baseball teams#,"
                                  "Discontinued Olympic sports#,"
                                  "Groups of animals#"};

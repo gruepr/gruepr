@@ -1196,7 +1196,7 @@ Teammates</string>
 		border-bottom: 1px solid black;
 		background-color:white;}
 	QTableView::item{
-		selection-background-color: #85cbf8;
+		selection-background-color: #ceeafb;
 		selection-color: black;}</string>
             </property>
             <property name="sizeAdjustPolicy">
@@ -1379,10 +1379,10 @@ QHeaderView::up-arrow{
 	subcontrol-position:top left;}
 QTreeWidget::item:selected{
 	color: black;
-	background-color: #85cbf8;}
+	background-color: #cccccc;}
 QTreeWidget::item:hover{
 	color: black;
-	background-color: #85cbf8;}
+	background-color: #cccccc;}
 QTreeWidget::branch{
 	background-color: white;}
 QTreeView::branch:has-siblings:adjoins-item {
