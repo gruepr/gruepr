@@ -32,19 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - fixed bug that erased a student's notes field when editing the record
-// - removed "OK" button from small "setting up printer/pdfwriter" dialog
-// - eliminated the choice of whether to use roster or survey email address when they match
-// - when comparing student list to roster file, now uses both name and email address to find a match
-// - csv files can now be header-row-free; no longer crashes
-// - saving/loading a teaming options file now includes the required attribute responses
-// - added randomize team names function
-// - organized code into dialogs and widgets subfolders
-// - bugfix: removing a student disrupts all of the saved required/prevented/requested teammates values because the IDs have changed
-//      - changed the ID behavior to a dataOption value that always increments as a student is added and where student.ID is set to that value when created and then never changes
-// - sets/resets background color of teams in table after swapping or moving students
-// - bugfix: now correctly implements required / incompatible attributes with value of "unknown / not set"
-//      - better UI in required / incompatible attributes dialog
 //
 // TO DO:
 // - prevent crash on mac with add/edit student dialog when many attributes are present
