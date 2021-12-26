@@ -204,9 +204,9 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     {
         QString attributeText;
         int sortData;
-        auto firstTeamVal = team.attributeVals[attribute].begin();
-        auto lastTeamVal = team.attributeVals[attribute].rbegin();
-        if(dataOptions->attributeIsOrdered[attribute])
+        auto firstTeamVal = team.attributeVals[attribute].cbegin();
+        auto lastTeamVal = team.attributeVals[attribute].crbegin();
+        if(dataOptions->attributeType[attribute] == DataOptions::ordered)
         {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
             if(*firstTeamVal == -1)
@@ -214,7 +214,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
                 firstTeamVal++;
             }
 
-            if(firstTeamVal != team.attributeVals[attribute].end())
+            if(firstTeamVal != team.attributeVals[attribute].cend())
             {
                 if(*firstTeamVal == *lastTeamVal)
                 {
@@ -235,7 +235,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
         }
         else
         {
-            // attribute is categorical, so important info is the list of values
+            // attribute is categorical or multicategorical, so important info is the list of values
             // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
             attributeText = (*firstTeamVal <= 26 ? QString(char(*firstTeamVal - 1 + 'A')) : QString(char((*firstTeamVal - 1)%26 + 'A')).repeated(1+((*firstTeamVal - 1)/26)));
             for(auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++)
@@ -257,9 +257,8 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     {
         QString timezoneText;
         int sortData;
-        auto firstTeamVal = team.timezoneVals.begin();
-        auto lastTeamVal = team.timezoneVals.rbegin();
-
+        auto firstTeamVal = team.timezoneVals.cbegin();
+        auto lastTeamVal = team.timezoneVals.crbegin();
         if(*firstTeamVal == *lastTeamVal)
         {
             int hour = int(*firstTeamVal);
@@ -351,16 +350,32 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
-        int value = stu.attributeVal[attribute];
-        if(value != -1)
+        auto value = stu.attributeVals[attribute].constBegin();
+        if(*value != -1)
         {
-            if(dataOptions->attributeIsOrdered[attribute])
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
             {
-                studentItem->setText(column, QString::number(value));
+                studentItem->setText(column, QString::number(*value));
+            }
+            else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+            {
+                studentItem->setText(column, ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
             }
             else
             {
-                studentItem->setText(column, (value <= 26 ? QString(char(value-1 + 'A')) : QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26))));
+                //multicategorical
+                QString studentsVals;
+                auto lastVal = stu.attributeVals[attribute].constEnd();
+                while(value != lastVal)
+                {
+                    studentsVals += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
+                    value++;
+                    if(value != lastVal)
+                    {
+                        studentsVals += ", ";
+                    }
+                }
+                studentItem->setText(column, studentsVals);
             }
         }
         else

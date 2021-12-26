@@ -32,15 +32,27 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - made the min/desired meeting time settings more sensible:
+//    - allow the values to be equal
+//    - adjusting the max value to correspond to number of possible meeting times in the week, given the meeting length and number of spots in survey data
+//    - added "3 hour" meeting time
+// - added new select-multiple-responses type of attribute question:
+//    - added option in Surveymaker
+//    - updated Google form and text survey outputs to allow checkbox and not radio button responses
+//    - added display in gruepr teaming options
+//    - updated handling of attribute responses and values throughout gruepr to allow for multiple responses
+//
+// IN PROGRESS:
+// - add select-multiple attribute question option to edit/add student dialog
 //
 // TO DO:
-// - prevent crash on mac with add/edit student dialog when many attributes are present
-// - add select-multiple attribute question option
+// - prevent crash on mac with add/edit student dialog (when many attributes are present?)
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
+// - use multiple genepools with limited cross-breeding
 // - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

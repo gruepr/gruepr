@@ -112,6 +112,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         connect(responsesBox, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged),
                     this, [this, tab] (int index) {attributeResponses[tab] = ((index>1) ? (index-1) : 0); refreshPreview();});
         connect(questionText, &QTextEdit::textChanged, this, [this, tab] {attributeTextChanged(tab);});
+        connect(attributeTab.at(tab)->allowMultipleResponses, &QCheckBox::clicked,
+                    this, [this, tab] (bool checked){attributeAllowMultipleResponses[tab] = checked; refreshPreview();});
 
         ui->attributesTabWidget->addTab(attributeTab.at(tab), QString::number(tab+1));
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
@@ -161,7 +163,14 @@ void SurveyMaker::refreshPreview()
                 {
                     preview += "dropdown box of world timezones";
                 }
-                preview += "</i><b> }</b></small>";
+                if(attributeAllowMultipleResponses[attrib])
+                {
+                    preview += "</i><b> }</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Multiple responses allowed</small> ";
+                }
+                else
+                {
+                    preview += "</i><b> }</b></small>";
+                }
         }
         preview += "<hr>";
     }
@@ -330,6 +339,16 @@ void SurveyMaker::postGoogleURL(SurveyMaker *survey)
         allAttributeResponses += QString::number(survey->attributeResponses[attrib]);
     }
     URL += "attrresps=" + allAttributeResponses + "&";
+    QString allAttributeMultAllowed;
+    for(int attrib = 0; attrib < survey->numAttributes; attrib++)
+    {
+        if(attrib != 0)
+        {
+            allAttributeMultAllowed += ",";
+        }
+        allAttributeMultAllowed += ((survey->attributeAllowMultipleResponses[attrib])? "true" : "false");
+    }
+    URL += "attrmulti=" + allAttributeMultAllowed + "&";
     URL += "sched=" + QString(survey->schedule? "true" : "false") + "&";
     URL += "tzone=" + QString((survey->timezone && survey->schedule)? "true" : "false") + "&";
     URL += "bzone=" + survey->baseTimezone + "&";
@@ -443,12 +462,12 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                 }
                 if(survey->numAttributes > 0)
                 {
-                    textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Attributes") + ":";
+                    textFileContents += "\n\n\n" + tr("Section") + " " + QString::number(++sectionNumber) + ", " + tr("Attributes") + ":";
                     for(int attrib = 0; attrib < survey->numAttributes; attrib++)
                     {
                         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
                         textFileContents += survey->attributeTexts[attrib].isEmpty()?
-                                                "{Attribute question " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
+                                                "{" + tr("Attribute question") + " " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
                         textFileContents += "\n     " + tr("choices") + ": [";
                         QStringList responses;
                         if(survey->attributeResponses[attrib] < survey->responseOptions.size())
@@ -472,9 +491,10 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
                             }
                             textFileContents += responses.at(resp);
                         }
-                        textFileContents += "]";
+                        textFileContents += "]\n     (" + ((survey->attributeAllowMultipleResponses[attrib]) ?
+                                                          tr("Multiple responses allowed") : tr("Only one response allowed")) + ")";
                         csvFileContents += ",\"" + (survey->attributeTexts[attrib].isEmpty()?
-                                                        "Attribute question " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
+                                                        tr("Attribute question") + " " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
                     }
                 }
                 if(survey->schedule)

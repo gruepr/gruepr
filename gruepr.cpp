@@ -33,12 +33,12 @@ gruepr::gruepr(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/gruepr.png"));
-    statusBarLabel = new QLabel("");
+    statusBarLabel = new QLabel("", this);
     ui->statusBar->addWidget(statusBarLabel);
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
     //Put attribute label next to that tab widget
-    auto attlab = new QLabel("Attribute: ");
+    auto attlab = new QLabel("Attribute: ", ui->attributesTabWidget);
     ui->attributesTabWidget->setCornerWidget(attlab, Qt::TopLeftCorner);
 
     //Setup the main window menu items
@@ -99,7 +99,7 @@ gruepr::gruepr(QWidget *parent) :
     connect(ui->collapseAllButton, &QPushButton::clicked, ui->teamDataTree, &TeamTreeWidget::collapseAll);
 
 
-    //create options structs
+    //create options
     teamingOptions = new TeamingOptions;
     dataOptions = new DataOptions;
 
@@ -138,8 +138,17 @@ gruepr::~gruepr()
 void gruepr::on_loadSurveyFileButton_clicked()
 {
     CsvFile surveyFile;
+/*  Used if the open file dialog will display auto-read field meanings
+    surveyFile.defaultFieldMeanings = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+                                       {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
+                                       {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                       {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
+                                       {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
+                                       {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
+                                       {"Attribute", ".*", MAX_ATTRIBUTES}, {"Notes", "", MAX_NOTES_FIELDS}};
+*/
     if(!surveyFile.open(this, CsvFile::read, tr("Open Survey Data File"), dataOptions->dataFile.canonicalPath(),
-                        tr("Survey Data File (*.csv *.txt);;All Files (*)")))
+                        tr("Survey Data")))
     {
         return;
     }
@@ -270,7 +279,7 @@ void gruepr::loadStudentRoster()
                             student[dataOptions->numStudentsInSystem].ambiguousSchedule = true;
                             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
                             {
-                                student[dataOptions->numStudentsInSystem].attributeVal[attribute] = -1;
+                                student[dataOptions->numStudentsInSystem].attributeVals[attribute] << -1;
                             }
                             student[dataOptions->numStudentsInSystem].createTooltip(dataOptions);
                             dataOptions->numStudentsInSystem++;
@@ -1096,9 +1105,9 @@ void gruepr::on_scheduleWeight_valueChanged(double arg1)
 void gruepr::on_minMeetingTimes_valueChanged(int arg1)
 {
     teamingOptions->minTimeBlocksOverlap = arg1;
-    if(ui->desiredMeetingTimes->value() < (arg1+1))
+    if(ui->desiredMeetingTimes->value() < (arg1))
     {
-        ui->desiredMeetingTimes->setValue(arg1+1);
+        ui->desiredMeetingTimes->setValue(arg1);
     }
 }
 
@@ -1106,9 +1115,9 @@ void gruepr::on_minMeetingTimes_valueChanged(int arg1)
 void gruepr::on_desiredMeetingTimes_valueChanged(int arg1)
 {
     teamingOptions->desiredTimeBlocksOverlap = arg1;
-    if(ui->minMeetingTimes->value() > (arg1-1))
+    if(ui->minMeetingTimes->value() > (arg1))
     {
-        ui->minMeetingTimes->setValue(arg1-1);
+        ui->minMeetingTimes->setValue(arg1);
     }
 }
 
@@ -1116,6 +1125,8 @@ void gruepr::on_desiredMeetingTimes_valueChanged(int arg1)
 void gruepr::on_meetingLength_currentIndexChanged(int index)
 {
     teamingOptions->meetingBlockSize = (index + 1);
+    ui->minMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
+    ui->desiredMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
 }
 
 
@@ -1163,7 +1174,7 @@ void gruepr::on_preventedTeammatesButton_clicked()
 
 void gruepr::on_requestedTeammatesButton_clicked()
 {
-    //Open specialized dialog box to collect pairings that are required
+    //Open specialized dialog box to collect pairings that are requested
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::requested, student, dataOptions->numStudentsInSystem,
                                           dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, this);
 
@@ -1781,7 +1792,8 @@ void gruepr::on_saveTeamsButton_clicked()
     if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
     {
         //save to text files
-        QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename for the text file(s)"), "", tr("Text File (*.txt);;All Files (*)"));
+        QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename for the text file(s)"), "",
+                                                            tr("Text File (*.txt);;All Files (*)"));
         if ( !(baseFileName.isEmpty()) )
         {
             bool problemSaving = false;
@@ -2258,17 +2270,18 @@ void gruepr::aboutWindow()
                           "<p>gruepr is an open source project. The source code is freely available at"
                           "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
                           "<p>gruepr incorporates:"
-                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
-                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
-                              "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
-                                                                    "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
-                                                                    " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
-                              "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
+                             "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
+                             "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
+                             "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
+                                                                   "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
+                                                                   " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
+                             "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
                           "<h3>Disclaimer</h3>"
-                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
-                          "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
-                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>"
-                          "GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
+                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of "
+                          "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
+                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the "
+                          "<a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> "
+                          "as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
 }
 
 
@@ -2509,6 +2522,8 @@ void gruepr::loadUI()
         ui->label_7->setEnabled(true);
         ui->label_8->setEnabled(true);
         ui->label_9->setEnabled(true);
+        ui->minMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1));
+        ui->desiredMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1));
     }
 
     ui->idealTeamSizeBox->setEnabled(true);
@@ -2592,7 +2607,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    // set field values now according to uer's selection of field meanings (defaulting to -1 if not chosen)
+    // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
     dataOptions->timestampField = surveyFile.fieldMeanings.indexOf("Timestamp");
     dataOptions->firstNameField = surveyFile.fieldMeanings.indexOf("First Name");
     dataOptions->lastNameField = surveyFile.fieldMeanings.indexOf("Last Name");
@@ -2648,7 +2663,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             // if >=1 field has this language, all interpreted as referring to each student's home timezone
             dataOptions->homeTimezoneUsed = true;
         }
-        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name should be in brackets at end of field (that's where Google Forms puts column titles in matrix questions)
+        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name is in brackets at end of field (where Google Forms puts column titles in matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
         if(dayName.hasMatch())
         {
@@ -2696,7 +2711,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         //sort allTimeNames smartly, using mapped string -> hour of day integer; any timeName not found is put at the beginning of the list
         QStringList timeNamesStrings = QString(TIME_NAMES).split(",");
         std::sort(allTimeNames.begin(), allTimeNames.end(), [&timeNamesStrings] (const QString &a, const QString &b)
-                                                {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
+                                        {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
         dataOptions->timeNames = allTimeNames;
         //pad the timeNames to include all 24 hours if we will be time-shifting student responses based on their home timezones later
         if(dataOptions->homeTimezoneUsed)
@@ -2728,9 +2743,13 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
-    surveyFile.readHeader();    // just to put cursor back to end of header row
+    surveyFile.readDataRow(true);    // put cursor back to beginning
+    if(surveyFile.hasHeaderRow)
+    {
+        surveyFile.readDataRow();
+    }
     numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
-    while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS)
+    do
     {
         student[numStudents].parseRecordFromStringList(surveyFile.fieldValues, dataOptions);
         student[numStudents].ID = dataOptions->latestStudentID;
@@ -2750,81 +2769,137 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
 
         numStudents++;
     }
+    while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS);
     dataOptions->numStudentsInSystem = numStudents;
 
     // Set the attribute question options and numerical values for each student
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
     {
-        // gather all unique attribute question responses, remove a blank response if it exists in a list with other responses, and then sort
-        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+        if(dataOptions->attributeField[attribute] != -1)
         {
-            if(!dataOptions->attributeQuestionResponses[attribute].contains(student[index].attributeResponse[attribute]))
-            {
-                dataOptions->attributeQuestionResponses[attribute] << student[index].attributeResponse[attribute];
-            }
-        }
-        if(dataOptions->attributeQuestionResponses[attribute].size() > 1)
-        {
-            dataOptions->attributeQuestionResponses[attribute].removeAll(QString(""));
-        }
-        QCollator sortAlphanumerically;
-        sortAlphanumerically.setNumericMode(true);
-        sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-        std::sort(dataOptions->attributeQuestionResponses[attribute].begin(), dataOptions->attributeQuestionResponses[attribute].end(), sortAlphanumerically);
-
-        // if every response starts with an integer, then it is ordered (numerical); if any response is missing this, then it is categorical
-        // regex is: digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character besides digits; OR digit(s) then any character besides "." or ","
-        QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-        dataOptions->attributeIsOrdered[attribute] = true;
-        for(int response = 0; response < dataOptions->attributeQuestionResponses[attribute].size(); response++)
-        {
-            dataOptions->attributeIsOrdered[attribute] = dataOptions->attributeIsOrdered[attribute] &&
-                    (startsWithInteger.match(dataOptions->attributeQuestionResponses[attribute].at(response)).hasMatch());
-        }
-
-        if(dataOptions->attributeIsOrdered[attribute])
-        {
-            // ordered/numerical values. attribute scores will be based on number at the first and last response
-            dataOptions->attributeMin[attribute] = startsWithInteger.match(dataOptions->attributeQuestionResponses[attribute].first()).captured(1).toInt();
-            dataOptions->attributeMax[attribute] = startsWithInteger.match(dataOptions->attributeQuestionResponses[attribute].last()).captured(1).toInt();
-            // set numerical value of students' attribute responses according to the number at the start of the response
+            auto &responses = dataOptions->attributeQuestionResponses[attribute];
+            auto &attributeType = dataOptions->attributeType[attribute];
+            // gather all unique attribute question responses, remove a blank response if it exists in a list with other responses, and then sort
             for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
-                if(!student[index].attributeResponse[attribute].isEmpty())
+                if(!responses.contains(student[index].attributeResponse[attribute]))
                 {
-                    student[index].attributeVal[attribute] = startsWithInteger.match(student[index].attributeResponse[attribute]).captured(1).toInt();
-                }
-                else
-                {
-                    student[index].attributeVal[attribute] = -1;
+                    responses << student[index].attributeResponse[attribute];
                 }
             }
-        }
-        else
-        {
-            // categorical values. attribute scores will count up to the number of responses
-            if(dataOptions->attributeField[attribute] != dataOptions->timezoneField)
+            if(responses.size() > 1)
             {
-                // not timezone, so range of responses is
-                dataOptions->attributeMin[attribute] = 1;
-                dataOptions->attributeMax[attribute] = dataOptions->attributeQuestionResponses[attribute].size();
+                responses.removeAll(QString(""));
+            }
+            QCollator sortAlphanumerically;
+            sortAlphanumerically.setNumericMode(true);
+            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+            std::sort(responses.begin(), responses.end(), sortAlphanumerically);
+
+            // Figure out what type of attribute this is (timezone, ordered/numerical, categorical (one response), or multi-categorical
+            // If this is the timezone field, it's timezone type;
+            // otherwise if every response starts with an integer, then it is ordered (numerical);
+            // but if any response is missing the number at the start, then it is categorical or multicategorical--multicategorical if any response contains a comma
+            // The regex to recognize ordered/numerical is:
+            // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
+            QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+            if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
+            {
+                attributeType = DataOptions::timezone;
             }
             else
             {
-                // for timezone, range of responses is 24 hours
+                attributeType = DataOptions::ordered;           // assume it's ordered
+                for(const auto &response : qAsConst(responses))
+                {
+                    // type stays ordered until and unless we don't have a regex match
+                    if((attributeType != DataOptions::ordered) || !(startsWithInteger.match(response).hasMatch()))
+                    {
+                        // type stays categorical until and unless we have a response with a comma in it
+                        if((attributeType == DataOptions::multicategorical) || (response.contains(',')))
+                        {
+                            attributeType = DataOptions::multicategorical;
+                        }
+                        else
+                        {
+                            attributeType = DataOptions::categorical;
+                        }
+                    }
+                }
+            }
+
+            if(attributeType == DataOptions::multicategorical)
+            {
+                //for multicategorical, have to reprocess the responses to delimit at the commas
+                for(int originalResponseNum = 0, numOriginalResponses = responses.size(); originalResponseNum < numOriginalResponses; originalResponseNum++)
+                {
+                    QStringList newResponses = responses.takeFirst().split(',');
+                    for(auto &newResponse : newResponses)
+                    {
+                        newResponse = newResponse.trimmed();
+                        if(!responses.contains(newResponse))
+                        {
+                            responses << newResponse;
+                        }
+                    }
+                }
+                responses.removeAll(QString(""));
+                QCollator sortAlphanumerically;
+                sortAlphanumerically.setNumericMode(true);
+                sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
+                std::sort(responses.begin(), responses.end(), sortAlphanumerically);
+            }
+
+            // set range of values
+            if(attributeType == DataOptions::ordered)
+            {
+                // ordered/numerical values. attribute scores will be based on number at the first and last response
+                dataOptions->attributeMin[attribute] = startsWithInteger.match(responses.first()).captured(1).toInt();
+                dataOptions->attributeMax[attribute] = startsWithInteger.match(responses.last()).captured(1).toInt();
+            }
+            else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::multicategorical))
+            {
+                // for categorical or mutlicategorical, range of responses is number of responses
+                dataOptions->attributeMin[attribute] = 1;
+                dataOptions->attributeMax[attribute] = responses.size();
+            }
+            else
+            {
+                // for timezone, range of responses is number of time blocks in each day
                 dataOptions->attributeMin[attribute] = 1;
                 dataOptions->attributeMax[attribute] = MAX_BLOCKS_PER_DAY;
             }
-            // set numerical value of students' attribute responses according to their place in the sorted list of responses
+
+            // set numerical value of each student's response
             for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
+                const QString &currentStudentResponse = student[index].attributeResponse[attribute];
+                QVector<int> &currentStudentAttributeVals = student[index].attributeVals[attribute];
                 if(!student[index].attributeResponse[attribute].isEmpty())
                 {
-                    student[index].attributeVal[attribute] = dataOptions->attributeQuestionResponses[attribute].indexOf(student[index].attributeResponse[attribute]) + 1;
+                    if(attributeType == DataOptions::ordered)
+                    {
+                        // for numerical/ordered, set numerical value of students' attribute responses according to the number at the start of the response
+                        currentStudentAttributeVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
+                    }
+                    else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::timezone))
+                    {
+                        // set numerical value instead according to their place in the sorted list of responses
+                        currentStudentAttributeVals << responses.indexOf(currentStudentResponse) + 1;
+                    }
+                    else
+                    {
+                        //multicategorical - set numerical values according to each value
+                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &responseFromStudent : setOfResponsesFromStudent)
+                        {
+                            currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
+                        }
+                    }
                 }
                 else
                 {
-                    student[index].attributeVal[attribute] = -1;
+                    currentStudentAttributeVals << -1;
                 }
             }
         }
@@ -3040,20 +3115,21 @@ void gruepr::refreshStudentDisplay()
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
             connect(editButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, editButton]
-                                                                                {int row=0;
-                                                                                 while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
-                                                                                    {row++;}
-                                                                                 ui->studentTable->cellEntered(row);});
+                                                                        {int row=0;
+                                                                         while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
+                                                                              {row++;}
+                                                                         ui->studentTable->cellEntered(row);});
             connect(editButton, &PushButtonWithMouseEnter::mouseLeft, this, [this, editButton]
-                                                                                {int row=0;
-                                                                                 while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
-                                                                                     {row++;}
-                                                                                 ui->studentTable->cellLeft(row);});
+                                                                     {int row=0;
+                                                                      while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
+                                                                           {row++;}
+                                                                      ui->studentTable->cellLeft(row);});
             ui->studentTable->setCellWidget(numStudents, column, editButton);
             column++;
 
             auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons/delete.png"), "", this);
-            removerButton->setToolTip("<html>" + tr("Remove") + " " + student[index].firstname + " " + student[index].lastname + " " + tr("from the current data set.") + "</html>");
+            removerButton->setToolTip("<html>" + tr("Remove") + " " + student[index].firstname + " " + student[index].lastname + " " +
+                                                 tr("from the current data set.") + "</html>");
             removerButton->setProperty("StudentIndex", index);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
@@ -3065,15 +3141,15 @@ void gruepr::refreshStudentDisplay()
                                                                                 removeAStudent(index);});
             // pass on mouse enter events onto cell in table
             connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, removerButton]
-                                                                                   {int row=0;
-                                                                                    while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
-                                                                                        {row++;}
-                                                                                    ui->studentTable->cellEntered(row);});
+                                                                           {int row=0;
+                                                                            while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
+                                                                                 {row++;}
+                                                                            ui->studentTable->cellEntered(row);});
             connect(removerButton, &PushButtonWithMouseEnter::mouseLeft, this, [this, removerButton]
-                                                                                {int row=0;
-                                                                                 while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
-                                                                                     {row++;}
-                                                                                 ui->studentTable->cellLeft(row);});
+                                                                        {int row=0;
+                                                                         while(removerButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-1))
+                                                                              {row++;}
+                                                                         ui->studentTable->cellLeft(row);});
             ui->studentTable->setCellWidget(numStudents, column, removerButton);
 
             numStudents++;
@@ -3392,8 +3468,10 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         if((teamingOptions->realAttributeWeights[attribute] > 0) ||
-                (teamingOptions->haveAnyIncompatibleAttributes[attribute]) || (teamingOptions->haveAnyRequiredAttributes[attribute]))
+           (teamingOptions->haveAnyIncompatibleAttributes[attribute]) ||
+           (teamingOptions->haveAnyRequiredAttributes[attribute]))
         {
+            bool thisIsTimezone = (dataOptions->attributeField[attribute] == dataOptions->timezoneField);
             studentNum = 0;
             for(int team = 0; team < numTeams; team++)
             {
@@ -3407,10 +3485,10 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 timezoneLevelsInTeam.clear();
                 for(int teammate = 0; teammate < teamSizes[team]; teammate++)
                 {
-                    attributeLevelsInTeam.insert(student[teammates[studentNum]].attributeVal[attribute]);
-                    if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
+                    attributeLevelsInTeam.insert(student[teammates[studentNum]].attributeVals[attribute].constBegin(),
+                                                 student[teammates[studentNum]].attributeVals[attribute].constEnd());
+                    if(thisIsTimezone)
                     {
-                        // this "attribute" is timezone; so also collect those
                         timezoneLevelsInTeam.insert(student[teammates[studentNum]].timezone);
                     }
                     studentNum++;
@@ -3458,14 +3536,14 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                         // "attribute" is timezone, so use timezone values
                         attributeRangeInTeam = *timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin();
                     }
-                    else if(dataOptions->attributeIsOrdered[attribute])
+                    else if(dataOptions->attributeType[attribute] == DataOptions::ordered)
                     {
                         // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
                         attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();    // crbegin is last (i.e., largest) element; cbegin is first
                     }
                     else
                     {
-                        // attribute is categorical--heterogeneous means create maximum number of unique values
+                        // attribute is categorical or multicategorical--heterogeneous means create maximum number of unique values
                         attributeRangeInTeam = -1;
                         int prevVal = -1;
                         for(const auto currVal : attributeLevelsInTeam)
@@ -3507,28 +3585,31 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 continue;
             }
 
-            int firstStudentInTeam = studentNum;
-            int numStudentsWithAmbiguousSchedules = 0;
             for(int day = 0; day < numDays; day++)
             {
                 for(int time = 0; time < numTimes; time++)
                 {
-                    studentNum = firstStudentInTeam;
-                    teamAvailability[day][time] = true;
-                    for(int teammate = 0; teammate < teamSizes[team]; teammate++)
+                    teamAvailability[day][time] = true;     // start with assumption of availability
+                }
+            }
+
+            int numStudentsWithAmbiguousSchedules = 0;
+            for(int teammate = 0; teammate < teamSizes[team]; teammate++)
+            {
+                auto &currStudent = student[teammates[studentNum]];
+                if(currStudent.ambiguousSchedule)
+                {
+                    numStudentsWithAmbiguousSchedules++;
+                    continue;
+                }
+                for(int day = 0; day < numDays; day++)
+                {
+                    for(int time = 0; time < numTimes; time++)
                     {
-                        if(!student[teammates[studentNum]].ambiguousSchedule)
-                        {
-                            teamAvailability[day][time] = teamAvailability[day][time] && !student[teammates[studentNum]].unavailable[day][time];	// "and" each student's not-unavailability
-                        }
-                        else if((day == 0) && (time == 0))
-                        {
-                            // count number of students with ambiguous schedules during the first timeslot
-                            numStudentsWithAmbiguousSchedules++;
-                        }
-                        studentNum++;
+                        teamAvailability[day][time] = teamAvailability[day][time] && !currStudent.unavailable[day][time];	// "and" each student's not-unavailability
                     }
                 }
+                studentNum++;
             }
 
             // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
@@ -3551,7 +3632,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                     }
                 }
             }
-            else    //user wants to count only 2-hr time blocks, but don't count wrap-around block from end of 1 day to beginning of next!
+            else if(teamingOptions->meetingBlockSize == 2)   //user wants to count only 2-hr time blocks, but don't count wrap-around past end of 1 day!
             {
                 for(int day = 0; day < numDays; day++)
                 {
@@ -3563,6 +3644,27 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                             if(teamAvailability[day][time])
                             {
                                 schedScore[team]++;
+                            }
+                        }
+                    }
+                }
+            }
+            else if(teamingOptions->meetingBlockSize == 3)   //user wants to count only 3-hr time blocks, but don't count wrap-around past end of 1 day!
+            {
+                for(int day = 0; day < numDays; day++)
+                {
+                    for(int time = 0; time < numTimes-2; time++)
+                    {
+                        if(teamAvailability[day][time])
+                        {
+                            time++;
+                            if(teamAvailability[day][time])
+                            {
+                                time++;
+                                if(teamAvailability[day][time])
+                                {
+                                    schedScore[team]++;
+                                }
                             }
                         }
                     }
@@ -3944,7 +4046,8 @@ void gruepr::createFileContents()
     }
     if(teamingOptions->scheduleWeight > 0)
     {
-        instructorsFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) + tr(" hours");
+        instructorsFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) +
+                                                                         tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
         instructorsFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
         instructorsFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
         instructorsFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
@@ -3961,15 +4064,19 @@ void gruepr::createFileContents()
         QString questionWithResponses = tr("Attribute ") + QString::number(attrib+1) + "\n" + dataOptions->attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
         for(int response = 0; response < dataOptions->attributeQuestionResponses[attrib].size(); response++)
         {
-            if(dataOptions->attributeIsOrdered[attrib])
+            if(dataOptions->attributeType[attrib] == DataOptions::ordered)
             {
                 questionWithResponses += "\n\t" + dataOptions->attributeQuestionResponses[attrib].at(response);
             }
-            else
+            else if(dataOptions->attributeType[attrib] == DataOptions::categorical)
             {
                 // show response with a preceding letter (letter repeated for responses after 26)
                 questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26)));
                 questionWithResponses += ". " + dataOptions->attributeQuestionResponses[attrib].at(response);
+            }
+            else
+            {
+                // multicategorical--collect all letters
             }
         }
         questionWithResponses += "\n\n\n";
@@ -4034,17 +4141,34 @@ void gruepr::createFileContents()
             }
             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
             {
-                int value = thisStudent.attributeVal[attribute];
-                if(value != -1)
+                auto value = thisStudent.attributeVals[attribute].constBegin();
+                if(*value != -1)
                 {
-                    if(dataOptions->attributeIsOrdered[attribute])
+                    if(dataOptions->attributeType[attribute] == DataOptions::ordered)
                     {
-                        instructorsFileContents += (QString::number(value)).leftJustified(3);
+                        instructorsFileContents += (QString::number(*value)).leftJustified(3);
+                    }
+                    else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+                    {
+                        instructorsFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
+                                                                     (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
                     }
                     else
                     {
-                        instructorsFileContents += (value <= 26 ? (QString(char(value-1 + 'A'))).leftJustified(3) :
-                                                                  (QString(char((value-1)%26 + 'A')).repeated(1+((value-1)/26)))).leftJustified(3);
+                        //multicategorical
+                        const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        QString attributeList;
+                        while(value != lastValue)
+                        {
+                            attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
+                                                               (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
+                            value++;
+                            if(value != lastValue)
+                            {
+                                 attributeList += ",";
+                            }
+                        }
+                        instructorsFileContents += attributeList.leftJustified(3);
                     }
                 }
                 else
@@ -4053,13 +4177,12 @@ void gruepr::createFileContents()
                 }
             }
             int nameSize = (thisStudent.firstname + " " + thisStudent.lastname).size();
-            instructorsFileContents += thisStudent.firstname + " " + thisStudent.lastname +
+            instructorsFileContents += "\t" + thisStudent.firstname + " " + thisStudent.lastname +
                     QString(std::max(2,30-nameSize), ' ') + thisStudent.email + "\n";
             studentsFileContents += thisStudent.firstname + " " + thisStudent.lastname +
                     QString(std::max(2,30-nameSize), ' ') + thisStudent.email + "\n";
             spreadsheetFileContents += thisStudent.section + "\t" + teams[team].name + "\t" + thisStudent.firstname +
                     " " + thisStudent.lastname + "\t" + thisStudent.email + "\n";
-
         }
         if(!dataOptions->dayNames.isEmpty())
         {

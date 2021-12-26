@@ -584,6 +584,11 @@ Meeting Times:</string>
                  <string>2 hours</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string>3 hours</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item>

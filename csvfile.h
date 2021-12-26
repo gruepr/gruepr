@@ -8,7 +8,12 @@
 #include <QTextStream>
 #include "dialogs\listTableDialog.h"
 
-typedef  std::tuple<QString, QString, int> possFieldMeaning;    // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that might have this meaning
+struct possFieldMeaning      // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that might have this meaning
+{
+    QString nameShownToUser;
+    QString regExSearchString;
+    int maxNumOfFields;
+};
 
 class CsvFile : public QObject
 {
@@ -26,6 +31,7 @@ public:
     QFileInfo fileInfo();
     void close();
     bool readHeader();
+    //void setFieldMeanings();
     QDialog* chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
     bool readDataRow(bool resetToStart = false);
     bool writeHeader();
@@ -35,6 +41,7 @@ public:
 
     QStringList headerValues;
     bool hasHeaderRow = true;
+//    QVector<possFieldMeaning> defaultFieldMeanings;   // used if the open file dialog will display auto-read meanings
     QStringList fieldMeanings;
     QStringList fieldValues;
 

@@ -11,6 +11,7 @@ function doGet(e) {
   var numAttributes = parseInt(dataAll["numattr"],10);
   var attributeText = (dataAll["attrtext"]).split(",");
   var attributeResponses = (dataAll["attrresps"]).split(",");
+  var attributeMulti = (dataAll["attrmulti"]).split(",");
   var numAttributesWOResponseText = 0;
   var includeTimezone = false;
   if('tzone' in dataAll) {
@@ -124,11 +125,19 @@ function doGet(e) {
           choices.push(' ');
         }
 
+        if(attributeMulti[attribute] == "true") {
+        form.addCheckboxItem()
+          .setTitle(attributeText[attribute])
+          .setChoiceValues(choices)
+          .showOtherOption(false)
+          .setRequired(false);
+        } else {
         form.addMultipleChoiceItem()
           .setTitle(attributeText[attribute])
           .setChoiceValues(choices)
           .showOtherOption(false)
           .setRequired(true);
+        }
       }
     }
   }

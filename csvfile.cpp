@@ -1,4 +1,5 @@
 #include "csvfile.h"
+#include "gruepr_consts.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
@@ -34,10 +35,63 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
     file = nullptr;
     stream = nullptr;
 
-    QString fileName;
+//    bool autoHeaderMeaningsAreGood = true;
     if(operation == read)
     {
-        fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
+/*      The commented code below creates a (non-native) file open dialog,
+ *      with the idea that the auto-determined field meanings would pop up on the side.
+ *      The user could then decide with a checkbox if those meanings needed to be changed.
+ *      It mostly works, but: looks ugly due to non-native file dialog, and they checkbox
+ *      functionality is un-implemented.
+
+        auto *win = new QDialog;
+        auto *layout = new QGridLayout(win);
+        win->setLayout(layout);
+        win->setSizeGripEnabled(true);
+        win->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+        auto *fileDialog = new QFileDialog(win, caption, filepath, filetypeDescriptor + " File (*.csv);;All Files (*)");
+        fileDialog->setFileMode(QFileDialog::ExistingFile);
+        fileDialog->setWindowFlags(Qt::Widget);// | Qt::CustomizeWindowHint);
+        fileDialog->setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
+        //fileDialog->setSizeGripEnabled(false);
+        auto *headerTexts = new QLabel(win);
+        auto *specifyCheckBox = new QCheckBox(win);
+        specifyCheckBox->setText(tr("Change the column meanings from the auto-assigned values shown on right"));
+        specifyCheckBox->setChecked(false);
+        layout->addWidget(fileDialog, 0, 0);
+        layout->addWidget(headerTexts, 0, 1);
+        layout->addWidget(specifyCheckBox, 1, 0);
+        connect(fileDialog, &QFileDialog::currentChanged, fileDialog, [this, headerTexts, win](const QString &path){
+                                                                                        file = new QFile(path);
+                                                                                        file->open(QIODevice::ReadOnly);
+                                                                                        stream = new QTextStream(file);
+                                                                                        if(readHeader() && headerValues.size() >= 4)
+                                                                                        {
+                                                                                            setFieldMeanings();
+                                                                                            headerTexts->setText(tr("Column meanings:\n") + fieldMeanings.join('\n'));
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            headerTexts->setText(tr("This is not a valid survey file."));
+                                                                                        }
+                                                                                        delete stream;
+                                                                                        stream = nullptr;
+                                                                                        file->close();
+                                                                                        delete file;
+                                                                                        file = nullptr;
+                                                                                        win->adjustSize();});
+        connect(fileDialog, &QFileDialog::fileSelected, this, [this, win](const QString &fileName){file = new QFile(fileName); win->accept();});
+        connect(fileDialog, &QFileDialog::rejected, win, &QDialog::reject);
+        win->adjustSize();
+        if(win->exec() == QDialog::Accepted)
+        {
+            autoHeaderMeaningsAreGood = !(specifyCheckBox->isChecked());
+            file->open(QIODevice::ReadOnly);
+            stream = new QTextStream(file);
+        }
+        delete win;
+*/
+        QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
         if (!fileName.isEmpty())
         {
             file = new QFile(fileName);
@@ -47,7 +101,7 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
     }
     else
     {
-        fileName = QFileDialog::getSaveFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
+        QString fileName = QFileDialog::getSaveFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
         if (!fileName.isEmpty())
         {
             file = new QFile(fileName);
@@ -55,7 +109,6 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
             stream = new QTextStream(file);
         }
     }
-
     return (stream != nullptr);
 }
 
@@ -90,6 +143,7 @@ bool CsvFile::readHeader()
     stream->seek(0);
     headerValues = getLine();
     numFields = headerValues.size();
+    fieldMeanings.clear();
     fieldMeanings.reserve(numFields);
     for(int i = 0; i < numFields; i++)
     {
@@ -190,7 +244,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
             QString match;
             do
             {
-                match = std::get<1>(possibleFieldMeanings.at(matchPattern));
+                match = possibleFieldMeanings.at(matchPattern).regExSearchString;
                 matchPattern++;
             }
             while((matchPattern < possibleFieldMeanings.size()) &&
@@ -198,13 +252,12 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
 
             if(matchPattern != possibleFieldMeanings.size())
             {
-                fieldMeanings[i] = std::get<0>(possibleFieldMeanings.at(matchPattern - 1));
+                fieldMeanings[i] = possibleFieldMeanings.at(matchPattern - 1).nameShownToUser;
             }
             else
             {
                 fieldMeanings[i] = UNUSEDTEXT;
             }
-
         }
     }
 
@@ -214,7 +267,8 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
 
     auto *explanation = new QLabel(window);
     explanation->setText(tr("<html>The following fields were found in the first row of the file. "
-                         "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT + tr("\" for any field(s) that should be ignored.<hr></html>"));
+                         "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT +
+                         tr("\" for any field(s) that should be ignored.<hr></html>"));
     explanation->setWordWrap(true);
     window->theGrid->addWidget(explanation, 0, 0, 1, -1);
 
@@ -222,11 +276,12 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     hasHeaderRowCheckbox->setText(tr("This file has a header row"));
     hasHeaderRowCheckbox->setChecked(true);
     window->theGrid->addWidget(hasHeaderRowCheckbox, 1, 0, 1, -1);
-    connect(hasHeaderRowCheckbox, &QCheckBox::clicked, this, [this, hasHeaderRowCheckbox]{hasHeaderRow = hasHeaderRowCheckbox->isChecked();
-                                                                                          if(hasHeaderRow)
-                                                                                            {window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));}
-                                                                                          else
-                                                                                            {window->theTable->setHorizontalHeaderLabels(QStringList({ROW1TEXT, CATEGORYTEXT}));}});
+    connect(hasHeaderRowCheckbox, &QCheckBox::clicked, this, [this, hasHeaderRowCheckbox]
+                                                      {hasHeaderRow = hasHeaderRowCheckbox->isChecked();
+                                                       if(hasHeaderRow)
+                                                         {window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));}
+                                                       else
+                                                         {window->theTable->setHorizontalHeaderLabels(QStringList({ROW1TEXT, CATEGORYTEXT}));}});
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -244,7 +299,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         selector->installEventFilter(window);       // as it's too easy to mistake scrolling through the rows with changing the value
         for(auto &meaning : possibleFieldMeanings)
         {
-            selector->addItem(std::get<0>(meaning), std::get<2>(meaning));
+            selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
         selector->insertItem(0, UNUSEDTEXT);
         auto *model = qobject_cast<QStandardItemModel *>(selector->model());
@@ -269,7 +324,8 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
 
 
 //////////////////
-// Validate the selector boxes in the choose field meaning dialog--one per field unless there's an asterisk in the name, in which case there are as many as the number after
+// Validate the selector boxes in the choose field meaning dialog:
+// one per field unless there's an asterisk in the name, in which case there are as many as the number after
 //////////////////
 void CsvFile::validateFieldSelectorBoxes(int callingRow)
 {

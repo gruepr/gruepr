@@ -53,23 +53,24 @@ void TeamRecord::createTooltip(const DataOptions* const dataOptions)
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
-        auto teamVals = attributeVals[attribute].begin();
-        if(dataOptions->attributeIsOrdered[attribute])
+        auto teamVals = attributeVals[attribute].cbegin();
+        auto lastVal = attributeVals[attribute].cend();
+        if(dataOptions->attributeType[attribute] == DataOptions::ordered)
         {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
             if(*teamVals == -1)
             {
                 teamVals++;
             }
-            if(teamVals != attributeVals[attribute].end())
+            if(teamVals != lastVal)
             {
-                if(*teamVals == *attributeVals[attribute].rbegin())
+                if(*teamVals == *attributeVals[attribute].crbegin())
                 {
                     toolTip += QString::number(*teamVals);
                 }
                 else
                 {
-                    toolTip += QString::number(*teamVals) + " - " + QString::number(*attributeVals[attribute].rbegin());
+                    toolTip += QString::number(*teamVals) + " - " + QString::number(*attributeVals[attribute].crbegin());
                 }
             }
             else
@@ -77,12 +78,12 @@ void TeamRecord::createTooltip(const DataOptions* const dataOptions)
                 toolTip += "?";
             }
         }
-        else
+        else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::multicategorical))
         {
             // attribute is categorical, so important info is the list of values
             // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
             toolTip += (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
-            for(teamVals++; teamVals != attributeVals[attribute].end(); teamVals++)
+            for(teamVals++; teamVals != lastVal; teamVals++)
             {
                 toolTip += ", " + (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
             }
@@ -196,7 +197,7 @@ void TeamRecord::refreshTeamInfo(const DataOptions* const dataOptions, const Stu
         }
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
         {
-            attributeVals[attribute].insert(stu.attributeVal[attribute]);
+            attributeVals[attribute].insert(stu.attributeVals[attribute].constBegin(), stu.attributeVals[attribute].constEnd());
         }
         if(!stu.ambiguousSchedule)
         {

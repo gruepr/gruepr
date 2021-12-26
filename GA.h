@@ -6,7 +6,7 @@
 #include <random>
 
 const int MAX_RECORDS = 300;                            // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow with >300 records)
-const int POPULATIONSIZE = 30000;						// the number of genomes in each generation--larger size is slower, but arguably more optimized result. A size of 5000 works with the default stack size. For size of 20000, stack size was increased to 16 MB. For 30000, increased to 32 MB.
+const int POPULATIONSIZE = 30000;						// the number of genomes in each generation--larger size is slower, but each generation is more likely to have optimal result.
 const int TOURNAMENTSIZE = POPULATIONSIZE/500;          // most of the next generation is created by mating many pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
 const int NUMGENERATIONSOFANCESTORS = 3;                // how many generations of ancestors to look back when preventing the selection of related mates:
                                                         //      1 = prevent if either parent is same (no siblings mating);

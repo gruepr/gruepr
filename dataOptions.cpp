@@ -7,7 +7,7 @@ DataOptions::DataOptions()
         attributeField[i] = -1;
         attributeMin[i] = 1;
         attributeMax[i] = 1;
-        attributeIsOrdered[i] = false;
+        attributeType[i] = categorical;
     }
 
     for(int &field : notesField)

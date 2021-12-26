@@ -24,7 +24,7 @@ public:
     bool preventedWith[MAX_IDS] = {false};              // true if this student is prevented from working with the student with this ID value
     bool requiredWith[MAX_IDS] = {false};       		// true if this student is required to work with the student with this ID value
     bool requestedWith[MAX_IDS] = {false};      		// true if this student desires to work with the student with this ID value
-    int attributeVal[MAX_ATTRIBUTES] = {0};             // rating for each attribute (when set, each rating is numerical value from 1 -> attributeLevels[attribute])
+    QVector<int> attributeVals[MAX_ATTRIBUTES];         // rating for each attribute (when set, each rating is numerical value from 1 -> attributeLevels[attribute])
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;
     QString lastname;

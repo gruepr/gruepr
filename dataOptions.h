@@ -38,7 +38,8 @@ public:
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
     int earlyHourAsked = 0;                         // earliest hour asked in survey
     int lateHourAsked = MAX_BLOCKS_PER_DAY;         // latest hour asked in survey
-    bool attributeIsOrdered[MAX_ATTRIBUTES];        // is this attribute ordered (numerical) or purely categorical?
+    enum AttributeType {ordered, timezone, categorical, multicategorical};
+    AttributeType attributeType[MAX_ATTRIBUTES];    // is this attribute ordered (numerical) or purely categorical?
     bool prefTeammatesIncluded = false;             // did students get to include preferred teammates?
     int prefTeammatesField = -1;                    // which field in surveyFile has the preferred teammates info? -1 if not included in survey
     bool prefNonTeammatesIncluded = false;          // did students get to include preferred non-teammates?

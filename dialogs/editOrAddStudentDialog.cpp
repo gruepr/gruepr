@@ -136,10 +136,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(const StudentRecord &studentToBeE
     {
         for(int attribute = 0; attribute < internalDataOptions.numAttributes; attribute++)
         {
-            datacategorical[attribute].setWhatTypeOfValue(internalDataOptions.attributeIsOrdered[attribute]?
-                                                          CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
+            datacategorical[attribute].setWhatTypeOfValue((internalDataOptions.attributeType[attribute] == DataOptions::ordered) ?
+                                                           CategoricalSpinBox::numerical : CategoricalSpinBox::letter);
             datacategorical[attribute].setCategoricalValues(internalDataOptions.attributeQuestionResponses[attribute]);
-            datacategorical[attribute].setValue(student.attributeVal[attribute]);
+            datacategorical[attribute].setValue(student.attributeVals[attribute].first());
             datacategorical[attribute].setRange(0, internalDataOptions.attributeMax[attribute]);
             datacategorical[attribute].setSpecialValueText(tr("not set/unknown"));
         }
@@ -259,12 +259,12 @@ void editOrAddStudentDialog::updateRecord()
     {
         if(datacategorical[attribute].value() == 0)
         {
-            student.attributeVal[attribute] = -1;
+            student.attributeVals[attribute].first() = -1;
             student.attributeResponse[attribute] = "";
         }
         else
         {
-            student.attributeVal[attribute] = datacategorical[attribute].value();
+            student.attributeVals[attribute].first() = datacategorical[attribute].value();
             student.attributeResponse[attribute] = internalDataOptions.attributeQuestionResponses[attribute].at(datacategorical[attribute].value() - 1);
         }
     }

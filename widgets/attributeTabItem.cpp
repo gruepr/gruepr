@@ -10,6 +10,7 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
     theGrid->setRowStretch(0,100);
     theGrid->setColumnStretch(3,100);
     setLayout(theGrid);
+    int row = 0, column = 0;
 
     attributeText = new QTextEdit(this);
     if(tabType == gruepr)
@@ -29,12 +30,12 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
     }
     attributeText->setEnabled(true);
     attributeText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    theGrid->addWidget(attributeText, 0, 0, 1, -1);
+    theGrid->addWidget(attributeText, row++, column, 1, -1);
 
     if(tabType == gruepr)
     {
         weightLabel = new QLabel(tr("Weight:"), this);
-        theGrid->addWidget(weightLabel, 1, 0, Qt::AlignCenter);
+        theGrid->addWidget(weightLabel, row, column++, Qt::AlignCenter);
 
         weight = new QDoubleSpinBox(this);
         weight->setToolTip(tr("<html>The relative importance of this attribute in forming the teams.</html>"));
@@ -43,25 +44,27 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         weight->setMinimum(0);
         weight->setMaximum(TeamingOptions::MAXWEIGHT);
         weight->setValue(1);
-        theGrid->addWidget(weight, 1, 1, Qt::AlignCenter);
+        theGrid->addWidget(weight, row, column++, Qt::AlignCenter);
 
         homogeneous = new QCheckBox(tr("Prefer Homogeneous"), this);
         homogeneous->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
                                    "If unselected, the students on a team will have a wide range of responses to this question."));
-        theGrid->addWidget(homogeneous, 1, 2, Qt::AlignCenter);
+        theGrid->addWidget(homogeneous, row, column++, Qt::AlignCenter);
 
         requiredButton = new QPushButton(tr("Required\nAttributes"), this);
         requiredButton->setToolTip(tr("<html>Indicate attribute value(s) where each team should have at least one student with that value.</html>"));
-        theGrid->addWidget(requiredButton, 1, 3, Qt::AlignRight | Qt::AlignVCenter);
+        theGrid->addWidget(requiredButton, row, column++, Qt::AlignRight | Qt::AlignVCenter);
 
         incompatsButton = new QPushButton(tr("Incompatible\nAttributes"), this);
         incompatsButton->setToolTip(tr("<html>Indicate attribute value(s) that should prevent students from being on the same team.</html>"));
-        theGrid->addWidget(incompatsButton, 1, 4, Qt::AlignLeft | Qt::AlignVCenter);
+        theGrid->addWidget(incompatsButton, row, column, Qt::AlignLeft | Qt::AlignVCenter);
     }
     else
     {
         attributeResponses = new ComboBoxWithElidedContents(tr("Very high / Above average / Average / Below average / Very low"), this);
-        theGrid->addWidget(attributeResponses, 1, 0, 1, -1);
+        theGrid->addWidget(attributeResponses, row++, column, 1, -1);
+        allowMultipleResponses = new QCheckBox(tr("Allow student to select multiple options"), this);
+        theGrid->addWidget(allowMultipleResponses, row, column, 1, -1);
     }
 }
 
@@ -79,23 +82,31 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
     }
     QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(attribute) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
     QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-    for(int response = 0; response < dataOptions->attributeQuestionResponses[attribute].size(); response++)
+    const auto responses = dataOptions->attributeQuestionResponses[attribute];
+    int responseNum = 0;
+    for(const auto &response : responses)
     {
-        if(dataOptions->attributeIsOrdered[attribute])
+        if(dataOptions->attributeType[attribute] == DataOptions::ordered)
         {
             // show response with starting number in bold
-            QRegularExpressionMatch match = startsWithInteger.match(dataOptions->attributeQuestionResponses[attribute].at(response));
-            questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + dataOptions->attributeQuestionResponses[attribute].at(response).mid(match.capturedLength(1));
+            QRegularExpressionMatch match = startsWithInteger.match(response);
+            questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
         }
         else
         {
             // show response with a preceding letter in bold (letter repeated for responses after 26)
             questionWithResponses += "<br><b>";
-            questionWithResponses += (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26)));
-            questionWithResponses += "</b>. " + dataOptions->attributeQuestionResponses[attribute].at(response);
+            questionWithResponses += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+            questionWithResponses += "</b>. " + response;
         }
+        responseNum++;
     }
-    questionWithResponses += "</div></html>";
+    questionWithResponses += "</div>";
+    if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+    {
+        questionWithResponses += "<br><i>Multiple responses allowed.</i>";
+    }
+    questionWithResponses += "</html>";
     attributeText->setHtml(questionWithResponses);
     if(dataOptions->attributeMin[attribute] == dataOptions->attributeMax[attribute])
     {

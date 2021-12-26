@@ -41,7 +41,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
         else
         {
             QString responseText = dataOptions->attributeQuestionResponses[attribute].at(response);
-            if(dataOptions->attributeIsOrdered[attribute])
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
             {
                 // show reponse with starting number
                 QRegularExpression startsWithNumber("^(\\d+)(.+)");
@@ -97,7 +97,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
             else
             {
                 QString responseText = dataOptions->attributeQuestionResponses[attribute].at(response);
-                if(dataOptions->attributeIsOrdered[attribute])
+                if(dataOptions->attributeType[attribute] == DataOptions::ordered)
                 {
                     // show reponse's starting number
                     QRegularExpression startsWithNumber("^(\\d+)(.+)");
@@ -151,7 +151,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
         else
         {
             QString responseText = dataOptions->attributeQuestionResponses[attribute].at(response);
-            if(dataOptions->attributeIsOrdered[attribute])
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
             {
                 // show response's starting number
                 QRegularExpression startsWithNumber("^(\\d+)(.+)");

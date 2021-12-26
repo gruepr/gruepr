@@ -20,6 +20,7 @@ StudentRecord::StudentRecord()
 ////////////////////////////////////////////
 void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions* const dataOptions)
 {
+    // Timestamp
     int fieldnum = dataOptions->timestampField;
     if(fieldnum != -1)
     {
@@ -51,18 +52,21 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         surveyTimestamp = QDateTime::currentDateTime();
     }
 
+    // First name
     fieldnum = dataOptions->firstNameField;
     firstname = fields.at(fieldnum).toUtf8().trimmed();
     firstname[0] = firstname[0].toUpper();
 
+    // Last name
     fieldnum = dataOptions->lastNameField;
     lastname = fields.at(fieldnum).toUtf8().trimmed();
     lastname[0] = lastname[0].toUpper();
 
+    // Email
     fieldnum = dataOptions->emailField;
     email = fields.at(fieldnum).toUtf8().trimmed();
 
-    // optional gender
+    // gender
     if(dataOptions->genderIncluded)
     {
         fieldnum = dataOptions->genderField;
@@ -91,7 +95,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         gender = StudentRecord::unknown;
     }
 
-    // optional race/ethnicity status
+    // racial/ethnic heritage
     if(dataOptions->URMIncluded)
     {
         fieldnum = dataOptions->URMField;
@@ -107,7 +111,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         URM = false;
     }
 
-    // optional attributes
+    // attributes
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         fieldnum = dataOptions->attributeField[attribute];
@@ -116,7 +120,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         attributeResponse[attribute] = field;
     }
 
-    // optional schedule days
+    // schedule days
     const int numDays = dataOptions->dayNames.size();
     const int numTimes = dataOptions->timeNames.size();
     int timezoneOffset = 0;
@@ -192,7 +196,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
     ambiguousSchedule = (availabilityChart.count("√") == 0 || availabilityChart.count("√") == (numDays * numTimes));
 
-    // optional section
+    // section
     if(dataOptions->sectionIncluded)
     {
         fieldnum = dataOptions->sectionField;
@@ -203,7 +207,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         }
     }
 
-    // optional preferred teammates
+    // preferred teammates
     if(dataOptions->prefTeammatesIncluded)
     {
         fieldnum = dataOptions->prefTeammatesField;
@@ -212,7 +216,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         prefTeammates = prefTeammates.trimmed();
     }
 
-    // optional preferred non-teammates
+    // preferred non-teammates
     if(dataOptions->prefNonTeammatesIncluded)
     {
         fieldnum = dataOptions->prefNonTeammatesField;
@@ -221,7 +225,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         prefNonTeammates = prefNonTeammates.trimmed();
     }
 
-    // optional notes
+    // notes
     for(int note = 0; note < dataOptions->numNotes; note++)
     {
         fieldnum = dataOptions->notesField[note];
@@ -276,17 +280,33 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
-        if(attributeVal[attribute] != -1)
+        auto value = attributeVals[attribute].constBegin();
+        if(*value != -1)
         {
-            if(dataOptions->attributeIsOrdered[attribute])
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
             {
-                toolTip += QString::number(attributeVal[attribute]);
+                toolTip += QString::number(*value);
+            }
+            else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+            {
+                // if attribute value is > 26, letters are repeated as needed
+                toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
+                                             QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
             }
             else
             {
-                // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-                toolTip += (attributeVal[attribute] <= 26 ? QString(char(attributeVal[attribute]-1 + 'A')) :
-                                                            QString(char((attributeVal[attribute]-1)%26 + 'A')).repeated(1+((attributeVal[attribute]-1)/26)));
+                //multicategorical
+                auto lastVal = attributeVals[attribute].constEnd();
+                while(value != lastVal)
+                {
+                    toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
+                                                 QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
+                    value++;
+                    if(value != lastVal)
+                    {
+                        toolTip += ",";
+                    }
+                }
             }
         }
         else
