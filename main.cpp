@@ -44,6 +44,7 @@
 //
 // IN PROGRESS:
 // - add select-multiple attribute question option to edit/add student dialog
+// - prevent crash when no first name, last name, email address in survey
 //
 // TO DO:
 // - prevent crash on mac with add/edit student dialog (when many attributes are present?)
