@@ -32,25 +32,31 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - made the min/desired meeting time settings more sensible:
-//    - allow the values to be equal
-//    - adjusting the max value to correspond to number of possible meeting times in the week, given the meeting length and number of spots in survey data
+// - improved the min/desired meeting time settings:
+//    - allows the values to be equal
+//    - adjusts the max value to correspond to number of possible meeting times in the week (given the meeting length and number of spots in survey data)
 //    - added "3 hour" meeting time
 // - added new select-multiple-responses type of attribute question:
 //    - added option in Surveymaker
 //    - updated Google form and text survey outputs to allow checkbox and not radio button responses
 //    - added display in gruepr teaming options
 //    - updated handling of attribute responses and values throughout gruepr to allow for multiple responses
-//
-// IN PROGRESS:
-// - add select-multiple attribute question option to edit/add student dialog
+// - improved edit/add student dialog:
+//    - much better UI in selecting the attribute values
+//    - added the new select-multiple attribute questions
+//    - prevent crash related to certain attribute questions
+//    - added timezone to add/edit student dialog
+// - improved handling of accented characters in names and other survey data
 // - prevent crash when no first name, last name, email address in survey
 //
 // TO DO:
-// - prevent crash on mac with add/edit student dialog (when many attributes are present?)
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
+// - spawn new Teams tab with each hit of Make Teams button
+//    - allow to close the tab
+//    - save a teamingOptions with each tab for the sake of saving/printing the instructor's file
+//    - add option to split all teammates in current tab(s) when making new tab
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - use multiple genepools with limited cross-breeding

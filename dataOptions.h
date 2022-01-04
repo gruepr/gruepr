@@ -1,6 +1,7 @@
 #ifndef DATAOPTIONS_H
 #define DATAOPTIONS_H
 
+#include <set>
 #include <QFileInfo>
 #include <QStringList>
 #include "gruepr_consts.h"
@@ -30,8 +31,6 @@ public:
     int scheduleField[MAX_DAYS];                    // which field(s) in surveyFile have schedule info? -1 if not included in survey
     int numAttributes = 0;                          // how many attribute questions are in the survey?
     int attributeField[MAX_ATTRIBUTES];             // which field(s) in surveyFile have attribute info? -1 if not included in survey
-    int attributeMin[MAX_ATTRIBUTES];               // what is the minimum value for each attribute?
-    int attributeMax[MAX_ATTRIBUTES];               // what is the maximum value for each attribute?
     bool timezoneIncluded = false;                  // is timezone data included in the survey?
     int timezoneField = -1;                         // which field has the timezone info?
     bool homeTimezoneUsed = false;                  // whether the students' schedules refer to their own timezone
@@ -39,7 +38,7 @@ public:
     int earlyHourAsked = 0;                         // earliest hour asked in survey
     int lateHourAsked = MAX_BLOCKS_PER_DAY;         // latest hour asked in survey
     enum AttributeType {ordered, timezone, categorical, multicategorical};
-    AttributeType attributeType[MAX_ATTRIBUTES];    // is this attribute ordered (numerical) or purely categorical?
+    AttributeType attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? If categorical are multiple values allowed?
     bool prefTeammatesIncluded = false;             // did students get to include preferred teammates?
     int prefTeammatesField = -1;                    // which field in surveyFile has the preferred teammates info? -1 if not included in survey
     bool prefNonTeammatesIncluded = false;          // did students get to include preferred non-teammates?
@@ -48,6 +47,7 @@ public:
     QStringList sectionNames;                       // all of the section names
     QStringList attributeQuestionText;              // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[MAX_ATTRIBUTES];      // the list of responses to each of the attribute questions
+    std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? One corresponds to each attributeQuestionResponse
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
     QFileInfo dataFile;
     QStringList dayNames;

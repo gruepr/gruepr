@@ -85,7 +85,6 @@ SOURCES += \
         dialogs\registerDialog.cpp \
         dialogs\whichFilesDialog.cpp \
         widgets\attributeTabItem.cpp \
-        widgets\categoricalSpinBox.cpp \
         widgets\comboBoxWithElidedContents.cpp \
         widgets\pushButtonWithMouseEnter.cpp \
         widgets\sortableTableWidgetItem.cpp \
@@ -118,7 +117,6 @@ HEADERS += \
         dialogs\registerDialog.h \
         dialogs\whichFilesDialog.h \
         widgets\attributeTabItem.h \
-        widgets\categoricalSpinBox.h \
         widgets\comboBoxWithElidedContents.h \
         widgets\pushButtonWithMouseEnter.h \
         widgets\sortableTableWidgetItem.h \

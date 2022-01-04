@@ -108,7 +108,7 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
     }
     questionWithResponses += "</html>";
     attributeText->setHtml(questionWithResponses);
-    if(dataOptions->attributeMin[attribute] == dataOptions->attributeMax[attribute])
+    if(dataOptions->attributeVals[attribute].size() == 1)
     {
         teamingOptions->attributeWeights[attribute] = 0;
         weight->setEnabled(false);

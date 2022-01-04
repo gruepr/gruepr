@@ -531,7 +531,7 @@ void gruepr::loadOptionsFile()
                 {
                     teamingOptions->attributeWeights[attribute] = float(loadObject["Attribute" + QString::number(attribute+1)+"Weight"].toDouble());
                     //reset the weight to zero for any attributes with just one value in the data
-                    if(dataOptions->attributeMin[attribute] == dataOptions->attributeMax[attribute])
+                    if(dataOptions->attributeVals[attribute].size() == 1)
                     {
                         teamingOptions->attributeWeights[attribute] = 0;
                     }
@@ -651,13 +651,12 @@ void gruepr::editAStudent()
     int indexBeingEdited = sender()->property("StudentIndex").toInt();
 
     //Open window with the student record in it
-    auto *win = new editOrAddStudentDialog(student[indexBeingEdited], dataOptions, this);
+    auto *win = new editOrAddStudentDialog(student[indexBeingEdited], dataOptions, this, false);
 
     //If user clicks OK, replace student in the database with edited copy
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        student[indexBeingEdited] = win->student;
         student[indexBeingEdited].createTooltip(dataOptions);
         student[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(student[indexBeingEdited].URMResponse);
 
@@ -670,6 +669,7 @@ void gruepr::editAStudent()
 
 void gruepr::removeAStudent(int index, const QString &name, bool delayVisualUpdate)
 {
+    // can be called by index or by name. name defaults to empty, so if name is not empty must use the name to find the index
     int indexBeingRemoved = index;
     if(!name.isEmpty())
     {
@@ -683,12 +683,13 @@ void gruepr::removeAStudent(int index, const QString &name, bool delayVisualUpda
 
     if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates)
     {
-        // remove this student from all other students who have them as required/prevented/requested
+        // remove this student from all other students who might have them as required/prevented/requested
+        const int IDBeingRemoved = student[indexBeingRemoved].ID;
         for(int otherIndex = 0; otherIndex < dataOptions->numStudentsInSystem; otherIndex++)
         {
-            student[otherIndex].requiredWith[student[indexBeingRemoved].ID] = false;
-            student[otherIndex].preventedWith[student[indexBeingRemoved].ID] = false;
-            student[otherIndex].requestedWith[student[indexBeingRemoved].ID] = false;
+            student[otherIndex].requiredWith[IDBeingRemoved] = false;
+            student[otherIndex].preventedWith[IDBeingRemoved] = false;
+            student[otherIndex].requestedWith[IDBeingRemoved] = false;
         }
     }
 
@@ -714,14 +715,14 @@ void gruepr::on_addStudentPushButton_clicked()
     {
         //Open window with a blank student record in it
         StudentRecord newStudent;
-        auto *win = new editOrAddStudentDialog(newStudent, dataOptions, this);
+        auto *win = new editOrAddStudentDialog(newStudent, dataOptions, this, true);
 
         //If user clicks OK, add student to the database
         int reply = win->exec();
         if(reply == QDialog::Accepted)
         {
             const int newIndex = dataOptions->numStudentsInSystem;
-            student[newIndex] = win->student;
+            student[newIndex] = newStudent;
             student[newIndex].ID = dataOptions->latestStudentID;
             student[newIndex].createTooltip(dataOptions);
             student[newIndex].URM = teamingOptions->URMResponsesConsideredUR.contains(student[newIndex].URMResponse);
@@ -1053,12 +1054,6 @@ void gruepr::requiredResponsesButton_clicked()
     {
         teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
         teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
-        // replace the value representing "unknown/not set" to be -1
-        int indexOfUnknown = (teamingOptions->requiredAttributeValues[currAttribute].indexOf(dataOptions->attributeMax[currAttribute] + 1));
-        if(indexOfUnknown != -1)
-        {
-            teamingOptions->requiredAttributeValues[currAttribute].replace(indexOfUnknown, -1);
-        }
     }
 
     delete win;
@@ -1077,19 +1072,6 @@ void gruepr::incompatibleResponsesButton_clicked()
     {
         teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
         teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
-        // replace the value representing "unknown/not set" to be -1
-        int unknown = dataOptions->attributeMax[currAttribute] + 1;
-        for(auto &valuePair : teamingOptions->incompatibleAttributeValues[currAttribute])
-        {
-            if(valuePair.first == unknown)
-            {
-                valuePair.first = -1;
-            }
-            if(valuePair.second == unknown)
-            {
-                valuePair.second = -1;
-            }
-        }
     }
 
     delete win;
@@ -2471,7 +2453,7 @@ void gruepr::loadUI()
         //(re)set the weight to zero for any attributes with just one value in the data
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
         {
-            if(dataOptions->attributeMin[attribute] == dataOptions->attributeMax[attribute])
+            if(dataOptions->attributeVals[attribute].size() == 1)
             {
                 teamingOptions->attributeWeights[attribute] = 0;
             }
@@ -2584,8 +2566,8 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     int notesFieldsProbBeginAt = 1 + surveyFile.headerValues.lastIndexOf(lastKnownMeaningfulField);
     if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile.headerValues.size()))
     {
-        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes, just attributes
-        //and if notesFieldsProbBeginAt == headervalues size then one of these questions is the last one, so assume no notes
+        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
+        //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
         for(int field = notesFieldsProbBeginAt; field < surveyFile.fieldMeanings.size(); field++)
         {
             surveyFile.fieldMeanings[field] = "Notes";
@@ -2743,9 +2725,10 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
-    surveyFile.readDataRow(true);    // put cursor back to beginning
+    surveyFile.readDataRow(true);    // put cursor back to beginning and read first row
     if(surveyFile.hasHeaderRow)
     {
+        // that first row was headers, so get next row
         surveyFile.readDataRow();
     }
     numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
@@ -2779,7 +2762,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         {
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];
-            // gather all unique attribute question responses, remove a blank response if it exists in a list with other responses, and then sort
+            // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
             for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
                 if(!responses.contains(student[index].attributeResponse[attribute]))
@@ -2791,12 +2774,8 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             {
                 responses.removeAll(QString(""));
             }
-            QCollator sortAlphanumerically;
-            sortAlphanumerically.setNumericMode(true);
-            sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
-            std::sort(responses.begin(), responses.end(), sortAlphanumerically);
 
-            // Figure out what type of attribute this is (timezone, ordered/numerical, categorical (one response), or multi-categorical
+            // Figure out what type of attribute this is: timezone, ordered/numerical, categorical (one response), or categorical (mult. responses)
             // If this is the timezone field, it's timezone type;
             // otherwise if every response starts with an integer, then it is ordered (numerical);
             // but if any response is missing the number at the start, then it is categorical or multicategorical--multicategorical if any response contains a comma
@@ -2828,9 +2807,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                 }
             }
 
+            // for multicategorical, have to reprocess the responses to delimit at the commas
             if(attributeType == DataOptions::multicategorical)
             {
-                //for multicategorical, have to reprocess the responses to delimit at the commas
                 for(int originalResponseNum = 0, numOriginalResponses = responses.size(); originalResponseNum < numOriginalResponses; originalResponseNum++)
                 {
                     QStringList newResponses = responses.takeFirst().split(',');
@@ -2844,30 +2823,62 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                     }
                 }
                 responses.removeAll(QString(""));
+            }
+
+            // sort alphanumerically unless it's timezone, in which case sort according to offset from GMT
+            if(attributeType != DataOptions::timezone)
+            {
                 QCollator sortAlphanumerically;
                 sortAlphanumerically.setNumericMode(true);
                 sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
                 std::sort(responses.begin(), responses.end(), sortAlphanumerically);
+            }
+            else
+            {
+                QRegularExpression zoneFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
+                std::sort(responses.begin(), responses.end(), [zoneFinder] (const QString &A, const QString &B) {
+                                                                            int timezoneA = 0, timezoneB = 0;
+                                                                            QRegularExpressionMatch zoneA = zoneFinder.match(A);
+                                                                            QRegularExpressionMatch zoneB = zoneFinder.match(B);
+                                                                            if(zoneA.hasMatch())
+                                                                            {
+                                                                                int hours = zoneA.captured(1).toInt();
+                                                                                float minutes = zoneA.captured(2).toFloat();
+                                                                                timezoneA = hours + (hours < 0? (-minutes/60) : (minutes/60));
+                                                                            }
+                                                                            if(zoneB.hasMatch())
+                                                                            {
+                                                                                int hours = zoneB.captured(1).toInt();
+                                                                                float minutes = zoneB.captured(2).toFloat();
+                                                                                timezoneB = hours + (hours < 0? (-minutes/60) : (minutes/60));
+                                                                            }
+                                                                            return timezoneA < timezoneB;});
             }
 
             // set range of values
             if(attributeType == DataOptions::ordered)
             {
                 // ordered/numerical values. attribute scores will be based on number at the first and last response
-                dataOptions->attributeMin[attribute] = startsWithInteger.match(responses.first()).captured(1).toInt();
-                dataOptions->attributeMax[attribute] = startsWithInteger.match(responses.last()).captured(1).toInt();
+                for(const auto &response : qAsConst(responses))
+                {
+                    dataOptions->attributeVals[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
+                }
             }
             else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::multicategorical))
             {
                 // for categorical or mutlicategorical, range of responses is number of responses
-                dataOptions->attributeMin[attribute] = 1;
-                dataOptions->attributeMax[attribute] = responses.size();
+                for(int i = 1; i <= responses.size(); i++)
+                {
+                    dataOptions->attributeVals[attribute].insert(i);
+                }
             }
             else
             {
                 // for timezone, range of responses is number of time blocks in each day
-                dataOptions->attributeMin[attribute] = 1;
-                dataOptions->attributeMax[attribute] = MAX_BLOCKS_PER_DAY;
+                for(int i = 1; i <= MAX_BLOCKS_PER_DAY; i++)
+                {
+                    dataOptions->attributeVals[attribute].insert(i);
+                }
             }
 
             // set numerical value of each student's response
@@ -2938,14 +2949,14 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     if(numStudents == MAX_STUDENTS)
     {
         QMessageBox::warning(this, tr("Reached maximum number of students."),
-                             tr("The maximum number of students have been read from the file."
-                                       " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
+                                   tr("The maximum number of students have been read from the file."
+                                      " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
     }
     else if(numStudents < 4)
     {
         QMessageBox::critical(this, tr("Insufficient number of students."),
-                              tr("There are not enough survey responses in the file."
-                                        " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
+                                    tr("There are not enough survey responses in the file."
+                                       " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
         //reset the data
         delete[] student;
         student = new StudentRecord[MAX_STUDENTS];
@@ -3471,7 +3482,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
            (teamingOptions->haveAnyIncompatibleAttributes[attribute]) ||
            (teamingOptions->haveAnyRequiredAttributes[attribute]))
         {
-            bool thisIsTimezone = (dataOptions->attributeField[attribute] == dataOptions->timezoneField);
+            const bool thisIsTimezone = (dataOptions->attributeField[attribute] == dataOptions->timezoneField);
             studentNum = 0;
             for(int team = 0; team < numTeams; team++)
             {
@@ -3531,7 +3542,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                 if((teamingOptions->realAttributeWeights[attribute] > 0) && (!attributeLevelsInTeam.empty()))
                 {
                     float attributeRangeInTeam;
-                    if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
+                    if(thisIsTimezone)
                     {
                         // "attribute" is timezone, so use timezone values
                         attributeRangeInTeam = *timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin();
@@ -3539,7 +3550,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                     else if(dataOptions->attributeType[attribute] == DataOptions::ordered)
                     {
                         // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
-                        attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();    // crbegin is last (i.e., largest) element; cbegin is first
+                        attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last (i.e., largest) val; cbegin is 1st
                     }
                     else
                     {
@@ -3556,7 +3567,8 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
                         }
                     }
 
-                    attributeScore[attribute][team] = attributeRangeInTeam / (dataOptions->attributeMax[attribute] - dataOptions->attributeMin[attribute]);
+                    attributeScore[attribute][team] = attributeRangeInTeam /
+                                                      (*(dataOptions->attributeVals[attribute].crbegin()) - *(dataOptions->attributeVals[attribute].cbegin()));
                     if(teamingOptions->desireHomogeneous[attribute])	//attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
                     {
                         attributeScore[attribute][team] = 1 - attributeScore[attribute][team];
@@ -3575,7 +3587,7 @@ float gruepr::getTeamScores(const int teammates[], const int teamSizes[], float 
         const int numTimes = dataOptions->timeNames.size();
 
         // combine each student's schedule array into a team schedule array
-        // For compiling with MSVC, which doesn't have runtime array sizes, replace next line w/ smth like (then reserve 2D size): QVector< QVector<bool> > teamAvailability;
+        // For compiling with MSVC, which doesn't have runtime array sizes, replace next line w/ QVector< QVector<bool> > teamAvailability; then reserve 2D size
         bool teamAvailability[numDays][numTimes];
         studentNum = 0;
         for(int team = 0; team < numTeams; team++)

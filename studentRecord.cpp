@@ -54,17 +54,26 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
 
     // First name
     fieldnum = dataOptions->firstNameField;
-    firstname = fields.at(fieldnum).toUtf8().trimmed();
-    firstname[0] = firstname[0].toUpper();
+    if(fieldnum != -1)
+    {
+        firstname = fields.at(fieldnum).toLatin1().trimmed();
+        firstname[0] = firstname[0].toUpper();
+    }
 
     // Last name
     fieldnum = dataOptions->lastNameField;
-    lastname = fields.at(fieldnum).toUtf8().trimmed();
-    lastname[0] = lastname[0].toUpper();
+    if(fieldnum != -1)
+    {
+        lastname = fields.at(fieldnum).toLatin1().trimmed();
+        lastname[0] = lastname[0].toUpper();
+    }
 
     // Email
     fieldnum = dataOptions->emailField;
-    email = fields.at(fieldnum).toUtf8().trimmed();
+    if(fieldnum != -1)
+    {
+        email = fields.at(fieldnum).toLatin1().trimmed();
+    }
 
     // gender
     if(dataOptions->genderIncluded)
@@ -99,7 +108,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions->URMIncluded)
     {
         fieldnum = dataOptions->URMField;
-        QString field = fields.at(fieldnum).toUtf8().toLower().simplified();
+        QString field = fields.at(fieldnum).toLatin1().toLower().simplified();
         if(field == "")
         {
             field = QObject::tr("--");
@@ -115,7 +124,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         fieldnum = dataOptions->attributeField[attribute];
-        QString field = fields.at(fieldnum).toUtf8();
+        QString field = fields.at(fieldnum).toLatin1();
         field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
         attributeResponse[attribute] = field;
     }
@@ -211,7 +220,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions->prefTeammatesIncluded)
     {
         fieldnum = dataOptions->prefTeammatesField;
-        prefTeammates = fields.at(fieldnum).toUtf8();
+        prefTeammates = fields.at(fieldnum).toLatin1();
         prefTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
         prefTeammates = prefTeammates.trimmed();
     }
@@ -220,7 +229,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions->prefNonTeammatesIncluded)
     {
         fieldnum = dataOptions->prefNonTeammatesField;
-        prefNonTeammates = fields.at(fieldnum).toUtf8();
+        prefNonTeammates = fields.at(fieldnum).toLatin1();
         prefNonTeammates.replace(QRegularExpression("\\s*([,;&]|(?:and))\\s*"), "\n");     // replace every [, ; & and] with new line
         prefNonTeammates = prefNonTeammates.trimmed();
     }
@@ -233,7 +242,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         {
             notes += "\n";
         }
-        notes += fields.at(fieldnum).toUtf8().trimmed();     // join each one with a newline after
+        notes += fields.at(fieldnum).toLatin1().trimmed();     // join each one with a newline after
     }
 }
 

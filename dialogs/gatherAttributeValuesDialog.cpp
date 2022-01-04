@@ -1,6 +1,5 @@
 #include "gatherAttributeValuesDialog.h"
 #include <QButtonGroup>
-#include <QRegularExpression>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to gather which attribute values should be required on each team or which pairings should be disallowed on the same team
@@ -11,10 +10,19 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
                                                          const GatherType gathertype, QWidget *parent)
     :QDialog (parent)
 {
-    numPossibleValues = dataOptions->attributeQuestionResponses[attribute].size() + 1;
     incompatibleValues = teamingOptions->incompatibleAttributeValues[attribute];
     requiredValues = teamingOptions->requiredAttributeValues[attribute];
     gatherType = gathertype;
+    attributeType = dataOptions->attributeType[attribute];
+    attributeValues.clear();
+    attributeValues.append({-1, tr("value not set/unknown")});
+    auto valueIter = dataOptions->attributeVals[attribute].cbegin();
+    for(const auto &response : dataOptions->attributeQuestionResponses[attribute])
+    {
+        attributeValues.append({*valueIter, response});
+        valueIter++;
+    }
+    numPossibleValues = attributeValues.size();
 
     //Set up window with a grid layout
     if(gatherType == incompatible)
@@ -32,30 +40,13 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
 
     QString attributeDescription = "<html><br><b>" + tr("Attribute") + " " + QString::number(attribute + 1) + ":</b><br>";
     attributeDescription += dataOptions->attributeQuestionText.at(attribute) +"<hr>";
-    for(int response = 0; response < numPossibleValues; response++)
+    for(const auto &attributeValue : attributeValues)
     {
-        if(response == numPossibleValues-1)
+        if(attributeValue.value == -1 || attributeType != DataOptions::ordered)  // ordered responses already start with number (except the token value of -1)
         {
-            attributeDescription += "--. " + tr("value not set/unknown");
+            attributeDescription += valuePrefix(attributeValue.value) + ". ";
         }
-        else
-        {
-            QString responseText = dataOptions->attributeQuestionResponses[attribute].at(response);
-            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
-            {
-                // show reponse with starting number
-                QRegularExpression startsWithNumber("^(\\d+)(.+)");
-                QRegularExpressionMatch match = startsWithNumber.match(responseText);
-                attributeDescription += match.captured(1) + match.captured(2);
-            }
-            else
-            {
-                // show response with a preceding letter (letter repeated for responses after 26)
-                attributeDescription += (response<26 ? QString(char(response + 'A')) :
-                                                       QString(char(response%26 + 'A')).repeated(1 + (response/26))) + ". " + responseText;
-            }
-        }
-        attributeDescription += "<br>";
+        attributeDescription += attributeValue.response + "<br>";
     }
 
     attributeQuestion = new QLabel(this);
@@ -85,36 +76,17 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
         selectOneValues = new QRadioButton[numPossibleValues];
         selectOneResponses = new QPushButton[numPossibleValues];
         selectOneValuesGroup = new QButtonGroup(this);
-        for(int response = 0; response < numPossibleValues; response++)
+        int response = 0;
+        for(const auto &attributeValue : attributeValues)
         {
             theGrid->addWidget(&selectOneValues[response], row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
             selectOneValuesGroup->addButton(&selectOneValues[response]);
-
-            if(response == numPossibleValues-1)
-            {
-                selectOneResponses[response].setText("--");
-            }
-            else
-            {
-                QString responseText = dataOptions->attributeQuestionResponses[attribute].at(response);
-                if(dataOptions->attributeType[attribute] == DataOptions::ordered)
-                {
-                    // show reponse's starting number
-                    QRegularExpression startsWithNumber("^(\\d+)(.+)");
-                    QRegularExpressionMatch match = startsWithNumber.match(responseText);
-                    selectOneResponses[response].setText(match.captured(1));
-                }
-                else
-                {
-                    // show response's preceding letter (letter repeated for responses after 26)
-                    selectOneResponses[response].setText((response<26 ? QString(char(response + 'A')) :
-                                                                        QString(char(response%26 + 'A')).repeated(1 + (response/26))));
-                }
-            }
+            selectOneResponses[response].setText(valuePrefix(attributeValue.value));
             selectOneResponses[response].setFlat(true);
             selectOneResponses[response].setStyleSheet("Text-align:left");
             connect(&selectOneResponses[response], &QPushButton::clicked, &selectOneValues[response], &QRadioButton::toggle);
             theGrid->addWidget(&selectOneResponses[response], row++, 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+            response++;
         }
     }
 
@@ -124,51 +96,28 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
     row = 2;
     if(gatherType == incompatible)
     {
-        selectMultipleExplanation->setText("<html>" +
-                                           tr("on the same team as students with any of these responses:") +
-                                           "</html>");
+        selectMultipleExplanation->setText("<html>" + tr("on the same team as students with any of these responses:") + "</html>");
         column = 3;
     }
     else
     {
-        selectMultipleExplanation->setText("<html>" +
-                                           tr("Ensure each team has at least one student with each of these responses:") +
-                                           "</html>");
+        selectMultipleExplanation->setText("<html>" + tr("Ensure each team has at least one student with each of these responses:") + "</html>");
     }
     selectMultipleExplanation->setWordWrap(true);
     theGrid->addWidget(selectMultipleExplanation, row++, column, 1, -1);
 
     selectMultipleValues = new QCheckBox[numPossibleValues];
     selectMultipleResponses = new QPushButton[numPossibleValues];
-    for(int response = 0; response < numPossibleValues; response++)
+    int response = 0;
+    for(const auto &attributeValue : attributeValues)
     {
         theGrid->addWidget(&selectMultipleValues[response], row, column, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
-
-        if(response == numPossibleValues-1)
-        {
-            selectMultipleResponses[response].setText(tr("--"));
-        }
-        else
-        {
-            QString responseText = dataOptions->attributeQuestionResponses[attribute].at(response);
-            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
-            {
-                // show response's starting number
-                QRegularExpression startsWithNumber("^(\\d+)(.+)");
-                QRegularExpressionMatch match = startsWithNumber.match(responseText);
-                selectMultipleResponses[response].setText(match.captured(1));
-            }
-            else
-            {
-                // show response's preceding letter (letter repeated for responses after 26)
-                selectMultipleResponses[response].setText((response<26 ? QString(char(response + 'A')) :
-                                                                         QString(char(response%26 + 'A')).repeated(1+(response/26))));
-            }
-        }
+        selectMultipleResponses[response].setText(valuePrefix(attributeValue.value));
         selectMultipleResponses[response].setFlat(true);
         selectMultipleResponses[response].setStyleSheet("Text-align:left");
         connect(&selectMultipleResponses[response], &QPushButton::clicked, &selectMultipleValues[response], &QCheckBox::toggle);
         theGrid->addWidget(&selectMultipleResponses[response], row++, column + 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+        response++;
     }
 
     if(gatherType == incompatible)
@@ -217,18 +166,15 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
 
     if(gatherType == incompatible)
     {
-        explanation->setText("<html><hr><br><b>" +
-                             tr("Students with these responses will not be placed on the same team:") +
-                             "<br><br><br></b></html>");
+        explanation->setText("<html><hr><br><b>" + tr("Students with these responses will not be placed on the same team:") + "<br><br><br></b></html>");
     }
     else
     {
-        explanation->setText("<html><hr><br><b>" +
-                             tr("Each team will have at least one student with each of these responses:") +
-                             "<br><br><br></b></html>");
+        explanation->setText("<html><hr><br><b>" + tr("Each team will have at least one student with each of these responses:") + "<br><br><br></b></html>");
     }
-    adjustSize();
     updateExplanation();
+
+    adjustSize();
 }
 
 
@@ -244,51 +190,62 @@ gatherAttributeValuesDialog::~gatherAttributeValuesDialog()
     delete [] selectMultipleResponses;
 }
 
+QString gatherAttributeValuesDialog::valuePrefix(int value)
+{
+    if(value == -1)
+    {
+        return tr("--");
+    }
+    else if(attributeType == DataOptions::ordered)
+    {
+        // response's starting number
+        return QString::number(value);
+    }
+    else
+    {
+        // response's preceding letter (letter repeated for responses after 26)
+        int valueIndex = value - 1;
+        return ((valueIndex < 26) ? QString(char(valueIndex + 'A')) : QString(char(valueIndex%26 + 'A')).repeated(1 + (valueIndex/26)));
+    }
+}
 
 void gatherAttributeValuesDialog::updateExplanation()
 {
+    QString explanationText;
     if(gatherType == incompatible)
     {
         if(incompatibleValues.isEmpty())
         {
-            explanation->setText("<html><hr><br><b>" + tr("Currently all responses are compatible.") + "<br></b></html>");
+            explanationText = tr("Currently all responses are compatible.") + "<br>";
         }
         else
         {
-            QString explanationText = tr("Students with these responses will not be placed on the same team:") + "<br>";
+            explanationText = tr("Students with these responses will not be placed on the same team:") + "<br>";
             for(const auto &pair : qAsConst(incompatibleValues))
             {
-                QString firstResponse = (pair.first != -1) ? selectOneResponses[(pair.first)-1].text().split('.').at(0) :
-                                                             tr("(value not set/unknown)");
-                QString secondResponse = (pair.second != -1) ? selectOneResponses[(pair.second)-1].text().split('.').at(0) :
-                                                             tr("(value not set/unknown)");
-                explanationText += QString("&nbsp;&nbsp;&nbsp;&nbsp;") + QChar(0x2022) + " " +
-                                   firstResponse + " " + QChar(0x27f7) + " " + secondResponse + "<br>";
+                explanationText += QString("&nbsp;&nbsp;&nbsp;&nbsp;") + BULLET + " " +
+                                   valuePrefix(pair.first) + " " + DOUBLEARROW + " " + valuePrefix(pair.second) + "<br>";
             }
-            // remove all html tags
-            explanationText.remove("<html>");
-            explanation->setText("<html><hr><br><b>" + explanationText + "</b></html>");
         }
     }
     else
     {
         if(requiredValues.isEmpty())
         {
-            explanation->setText("<html><hr><br><b>" + tr("Currently no responses are required.") + "<br></b></html>");
+            explanationText = tr("Currently no responses are required.") + "<br>";
         }
         else
         {
-            QString explanationText = tr("Each team will have at least one student with each of these responses:") + "<br>";
+            explanationText = tr("Each team will have at least one student with each of these responses:") + "<br>";
             for(const auto val : qAsConst(requiredValues))
             {
-                QString responseText = (val != -1) ? selectMultipleResponses[(val)-1].text().split('.').at(0) : tr("(value not set/unknown)");
-                explanationText += QString("&nbsp;&nbsp;&nbsp;&nbsp;") + QChar(0x2022) + " " + responseText + "<br>";
+                explanationText += QString("&nbsp;&nbsp;&nbsp;&nbsp;") + BULLET + " " + valuePrefix(val) + "<br>";
             }
-            // remove all html tags
-            explanationText.remove("<html>");
-            explanation->setText("<html><hr><br><b>" + explanationText + "</b></html>");
         }
     }
+    // remove all html tags, replace the prefix for unknown values with the description, and then place all of this in the explanation
+    explanationText.remove("<html>").replace("--", "(" + attributeValues.at(0).response + ")");
+    explanation->setText("<html><hr><br><b>" + explanationText + "</b></html>");
 }
 
 
@@ -299,20 +256,35 @@ void gatherAttributeValuesDialog::addValues()
         // create pairs for the primary value and each checked incompatible value
         for(int responseIndex1 = 0; responseIndex1 < numPossibleValues; responseIndex1++)
         {
-            int responseValue1 = (responseIndex1 != (numPossibleValues-1)) ? responseIndex1+1 : -1;      // replace value for "unknown/not set" with -1
-            for(int responseIndex2 = 0; responseIndex2 < numPossibleValues; responseIndex2++)
+            if(selectOneValues[responseIndex1].isChecked())
             {
-                int responseValue2 = (responseIndex2 != (numPossibleValues-1)) ? responseIndex2+1 : -1;
-                if(selectOneValues[responseIndex1].isChecked() && selectMultipleValues[responseIndex2].isChecked() &&
-                     !incompatibleValues.contains(QPair<int,int>(responseValue1, responseValue2)) &&
-                     !incompatibleValues.contains(QPair<int,int>(responseValue2, responseValue1)) )
+                // find the response value for this radio button
+                int responseValue1 = -1;    // start with -1 for token "unknown" value, then increase to real values of positive integers
+                while(attributeValues.at(responseIndex1).value != responseValue1)
                 {
-                    int smaller = std::min(responseValue1, responseValue2), larger = std::max(responseValue1, responseValue2);
-                    if(smaller == -1)
+                    responseValue1++;
+                }
+                for(int responseIndex2 = 0; responseIndex2 < numPossibleValues; responseIndex2++)
+                {
+                    if(selectMultipleValues[responseIndex2].isChecked())
                     {
-                        std::swap(smaller, larger);
+                        // find the response value for this checkbox
+                        int responseValue2 = -1;    // start with -1 for token "unknown" value, then increase to real values of positive integers
+                        while(attributeValues.at(responseIndex2).value != responseValue2)
+                        {
+                            responseValue2++;
+                        }
+                        if(!incompatibleValues.contains(QPair<int,int>(responseValue1, responseValue2)) &&
+                                !incompatibleValues.contains(QPair<int,int>(responseValue2, responseValue1)) )
+                        {
+                            int smaller = std::min(responseValue1, responseValue2), larger = std::max(responseValue1, responseValue2);
+                            if(smaller == -1)
+                            {
+                                std::swap(smaller, larger);
+                            }
+                            incompatibleValues << QPair<int,int>(smaller, larger);
+                        }
                     }
-                    incompatibleValues << QPair<int,int>(smaller, larger);
                 }
             }
         }
@@ -330,7 +302,12 @@ void gatherAttributeValuesDialog::addValues()
         // set each checked value as required
         for(int responseIndex = 0; responseIndex < numPossibleValues; responseIndex++)
         {
-            int responseValue = (responseIndex != (numPossibleValues-1)) ? responseIndex+1 : -1;      // replace value for "unknown/not set" with -1
+            // find the response value for this checkbox
+            int responseValue = -1;    // start with -1 for token "unknown" value, then increase to real values of positive integers
+            while(attributeValues.at(responseIndex).value != responseValue)
+            {
+                responseValue++;
+            }
             if(selectMultipleValues[responseIndex].isChecked() && !requiredValues.contains(responseValue))
             {
                 requiredValues << responseValue;

@@ -5,8 +5,7 @@ DataOptions::DataOptions()
     for(int i = 0; i < MAX_ATTRIBUTES; i++)
     {
         attributeField[i] = -1;
-        attributeMin[i] = 1;
-        attributeMax[i] = 1;
+        attributeVals[i].clear();
         attributeType[i] = categorical;
     }
 
@@ -27,9 +26,10 @@ void DataOptions::reset()
     numStudentsInSystem = 0;
     numAttributes = 0;
     attributeQuestionText.clear();
-    for(auto &attributeQuestionResponse : attributeQuestionResponses)
+    for(int i = 0; i < MAX_ATTRIBUTES; i++)
     {
-        attributeQuestionResponse.clear();
+        attributeQuestionResponses[i].clear();
+        attributeVals[i].clear();
     }
     dayNames.clear();
     timeNames.clear();
