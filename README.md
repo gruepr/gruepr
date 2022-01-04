@@ -1,6 +1,6 @@
 gruepr
 
-Copyright (C) 2019-2021, Joshua Hertz < gruepr@gmail.com >
+Copyright (C) 2019-2022, Joshua Hertz < gruepr@gmail.com >
 
 ---------------
 Description of gruepr:
