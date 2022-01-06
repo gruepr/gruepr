@@ -40,7 +40,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
 
     QString attributeDescription = "<html><br><b>" + tr("Attribute") + " " + QString::number(attribute + 1) + ":</b><br>";
     attributeDescription += dataOptions->attributeQuestionText.at(attribute) +"<hr>";
-    for(const auto &attributeValue : attributeValues)
+    for(const auto &attributeValue : qAsConst(attributeValues))
     {
         if(attributeValue.value == -1 || attributeType != DataOptions::ordered)  // ordered responses already start with number (except the token value of -1)
         {
@@ -77,7 +77,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
         selectOneResponses = new QPushButton[numPossibleValues];
         selectOneValuesGroup = new QButtonGroup(this);
         int response = 0;
-        for(const auto &attributeValue : attributeValues)
+        for(const auto &attributeValue : qAsConst(attributeValues))
         {
             theGrid->addWidget(&selectOneValues[response], row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
             selectOneValuesGroup->addButton(&selectOneValues[response]);
@@ -109,7 +109,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
     selectMultipleValues = new QCheckBox[numPossibleValues];
     selectMultipleResponses = new QPushButton[numPossibleValues];
     int response = 0;
-    for(const auto &attributeValue : attributeValues)
+    for(const auto &attributeValue : qAsConst(attributeValues))
     {
         theGrid->addWidget(&selectMultipleValues[response], row, column, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
         selectMultipleResponses[response].setText(valuePrefix(attributeValue.value));

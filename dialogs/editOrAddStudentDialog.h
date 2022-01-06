@@ -11,7 +11,7 @@
 #include <QPlainTextEdit>
 #include "dataOptions.h"
 #include "studentRecord.h"
-//#include "widgets\categoricalSpinBox.h"
+//#include "widgets/categoricalSpinBox.h"
 
 class editOrAddStudentDialog : public QDialog
 {

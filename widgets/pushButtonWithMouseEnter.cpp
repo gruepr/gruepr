@@ -10,7 +10,7 @@ PushButtonWithMouseEnter::PushButtonWithMouseEnter(const QIcon &icon, const QStr
 {
     this->setFlat(true);
     this->setMouseTracking(true);
-    this->setIconSize(QSize(20,20));
+    this->setIconSize(ICONSIZE);
 }
 
 void PushButtonWithMouseEnter::enterEvent(QEvent *event)

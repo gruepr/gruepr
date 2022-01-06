@@ -5,11 +5,11 @@ StudentRecord::StudentRecord()
 {
     surveyTimestamp = QDateTime::currentDateTime();
 
-    for(int day = 0; day < MAX_DAYS; day++)
+    for(auto &day : unavailable)
     {
-        for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++)
+        for(auto &time : day)
         {
-            unavailable[day][time] = true;
+            time = true;
         }
     }
 }
@@ -140,7 +140,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         QRegularExpressionMatch zone = zoneFinder.match(fields.at(fieldnum).toUtf8());
         if(zone.hasMatch())
         {
-            int hours = zone.captured(1).toInt();
+            float hours = zone.captured(1).toFloat();
             float minutes = zone.captured(2).toFloat();
             timezone = hours + (hours < 0? (-minutes/60) : (minutes/60));
             if(dataOptions->homeTimezoneUsed)
@@ -208,11 +208,12 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // section
     if(dataOptions->sectionIncluded)
     {
+        QString sectionText = QObject::tr("section");
         fieldnum = dataOptions->sectionField;
         section = fields.at(fieldnum).toUtf8().trimmed();
-        if(section.startsWith("section",Qt::CaseInsensitive))
+        if(section.startsWith(sectionText, Qt::CaseInsensitive))
         {
-            section = section.right(section.size()-7).trimmed();    //removing as redundant the word "section" if at the start of the section name
+            section = section.right(section.size() - sectionText.size()).trimmed();    //removing as redundant the word "section" if at the start of the section name
         }
     }
 

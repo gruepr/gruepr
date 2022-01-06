@@ -5,10 +5,10 @@
 #include <QRegularExpressionValidator>
 #include <QFileInfo>
 #include <QDate>
-#include "widgets\attributeTabItem.h"
-#include "widgets\comboBoxWithElidedContents.h"
-#include "dialogs\gatherTeammatesDialog.h"
-#include "dialogs\dayNamesDialog.h"
+#include "widgets/attributeTabItem.h"
+#include "widgets/comboBoxWithElidedContents.h"
+#include "dialogs/gatherTeammatesDialog.h"
+#include "dialogs/dayNamesDialog.h"
 #include "gruepr_consts.h"
 
 namespace Ui {class SurveyMaker;}
@@ -129,6 +129,7 @@ private:
         "custom options, to be added after creating the form",};
     static const int LAST_LIKERT_RESPONSE = 25;
     static const int TIMEZONE_RESPONSE_OPTION = 101;
+    enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
 };
 
 #endif // SURVEYMAKER_H

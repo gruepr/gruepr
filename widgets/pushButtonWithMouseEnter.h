@@ -20,6 +20,9 @@ protected:
 signals:
     void mouseEntered();
     void mouseLeft();
+
+private:
+    const QSize ICONSIZE = QSize(20,20);
 };
 
 #endif // PUSHBUTTONWITHMOUSEENTER

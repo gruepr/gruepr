@@ -14,8 +14,10 @@ class TeamRecord
 {
 public:
     TeamRecord();
-    void createTooltip(const DataOptions* const dataOptions);
-    void refreshTeamInfo(const DataOptions* const dataOptions, const StudentRecord* const student);
+    TeamRecord(const DataOptions &dataOptions, int teamSize);
+
+    void createTooltip();
+    void refreshTeamInfo(const StudentRecord* const student);
 
     float score = 0;
     int size = 1;
@@ -32,6 +34,7 @@ public:
     QString name;
     QString availabilityChart;
     QString tooltip;
+    const DataOptions *dataOptions = nullptr;
 };
 
 #endif // TEAMRECORD_H

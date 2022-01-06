@@ -25,6 +25,9 @@ public:
 
 private:
     int numColumns;
+
+    const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
+    const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -65,7 +68,6 @@ private:
     QTreeWidgetItem *draggedItem = nullptr;
     QTreeWidgetItem *droppedItem = nullptr;
     QLabel *dragDropEventLabel = nullptr;
-
 };
 
 ///////////////////////////////////////////////////////////////////////

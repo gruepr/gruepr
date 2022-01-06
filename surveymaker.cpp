@@ -844,22 +844,22 @@ void SurveyMaker::on_daysComboBox_activated(int index)
     else if(index == 1)
     {
         //Weekdays
-        dayCheckBoxes[0]->setChecked(false);
-        for(int day = 1; day < 6; day++)
+        dayCheckBoxes[Sun]->setChecked(false);
+        for(int day = Mon; day <= Fri; day++)
         {
             dayCheckBoxes[day]->setChecked(true);
         }
-        dayCheckBoxes[6]->setChecked(false);
+        dayCheckBoxes[Sat]->setChecked(false);
     }
     else if(index == 2)
     {
         //Weekends
-        dayCheckBoxes[0]->setChecked(true);
-        for(int day = 1; day < 6; day++)
+        dayCheckBoxes[Sun]->setChecked(true);
+        for(int day = Mon; day <= Fri; day++)
         {
             dayCheckBoxes[day]->setChecked(false);
         }
-        dayCheckBoxes[6]->setChecked(true);
+        dayCheckBoxes[Sat]->setChecked(true);
     }
     else
     {
@@ -879,12 +879,12 @@ void SurveyMaker::day_CheckBox_toggled(bool checked, QLineEdit *dayLineEdit, con
 
 void SurveyMaker::checkDays()
 {
-    bool weekends = dayCheckBoxes[0]->isChecked() && dayCheckBoxes[6]->isChecked();
-    bool noWeekends = !(dayCheckBoxes[0]->isChecked() || dayCheckBoxes[6]->isChecked());
-    bool weekdays = dayCheckBoxes[1]->isChecked() && dayCheckBoxes[2]->isChecked() &&
-                    dayCheckBoxes[3]->isChecked() && dayCheckBoxes[4]->isChecked() && dayCheckBoxes[5]->isChecked();
-    bool noWeekdays = !(dayCheckBoxes[1]->isChecked() || dayCheckBoxes[2]->isChecked() ||
-                        dayCheckBoxes[3]->isChecked() || dayCheckBoxes[4]->isChecked() || dayCheckBoxes[5]->isChecked());
+    bool weekends = dayCheckBoxes[Sun]->isChecked() && dayCheckBoxes[Sat]->isChecked();
+    bool noWeekends = !(dayCheckBoxes[Sun]->isChecked() || dayCheckBoxes[Sat]->isChecked());
+    bool weekdays = dayCheckBoxes[Mon]->isChecked() && dayCheckBoxes[Tue]->isChecked() &&
+                    dayCheckBoxes[Wed]->isChecked() && dayCheckBoxes[Thu]->isChecked() && dayCheckBoxes[Fri]->isChecked();
+    bool noWeekdays = !(dayCheckBoxes[Mon]->isChecked() || dayCheckBoxes[Tue]->isChecked() ||
+                        dayCheckBoxes[Wed]->isChecked() || dayCheckBoxes[Thu]->isChecked() || dayCheckBoxes[Fri]->isChecked());
     if(weekends && weekdays)
     {
         ui->daysComboBox->setCurrentIndex(0);

@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.3
-copyright_year = 2019-2021
+gruepr_version = 10.4
+copyright_year = 2019-2022
 
 QT       += core gui widgets concurrent network printsupport charts
 win32: QT += winextras
@@ -71,25 +71,26 @@ SOURCES += \
         surveymaker.cpp \
         teamRecord.cpp \
         teamingOptions.cpp \
-        dialogs\baseTimeZoneDialog.cpp \
-        dialogs\customTeamnamesDialog.cpp \
-        dialogs\customTeamsizesDialog.cpp \
-        dialogs\dayNamesDialog.cpp \
-        dialogs\editOrAddStudentDialog.cpp \
-        dialogs\findMatchingNameDialog.cpp \
-        dialogs\gatherAttributeValuesDialog.cpp \
-        dialogs\gatherTeammatesDialog.cpp \
-        dialogs\gatherURMResponsesDialog.cpp \
-        dialogs\listTableDialog.cpp \
-        dialogs\progressDialog.cpp \
-        dialogs\registerDialog.cpp \
-        dialogs\whichFilesDialog.cpp \
-        widgets\attributeTabItem.cpp \
-        widgets\comboBoxWithElidedContents.cpp \
-        widgets\pushButtonWithMouseEnter.cpp \
-        widgets\sortableTableWidgetItem.cpp \
-        widgets\studentTableWidget.cpp \
-        widgets\teamTreeWidget.cpp
+        dialogs/baseTimeZoneDialog.cpp \
+        dialogs/customTeamnamesDialog.cpp \
+        dialogs/customTeamsizesDialog.cpp \
+        dialogs/dayNamesDialog.cpp \
+        dialogs/editOrAddStudentDialog.cpp \
+        dialogs/findMatchingNameDialog.cpp \
+        dialogs/gatherAttributeValuesDialog.cpp \
+        dialogs/gatherTeammatesDialog.cpp \
+        dialogs/gatherURMResponsesDialog.cpp \
+        dialogs/listTableDialog.cpp \
+        dialogs/progressDialog.cpp \
+        dialogs/registerDialog.cpp \
+        dialogs/whichFilesDialog.cpp \
+        widgets/teamsTabItem.cpp \
+        widgets/attributeTabItem.cpp \
+        widgets/comboBoxWithElidedContents.cpp \
+        widgets/pushButtonWithMouseEnter.cpp \
+        widgets/sortableTableWidgetItem.cpp \
+        widgets/studentTableWidget.cpp \
+        widgets/teamTreeWidget.cpp
 
 HEADERS += \
         Levenshtein.h \
@@ -103,25 +104,26 @@ HEADERS += \
         surveymaker.h \
         teamRecord.h \
         teamingOptions.h \
-        dialogs\baseTimeZoneDialog.h \
-        dialogs\customTeamnamesDialog.h \
-        dialogs\customTeamsizesDialog.h \
-        dialogs\dayNamesDialog.h \
-        dialogs\editOrAddStudentDialog.h \
-        dialogs\findMatchingNameDialog.h \
-        dialogs\gatherAttributeValuesDialog.h \
-        dialogs\gatherTeammatesDialog.h \
-        dialogs\gatherURMResponsesDialog.h \
-        dialogs\listTableDialog.h \
-        dialogs\progressDialog.h \
-        dialogs\registerDialog.h \
-        dialogs\whichFilesDialog.h \
-        widgets\attributeTabItem.h \
-        widgets\comboBoxWithElidedContents.h \
-        widgets\pushButtonWithMouseEnter.h \
-        widgets\sortableTableWidgetItem.h \
-        widgets\studentTableWidget.h \
-        widgets\teamTreeWidget.h
+        dialogs/baseTimeZoneDialog.h \
+        dialogs/customTeamnamesDialog.h \
+        dialogs/customTeamsizesDialog.h \
+        dialogs/dayNamesDialog.h \
+        dialogs/editOrAddStudentDialog.h \
+        dialogs/findMatchingNameDialog.h \
+        dialogs/gatherAttributeValuesDialog.h \
+        dialogs/gatherTeammatesDialog.h \
+        dialogs/gatherURMResponsesDialog.h \
+        dialogs/listTableDialog.h \
+        dialogs/progressDialog.h \
+        dialogs/registerDialog.h \
+        dialogs/whichFilesDialog.h \
+        widgets/teamsTabItem.h \
+        widgets/attributeTabItem.h \
+        widgets/comboBoxWithElidedContents.h \
+        widgets/pushButtonWithMouseEnter.h \
+        widgets/sortableTableWidgetItem.h \
+        widgets/studentTableWidget.h \
+        widgets/teamTreeWidget.h
 
 FORMS += \
       gruepr.ui \

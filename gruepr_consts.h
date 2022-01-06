@@ -12,13 +12,17 @@
 #include "GA.h"
 
 
-const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes
 const int MAX_STUDENTS = MAX_RECORDS;                   // each student is a "record" in the genetic algorithm
 const int MAX_IDS = 2 * MAX_STUDENTS;                   // since students can be removed and added yet IDs always increase, need more IDs than possible students
 const int MAX_TEAMS = MAX_STUDENTS/2;
+
 const int MAX_DAYS = 7;                                 // resolution of scheduling is 1 hr, and scope is weekly
 const int MAX_BLOCKS_PER_DAY = 24;
+const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes in a survey
 const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
+
+const int HIGHSCHEDULEOVERLAPSCALE = 6;                 // if a team has more than the desired amount of schedule overlap, additional overlap times are scaled by
+                                                        // the inverse of this factor (e.g., 6 means additional hour is worth 1/6) DO NOT CHANGE TO ZERO
 
 const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown when team is collapsed
 const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column

@@ -255,26 +255,25 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     }
     if(dataOptions->timezoneIncluded)
     {
+        float firstTeamVal = *(team.timezoneVals.cbegin());
+        float lastTeamVal = *(team.timezoneVals.crbegin());
         QString timezoneText;
-        int sortData;
-        auto firstTeamVal = team.timezoneVals.cbegin();
-        auto lastTeamVal = team.timezoneVals.crbegin();
-        if(*firstTeamVal == *lastTeamVal)
+        if(firstTeamVal == lastTeamVal)
         {
-            int hour = int(*firstTeamVal);
-            int minutes = 60*(*firstTeamVal - int(*firstTeamVal));
+            int hour = int(firstTeamVal);
+            int minutes = 60*(firstTeamVal - int(firstTeamVal));
             timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));;
         }
         else
         {
-            int hourF = int(*firstTeamVal);
-            int minutesF = 60*(*firstTeamVal - int(*firstTeamVal));
-            int hourL = int(*lastTeamVal);
-            int minutesL = 60*(*lastTeamVal - int(*lastTeamVal));
+            int hourF = int(firstTeamVal);
+            int minutesF = 60*(firstTeamVal - int(firstTeamVal));
+            int hourL = int(lastTeamVal);
+            int minutesL = 60*(lastTeamVal - int(lastTeamVal));
             timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(minutesF, 2, 10, QChar('0')) + " \u2192 " +
                             QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(minutesL, 2, 10, QChar('0'));
         }
-        sortData = int(*firstTeamVal * 100 + *lastTeamVal);
+        int sortData = int(firstTeamVal * 100 + lastTeamVal);
 
         teamItem->setText(column, timezoneText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -567,11 +566,11 @@ void TeamTreeWidgetItem::setBackgroundColor(float teamScore)
     QBrush teamColor;
     if(teamScore < 0)
     {
-        teamColor = QColor(0xfb, 0xcf, 0xce);
+        teamColor = LIGHTPINK;
     }
     else
     {
-        teamColor = QColor(0xce, 0xea, 0xfb);
+        teamColor = LIGHTBLUE;
     }
 
     for(int col = 0; col < numColumns; col++)

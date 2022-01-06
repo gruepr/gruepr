@@ -140,7 +140,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     row += 2;
     theGrid->setRowMinimumHeight(row, DIALOG_SPACER_ROWHEIGHT);
     actionSelectBox = new QComboBox(this);
-    actionSelectBox->setIconSize(QSize(15,15));
+    actionSelectBox->setIconSize(ICONSIZE);
     actionSelectBox->addItem(tr("Additional actions"));
     int itemnum = 1;
     actionSelectBox->insertSeparator(itemnum++);
@@ -225,7 +225,7 @@ void gatherTeammatesDialog::addOneTeammateSet()
 
     if(whatType != requested)
     {
-        StudentRecord *student1, *student2;
+        StudentRecord *student1 = nullptr, *student2 = nullptr;
         //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
         for(int ID1 = 0; ID1 < count; ID1++)
         {
@@ -282,7 +282,7 @@ void gatherTeammatesDialog::addOneTeammateSet()
     {
         int baseStudentID = possibleTeammates[possibleNumIDs].itemData(possibleTeammates[possibleNumIDs].currentIndex()).toInt();
         // find the student with this ID
-        StudentRecord *baseStudent;
+        StudentRecord *baseStudent = nullptr;
         int index = 0;
         while((student[index].ID != baseStudentID) && (index < numStudents))
         {
@@ -503,7 +503,7 @@ bool gatherTeammatesDialog::loadCSVFile()
 
         // find the baseStudent
         int index = 0;
-        StudentRecord *baseStudent, *student2;
+        StudentRecord *baseStudent = nullptr, *student2 = nullptr;
         while((student[index].ID != IDs[0]) && (index < numStudents))
         {
             index++;
@@ -564,6 +564,7 @@ bool gatherTeammatesDialog::loadCSVFile()
 bool gatherTeammatesDialog::loadStudentPrefs()
 {
     // Need to convert names to IDs and then add all to the preferences
+    QVector<int> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++)
     {
         QStringList prefs;
@@ -578,7 +579,7 @@ bool gatherTeammatesDialog::loadStudentPrefs()
         prefs.removeAll("");
         prefs.prepend(student[basestudent].firstname + " " + student[basestudent].lastname);
 
-        QVector<int> IDs;
+        IDs.clear();
         IDs.reserve(prefs.size());
         for(int searchStudent = 0; searchStudent < prefs.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
@@ -608,7 +609,7 @@ bool gatherTeammatesDialog::loadStudentPrefs()
 
         // find the baseStudent
         int index = 0;
-        StudentRecord *baseStudent, *student2;
+        StudentRecord *baseStudent = nullptr, *student2 = nullptr;
         while((student[index].ID != IDs[0]) && (index < numStudents))
         {
             index++;
@@ -761,7 +762,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
         }
 
         //Work through all pairings in the set to enable as a required or prevented pairing in both studentRecords
-        StudentRecord *student1, *student2;
+        StudentRecord *student1 = nullptr, *student2 = nullptr;
         for(int ID1 = 0; ID1 < IDs.size(); ID1++)
         {
             // find the student with ID1
@@ -874,10 +875,9 @@ void gatherTeammatesDialog::refreshDisplay()
                                                         {return ((A->lastname+A->firstname) < (B->lastname+B->firstname));});
 
     int row = 0;
-    bool atLeastOneTeammate;
-    for(auto baseStudent : baseStudents)
+    for(auto baseStudent : qAsConst(baseStudents))
     {
-        atLeastOneTeammate = false;
+        bool atLeastOneTeammate = false;
         column = 0;
 
         currentListOfTeammatesTable->setRowCount(row+1);
@@ -921,7 +921,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 teammatesSpecified = true;
 
                 // find studentB from their ID
-                StudentRecord *studentB;
+                StudentRecord *studentB = nullptr;
                 int index = 0;
                 while((student[index].ID != studentBID) && (index < numStudents))
                 {
@@ -941,11 +941,11 @@ void gatherTeammatesDialog::refreshDisplay()
                     currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + "\n" + tr("Teammate #") +
                                                                                                       QString::number(column + (requestsInSurvey? 0:1))));
                 }
-                auto *box = new QHBoxLayout;
-                auto *label = new QLabel(studentB->lastname + ", " + studentB->firstname);
-                auto *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
+                auto box = new QHBoxLayout;
+                auto label = new QLabel(studentB->lastname + ", " + studentB->firstname);
+                auto remover = new QPushButton(QIcon(":/icons/delete.png"), "");
                 remover->setFlat(true);
-                remover->setIconSize(QSize(15, 15));
+                remover->setIconSize(ICONSIZE);
                 if(whatType == required)
                 {
                     connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
@@ -969,7 +969,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 box->addWidget(label);
                 box->addWidget(remover, 0, Qt::AlignLeft);
                 box->setSpacing(0);
-                auto *widg = new QWidget;
+                auto widg = new QWidget;
                 widg->setLayout(box);
                 widg->setProperty("studentName", label->text());
                 currentListOfTeammatesTable->setCellWidget(row, column, widg);

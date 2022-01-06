@@ -72,7 +72,7 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     //return the parentage info
     parentage[0] = momsindex; //mom
     parentage[1] = dadsindex; //dad
-    int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;
+    int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 and 1, so grandparents are 2, 3, 4, 5
     for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++)
     {
         //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up

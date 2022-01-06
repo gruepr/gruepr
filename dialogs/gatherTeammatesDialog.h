@@ -44,6 +44,8 @@ private:
     bool loadCSVFile();
     bool loadStudentPrefs();
     bool loadSpreadsheetFile();
+
+    const QSize ICONSIZE = QSize(15,15);
 };
 
 

@@ -2,9 +2,14 @@
 
 
 TeamRecord::TeamRecord() = default;
+TeamRecord::TeamRecord(const DataOptions &incomingDataOptions, int teamSize)
+{
+    dataOptions = &incomingDataOptions;
+    size = teamSize;
+}
 
 
-void TeamRecord::createTooltip(const DataOptions* const dataOptions)
+void TeamRecord::createTooltip()
 {
     QString toolTip = "<html>";
     if(score < 0)
@@ -144,7 +149,7 @@ void TeamRecord::createTooltip(const DataOptions* const dataOptions)
 }
 
 
-void TeamRecord::refreshTeamInfo(const DataOptions* const dataOptions, const StudentRecord* const student)
+void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
 {
     //re-zero values
     numWomen = 0;

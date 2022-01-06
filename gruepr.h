@@ -9,15 +9,16 @@
   #include <QWinTaskbarButton>
   #include <QWinTaskbarProgress>
 #endif
-#include "widgets\attributeTabItem.h"
+#include "widgets/attributeTabItem.h"
 #include "boxwhiskerplot.h"
 #include "csvfile.h"
-#include "dialogs\gatherTeammatesDialog.h"
+#include "dialogs/gatherTeammatesDialog.h"
 #include "dataOptions.h"
-#include "dialogs\progressDialog.h"
-#include "widgets\pushButtonWithMouseEnter.h"
+#include "dialogs/progressDialog.h"
+#include "widgets/pushButtonWithMouseEnter.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
+#include "widgets/teamTreeWidget.h"
 #include "gruepr_consts.h"
 
 
@@ -65,16 +66,11 @@ private slots:
     void on_letsDoItButton_clicked();
     void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability);
     void optimizationComplete();
-    void on_teamNamesComboBox_activated(int index);
-    void on_randTeamnamesCheckBox_clicked();
-    void on_saveTeamsButton_clicked();
-    void on_printTeamsButton_clicked();
+    void dataDisplayTabSwitch(int newTabIndex);
+    void dataDisplayTabClose(int closingTabIndex);
+    void editDataDisplayTabName(int tabIndex);
     void loadOptionsFile();
     void saveOptionsFile();
-    void swapStudents(int studentAteam, int studentAID, int studentBteam, int studentBID);
-    void moveAStudent(int oldTeam, int studentID, int newTeam);
-    void moveATeam(int teamA, int teamB);
-    void refreshDisplayOrder();
     void settingsWindow();
     void helpWindow();
     void aboutWindow();
@@ -82,7 +78,6 @@ private slots:
 signals:
     void generationComplete(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability);
     void turnOffBusyCursor();
-    void connectedToPrinter();
 
 private:
         // setup
@@ -106,6 +101,8 @@ private:
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     attributeTabItem *attributeTab = nullptr;
+    QString sectionName;
+    const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 
         // team set optimization
     int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams
@@ -128,16 +125,6 @@ private:
 
         // reporting results
     TeamRecord *teams = nullptr;
-    void refreshTeamDisplay();
-    QVector<int> getTeamNumbersInDisplayOrder();
-    QString sectionName;
-    QString instructorsFileContents;
-    QString studentsFileContents;
-    QString spreadsheetFileContents;
-    void createFileContents();
-    void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
-    QPrinter *setupPrinter();
-    void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
 };
 
 #endif // GRUEPR_H
