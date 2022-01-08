@@ -11,12 +11,13 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn,
-                                             const DataOptions *const dataOptions, const QString &sectionname, QWidget *parent)
+                                             const DataOptions *const dataOptions, const QString &sectionname, const QStringList *const currTeamSets, QWidget *parent)
     : QDialog(parent)
 {
     //copy data into local versions, including full database of students
     numStudents = numStudentsComingIn;
     sectionName = sectionname;
+    teamSets = currTeamSets;
     student = new StudentRecord[numStudentsComingIn];
     for(int index = 0; index < numStudentsComingIn; index++)
     {
@@ -141,52 +142,58 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     theGrid->setRowMinimumHeight(row, DIALOG_SPACER_ROWHEIGHT);
     actionSelectBox = new QComboBox(this);
     actionSelectBox->setIconSize(ICONSIZE);
-    actionSelectBox->addItem(tr("Additional actions"));
-    int itemnum = 1;
-    actionSelectBox->insertSeparator(itemnum++);
-    actionSelectBox->addItem(QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
-    actionSelectBox->setItemData(itemnum++, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
-    actionSelectBox->addItem(QIcon(":/icons/save.png"), tr("Save the current set to a CSV file..."));
-    actionSelectBox->setItemData(itemnum++, tr("Save the current table to a csv file"), Qt::ToolTipRole);
-    actionSelectBox->addItem(QIcon(":/icons/openFile.png"), tr("Load a CSV file of teammates..."));
-    actionSelectBox->setItemData(itemnum++, tr("Add data from a csv file to the current table"), Qt::ToolTipRole);
-    actionSelectBox->addItem(QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
-    actionSelectBox->setItemData(itemnum++, tr("Add names from a previous set of gruepr-created teams to the current table"), Qt::ToolTipRole);
-    actionSelectBox->addItem(QIcon(":/icons/surveymaker.png"), tr("Import students' preferences from the survey"));
+    enum actionItems{descriptor, separator, clear, studentPrefs, existingTeamset, spreadsheet, saveCSV, loadCSV,};
+    actionSelectBox->insertItem(descriptor, tr("Additional actions"));
+    actionSelectBox->insertSeparator(separator);
+    actionSelectBox->insertItem(clear, QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
+    actionSelectBox->setItemData(clear, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
+    actionSelectBox->insertItem(studentPrefs, QIcon(":/icons/surveymaker.png"), tr("Import students' preferences from the survey"));
     if(whatType == required || whatType == requested)
     {
         if(requestsInSurvey)
         {
-            actionSelectBox->setItemData(itemnum, tr("Add the names of the preferred teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
+            actionSelectBox->setItemData(studentPrefs, tr("Add the names of the preferred teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
         }
         else
         {
-            actionSelectBox->setItemData(itemnum, tr("Preferred teammate information was not found in the survey"), Qt::ToolTipRole);
-            auto model = qobject_cast< QStandardItemModel * >(actionSelectBox->model());
-            auto item = model->item(itemnum);
-            item->setEnabled(false);
+            actionSelectBox->setItemData(studentPrefs, tr("Preferred teammate information was not found in the survey"), Qt::ToolTipRole);
+            (qobject_cast< QStandardItemModel * >(actionSelectBox->model()))->item(studentPrefs)->setEnabled(false);
         }
     }
     if(whatType == prevented)
     {
         if(requestsInSurvey)
         {
-            actionSelectBox->setItemData(itemnum, tr("Add the names of the preferred non-teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
+            actionSelectBox->setItemData(studentPrefs, tr("Add the names of the preferred non-teammate(s) submitted by students in the survey"), Qt::ToolTipRole);
         }
         else
         {
-            actionSelectBox->setItemData(itemnum, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
-            auto model = (qobject_cast< QStandardItemModel * >(actionSelectBox->model()));
-            auto item = model->item(itemnum);
-            item->setEnabled(false);
+            actionSelectBox->setItemData(studentPrefs, tr("Preferred non-teammate information was not found in the survey"), Qt::ToolTipRole);
+            (qobject_cast< QStandardItemModel * >(actionSelectBox->model()))->item(studentPrefs)->setEnabled(false);
         }
     }
-    connect(actionSelectBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {int itemnum = 2;
-                                                                                                           if(index == itemnum++) {clearAllTeammateSets();}
-                                                                                                           else if(index == itemnum++) {saveCSVFile();}
-                                                                                                           else if(index == itemnum++) {loadCSVFile();}
-                                                                                                           else if(index == itemnum++) {loadSpreadsheetFile();}
-                                                                                                           else if(index == itemnum++) {loadStudentPrefs();}});
+    //INPROG: Allow import of existing teamset
+    /*
+    actionSelectBox->insertItem(existingTeamset, QIcon(":/icons/party.png"), tr("Load an existing team set..."));
+    actionSelectBox->setItemData(existingTeamset, tr("Add names from an existing set of teams in gruepr"), Qt::ToolTipRole);
+    if(teamSets->isEmpty())
+    {
+        (qobject_cast< QStandardItemModel * >(actionSelectBox->model()))->item(existingTeamset)->setEnabled(false);
+    }
+    */
+    actionSelectBox->insertItem(spreadsheet, QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
+    actionSelectBox->setItemData(spreadsheet, tr("Add to the table a previous set of gruepr-created teams"), Qt::ToolTipRole);
+    actionSelectBox->insertItem(saveCSV, QIcon(":/icons/save.png"), tr("Save to a CSV file..."));
+    actionSelectBox->setItemData(saveCSV, tr("Save the table to a csv file for later reuse"), Qt::ToolTipRole);
+    actionSelectBox->insertItem(loadCSV, QIcon(":/icons/openFile.png"), tr("Load from a CSV file..."));
+    actionSelectBox->setItemData(loadCSV, tr("Add to the table a csv file saved previously"), Qt::ToolTipRole);
+    connect(actionSelectBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {switch(index) {
+                                                                                                            case clear: clearAllTeammateSets(); break;
+                                                                                                            case saveCSV: saveCSVFile(); break;
+                                                                                                            case loadCSV: loadCSVFile(); break;
+                                                                                                            case spreadsheet: loadSpreadsheetFile(); break;
+                                                                                                            case studentPrefs: loadStudentPrefs(); break;
+                                                                                                            case existingTeamset: loadExistingTeamset(); break;}});
     theGrid->addWidget(actionSelectBox, row+1, 0, 1, 3);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     theGrid->addWidget(buttonBox, row+1, 3, -1, -1);
@@ -311,11 +318,12 @@ void gatherTeammatesDialog::addOneTeammateSet()
 
 void gatherTeammatesDialog::clearAllTeammateSets()
 {
+    actionSelectBox->setCurrentIndex(0);
+
     int resp = QMessageBox::warning(this, tr("gruepr"),tr("This will remove all teammates data listed in the\ntable. Are you sure you want to continue?\n"),
                                     QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if(resp == QMessageBox::No)
     {
-        actionSelectBox->setCurrentIndex(0);
         return;
     }
 
@@ -349,7 +357,7 @@ bool gatherTeammatesDialog::saveCSVFile()
     actionSelectBox->setCurrentIndex(0);
 
     CsvFile csvFile;
-    if(!csvFile.open(this, CsvFile::write, tr("Save File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)")))
+    if(!csvFile.open(this, CsvFile::write, tr("Save File of Teammates"), "", tr("Comma-Separated Value File")))
     {
         return false;
     }
@@ -396,7 +404,7 @@ bool gatherTeammatesDialog::loadCSVFile()
     actionSelectBox->setCurrentIndex(0);
 
     CsvFile csvFile;
-    if(!csvFile.open(this, CsvFile::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File (*.csv);;All Files (*)")))
+    if(!csvFile.open(this, CsvFile::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File")))
     {
         return false;
     }
@@ -455,7 +463,8 @@ bool gatherTeammatesDialog::loadCSVFile()
         }
         else
         {
-            QMessageBox::critical(this, tr("File error."), tr("This file has an error in its format:\nThe same name appears more than once in the first column."), QMessageBox::Ok);
+            QMessageBox::critical(this, tr("File error."), tr("This file has an error in its format:\n"
+                                                              "The same name appears more than once in the first column."), QMessageBox::Ok);
             csvFile.close();
             return false;
         }
@@ -556,6 +565,146 @@ bool gatherTeammatesDialog::loadCSVFile()
         }
     }
 
+    refreshDisplay();
+    return true;
+}
+
+
+bool gatherTeammatesDialog::loadExistingTeamset()
+{
+    actionSelectBox->setCurrentIndex(0);
+
+    // choose which existing teamset
+    QString teamSet;
+    if(teamSets->count() == 1)
+    {
+        teamSet = teamSets->constFirst();
+    }
+    else
+    {
+        auto win = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        win->setWindowTitle(tr("Which teamset to load?"));
+        win->setSizeGripEnabled(true);
+        auto layout = new QVBoxLayout(win);
+        auto teamsetChooser = new QComboBox(win);
+        teamsetChooser->addItems(*teamSets);
+        layout->addWidget(teamsetChooser);
+        auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
+        connect(buttons, &QDialogButtonBox::accepted, win, &QDialog::accept);
+        connect(buttons, &QDialogButtonBox::rejected, win, &QDialog::reject);
+        layout->addWidget(buttons);
+        if(win->exec() == QDialog::Accepted)
+        {
+            teamSet = teamsetChooser->currentText();
+            win->deleteLater();
+        }
+        else
+        {
+            win->deleteLater();
+            return false;
+        }
+    }
+
+    //INPROG - copied from other function--not functional
+    /*
+    // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
+    QStringList basenames;
+    QVector<QStringList> teammates;
+
+    // Now we have list of basenames and corresponding lists of teammates by name
+    // Need to convert names to IDs and then add each teammate to the basename
+
+    // First prepend the basenames to each list of teammates
+    for(int basestudent = 0; basestudent < basenames.size(); basestudent++)
+    {
+        teammates[basestudent].prepend(basenames.at(basestudent));
+    }
+
+    QVector<int> IDs;
+    for(int basename = 0; basename < basenames.size(); basename++)
+    {
+        IDs.clear();
+        for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++)  // searchStudent is the name we're looking for
+        {
+            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
+            while((knownStudent < numStudents) &&
+                  (teammates.at(basename).at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+            {
+                knownStudent++;
+            }
+
+            if(knownStudent != numStudents)
+            {
+                // Exact match found
+                IDs << student[knownStudent].ID;
+            }
+            else
+            {
+                // No exact match, so list possible matches sorted by Levenshtein distance
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), this);
+                if(choiceWindow->exec() == QDialog::Accepted)
+                {
+                    IDs << choiceWindow->currSurveyID;
+                }
+                delete choiceWindow;
+            }
+        }
+
+        // find the baseStudent
+        int index = 0;
+        StudentRecord *baseStudent = nullptr, *student2 = nullptr;
+        while((student[index].ID != IDs[0]) && (index < numStudents))
+        {
+            index++;
+        }
+        if(index < numStudents)
+        {
+            baseStudent = &student[index];
+        }
+        else
+        {
+            continue;
+        }
+
+        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+        for(int ID2 = 1; ID2 < IDs.size(); ID2++)
+        {
+            if(IDs[0] != IDs[ID2])
+            {
+                // find the student with ID2
+                index = 0;
+                while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                {
+                    index++;
+                }
+                if(index < numStudents)
+                {
+                    student2 = &student[index];
+                }
+                else
+                {
+                    continue;
+                }
+
+                //we have at least one specified teammate pair!
+                if(whatType == required)
+                {
+                    baseStudent->requiredWith[IDs[ID2]] = true;
+                    student2->requiredWith[IDs[0]] = true;
+                }
+                else if(whatType == prevented)
+                {
+                    baseStudent->preventedWith[IDs[ID2]] = true;
+                    student2->preventedWith[IDs[0]] = true;
+                }
+                else    //whatType == requested
+                {
+                    baseStudent->requestedWith[IDs[ID2]] = true;
+                }
+            }
+        }
+    }
+*/
     refreshDisplay();
     return true;
 }
@@ -669,10 +818,11 @@ bool gatherTeammatesDialog::loadStudentPrefs()
 
 bool gatherTeammatesDialog::loadSpreadsheetFile()
 {
+    actionSelectBox->setCurrentIndex(0);
+
     CsvFile spreadsheetFile(CsvFile::tab);
-    if(!spreadsheetFile.open(this, CsvFile::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File (*.txt);;All Files (*)")))
+    if(!spreadsheetFile.open(this, CsvFile::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File")))
     {
-        actionSelectBox->setCurrentIndex(0);
         return false;
     }
 

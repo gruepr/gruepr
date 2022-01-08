@@ -33,11 +33,11 @@
 //
 // DONE:
 // - now spawns new Teams tab with each hit of Make Teams button so that different teamsets can be viewed in parallel
-//
-// INPROG:
-//  - add option to split all teammates in current tab(s) when making new tab
+// - add option to load all teammates in a teams tab as prevented
 //
 // TO DO:
+// - in gatherteammates dialog, only do the 'load preferences from survey' with people in the current section
+// - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration

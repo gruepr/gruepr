@@ -21,20 +21,21 @@ class TeamsTabItem : public QWidget
 Q_OBJECT
 
 public:
-    explicit TeamsTabItem(const TeamingOptions *const incomingTeamingOptions, const QString &incomingSectionName, const DataOptions *const incomingDataOptions,
+    explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const QString &incomingSectionName, const DataOptions *const incomingDataOptions,
                           TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent = nullptr);
     ~TeamsTabItem();
-
-private slots:
-    void teamNamesChanged(int index);
-    void randomizeTeamnames();
-    void swapStudents(int studentAteam, int studentAID, int studentBteam, int studentBID);
-    void moveAStudent(int oldTeam, int studentID, int newTeam);
-    void moveATeam(int teamA, int teamB);
 
 public slots:
     void saveTeams();
     void printTeams();
+
+private slots:
+    void teamNamesChanged(int index);
+    void randomizeTeamnames();
+    void makePrevented();
+    void swapStudents(int studentAteam, int studentAID, int studentBteam, int studentBID);
+    void moveAStudent(int oldTeam, int studentID, int newTeam);
+    void moveATeam(int teamA, int teamB);
 
 private:
     void refreshTeamDisplay();
@@ -42,6 +43,8 @@ private:
     QVector<int> getTeamNumbersInDisplayOrder();
 
     QVBoxLayout *teamDataLayout = nullptr;
+
+    QLabel *fileAndSectionLabel = nullptr;
 
     TeamTreeWidget *teamDataTree = nullptr;
 
@@ -53,13 +56,19 @@ private:
     QFrame *vertLine = nullptr;
     QLabel *setNamesLabel = nullptr;
     QComboBox *teamnamesComboBox = nullptr;
+    QStringList teamnameCategories;
+    QStringList teamnameLists;
+    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_structs_and_consts.h for how teamname lists are signified
+    QVector<TeamNameType> teamnameTypes;
     QCheckBox *randTeamnamesCheckBox = nullptr;
+    QPushButton *sendToPreventedTeammates = nullptr;
 
     QHBoxLayout *savePrintLayout = nullptr;
     QPushButton *saveTeamsButton = nullptr;
     QPushButton *printTeamsButton = nullptr;
 
     TeamingOptions *teamingOptions = nullptr;
+    bool *addedPreventedTeammates = nullptr;
     DataOptions *dataOptions = nullptr;
     TeamRecord *teams = nullptr;
     int numTeams = 1;

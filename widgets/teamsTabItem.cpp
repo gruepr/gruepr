@@ -1,6 +1,8 @@
 #include "teamsTabItem.h"
 #include "dialogs/customTeamnamesDialog.h"
+#include "dialogs/gatherTeammatesDialog.h"
 #include "dialogs/whichFilesDialog.h"
+#include "gruepr.h"
 #include <QApplication>
 #include <QFileDialog>
 #include <QFont>
@@ -13,10 +15,11 @@
 #include <QTextStream>
 #include <QtConcurrent>
 
-TeamsTabItem::TeamsTabItem(const TeamingOptions *const incomingTeamingOptions, const QString &incomingSectionName, const DataOptions *const incomingDataOptions,
+TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const QString &incomingSectionName, const DataOptions *const incomingDataOptions,
                            TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent) : QWidget(parent)
 {
-    teamingOptions = new TeamingOptions(*incomingTeamingOptions);
+    teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
+    addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting, to mark when prevented teammates are added
     sectionName = incomingSectionName;
     dataOptions = new DataOptions(*incomingDataOptions);
     teams = incomingTeams;
@@ -29,6 +32,15 @@ TeamsTabItem::TeamsTabItem(const TeamingOptions *const incomingTeamingOptions, c
     teamDataLayout->setSpacing(6);
     teamDataLayout->setStretch(0,100);
     setLayout(teamDataLayout);
+
+    QString fileAndSectionName = "<html><b>" + tr("File") + ":</b> " + dataOptions->dataFile.fileName();
+    if(sectionName != tr("No section data."))
+    {
+        fileAndSectionName += ",  <b>" + tr("Section") + ":</b> " + sectionName;
+    }
+    fileAndSectionName += "</html>";
+    fileAndSectionLabel = new QLabel(fileAndSectionName, this);
+    teamDataLayout->addWidget(fileAndSectionLabel);
 
     teamDataTree = new TeamTreeWidget(this);
     teamDataTree->setStyleSheet("QHeaderView::section{"
@@ -96,36 +108,72 @@ TeamsTabItem::TeamsTabItem(const TeamingOptions *const incomingTeamingOptions, c
     teamOptionsLayout->addWidget(collapseAllButton);
 
     teamOptionsLayout->addStretch();
-
     vertLine = new QFrame(this);
     vertLine->setFrameShape(QFrame::VLine);
     vertLine->setFrameShadow(QFrame::Sunken);
     teamOptionsLayout->addWidget(vertLine);
+    teamOptionsLayout->addStretch();
 
     setNamesLabel = new QLabel(tr("Set team names:"), this);
     teamOptionsLayout->addWidget(setNamesLabel);
 
-    teamnamesComboBox = new QComboBox(this);
-    QStringList teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
+    teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
+    teamnameLists = QString(TEAMNAMELISTS).split(';');
+    teamnameTypes.clear();
     for(auto &teamnameCategory : teamnameCategories)
     {
+        // use the last character as the type signifier, then remove the character from the actual name
+        switch((*(teamnameCategory.crbegin())).toLatin1())
+        {
+        case '.':
+            teamnameTypes << numeric;
+            break;
+        case '*':
+            teamnameTypes << repeated;
+            break;
+        case '~':
+            teamnameTypes << repeated_spaced;
+            break;
+        case '#':
+            teamnameTypes << sequeled;
+            break;
+        case '@':
+            teamnameTypes << random_sequeled;
+            break;
+        }
+
         teamnameCategory.chop(1);
     }
+    teamnamesComboBox = new QComboBox(this);
     teamnamesComboBox->addItems(teamnameCategories);
     teamnamesComboBox->addItem(tr("Custom names"));
     teamnamesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     teamnamesComboBox->setCurrentIndex(0);
+    teamnamesComboBox->setToolTip(tr("Change the team names"));
     connect(teamnamesComboBox, QOverload<int>::of(&QComboBox::activated), this, &TeamsTabItem::teamNamesChanged);
-    teamnamesComboBox->setToolTip(tr("Set the names of the teams"));
     teamOptionsLayout->addWidget(teamnamesComboBox);
 
     randTeamnamesCheckBox = new QCheckBox(tr("Randomize"), this);
     randTeamnamesCheckBox->setEnabled(false);
     randTeamnamesCheckBox->setChecked(false);
+    randTeamnamesCheckBox->setToolTip(tr("Select to randomize the order of the team names"));
     connect(randTeamnamesCheckBox, &QCheckBox::clicked, this, &TeamsTabItem::randomizeTeamnames);
     teamOptionsLayout->addWidget(randTeamnamesCheckBox);
 
     teamOptionsLayout->addStretch();
+    vertLine = new QFrame(this);
+    vertLine->setFrameShape(QFrame::VLine);
+    vertLine->setFrameShadow(QFrame::Sunken);
+    teamOptionsLayout->addWidget(vertLine);
+    teamOptionsLayout->addStretch();
+
+    sendToPreventedTeammates = new QPushButton(QIcon(":/icons/notfriends.png"), tr("Load as\nprevented\nteammates"), this);
+    sendToPreventedTeammates->setIconSize(SAVEPRINTICONSIZE);
+    sendToPreventedTeammates->setToolTip(tr("<html>Send all of these teams to the \"Prevented Teammates\" teaming option so that "
+                                            "another set of teams can be created with everyone getting all new teammates</html>"));
+    connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makePrevented);
+    teamOptionsLayout->addWidget(sendToPreventedTeammates);
+
 
     savePrintLayout = new QHBoxLayout;
     savePrintLayout->setSpacing(2);
@@ -174,43 +222,13 @@ void TeamsTabItem::teamNamesChanged(int index)
 {
     static int prevIndex = 0;   // hold on to previous index, so we can go back to it if cancelling custom team name dialog box
 
-    const QStringList teamNameLists = QString(TEAMNAMELISTS).split(';');
-
     if(index != prevIndex)      // reset the randomize teamnames checkbox if we just moved to a new index
     {
         randTeamnamesCheckBox->setChecked(false);
-        randTeamnamesCheckBox->setEnabled(index > 7 && index < teamNameLists.size());
-    }
-
-    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_structs_and_consts.h for how the teamname lists are signified
-    QVector<TeamNameType> teamNameTypes;
-    const QStringList types = QString(TEAMNAMECATEGORIES).split(',');
-    for(auto &type : types)
-    {
-        const char t = type.at(type.size()-1).toLatin1();
-        switch(t)
-        {
-            case '.':
-                teamNameTypes << numeric;
-            break;
-            case '*':
-                teamNameTypes << repeated;
-            break;
-            case '~':
-                teamNameTypes << repeated_spaced;
-            break;
-            case '#':
-                teamNameTypes << sequeled;
-            break;
-            case '@':
-                teamNameTypes << random_sequeled;
-            break;
-        }
+        randTeamnamesCheckBox->setEnabled(index > 7 && index < teamnameLists.size());
     }
 
     // Get team numbers in the order that they are currently displayed/sorted
-//    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
-//    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
     QVector<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
 
     // Set team names to:
@@ -248,23 +266,21 @@ void TeamsTabItem::teamNamesChanged(int index)
     else if(index == 3)
     {
         // binary numbers
-        const int numDigitsInLargestTeam = QString::number(numTeams-1, 2).size();       // the '-1' is because the first team is 0
+        const int numDigitsInLargestTeam = QString::number(numTeams-1, 2).size();       // the '-1' is to make the first team 0
         for(int team = 0; team < numTeams; team++)
         {
-            teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits in all
+            teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
         }
         prevIndex = 2;
     }
-    else if(index < teamNameLists.size())
+    else if(index < teamnameLists.size())
     {
-        // Using one of the listed team names (given in gruepr_structs_and_consts.h)
-        const QStringList teamNames = teamNameLists.at(index).split((","));
+        // one of the listed team names from gruepr_structs_and_consts.h
+        const TeamNameType teamNameType = randTeamnamesCheckBox->isChecked() ? random_sequeled : teamnameTypes.at(index);
+        const QStringList teamNames = teamnameLists.at(index).split(',');
+
         QVector<int> random_order(teamNames.size());
-        if(randTeamnamesCheckBox->isChecked())
-        {
-            teamNameTypes[index] = random_sequeled;
-        }
-        if(teamNameTypes.at(index) == random_sequeled)
+        if(teamNameType == random_sequeled)
         {
             std::iota(random_order.begin(), random_order.end(), 0);
 #ifdef Q_OS_MACOS
@@ -272,13 +288,14 @@ void TeamsTabItem::teamNamesChanged(int index)
             std::mt19937 pRNG(randDev());
 #endif
 #ifdef Q_OS_WIN32
-            std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};     //minGW does not play well with std::random_device; not doing cryptography so this is enough
+            std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};     //minGW does not play well with std::random_device
 #endif
             std::shuffle(random_order.begin(), random_order.end(), pRNG);
         }
+
         for(int team = 0; team < numTeams; team++)
         {
-            switch(teamNameTypes.at(index))
+            switch(teamNameType)
             {
                 case numeric:
                     break;
@@ -323,11 +340,11 @@ void TeamsTabItem::teamNamesChanged(int index)
             {
                 teams[teamDisplayNums.at(team)].name = (window->teamName[team].text().isEmpty()? QString::number(team+1) : window->teamName[team].text());
             }
-            prevIndex = teamNameLists.size();
+            prevIndex = teamnameLists.size();
             bool currentValue = teamnamesComboBox->blockSignals(true);
             teamnamesComboBox->setCurrentIndex(prevIndex);
-            teamnamesComboBox->setItemText(teamNameLists.size(), tr("Current names"));
-            teamnamesComboBox->removeItem(teamNameLists.size()+1);
+            teamnamesComboBox->setItemText(teamnameLists.size(), tr("Current names"));
+            teamnamesComboBox->removeItem(teamnameLists.size()+1);
             teamnamesComboBox->addItem(tr("Custom names"));
             teamnamesComboBox->blockSignals(currentValue);
         }
@@ -342,10 +359,10 @@ void TeamsTabItem::teamNamesChanged(int index)
     }
 
     // Put list of options back to just built-ins plus "Custom names"
-    if(teamnamesComboBox->currentIndex() < teamNameLists.size())
+    if(teamnamesComboBox->currentIndex() < teamnameLists.size())
     {
-        teamnamesComboBox->removeItem(teamNameLists.size()+1);
-        teamnamesComboBox->removeItem(teamNameLists.size());
+        teamnamesComboBox->removeItem(teamnameLists.size()+1);
+        teamnamesComboBox->removeItem(teamnameLists.size());
         teamnamesComboBox->addItem(tr("Custom names"));
     }
 
@@ -368,6 +385,27 @@ void TeamsTabItem::teamNamesChanged(int index)
 void TeamsTabItem::randomizeTeamnames()
 {
     teamNamesChanged(teamnamesComboBox->currentIndex());
+}
+
+
+void TeamsTabItem::makePrevented()
+{
+    for(int teamNum = 0; teamNum < numTeams; teamNum++)
+    {
+        for(const auto index1 : qAsConst(teams[teamNum].studentIndexes))
+        {
+            for(const auto index2 : qAsConst(teams[teamNum].studentIndexes))
+            {
+                if(index1 != index2)
+                {
+                    students[index1].preventedWith[students[index2].ID] = true;
+                }
+            }
+        }
+    }
+    *addedPreventedTeammates = true;
+    QMessageBox::information(this, tr("Successfully loaded"), tr("These teams have all been loaded into the \"Prevented Teammates\" setting. "
+                                                                 "Pushing \"Create Teams\" will create a new set of teams with all new teammates."));
 }
 
 
@@ -432,8 +470,8 @@ void TeamsTabItem::swapStudents(int studentAteam, int studentAID, int studentBte
         std::swap(teams[studentAteam].studentIndexes[teams[studentAteam].studentIndexes.indexOf(studentAIndex)],
                   teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
-        // Re-score the team and refresh all the info
-        //refreshCurrTeamScores();
+        // Re-score the teams and refresh all the info
+        gruepr::getTeamScores(students, numStudents, teams, numTeams, teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students);
         teams[studentAteam].createTooltip();
 
@@ -482,7 +520,7 @@ void TeamsTabItem::swapStudents(int studentAteam, int studentAID, int studentBte
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        //refreshCurrTeamScores();
+        gruepr::getTeamScores(students, numStudents, teams, numTeams, teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students);
         teams[studentAteam].createTooltip();
         teams[studentBteam].refreshTeamInfo(students);
@@ -569,7 +607,7 @@ void TeamsTabItem::moveAStudent(int oldTeam, int studentID, int newTeam)
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
-    //refreshCurrTeamScores();
+    gruepr::getTeamScores(students, numStudents, teams, numTeams, teamingOptions, dataOptions);
     teams[oldTeam].refreshTeamInfo(students);
     teams[oldTeam].createTooltip();
     teams[newTeam].refreshTeamInfo(students);
@@ -788,7 +826,7 @@ void TeamsTabItem::saveTeams()
             }
             else
             {
-                setWindowModified(false);
+                this->window()->setWindowModified(false);
             }
         }
     }
@@ -872,8 +910,7 @@ void TeamsTabItem::refreshTeamDisplay()
 
     teamDataTree->setSortingEnabled(true);
 
-    setWindowModified(true);
-    //this->parentWidget()->setWindowModified(true);
+    this->window()->setWindowModified(true);
 }
 
 
@@ -914,7 +951,8 @@ void TeamsTabItem::createFileContents()
     instructorsFileContents += "\n\n\n";
     for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
     {
-        QString questionWithResponses = tr("Attribute ") + QString::number(attrib+1) + "\n" + dataOptions->attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
+        QString questionWithResponses = tr("Attribute ") + QString::number(attrib+1) + "\n" +
+                                        dataOptions->attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
         for(int response = 0; response < dataOptions->attributeQuestionResponses[attrib].size(); response++)
         {
             if(dataOptions->attributeType[attrib] == DataOptions::ordered)
@@ -1060,7 +1098,8 @@ void TeamsTabItem::createFileContents()
                     QString percentage;
                     if(teams[team].size > teams[team].numStudentsWithAmbiguousSchedules)
                     {
-                        percentage = QString::number((100*teams[team].numStudentsAvailable[day][time]) / (teams[team].size-teams[team].numStudentsWithAmbiguousSchedules)) + "% ";
+                        percentage = QString::number((100*teams[team].numStudentsAvailable[day][time]) /
+                                                     (teams[team].size-teams[team].numStudentsWithAmbiguousSchedules)) + "% ";
                     }
                     else
                     {
@@ -1127,7 +1166,8 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
         {
             if(printToPDF)
             {
-                QString fileName = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix();
+                QString fileName = QFileInfo(baseFileName).path() + "/" +
+                                   QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix();
                 printer->setOutputFileName(fileName);
             }
             printOneFile(instructorsFileContents, "\n\n\n", printFont, printer);
@@ -1136,7 +1176,8 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
         {
             if(printToPDF)
             {
-                QString fileName = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix();
+                QString fileName = QFileInfo(baseFileName).path() + "/" +
+                                   QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix();
                 printer->setOutputFileName(fileName);
             }
             printOneFile(studentsFileContents, "\n\n\n", printFont, printer);
@@ -1146,7 +1187,8 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
         {
             if(printToPDF)
             {
-                QString fileName = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName() + "_spreadsheet." + QFileInfo(baseFileName).suffix();
+                QString fileName = QFileInfo(baseFileName).path() + "/" +
+                                   QFileInfo(baseFileName).completeBaseName() + "_spreadsheet." + QFileInfo(baseFileName).suffix();
                 printer->setOutputFileName(fileName);
             }
             QTextDocument textDocument(spreadsheetFileContents, this);
@@ -1155,14 +1197,14 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
             printer->setPageOrientation(QPageLayout::Landscape);
             textDocument.print(printer);
         }
-        setWindowModified(false);
+        this->window()->setWindowModified(false);
     }
     delete printer;
 }
 
 QPrinter* TeamsTabItem::setupPrinter()
 {
-    auto *printer = new QPrinter(QPrinter::HighResolution);
+    auto printer = new QPrinter(QPrinter::HighResolution);
     printer->setPageOrientation(QPageLayout::Portrait);
     emit connectedToPrinter();
     return printer;

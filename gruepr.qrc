@@ -49,5 +49,6 @@
         <file>icons/move.png</file>
         <file>icons/loadRoster.png</file>
         <file>icons/bug.png</file>
+        <file>icons/notfriends.png</file>
     </qresource>
 </RCC>

@@ -9,6 +9,7 @@
 #include <QDialogButtonBox>
 #include "dataOptions.h"
 #include "studentRecord.h"
+#include "teamRecord.h"
 
 class gatherTeammatesDialog : public QDialog
 {
@@ -17,10 +18,10 @@ class gatherTeammatesDialog : public QDialog
 public:
     enum typeOfTeammates{required, prevented, requested};
     gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn,
-                          const DataOptions *const dataOptions, const QString &sectionname, QWidget *parent = nullptr);
+                          const DataOptions *const dataOptions, const QString &sectionname, const QStringList *const currTeamSets, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
 
-    StudentRecord *student;
+    StudentRecord *student = nullptr;
     bool teammatesSpecified = false;
 
 private slots:
@@ -32,18 +33,20 @@ private:
     bool requestsInSurvey = false;
     QString sectionName;
     int numStudents;
-    QGridLayout *theGrid;
-    QTableWidget *currentListOfTeammatesTable;
+    const QStringList * teamSets = nullptr;
+    QGridLayout *theGrid = nullptr;
+    QTableWidget *currentListOfTeammatesTable = nullptr;
     static const int possibleNumIDs = 8;                // number of comboboxes in the dialog box, i.e., possible choices of teammates
     QComboBox possibleTeammates[possibleNumIDs + 1];    // +1 for the requesting student in typeOfTeammates == requested
-    QPushButton *loadTeammates;
-    QComboBox *actionSelectBox;
-    QDialogButtonBox *buttonBox;
+    QPushButton *loadTeammates = nullptr;
+    QComboBox *actionSelectBox = nullptr;
+    QDialogButtonBox *buttonBox = nullptr;
     void refreshDisplay();
-    bool saveCSVFile();                                    // returns true on success, false on fail
+    bool saveCSVFile();                                    // these all return true on success, false on fail
     bool loadCSVFile();
     bool loadStudentPrefs();
     bool loadSpreadsheetFile();
+    bool loadExistingTeamset();
 
     const QSize ICONSIZE = QSize(15,15);
 };

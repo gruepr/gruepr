@@ -9,17 +9,15 @@
   #include <QWinTaskbarButton>
   #include <QWinTaskbarProgress>
 #endif
-#include "widgets/attributeTabItem.h"
+#include "gruepr_consts.h"
 #include "boxwhiskerplot.h"
 #include "csvfile.h"
-#include "dialogs/gatherTeammatesDialog.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
-#include "widgets/pushButtonWithMouseEnter.h"
 #include "studentRecord.h"
+#include "teamingOptions.h"
 #include "teamRecord.h"
-#include "widgets/teamTreeWidget.h"
-#include "gruepr_consts.h"
+#include "widgets/attributeTabItem.h"
 
 
 namespace Ui {class gruepr;}
@@ -32,6 +30,9 @@ class gruepr : public QMainWindow
 public:
     explicit gruepr(QWidget *parent = nullptr);
     ~gruepr();
+
+    static void getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
+                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -115,8 +116,9 @@ private:
     QWinTaskbarButton *taskbarButton = nullptr;
     QWinTaskbarProgress *taskbarProgress = nullptr;
 #endif
-    float getTeamScores(const int teammates[], const int teamSizes[], float teamScores[], float **attributeScore, float *schedScore, int *penaltyPoints);
-    void refreshCurrTeamScores();
+    static float getGenomeScore(const StudentRecord _student[], const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                float _teamScores[], float **_attributeScore, float *_schedScore, int *_penaltyPoints);
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
