@@ -716,96 +716,99 @@ bool gatherTeammatesDialog::loadStudentPrefs()
     QVector<int> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++)
     {
-        QStringList prefs;
-        if(whatType == prevented)
+        if((sectionName == "") || (sectionName == student[basestudent].section))
         {
-            prefs = student[basestudent].prefNonTeammates.split('\n');
-        }
-        else
-        {
-            prefs = student[basestudent].prefTeammates.split('\n');
-        }
-        prefs.removeAll("");
-        prefs.prepend(student[basestudent].firstname + " " + student[basestudent].lastname);
-
-        IDs.clear();
-        IDs.reserve(prefs.size());
-        for(int searchStudent = 0; searchStudent < prefs.size(); searchStudent++)  // searchStudent is the name we're looking for
-        {
-            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) &&
-                  (prefs.at(searchStudent).compare((student[knownStudent].firstname + " " + student[knownStudent].lastname), Qt::CaseInsensitive) != 0))
+            QStringList prefs;
+            if(whatType == prevented)
             {
-                knownStudent++;
-            }
-
-            if(knownStudent != numStudents)
-            {
-                // Exact match found
-                IDs << student[knownStudent].ID;
+                prefs = student[basestudent].prefNonTeammates.split('\n');
             }
             else
             {
-                // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), this);
-                if(choiceWindow->exec() == QDialog::Accepted)
-                {
-                    IDs << choiceWindow->currSurveyID;
-                }
-                delete choiceWindow;
+                prefs = student[basestudent].prefTeammates.split('\n');
             }
-        }
+            prefs.removeAll("");
+            prefs.prepend(student[basestudent].firstname + " " + student[basestudent].lastname);
 
-        // find the baseStudent
-        int index = 0;
-        StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((student[index].ID != IDs[0]) && (index < numStudents))
-        {
-            index++;
-        }
-        if(index < numStudents)
-        {
-            baseStudent = &student[index];
-        }
-        else
-        {
-            continue;
-        }
-
-        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
-        for(int ID2 = 1; ID2 < IDs.size(); ID2++)
-        {
-            if(IDs[0] != IDs[ID2])
+            IDs.clear();
+            IDs.reserve(prefs.size());
+            for(int searchStudent = 0; searchStudent < prefs.size(); searchStudent++)  // searchStudent is the name we're looking for
             {
-                // find the student with ID2
-                index = 0;
-                while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
+                while((knownStudent < numStudents) &&
+                      (prefs.at(searchStudent).compare((student[knownStudent].firstname + " " + student[knownStudent].lastname), Qt::CaseInsensitive) != 0))
+                {
+                    knownStudent++;
+                }
+
+                if(knownStudent != numStudents)
+                {
+                    // Exact match found
+                    IDs << student[knownStudent].ID;
+                }
+                else
+                {
+                    // No exact match, so list possible matches sorted by Levenshtein distance
+                    auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), this);
+                    if(choiceWindow->exec() == QDialog::Accepted)
+                    {
+                        IDs << choiceWindow->currSurveyID;
+                    }
+                    delete choiceWindow;
+                }
+
+                // find the baseStudent
+                int index = 0;
+                StudentRecord *baseStudent = nullptr, *student2 = nullptr;
+                while((student[index].ID != IDs[0]) && (index < numStudents))
                 {
                     index++;
                 }
                 if(index < numStudents)
                 {
-                    student2 = &student[index];
+                    baseStudent = &student[index];
                 }
                 else
                 {
                     continue;
                 }
 
-                //we have at least one specified teammate pair!
-                if(whatType == required)
+                //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
+                for(int ID2 = 1; ID2 < IDs.size(); ID2++)
                 {
-                    baseStudent->requiredWith[IDs[ID2]] = true;
-                    student2->requiredWith[IDs[0]] = true;
-                }
-                else if(whatType == prevented)
-                {
-                    baseStudent->preventedWith[IDs[ID2]] = true;
-                    student2->preventedWith[IDs[0]] = true;
-                }
-                else    //whatType == requested
-                {
-                    baseStudent->requestedWith[IDs[ID2]] = true;
+                    if(IDs[0] != IDs[ID2])
+                    {
+                        // find the student with ID2
+                        index = 0;
+                        while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                        {
+                            index++;
+                        }
+                        if(index < numStudents)
+                        {
+                            student2 = &student[index];
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
+                        //we have at least one specified teammate pair!
+                        if(whatType == required)
+                        {
+                            baseStudent->requiredWith[IDs[ID2]] = true;
+                            student2->requiredWith[IDs[0]] = true;
+                        }
+                        else if(whatType == prevented)
+                        {
+                            baseStudent->preventedWith[IDs[ID2]] = true;
+                            student2->preventedWith[IDs[0]] = true;
+                        }
+                        else    //whatType == requested
+                        {
+                            baseStudent->requestedWith[IDs[ID2]] = true;
+                        }
+                    }
                 }
             }
         }
@@ -860,7 +863,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
     // Process each row by loading unique team strings into teams and new/matching names into corresponding teammates list
     QStringList teamnames;
-    QVector<QStringList> teammates;
+    QVector<QStringList> teammateLists;
     spreadsheetFile.readHeader();
     while(spreadsheetFile.readDataRow())
     {
@@ -869,11 +872,11 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
         if(pos == -1)   // team is not yet found in teams list
         {
             teamnames << spreadsheetFile.fieldValues.at(1).trimmed();
-            teammates.append(QStringList(spreadsheetFile.fieldValues.at(2).trimmed()));
+            teammateLists.append(QStringList(spreadsheetFile.fieldValues.at(2).trimmed()));
         }
         else
         {
-            teammates[pos].append(spreadsheetFile.fieldValues.at(2).trimmed());
+            teammateLists[pos].append(spreadsheetFile.fieldValues.at(2).trimmed());
         }
     }
     spreadsheetFile.close();
@@ -881,15 +884,15 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
     QVector<int> IDs;
-    for(const auto &teammate : qAsConst(teammates))
+    for(const auto &teammateList : qAsConst(teammateLists))
     {
         IDs.clear();
-        IDs.reserve(teammate.size());
-        for(int searchStudent = 0; searchStudent < teammate.size(); searchStudent++)  // searchStudent is the name we're looking for
+        IDs.reserve(teammateList.size());
+        for(int searchStudent = 0; searchStudent < teammateList.size(); searchStudent++)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (teammate.at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                  (teammateList.at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -902,7 +905,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammate.at(searchStudent), this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammateList.at(searchStudent), this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << choiceWindow->currSurveyID;

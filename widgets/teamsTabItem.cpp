@@ -405,7 +405,7 @@ void TeamsTabItem::makePrevented()
     }
     *addedPreventedTeammates = true;
     QMessageBox::information(this, tr("Successfully loaded"), tr("These teams have all been loaded into the \"Prevented Teammates\" setting. "
-                                                                 "Pushing \"Create Teams\" will create a new set of teams with all new teammates."));
+                                                                 "Pushing \"Create Teams\" will create a new set of teams with everyone getting all new teammates."));
 }
 
 
