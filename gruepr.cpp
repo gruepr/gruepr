@@ -108,7 +108,8 @@ gruepr::~gruepr()
 
 ////////////////////
 // A static public wrapper for the getGenomeScore function used internally
-// The scores are updated and stored in the _teams array sent to the function
+// The calculated scores are updated into the .scores members of the _teams array sent to the function
+// This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
 void gruepr::getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
                            const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions)
@@ -120,6 +121,11 @@ void gruepr::getTeamScores(const StudentRecord _student[], const int _numStudent
         attributeScore[attrib] = new float[_numTeams];
     }
     auto *schedScore = new float[_numTeams];
+    auto **availabilityChart = new bool*[_dataOptions->dayNames.size()];
+    for(int day = 0; day < _dataOptions->dayNames.size(); day++)
+    {
+        availabilityChart[day] = new bool[_dataOptions->timeNames.size()];
+    }
     auto *penaltyPoints = new int[_numTeams];
     auto *teamSizes = new int[_numTeams];
     auto *genome = new int[_numStudents];
@@ -127,18 +133,27 @@ void gruepr::getTeamScores(const StudentRecord _student[], const int _numStudent
     for(int teamnum = 0; teamnum < _numTeams; teamnum++)
     {
         teamSizes[teamnum] = _teams[teamnum].size;
-        for(int teammate = 0; teammate < _teams[teamnum].size; teammate++)
+        for(int teammate = 0; teammate < teamSizes[teamnum]; teammate++)
         {
             genome[ID] = _teams[teamnum].studentIndexes.at(teammate);
             ID++;
         }
     }
-    getGenomeScore(_student, genome, _numTeams, teamSizes, _teamingOptions, _dataOptions, teamScores, attributeScore, schedScore, penaltyPoints);
+    getGenomeScore(_student, genome, _numTeams, teamSizes,
+                   _teamingOptions, _dataOptions, teamScores,
+                   attributeScore, schedScore, availabilityChart, penaltyPoints);
     for(int teamnum = 0; teamnum < _numTeams; teamnum++)
     {
         _teams[teamnum].score = teamScores[teamnum];
     }
+    delete[] genome;
+    delete[] teamSizes;
     delete[] penaltyPoints;
+    for(int day = 0; day < _dataOptions->dayNames.size(); day++)
+    {
+        delete[] availabilityChart[day];
+    }
+    delete[] availabilityChart;
     delete[] schedScore;
     for(int attrib = 0; attrib < _dataOptions->numAttributes; attrib++)
     {
@@ -560,7 +575,8 @@ void gruepr::loadOptionsFile()
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)) &&
                       loadObject["Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)].isDouble())
                 {
-                    setOfRequiredResponses << loadObject["Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)].toInt();
+                    setOfRequiredResponses << loadObject["Attribute" + QString::number(attribute+1) +
+                                              "requiredResponse" + QString::number(requiredResponseNum+1)].toInt();
                     requiredResponseNum++;
                 }
                 teamingOptions->requiredAttributeValues[attribute] = setOfRequiredResponses;
@@ -865,8 +881,23 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
         return;
     }
 
-    // write header: need at least timestamp, first name, last name, email address
-    newSurveyFile.headerValues << "Timestamp" << "What is your first name (or the name you prefer to be called)?" << "What is your last name?" << "What is your email address?";
+    // write header
+    if(dataOptions->timestampField != -1)
+    {
+        newSurveyFile.headerValues << "Timestamp";
+    }
+    if(dataOptions->firstNameField != -1)
+    {
+     newSurveyFile.headerValues << "What is your first name (or the name you prefer to be called)?";
+    }
+    if(dataOptions->lastNameField != -1)
+    {
+        newSurveyFile.headerValues << "What is your last name?";
+    }
+    if(dataOptions->emailField != -1)
+    {
+        newSurveyFile.headerValues << "What is your email address?";
+    }
     if(dataOptions->genderIncluded)
     {
         newSurveyFile.headerValues << "With which gender do you identify?";
@@ -2726,7 +2757,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
-#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions) private(unusedTeamScores, attributeScore, schedScore, penaltyPoints)
+    bool **availabilityChart = nullptr;
+#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[numTeams];
         attributeScore = new float*[dataOptions->numAttributes];
@@ -2735,14 +2767,25 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             attributeScore[attrib] = new float[numTeams];
         }
         schedScore = new float[numTeams];
+        availabilityChart = new bool*[dataOptions->dayNames.size()];
+        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        {
+            availabilityChart[day] = new bool[dataOptions->timeNames.size()];
+        }
         penaltyPoints = new int[numTeams];
 #pragma omp for
         for(int genome = 0; genome < POPULATIONSIZE; genome++)
         {
-            scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes, teamingOptions, dataOptions,
-                                            unusedTeamScores, attributeScore, schedScore, penaltyPoints);
+            scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
+                                            teamingOptions, dataOptions, unusedTeamScores,
+                                            attributeScore, schedScore, availabilityChart, penaltyPoints);
         }
         delete[] penaltyPoints;
+        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        {
+            delete[] availabilityChart[day];
+        }
+        delete[] availabilityChart;
         delete[] schedScore;
         for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
         {
@@ -2826,7 +2869,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             generation++;
 
             // calculate this generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions) private(unusedTeamScores, attributeScore, schedScore, penaltyPoints)
+#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[numTeams];
                 attributeScore = new float*[dataOptions->numAttributes];
@@ -2835,14 +2878,25 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
                     attributeScore[attrib] = new float[numTeams];
                 }
                 schedScore = new float[numTeams];
+                availabilityChart = new bool*[dataOptions->dayNames.size()];
+                for(int day = 0; day < dataOptions->dayNames.size(); day++)
+                {
+                    availabilityChart[day] = new bool[dataOptions->timeNames.size()];
+                }
                 penaltyPoints = new int[numTeams];
 #pragma omp for nowait
                 for(int genome = 0; genome < POPULATIONSIZE; genome++)
                 {
-                    scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes, teamingOptions, dataOptions,
-                                                    unusedTeamScores, attributeScore, schedScore, penaltyPoints);
+                    scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
+                                                    teamingOptions, dataOptions, unusedTeamScores,
+                                                    attributeScore, schedScore, availabilityChart, penaltyPoints);
                 }
                 delete[] penaltyPoints;
+                for(int day = 0; day < dataOptions->dayNames.size(); day++)
+                {
+                    delete[] availabilityChart[day];
+                }
+                delete[] availabilityChart;
                 delete[] schedScore;
                 for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
                 {
@@ -2856,17 +2910,17 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             std::sort(orderedIndex, orderedIndex+POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
 
             // determine best score, save in historical record, and calculate score stability
-            float minScore = bestScores[(generation+1)%GENERATIONS_OF_STABILITY];
-            float maxScore = scores[orderedIndex[0]];
-            bestScores[generation%GENERATIONS_OF_STABILITY] = maxScore;	//the best scores from the most recent generationsOfStability, wrapping the storage location
+            float maxScoreInThisGeneration = scores[orderedIndex[0]];
+            float maxScoreFromGenerationsAgo = bestScores[(generation+1)%GENERATIONS_OF_STABILITY];
+            bestScores[generation%GENERATIONS_OF_STABILITY] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
 
-            if(minScore == maxScore)
+            if(maxScoreInThisGeneration == maxScoreFromGenerationsAgo)
             {
-                scoreStability = maxScore / 0.0001F;
+                scoreStability = maxScoreInThisGeneration / 0.0001F;
             }
             else
             {
-                scoreStability = maxScore / (maxScore - minScore);
+                scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
 
             emit generationComplete(scores, orderedIndex, generation, scoreStability);
@@ -2926,8 +2980,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 //////////////////
 float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammates[], const int _numTeams, const int _teamSizes[],
-                            const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                            float _teamScores[], float **_attributeScore, float *_schedScore, int *_penaltyPoints)
+                            const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
+                             float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints)
 {
     // Initialize each component score
     for(int team = 0; team < _numTeams; team++)
@@ -2957,11 +3011,6 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
             studentNum = 0;
             for(int team = 0; team < _numTeams; team++)
             {
-                if(_teamSizes[team] == 1)
-                {
-                    continue;
-                }
-
                 // gather all attribute values
                 attributeLevelsInTeam.clear();
                 timezoneLevelsInTeam.clear();
@@ -3021,7 +3070,7 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
                     else if(_dataOptions->attributeType[attribute] == DataOptions::ordered)
                     {
                         // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
-                        attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last (i.e., largest) val; cbegin is 1st
+                        attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last = largest val; cbegin is 1st = smallest
                     }
                     else
                     {
@@ -3058,38 +3107,60 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
         const int numTimes = _dataOptions->timeNames.size();
 
         // combine each student's schedule array into a team schedule array
-        // For compiling with MSVC, which doesn't have runtime array sizes, replace next line w/ QVector< QVector<bool> > teamAvailability; then reserve 2D size
-        bool teamAvailability[numDays][numTimes];
         studentNum = 0;
         for(int team = 0; team < _numTeams; team++)
-        {
+        {            
             if(_teamSizes[team] == 1)
             {
+                studentNum++;
                 continue;
             }
 
-            for(int day = 0; day < numDays; day++)
-            {
-                for(int time = 0; time < numTimes; time++)
-                {
-                    teamAvailability[day][time] = true;     // start with assumption of availability
-                }
-            }
-
+            // start compiling a team availability chart; begin with that of the first student on team (unless they have ambiguous schedule)
             int numStudentsWithAmbiguousSchedules = 0;
-            for(int teammate = 0; teammate < _teamSizes[team]; teammate++)
+            const auto &firstStudentOnTeam = _student[_teammates[studentNum]];
+            if(!firstStudentOnTeam.ambiguousSchedule)
             {
-                auto &currStudent = _student[_teammates[studentNum]];
-                if(currStudent.ambiguousSchedule)
-                {
-                    numStudentsWithAmbiguousSchedules++;
-                    continue;
-                }
+                const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
                 for(int day = 0; day < numDays; day++)
                 {
                     for(int time = 0; time < numTimes; time++)
                     {
-                        teamAvailability[day][time] = teamAvailability[day][time] && !currStudent.unavailable[day][time];	// "and" each student's not-unavailability
+                        _availabilityChart[day][time] = !firstStudentUnavailability[day][time];
+                    }
+                }
+            }
+            else
+            {
+                // ambiguous schedule, so note it and start with all timeslots available
+                numStudentsWithAmbiguousSchedules++;
+                for(int day = 0; day < numDays; day++)
+                {
+                    for(int time = 0; time < numTimes; time++)
+                    {
+                        _availabilityChart[day][time] = true;
+                    }
+                }
+            }
+            studentNum++;
+
+            // now move on to each subsequent student and, unless they have ambiguous schedule, merge their availability into the team's
+            for(int teammate = 1; teammate < _teamSizes[team]; teammate++)
+            {
+                const auto &currStudent = _student[_teammates[studentNum]];
+                if(currStudent.ambiguousSchedule)
+                {
+                    numStudentsWithAmbiguousSchedules++;
+                    studentNum++;
+                    continue;
+                }
+                const auto &currStudentUnavailability = currStudent.unavailable;
+                for(int day = 0; day < numDays; day++)
+                {
+                    for(int time = 0; time < numTimes; time++)
+                    {
+                        // "and" each student's not-unavailability
+                        _availabilityChart[day][time] = _availabilityChart[day][time] && !currStudentUnavailability[day][time];
                     }
                 }
                 studentNum++;
@@ -3108,7 +3179,7 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
                 {
                     for(int time = 0; time < numTimes; time++)
                     {
-                        if(teamAvailability[day][time])
+                        if(_availabilityChart[day][time])
                         {
                             _schedScore[team]++;
                         }
@@ -3121,10 +3192,10 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
                 {
                     for(int time = 0; time < numTimes-1; time++)
                     {
-                        if(teamAvailability[day][time])
+                        if(_availabilityChart[day][time])
                         {
                             time++;
-                            if(teamAvailability[day][time])
+                            if(_availabilityChart[day][time])
                             {
                                 _schedScore[team]++;
                             }
@@ -3138,13 +3209,13 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
                 {
                     for(int time = 0; time < numTimes-2; time++)
                     {
-                        if(teamAvailability[day][time])
+                        if(_availabilityChart[day][time])
                         {
                             time++;
-                            if(teamAvailability[day][time])
+                            if(_availabilityChart[day][time])
                             {
                                 time++;
-                                if(teamAvailability[day][time])
+                                if(_availabilityChart[day][time])
                                 {
                                     _schedScore[team]++;
                                 }
@@ -3183,6 +3254,7 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
         {
             if(_teamSizes[team] == 1)
             {
+                studentNum++;
                 continue;
             }
 
@@ -3235,6 +3307,7 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
         {
             if(_teamSizes[team] == 1)
             {
+                studentNum++;
                 continue;
             }
 
@@ -3389,13 +3462,16 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
             continue;
         }
         numTeamsScored++;
+        regularSum += _teamScores[team];
 
         if(_teamScores[team] <= 0)
         {
             allTeamsPositive = false;
         }
-        regularSum += _teamScores[team];
-        harmonicSum += 1/_teamScores[team];
+        else
+        {
+            harmonicSum += 1/_teamScores[team];
+        }
     }
 
     if(allTeamsPositive)
@@ -3403,7 +3479,7 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
         return(float(numTeamsScored)/harmonicSum);      //harmonic mean
     }
 
-    float mean = regularSum / float(numTeamsScored);    //arithmetic mean
+    float mean = regularSum / float(numTeamsScored);    //"punished" arithmetic mean
     return(mean - (std::abs(mean)/2));
 }
 
