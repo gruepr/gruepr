@@ -32,9 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - now spawns new Teams tab with each hit of Make Teams button so that different teamsets can be viewed in parallel
-// - add option to load all teammates in a teams tab as Prevented Teammates, in order to create a new Teamset where everyone has all new teammates
-// - in gatherteammates dialog, only perform the actions with people listed in the table
 //
 // TO DO:
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
