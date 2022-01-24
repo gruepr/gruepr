@@ -6,6 +6,7 @@ DataOptions::DataOptions()
     {
         attributeField[i] = -1;
         attributeVals[i].clear();
+        attributeQuestionResponseCounts[i].clear();
         attributeType[i] = categorical;
     }
 
@@ -29,6 +30,7 @@ void DataOptions::reset()
     for(int i = 0; i < MAX_ATTRIBUTES; i++)
     {
         attributeQuestionResponses[i].clear();
+        attributeQuestionResponseCounts[i].clear();
         attributeVals[i].clear();
     }
     dayNames.clear();

@@ -1,6 +1,7 @@
 #ifndef DATAOPTIONS_H
 #define DATAOPTIONS_H
 
+#include <map>
 #include <set>
 #include <QFileInfo>
 #include <QStringList>
@@ -46,7 +47,8 @@ public:
     int numStudentsInSystem = 0;                    // total number of students in the file
     QStringList sectionNames;                       // all of the section names
     QStringList attributeQuestionText;              // the actual attribute questions asked of the students
-    QStringList attributeQuestionResponses[MAX_ATTRIBUTES];      // the list of responses to each of the attribute questions
+    QStringList attributeQuestionResponses[MAX_ATTRIBUTES];         // the list of responses to each of the attribute questions
+    std::map<QString, int> attributeQuestionResponseCounts[MAX_ATTRIBUTES];  // a count of how many students gave each response
     std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? One corresponds to each attributeQuestionResponse
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
     QFileInfo dataFile;

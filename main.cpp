@@ -32,12 +32,18 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - in the attribute tabs shown in the gruepr Teaming Options, now shows a count of how many students gave each of the responses
+//
+// INPROG:
+// - Enable tab close for surverymaker attributes
+// - change the counts of how many students gave each response in dataOptions when accepting editOrAddStudentDialog (update the counts and then update the attributeTabs)
 //
 // TO DO:
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
+// - update count of each response in the attributeTabs when selecting a section
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - use multiple genepools with limited cross-breeding

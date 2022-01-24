@@ -49,6 +49,7 @@ private slots:
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
+    void attributeTabClose(int index);
     void openSurvey();
     void saveSurvey();
     void settingsWindow();

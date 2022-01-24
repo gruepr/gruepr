@@ -94,6 +94,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     //Add tabs for each attribute and items to each response options combobox
     attributeTab.reserve(MAX_ATTRIBUTES);
     ui->attributesTabWidget->clear();
+    connect(ui->attributesTabWidget, &QTabWidget::tabCloseRequested, this, &SurveyMaker::attributeTabClose);
     ui->fillinTab->deleteLater();
     for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
     {
@@ -687,6 +688,19 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
         ui->attributesTabWidget->setTabVisible(i, i < arg1);
     }
     refreshPreview();
+}
+
+void SurveyMaker::attributeTabClose(int index)
+{
+    ui->attributesTabWidget->removeTab(index);
+    attributeTab.move(index, numAttributes-1);
+    for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
+    {
+        ui->attributesTabWidget->setTabText(attrib, QString::number(attrib+1));
+        attributeTab.at(attrib)->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(attrib + 1));
+        qDebug() << attrib << ")" << attributeTab.at(attrib)->attributeText->toPlainText();
+    }
+    ui->attributeCountSpinBox->setValue(numAttributes - 1);
 }
 
 void SurveyMaker::attributeTextChanged(int currAttribute)

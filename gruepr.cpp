@@ -2370,33 +2370,36 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                                                                             return timezoneA < timezoneB;});
             }
 
-            // set range of values
+            // set values associated with each response and create a spot to hold the responseCounts
             if(attributeType == DataOptions::ordered)
             {
-                // ordered/numerical values. attribute scores will be based on number at the first and last response
+                // ordered/numerical values. value is based on number at start of response
                 for(const auto &response : qAsConst(responses))
                 {
                     dataOptions->attributeVals[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
+                    dataOptions->attributeQuestionResponseCounts[attribute].insert({response, 0});
                 }
             }
             else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::multicategorical))
             {
-                // for categorical or mutlicategorical, range of responses is number of responses
+                // categorical or mutlicategorical. value is based on index of response within sorted list
                 for(int i = 1; i <= responses.size(); i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);
+                    dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i), 0});
                 }
             }
             else
             {
-                // for timezone, range of responses is number of time blocks in each day
+                // for timezone, values are the number of time blocks in each day
                 for(int i = 1; i <= MAX_BLOCKS_PER_DAY; i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);
+                    dataOptions->attributeQuestionResponseCounts[attribute].insert({QString::number(i), 0});
                 }
             }
 
-            // set numerical value of each student's response
+            // set numerical value of each student's response and record in dataOptions a tally for each response
             for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
             {
                 const QString &currentStudentResponse = student[index].attributeResponse[attribute];
@@ -2422,6 +2425,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                             currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
                         }
                     }
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                 }
                 else
                 {
@@ -2430,6 +2434,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
         }
     }
+
 
     // gather all unique URM and section question responses and sort
     for(int index = 0; index < dataOptions->numStudentsInSystem; index++)

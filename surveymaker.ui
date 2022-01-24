@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>893</width>
-    <height>716</height>
+    <height>782</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -280,9 +280,7 @@
       </property>
       <property name="font">
        <font>
-        <family>Oxygen Mono</family>
         <pointsize>10</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
        </font>
@@ -794,6 +792,9 @@
         </property>
         <property name="currentIndex">
          <number>0</number>
+        </property>
+        <property name="tabsClosable">
+         <bool>true</bool>
         </property>
         <widget class="QWidget" name="fillinTab">
          <attribute name="title">

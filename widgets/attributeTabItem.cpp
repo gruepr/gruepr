@@ -82,9 +82,9 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
     }
     QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(attribute) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
     QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-    const auto responses = dataOptions->attributeQuestionResponses[attribute];
+    const auto &responses = dataOptions->attributeQuestionResponses[attribute];
     int responseNum = 0;
-    for(const auto &response : responses)
+    for(const auto &response : qAsConst(responses))
     {
         if(dataOptions->attributeType[attribute] == DataOptions::ordered)
         {
@@ -99,6 +99,7 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
             questionWithResponses += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
             questionWithResponses += "</b>. " + response;
         }
+        questionWithResponses += " (" + QString::number(dataOptions->attributeQuestionResponseCounts[attribute].at(response)) + " " + tr("students") + ")";
         responseNum++;
     }
     questionWithResponses += "</div>";
