@@ -685,6 +685,32 @@ void gruepr::editAStudent()
 {
     int indexBeingEdited = sender()->property("StudentIndex").toInt();
 
+    // remove this student's current attribute responses from the counts in dataOptions
+    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
+    {
+        const QString &currentStudentResponse = student[indexBeingEdited].attributeResponse[attribute];
+        if(!currentStudentResponse.isEmpty())
+        {
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+            {
+                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
+            }
+            else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::timezone))
+            {
+                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
+            }
+            else
+            {
+                //multicategorical
+                const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent))
+                {
+                    dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]--;
+                }
+            }
+        }
+    }
+
     //Open window with the student record in it
     auto *win = new editOrAddStudentDialog(student[indexBeingEdited], dataOptions, this, false);
 
@@ -697,6 +723,34 @@ void gruepr::editAStudent()
 
         rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     }
+
+    // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
+    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
+    {
+        const QString &currentStudentResponse = student[indexBeingEdited].attributeResponse[attribute];
+        if(!currentStudentResponse.isEmpty())
+        {
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+            {
+                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+            }
+            else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::timezone))
+            {
+                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+            }
+            else
+            {
+                //multicategorical
+                const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent))
+                {
+                    dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                }
+            }
+            attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+        }
+    }
+
 
     delete win;
 }
@@ -725,6 +779,33 @@ void gruepr::removeAStudent(int index, const QString &name, bool delayVisualUpda
             student[otherIndex].requiredWith[IDBeingRemoved] = false;
             student[otherIndex].preventedWith[IDBeingRemoved] = false;
             student[otherIndex].requestedWith[IDBeingRemoved] = false;
+        }
+    }
+
+    // update in dataOptions and then the attribute tab the count of each attribute response
+    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
+    {
+        const QString &currentStudentResponse = student[indexBeingRemoved].attributeResponse[attribute];
+        if(!currentStudentResponse.isEmpty())
+        {
+            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+            {
+                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
+            }
+            else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::timezone))
+            {
+                dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
+            }
+            else
+            {
+                //multicategorical
+                const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent))
+                {
+                    dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]--;
+                }
+            }
+            attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
         }
     }
 
@@ -761,6 +842,33 @@ void gruepr::on_addStudentPushButton_clicked()
             student[newIndex].ID = dataOptions->latestStudentID;
             student[newIndex].createTooltip(dataOptions);
             student[newIndex].URM = teamingOptions->URMResponsesConsideredUR.contains(student[newIndex].URMResponse);
+
+            // update in dataOptions and then the attribute tab the count of each attribute response
+            for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
+            {
+                const QString &currentStudentResponse = student[newIndex].attributeResponse[attribute];
+                if(!currentStudentResponse.isEmpty())
+                {
+                    if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+                    {
+                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                    }
+                    else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::timezone))
+                    {
+                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                    }
+                    else
+                    {
+                        //multicategorical
+                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent))
+                        {
+                            dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                        }
+                    }
+                    attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+                }
+            }
 
             dataOptions->latestStudentID++;
             dataOptions->numStudentsInSystem++;
@@ -2382,20 +2490,20 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
             else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::multicategorical))
             {
-                // categorical or mutlicategorical. value is based on index of response within sorted list
+                // categorical or multicategorical. value is based on index of response within sorted list
                 for(int i = 1; i <= responses.size(); i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);
-                    dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i), 0});
+                    dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
                 }
             }
             else
             {
-                // for timezone, values are the number of time blocks in each day
-                for(int i = 1; i <= MAX_BLOCKS_PER_DAY; i++)
+                // TODO: for timezone, values should be the GMT offsets (rounded to nearest hour?); currently, same as categorical
+                for(int i = 1; i <= responses.size(); i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);
-                    dataOptions->attributeQuestionResponseCounts[attribute].insert({QString::number(i), 0});
+                    dataOptions->attributeQuestionResponseCounts[attribute].insert({responses.at(i-1), 0});
                 }
             }
 
@@ -2410,11 +2518,13 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                     {
                         // for numerical/ordered, set numerical value of students' attribute responses according to the number at the start of the response
                         currentStudentAttributeVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
+                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
                     else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::timezone))
                     {
                         // set numerical value instead according to their place in the sorted list of responses
                         currentStudentAttributeVals << responses.indexOf(currentStudentResponse) + 1;
+                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
                     else
                     {
@@ -2423,9 +2533,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                         for(const auto &responseFromStudent : setOfResponsesFromStudent)
                         {
                             currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
+                            dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
                         }
                     }
-                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                 }
                 else
                 {
@@ -2434,7 +2544,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
         }
     }
-
 
     // gather all unique URM and section question responses and sort
     for(int index = 0; index < dataOptions->numStudentsInSystem; index++)

@@ -387,18 +387,19 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.attributeVals[attribute].clear();
         if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
         {
+            QStringList attributeResponse;
             for(int itemNum = 0; itemNum < attributemulticategoricalbox[multicategoricalbox].layout()->count(); itemNum++)
             {
                 // loop through all items in the attributemulticategoricalbox: make sure it's a checkbox, then add the response if it's checked
                 auto *optionCheckBox = qobject_cast<QCheckBox*>(attributemulticategoricalbox[multicategoricalbox].layout()->itemAt(itemNum)->widget());
-                QStringList attributeResponse;
                 if((optionCheckBox != nullptr) && (optionCheckBox->isChecked()))
                 {
                     student.attributeVals[attribute] << (dataOptions->attributeQuestionResponses[attribute].indexOf(optionCheckBox->text()) + 1);
                     attributeResponse << optionCheckBox->text();
                 }
-                student.attributeResponse[attribute] = attributeResponse.join(',');
             }
+            student.attributeResponse[attribute] = attributeResponse.join(',');
+
             if(student.attributeVals[attribute].isEmpty())
             {
                 student.attributeVals[attribute] << -1;

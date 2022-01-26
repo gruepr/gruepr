@@ -32,11 +32,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - in the attribute tabs shown in the gruepr Teaming Options, now shows a count of how many students gave each of the responses
+// - better UI with the attribute tabs
+//     - in the gruepr Teaming Options, now shows a count of how many students gave each of the responses (updating counts when adding/removing/editing students)
+//     - in the gruepr Teaming Options, for timezones, shows timezone offset instead of letter as the response value
 //
 // INPROG:
 // - Enable tab close for surverymaker attributes
-// - change the counts of how many students gave each response in dataOptions when accepting editOrAddStudentDialog (update the counts and then update the attributeTabs)
 //
 // TO DO:
 // - in gatherteammates dialog, enable the 'load from teamsTab' action

@@ -80,8 +80,9 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
         incompatsButton->setEnabled(false);
         return;
     }
-    QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(attribute) + "<hr>" + tr("Responses:") + "<div style=\"margin-left:5%;\">";
+    QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(attribute) + "<hr>" + "<div style=\"margin-left:5%;\">";
     QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+    QRegularExpression GMToffset("(.*)\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
     const auto &responses = dataOptions->attributeQuestionResponses[attribute];
     int responseNum = 0;
     for(const auto &response : qAsConst(responses))
@@ -92,14 +93,33 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
             QRegularExpressionMatch match = startsWithInteger.match(response);
             questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
         }
-        else
+        else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::multicategorical))
         {
             // show response with a preceding letter in bold (letter repeated for responses after 26)
             questionWithResponses += "<br><b>";
             questionWithResponses += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
             questionWithResponses += "</b>. " + response;
         }
-        questionWithResponses += " (" + QString::number(dataOptions->attributeQuestionResponseCounts[attribute].at(response)) + " " + tr("students") + ")";
+        else
+        {
+            // timezone, show response with GMT in bold
+            QRegularExpressionMatch offset = GMToffset.match(response);
+            if(offset.hasMatch())
+            {
+                QString timezoneText = offset.captured(1);
+                int hours = offset.captured(2).toInt();
+                int minutes = offset.captured(3).toInt();
+                QString GMTtext = QString("%1%2:%3").arg(hours >= 0 ? "+" : "").arg(hours).arg(minutes, 2, 10, QChar('0'));
+                questionWithResponses += "<br><b>" + GMTtext + "</b> " + timezoneText;
+            }
+            else
+            {
+                questionWithResponses += "<br><b>";
+                questionWithResponses += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+                questionWithResponses += "</b>. " + response;
+            }
+        }
+        questionWithResponses += "  (" + QString::number(dataOptions->attributeQuestionResponseCounts[attribute].at(response)) + " " + tr("students") + ")";
         responseNum++;
     }
     questionWithResponses += "</div>";

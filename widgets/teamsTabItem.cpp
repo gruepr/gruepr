@@ -34,7 +34,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const Q
     setLayout(teamDataLayout);
 
     QString fileAndSectionName = "<html><b>" + tr("File") + ":</b> " + dataOptions->dataFile.fileName();
-    if(sectionName != tr("No section data."))
+    if(dataOptions->sectionNames.size() > 1)
     {
         fileAndSectionName += ",  <b>" + tr("Section") + ":</b> " + sectionName;
     }
