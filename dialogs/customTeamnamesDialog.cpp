@@ -21,7 +21,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
     int widthCol0 = 0;
     for(int team = 0; team < numTeams; team++)
     {
-        auto label = new QLabel(tr("Team ") + QString::number(team+1) + " ");
+        auto *label = new QLabel(tr("Team ") + QString::number(team+1) + " ");
         theTable->setCellWidget(team, 0, label);
         widthCol0 = std::max(widthCol0, label->width());
         teamName[team].setPlaceholderText(tr("Custom name"));

@@ -65,6 +65,15 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         theGrid->addWidget(attributeResponses, row++, column, 1, -1);
         allowMultipleResponses = new QCheckBox(tr("Allow student to select multiple options"), this);
         theGrid->addWidget(allowMultipleResponses, row, column, 1, -1);
+
+        attributeResponses->addItem("Choose the response options...");
+        attributeResponses->insertSeparator(1);
+        QStringList responseOptions = QString(RESPONSE_OPTIONS).split(';');
+        for(int response = 0; response < responseOptions.size(); response++)
+        {
+            attributeResponses->addItem(responseOptions.at(response));
+            attributeResponses->setItemData(response + 2, responseOptions.at(response), Qt::ToolTipRole);
+        }
     }
 }
 

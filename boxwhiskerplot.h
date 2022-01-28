@@ -3,9 +3,9 @@
 
 // a box-and-whisker plot based on QChart
 
-#include <QChartView>
 #include <QBoxPlotSeries>
 #include <QCategoryAxis>
+#include <QChartView>
 #include <QValueAxis>
 
 class BoxWhiskerPlot : public QtCharts::QChart

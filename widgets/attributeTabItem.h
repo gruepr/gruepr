@@ -10,6 +10,7 @@
 #include <QTextEdit>
 #include "comboBoxWithElidedContents.h"
 #include "dataOptions.h"
+#include "gruepr_consts.h"
 #include "teamingOptions.h"
 
 class attributeTabItem : public QWidget

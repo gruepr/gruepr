@@ -94,42 +94,10 @@ private:
     static void createFiles(SurveyMaker *survey = nullptr);
     void (*generateSurvey)(SurveyMaker *survey) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
-    QStringList responseOptions = {
-        "Yes / No",
-        "Yes / Maybe / No",
-        "Definitely / Probably / Maybe / Probably not / Definitely not",
-        "Strongly preferred / Preferred / Opposed / Strongly opposed",
-        "True / False",
-        "Like me / Not like me",
-        "Agree / Disagree",
-        "Strongly agree / Agree / Undecided / Disagree / Strongly disagree",
-        "4.0— 3.75 / 3.74— 3.5 / 3.49— 3.25 / 3.24— 3.0 / 2.99— 2.75 / 2.74— 2.5 / 2.49— 2.0 / Below 2.0 / Not sure, or prefer not to say",
-        "100— 90 / 89— 80 / 79— 70 / 69— 60 / 59— 50 / Below 50 / Not sure, or prefer not to say",
-        "A / B / C / D / F / Not sure, or prefer not to say",
-        "Very high / Above average / Average / Below average / Very low",
-        "Excellent / Very good / Good / Fair / Poor",
-        "Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative",
-        "A lot of experience / Some experience / Little experience / No experience",
-        "Extremely / Very / Moderately / Slightly / Not at all",
-        "A lot / Some / Very Little / None",
-        "Much more / More / About the same / Less / Much less",
-        "Most of the time / Some of the time / Seldom / Never",
-        "Available / Available, but prefer not to / Not available",
-        "Very frequently / Frequently / Occasionally / Rarely / Never",
-        "Definitely will / Probably will / Probably won't / Definitely won't",
-        "Very important / Important / Somewhat important / Not important",
-        "Leader / Mix of leader and follower / Follower",
-        "Highly confident / Moderately confident / Somewhat confident / Not confident",
-        "1 / 2 / 3 / 4",
-        "1 / 2 / 3 / 4 / 5",
-        "1 / 2 / 3 / 4 / 5 / 6",
-        "1 / 2 / 3 / 4 / 5 / 6 / 7",
-        "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8",
-        "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9",
-        "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10",
-        "custom options, to be added after creating the form",};
+    QStringList responseOptions;
     static const int LAST_LIKERT_RESPONSE = 25;
     static const int TIMEZONE_RESPONSE_OPTION = 101;
+    const QSize TABCLOSEICONSIZE = {8,8};
     enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
 };
 

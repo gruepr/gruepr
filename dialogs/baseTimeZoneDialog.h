@@ -1,8 +1,8 @@
 #ifndef BASETIMEZONEDIALOG_H
 #define BASETIMEZONEDIALOG_H
 
-#include <QDialog>
 #include <QComboBox>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>

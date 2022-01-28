@@ -92,6 +92,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->baseTimezoneLineEdit->setMinimumWidth(widthOfPlaceholder);
 
     //Add tabs for each attribute and items to each response options combobox
+    responseOptions = QString(RESPONSE_OPTIONS).split(';');
     attributeTab.reserve(MAX_ATTRIBUTES);
     ui->attributesTabWidget->clear();
     connect(ui->attributesTabWidget, &QTabWidget::tabCloseRequested, this, &SurveyMaker::attributeTabClose);
@@ -99,24 +100,15 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
     {
         attributeTab << new attributeTabItem(attributeTabItem::surveyMaker, this);
-        auto &responsesBox = attributeTab.at(tab)->attributeResponses;
-        responsesBox->addItem("Choose the response options...");
-        responsesBox->insertSeparator(1);
-        for(int response = 0; response < responseOptions.size(); response++)
-        {
-            responsesBox->addItem(responseOptions.at(response));
-            responsesBox->setItemData(response + 2, responseOptions.at(response), Qt::ToolTipRole);
-        }
-        auto &questionText = attributeTab.at(tab)->attributeText;
-        questionText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
-
-        connect(responsesBox, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged),
+        connect(attributeTab.at(tab)->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged),
                     this, [this, tab] (int index) {attributeResponses[tab] = ((index>1) ? (index-1) : 0); refreshPreview();});
-        connect(questionText, &QTextEdit::textChanged, this, [this, tab] {attributeTextChanged(tab);});
-        connect(attributeTab.at(tab)->allowMultipleResponses, &QCheckBox::clicked,
+        attributeTab.at(tab)->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
+        connect(attributeTab.at(tab)->attributeText, &QTextEdit::textChanged, this, [this, tab] {attributeTextChanged(tab);});
+        connect(attributeTab.at(tab)->allowMultipleResponses, &QCheckBox::toggled,
                     this, [this, tab] (bool checked){attributeAllowMultipleResponses[tab] = checked; refreshPreview();});
 
-        ui->attributesTabWidget->addTab(attributeTab.at(tab), QString::number(tab+1));
+        ui->attributesTabWidget->addTab(attributeTab.at(tab), QString::number(tab+1) + "   ");
+        ui->attributesTabWidget->tabBar()->tabButton(tab, QTabBar::RightSide)->resize(TABCLOSEICONSIZE);
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
     responseOptions.prepend("custom options, to be added after creating the form");
@@ -669,10 +661,11 @@ void SurveyMaker::on_URMCheckBox_clicked(bool checked)
 void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 {
     numAttributes = arg1;
-    for(int attrib = 0; attrib < numAttributes; attrib++)
+    for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
     {
         attributeTexts[attrib] = attributeTab.at(attrib)->attributeText->toPlainText();
         attributeResponses[attrib] = ((attributeTab.at(attrib)->attributeResponses->currentIndex()>1) ? (attributeTab.at(attrib)->attributeResponses->currentIndex()-1) : 0);
+        attributeAllowMultipleResponses[attrib] = attributeTab.at(attrib)->allowMultipleResponses->isChecked();
     }
 
     if(timezone && !schedule)
@@ -692,14 +685,42 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 
 void SurveyMaker::attributeTabClose(int index)
 {
-    ui->attributesTabWidget->removeTab(index);
-    attributeTab.move(index, numAttributes-1);
-    for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
+    // reset the values for this tab
+    attributeTab.at(index)->attributeText->setText("");
+    attributeTab.at(index)->attributeResponses->setCurrentIndex(0);
+    attributeTab.at(index)->allowMultipleResponses->setChecked(false);
+
+    // if this is the last attribute, closing it should just be the same as if clicking down to 0 attributes
+    if(ui->attributeCountSpinBox->value() != 1)
     {
-        ui->attributesTabWidget->setTabText(attrib, QString::number(attrib+1));
-        attributeTab.at(attrib)->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(attrib + 1));
-        qDebug() << attrib << ")" << attributeTab.at(attrib)->attributeText->toPlainText();
+        // remove the tab from from the tab widget, then delete the tab item and remove from the vector of pointers
+        ui->attributesTabWidget->removeTab(index);
+        delete attributeTab.at(index);
+        attributeTab.remove(index);
+
+        // create a new tab and add to the end of the vector of pointers
+        attributeTab << new attributeTabItem(attributeTabItem::surveyMaker, this);
+        int tab = MAX_ATTRIBUTES - 1;
+        ui->attributesTabWidget->addTab(attributeTab.at(tab), QString::number(tab+1));
+        ui->attributesTabWidget->tabBar()->tabButton(tab, QTabBar::RightSide)->resize(TABCLOSEICONSIZE);
+
+        // reset for every tab the text label, the placeholder text, and all of the connections
+        for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
+        {
+            ui->attributesTabWidget->setTabText(attrib, QString::number(attrib+1) + "   ");
+
+            attributeTab.at(attrib)->attributeResponses->disconnect();
+            connect(attributeTab.at(attrib)->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged),
+                    this, [this, attrib] (int index) {attributeResponses[attrib] = ((index>1) ? (index-1) : 0); refreshPreview();});
+            attributeTab.at(attrib)->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(attrib + 1));
+            attributeTab.at(attrib)->attributeText->disconnect();
+            connect(attributeTab.at(attrib)->attributeText, &QTextEdit::textChanged, this, [this, attrib] {attributeTextChanged(attrib);});
+            attributeTab.at(attrib)->allowMultipleResponses->disconnect();
+            connect(attributeTab.at(attrib)->allowMultipleResponses, &QCheckBox::toggled,
+                    this, [this, attrib] (bool checked){attributeAllowMultipleResponses[attrib] = checked; refreshPreview();});
+        }
     }
+
     ui->attributeCountSpinBox->setValue(numAttributes - 1);
 }
 
@@ -710,7 +731,7 @@ void SurveyMaker::attributeTextChanged(int currAttribute)
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        attributeTab[currAttribute]->attributeText->setPlainText(currText.remove(',').remove('&').remove('<').remove('>'));
+        attributeTab.at(currAttribute)->attributeText->setPlainText(currText.remove(',').remove('&').remove('<').remove('>'));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the question text:\n"
                                                           "    ,  &  <  >\n"
@@ -718,7 +739,7 @@ void SurveyMaker::attributeTextChanged(int currAttribute)
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
-        attributeTab[currAttribute]->attributeText->setPlainText(currText.replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
+        attributeTab.at(currAttribute)->attributeText->setPlainText(currText.replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, attribute questions may not containt the exact wording:\n"
                                                           "\"In which section are you enrolled\"\nwithin the question text.\n"
