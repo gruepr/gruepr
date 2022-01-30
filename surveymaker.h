@@ -25,8 +25,6 @@ protected:
 
 private slots:
     void on_surveyTitleLineEdit_textChanged(const QString &arg1);
-    void on_genderCheckBox_clicked(bool checked);
-    void on_URMCheckBox_clicked(bool checked);
     void on_attributeCountSpinBox_valueChanged(int arg1);
     void attributeTabBarMoveTab(int indexFrom, int indexTo);
     void attributeTabBarScrollVisibleTabs(int index);
@@ -35,7 +33,6 @@ private slots:
     void on_timezoneCheckBox_clicked(bool checked);
     void on_scheduleCheckBox_clicked(bool checked);
     void checkTimezoneAndSchedule();
-    void on_busyFreeComboBox_currentIndexChanged(const QString &arg1);
     void baseTimezoneComboBox_currentIndexChanged(int arg1);
     void on_baseTimezoneLineEdit_textChanged();
     void on_daysComboBox_activated(int index);
@@ -47,8 +44,6 @@ private slots:
     void on_sectionNamesTextEdit_textChanged();
     void on_preferredTeammatesCheckBox_clicked(bool checked);
     void on_preferredNonTeammatesCheckBox_clicked(bool checked);
-    void on_numAllowedSpinBox_valueChanged(int arg1);
-    void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
     void openSurvey();

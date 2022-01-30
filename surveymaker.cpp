@@ -18,6 +18,11 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons/surveymaker.png"));
 
+    //Restore window geometry
+    QSettings savedSettings;
+    restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
+    saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
+
     //Setup the main window menu items
     connect(ui->actionOpenSurvey, &QAction::triggered, this, &SurveyMaker::openSurvey);
     connect(ui->actionSaveSurvey, &QAction::triggered, this, &SurveyMaker::saveSurvey);
@@ -38,6 +43,13 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->actionAbout, &QAction::triggered, this, &SurveyMaker::aboutWindow);
     connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
     connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("http://bit.ly/grueprBugReportFromApp"));});
+
+    //Connect the simple UI interactions to a simple refresh of survey data
+    connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
+    connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
+    connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::refreshPreview);
+    connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::refreshPreview);
+    connect(ui->additionalQuestionsCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
 
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
@@ -79,11 +91,6 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     }
     daysWindow = new dayNamesDialog(dayCheckBoxes, dayLineEdits, this);
 
-    //Restore window geometry
-    QSettings savedSettings;
-    restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
-    saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
-
     //Make sure we can read placeholder text in "custom timezone" box
     QString placeholder = tr("Custom timezone");
     ui->baseTimezoneLineEdit->setPlaceholderText(placeholder);
@@ -123,6 +130,13 @@ SurveyMaker::~SurveyMaker()
 
 void SurveyMaker::refreshPreview()
 {
+    // update simple info
+    gender = ui->genderCheckBox->isChecked();
+    URM = ui->URMCheckBox->isChecked();
+    numPreferredAllowed = ui->numAllowedSpinBox->value();
+    additionalQuestions = ui->additionalQuestionsCheckBox->isChecked();
+    busyOrFree = ((ui->busyFreeComboBox->currentText() == tr("busy"))? busy : free);
+
     // update attribute data
     for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
     {
@@ -662,18 +676,6 @@ void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
     refreshPreview();
 }
 
-void SurveyMaker::on_genderCheckBox_clicked(bool checked)
-{
-    gender = checked;
-    refreshPreview();
-}
-
-void SurveyMaker::on_URMCheckBox_clicked(bool checked)
-{
-    URM = checked;
-    refreshPreview();
-}
-
 void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 {
     numAttributes = arg1;
@@ -693,11 +695,35 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 
 void SurveyMaker::attributeTabBarScrollVisibleTabs(int index)
 {
-    const bool wasBlocked = ui->attributesTabWidget->tabBar()->blockSignals(true);
-    ui->attributesTabWidget->setCurrentIndex((index > 2)? index - 2 : 0);
-    ui->attributesTabWidget->setCurrentIndex((index < MAX_ATTRIBUTES - 3)? index + 2 : MAX_ATTRIBUTES - 1);
-    ui->attributesTabWidget->setCurrentIndex(index);
-    ui->attributesTabWidget->tabBar()->blockSignals(wasBlocked);
+    // might need to 'scroll' the tab bar so that the active tab is always roughly centered in view--so we can always click up or down a tab to the beginning/end
+
+    // figure out which tab is the lowest one that hasn't been hidden
+    int firstVisibleIndex = 0;
+    while(!ui->attributesTabWidget->isTabVisible(firstVisibleIndex))
+    {
+        firstVisibleIndex++;
+    }
+
+    QRect tabGeom = ui->attributesTabWidget->tabBar()->tabRect(index);
+    const int widthOfTabWidget = ui->attributesTabWidget->size().width();
+    if(tabGeom.right() + tabGeom.width() >= widthOfTabWidget)
+    {
+        //hide up to two tabs on the left, if this new tab isn't fully displayable on the right
+        ui->attributesTabWidget->setTabVisible(firstVisibleIndex++, false);
+        if(firstVisibleIndex < MAX_ATTRIBUTES-1)
+        {
+            ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
+        }
+    }
+    else if(tabGeom.left() - tabGeom.width() <= 0)
+    {
+        //show up to two tabs on the left, if this new tab isn't fully displayable on the left
+        ui->attributesTabWidget->setTabVisible(--firstVisibleIndex, true);
+        if(firstVisibleIndex >= 0)
+        {
+            ui->attributesTabWidget->setTabVisible(firstVisibleIndex, true);
+        }
+    }
 }
 
 void SurveyMaker::attributeTabBarMoveTab(int /*indexFrom*/, int /*indexTo*/)
@@ -716,7 +742,6 @@ void SurveyMaker::attributeTabBarMoveTab(int /*indexFrom*/, int /*indexTo*/)
 void SurveyMaker::attributeTabClose(int index)
 {
     const int currIndex = ui->attributesTabWidget->currentIndex();
-    const bool wasBlocked = ui->attributesTabWidget->tabBar()->blockSignals(true);
 
     // if this is the last attribute, closing it should just be the same as if clicking down to 0 attributes; otherwise, move this one to the end
     if(ui->attributeCountSpinBox->value() != 1)
@@ -743,8 +768,22 @@ void SurveyMaker::attributeTabClose(int index)
         }
     }
 
-    ui->attributesTabWidget->tabBar()->blockSignals(wasBlocked);
-    ui->attributesTabWidget->setCurrentIndex(currIndex);
+    // keep the current tab open unless it is the one being closed; if it is being closed, open the most sensible one
+    if((index == currIndex) && (currIndex == numAttributes - 1))
+    {
+        // the open tab is being closed and is the last visible one, so open the next one down
+        ui->attributesTabWidget->setCurrentIndex(currIndex-1);
+    }
+    else if(index < currIndex)
+    {
+        // the tab being closed is below the open one, so its index has decreased
+        ui->attributesTabWidget->setCurrentIndex(currIndex-1);
+    }
+    else
+    {
+        // the tab being closed is the current one or is above the current one, so keep this index open
+        ui->attributesTabWidget->setCurrentIndex(index < currIndex? currIndex-1 : currIndex);
+    }
     ui->attributeCountSpinBox->setValue(numAttributes - 1);
 }
 
@@ -831,12 +870,6 @@ void SurveyMaker::checkTimezoneAndSchedule()
     {
         baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[no timezone given]"));
     }
-}
-
-void SurveyMaker::on_busyFreeComboBox_currentIndexChanged(const QString &arg1)
-{
-    busyOrFree = ((arg1 == "busy")? busy : free);
-    refreshPreview();
 }
 
 void SurveyMaker::baseTimezoneComboBox_currentIndexChanged(int arg1)
@@ -1049,18 +1082,6 @@ void SurveyMaker::on_preferredNonTeammatesCheckBox_clicked(bool checked)
     refreshPreview();
 }
 
-void SurveyMaker::on_numAllowedSpinBox_valueChanged(int arg1)
-{
-    numPreferredAllowed = arg1;
-    refreshPreview();
-}
-
-void SurveyMaker::on_additionalQuestionsCheckBox_clicked(bool checked)
-{
-    additionalQuestions = checked;
-    refreshPreview();
-}
-
 void SurveyMaker::openSurvey()
 {
     //read all options from a text file
@@ -1095,12 +1116,10 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("Gender") && loadObject["Gender"].isBool())
             {
                 ui->genderCheckBox->setChecked(loadObject["Gender"].toBool());
-                on_genderCheckBox_clicked(loadObject["Gender"].toBool());
             }
             if(loadObject.contains("URM") && loadObject["URM"].isBool())
             {
                 ui->URMCheckBox->setChecked(loadObject["URM"].toBool());
-                on_URMCheckBox_clicked(loadObject["URM"].toBool());
             }
 
             if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble())
@@ -1140,7 +1159,6 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
             {
                 ui->busyFreeComboBox->setCurrentText(loadObject["ScheduleAsBusy"].toBool()? "busy" : "free");
-                on_busyFreeComboBox_currentIndexChanged(loadObject["ScheduleAsBusy"].toBool()? "busy" : "free");
             }
             if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool())
             {
@@ -1208,13 +1226,11 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble())
             {
                 ui->numAllowedSpinBox->setValue(loadObject["numPrefTeammates"].toInt());
-                on_numAllowedSpinBox_valueChanged(loadObject["numPrefTeammates"].toInt());
             }
 
             if(loadObject.contains("AdditionalQuestions") && loadObject["AdditionalQuestions"].isBool())
             {
                 ui->additionalQuestionsCheckBox->setChecked(loadObject["AdditionalQuestions"].toBool());
-                on_additionalQuestionsCheckBox_clicked(loadObject["AdditionalQuestions"].toBool());
             }
             loadFile.close();
 
