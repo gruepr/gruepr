@@ -1,12 +1,12 @@
 #ifndef TEAMRECORD_H
 #define TEAMRECORD_H
 
-#include <QString>
-#include <QVector>
-#include <set>
 #include "dataOptions.h"
 #include "gruepr_consts.h"
 #include "studentRecord.h"
+#include <QString>
+#include <QVector>
+#include <set>
 
 // all the info about one team
 

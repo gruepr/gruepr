@@ -1,11 +1,11 @@
 #ifndef DATAOPTIONS_H
 #define DATAOPTIONS_H
 
-#include <map>
-#include <set>
+#include "gruepr_consts.h"
 #include <QFileInfo>
 #include <QStringList>
-#include "gruepr_consts.h"
+#include <map>
+#include <set>
 
 //defines the options set by what is found in the survey data file
 

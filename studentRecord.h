@@ -3,9 +3,9 @@
 
 //the survey and other data from one student
 
-#include <QDateTime>
 #include "dataOptions.h"
 #include "gruepr_consts.h"
+#include <QDateTime>
 
 class StudentRecord
 {

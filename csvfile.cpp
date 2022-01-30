@@ -297,7 +297,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         auto *selector = new QComboBox();
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(window);       // as it's too easy to mistake scrolling through the rows with changing the value
-        for(auto &meaning : possibleFieldMeanings)
+        for(const auto &meaning : qAsConst(possibleFieldMeanings))
         {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
@@ -344,7 +344,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     for(auto row : rows)
     {
         // get the selected fieldMeaning
-        const auto box = qobject_cast<QComboBox *>(window->theTable->cellWidget(row, 1));
+        const auto *box = qobject_cast<QComboBox *>(window->theTable->cellWidget(row, 1));
         QString selection = box->currentText();
 
         // set it in the CsvFile's data
@@ -391,7 +391,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     //  4) clearing formatting of all items unchosen in any box (except "Unused").
     for(auto row = rows.rbegin(); row != rows.rend(); ++row)
     {
-        auto box = qobject_cast<QComboBox *>(window->theTable->cellWidget(*row, 1));
+        auto *box = qobject_cast<QComboBox *>(window->theTable->cellWidget(*row, 1));
         box->blockSignals(true);
         auto *model = qobject_cast<QStandardItemModel *>(box->model());
         for(auto &takenValue : takenValues)

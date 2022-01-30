@@ -1,12 +1,12 @@
 #ifndef CSVFILE_H
 #define CSVFILE_H
 
+#include "dialogs/listTableDialog.h"
 #include <QFile>
 #include <QFileInfo>
 #include <QString>
 #include <QTableWidget>
 #include <QTextStream>
-#include "dialogs/listTableDialog.h"
 
 struct possFieldMeaning      // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that might have this meaning
 {

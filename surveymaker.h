@@ -1,15 +1,14 @@
 #ifndef SURVEYMAKER_H
 #define SURVEYMAKER_H
 
+#include "dialogs/dayNamesDialog.h"
+#include "dialogs/gatherTeammatesDialog.h"
+#include "gruepr_consts.h"
+#include "widgets/comboBoxWithElidedContents.h"
+#include <QDate>
+#include <QFileInfo>
 #include <QMainWindow>
 #include <QRegularExpressionValidator>
-#include <QFileInfo>
-#include <QDate>
-#include "widgets/attributeTabItem.h"
-#include "widgets/comboBoxWithElidedContents.h"
-#include "dialogs/gatherTeammatesDialog.h"
-#include "dialogs/dayNamesDialog.h"
-#include "gruepr_consts.h"
 
 namespace Ui {class SurveyMaker;}
 
@@ -29,7 +28,10 @@ private slots:
     void on_genderCheckBox_clicked(bool checked);
     void on_URMCheckBox_clicked(bool checked);
     void on_attributeCountSpinBox_valueChanged(int arg1);
-    void attributeTextChanged(int currAttribute);
+    void attributeTabBarMoveTab(int indexFrom, int indexTo);
+    void attributeTabBarScrollVisibleTabs(int index);
+    void attributeTabClose(int index);
+    void attributeTextChanged();
     void on_timezoneCheckBox_clicked(bool checked);
     void on_scheduleCheckBox_clicked(bool checked);
     void checkTimezoneAndSchedule();
@@ -49,7 +51,6 @@ private slots:
     void on_additionalQuestionsCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
-    void attributeTabClose(int index);
     void openSurvey();
     void saveSurvey();
     void settingsWindow();
@@ -58,7 +59,6 @@ private slots:
 
 private:
     Ui::SurveyMaker *ui;
-    QVector<attributeTabItem*> attributeTab;
     void refreshPreview();
     void checkDays();
     bool surveyCreated = false;

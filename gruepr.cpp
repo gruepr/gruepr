@@ -35,7 +35,7 @@ gruepr::gruepr(QWidget *parent) :
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
     //Put attribute label next to that tab widget
-    auto attlab = new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget);
+    auto *attlab = new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget);
     ui->attributesTabWidget->setCornerWidget(attlab, Qt::TopLeftCorner);
 
     //Setup the main window menu items
@@ -1702,7 +1702,7 @@ void gruepr::optimizationComplete()
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
-    auto teamTab = new TeamsTabItem(teamingOptions, sectionName, dataOptions, teams, numTeams, student, this);
+    auto *teamTab = new TeamsTabItem(teamingOptions, sectionName, dataOptions, teams, numTeams, student, this);
     static int teamsetNum = 1;
     ui->dataDisplayTabWidget->addTab(teamTab, tr("Team set ") + QString::number(teamsetNum));
 
@@ -1736,7 +1736,7 @@ void gruepr::dataDisplayTabSwitch(int newTabIndex)
     // update the save and print teams menu items to this new tab
     ui->actionSave_Teams->disconnect();
     ui->actionPrint_Teams->disconnect();
-    auto tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(newTabIndex));
+    auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(newTabIndex));
     ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
     connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
     ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
@@ -1769,14 +1769,14 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
         ui->actionSave_Teams->disconnect();
         ui->actionPrint_Teams->disconnect();
         int nextLogicalIndex = ((closingTabIndex == 1) ? (2) : (closingTabIndex - 1));
-        auto tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(nextLogicalIndex));
+        auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(nextLogicalIndex));
         ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
         connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
         ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
         connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
     }
 
-    auto tab = ui->dataDisplayTabWidget->widget(closingTabIndex);
+    auto *tab = ui->dataDisplayTabWidget->widget(closingTabIndex);
     ui->dataDisplayTabWidget->removeTab(closingTabIndex);
     tab->deleteLater();
 }
@@ -1791,16 +1791,16 @@ void gruepr::editDataDisplayTabName(int tabIndex)
     }
 
     // pop up at the cursor location a little window to edit the tab title
-    auto win = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    auto *win = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     win->setWindowTitle(tr("Rename this team set"));
     win->setSizeGripEnabled(true);
     win->move(QCursor::pos());
-    auto layout = new QVBoxLayout(win);
-    auto newNameEditor = new QLineEdit(win);
+    auto *layout = new QVBoxLayout(win);
+    auto *newNameEditor = new QLineEdit(win);
     newNameEditor->setText(ui->dataDisplayTabWidget->tabText(tabIndex));
     newNameEditor->setPlaceholderText(ui->dataDisplayTabWidget->tabText(tabIndex));
     layout->addWidget(newNameEditor);
-    auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
     connect(buttons, &QDialogButtonBox::accepted, win, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, win, &QDialog::reject);
     layout->addWidget(buttons);

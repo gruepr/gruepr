@@ -8,8 +8,8 @@
 
 #define USER_REGISTRATION_URL "https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"
 
-#include <Qt>
 #include "GA.h"
+#include <Qt>
 
 
 const int MAX_STUDENTS = MAX_RECORDS;                   // each student is a "record" in the genetic algorithm

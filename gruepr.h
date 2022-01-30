@@ -1,9 +1,9 @@
 #ifndef GRUEPR_H
 #define GRUEPR_H
 
-#include <QMainWindow>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QMainWindow>
 #include <QPrinter>
 #ifdef Q_OS_WIN32
   #include <QWinTaskbarButton>
