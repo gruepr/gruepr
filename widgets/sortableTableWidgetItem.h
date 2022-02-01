@@ -3,8 +3,8 @@
 
 // a subclassed QTableWidgetItem that allows sorting according to datetime or alphanumerical data
 
-#include <QTableWidgetItem>
 #include <QCollator>
+#include <QTableWidgetItem>
 
 
 class SortableTableWidgetItem : public QTableWidgetItem

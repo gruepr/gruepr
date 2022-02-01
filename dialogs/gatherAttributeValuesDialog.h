@@ -1,15 +1,15 @@
 #ifndef GATHERATTRIBUTEVALUESDIALOG_H
 #define GATHERATTRIBUTEVALUESDIALOG_H
 
-#include <QDialog>
+#include "dataOptions.h"
+#include "teamingOptions.h"
 #include <QCheckBox>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
-#include "dataOptions.h"
-#include "teamingOptions.h"
 
 struct AttributeValue
 {

@@ -1,15 +1,15 @@
 #ifndef GATHERTEAMMATESDIALOG
 #define GATHERTEAMMATESDIALOG
 
-#include <QDialog>
-#include <QGridLayout>
-#include <QTableWidget>
-#include <QComboBox>
-#include <QPushButton>
-#include <QDialogButtonBox>
 #include "dataOptions.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
+#include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QPushButton>
+#include <QTableWidget>
 
 class gatherTeammatesDialog : public QDialog
 {

@@ -11,8 +11,8 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
 
     //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
     //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
-    int tourneyPick[TOURNAMENTSIZE];
-    for(int &player : tourneyPick)
+    unsigned int tourneyPick[TOURNAMENTSIZE];
+    for(unsigned int &player : tourneyPick)
     {
         player = randGenome(pRNG);
     }
@@ -99,8 +99,8 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
 
     //randomly choose two team boundaries in the genome from which to cut an allele
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
-    int startTeam = randTeam(pRNG);
-    int endTeam;
+    unsigned int startTeam = randTeam(pRNG);
+    unsigned int endTeam;
     do
     {
         endTeam = randTeam(pRNG);
@@ -108,7 +108,7 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
     while(endTeam == startTeam);
 
     //Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
-    int end=0, start=0, team=0, position=0;
+    unsigned int end=0, start=0, team=0, position=0;
     while(team < endTeam)
     {
         if(startTeam == team)
@@ -126,7 +126,7 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
     std::copy(dad, dad + genomeSize, child);
 
     //remove from the child each value in mom's allele
-    for(int i = 0; i < (end-start); i++)
+    for(unsigned int i = 0; i < (end-start); i++)
     {
         (void)std::remove(child, child + genomeSize, mom[start+i]);
     }

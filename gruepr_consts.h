@@ -24,10 +24,7 @@ const int MAX_NOTES_FIELDS = 99;                        // allowed number of not
 const int HIGHSCHEDULEOVERLAPSCALE = 6;                 // if a team has more than the desired amount of schedule overlap, additional overlap times are scaled by
                                                         // the inverse of this factor (e.g., 6 means additional hour is worth 1/6) DO NOT CHANGE TO ZERO
 
-const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown when team is collapsed
-const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
-const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
-
+const int PRINTOUT_FONTSIZE = 9;
 const int DIALOG_SPACER_ROWHEIGHT = 20;
 const int LG_DLG_SIZE = 600;
 const int SM_DLG_SIZE = 300;
@@ -35,6 +32,10 @@ const int XS_DLG_SIZE = 200;
 const int SMALL_SCREENSIZE_WIN = 900;
 const int SMALL_SCREENSIZE_MAC = 800;
 const int REDUCED_ICON_SIZE = 30;
+
+const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown when team is collapsed
+const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
+const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
 
 //map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
 const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"

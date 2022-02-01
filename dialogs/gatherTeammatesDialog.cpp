@@ -142,7 +142,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     theGrid->setRowMinimumHeight(row, DIALOG_SPACER_ROWHEIGHT);
     actionSelectBox = new QComboBox(this);
     actionSelectBox->setIconSize(ICONSIZE);
-    enum actionItems{descriptor, separator, clear, studentPrefs, existingTeamset, spreadsheet, saveCSV, loadCSV,};
+    enum actionItems{descriptor, separator, clear, studentPrefs, spreadsheet, saveCSV, loadCSV, existingTeamset};
     actionSelectBox->insertItem(descriptor, tr("Additional actions"));
     actionSelectBox->insertSeparator(separator);
     actionSelectBox->insertItem(clear, QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
@@ -172,6 +172,12 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
             (qobject_cast< QStandardItemModel * >(actionSelectBox->model()))->item(studentPrefs)->setEnabled(false);
         }
     }
+    actionSelectBox->insertItem(spreadsheet, QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
+    actionSelectBox->setItemData(spreadsheet, tr("Add to the table a previous set of gruepr-created teams"), Qt::ToolTipRole);
+    actionSelectBox->insertItem(saveCSV, QIcon(":/icons/save.png"), tr("Save to a CSV file..."));
+    actionSelectBox->setItemData(saveCSV, tr("Save the table to a csv file for later reuse"), Qt::ToolTipRole);
+    actionSelectBox->insertItem(loadCSV, QIcon(":/icons/openFile.png"), tr("Load from a CSV file..."));
+    actionSelectBox->setItemData(loadCSV, tr("Add to the table a csv file saved previously"), Qt::ToolTipRole);
     //INPROG: Allow import of existing teamset
     /*
     actionSelectBox->insertItem(existingTeamset, QIcon(":/icons/party.png"), tr("Load an existing team set..."));
@@ -181,18 +187,12 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         (qobject_cast< QStandardItemModel * >(actionSelectBox->model()))->item(existingTeamset)->setEnabled(false);
     }
     */
-    actionSelectBox->insertItem(spreadsheet, QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
-    actionSelectBox->setItemData(spreadsheet, tr("Add to the table a previous set of gruepr-created teams"), Qt::ToolTipRole);
-    actionSelectBox->insertItem(saveCSV, QIcon(":/icons/save.png"), tr("Save to a CSV file..."));
-    actionSelectBox->setItemData(saveCSV, tr("Save the table to a csv file for later reuse"), Qt::ToolTipRole);
-    actionSelectBox->insertItem(loadCSV, QIcon(":/icons/openFile.png"), tr("Load from a CSV file..."));
-    actionSelectBox->setItemData(loadCSV, tr("Add to the table a csv file saved previously"), Qt::ToolTipRole);
     connect(actionSelectBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {switch(index) {
                                                                                                             case clear: clearAllTeammateSets(); break;
+                                                                                                            case studentPrefs: loadStudentPrefs(); break;
+                                                                                                            case spreadsheet: loadSpreadsheetFile(); break;
                                                                                                             case saveCSV: saveCSVFile(); break;
                                                                                                             case loadCSV: loadCSVFile(); break;
-                                                                                                            case spreadsheet: loadSpreadsheetFile(); break;
-                                                                                                            case studentPrefs: loadStudentPrefs(); break;
                                                                                                             case existingTeamset: loadExistingTeamset(); break;}});
     theGrid->addWidget(actionSelectBox, row+1, 0, 1, 3);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -582,14 +582,14 @@ bool gatherTeammatesDialog::loadExistingTeamset()
     }
     else
     {
-        auto win = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        auto *win = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
         win->setWindowTitle(tr("Which teamset to load?"));
         win->setSizeGripEnabled(true);
-        auto layout = new QVBoxLayout(win);
-        auto teamsetChooser = new QComboBox(win);
+        auto *layout = new QVBoxLayout(win);
+        auto *teamsetChooser = new QComboBox(win);
         teamsetChooser->addItems(*teamSets);
         layout->addWidget(teamsetChooser);
-        auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
+        auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
         connect(buttons, &QDialogButtonBox::accepted, win, &QDialog::accept);
         connect(buttons, &QDialogButtonBox::rejected, win, &QDialog::reject);
         layout->addWidget(buttons);
@@ -1028,7 +1028,7 @@ void gatherTeammatesDialog::refreshDisplay()
                                                         {return ((A->lastname+A->firstname) < (B->lastname+B->firstname));});
 
     int row = 0;
-    for(auto baseStudent : qAsConst(baseStudents))
+    for(auto *baseStudent : qAsConst(baseStudents))
     {
         bool atLeastOneTeammate = false;
         column = 0;
@@ -1094,9 +1094,9 @@ void gatherTeammatesDialog::refreshDisplay()
                     currentListOfTeammatesTable->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + "\n" + tr("Teammate #") +
                                                                                                       QString::number(column + (requestsInSurvey? 0:1))));
                 }
-                auto box = new QHBoxLayout;
-                auto label = new QLabel(studentB->lastname + ", " + studentB->firstname);
-                auto remover = new QPushButton(QIcon(":/icons/delete.png"), "");
+                auto *box = new QHBoxLayout;
+                auto *label = new QLabel(studentB->lastname + ", " + studentB->firstname);
+                auto *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
                 remover->setFlat(true);
                 remover->setIconSize(ICONSIZE);
                 if(whatType == required)
@@ -1122,7 +1122,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 box->addWidget(label);
                 box->addWidget(remover, 0, Qt::AlignLeft);
                 box->setSpacing(0);
-                auto widg = new QWidget;
+                auto *widg = new QWidget;
                 widg->setLayout(box);
                 widg->setProperty("studentName", label->text());
                 currentListOfTeammatesTable->setCellWidget(row, column, widg);

@@ -9,14 +9,14 @@
   #include <QWinTaskbarButton>
   #include <QWinTaskbarProgress>
 #endif
-#include "gruepr_consts.h"
 #include "boxwhiskerplot.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
+#include "gruepr_consts.h"
 #include "studentRecord.h"
-#include "teamingOptions.h"
 #include "teamRecord.h"
+#include "teamingOptions.h"
 #include "widgets/attributeTabItem.h"
 
 
@@ -42,14 +42,12 @@ private slots:
     void loadStudentRoster();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
     void editAStudent();
-    void removeAStudent(int index, const QString &name = "", bool delayVisualUpdate = false);
+    void removeAStudent(const QString &name, bool delayVisualUpdate);
+    void removeAStudent(int index, bool delayVisualUpdate);
     void on_addStudentPushButton_clicked();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void on_saveSurveyFilePushButton_clicked();
-    void on_isolatedWomenCheckBox_stateChanged(int arg1);
-    void on_isolatedMenCheckBox_stateChanged(int arg1);
-    void on_isolatedNonbinaryCheckBox_stateChanged(int arg1);
-    void on_mixedGenderCheckBox_stateChanged(int arg1);
+    void simpleUIItemUpdate();
     void on_isolatedURMCheckBox_stateChanged(int arg1);
     void on_URMResponsesButton_clicked();
     void requiredResponsesButton_clicked();
@@ -57,13 +55,11 @@ private slots:
     void on_minMeetingTimes_valueChanged(int arg1);
     void on_desiredMeetingTimes_valueChanged(int arg1);
     void on_meetingLength_currentIndexChanged(int index);
-    void on_scheduleWeight_valueChanged(double arg1);
     void on_idealTeamSizeBox_valueChanged(int arg1);
     void on_teamSizeBox_currentIndexChanged(int index);
     void on_requiredTeammatesButton_clicked();
     void on_preventedTeammatesButton_clicked();
     void on_requestedTeammatesButton_clicked();
-    void on_requestedTeammateNumberBox_valueChanged(int arg1);
     void on_letsDoItButton_clicked();
     void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability);
     void optimizationComplete();

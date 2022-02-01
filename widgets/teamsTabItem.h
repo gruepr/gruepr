@@ -1,7 +1,11 @@
 #ifndef TEAMSTABITEM_H
 #define TEAMSTABITEM_H
 
-#include <QWidget>
+#include "dataOptions.h"
+#include "studentRecord.h"
+#include "teamingOptions.h"
+#include "teamRecord.h"
+#include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFrame>
@@ -10,11 +14,7 @@
 #include <QPrinter>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include "widgets/teamTreeWidget.h"
-#include "dataOptions.h"
-#include "studentRecord.h"
-#include "teamingOptions.h"
-#include "teamRecord.h"
+#include <QWidget>
 
 class TeamsTabItem : public QWidget
 {

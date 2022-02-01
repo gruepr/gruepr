@@ -217,10 +217,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             else if(multicategoricalAttributes.contains(attribute))
             {
                 attributemulticategoricalbox[multicategoricalbox].setFlat(true);
-                auto layout = new QVBoxLayout;
+                auto *layout = new QVBoxLayout;
                 for(int option = 0, totNumOptions = dataOptions->attributeQuestionResponses[attribute].size(); option < totNumOptions; option++)
                 {
-                    auto responseCheckBox = new QCheckBox(dataOptions->attributeQuestionResponses[attribute].at(option));
+                    auto *responseCheckBox = new QCheckBox(dataOptions->attributeQuestionResponses[attribute].at(option));
                     responseCheckBox->setChecked(student.attributeVals[attribute].contains(option + 1));
                     layout->addWidget(responseCheckBox);
                 }
@@ -258,9 +258,9 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             explanation[field].setText(tr("Attributes"));
             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
             {
-                auto w = new QWidget;
-                auto layout = new QVBoxLayout;
-                auto attributeQuestionText = new QLabel;
+                auto *w = new QWidget;
+                auto *layout = new QVBoxLayout;
+                auto *attributeQuestionText = new QLabel;
                 layout->addWidget(attributeQuestionText, 0, Qt::AlignLeft);
                 if(orderedAttributes.contains(attribute) || categoricalAttributes.contains(attribute))
                 {

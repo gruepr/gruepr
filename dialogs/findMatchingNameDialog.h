@@ -1,13 +1,13 @@
 #ifndef FINDMATCHINGNAMEDIALOG_H
 #define FINDMATCHINGNAMEDIALOG_H
 
+#include "studentRecord.h"
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QRadioButton>
-#include "studentRecord.h"
 
 class findMatchingNameDialog : public QDialog
 {

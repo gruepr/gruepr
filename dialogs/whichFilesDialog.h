@@ -1,8 +1,8 @@
 #ifndef WHICHFILESDIALOG_H
 #define WHICHFILESDIALOG_H
 
-#include <QDialog>
 #include <QCheckBox>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>

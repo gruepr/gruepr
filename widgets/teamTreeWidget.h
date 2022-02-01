@@ -4,13 +4,13 @@
 // a subclassed QTreeWidget to show teams and students with summarized data on each and special drag/drop behavior
 // includes a subclassed QTreeWidgetItem and QHeaderView
 
-#include <QTreeWidget>
-#include <QHeaderView>
-#include <QLabel>
 #include "dataOptions.h"
 #include "gruepr_consts.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
+#include <QHeaderView>
+#include <QLabel>
+#include <QTreeWidget>
 
 
 ///////////////////////////////////////////////////////////////////////

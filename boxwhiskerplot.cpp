@@ -7,7 +7,7 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     QFont titleFont("Oxygen Mono");
     QFont labelsFont(titleFont);
     labelsFont.setPointSize(titleFont.pointSize()-2);
-    setTheme(QtCharts::QChart::ChartThemeBlueIcy);
+    setTheme(QtCharts::QChart::ChartThemeBrownSand);
     legend()->setVisible(false);
 
     dataSeries = new QtCharts::QBoxPlotSeries();

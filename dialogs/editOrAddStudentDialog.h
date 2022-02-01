@@ -1,16 +1,16 @@
 #ifndef EDITORADDSTUDENTDIALOG_H
 #define EDITORADDSTUDENTDIALOG_H
 
-#include <QDialog>
+#include "dataOptions.h"
+#include "studentRecord.h"
 #include <QComboBox>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
-#include "dataOptions.h"
-#include "studentRecord.h"
 //#include "widgets/categoricalSpinBox.h"
 
 class editOrAddStudentDialog : public QDialog

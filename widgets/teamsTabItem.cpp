@@ -415,7 +415,7 @@ void TeamsTabItem::refreshDisplayOrder()
     const int lastCol = teamDataTree->columnCount()-1;
     for(int row = 0; row < numTeams; row++)
     {
-        const auto teamItem = teamDataTree->topLevelItem(row);
+        auto *const teamItem = teamDataTree->topLevelItem(row);
         teamItem->setData(lastCol, TEAMINFO_SORT_ROLE, row);
         teamItem->setData(lastCol, TEAMINFO_DISPLAY_ROLE, QString::number(row));
         teamItem->setText(lastCol, QString::number(row));
@@ -1032,7 +1032,7 @@ void TeamsTabItem::createFileContents()
             }
             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
             {
-                auto value = thisStudent.attributeVals[attribute].constBegin();
+                const auto *value = thisStudent.attributeVals[attribute].constBegin();
                 if(*value != -1)
                 {
                     if(dataOptions->attributeType[attribute] == DataOptions::ordered)
@@ -1047,7 +1047,7 @@ void TeamsTabItem::createFileContents()
                     else
                     {
                         //multicategorical
-                        const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        const auto *const lastValue = thisStudent.attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue)
                         {
@@ -1192,7 +1192,7 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
                 printer->setOutputFileName(fileName);
             }
             QTextDocument textDocument(spreadsheetFileContents, this);
-            printFont.setPointSize(9);
+            printFont.setPointSize(PRINTOUT_FONTSIZE);
             textDocument.setDefaultFont(printFont);
             printer->setPageOrientation(QPageLayout::Landscape);
             textDocument.print(printer);
@@ -1204,7 +1204,7 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
 
 QPrinter* TeamsTabItem::setupPrinter()
 {
-    auto printer = new QPrinter(QPrinter::HighResolution);
+    auto *printer = new QPrinter(QPrinter::HighResolution);
     printer->setPageOrientation(QPageLayout::Portrait);
     emit connectedToPrinter();
     return printer;

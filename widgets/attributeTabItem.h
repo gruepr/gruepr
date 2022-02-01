@@ -1,17 +1,17 @@
 #ifndef ATTRIBUTETABITEM_H
 #define ATTRIBUTETABITEM_H
 
-#include <QWidget>
+#include "comboBoxWithElidedContents.h"
+#include "dataOptions.h"
+#include "gruepr_consts.h"
+#include "teamingOptions.h"
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QTextEdit>
-#include "comboBoxWithElidedContents.h"
-#include "dataOptions.h"
-#include "gruepr_consts.h"
-#include "teamingOptions.h"
+#include <QWidget>
 
 class attributeTabItem : public QWidget
 {

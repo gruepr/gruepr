@@ -35,7 +35,7 @@ progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
     explanationText->setFont(defFont);
     explanationText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-    auto explanationBox = new QHBoxLayout;
+    auto *explanationBox = new QHBoxLayout;
     theGrid->addLayout(explanationBox, 1, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
     explanationBox->addWidget(explanationIcon, 0, Qt::AlignHCenter | Qt::AlignVCenter);
     explanationBox->addWidget(explanationText, 0, Qt::AlignLeft | Qt::AlignVCenter);

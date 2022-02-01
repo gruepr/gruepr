@@ -1,8 +1,8 @@
 #ifndef TEAMINGOPTIONS_H
 #define TEAMINGOPTIONS_H
 
-#include <QStringList>
 #include "gruepr_consts.h"
+#include <QStringList>
 
 //the teaming options set by the user when forming teams
 

@@ -1,11 +1,11 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
-#include <QDialog>
+#include "boxwhiskerplot.h"
 #include <QCheckBox>
+#include <QDialog>
 #include <QGridLayout>
 #include <QLabel>
-#include "boxwhiskerplot.h"
 
 class progressDialog : public QDialog
 {

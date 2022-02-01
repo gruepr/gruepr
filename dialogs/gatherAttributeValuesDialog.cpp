@@ -196,17 +196,16 @@ QString gatherAttributeValuesDialog::valuePrefix(int value)
     {
         return tr("--");
     }
-    else if(attributeType == DataOptions::ordered)
+
+    if(attributeType == DataOptions::ordered)
     {
         // response's starting number
         return QString::number(value);
     }
-    else
-    {
-        // response's preceding letter (letter repeated for responses after 26)
-        int valueIndex = value - 1;
-        return ((valueIndex < 26) ? QString(char(valueIndex + 'A')) : QString(char(valueIndex%26 + 'A')).repeated(1 + (valueIndex/26)));
-    }
+
+    // response's preceding letter (letter repeated for responses after 26)
+    int valueIndex = value - 1;
+    return ((valueIndex < 26) ? QString(char(valueIndex + 'A')) : QString(char(valueIndex%26 + 'A')).repeated(1 + (valueIndex/26)));
 }
 
 void gatherAttributeValuesDialog::updateExplanation()
