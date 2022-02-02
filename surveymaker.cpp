@@ -51,6 +51,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::refreshPreview);
     connect(ui->additionalQuestionsCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
 
+    //Create RegEx for punctuation not allowed within a URL (can remove if/when changing the form data upload to be a POST instead of GET
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
 
     //put timezones into combobox
@@ -696,17 +697,30 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 void SurveyMaker::attributeTabBarScrollVisibleTabs(int index)
 {
     // might need to 'scroll' the tab bar so that the active tab is always roughly centered in view--so we can always click up or down a tab to the beginning/end
-
-    // figure out which tab is the lowest one that hasn't been hidden
     int firstVisibleIndex = 0;
     while(!ui->attributesTabWidget->isTabVisible(firstVisibleIndex))
     {
         firstVisibleIndex++;
     }
 
-    QRect tabGeom = ui->attributesTabWidget->tabBar()->tabRect(index);
     const int widthOfTabWidget = ui->attributesTabWidget->size().width();
-    if(tabGeom.right() + tabGeom.width() >= widthOfTabWidget)
+    int lastVisibleIndex = firstVisibleIndex;
+    while((ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) &&
+          (ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).right() != -1))
+    {
+        lastVisibleIndex++;
+    }
+    lastVisibleIndex--;
+    qDebug() << firstVisibleIndex << " -> " << lastVisibleIndex;
+
+    QRect currentTabGeom = ui->attributesTabWidget->tabBar()->tabRect(index);
+    QRect firstTabGeom = ui->attributesTabWidget->tabBar()->tabRect(0);
+    QRect lastTabGeom = ui->attributesTabWidget->tabBar()->tabRect(numAttributes-1);
+    qDebug() << firstTabGeom;
+    qDebug() << currentTabGeom;
+    qDebug() << lastTabGeom;
+    qDebug() << "-";
+    if(currentTabGeom.right() + currentTabGeom.width() >= widthOfTabWidget)
     {
         //hide up to two tabs on the left, if this new tab isn't fully displayable on the right
         ui->attributesTabWidget->setTabVisible(firstVisibleIndex++, false);
@@ -715,7 +729,7 @@ void SurveyMaker::attributeTabBarScrollVisibleTabs(int index)
             ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
         }
     }
-    else if(tabGeom.left() - tabGeom.width() <= 0)
+    else if(currentTabGeom.left() - currentTabGeom.width() <= 0)
     {
         //show up to two tabs on the left, if this new tab isn't fully displayable on the left
         ui->attributesTabWidget->setTabVisible(--firstVisibleIndex, true);

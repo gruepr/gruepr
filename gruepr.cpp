@@ -853,22 +853,18 @@ void gruepr::on_addStudentPushButton_clicked()
                 const QString &currentStudentResponse = studentToAdd.attributeResponse[attribute];
                 if(!currentStudentResponse.isEmpty())
                 {
-                    if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+                    if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
                     {
-                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-                    }
-                    else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::timezone))
-                    {
-                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-                    }
-                    else
-                    {
-                        //multicategorical
+                        //need to process each one
                         const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
                         for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent))
                         {
                             dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
                         }
+                    }
+                    else
+                    {
+                        dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
                     attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
                 }

@@ -1,6 +1,5 @@
 #include "teamsTabItem.h"
 #include "dialogs/customTeamnamesDialog.h"
-#include "dialogs/gatherTeammatesDialog.h"
 #include "dialogs/whichFilesDialog.h"
 #include "gruepr.h"
 #include <QApplication>

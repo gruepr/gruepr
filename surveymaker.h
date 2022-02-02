@@ -2,11 +2,11 @@
 #define SURVEYMAKER_H
 
 #include "dialogs/dayNamesDialog.h"
-#include "dialogs/gatherTeammatesDialog.h"
 #include "gruepr_consts.h"
 #include "widgets/comboBoxWithElidedContents.h"
 #include <QDate>
 #include <QFileInfo>
+#include <QLabel>
 #include <QMainWindow>
 #include <QRegularExpressionValidator>
 
