@@ -27,7 +27,7 @@ private slots:
     void on_surveyTitleLineEdit_textChanged(const QString &arg1);
     void on_attributeCountSpinBox_valueChanged(int arg1);
     void attributeTabBarMoveTab(int indexFrom, int indexTo);
-    void attributeTabBarScrollVisibleTabs(int index);
+    void refreshAttributeTabBar(int index);
     void attributeTabClose(int index);
     void attributeTextChanged();
     void on_timezoneCheckBox_clicked(bool checked);

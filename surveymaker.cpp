@@ -116,8 +116,9 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         ui->attributesTabWidget->tabBar()->tabButton(tab, QTabBar::RightSide)->resize(TABCLOSEICONSIZE);
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
+    refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
     responseOptions.prepend("custom options, to be added after creating the form");
-    connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &SurveyMaker::attributeTabBarScrollVisibleTabs);
+    connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &SurveyMaker::refreshAttributeTabBar);
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::tabMoved, this, &SurveyMaker::attributeTabBarMoveTab);
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::tabCloseRequested, this, &SurveyMaker::attributeTabClose);
 
@@ -691,12 +692,13 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
         ui->attributesTabWidget->setTabVisible(i, i < arg1);
     }
 
+    refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
     refreshPreview();
 }
 
-void SurveyMaker::attributeTabBarScrollVisibleTabs(int index)
+void SurveyMaker::refreshAttributeTabBar(int index)
 {
-    // might need to 'scroll' the tab bar so that the active tab is always roughly centered in view--so we can always click up or down a tab to the beginning/end
+    // first figure out which tabs are visible
     int firstVisibleIndex = 0;
     while(!ui->attributesTabWidget->isTabVisible(firstVisibleIndex))
     {
@@ -705,51 +707,70 @@ void SurveyMaker::attributeTabBarScrollVisibleTabs(int index)
 
     const int widthOfTabWidget = ui->attributesTabWidget->size().width();
     int lastVisibleIndex = firstVisibleIndex;
-    while((ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) &&
-          (ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).right() != -1))
+    while((ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numAttributes))
     {
         lastVisibleIndex++;
     }
-    lastVisibleIndex--;
-    qDebug() << firstVisibleIndex << " -> " << lastVisibleIndex;
-
-    QRect currentTabGeom = ui->attributesTabWidget->tabBar()->tabRect(index);
-    QRect firstTabGeom = ui->attributesTabWidget->tabBar()->tabRect(0);
-    QRect lastTabGeom = ui->attributesTabWidget->tabBar()->tabRect(numAttributes-1);
-    qDebug() << firstTabGeom;
-    qDebug() << currentTabGeom;
-    qDebug() << lastTabGeom;
-    qDebug() << "-";
-    if(currentTabGeom.right() + currentTabGeom.width() >= widthOfTabWidget)
+    if((ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).left() > widthOfTabWidget) || (lastVisibleIndex == numAttributes))
     {
-        //hide up to two tabs on the left, if this new tab isn't fully displayable on the right
-        ui->attributesTabWidget->setTabVisible(firstVisibleIndex++, false);
-        if(firstVisibleIndex < MAX_ATTRIBUTES-1)
+        lastVisibleIndex--;
+    }
+
+    if((firstVisibleIndex != 0) && (index == firstVisibleIndex))
+    {
+        ui->attributesTabWidget->setTabVisible(firstVisibleIndex-1, true);
+        firstVisibleIndex--;
+        lastVisibleIndex--;
+        if(firstVisibleIndex != 0)
         {
-            ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
+            ui->attributesTabWidget->setTabVisible(firstVisibleIndex-1, true);
+            firstVisibleIndex--;
+            lastVisibleIndex--;
         }
     }
-    else if(currentTabGeom.left() - currentTabGeom.width() <= 0)
+    else if((lastVisibleIndex != numAttributes-1) && (index >= lastVisibleIndex))
     {
-        //show up to two tabs on the left, if this new tab isn't fully displayable on the left
-        ui->attributesTabWidget->setTabVisible(--firstVisibleIndex, true);
-        if(firstVisibleIndex >= 0)
+        ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
+        firstVisibleIndex++;
+        lastVisibleIndex++;
+        if(lastVisibleIndex != numAttributes-1)
         {
-            ui->attributesTabWidget->setTabVisible(firstVisibleIndex, true);
+            ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
+            firstVisibleIndex++;
+            lastVisibleIndex++;
         }
+    }
+
+    // reset the label for every tab, with 'scroll triangles' on the ends if needed
+    for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
+    {
+        QString label;
+        if((tab != 0) && (tab == firstVisibleIndex))
+        {
+            label = QChar(0x25C4) + QString::number(tab+1);
+        }
+        else if((tab != numAttributes-1) && (tab == lastVisibleIndex))
+        {
+            label = QString::number(tab+1) + QChar(0x25BA);
+        }
+        else
+        {
+            label = QString::number(tab+1) + "   ";
+        }
+        ui->attributesTabWidget->setTabText(tab, label);
     }
 }
 
 void SurveyMaker::attributeTabBarMoveTab(int /*indexFrom*/, int /*indexTo*/)
 {
-    // reset for every tab the text label and the placeholder text
+    // reset for every tab the placeholder text
     for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
     {
-        ui->attributesTabWidget->setTabText(tab, QString::number(tab+1) + "   ");
         auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(tab));
         attribTab->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
     }
 
+    refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
     refreshPreview();
 }
 
@@ -773,13 +794,13 @@ void SurveyMaker::attributeTabClose(int index)
         ui->attributesTabWidget->addTab(attributeTab, QString::number(MAX_ATTRIBUTES) + "   ");
         ui->attributesTabWidget->tabBar()->tabButton(MAX_ATTRIBUTES-1, QTabBar::RightSide)->resize(TABCLOSEICONSIZE);
 
-        // reset for every tab the text label and the placeholder text
+        // reset for every tab the placeholder text
         for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
         {
-            ui->attributesTabWidget->setTabText(tab, QString::number(tab+1) + "   ");
             auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(tab));
             attribTab->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
         }
+        refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
     }
 
     // keep the current tab open unless it is the one being closed; if it is being closed, open the most sensible one
@@ -790,7 +811,7 @@ void SurveyMaker::attributeTabClose(int index)
     }
     else if(index < currIndex)
     {
-        // the tab being closed is below the open one, so its index has decreased
+        // the tab being closed is below the open one, so the current one's index has decreased
         ui->attributesTabWidget->setCurrentIndex(currIndex-1);
     }
     else
@@ -798,6 +819,7 @@ void SurveyMaker::attributeTabClose(int index)
         // the tab being closed is the current one or is above the current one, so keep this index open
         ui->attributesTabWidget->setCurrentIndex(index < currIndex? currIndex-1 : currIndex);
     }
+
     ui->attributeCountSpinBox->setValue(numAttributes - 1);
 }
 
