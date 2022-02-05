@@ -35,8 +35,7 @@ gruepr::gruepr(QWidget *parent) :
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
     //Put attribute label next to that tab widget
-    auto *attlab = new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget);
-    ui->attributesTabWidget->setCornerWidget(attlab, Qt::TopLeftCorner);
+    ui->attributesTabWidget->setCornerWidget(new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget), Qt::TopLeftCorner);
 
     //Setup the main window menu items
     connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
@@ -1192,6 +1191,92 @@ void gruepr::on_URMResponsesButton_clicked()
 }
 
 
+void gruepr::refreshAttributeTabBar(int index)
+{
+    auto &tabs = ui->attributesTabWidget;
+
+    if(tabs->count() < 3)
+    {
+        return;
+    }
+
+    // first figure out which tabs are visible
+    int firstVisibleIndex = 0;
+    while(!tabs->isTabVisible(firstVisibleIndex))
+    {
+        firstVisibleIndex++;
+    }
+
+    const int widthOfTabWidget = tabs->size().width() - tabs->cornerWidget(Qt::TopLeftCorner)->width();
+    int lastVisibleIndex = firstVisibleIndex;
+    // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
+    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < dataOptions->numAttributes))
+    {
+        lastVisibleIndex++;
+    }
+    lastVisibleIndex--;
+
+    auto lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
+    if((firstVisibleIndex != 0) && (index == firstVisibleIndex))
+    {
+        // expanding one or two tabs to left if there are previous tabs to expand the current tab is the first visible
+        tabs->setTabVisible(firstVisibleIndex-1, true);
+        firstVisibleIndex--;
+        if(firstVisibleIndex != 0)
+        {
+            tabs->setTabVisible(firstVisibleIndex-1, true);
+            firstVisibleIndex--;
+        }
+    }
+    else if((firstVisibleIndex != 0) && (lastVisibleIndex == dataOptions->numAttributes - 1) && (lastTabGeom.right() + lastTabGeom.width() < widthOfTabWidget))
+    {
+        // expanding one tab to the left if there are previous tabs to expand and there's simply enough room now due to closing a tab or expanding the window
+        tabs->setTabVisible(firstVisibleIndex-1, true);
+        firstVisibleIndex--;
+    }
+    else if((lastVisibleIndex != dataOptions->numAttributes-1) && (index >= lastVisibleIndex))
+    {
+        // expanding one or two tabs to right if there are subsequent tabs to expand and the current one is the last one visible
+        tabs->setTabVisible(firstVisibleIndex, false);
+        firstVisibleIndex++;
+        lastVisibleIndex++;
+        if(lastVisibleIndex != dataOptions->numAttributes-1)
+        {
+            tabs->setTabVisible(firstVisibleIndex, false);
+            firstVisibleIndex++;
+        }
+    }
+
+    // redetermine the last visible index now for the sake of labeling the tabs
+    lastVisibleIndex = firstVisibleIndex;
+    // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
+    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < dataOptions->numAttributes))
+    {
+        lastVisibleIndex++;
+    }
+    lastVisibleIndex--;
+
+    // reset the label for every tab, with 'scroll triangles' on the ends if needed
+    for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
+    {
+        QString label;
+        if((tab != 0) && (tab == firstVisibleIndex))
+        {
+            label = QString(QChar(0x25C4)) + " " + QString::number(tab+1);
+        }
+        else if((tab != dataOptions->numAttributes-1) && (tab == lastVisibleIndex))
+        {
+            label = QString::number(tab+1) + " " + QString(QChar(0x25BA));
+        }
+        else
+        {
+            label = QString::number(tab+1);
+        }
+        tabs->setTabText(tab, label);
+    }
+}
+
+
 void gruepr::requiredResponsesButton_clicked()
 {
     int currAttribute = ui->attributesTabWidget->currentIndex();
@@ -2032,6 +2117,7 @@ void gruepr::loadUI()
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
 
     ui->attributesTabWidget->setUpdatesEnabled(false);
+    disconnect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
     ui->attributesTabWidget->clear();
     delete[] attributeTab;
     attributeTab = new attributeTabItem[MAX_ATTRIBUTES];
@@ -2062,6 +2148,8 @@ void gruepr::loadUI()
         ui->attributesTabWidget->addTab(&attributeTab[0], "1");
     }
     ui->attributesTabWidget->setUpdatesEnabled(true);
+    refreshAttributeTabBar(0);
+    connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
 
     if(dataOptions->genderIncluded)
     {
@@ -3587,6 +3675,7 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
 //////////////////
 void gruepr::closeEvent(QCloseEvent *event)
 {
+    ui->attributesTabWidget->tabBar()->disconnect();
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
     savedSettings.setValue("dataFileLocation", dataOptions->dataFile.canonicalFilePath());

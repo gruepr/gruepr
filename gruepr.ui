@@ -1006,6 +1006,15 @@ Teammates</string>
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="usesScrollButtons">
+            <bool>false</bool>
+           </property>
            <widget class="attributeTabItem" name="attribute_fillin">
             <attribute name="title">
              <string>1</string>

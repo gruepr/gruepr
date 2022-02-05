@@ -21,6 +21,7 @@ public:
     ~SurveyMaker();
 
 protected:
+    void resizeEvent(QResizeEvent *event);
     void closeEvent(QCloseEvent *event);
 
 private slots:
@@ -65,6 +66,7 @@ private:
     QString attributeTexts[MAX_ATTRIBUTES] = {""};
     int attributeResponses[MAX_ATTRIBUTES] = {0};
     bool attributeAllowMultipleResponses[MAX_ATTRIBUTES] = {false};
+    QTabBar::ButtonPosition tabCloseButtonSide;
     bool schedule = true;
     enum {busy, free} busyOrFree = free;
     bool timezone = false;

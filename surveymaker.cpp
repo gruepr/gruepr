@@ -101,6 +101,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->baseTimezoneLineEdit->setMinimumWidth(widthOfPlaceholder);
 
     //Add tabs for each attribute and items to each response options combobox
+    tabCloseButtonSide = (ui->attributesTabWidget->tabBar()->tabButton(0, QTabBar::RightSide) == nullptr) ? QTabBar::LeftSide : QTabBar::RightSide;
     ui->attributesTabWidget->clear();
     ui->fillinTab->deleteLater();
     responseOptions = QString(RESPONSE_OPTIONS).split(';');
@@ -113,7 +114,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::refreshPreview);
 
         ui->attributesTabWidget->addTab(attributeTab, QString::number(tab+1) + "   ");
-        ui->attributesTabWidget->tabBar()->tabButton(tab, QTabBar::RightSide)->resize(TABCLOSEICONSIZE);
+        ui->attributesTabWidget->tabBar()->tabButton(tab, tabCloseButtonSide)->resize(TABCLOSEICONSIZE);
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
@@ -128,6 +129,12 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 SurveyMaker::~SurveyMaker()
 {
     delete ui;
+}
+
+void SurveyMaker::resizeEvent(QResizeEvent *event)
+{
+    event->accept();
+    refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
 }
 
 void SurveyMaker::refreshPreview()
@@ -698,47 +705,77 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 
 void SurveyMaker::refreshAttributeTabBar(int index)
 {
+    auto &tabs = ui->attributesTabWidget;
+
+    if(tabs->count() < 3)
+    {
+        return;
+    }
+
     // first figure out which tabs are visible
     int firstVisibleIndex = 0;
-    while(!ui->attributesTabWidget->isTabVisible(firstVisibleIndex))
+    while(!tabs->isTabVisible(firstVisibleIndex))
     {
         firstVisibleIndex++;
     }
 
-    const int widthOfTabWidget = ui->attributesTabWidget->size().width();
+    const int widthOfTabWidget = tabs->size().width();
     int lastVisibleIndex = firstVisibleIndex;
-    while((ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numAttributes))
+    // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
+    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numAttributes))
     {
         lastVisibleIndex++;
     }
-    if((ui->attributesTabWidget->tabBar()->tabRect(lastVisibleIndex).left() > widthOfTabWidget) || (lastVisibleIndex == numAttributes))
+    auto lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
+    // move back one if this last tab is less than 1/2 visible or if we've exceeded the number of tabs possible
+    if((((lastTabGeom.left() + lastTabGeom.right()) / 2) > widthOfTabWidget) || (lastVisibleIndex == numAttributes))
     {
         lastVisibleIndex--;
+        lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
     }
 
     if((firstVisibleIndex != 0) && (index == firstVisibleIndex))
     {
-        ui->attributesTabWidget->setTabVisible(firstVisibleIndex-1, true);
+        // expanding one or two tabs to left if there are previous tabs to expand the current tab is the first visible
+        tabs->setTabVisible(firstVisibleIndex-1, true);
         firstVisibleIndex--;
-        lastVisibleIndex--;
         if(firstVisibleIndex != 0)
         {
-            ui->attributesTabWidget->setTabVisible(firstVisibleIndex-1, true);
+            tabs->setTabVisible(firstVisibleIndex-1, true);
             firstVisibleIndex--;
-            lastVisibleIndex--;
         }
+    }
+    else if((firstVisibleIndex != 0) && (lastVisibleIndex == numAttributes - 1) && (lastTabGeom.right() + lastTabGeom.width() < widthOfTabWidget))
+    {
+        // expanding one tab to the left if there are previous tabs to expand and there's simply enough room now due to closing a tab or expanding the window
+        tabs->setTabVisible(firstVisibleIndex-1, true);
+        firstVisibleIndex--;
     }
     else if((lastVisibleIndex != numAttributes-1) && (index >= lastVisibleIndex))
     {
-        ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
+        // expanding one or two tabs to right if there are subsequent tabs to expand and the current one is the last one visible
+        tabs->setTabVisible(firstVisibleIndex, false);
         firstVisibleIndex++;
         lastVisibleIndex++;
         if(lastVisibleIndex != numAttributes-1)
         {
-            ui->attributesTabWidget->setTabVisible(firstVisibleIndex, false);
+            tabs->setTabVisible(firstVisibleIndex, false);
             firstVisibleIndex++;
-            lastVisibleIndex++;
         }
+    }
+
+    // redetermine the last visible index now for the sake of labeling the tabs
+    lastVisibleIndex = firstVisibleIndex;
+    // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
+    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numAttributes))
+    {
+        lastVisibleIndex++;
+    }
+    // move back one if this last tab is less than 1/2 visible or if we've exceeded the number of tabs possible
+    if((((tabs->tabBar()->tabRect(lastVisibleIndex).left() + tabs->tabBar()->tabRect(lastVisibleIndex).right()) / 2) > widthOfTabWidget)
+            || (lastVisibleIndex == numAttributes))
+    {
+        lastVisibleIndex--;
     }
 
     // reset the label for every tab, with 'scroll triangles' on the ends if needed
@@ -747,17 +784,17 @@ void SurveyMaker::refreshAttributeTabBar(int index)
         QString label;
         if((tab != 0) && (tab == firstVisibleIndex))
         {
-            label = QChar(0x25C4) + QString::number(tab+1);
+            label = QString(QChar(0x25C4)) + " " + QString::number(tab+1);
         }
         else if((tab != numAttributes-1) && (tab == lastVisibleIndex))
         {
-            label = QString::number(tab+1) + QChar(0x25BA);
+            label = QString::number(tab+1) + " " + QString(QChar(0x25BA));
         }
         else
         {
             label = QString::number(tab+1) + "   ";
         }
-        ui->attributesTabWidget->setTabText(tab, label);
+        tabs->setTabText(tab, label);
     }
 }
 
@@ -792,7 +829,7 @@ void SurveyMaker::attributeTabClose(int index)
         connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::refreshPreview);
 
         ui->attributesTabWidget->addTab(attributeTab, QString::number(MAX_ATTRIBUTES) + "   ");
-        ui->attributesTabWidget->tabBar()->tabButton(MAX_ATTRIBUTES-1, QTabBar::RightSide)->resize(TABCLOSEICONSIZE);
+        ui->attributesTabWidget->tabBar()->tabButton(MAX_ATTRIBUTES-1, tabCloseButtonSide)->resize(TABCLOSEICONSIZE);
 
         // reset for every tab the placeholder text
         for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
