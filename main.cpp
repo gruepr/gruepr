@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
                 if(reply == QDialog::Accepted)
                 {
                     // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
-                    if(QDesktopServices::openUrl(QUrl(USER_REGISTRATION_URL
+                    if(QDesktopServices::openUrl(QUrl(QString(USER_REGISTRATION_URL)+
                                                       "?name="+QUrl::toPercentEncoding(window->name->text())+
                                                       "&institution="+QUrl::toPercentEncoding(window->institution->text())+
                                                       "&email="+QUrl::toPercentEncoding(window->email->text()))))

@@ -1,6 +1,6 @@
 #include "attributeTabItem.h"
 
-attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(parent)
+attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent) : QWidget(parent)
 {
     setContentsMargins(0,0,0,0);
 
@@ -27,6 +27,7 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         attributeText->setAcceptDrops(true);
         attributeText->setReadOnly(false);
         attributeText->setUndoRedoEnabled(true);
+        setTabNum(tabNum);
     }
     attributeText->setEnabled(true);
     attributeText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -64,7 +65,10 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
         attributeResponses = new ComboBoxWithElidedContents(tr("Very high / Above average / Average / Below average / Very low"), this);
         theGrid->addWidget(attributeResponses, row++, column, 1, -1);
         allowMultipleResponses = new QCheckBox(tr("Allow student to select multiple options"), this);
-        theGrid->addWidget(allowMultipleResponses, row, column, 1, -1);
+        theGrid->addWidget(allowMultipleResponses, row++, column, 1, -1);
+        closeButton = new QPushButton(QIcon(":/icons/delete.png"), tr("Delete question"), this);
+        connect(closeButton, &QPushButton::clicked, this, &attributeTabItem::closeButtonPushed);
+        theGrid->addWidget(closeButton, row, column, 1, -1, Qt::AlignRight);
 
         attributeResponses->addItem("Choose the response options...");
         attributeResponses->insertSeparator(1);
@@ -74,6 +78,7 @@ attributeTabItem::attributeTabItem(TabType tabType, QWidget *parent) : QWidget(p
             attributeResponses->addItem(responseOptions.at(response));
             attributeResponses->setItemData(response + 2, responseOptions.at(response), Qt::ToolTipRole);
         }
+
     }
 }
 
@@ -164,4 +169,15 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
     }
     weight->setValue(double(teamingOptions->attributeWeights[attribute]));
     homogeneous->setChecked(teamingOptions->desireHomogeneous[attribute]);
+}
+
+void attributeTabItem::setTabNum(int tabNum)
+{
+    index = tabNum;
+    attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tabNum + 1));
+}
+
+void attributeTabItem::closeButtonPushed()
+{
+    emit closeRequested(index);
 }

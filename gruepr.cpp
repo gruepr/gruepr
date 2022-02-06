@@ -1262,11 +1262,11 @@ void gruepr::refreshAttributeTabBar(int index)
         QString label;
         if((tab != 0) && (tab == firstVisibleIndex))
         {
-            label = QString(QChar(0x25C4)) + " " + QString::number(tab+1);
+            label = QString(LEFTARROW) + " " + QString::number(tab+1);
         }
         else if((tab != dataOptions->numAttributes-1) && (tab == lastVisibleIndex))
         {
-            label = QString::number(tab+1) + " " + QString(QChar(0x25BA));
+            label = QString::number(tab+1) + " " + QString(RIGHTARROW);
         }
         else
         {

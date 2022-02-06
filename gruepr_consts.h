@@ -1,13 +1,6 @@
 #ifndef GRUEPR_CONSTS
 #define GRUEPR_CONSTS
 
-#define TIMESTAMP_FORMAT1 "yyyy/MM/dd h:mm:ss AP"
-#define TIMESTAMP_FORMAT2 "yyyy/MM/dd h:mm:ssAP"
-#define TIMESTAMP_FORMAT3 "M/d/yyyy h:mm:ss"
-#define TIMESTAMP_FORMAT4 "M/d/yyyy h:mm"
-
-#define USER_REGISTRATION_URL "https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"
-
 #include "GA.h"
 #include <Qt>
 
@@ -25,6 +18,17 @@ const int HIGHSCHEDULEOVERLAPSCALE = 6;                 // if a team has more th
                                                         // the inverse of this factor (e.g., 6 means additional hour is worth 1/6) DO NOT CHANGE TO ZERO
 
 const int PRINTOUT_FONTSIZE = 9;
+
+// define the left and right arrow characters for use in the attribute tabs when scrolling is needed
+#ifdef Q_OS_WIN32
+    const wchar_t LEFTARROW = 0x25C4;
+    const wchar_t RIGHTARROW = 0x25BA;
+#endif
+#ifdef Q_OS_MACOS
+    const wchar_t LEFTARROW = 0x2B05;
+    const wchar_t RIGHTARROW = 0x27A1;
+#endif
+
 const int DIALOG_SPACER_ROWHEIGHT = 20;
 const int LG_DLG_SIZE = 600;
 const int SM_DLG_SIZE = 300;
@@ -43,6 +47,37 @@ const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:0
                          "9pm,9 pm,21:00,10pm,10 pm,22:00,11pm,11 pm,23:00,12am,12 am,0:00,noon,midnight"};
 const int TIME_MEANINGS[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,
                            13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
+
+const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
+const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
+const char TIMESTAMP_FORMAT3[] {"M/d/yyyy h:mm:ss"};
+const char TIMESTAMP_FORMAT4[] {"M/d/yyyy h:mm"};
+
+const char TIMEZONENAMES[] {"International Date Line West [GMT-12:00];\"Samoa: Midway Island, Samoa [GMT-11:00]\";Hawaiian: Hawaii [GMT-10:00];Alaskan: Alaska [GMT-09:00];"
+                            "Pacific: US and Canada, Tijuana [GMT-08:00];Mountain: US and Canada [GMT-07:00];\"Mexico Pacific: Chihuahua, La Paz, Mazatlan [GMT-07:00]\";"
+                            "Central: US and Canada [GMT-06:00];Canada Central: Saskatchewan [GMT-06:00];\"Mexico Central: Guadalajara, Mexico City, Monterrey [GMT-06:00]\";"
+                            "Central America: Central America [GMT-06:00];Eastern: US and Canada [GMT-05:00];\"S.A. Pacific: Bogota, Lima, Quito [GMT-05:00]\";"
+                            "Atlantic: Canada [GMT-04:00];\"S.A. Western: Caracas, La Paz [GMT-04:00]\";Pacific S.A.: Santiago [GMT-04:00];Newfoundland and Labrador [GMT-03:30];"
+                            "E. South America: Brasilia [GMT-03:00];\"S.A. Eastern: Buenos Aires, Georgetown [GMT-03:00]\";Greenland [GMT-03:00];Mid-Atlantic Islands [GMT-02:00];"
+                            "Azores [GMT-01:00];Cape Verde [GMT-01:00];\"Greenwich Mean Time: Dublin, Edinburgh, Lisbon, London [GMT +00:00]\";"
+                            "\"Greenwich: Casablanca, Monrovia [GMT +00:00]\";\"Central Europe: Belgrade, Bratislava, Budapest, Ljubljana, Prague [GMT+01:00]\";"
+                            "\"Central Europe: Sarajevo, Skopje, Warsaw, Zagreb [GMT+01:00]\";\"Romance: Brussels, Copenhagen, Madrid, Paris [GMT+01:00]\";"
+                            "\"W. Europe: Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna [GMT+01:00]\";W. Central Africa: West Central Africa [GMT+01:00];"
+                            "E. Europe: Bucharest [GMT+02:00];Egypt: Cairo [GMT+02:00];\"FLE: Helsinki, Kiev, Riga, Sofia, Tallinn, Vilnius [GMT+02:00]\";"
+                            "\"GTB: Athens, Istanbul, Minsk [GMT+02:00]\";Israel: Jerusalem [GMT+02:00];\"South Africa: Harare, Pretoria [GMT+02:00]\";"
+                            "\"Russian: Moscow, St. Petersburg, Volgograd [GMT+03:00]\";\"Arab: Kuwait, Riyadh [GMT+03:00]\";E. Africa: Nairobi [GMT+03:00];"
+                            "Arabic: Baghdad [GMT+03:00];Iran: Tehran [GMT+03:30];\"Arabian: Abu Dhabi, Muscat [GMT+04:00]\";\"Caucasus: Baku, Tbilisi, Yerevan [GMT+04:00]\";"
+                            "Transitional Islamic State of Afghanistan: Kabul [GMT+04:30];Ekaterinburg [GMT+05:00];\"West Asia: Islamabad, Karachi, Tashkent [GMT+05:00]\";"
+                            "\"India: Chennai, Kolkata, Mumbai, New Delhi [GMT+05:30]\";Nepal: Kathmandu [GMT+05:45];\"Central Asia: Astana, Dhaka [GMT+06:00]\";"
+                            "Sri Lanka: Sri Jayawardenepura [GMT+06:00];\"N. Central Asia: Almaty, Novosibirsk [GMT+06:00]\";Myanmar: Yangon Rangoon [GMT+06:30];"
+                            "\"S.E. Asia: Bangkok, Hanoi, Jakarta [GMT+07:00]\";North Asia: Krasnoyarsk [GMT+07:00];\"China: Beijing, Chongqing, Hong Kong SAR, Urumqi [GMT+08:00]\";"
+                            "\"Singapore: Kuala Lumpur, Singapore [GMT+08:00]\";Taipei: Taipei [GMT+08:00];W. Australia: Perth [GMT+08:00];"
+                            "\"North Asia East: Irkutsk, Ulaanbaatar [GMT+08:00]\";Korea: Seoul [GMT+09:00];\"Tokyo: Osaka, Sapporo, Tokyo [GMT+09:00]\";"
+                            "Yakutsk: Yakutsk [GMT+09:00];A.U.S. Central: Darwin [GMT+09:30];Cen. Australia: Adelaide [GMT+09:30];"
+                            "\"A.U.S. Eastern: Canberra, Melbourne, Sydney [GMT+10:00]\";E. Australia: Brisbane [GMT+10:00];Tasmania: Hobart [GMT+10:00];"
+                            "Vladivostok: Vladivostok [GMT+10:00];\"West Pacific: Guam, Port Moresby [GMT+10:00]\";"
+                            "\"Central Pacific: Magadan, Solomon Islands, New Caledonia [GMT+11:00]\";\"Fiji Islands: Fiji Islands, Kamchatka, Marshall Islands [GMT+12:00]\";"
+                            "\"New Zealand: Auckland, Wellington [GMT+12:00]\";Tonga: Nuku'alofa [GMT+13:00]"};
 
 //the built-in Likert scale responses offered in surveyMaker
 const char RESPONSE_OPTIONS[] {"Yes / No;Yes / Maybe / No;"
@@ -78,31 +113,6 @@ const char RESPONSE_OPTIONS[] {"Yes / No;Yes / Maybe / No;"
                                "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10;"
                                "custom options, to be added after creating the form;"};
 
-const char TIMEZONENAMES[] {"International Date Line West [GMT-12:00];\"Samoa: Midway Island, Samoa [GMT-11:00]\";Hawaiian: Hawaii [GMT-10:00];Alaskan: Alaska [GMT-09:00];"
-                            "Pacific: US and Canada, Tijuana [GMT-08:00];Mountain: US and Canada [GMT-07:00];\"Mexico Pacific: Chihuahua, La Paz, Mazatlan [GMT-07:00]\";"
-                            "Central: US and Canada [GMT-06:00];Canada Central: Saskatchewan [GMT-06:00];\"Mexico Central: Guadalajara, Mexico City, Monterrey [GMT-06:00]\";"
-                            "Central America: Central America [GMT-06:00];Eastern: US and Canada [GMT-05:00];\"S.A. Pacific: Bogota, Lima, Quito [GMT-05:00]\";"
-                            "Atlantic: Canada [GMT-04:00];\"S.A. Western: Caracas, La Paz [GMT-04:00]\";Pacific S.A.: Santiago [GMT-04:00];Newfoundland and Labrador [GMT-03:30];"
-                            "E. South America: Brasilia [GMT-03:00];\"S.A. Eastern: Buenos Aires, Georgetown [GMT-03:00]\";Greenland [GMT-03:00];Mid-Atlantic Islands [GMT-02:00];"
-                            "Azores [GMT-01:00];Cape Verde [GMT-01:00];\"Greenwich Mean Time: Dublin, Edinburgh, Lisbon, London [GMT +00:00]\";"
-                            "\"Greenwich: Casablanca, Monrovia [GMT +00:00]\";\"Central Europe: Belgrade, Bratislava, Budapest, Ljubljana, Prague [GMT+01:00]\";"
-                            "\"Central Europe: Sarajevo, Skopje, Warsaw, Zagreb [GMT+01:00]\";\"Romance: Brussels, Copenhagen, Madrid, Paris [GMT+01:00]\";"
-                            "\"W. Europe: Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna [GMT+01:00]\";W. Central Africa: West Central Africa [GMT+01:00];"
-                            "E. Europe: Bucharest [GMT+02:00];Egypt: Cairo [GMT+02:00];\"FLE: Helsinki, Kiev, Riga, Sofia, Tallinn, Vilnius [GMT+02:00]\";"
-                            "\"GTB: Athens, Istanbul, Minsk [GMT+02:00]\";Israel: Jerusalem [GMT+02:00];\"South Africa: Harare, Pretoria [GMT+02:00]\";"
-                            "\"Russian: Moscow, St. Petersburg, Volgograd [GMT+03:00]\";\"Arab: Kuwait, Riyadh [GMT+03:00]\";E. Africa: Nairobi [GMT+03:00];"
-                            "Arabic: Baghdad [GMT+03:00];Iran: Tehran [GMT+03:30];\"Arabian: Abu Dhabi, Muscat [GMT+04:00]\";\"Caucasus: Baku, Tbilisi, Yerevan [GMT+04:00]\";"
-                            "Transitional Islamic State of Afghanistan: Kabul [GMT+04:30];Ekaterinburg [GMT+05:00];\"West Asia: Islamabad, Karachi, Tashkent [GMT+05:00]\";"
-                            "\"India: Chennai, Kolkata, Mumbai, New Delhi [GMT+05:30]\";Nepal: Kathmandu [GMT+05:45];\"Central Asia: Astana, Dhaka [GMT+06:00]\";"
-                            "Sri Lanka: Sri Jayawardenepura [GMT+06:00];\"N. Central Asia: Almaty, Novosibirsk [GMT+06:00]\";Myanmar: Yangon Rangoon [GMT+06:30];"
-                            "\"S.E. Asia: Bangkok, Hanoi, Jakarta [GMT+07:00]\";North Asia: Krasnoyarsk [GMT+07:00];\"China: Beijing, Chongqing, Hong Kong SAR, Urumqi [GMT+08:00]\";"
-                            "\"Singapore: Kuala Lumpur, Singapore [GMT+08:00]\";Taipei: Taipei [GMT+08:00];W. Australia: Perth [GMT+08:00];"
-                            "\"North Asia East: Irkutsk, Ulaanbaatar [GMT+08:00]\";Korea: Seoul [GMT+09:00];\"Tokyo: Osaka, Sapporo, Tokyo [GMT+09:00]\";"
-                            "Yakutsk: Yakutsk [GMT+09:00];A.U.S. Central: Darwin [GMT+09:30];Cen. Australia: Adelaide [GMT+09:30];"
-                            "\"A.U.S. Eastern: Canberra, Melbourne, Sydney [GMT+10:00]\";E. Australia: Brisbane [GMT+10:00];Tasmania: Hobart [GMT+10:00];"
-                            "Vladivostok: Vladivostok [GMT+10:00];\"West Pacific: Guam, Port Moresby [GMT+10:00]\";"
-                            "\"Central Pacific: Magadan, Solomon Islands, New Caledonia [GMT+11:00]\";\"Fiji Islands: Fiji Islands, Kamchatka, Marshall Islands [GMT+12:00]\";"
-                            "\"New Zealand: Auckland, Wellington [GMT+12:00]\";Tonga: Nuku'alofa [GMT+13:00]"};
 
 // Options for the team names. A name for each list of names must be given.
 // If name ends with period, names are numeric and increase without end
@@ -205,5 +215,7 @@ const char TEAMNAMELISTS[]   {";"
                                  "Bloat of Hippopotamuses,Smuck of Jellyfish,Litter of Kittens,Plague of Locusts,Brace of Mallards,Watch of Nightingales,"
                                  "Bed of Oysters,String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
                                  "Committee of Vultures,Colony of Weasels"};
+
+const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
 
 #endif // GRUEPR_CONSTS

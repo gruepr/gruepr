@@ -101,27 +101,24 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     ui->baseTimezoneLineEdit->setMinimumWidth(widthOfPlaceholder);
 
     //Add tabs for each attribute and items to each response options combobox
-    tabCloseButtonSide = (ui->attributesTabWidget->tabBar()->tabButton(0, QTabBar::RightSide) == nullptr) ? QTabBar::LeftSide : QTabBar::RightSide;
     ui->attributesTabWidget->clear();
     ui->fillinTab->deleteLater();
     responseOptions = QString(RESPONSE_OPTIONS).split(';');
     for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
     {
-        auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, this);
-        attributeTab->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
+        auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, tab, this);
         connect(attributeTab->attributeText, &QTextEdit::textChanged, this, &SurveyMaker::attributeTextChanged);
         connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::refreshPreview);
         connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::refreshPreview);
+        connect(attributeTab, &attributeTabItem::closeRequested, this, &SurveyMaker::attributeTabClose);
 
         ui->attributesTabWidget->addTab(attributeTab, QString::number(tab+1) + "   ");
-        ui->attributesTabWidget->tabBar()->tabButton(tab, tabCloseButtonSide)->resize(TABCLOSEICONSIZE);
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
     responseOptions.prepend("custom options, to be added after creating the form");
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &SurveyMaker::refreshAttributeTabBar);
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::tabMoved, this, &SurveyMaker::attributeTabBarMoveTab);
-    connect(ui->attributesTabWidget->tabBar(), &QTabBar::tabCloseRequested, this, &SurveyMaker::attributeTabClose);
 
     refreshPreview();
 }
@@ -707,7 +704,7 @@ void SurveyMaker::refreshAttributeTabBar(int index)
 {
     auto &tabs = ui->attributesTabWidget;
 
-    if(tabs->count() < 3)
+    if(tabs->count() < 2)
     {
         return;
     }
@@ -784,11 +781,11 @@ void SurveyMaker::refreshAttributeTabBar(int index)
         QString label;
         if((tab != 0) && (tab == firstVisibleIndex))
         {
-            label = QString(QChar(0x25C4)) + " " + QString::number(tab+1);
+            label = QString(LEFTARROW) + " " + QString::number(tab+1);
         }
         else if((tab != numAttributes-1) && (tab == lastVisibleIndex))
         {
-            label = QString::number(tab+1) + " " + QString(QChar(0x25BA));
+            label = QString::number(tab+1) + " " + QString(RIGHTARROW);
         }
         else
         {
@@ -800,11 +797,11 @@ void SurveyMaker::refreshAttributeTabBar(int index)
 
 void SurveyMaker::attributeTabBarMoveTab(int /*indexFrom*/, int /*indexTo*/)
 {
-    // reset for every tab the placeholder text
+    // reset for every tab the internal index
     for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
     {
         auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(tab));
-        attribTab->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
+        attribTab->setTabNum(tab);
     }
 
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
@@ -815,7 +812,7 @@ void SurveyMaker::attributeTabClose(int index)
 {
     const int currIndex = ui->attributesTabWidget->currentIndex();
 
-    // if this is the last attribute, closing it should just be the same as if clicking down to 0 attributes; otherwise, move this one to the end
+    // if this is the last attribute, closing it should just be the same as if clicking down to 0 attributes; otherwise, actually delete this one
     if(ui->attributeCountSpinBox->value() != 1)
     {
         // remove and delete this tab, then add a new one to the end
@@ -823,19 +820,19 @@ void SurveyMaker::attributeTabClose(int index)
         ui->attributesTabWidget->removeTab(index);
         oldWidget->deleteLater();
 
-        auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, this);
+        auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, MAX_ATTRIBUTES-1, this);
         connect(attributeTab->attributeText, &QTextEdit::textChanged, this, &SurveyMaker::attributeTextChanged);
         connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::refreshPreview);
         connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::refreshPreview);
+        connect(attributeTab, &attributeTabItem::closeRequested, this, &SurveyMaker::attributeTabClose);
 
         ui->attributesTabWidget->addTab(attributeTab, QString::number(MAX_ATTRIBUTES) + "   ");
-        ui->attributesTabWidget->tabBar()->tabButton(MAX_ATTRIBUTES-1, tabCloseButtonSide)->resize(TABCLOSEICONSIZE);
 
         // reset for every tab the placeholder text
         for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
         {
             auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(tab));
-            attribTab->attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tab + 1));
+            attribTab->setTabNum(tab);
         }
         refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
     }

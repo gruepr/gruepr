@@ -20,9 +20,10 @@ Q_OBJECT
 public:
     enum TabType {gruepr, surveyMaker};
 
-    explicit attributeTabItem(TabType tabType = gruepr, QWidget *parent = nullptr);
+    explicit attributeTabItem(TabType tabType = gruepr, int tabNum = 0, QWidget *parent = nullptr);
 
     void setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions);
+    void setTabNum(int tabNum);
 
     QTextEdit *attributeText = nullptr;
     QDoubleSpinBox *weight = nullptr;
@@ -31,10 +32,18 @@ public:
     QPushButton *requiredButton = nullptr;
     QPushButton *incompatsButton = nullptr;
     ComboBoxWithElidedContents *attributeResponses = nullptr;
+    QPushButton *closeButton = nullptr;
+
+signals:
+    void closeRequested(int index);
+
+private slots:
+    void closeButtonPushed();
 
 private:
     QGridLayout *theGrid = nullptr;
     QLabel *weightLabel = nullptr;
+    int index = 0;
 };
 
 #endif // ATTRIBUTETABITEM_H
