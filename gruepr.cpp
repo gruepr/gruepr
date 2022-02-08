@@ -372,7 +372,7 @@ void gruepr::loadStudentRoster()
                                                          QMessageBox::Ok | QMessageBox::Cancel, this);
                 auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(studentsWithDiffEmail.size() - i) + tr(" students)"));
                 whichEmailWindow->setCheckBox(applyToAll);
-                connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
+                connect(applyToAll, &QCheckBox::clicked, whichEmailWindow, [&keepAsking] (bool checked) {keepAsking = !checked;});
                 whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use survey email address"));
                 connect(whichEmailWindow->button(QMessageBox::Ok), &QPushButton::clicked, whichEmailWindow, &QDialog::accept);
                 whichEmailWindow->button(QMessageBox::Cancel)->setText(tr("Use roster email address"));
@@ -414,7 +414,7 @@ void gruepr::loadStudentRoster()
                                                            QMessageBox::Ok | QMessageBox::Cancel, this);
                 auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"));
                 keepOrDeleteWindow->setCheckBox(applyToAll);
-                connect(applyToAll, &QCheckBox::clicked, this, [&keepAsking] (bool checked) {keepAsking = !checked;});
+                connect(applyToAll, &QCheckBox::clicked, keepOrDeleteWindow, [&keepAsking] (bool checked) {keepAsking = !checked;});
                 keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep ") + name);
                 connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
                 keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Remove ") + name);

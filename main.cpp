@@ -32,14 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - better UI with the attribute tabs
-//     - in the gruepr Teaming Options, now shows a count of how many students gave each of the responses (updating counts when adding/removing/editing students)
-//     - in the gruepr Teaming Options, for timezones, shows timezone offset instead of letter as the response value
-//     - enable tab close and reordering for surverymaker attributes
-//     - enable tab scrolling in gruepr and surveymaker, for when there are more tabs than fit on screen
-// - included the multiple responses option for each attribute when saving / loading a survey file in surveymaker
-// - bugfix: loading the default teaming options upon startup no longer fails when meeting block size is > 1 hr
-// - bugfix: when using the compare-survey-to-roster feature, new students added from the roster now always start with cleared data
 //
 // TO DO:
 // - update count of each response in the attributeTabs when selecting a section

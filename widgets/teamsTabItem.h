@@ -3,8 +3,8 @@
 
 #include "dataOptions.h"
 #include "studentRecord.h"
-#include "teamingOptions.h"
 #include "teamRecord.h"
+#include "teamingOptions.h"
 #include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
 #include <QComboBox>

@@ -349,7 +349,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
-        auto *value = stu.attributeVals[attribute].constBegin();
+        const auto *value = stu.attributeVals[attribute].constBegin();
         if(*value != -1)
         {
             if(dataOptions->attributeType[attribute] == DataOptions::ordered)

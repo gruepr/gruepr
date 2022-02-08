@@ -118,7 +118,7 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
 //////////////////
 QFileInfo CsvFile::fileInfo()
 {
-    return QFileInfo(*file);
+    return {*file};
 }
 
 

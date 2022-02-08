@@ -39,6 +39,9 @@ private:
     const int SECSINCOUNTDOWNTIMER = 5;
     int secsLeftToClose = SECSINCOUNTDOWNTIMER;
     const int CHARTHEIGHT = 400;
+    const QSize SHOWPROGRESSICONSIZE = QSize(20,20);
+    const QSize STOPNOWICONSIZE = QSize(30,30);
+    const QSize OKICONSIZE = QSize(25,25);
 };
 
 #endif // PROGRESSDIALOG_H

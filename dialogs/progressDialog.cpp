@@ -55,7 +55,7 @@ progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
         graphShown = false;
 
         showStatsButton = new QPushButton(QIcon(":/icons/down_arrow.png"), "Show progress", this);
-        showStatsButton->setIconSize(QSize(20, 20));
+        showStatsButton->setIconSize(SHOWPROGRESSICONSIZE);
         showStatsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
         connect(showStatsButton, &QPushButton::clicked, this, [this, chart] {statsButtonPushed(chart);});
         theGrid->addWidget(showStatsButton, 4, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
@@ -67,7 +67,7 @@ progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
     theGrid->addWidget(onlyStopManually, 4, 2, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
 
     stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Stop\nnow", this);
-    stopHere->setIconSize(QSize(30, 30));
+    stopHere->setIconSize(STOPNOWICONSIZE);
     stopHere->setToolTip(tr("Stop the optimization process immediately and show the best set of teams found so far."));
     stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     connect(stopHere, &QPushButton::clicked, this, [this] {emit letsStop();});
@@ -92,7 +92,7 @@ void progressDialog::setText(const QString &text, int generation, float score, b
 
     if(autostopInProgress)
     {
-        explanationIcon->setPixmap(QIcon(":/icons/ok.png").pixmap(25, 25));
+        explanationIcon->setPixmap(QIcon(":/icons/ok.png").pixmap(OKICONSIZE));
     }
 
     if(autostopInProgress && !onlyStopManually->isChecked())
