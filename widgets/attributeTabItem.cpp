@@ -47,7 +47,7 @@ attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent)
         weight->setValue(1);
         theGrid->addWidget(weight, row, column++, Qt::AlignCenter);
 
-        homogeneous = new QCheckBox(tr("Prefer Homogeneous"), this);
+        homogeneous = new QCheckBox(tr("Prefer\nHomogeneous"), this);
         homogeneous->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
                                    "If unselected, the students on a team will have a wide range of responses to this question."));
         theGrid->addWidget(homogeneous, row, column++, Qt::AlignCenter);

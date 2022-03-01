@@ -1389,8 +1389,8 @@ void SurveyMaker::helpWindow()
     QTextBrowser helpContents(&helpWindow);
     helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
                             "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                            "<p>Joshua Hertz <a href = mailto:gruepr@gmail.com>gruepr@gmail.com</a>"
-                            "<p>Project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>"));
+                            "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
+                            "<p>Project homepage: <a href = http://gruepr.com>gruepr.com</a>"));
     helpContents.append(helpFile.readAll());
     helpFile.close();
     helpContents.setOpenExternalLinks(true);
@@ -1405,9 +1405,9 @@ void SurveyMaker::aboutWindow()
     QMessageBox::about(this, tr("About gruepr: SurveyMaker"),
                        tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                          "<br>Joshua Hertz<br><a href = mailto:gruepr@gmail.com>gruepr@gmail.com</a>"
+                          "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>"
                           "<p>gruepr is an open source project. The source code is freely available at"
-                          "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
+                          "<br>the project homepage: <a href = http://gruepr.com>gruepr.com</a>."
                           "<p>gruepr incorporates:"
                               "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
                               "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"

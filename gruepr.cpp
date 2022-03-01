@@ -685,6 +685,47 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
     refreshStudentDisplay();
     ui->studentTable->clearSortIndicator();
+
+    //INPROG: update response value counts in attribute tabs
+/*    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+      {
+        // set numerical value of each student's response and record in dataOptions a tally for each response
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+        {
+            const QString &currentStudentResponse = student[index].attributeResponse[attribute];
+            QVector<int> &currentStudentAttributeVals = student[index].attributeVals[attribute];
+            if(!student[index].attributeResponse[attribute].isEmpty())
+            {
+                if(attributeType == DataOptions::ordered)
+                {
+                    // for numerical/ordered, set numerical value of students' attribute responses according to the number at the start of the response
+                    currentStudentAttributeVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                }
+                else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::timezone))
+                {
+                    // set numerical value instead according to their place in the sorted list of responses
+                    currentStudentAttributeVals << responses.indexOf(currentStudentResponse) + 1;
+                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
+                }
+                else
+                {
+                    //multicategorical - set numerical values according to each value
+                    const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                    for(const auto &responseFromStudent : setOfResponsesFromStudent)
+                    {
+                        currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
+                        dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                    }
+                }
+            }
+            else
+            {
+                currentStudentAttributeVals << -1;
+            }
+        }
+    }*/
+
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 }
@@ -1905,8 +1946,8 @@ void gruepr::helpWindow()
     QTextBrowser helpContents(&helpWindow);
     helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                             "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                            "<p>Joshua Hertz <a href = mailto:gruepr@gmail.com>gruepr@gmail.com</a>"
-                            "<p>Project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>"));
+                            "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
+                            "<p>Project homepage: <a href = http://gruepr.com>gruepr.com</a>"));
     helpContents.append(helpFile.readAll());
     helpFile.close();
     helpContents.setOpenExternalLinks(true);
@@ -1925,10 +1966,10 @@ void gruepr::aboutWindow()
     QMessageBox::about(this, tr("About gruepr"),
                        tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                          "<br>Joshua Hertz<br><a href = mailto:gruepr@gmail.com>gruepr@gmail.com</a>"
+                          "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>"
                           "<p>This copy of gruepr is ") + user + tr("."
                           "<p>gruepr is an open source project. The source code is freely available at"
-                          "<br>the project homepage: <a href = http://bit.ly/Gruepr>http://bit.ly/Gruepr</a>."
+                          "<br>the project homepage: <a href = http://gruepr.com>gruepr.com</a>."
                           "<p>gruepr incorporates:"
                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"

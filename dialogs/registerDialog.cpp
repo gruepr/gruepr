@@ -20,8 +20,9 @@ registerDialog::registerDialog(QWidget *parent)
     explanation = new QLabel(this);
     explanation->setText(tr("\nThank you for registering your copy of gruepr.\n"
                             "Doing so enables me to best support\nthe community of educators that uses it.\n"
+                            "This information will never be sold or shared."
                             "\t-Josh\n"
-                            "\t gruepr@gmail.com\n"));
+                            "\t info@gruepr.com\n"));
     theGrid->addWidget(explanation, row++, 0);
 
     name = new QLineEdit(this);

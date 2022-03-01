@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2019 - 2022
 // Joshua Hertz
-// gruepr@gmail.com
+// info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -32,9 +32,15 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - added online checking of latest downloadable version, offering to load gruepr homepage if newer one is available
+//
+// IN PROGRESS:
+// - update count of each response in the attributeTabs when selecting a section
+// - fix UI of attribute tabs in gruepr (currently boxes and homogenous box are squished
+// - make the "Create Teams" button more emphasized/obvious so that users will know to click it once they are done? (Maybe make the button a different color than the background of the app)
+// - value of Weight (relative importance) out of a specific number? It was a little confusing to pick a numerical weight without knowing how it would affect the rest of the form or how it mattered proportionally. Maybe specifying a maximum value for that the weight is out of would help with this confusion.
 //
 // TO DO:
-// - update count of each response in the attributeTabs when selecting a section
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least
@@ -72,26 +78,38 @@ int main(int argc, char *argv[])
     auto *splash = new QSplashScreen;
     QPixmap pic(":/icons/fish.png");
     splash->setPixmap(pic);
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ngruepr@gmail.com", Qt::AlignCenter, Qt::white);
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ninfo@gruepr.com", Qt::AlignCenter, Qt::white);
     splash->show();
+
+    // check the latest version available for download and compare to this current version
+    auto *manager = new QNetworkAccessManager(splash);
+    QNetworkRequest request((QUrl(VERSION_CHECK_URL)));
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, false);
+    QNetworkReply *networkReply = manager->get(request);
+    QEventLoop loop;
+    QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    QByteArray latestVersion = (networkReply->bytesAvailable() != 0) ? networkReply->readAll() : "0.0";
+    delete manager;
+    bool upgradeAvailable = (latestVersion.toFloat() > QString(GRUEPR_VERSION_NUMBER).toFloat());
 
     // Create application choice (gruepr or SurveyMaker) window
     auto *startWindow = new QMessageBox;
     auto *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize()+8);
     startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     startWindow->setWindowTitle("gruepr");
-    startWindow->setFont(*boxFont); startWindow->setText("Select an app to run:");
+    startWindow->setFont(*boxFont); startWindow->setText(QObject::tr("Select an app to run:"));
 
     // Button metrics
     boxFont->setPointSize(QApplication::font().pointSize()+4);
-    int labelWidth = (QFontMetrics(*boxFont)).boundingRect("Register gruepr").width();
+    int labelWidth = (QFontMetrics(*boxFont)).boundingRect(QObject::tr("Register gruepr")).width();
     QSize defIconSize(labelWidth-20,labelWidth-20);
     QSize defButtonSize(labelWidth+20,labelWidth);
 
     // Create and add buttons
     auto *leaveButton = new QToolButton(startWindow);
     leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
-    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText("Exit");
+    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText(QObject::tr("Exit"));
     leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     auto *grueprButton = new QToolButton(startWindow);
     grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
@@ -101,7 +119,9 @@ int main(int argc, char *argv[])
     survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
     survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker");
     survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    //Add registration button only if unregistered
+    //Will add upgrade button only if latest downloadable version is newer.
+    QToolButton *upgradeButton = nullptr;
+    //Will add registration button only if unregistered
     QToolButton *registerUserButton = nullptr;
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
@@ -110,6 +130,17 @@ int main(int argc, char *argv[])
 
     //order switches for some reason mac->windows
 #ifdef Q_OS_MACOS
+    if(upgradeAvailable)
+    {
+        upgradeButton = new QToolButton(startWindow);
+        upgradeButton->setIconSize(defIconSize); upgradeButton->setFont(*boxFont); upgradeButton->setFixedSize(defButtonSize);
+        upgradeButton->setIcon(QIcon(":/icons/website.png")); upgradeButton->setText(QObject::tr("New version!"));
+        upgradeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        upgradeButton->setStyleSheet("background-color: #83f2a5");
+        upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
+                                  GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") + latestVersion + ".</html>");
+        startWindow->addButton(upgradeButton, QMessageBox::YesRole);
+    }
     if(!registered)
     {
         registerUserButton = new QToolButton(startWindow);
@@ -117,6 +148,7 @@ int main(int argc, char *argv[])
         registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
         registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         registerUserButton->setStyleSheet("background-color: #f283a5");
+        registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. Doing so helps me support the community of educators that use it.") + "</html>");
         startWindow->addButton(registerUserButton, QMessageBox::YesRole);
     }
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
@@ -131,10 +163,22 @@ int main(int argc, char *argv[])
     {
         registerUserButton = new QToolButton(startWindow);
         registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
-        registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
+        registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText(QObject::tr("Register gruepr"));
         registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         registerUserButton->setStyleSheet("background-color: #f283a5");
+        registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. Doing so helps me support the community of educators that use it.") + "</html>");
         startWindow->addButton(registerUserButton, QMessageBox::YesRole);
+    }
+    if(upgradeAvailable)
+    {
+        upgradeButton = new QToolButton(startWindow);
+        upgradeButton->setIconSize(defIconSize); upgradeButton->setFont(*boxFont); upgradeButton->setFixedSize(defButtonSize);
+        upgradeButton->setIcon(QIcon(":/icons/website.png")); upgradeButton->setText(QObject::tr("New version!"));
+        upgradeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        upgradeButton->setStyleSheet("background-color: #83f2a5");
+        upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
+                                  GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") + latestVersion + ".</html>");
+        startWindow->addButton(upgradeButton, QMessageBox::YesRole);
     }
 #endif
     startWindow->setEscapeButton(leaveButton);
@@ -166,7 +210,7 @@ int main(int argc, char *argv[])
             executionResult = QApplication::exec();
             result = leaveButton;
         }
-        else
+        else if(result == registerUserButton)
         {
             //make sure we can connect to google
             auto *manager = new QNetworkAccessManager(startWindow);
@@ -177,8 +221,8 @@ int main(int argc, char *argv[])
             if(networkReply->bytesAvailable() == 0)
             {
                 //no internet right now
-                QMessageBox::critical(startWindow, "No Internet Connection", "There does not seem to be an internet connection.\n"
-                                                                             "Please register at another time.");
+                QMessageBox::critical(startWindow, QObject::tr("No Internet Connection"), QObject::tr("There does not seem to be an internet connection.\n"
+                                                                                                      "Please register at another time."));
                 delete manager;
             }
             else
@@ -203,14 +247,20 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        QMessageBox::critical(startWindow, "No Connection",
-                                              "There seems to be a problem with submitting your registration.\n"
-                                              "Please try again at another time or contact <gruepr@gmail.com>.");
+                        QMessageBox::critical(startWindow, QObject::tr("No Internet Connection"),
+                                              QObject::tr("There seems to be a problem with submitting your registration.\n"
+                                                          "Please try again at another time or contact <info@gruepr.com>."));
                     }
                 }
                 delete manager;
                 delete window;
             }
+            startWindow->exec();
+            result = startWindow->clickedButton();
+        }
+        else if(result == upgradeButton)
+        {
+            QDesktopServices::openUrl(QUrl("http://gruepr.com"));
             startWindow->exec();
             result = startWindow->clickedButton();
         }

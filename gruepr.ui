@@ -1007,9 +1007,9 @@ Teammates</string>
             <bool>false</bool>
            </property>
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>10</horstretch>
+             <verstretch>10</verstretch>
             </sizepolicy>
            </property>
            <property name="usesScrollButtons">

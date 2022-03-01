@@ -216,6 +216,7 @@ const char TEAMNAMELISTS[]   {";"
                                  "Bed of Oysters,String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
                                  "Committee of Vultures,Colony of Weasels"};
 
+const char VERSION_CHECK_URL[] {"http://www1.coe.neu.edu/~jhertz/grueprcurrentversion.html"};
 const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
 
 #endif // GRUEPR_CONSTS
