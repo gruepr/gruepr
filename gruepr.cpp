@@ -34,8 +34,11 @@ gruepr::gruepr(QWidget *parent) :
     ui->statusBar->addWidget(statusBarLabel);
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
-    //Put attribute label next to that tab widget
+    //Put attribute label next to that tab widget and freeze the width
     ui->attributesTabWidget->setCornerWidget(new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget), Qt::TopLeftCorner);
+    ui->schedulePostLabel->setText("/" + QString::number(TeamingOptions::MAXWEIGHT));
+    ui->attributesTabWidget->adjustSize();
+    ui->attributesTabWidget->setFixedWidth(ui->attributesTabWidget->width());
 
     //Setup the main window menu items
     connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
@@ -71,6 +74,9 @@ gruepr::gruepr(QWidget *parent) :
     ui->saveSurveyFilePushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
     ui->teamingOptionsGroupBox->setFont(altFont);
+    auto palette = ui->letsDoItButton->palette();
+    palette.setBrush(QPalette::Button,Qt::green);
+    ui->letsDoItButton->setPalette(palette);
 
     //Reduce size of the options icons if the screen is small
 #ifdef Q_OS_WIN32
@@ -681,50 +687,52 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
         return;
     }
 
+    //INPROG: Replace "sectionName" as member of gruepr to be teamingOptions->sectionName
     sectionName = desiredSection;
+    teamingOptions->sectionName = desiredSection;
 
     refreshStudentDisplay();
     ui->studentTable->clearSortIndicator();
 
-    //INPROG: update response value counts in attribute tabs
-/*    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-      {
-        // set numerical value of each student's response and record in dataOptions a tally for each response
+    // update the response counts in the attribute tabs
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    {
+        const auto &attributeType = dataOptions->attributeType[attribute];
+
+        // record a tally for each response, starting with a 0 count for each response found in all of the survey data
+        std::map<QString, int> currentResponseCounts;
+        for(const auto & responseCount : qAsConst(dataOptions->attributeQuestionResponseCounts[attribute]))
+        {
+            currentResponseCounts[responseCount.first] = 0;
+        }
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            const QString &currentStudentResponse = student[index].attributeResponse[attribute];
-            QVector<int> &currentStudentAttributeVals = student[index].attributeVals[attribute];
-            if(!student[index].attributeResponse[attribute].isEmpty())
+            if((ui->sectionSelectionBox->currentIndex() == 0) || (student[index].section == ui->sectionSelectionBox->currentText()))
             {
-                if(attributeType == DataOptions::ordered)
+                const QString &currentStudentResponse = student[index].attributeResponse[attribute];
+
+                if(!student[index].attributeResponse[attribute].isEmpty())
                 {
-                    // for numerical/ordered, set numerical value of students' attribute responses according to the number at the start of the response
-                    currentStudentAttributeVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
-                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-                }
-                else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::timezone))
-                {
-                    // set numerical value instead according to their place in the sorted list of responses
-                    currentStudentAttributeVals << responses.indexOf(currentStudentResponse) + 1;
-                    dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-                }
-                else
-                {
-                    //multicategorical - set numerical values according to each value
-                    const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                    for(const auto &responseFromStudent : setOfResponsesFromStudent)
+                    if(attributeType == DataOptions::multicategorical)
                     {
-                        currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
-                        dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                        //multicategorical - tally each value
+                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &responseFromStudent : setOfResponsesFromStudent)
+                        {
+                            currentResponseCounts[responseFromStudent.trimmed()]++;
+                        }
+                    }
+                    else
+                    {
+                        currentResponseCounts[currentStudentResponse]++;
                     }
                 }
             }
-            else
-            {
-                currentStudentAttributeVals << -1;
-            }
         }
-    }*/
+
+        // put this new tally in the responses textbox of the attribute tab
+        attributeTab[attribute].updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
+    }
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
@@ -2054,7 +2062,8 @@ void gruepr::resetUI()
     ui->scheduleWeight->setEnabled(false);
     ui->label_16->setEnabled(false);
     ui->label_0->setEnabled(false);
-    ui->label_6->setEnabled(false);
+    ui->schedulePreLabel->setEnabled(false);
+    ui->schedulePostLabel->setEnabled(false);
     ui->label_7->setEnabled(false);
     ui->label_8->setEnabled(false);
     ui->label_9->setEnabled(false);
@@ -2103,9 +2112,8 @@ void gruepr::resetUI()
     // remove any teams tabs (since we delete each one, move from last down to first; don't delete index 0 which is the student tab)
     for(int tabIndex = ui->dataDisplayTabWidget->count() - 1; tabIndex > 0; tabIndex--)
     {
-        auto *tab = ui->dataDisplayTabWidget->widget(tabIndex);
         ui->dataDisplayTabWidget->removeTab(tabIndex);
-        tab->deleteLater();
+        ui->dataDisplayTabWidget->widget(tabIndex)->deleteLater();
     }
 }
 
@@ -2216,7 +2224,8 @@ void gruepr::loadUI()
         ui->scheduleWeight->setEnabled(true);
         ui->label_16->setEnabled(true);
         ui->label_0->setEnabled(true);
-        ui->label_6->setEnabled(true);
+        ui->schedulePreLabel->setEnabled(true);
+        ui->schedulePostLabel->setEnabled(true);
         ui->label_7->setEnabled(true);
         ui->label_8->setEnabled(true);
         ui->label_9->setEnabled(true);

@@ -42,6 +42,7 @@ public:
     int largerTeamsNumTeams = 1;
     int numTeamsDesired = 1;
     int teamSizesDesired[MAX_STUDENTS] = {0};
+    QString sectionName;
 };
 
 #endif // TEAMINGOPTIONS_H

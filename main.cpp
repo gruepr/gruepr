@@ -33,12 +33,12 @@
 //
 // DONE:
 // - added online checking of latest downloadable version, offering to load gruepr homepage if newer one is available
+// - update count of each response in the attributeTabs when selecting a section
+// - fixed UI of attribute tabs in gruepr
+// - added an indicator of the maximum value of schedule and attribute weights
 //
 // IN PROGRESS:
-// - update count of each response in the attributeTabs when selecting a section
-// - fix UI of attribute tabs in gruepr (currently boxes and homogenous box are squished
-// - make the "Create Teams" button more emphasized/obvious so that users will know to click it once they are done? (Maybe make the button a different color than the background of the app)
-// - value of Weight (relative importance) out of a specific number? It was a little confusing to pick a numerical weight without knowing how it would affect the rest of the form or how it mattered proportionally. Maybe specifying a maximum value for that the weight is out of would help with this confusion.
+// - made the "Create Teams" button more emphasized/obvious
 //
 // TO DO:
 // - in gatherteammates dialog, enable the 'load from teamsTab' action

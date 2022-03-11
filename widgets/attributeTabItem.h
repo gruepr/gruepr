@@ -23,6 +23,7 @@ public:
     explicit attributeTabItem(TabType tabType = gruepr, int tabNum = 0, QWidget *parent = nullptr);
 
     void setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions);
+    void updateQuestionAndResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts={});
     void setTabNum(int tabNum);
 
     QTextEdit *attributeText = nullptr;
@@ -42,7 +43,8 @@ private slots:
 
 private:
     QGridLayout *theGrid = nullptr;
-    QLabel *weightLabel = nullptr;
+    QLabel *weightPreLabel = nullptr;
+    QLabel *weightPostLabel = nullptr;
     int index = 0;
 };
 

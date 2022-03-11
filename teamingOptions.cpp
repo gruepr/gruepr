@@ -27,4 +27,5 @@ void TeamingOptions::reset()
     haveAnyRequiredTeammates = false;
     haveAnyPreventedTeammates = false;
     haveAnyRequestedTeammates = false;
+    sectionName.clear();
 }
