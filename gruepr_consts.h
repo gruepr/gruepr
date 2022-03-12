@@ -15,7 +15,7 @@ const int MAX_ATTRIBUTES = 15;                          // maximum number of ski
 const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
 
 const int HIGHSCHEDULEOVERLAPSCALE = 6;                 // if a team has more than the desired amount of schedule overlap, additional overlap times are scaled by
-                                                        // the inverse of this factor (e.g., 6 means additional hour is worth 1/6) DO NOT CHANGE TO ZERO
+                                                        // the inverse of this factor (e.g., 6 means additional hour is worth 1/6) DO NOT CHANGE TO ZERO--WILL CAUSE DIV. BY ZERO CRASH
 
 const int PRINTOUT_FONTSIZE = 9;
 

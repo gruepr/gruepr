@@ -31,7 +31,6 @@ public:
     float scheduleWeight = 1;
     float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
     int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
-    static const int MAXWEIGHT = 100;                   // the maximum value the user can assign for an attribute or schedule weight
     bool haveAnyRequiredTeammates = false;
     bool haveAnyPreventedTeammates = false;
     bool haveAnyRequestedTeammates = false;
@@ -43,6 +42,8 @@ public:
     int numTeamsDesired = 1;
     int teamSizesDesired[MAX_STUDENTS] = {0};
     QString sectionName;
+    int teamsetNumber = 1;                              // which teamset are we working on now?
+    static const int MAXWEIGHT = 10;                    // the maximum value the user can assign for an attribute or schedule weight
 };
 
 #endif // TEAMINGOPTIONS_H

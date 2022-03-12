@@ -21,7 +21,7 @@ class TeamsTabItem : public QWidget
 Q_OBJECT
 
 public:
-    explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const QString &incomingSectionName, const DataOptions *const incomingDataOptions,
+    explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions,
                           TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent = nullptr);
     ~TeamsTabItem();
 
@@ -75,7 +75,6 @@ private:
     StudentRecord *students = nullptr;
     int numStudents = 1;
 
-    QString sectionName;
     QString instructorsFileContents;
     QString studentsFileContents;
     QString spreadsheetFileContents;

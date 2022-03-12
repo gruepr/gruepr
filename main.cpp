@@ -36,11 +36,11 @@
 // - update count of each response in the attributeTabs when selecting a section
 // - fixed UI of attribute tabs in gruepr
 // - added an indicator of the maximum value of schedule and attribute weights
-//
-// IN PROGRESS:
-// - made the "Create Teams" button more emphasized/obvious
+// - folded section name into teamingOptions
+// - teamset numbers shown in teams tab now appropriately reset when loading a new datafile
 //
 // TO DO:
+// - made the "Create Teams" button more emphasized/obvious
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least

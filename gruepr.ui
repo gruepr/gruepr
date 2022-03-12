@@ -505,6 +505,9 @@ Meeting Times:</string>
            </item>
            <item>
             <layout class="QHBoxLayout" name="scheduleWeightLayout">
+             <property name="spacing">
+              <number>2</number>
+             </property>
              <item>
               <widget class="QLabel" name="schedulePreLabel">
                <property name="enabled">

@@ -14,12 +14,11 @@
 #include <QTextStream>
 #include <QtConcurrent>
 
-TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const QString &incomingSectionName, const DataOptions *const incomingDataOptions,
+TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions,
                            TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting, to mark when prevented teammates are added
-    sectionName = incomingSectionName;
     dataOptions = new DataOptions(*incomingDataOptions);
     teams = incomingTeams;
     numTeams = incomingNumTeams;
@@ -35,7 +34,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const Q
     QString fileAndSectionName = "<html><b>" + tr("File") + ":</b> " + dataOptions->dataFile.fileName();
     if(dataOptions->sectionNames.size() > 1)
     {
-        fileAndSectionName += ",  <b>" + tr("Section") + ":</b> " + sectionName;
+        fileAndSectionName += ",  <b>" + tr("Section") + ":</b> " + teamingOptions->sectionName;
     }
     fileAndSectionName += "</html>";
     fileAndSectionLabel = new QLabel(fileAndSectionName, this);
@@ -920,7 +919,7 @@ void TeamsTabItem::createFileContents()
 {
     spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
 
-    instructorsFileContents = tr("File: ") + dataOptions->dataFile.filePath() + "\n" + tr("Section: ") + sectionName + "\n\n";
+    instructorsFileContents = tr("File: ") + dataOptions->dataFile.filePath() + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
     instructorsFileContents += tr("Teaming Options") + ":";
     if(dataOptions->genderIncluded)
     {

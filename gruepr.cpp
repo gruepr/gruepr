@@ -34,11 +34,19 @@ gruepr::gruepr(QWidget *parent) :
     ui->statusBar->addWidget(statusBarLabel);
     qRegisterMetaType<QVector<float> >("QVector<float>");
 
-    //Put attribute label next to that tab widget and freeze the width
+    //For the attibute tabs, put the "attribute" label in the corner and freeze the width
     ui->attributesTabWidget->setCornerWidget(new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget), Qt::TopLeftCorner);
     ui->schedulePostLabel->setText("/" + QString::number(TeamingOptions::MAXWEIGHT));
     ui->attributesTabWidget->adjustSize();
     ui->attributesTabWidget->setFixedWidth(ui->attributesTabWidget->width());
+
+    //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
+    ui->dataDisplayTabWidget->setTabsClosable(true);
+    ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
+    ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
+    connect(ui->dataDisplayTabWidget, &QTabWidget::tabCloseRequested, this, &gruepr::dataDisplayTabClose);
+    connect(ui->dataDisplayTabWidget, &QTabWidget::currentChanged, this, &gruepr::dataDisplayTabSwitch);
+    connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
 
     //Setup the main window menu items
     connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
@@ -74,9 +82,6 @@ gruepr::gruepr(QWidget *parent) :
     ui->saveSurveyFilePushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
     ui->teamingOptionsGroupBox->setFont(altFont);
-    auto palette = ui->letsDoItButton->palette();
-    palette.setBrush(QPalette::Button,Qt::green);
-    ui->letsDoItButton->setPalette(palette);
 
     //Reduce size of the options icons if the screen is small
 #ifdef Q_OS_WIN32
@@ -687,8 +692,6 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
         return;
     }
 
-    //INPROG: Replace "sectionName" as member of gruepr to be teamingOptions->sectionName
-    sectionName = desiredSection;
     teamingOptions->sectionName = desiredSection;
 
     refreshStudentDisplay();
@@ -1402,7 +1405,7 @@ void gruepr::on_requiredTeammatesButton_clicked()
     }
     //Open specialized dialog box to collect pairings that are required
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions->numStudentsInSystem,
-                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, &teamTabNames, this);
+                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
@@ -1428,7 +1431,7 @@ void gruepr::on_preventedTeammatesButton_clicked()
     }
     //Open specialized dialog box to collect pairings that are prevented
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions->numStudentsInSystem,
-                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, &teamTabNames, this);
+                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
@@ -1454,7 +1457,7 @@ void gruepr::on_requestedTeammatesButton_clicked()
     }
     //Open specialized dialog box to collect pairings that are requested
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::requested, student, dataOptions->numStudentsInSystem,
-                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : sectionName, &teamTabNames, this);
+                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
@@ -1819,21 +1822,9 @@ void gruepr::optimizationComplete()
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
-    auto *teamTab = new TeamsTabItem(teamingOptions, sectionName, dataOptions, teams, numTeams, student, this);
-    static int teamsetNum = 1;
-    ui->dataDisplayTabWidget->addTab(teamTab, tr("Team set ") + QString::number(teamsetNum));
-
-    // if this is the first teams tab, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
-    if(teamsetNum == 1)
-    {
-        ui->dataDisplayTabWidget->setTabsClosable(true);
-        ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
-        ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
-        connect(ui->dataDisplayTabWidget, &QTabWidget::tabCloseRequested, this, &gruepr::dataDisplayTabClose);
-        connect(ui->dataDisplayTabWidget, &QTabWidget::currentChanged, this, &gruepr::dataDisplayTabSwitch);
-        connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
-    }
-    teamsetNum++;
+    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, teams, numTeams, student, this);
+    ui->dataDisplayTabWidget->addTab(teamTab, tr("Team set ") + QString::number(teamingOptions->teamsetNumber));
+    teamingOptions->teamsetNumber++;
 
     ui->actionSave_Teams->setEnabled(true);
     ui->actionPrint_Teams->setEnabled(true);
@@ -2155,7 +2146,7 @@ void gruepr::loadUI()
     {
         ui->sectionSelectionBox->addItem(tr("No section data."));
     }
-    sectionName = ui->sectionSelectionBox->currentText();
+    teamingOptions->sectionName = ui->sectionSelectionBox->currentText();
     ui->sectionSelectionBox->blockSignals(false);
 
     refreshStudentDisplay();
@@ -2899,7 +2890,7 @@ void gruepr::refreshStudentDisplay()
     }
     ui->studentTable->setRowCount(numStudents);
 
-    QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0? "All sections" : " Section: " + sectionName);
+    QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0? "All sections" : " Section: " + teamingOptions->sectionName);
     statusBarLabel->setText(statusBarLabel->text().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
 
     ui->studentTable->setUpdatesEnabled(true);
