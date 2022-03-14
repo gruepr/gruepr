@@ -71,9 +71,9 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         theGrid->setRowMinimumHeight(row++, DIALOG_SPACER_ROWHEIGHT);
         theGrid->addWidget(buttonBox, row, 0, 1, -1);
 
-        connect(namesList, &QComboBox::currentTextChanged, this, [this, &student](const QString &currText){currSurveyName = currText;
-                                                                                                           currSurveyEmail = student[namesList->currentData().toInt()].email;
-                                                                                                           currSurveyID = student[namesList->currentData().toInt()].ID;});
+        connect(namesList, &QComboBox::currentTextChanged, this, [this, student](const QString &currText){currSurveyName = currText;
+                                                                                                          currSurveyEmail = student[namesList->currentData().toInt()].email;
+                                                                                                          currSurveyID = student[namesList->currentData().toInt()].ID;});
     }
     else
     {
@@ -149,7 +149,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         theGrid->addWidget(line3, row++, 0, 1, -1);
         theGrid->addWidget(ignoreButton, row, 0, 1, 1);
 
-        connect(namesList, &QComboBox::currentTextChanged, this, [this, searchEmail, &student](const QString &currText)
+        connect(namesList, &QComboBox::currentTextChanged, this, [this, searchEmail, student](const QString &currText)
                                                                  {currSurveyName = currText;
                                                                   currSurveyEmail = student[namesList->currentData().toInt()].email;
                                                                   currSurveyID = student[namesList->currentData().toInt()].ID;

@@ -39,7 +39,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
         responses[response].setStyleSheet("Text-align:left");
         theTable->setCellWidget(response, 1, &responses[response]);
         connect(&responses[response], &QPushButton::clicked, &enableValue[response], &QCheckBox::toggle);
-        connect(&enableValue[response], &QCheckBox::stateChanged, this, [&, response](int state){
+        connect(&enableValue[response], &QCheckBox::stateChanged, this, [this, response](int state){
                                                                                  if(state == Qt::Checked)
                                                                                    {URMResponsesConsideredUR << responses[response].text();
                                                                                     responses[response].setStyleSheet("Text-align:left;font-weight: bold;");}

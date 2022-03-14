@@ -32,14 +32,15 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - bugfix: crash on mac when selecting a matching name in the select-name-dialogue
+// - bugfix: correctly accounts for sub-version numbers in online check for update
 //
 // TO DO:
-// - bugfix: crash on mac when selecting alternate matching name in select-name-dialogue
 // - add which student listed the name that needs to be matched in select-name-dialogue
 // - made the "Create Teams" button more emphasized/obvious
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
-// - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - more granular scheduling option, down to the 15 minute level at least
+// - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
@@ -57,6 +58,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QSplashScreen>
+#include <QStringList>
 #include <QThread>
 #include <QToolButton>
 #include <QtNetwork>
@@ -85,9 +87,26 @@ int main(int argc, char *argv[])
     QEventLoop loop;
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    QByteArray latestVersion = (networkReply->bytesAvailable() != 0) ? networkReply->readAll() : "0.0";
+    QString latestVersionString = (networkReply->bytesAvailable() != 0) ? networkReply->readAll() : "0";
     delete manager;
-    bool upgradeAvailable = (latestVersion.toFloat() > QString(GRUEPR_VERSION_NUMBER).toFloat());
+    QStringList latestVersion = latestVersionString.split('.');
+    QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
+    // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
+    for(int field = latestVersion.size(); field < NUMBER_VERSION_FIELDS; field++)
+    {
+        latestVersion << QString("0");
+    }
+    for(int field = thisVersion.size(); field < NUMBER_VERSION_FIELDS; field++)
+    {
+        thisVersion << QString("0");
+    }
+    unsigned long long int latestVersionAsInt = 0, thisVersionAsInt = 0;
+    for(int field = 0; field < NUMBER_VERSION_FIELDS; field++)
+    {
+        latestVersionAsInt = (latestVersionAsInt*100) + latestVersion.at(field).toInt();
+        thisVersionAsInt = (thisVersionAsInt*100) + thisVersion.at(field).toInt();
+    }
+    bool upgradeAvailable = latestVersionAsInt > thisVersionAsInt;
 
     // Create application choice (gruepr or SurveyMaker) window
     auto *startWindow = new QMessageBox;
@@ -104,21 +123,32 @@ int main(int argc, char *argv[])
 
     // Create and add buttons
     auto *leaveButton = new QToolButton(startWindow);
-    leaveButton->setIconSize(defIconSize); leaveButton->setFont(*boxFont); leaveButton->setFixedSize(defButtonSize);
-    leaveButton->setIcon(QIcon(":/icons/exit.png")); leaveButton->setText(QObject::tr("Exit"));
-    leaveButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     auto *grueprButton = new QToolButton(startWindow);
-    grueprButton->setIconSize(defIconSize); grueprButton->setFont(*boxFont); grueprButton->setFixedSize(defButtonSize);
-    grueprButton->setIcon(QIcon(":/icons/gruepr.png")); grueprButton->setText("gruepr");
-    grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     auto *survMakeButton = new QToolButton(startWindow);
-    survMakeButton->setIconSize(defIconSize); survMakeButton->setFont(*boxFont); survMakeButton->setFixedSize(defButtonSize);
-    survMakeButton->setIcon(QIcon(":/icons/surveymaker.png")); survMakeButton->setText("SurveyMaker");
-    survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    //Will add upgrade button only if latest downloadable version is newer.
-    QToolButton *upgradeButton = nullptr;
-    //Will add registration button only if unregistered
-    QToolButton *registerUserButton = nullptr;
+    //Will add upgrade button if latest downloadable version is newer.
+    auto *upgradeButton = new QToolButton;
+    upgradeButton->setStyleSheet("background-color: #83f2a5");
+    upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
+                              GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") +
+                              latestVersionString + ".</html>");
+    //Will add registration button if unregistered
+    auto *registerUserButton = new QToolButton;
+    registerUserButton->setStyleSheet("background-color: #f283a5");
+    registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. "
+                                   "Doing so helps me support the community of educators that use it.") + "</html>");
+    QToolButton *buttons[] = {leaveButton, grueprButton, survMakeButton, upgradeButton, registerUserButton};
+    QStringList texts = {QObject::tr("Exit"), "gruepr", "SurveyMaker", QObject::tr("New version!"), QObject::tr("Register")+" gruepr"};
+    QStringList icons = {"exit", "gruepr", "surveymaker", "website", "license"};
+    for(int i = 0; i < texts.size(); i++)
+    {
+        auto &button = buttons[i];
+        button->setIconSize(defIconSize);
+        button->setFont(*boxFont);
+        button->setFixedSize(defButtonSize);
+        button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        button->setText(texts.at(i));
+        button->setIcon(QIcon(":/icons/" + icons.at(i) + ".png"));
+    }
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString UserID = savedSettings.value("registeredUserID", "").toString();
@@ -128,23 +158,12 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_MACOS
     if(upgradeAvailable)
     {
-        upgradeButton = new QToolButton(startWindow);
-        upgradeButton->setIconSize(defIconSize); upgradeButton->setFont(*boxFont); upgradeButton->setFixedSize(defButtonSize);
-        upgradeButton->setIcon(QIcon(":/icons/website.png")); upgradeButton->setText(QObject::tr("New version!"));
-        upgradeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        upgradeButton->setStyleSheet("background-color: #83f2a5");
-        upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
-                                  GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") + latestVersion + ".</html>");
+        upgradeButton->setParent(startWindow);
         startWindow->addButton(upgradeButton, QMessageBox::YesRole);
     }
     if(!registered)
     {
-        registerUserButton = new QToolButton(startWindow);
-        registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
-        registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText("Register gruepr");
-        registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        registerUserButton->setStyleSheet("background-color: #f283a5");
-        registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. Doing so helps me support the community of educators that use it.") + "</html>");
+        registerUserButton->setParent(startWindow);
         startWindow->addButton(registerUserButton, QMessageBox::YesRole);
     }
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
@@ -157,23 +176,12 @@ int main(int argc, char *argv[])
     startWindow->addButton(leaveButton, QMessageBox::YesRole);
     if(!registered)
     {
-        registerUserButton = new QToolButton(startWindow);
-        registerUserButton->setIconSize(defIconSize); registerUserButton->setFont(*boxFont); registerUserButton->setFixedSize(defButtonSize);
-        registerUserButton->setIcon(QIcon(":/icons/license.png")); registerUserButton->setText(QObject::tr("Register gruepr"));
-        registerUserButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        registerUserButton->setStyleSheet("background-color: #f283a5");
-        registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. Doing so helps me support the community of educators that use it.") + "</html>");
+        registerUserButton->setParent(startWindow);
         startWindow->addButton(registerUserButton, QMessageBox::YesRole);
     }
     if(upgradeAvailable)
     {
-        upgradeButton = new QToolButton(startWindow);
-        upgradeButton->setIconSize(defIconSize); upgradeButton->setFont(*boxFont); upgradeButton->setFixedSize(defButtonSize);
-        upgradeButton->setIcon(QIcon(":/icons/website.png")); upgradeButton->setText(QObject::tr("New version!"));
-        upgradeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        upgradeButton->setStyleSheet("background-color: #83f2a5");
-        upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
-                                  GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") + latestVersion + ".</html>");
+        upgradeButton->setParent(startWindow);
         startWindow->addButton(upgradeButton, QMessageBox::YesRole);
     }
 #endif

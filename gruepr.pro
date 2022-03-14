@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.6
+gruepr_version = 10.6.1
 copyright_year = 2019-2022
 
 QT       += core gui widgets concurrent network printsupport charts
@@ -15,6 +15,7 @@ TEMPLATE = app
 
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
+DEFINES += NUMBER_VERSION_FIELDS=4  # Allowing for version numbers 4 levels deep (i.e., 0.0.0.0)
 
 # set application properties
 VERSION = $$gruepr_version
