@@ -2428,16 +2428,13 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                 int index = std::distance(TIME_MEANINGS, val);
                 dataOptions->timeNames << timeNamesStrings.at(index);
             }
-        }
-    }
 
-    // If each student's home timezone was used, ask what should be used as the base timezone that they should all be adjusted to
-    if(dataOptions->homeTimezoneUsed)
-    {
-        auto *window = new baseTimezoneDialog(this);
-        window->exec();
-        dataOptions->baseTimezone = window->baseTimezoneVal;
-        window->deleteLater();
+            // Ask what should be used as the base timezone to which schedules will all be adjusted
+            auto *window = new baseTimezoneDialog(this);
+            window->exec();
+            dataOptions->baseTimezone = window->baseTimezoneVal;
+            window->deleteLater();
+        }
     }
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
@@ -2571,24 +2568,12 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
             else
             {
-                QRegularExpression zoneFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
-                std::sort(responses.begin(), responses.end(), [zoneFinder] (const QString &A, const QString &B) {
-                                                                            float timezoneA = 0, timezoneB = 0;
-                                                                            QRegularExpressionMatch zoneA = zoneFinder.match(A);
-                                                                            QRegularExpressionMatch zoneB = zoneFinder.match(B);
-                                                                            if(zoneA.hasMatch())
-                                                                            {
-                                                                                float hours = zoneA.captured(1).toFloat();
-                                                                                float minutes = zoneA.captured(2).toFloat();
-                                                                                timezoneA = hours + (hours < 0? (-minutes/60) : (minutes/60));
-                                                                            }
-                                                                            if(zoneB.hasMatch())
-                                                                            {
-                                                                                float hours = zoneB.captured(1).toFloat();
-                                                                                float minutes = zoneB.captured(2).toFloat();
-                                                                                timezoneB = hours + (hours < 0? (-minutes/60) : (minutes/60));
-                                                                            }
-                                                                            return timezoneA < timezoneB;});
+                std::sort(responses.begin(), responses.end(), [] (const QString &A, const QString &B) {
+                                                                    float timezoneA = 0, timezoneB = 0;
+                                                                    QString unusedtimezoneName;
+                                                                    DataOptions::parseTimezoneInfoFromText(A, unusedtimezoneName, timezoneA);
+                                                                    DataOptions::parseTimezoneInfoFromText(B, unusedtimezoneName, timezoneB);
+                                                                    return timezoneA < timezoneB;});
             }
 
             // set values associated with each response and create a spot to hold the responseCounts
@@ -2612,7 +2597,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
             else
             {
-                // TODO: for timezone, values should be the GMT offsets (rounded to nearest hour?); currently, same as categorical
+                // INPROG: for timezone, values should be the GMT offsets (rounded to nearest hour?); currently, same as categorical
                 for(int i = 1; i <= responses.size(); i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);

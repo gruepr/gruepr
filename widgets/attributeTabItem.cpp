@@ -147,7 +147,6 @@ void attributeTabItem::updateQuestionAndResponses(int attribute, const DataOptio
     questionWithResponses += "<hr><div style=\"margin-left:5%;\">";
 
     QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
-    QRegularExpression GMToffset("(.*)\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
     int responseNum = 0;
     for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute]))
     {
@@ -167,14 +166,12 @@ void attributeTabItem::updateQuestionAndResponses(int attribute, const DataOptio
         else
         {
             // timezone, show response with GMT in bold
-            QRegularExpressionMatch offset = GMToffset.match(response);
-            if(offset.hasMatch())
+            QString timezoneName;
+            float hours=0, minutes=0, offsetFromGMT=0;
+            if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT))
             {
-                QString timezoneText = offset.captured(1);
-                int hours = offset.captured(2).toInt();
-                int minutes = offset.captured(3).toInt();
-                QString GMTtext = QString("%1%2:%3").arg(hours >= 0 ? "+" : "").arg(hours).arg(minutes, 2, 10, QChar('0'));
-                questionWithResponses += "<br><b>" + GMTtext + "</b> " + timezoneText;
+                QString GMTtext = QString("%1%2:%3").arg(hours >= 0 ? "+" : "").arg(static_cast<int>(hours)).arg(static_cast<int>(minutes), 2, 10, QChar('0'));
+                questionWithResponses += "<br><b>" + GMTtext + "</b> " + timezoneName;
             }
             else
             {

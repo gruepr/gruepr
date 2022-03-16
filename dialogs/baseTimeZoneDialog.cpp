@@ -1,5 +1,6 @@
 #include "baseTimeZoneDialog.h"
 #include "gruepr_consts.h"
+#include "dataOptions.h"
 #include <QDateTime>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,21 +30,13 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 
     QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");
     timezones = new QComboBox(this);
-    for(int zone = 0; zone < timeZoneNames.size(); zone++)
+    for(auto &zonenameText : timeZoneNames)
     {
-        QString zonename = timeZoneNames.at(zone);
-        zonename.remove('"');
+        QString zonename;
+        zonenameText.remove('"');
         float GMTOffset = 0;
-        QRegularExpression offsetFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
-        QRegularExpressionMatch offset = offsetFinder.match(zonename);
-        if(offset.hasMatch())
-        {
-            float hours = offset.captured(1).toFloat();
-            float minutes = offset.captured(2).toFloat();
-            GMTOffset = hours + ((hours < 0)? (-minutes/60) : (minutes/60));
-        }
-        timezones->insertItem(zone, zonename);
-        timezones->setItemData(zone, GMTOffset);
+        DataOptions::parseTimezoneInfoFromText(zonenameText, zonename, GMTOffset);
+        timezones->addItem(zonenameText, GMTOffset);
     }
     int index = timezones->findData(hoursToGMTFromHere);
     timezones->setCurrentIndex(index != -1? index : 0);

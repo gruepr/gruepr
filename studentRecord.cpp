@@ -136,13 +136,9 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     fieldnum = dataOptions->timezoneField;
     if(fieldnum != -1)
     {
-        QRegularExpression zoneFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
-        QRegularExpressionMatch zone = zoneFinder.match(fields.at(fieldnum).toUtf8());
-        if(zone.hasMatch())
+        QString timezoneText = fields.at(fieldnum).toUtf8(), timezoneName;
+        if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone))
         {
-            float hours = zone.captured(1).toFloat();
-            float minutes = zone.captured(2).toFloat();
-            timezone = hours + (hours < 0? (-minutes/60) : (minutes/60));
             if(dataOptions->homeTimezoneUsed)
             {
                 timezoneOffset = std::lround(dataOptions->baseTimezone - timezone);

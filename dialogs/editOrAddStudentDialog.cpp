@@ -185,19 +185,13 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeCombobox[comboboxNum].insertItem(0,tr("not set/unknown"));
                 attributeCombobox[comboboxNum].insertSeparator(1);
                 QStringList timezones = QString(TIMEZONENAMES).split(";");
-                QRegularExpression offsetFinder(".*\\[GMT(.*):(.*)\\].*");  // characters after "[GMT" are +hh:mm "]"
-                for(auto &timezone : timezones)
+                for(auto &zonenameText : timezones)
                 {
-                    timezone.remove(QChar('"'));
-                    float timezoneOffset = 0;
-                    QRegularExpressionMatch offset = offsetFinder.match(timezone);
-                    if(offset.hasMatch())
-                    {
-                        float hours = offset.captured(1).toFloat();
-                        float minutes = offset.captured(2).toFloat();
-                        timezoneOffset = hours + ((hours < 0)? (-minutes/60) : (minutes/60));
-                    }
-                    attributeCombobox[comboboxNum].addItem(timezone, timezoneOffset);
+                    zonenameText.remove('"');
+                    QString zonename;
+                    float GMTOffset = 0;
+                    DataOptions::parseTimezoneInfoFromText(zonenameText, zonename, GMTOffset);
+                    attributeCombobox[comboboxNum].addItem(zonenameText, GMTOffset);
                 }
                 if(student.attributeResponse[attribute].isEmpty())  // no response, so "unknown"
                 {

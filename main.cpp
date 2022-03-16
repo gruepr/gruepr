@@ -32,10 +32,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - bugfix: crash on mac when selecting a matching name in the select-name-dialogue
-// - bugfix: correctly accounts for sub-version numbers in online check for update
+// - now only asks for the class's base timezone if the students are asked for their home timezone AND for their schedule
+// - significantly expanded the algorithm that recognizes timezone data in the survey; now can find, for example, [GMT00:00], GMT 0000, UTC+00:00, and UTC0000
 //
 // TO DO:
+// - fix display width of UI elements in teamsTabs
 // - add which student listed the name that needs to be matched in select-name-dialogue
 // - made the "Create Teams" button more emphasized/obvious
 // - in gatherteammates dialog, enable the 'load from teamsTab' action

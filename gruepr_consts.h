@@ -48,6 +48,13 @@ const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:0
 const int TIME_MEANINGS[] {1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,
                            13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,0,0,0,12,0};
 
+const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}):?(\d{2}).*)"}; // capture (1) intro text,
+                                                                                   // skip "[" if present, then either "GMT" or "UTC", then any whitespace if present
+                                                                                   // capture (2) + or - if present plus 2 digits
+                                                                                   // skip ":" if present,
+                                                                                   // capture (3) 2 digits
+                                                                                   // skip rest
+
 const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
 const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
 const char TIMESTAMP_FORMAT3[] {"M/d/yyyy h:mm:ss"};
@@ -59,8 +66,8 @@ const char TIMEZONENAMES[] {"International Date Line West [GMT-12:00];\"Samoa: M
                             "Central America: Central America [GMT-06:00];Eastern: US and Canada [GMT-05:00];\"S.A. Pacific: Bogota, Lima, Quito [GMT-05:00]\";"
                             "Atlantic: Canada [GMT-04:00];\"S.A. Western: Caracas, La Paz [GMT-04:00]\";Pacific S.A.: Santiago [GMT-04:00];Newfoundland and Labrador [GMT-03:30];"
                             "E. South America: Brasilia [GMT-03:00];\"S.A. Eastern: Buenos Aires, Georgetown [GMT-03:00]\";Greenland [GMT-03:00];Mid-Atlantic Islands [GMT-02:00];"
-                            "Azores [GMT-01:00];Cape Verde [GMT-01:00];\"Greenwich Mean Time: Dublin, Edinburgh, Lisbon, London [GMT +00:00]\";"
-                            "\"Greenwich: Casablanca, Monrovia [GMT +00:00]\";\"Central Europe: Belgrade, Bratislava, Budapest, Ljubljana, Prague [GMT+01:00]\";"
+                            "Azores [GMT-01:00];Cape Verde [GMT-01:00];\"Greenwich Mean Time: Dublin, Edinburgh, Lisbon, London [GMT+00:00]\";"
+                            "\"Greenwich: Casablanca, Monrovia [GMT+00:00]\";\"Central Europe: Belgrade, Bratislava, Budapest, Ljubljana, Prague [GMT+01:00]\";"
                             "\"Central Europe: Sarajevo, Skopje, Warsaw, Zagreb [GMT+01:00]\";\"Romance: Brussels, Copenhagen, Madrid, Paris [GMT+01:00]\";"
                             "\"W. Europe: Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna [GMT+01:00]\";W. Central Africa: West Central Africa [GMT+01:00];"
                             "E. Europe: Bucharest [GMT+02:00];Egypt: Cairo [GMT+02:00];\"FLE: Helsinki, Kiev, Riga, Sofia, Tallinn, Vilnius [GMT+02:00]\";"

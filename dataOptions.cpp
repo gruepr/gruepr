@@ -1,4 +1,5 @@
 #include "dataOptions.h"
+#include <QRegularExpression>
 
 DataOptions::DataOptions()
 {
@@ -36,3 +37,27 @@ void DataOptions::reset()
     dayNames.clear();
     timeNames.clear();
 }
+
+bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &hours, float &minutes, float &offsetFromGMT)
+{
+    QRegularExpression timeZoneFinder(TIMEZONEREGEX);
+    QRegularExpressionMatch timezoneCapture = timeZoneFinder.match(fullText);
+    if(timezoneCapture.hasMatch())
+    {
+        timezoneName = timezoneCapture.captured(1).trimmed();
+        hours = timezoneCapture.captured(2).toFloat();
+        minutes = timezoneCapture.captured(3).toFloat();
+        offsetFromGMT = hours + ((hours < 0)? (-minutes/60) : (minutes/60));
+        return true;
+    }
+    return false;
+}
+
+
+bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &offsetFromGMT)
+{
+    float hours, minutes;
+    return parseTimezoneInfoFromText(fullText, timezoneName, hours, minutes, offsetFromGMT);
+}
+
+
