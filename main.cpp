@@ -32,11 +32,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - now only asks for the class's base timezone if the students are asked for their home timezone AND for their schedule
+// - now only asks for the class's base timezone if the students were asked for their home timezone AND for their schedule
 // - significantly expanded the algorithm that recognizes timezone data in the survey; now can find, for example, [GMT00:00], GMT 0000, UTC+00:00, and UTC0000
+// - fix display width of UI elements in teamsTabs
+// - updated required C++ standard to C++17 to allow inline variables
 //
 // TO DO:
-// - fix display width of UI elements in teamsTabs
 // - add which student listed the name that needs to be matched in select-name-dialogue
 // - made the "Create Teams" button more emphasized/obvious
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
     // check the latest version available for download and compare to this current version
     auto *manager = new QNetworkAccessManager(splash);
     QNetworkRequest request((QUrl(VERSION_CHECK_URL)));
-    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, false);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     QNetworkReply *networkReply = manager->get(request);
     QEventLoop loop;
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);

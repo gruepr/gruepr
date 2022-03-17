@@ -105,12 +105,10 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     collapseAllButton->setToolTip(tr("Show only the summarized data for all of the teams"));
     teamOptionsLayout->addWidget(collapseAllButton);
 
-    teamOptionsLayout->addStretch();
     vertLine = new QFrame(this);
     vertLine->setFrameShape(QFrame::VLine);
     vertLine->setFrameShadow(QFrame::Sunken);
     teamOptionsLayout->addWidget(vertLine);
-    teamOptionsLayout->addStretch();
 
     setNamesLabel = new QLabel(tr("Set team names:"), this);
     teamOptionsLayout->addWidget(setNamesLabel);
@@ -121,7 +119,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     for(auto &teamnameCategory : teamnameCategories)
     {
         // use the last character as the type signifier, then remove the character from the actual name
-        switch((*(teamnameCategory.crbegin())).toLatin1())
+        switch((*(teamnameCategory.crbegin())).unicode())
         {
         case '.':
             teamnameTypes << numeric;
@@ -158,12 +156,10 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     connect(randTeamnamesCheckBox, &QCheckBox::clicked, this, &TeamsTabItem::randomizeTeamnames);
     teamOptionsLayout->addWidget(randTeamnamesCheckBox);
 
-    teamOptionsLayout->addStretch();
     vertLine = new QFrame(this);
     vertLine->setFrameShape(QFrame::VLine);
     vertLine->setFrameShadow(QFrame::Sunken);
     teamOptionsLayout->addWidget(vertLine);
-    teamOptionsLayout->addStretch();
 
     sendToPreventedTeammates = new QPushButton(QIcon(":/icons/notfriends.png"), tr("Load as\nprevented\nteammates"), this);
     sendToPreventedTeammates->setIconSize(SAVEPRINTICONSIZE);
@@ -171,6 +167,14 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
                                             "another set of teams can be created with everyone getting all new teammates</html>"));
     connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makePrevented);
     teamOptionsLayout->addWidget(sendToPreventedTeammates);
+
+    teamOptionsLayout->addStretch();
+    QWidget *widgets[] = {expandAllButton, collapseAllButton, setNamesLabel, randTeamnamesCheckBox, sendToPreventedTeammates};
+    for(auto *const widget : widgets)
+    {
+        widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        widget->setFixedSize(widget->sizeHint());
+    }
 
 
     savePrintLayout = new QHBoxLayout;

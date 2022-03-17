@@ -39,6 +39,7 @@ gruepr::gruepr(QWidget *parent) :
     ui->schedulePostLabel->setText("/" + QString::number(TeamingOptions::MAXWEIGHT));
     ui->attributesTabWidget->adjustSize();
     ui->attributesTabWidget->setFixedWidth(ui->attributesTabWidget->width());
+    ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
 
     //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
     ui->dataDisplayTabWidget->setTabsClosable(true);
@@ -2785,7 +2786,7 @@ void gruepr::refreshStudentDisplay()
         {
             bool duplicate = student[index].duplicateRecord;
 
-            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, student[index].surveyTimestamp.toString(Qt::SystemLocaleShortDate));
+            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, QLocale::system().toString(student[index].surveyTimestamp, QLocale::ShortFormat));
             timestamp->setToolTip(student[index].tooltip);
             if(duplicate)
             {

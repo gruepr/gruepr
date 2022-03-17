@@ -23,40 +23,37 @@ attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent)
         theGrid->addWidget(attributeText, row++, column, 1, -1);
 
         weightPreLabel = new QLabel(tr("Weight:"), this);
-        theGrid->addWidget(weightPreLabel, row, column++);
 
         weight = new QDoubleSpinBox(this);
-        weight->setToolTip(tr("<html>The relative importance of this attribute in forming the teams.</html>"));
         weight->setButtonSymbols(QAbstractSpinBox::NoButtons);
         weight->setDecimals(1);
         weight->setMinimum(0);
         weight->setMaximum(TeamingOptions::MAXWEIGHT);
+        weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
         weight->setValue(1);
-        theGrid->addWidget(weight, row, column++);
-        weight->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        weight->setFixedSize(weight->sizeHint());
 
         weightPostLabel = new QLabel("/" + QString::number(TeamingOptions::MAXWEIGHT) + "   ", this);
-        theGrid->addWidget(weightPostLabel, row, column++);
 
         homogeneous = new QCheckBox(tr("Prefer\nHomogeneous"), this);
         homogeneous->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
                                    "If unselected, the students on a team will have a wide range of responses to this question."));
-        theGrid->addWidget(homogeneous, row, column++);
-        homogeneous->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        homogeneous->setFixedSize(homogeneous->sizeHint());
 
         requiredButton = new QPushButton(tr("Required\nAttributes"), this);
         requiredButton->setToolTip(tr("<html>Indicate attribute value(s) where each team should have at least one student with that value.</html>"));
-        theGrid->addWidget(requiredButton, row, column++);
-        requiredButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        requiredButton->setFixedSize(requiredButton->sizeHint());
 
         incompatsButton = new QPushButton(tr("Incompatible\nAttributes"), this);
         incompatsButton->setToolTip(tr("<html>Indicate attribute value(s) that should prevent students from being on the same team.</html>"));
-        theGrid->addWidget(incompatsButton, row, column);
-        incompatsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        incompatsButton->setFixedSize(incompatsButton->sizeHint());
+
+        QWidget *widgets[] = {weightPreLabel, weight, weightPostLabel, homogeneous, requiredButton, incompatsButton};
+        for(auto *const widget : widgets)
+        {
+            if((widget != weightPreLabel) && (widget != weightPostLabel))
+            {
+                widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+                widget->setFixedSize(widget->sizeHint());
+            }
+            theGrid->addWidget(widget, row, column++);
+        }
     }
     else    // surveymaker
     {
@@ -122,7 +119,7 @@ void attributeTabItem::setValues(int attribute, const DataOptions *const dataOpt
     else
     {
         weight->setEnabled(true);
-        weight->setToolTip(tr("The relative importance of this attribute in forming the teams"));
+        weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
         homogeneous->setEnabled(true);
         homogeneous->setToolTip(tr("If selected, all of the students on a team will have a similar response to this question.\n"
                                    "If unselected, the students on a team will have a wide range of responses to this question."));

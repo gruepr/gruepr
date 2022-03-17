@@ -34,7 +34,7 @@ macx: ICON = icons\gruepr.icns
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-CONFIG += c++11
+CONFIG += c++17
 
 # remove possible other optimization flags
 QMAKE_CXXFLAGS_RELEASE -= -O

@@ -102,7 +102,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     if(whatType == requested)
     {
         possibleTeammates[possibleNumIDs].addItem("Select the student:");
-        possibleTeammates[possibleNumIDs].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
+        possibleTeammates[possibleNumIDs].setItemData(0, QBrush(Qt::gray), Qt::ForegroundRole);
         possibleTeammates[possibleNumIDs].insertSeparator(1);
         for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {
@@ -123,7 +123,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
         {
             possibleTeammates[combobox].addItem("Select a requested teammate:");
         }
-        possibleTeammates[combobox].setItemData(0, QBrush(Qt::gray), Qt::TextColorRole);
+        possibleTeammates[combobox].setItemData(0, QBrush(Qt::gray), Qt::ForegroundRole);
         possibleTeammates[combobox].insertSeparator(1);
         for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {

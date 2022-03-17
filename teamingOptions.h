@@ -2,6 +2,7 @@
 #define TEAMINGOPTIONS_H
 
 #include "gruepr_consts.h"
+#include <QObject>
 #include <QStringList>
 
 //the teaming options set by the user when forming teams
@@ -43,7 +44,11 @@ public:
     int teamSizesDesired[MAX_STUDENTS] = {0};
     QString sectionName;
     int teamsetNumber = 1;                              // which teamset are we working on now?
-    static const int MAXWEIGHT = 10;                    // the maximum value the user can assign for an attribute or schedule weight
+    inline static const int MAXWEIGHT = 10;             // the maximum value the user can assign for an attribute or schedule weight
+    inline static const QString WEIGHTTOOLTIP = "<html>" + QObject::tr("The relative importance of this attribute in forming the teams. The range is from 0 to ") +
+                                                QString::number(TeamingOptions::MAXWEIGHT) + ".</html>";
+    inline static const QString SCHEDULEWEIGHTTOOLTIP = "<html>" + QObject::tr("The relative importance of the schedule in forming the teams. The range is from 0 to ") +
+                                                        QString::number(TeamingOptions::MAXWEIGHT) + ".</html>";
 };
 
 #endif // TEAMINGOPTIONS_H

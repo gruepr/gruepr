@@ -17,7 +17,7 @@ bool SortableTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
     if(sortType == datetime)
     {
-        return QDateTime::fromString(text(), Qt::SystemLocaleShortDate) < QDateTime::fromString(other.text(), Qt::SystemLocaleShortDate);
+        return QLocale::system().toDateTime(text(), QLocale::ShortFormat) < QLocale::system().toDateTime(other.text(), QLocale::ShortFormat);
     }
 
     return (sortAlphanumerically.compare(text(), other.text()) < 0);

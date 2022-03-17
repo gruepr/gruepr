@@ -541,9 +541,6 @@ Meeting Times:</string>
                  <height>18</height>
                 </size>
                </property>
-               <property name="toolTip">
-                <string>The relative importance of schedule overlap in forming the teams</string>
-               </property>
                <property name="buttonSymbols">
                 <enum>QAbstractSpinBox::NoButtons</enum>
                </property>

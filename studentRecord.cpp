@@ -1,4 +1,5 @@
 #include "studentRecord.h"
+#include <QLocale>
 #include <QRegularExpression>
 
 StudentRecord::StudentRecord()
@@ -25,8 +26,6 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(fieldnum != -1)
     {
         const QString &timestampText = fields.at(fieldnum);
-        QVector<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::SystemLocaleShortDate, Qt::SystemLocaleLongDate, Qt::RFC2822Date};
-
         surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
         if(surveyTimestamp.isNull())
         {
@@ -37,11 +36,23 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                 if(surveyTimestamp.isNull())
                 {
                     surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT4);
-                    int i = 0;
-                    while(i < stdTimestampFormats.size() && surveyTimestamp.isNull())
+                    if(surveyTimestamp.isNull())
                     {
-                        surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
-                        i++;
+                        surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::ShortFormat);
+                        if(surveyTimestamp.isNull())
+                        {
+                            surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::LongFormat);
+                            if(surveyTimestamp.isNull())
+                            {
+                                int i = 0;
+                                QVector<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
+                                while(i < stdTimestampFormats.size() && surveyTimestamp.isNull())
+                                {
+                                    surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
+                                    i++;
+                                }
+                            }
+                        }
                     }
                 }
             }
