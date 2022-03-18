@@ -32,10 +32,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - now only asks for the class's base timezone if the students were asked for their home timezone AND for their schedule
-// - significantly expanded the algorithm that recognizes timezone data in the survey; now can find, for example, [GMT00:00], GMT 0000, UTC+00:00, and UTC0000
-// - fix display width of UI elements in teamsTabs
-// - updated required C++ standard to C++17 to allow inline variables
+// - improved UI in start window, with message confirming user has the latest version and is registered
 //
 // TO DO:
 // - add which student listed the name that needs to be matched in select-name-dialogue
@@ -108,39 +105,52 @@ int main(int argc, char *argv[])
         latestVersionAsInt = (latestVersionAsInt*100) + latestVersion.at(field).toInt();
         thisVersionAsInt = (thisVersionAsInt*100) + thisVersion.at(field).toInt();
     }
-    bool upgradeAvailable = latestVersionAsInt > thisVersionAsInt;
+    const bool upgradeAvailable = latestVersionAsInt > thisVersionAsInt;
+
+    // check to see if this copy of gruepr has been registered
+    QSettings savedSettings;
+    QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    QString UserID = savedSettings.value("registeredUserID", "").toString();
+    const bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
 
     // Create application choice (gruepr or SurveyMaker) window
     auto *startWindow = new QMessageBox;
-    auto *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize()+8);
+    auto *boxFont = new QFont("Oxygen Mono", QApplication::font().pointSize() + gruepr::MAINWINDOWFONT);
     startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     startWindow->setWindowTitle("gruepr");
-    startWindow->setFont(*boxFont); startWindow->setText(QObject::tr("Select an app to run:"));
+    startWindow->setFont(*boxFont);
+    startWindow->setText(QObject::tr("Select an app to run:"));
 
-    // Button metrics
-    boxFont->setPointSize(QApplication::font().pointSize()+4);
-    int labelWidth = (QFontMetrics(*boxFont)).boundingRect(QObject::tr("Register gruepr")).width();
-    QSize defIconSize(labelWidth-20,labelWidth-20);
-    QSize defButtonSize(labelWidth+20,labelWidth);
-
-    // Create and add buttons
+    // Create buttons and add to window
     auto *leaveButton = new QToolButton(startWindow);
     auto *grueprButton = new QToolButton(startWindow);
     auto *survMakeButton = new QToolButton(startWindow);
-    //Will add upgrade button if latest downloadable version is newer.
-    auto *upgradeButton = new QToolButton;
+    auto *upgradeButton = new QToolButton(startWindow);
     upgradeButton->setStyleSheet("background-color: #83f2a5");
     upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
                               GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") +
                               latestVersionString + ".</html>");
-    //Will add registration button if unregistered
-    auto *registerUserButton = new QToolButton;
+    auto *registerUserButton = new QToolButton(startWindow);
     registerUserButton->setStyleSheet("background-color: #f283a5");
     registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. "
                                    "Doing so helps me support the community of educators that use it.") + "</html>");
-    QToolButton *buttons[] = {leaveButton, grueprButton, survMakeButton, upgradeButton, registerUserButton};
-    QStringList texts = {QObject::tr("Exit"), "gruepr", "SurveyMaker", QObject::tr("New version!"), QObject::tr("Register")+" gruepr"};
-    QStringList icons = {"exit", "gruepr", "surveymaker", "website", "license"};
+    //order reverses for some reason mac->windows
+    QList<QToolButton *> buttons;
+#ifdef Q_OS_MACOS
+    buttons << upgradeButton << registerUserButton << leaveButton << grueprButton << survMakeButton;
+    QStringList texts = {QObject::tr("New version!"), QObject::tr("Register")+" gruepr", QObject::tr("Exit"), "gruepr", "SurveyMaker"};
+    QStringList icons = { "website", "license", "exit", "gruepr", "surveymaker"};
+#endif
+#ifdef Q_OS_WIN32
+    buttons << survMakeButton << grueprButton << leaveButton << registerUserButton << upgradeButton;
+    QStringList texts = {"SurveyMaker", "gruepr", QObject::tr("Exit"), QObject::tr("Register")+" gruepr", QObject::tr("New version!")};
+    QStringList icons = {"surveymaker", "gruepr", "exit", "license", "website"};
+#endif
+    //set button metrics
+    boxFont->setPointSize(QApplication::font().pointSize() + gruepr::MAINWINDOWBUTTONFONT);
+    const int labelWidth = (QFontMetrics(*boxFont)).boundingRect(QObject::tr("Register")+" gruepr").width();
+    const QSize defIconSize(labelWidth - gruepr::MAINWINDOWPADDING,labelWidth - gruepr::MAINWINDOWPADDING);
+    const QSize defButtonSize(labelWidth + gruepr::MAINWINDOWPADDING,labelWidth);
     for(int i = 0; i < texts.size(); i++)
     {
         auto &button = buttons[i];
@@ -150,44 +160,41 @@ int main(int argc, char *argv[])
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         button->setText(texts.at(i));
         button->setIcon(QIcon(":/icons/" + icons.at(i) + ".png"));
+        startWindow->addButton(button, QMessageBox::YesRole);
     }
-    QSettings savedSettings;
-    QString registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString UserID = savedSettings.value("registeredUserID", "").toString();
-    bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
-
-    //order switches for some reason mac->windows
-#ifdef Q_OS_MACOS
-    if(upgradeAvailable)
-    {
-        upgradeButton->setParent(startWindow);
-        startWindow->addButton(upgradeButton, QMessageBox::YesRole);
-    }
-    if(!registered)
-    {
-        registerUserButton->setParent(startWindow);
-        startWindow->addButton(registerUserButton, QMessageBox::YesRole);
-    }
-    startWindow->addButton(leaveButton, QMessageBox::YesRole);
-    startWindow->addButton(grueprButton, QMessageBox::YesRole);
-    startWindow->addButton(survMakeButton, QMessageBox::YesRole);
-#endif
-#ifdef Q_OS_WIN32
-    startWindow->addButton(survMakeButton, QMessageBox::YesRole);
-    startWindow->addButton(grueprButton, QMessageBox::YesRole);
-    startWindow->addButton(leaveButton, QMessageBox::YesRole);
-    if(!registered)
-    {
-        registerUserButton->setParent(startWindow);
-        startWindow->addButton(registerUserButton, QMessageBox::YesRole);
-    }
-    if(upgradeAvailable)
-    {
-        upgradeButton->setParent(startWindow);
-        startWindow->addButton(upgradeButton, QMessageBox::YesRole);
-    }
-#endif
     startWindow->setEscapeButton(leaveButton);
+
+    // Create status bar to show when registered and/or latest version installed
+    auto *statusLabel = new QLabel(startWindow);
+    QString statusMessage;
+    if(!upgradeAvailable)
+    {
+        upgradeButton->hide();
+        if(latestVersionAsInt != 0)     // couldn't connect to the online check, so even though we're hiding the button, we shouldn't add an affirmation of having latest version
+        {
+            statusMessage = QObject::tr("You have the latest version of gruepr. ");
+        }
+    }
+    if(registered)
+    {
+        registerUserButton->hide();
+        statusMessage += QObject::tr("Thank you for being a registered user.");
+    }
+    if(!registered && upgradeAvailable)
+    {
+        statusLabel->hide();
+    }
+    else
+    {
+        statusLabel->setText(statusMessage);
+        statusLabel->setFont(QApplication::font());
+        auto *grid = qobject_cast<QGridLayout*>(startWindow->layout());
+        if(grid != nullptr)
+        {
+            grid->setRowMinimumHeight(grid->rowCount(), gruepr::MAINWINDOWPADDING);
+            grid->addWidget(statusLabel, grid->rowCount(), 0, -1, -1, Qt::AlignLeft);
+        }
+    }
 
     // Show application choice window and delete splash
     splash->finish(startWindow);

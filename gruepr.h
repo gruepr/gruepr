@@ -33,6 +33,9 @@ public:
 
     static void getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
+    static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
+    static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
+    static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
 
 protected:
     void closeEvent(QCloseEvent *event);
