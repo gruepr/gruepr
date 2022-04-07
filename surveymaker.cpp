@@ -41,8 +41,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->actionHelp, &QAction::triggered, this, &SurveyMaker::helpWindow);
     ui->actionAbout->setMenuRole(QAction::AboutRole);
     connect(ui->actionAbout, &QAction::triggered, this, &SurveyMaker::aboutWindow);
-    connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
-    connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("http://bit.ly/grueprBugReportFromApp"));});
+    connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(GRUEPRHOMEPAGE));});
+    connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
 
     //Connect the simple UI interactions to a simple refresh of survey data
     connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
@@ -1390,7 +1390,7 @@ void SurveyMaker::helpWindow()
     helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
                             "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
                             "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
-                            "<p>Project homepage: <a href = http://gruepr.com>gruepr.com</a>"));
+                            "<p>Project homepage: <a href = ") + GRUEPRHOMEPAGE + ">" + GRUEPRHOMEPAGE + "</a>");
     helpContents.append(helpFile.readAll());
     helpFile.close();
     helpContents.setOpenExternalLinks(true);

@@ -63,8 +63,8 @@ gruepr::gruepr(QWidget *parent) :
     connect(ui->actionHelp, &QAction::triggered, this, &gruepr::helpWindow);
     ui->actionAbout->setMenuRole(QAction::AboutRole);
     connect(ui->actionAbout, &QAction::triggered, this, &gruepr::aboutWindow);
-    connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("https://bit.ly/grueprFromApp"));});
-    connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl("http://bit.ly/grueprBugReportFromApp"));});
+    connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(GRUEPRHOMEPAGE));});
+    connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
 
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
     connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
@@ -1743,13 +1743,13 @@ void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const i
         progressChart->loadNextVals(allScores, orderedIndex);
     }
 
-    if(generation > MAX_GENERATIONS)
+    if(generation > GA::MAX_GENERATIONS)
     {
-        progressWindow->setText(tr("We have reached ") + QString::number(MAX_GENERATIONS) + tr(" generations."),
+        progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
                                 generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
         progressWindow->highlightStopButton();
     }
-    else if( (generation >= MIN_GENERATIONS) && (scoreStability > MIN_SCORE_STABILITY) )
+    else if( (generation >= GA::MIN_GENERATIONS) && (scoreStability > GA::MIN_SCORE_STABILITY) )
     {
         progressWindow->setText(tr("Score appears to be stable."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
         progressWindow->highlightStopButton();
@@ -1760,7 +1760,7 @@ void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const i
     }
 
 #ifdef Q_OS_WIN32
-    if(generation >= GENERATIONS_OF_STABILITY)
+    if(generation >= GA::GENERATIONS_OF_STABILITY)
     {
         taskbarProgress->setMaximum(100);
         taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
@@ -1944,10 +1944,10 @@ void gruepr::helpWindow()
     helpWindow.setWindowTitle("Help");
     QGridLayout theGrid(&helpWindow);
     QTextBrowser helpContents(&helpWindow);
-    helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
-                            "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                            "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
-                            "<p>Project homepage: <a href = http://gruepr.com>gruepr.com</a>"));
+    helpContents.setHtml(QString("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+                         "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+                         "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
+                         "<p>Project homepage: <a href = ") + GRUEPRHOMEPAGE + ">" + GRUEPRHOMEPAGE + "</a>");
     helpContents.append(helpFile.readAll());
     helpFile.close();
     helpContents.setOpenExternalLinks(true);
@@ -1964,13 +1964,13 @@ void gruepr::aboutWindow()
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
     QMessageBox::about(this, tr("About gruepr"),
-                       tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+                          "<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                           "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                          "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>"
-                          "<p>This copy of gruepr is ") + user + tr("."
-                          "<p>gruepr is an open source project. The source code is freely available at"
-                          "<br>the project homepage: <a href = http://gruepr.com>gruepr.com</a>."
-                          "<p>gruepr incorporates:"
+                          "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>" +
+                          tr("<p>This copy of gruepr is ") + user + "." +
+                          tr("<p>gruepr is an open source project. The source code is freely available at"
+                          "<br>the project homepage: <a href = ") + GRUEPRHOMEPAGE + ">" + GRUEPRHOMEPAGE + "</a>" +
+                          tr("<p>gruepr incorporates:"
                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
                              "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
@@ -2907,17 +2907,17 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
     // allocate memory for a genepool for current generation and a next generation as it is being created
-    int **genePool = new int*[POPULATIONSIZE];
-    int **nextGenGenePool = new int*[POPULATIONSIZE];
+    int **genePool = new int*[GA::POPULATIONSIZE];
+    int **nextGenGenePool = new int*[GA::POPULATIONSIZE];
     // allocate memory for current and next generation's ancestors
-    int **ancestors = new int*[POPULATIONSIZE];
-    int **nextGenAncestors = new int*[POPULATIONSIZE];
+    int **ancestors = new int*[GA::POPULATIONSIZE];
+    int **nextGenAncestors = new int*[GA::POPULATIONSIZE];
     int numAncestors = 2;           //always track mom & dad
-    for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS; generation++)
+    for(int generation = 0; generation < GA::NUMGENERATIONSOFANCESTORS; generation++)
     {
         numAncestors += (4<<generation);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
     }
-    for(int genome = 0; genome < POPULATIONSIZE; genome++)
+    for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
     {
         genePool[genome] = new int[numStudents];
         nextGenGenePool[genome] = new int[numStudents];
@@ -2925,8 +2925,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
         nextGenAncestors[genome] = new int[numAncestors];
     }
     // allocate memory for array of indexes, to be sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
-    int *orderedIndex = new int[POPULATIONSIZE];
-    for(int genome = 0; genome < POPULATIONSIZE; genome++)
+    int *orderedIndex = new int[GA::POPULATIONSIZE];
+    for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
     {
         orderedIndex[genome] = genome;
     }
@@ -2939,7 +2939,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
         randPerm[i] = studentIndexes[i];
     }
     // then make "populationSize" number of random permutations for initial population, store in genePool
-    for(int genome = 0; genome < POPULATIONSIZE; genome++)
+    for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
     {
         std::shuffle(randPerm, randPerm+numStudents, pRNG);
         for(int ID = 0; ID < numStudents; ID++)
@@ -2950,8 +2950,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     delete[] randPerm;
 
     // just use random values for the initial "ancestor" values
-    std::uniform_int_distribution<unsigned int> randAncestor(0, POPULATIONSIZE);
-    for(int genome = 0; genome < POPULATIONSIZE; genome++)
+    std::uniform_int_distribution<unsigned int> randAncestor(0, GA::POPULATIONSIZE);
+    for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
     {
         for(int ancestor = 0; ancestor < numAncestors; ancestor++)
         {
@@ -2966,7 +2966,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    QVector<float> scores(POPULATIONSIZE);
+    QVector<float> scores(GA::POPULATIONSIZE);
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
@@ -2987,7 +2987,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
         }
         penaltyPoints = new int[numTeams];
 #pragma omp for
-        for(int genome = 0; genome < POPULATIONSIZE; genome++)
+        for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
         {
             scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
                                             teamingOptions, dataOptions, unusedTeamScores,
@@ -3009,12 +3009,12 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // get genome indexes in order of score, largest to smallest
-    std::sort(orderedIndex, orderedIndex+POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
+    std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
     emit generationComplete(scores, orderedIndex, 0, 0);
 
     int child[MAX_STUDENTS];
     int *mom=nullptr, *dad=nullptr;                 // pointer to genome of mom and dad
-    float bestScores[GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
+    float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
     int generation = 0;
     bool localOptimizationStopped = false;
@@ -3025,7 +3025,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
         do					// keep optimizing until reach stability or maxGenerations
         {
             // clone the elites in genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
-            for(int genome = 0; genome < NUM_ELITES; genome++)
+            for(int genome = 0; genome < GA::NUM_ELITES; genome++)
             {
                 for(int ID = 0; ID < numStudents; ID++)
                 {
@@ -3034,7 +3034,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 
                 nextGenAncestors[genome][0] = nextGenAncestors[genome][1] = orderedIndex[genome];   // both parents are this genome
                 int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
-                for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++)
+                for(int generation = 1; generation < GA::NUMGENERATIONSOFANCESTORS; generation++)
                 {
                     //all four grandparents are this genome's parents, etc. for increasing generations
                     for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++)
@@ -3052,10 +3052,10 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             }
 
             // create rest of population in nextGenGenePool by mating
-            for(int genome = NUM_ELITES; genome < POPULATIONSIZE; genome++)
+            for(int genome = GA::NUM_ELITES; genome < GA::POPULATIONSIZE; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
+                GA::tournamentSelectParents(genePool, numStudents, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
                 GA::mate(mom, dad, teamSizes, numTeams, child, numStudents, pRNG);
@@ -3067,9 +3067,9 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 
             // take all but the single top-scoring elite genome and mutate with some probability; if a mutation occurred, mutate same genome again with same probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-            for(int genome = 1; genome < POPULATIONSIZE; genome++)
+            for(int genome = 1; genome < GA::POPULATIONSIZE; genome++)
             {
-                while(randProbability(pRNG) < MUTATIONLIKELIHOOD)
+                while(randProbability(pRNG) < GA::MUTATIONLIKELIHOOD)
                 {
                     GA::mutate(&nextGenGenePool[genome][0], numStudents, pRNG);
                 }
@@ -3098,7 +3098,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 }
                 penaltyPoints = new int[numTeams];
 #pragma omp for nowait
-                for(int genome = 0; genome < POPULATIONSIZE; genome++)
+                for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
                 {
                     scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
                                                     teamingOptions, dataOptions, unusedTeamScores,
@@ -3120,12 +3120,12 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             }
 
             // get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex, orderedIndex+POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
+            std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
 
             // determine best score, save in historical record, and calculate score stability
             float maxScoreInThisGeneration = scores[orderedIndex[0]];
-            float maxScoreFromGenerationsAgo = bestScores[(generation+1)%GENERATIONS_OF_STABILITY];
-            bestScores[generation%GENERATIONS_OF_STABILITY] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
+            float maxScoreFromGenerationsAgo = bestScores[(generation+1)%GA::GENERATIONS_OF_STABILITY];
+            bestScores[generation%GA::GENERATIONS_OF_STABILITY] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
 
             if(maxScoreInThisGeneration == maxScoreFromGenerationsAgo)
             {
@@ -3142,7 +3142,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             localOptimizationStopped = optimizationStopped;
             optimizationStoppedmutex.unlock();
         }
-        while(!localOptimizationStopped && ((generation < MIN_GENERATIONS) || ((generation < MAX_GENERATIONS) && (scoreStability < MIN_SCORE_STABILITY))));
+        while(!localOptimizationStopped && ((generation < GA::MIN_GENERATIONS) || ((generation < GA::MAX_GENERATIONS) && (scoreStability < GA::MIN_SCORE_STABILITY))));
 
         if(localOptimizationStopped)
         {
@@ -3157,7 +3157,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     while(keepOptimizing);
 
     finalGeneration = generation;
-    teamSetScore = bestScores[generation%GENERATIONS_OF_STABILITY];
+    teamSetScore = bestScores[generation%GA::GENERATIONS_OF_STABILITY];
 
     //copy best team set into a QVector to return
     QVector<int> bestTeamSet;
@@ -3168,7 +3168,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // deallocate memory
-    for(int genome = 0; genome < POPULATIONSIZE; ++genome)
+    for(int genome = 0; genome < GA::POPULATIONSIZE; ++genome)
     {
         delete[] nextGenGenePool[genome];
         delete[] genePool[genome];
@@ -3439,21 +3439,24 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
             }
 
             // convert counts to a schedule score
+            // normal schedule score is number of overlaps / desired number of overlaps
             if(_schedScore[team] > _teamingOptions->desiredTimeBlocksOverlap)		// if team has > desiredTimeBlocksOverlap, additional overlaps count less
             {
-                _schedScore[team] = 1 + ((_schedScore[team] - _teamingOptions->desiredTimeBlocksOverlap) /
-                                        (HIGHSCHEDULEOVERLAPSCALE * _teamingOptions->desiredTimeBlocksOverlap));
+                int numAdditionalOverlaps = int(_schedScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
+                _schedScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
+                float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+                for(int n = 1 ; n <= numAdditionalOverlaps; n++)
+                {
+                    _schedScore[team] += factor;
+                    factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+                }
             }
-            else if(_schedScore[team] >= _teamingOptions->minTimeBlocksOverlap)	// if team has between minimum and desired amount of schedule overlap
-            {
-                _schedScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;	// normal schedule score is number of overlaps / desired number of overlaps
-            }
-            else													// if team has fewer than minTimeBlocksOverlap, apply penalty
+            else if(_schedScore[team] < _teamingOptions->minTimeBlocksOverlap)	// if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
             {
                 _schedScore[team] = 0;
                 _penaltyPoints[team]++;
             }
-
+            _schedScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
             _schedScore[team] *= _teamingOptions->realScheduleWeight;
         }
     }

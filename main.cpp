@@ -33,6 +33,10 @@
 //
 // DONE:
 // - improved UI in start window, with message confirming user has the latest version and is registered
+// - adjusted scoring when team has more-than-desired schedule overlap to prevent runaway scores with high overlap--not reduced worth of each additional time by half
+//      (i.e., 1st additional is work 1/2 of the previous one, the 2nd additional is worth 1/4, the 3rd additional is worth 1/8, etc...)
+// - increased max number of students to 500; works fast enough with 500 students, but gets very slow when Required Teammates or Non-Teammates are present
+// - code modernization
 //
 // TO DO:
 // - add which student listed the name that needs to be matched in select-name-dialogue

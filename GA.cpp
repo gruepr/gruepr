@@ -4,10 +4,20 @@
 //////////////////
 // Select two parents from the genepool using tournament selection
 //////////////////
-void GA::tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
+void GA::tournamentSelectParents(int *const *const genePool, const int genomeSize, const int *const orderedIndex, int *const *const ancestors,
+                                 int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
     std::uniform_int_distribution<unsigned int> randGenome(0, POPULATIONSIZE-1);
+    unsigned int topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[2];
+    if(genomeSize <= GA::GENOMESIZETHRESHOLD[0])
+    {
+        topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[0];
+    }
+    else if(genomeSize <= GA::GENOMESIZETHRESHOLD[1])
+    {
+        topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[1];
+    }
 
     //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
     //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
@@ -22,14 +32,14 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring genome in tournament)
     int momsindex = 0;
     //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
-    while(randProbability(pRNG) > TOPGENOMELIKELIHOOD)
+    while(randProbability(pRNG) > topgenomelikelihood)
     {
         momsindex++;
     }
 
     //pick second genome from tournament in same way, but make sure to not pick the same genome
     int dadsindex = 0;
-    while((randProbability(pRNG) > TOPGENOMELIKELIHOOD) || (dadsindex == momsindex))
+    while((randProbability(pRNG) > topgenomelikelihood) || (dadsindex == momsindex))
     {
         dadsindex++;
     }

@@ -22,6 +22,7 @@ private:
     QGridLayout *theGrid;
     QLabel *explanation;
     QDialogButtonBox *buttonBox;
+    inline const static QString EMAILADDRESSREGEX = "^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$";
 };
 
 #endif // REGISTERDIALOG_H

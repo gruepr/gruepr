@@ -5,7 +5,7 @@
 #include <Qt>
 
 
-const int MAX_STUDENTS = MAX_RECORDS;                   // each student is a "record" in the genetic algorithm
+const int MAX_STUDENTS = GA::MAX_RECORDS;               // each student is a "record" in the genetic algorithm
 const int MAX_IDS = 2 * MAX_STUDENTS;                   // since students can be removed and added yet IDs always increase, need more IDs than possible students
 const int MAX_TEAMS = MAX_STUDENTS/2;
 
@@ -14,8 +14,9 @@ const int MAX_BLOCKS_PER_DAY = 24;
 const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes in a survey
 const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
 
-const int HIGHSCHEDULEOVERLAPSCALE = 6;                 // if a team has more than the desired amount of schedule overlap, additional overlap times are scaled by
-                                                        // the inverse of this factor (e.g., 6 means additional hour is worth 1/6) DO NOT CHANGE TO ZERO--WILL CAUSE DIV. BY ZERO CRASH
+const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a team has more than the desired amount of schedule overlap, each additional overlap time is scaled by
+                                                        // the inverse of this factor (e.g., 2 means next additional hour is worth 1/2; one more is worth 1/4; next is 1/8, etc.)
+                                                        // DO NOT CHANGE TO ZERO--WILL CAUSE DIV. BY ZERO CRASH
 
 const int PRINTOUT_FONTSIZE = 9;
 
@@ -225,5 +226,7 @@ const char TEAMNAMELISTS[]   {";"
 
 const char VERSION_CHECK_URL[] {"http://www1.coe.neu.edu/~jhertz/grueprcurrentversion.html"};
 const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
+const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
+const char BUGREPORTPAGE[] {"http://bit.ly/grueprBugReportFromApp"};
 
 #endif // GRUEPR_CONSTS

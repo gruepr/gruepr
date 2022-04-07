@@ -38,7 +38,7 @@ registerDialog::registerDialog(QWidget *parent)
     theGrid->addWidget(email, row++, 0);
     //force an email address-like input
     //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
-    QRegularExpression emailAddressFormat("^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression emailAddressFormat(EMAILADDRESSREGEX, QRegularExpression::CaseInsensitiveOption);
     email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
     connect(email, &QLineEdit::textChanged, this, [this]()
                                              {QString stylecolor = (email->hasAcceptableInput())? "black" : "red";
