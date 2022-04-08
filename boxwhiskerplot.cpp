@@ -19,11 +19,11 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     this->addAxis(axisX, Qt::AlignBottom);
     dataSeries->attachAxis(axisX);
     xAxisRange[0] = 0;
-    xAxisRange[1] = dataWidth/plotFrequency;
+    xAxisRange[1] = DATAWIDTH/PLOTFREQUENCY;
     axisX->setRange(xAxisRange[0], xAxisRange[1]);
     for(int label = 0; label <= xAxisRange[1]; label++)
     {
-        axisX->append(QString::number(label*plotFrequency), label);
+        axisX->append(QString::number(label*PLOTFREQUENCY), label);
     }
     axisX->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
     axisX->setLabelsFont(labelsFont);
@@ -65,17 +65,17 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const o
     //shift x-axis by updateChunkSize if we are at the right edge of graph
     if(dataSeries->count() > xAxisRange[1])
     {
-        xAxisRange[0] = std::max(xAxisRange[0], dataSeries->count() - 1 + (updateChunkSize - dataWidth)/plotFrequency);
-        xAxisRange[1] = std::max(xAxisRange[1], dataSeries->count() - 1 + (updateChunkSize/plotFrequency));
+        xAxisRange[0] = std::max(xAxisRange[0], dataSeries->count() - 1 + (UPDATECHUNKSIZE - DATAWIDTH)/PLOTFREQUENCY);
+        xAxisRange[1] = std::max(xAxisRange[1], dataSeries->count() - 1 + (UPDATECHUNKSIZE/PLOTFREQUENCY));
         //remove labels getting shifted off the axis (working backwards)
-        for(int label = ((updateChunkSize/plotFrequency) - 1); label >= 0; label--)
+        for(int label = ((UPDATECHUNKSIZE/PLOTFREQUENCY) - 1); label >= 0; label--)
         {
             axisX->remove(axisX->categoriesLabels().at(label));
         }
         //add labels getting shifted on to the axis
         for(int label = dataSeries->count() - 1; label <= xAxisRange[1]; label++)
         {
-            axisX->append(QString::number(label*plotFrequency), label);
+            axisX->append(QString::number(label*PLOTFREQUENCY), label);
         }
         axisX->setRange(xAxisRange[0], xAxisRange[1]);
         axisX->setStartValue(xAxisRange[0]);

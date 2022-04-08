@@ -22,7 +22,7 @@ signals:
     void mouseLeft();
 
 private:
-    const QSize ICONSIZE = QSize(20,20);
+    inline static const QSize ICONSIZE = QSize(20,20);
 };
 
 #endif // PUSHBUTTONWITHMOUSEENTER

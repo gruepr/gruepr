@@ -2,6 +2,7 @@
 #define GRUEPR_CONSTS
 
 #include "GA.h"
+#include <QColor>
 #include <Qt>
 
 
@@ -29,6 +30,11 @@ const int PRINTOUT_FONTSIZE = 9;
     const wchar_t LEFTARROW = 0x2B05;
     const wchar_t RIGHTARROW = 0x27A1;
 #endif
+
+// define colors used throughout gruepr
+inline static const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
+inline static const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
+inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 
 const int DIALOG_SPACER_ROWHEIGHT = 20;
 const int LG_DLG_SIZE = 600;

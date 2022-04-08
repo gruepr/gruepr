@@ -1738,7 +1738,7 @@ void gruepr::on_letsDoItButton_clicked()
 
 void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability)
 {
-    if((generation % (progressChart->plotFrequency)) == 0)
+    if((generation % (progressChart->PLOTFREQUENCY)) == 0)
     {
         progressChart->loadNextVals(allScores, orderedIndex);
     }
@@ -3019,6 +3019,20 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     int generation = 0;
     bool localOptimizationStopped = false;
 
+    // set the working value of the genetic algorithm's tournament selection probability
+    if(numStudents > GA::GENOMESIZETHRESHOLD[1])
+    {
+        GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[2];
+    }
+    else if(numStudents > GA::GENOMESIZETHRESHOLD[0])
+    {
+        GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[1];
+    }
+    else
+    {
+        GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[0];
+    }
+
     // now optimize
     do						// allow user to choose to continue optimizing beyond maxGenerations or seemingly reaching stability
     {
@@ -3055,7 +3069,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             for(int genome = GA::NUM_ELITES; genome < GA::POPULATIONSIZE; genome++)
             {
                 //get a couple of parents
-                GA::tournamentSelectParents(genePool, numStudents, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
+                GA::tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
                 GA::mate(mom, dad, teamSizes, numTeams, child, numStudents, pRNG);

@@ -57,8 +57,8 @@ private:
     const QString CATEGORYTEXT = tr("Category");
     const QString ROW1TEXT = tr("First Row of Data");
     const QString UNUSEDTEXT = tr("Unused");
-    const int DIALOGWIDTH = 500;
-    const int DIALOGHEIGHT = 300;
+    inline static const int DIALOGWIDTH = 500;
+    inline static const int DIALOGHEIGHT = 300;
 };
 
 #endif // CSVFILE_H

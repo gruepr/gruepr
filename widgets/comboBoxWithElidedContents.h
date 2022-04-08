@@ -20,7 +20,7 @@ protected:
 
 private:
     QString minText;
-    const int PIXELS_TO_ADD_TO_MIN_TEXT = 15;
+    inline static const int PIXELS_TO_ADD_TO_MIN_TEXT = 15;
 };
 
 #endif // COMBOBOXWITHELIDEDCONTENTS

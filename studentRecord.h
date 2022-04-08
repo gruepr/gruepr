@@ -15,6 +15,7 @@ public:
     void createTooltip(const DataOptions* const dataOptions);
 
     int ID = -1;                                        // ID is assigned in order of appearance in the data file
+    int LMSID = -1;                                     // student ID number according to the learning management system
     bool duplicateRecord = false;                       // another record exists with the same firstname+lastname or email address
     enum Gender {woman, man, nonbinary, unknown} gender = unknown;
     bool URM = false;                                   // true if this student is from an underrepresented minority group

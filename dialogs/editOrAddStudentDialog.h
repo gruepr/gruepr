@@ -33,11 +33,11 @@ private:
     QComboBox *attributeCombobox;
     QGroupBox *attributemulticategoricalbox;
     QDialogButtonBox *buttonBox;
-    const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email
+    inline static const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email
     enum {timestamp, firstname, lastname, email};
-    const int NUMCOMBOBOXES = 3;        // gender, ethnicity, section
+    inline static const int NUMCOMBOBOXES = 3;        // gender, ethnicity, section
     enum {gender, ethnicity, section};
-    const int NUMMULTILINES = 3;        // pref. teammates, pref. non-teammates, notes
+    inline static const int NUMMULTILINES = 3;        // pref. teammates, pref. non-teammates, notes
     enum {prefTeammates, prefNonTeammates, notes};
 };
 

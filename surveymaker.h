@@ -74,7 +74,7 @@ private:
     enum TimezoneType {noneOrHome, custom=2, set=4};
     QStringList defaultDayNames;
     QString dayNames[MAX_DAYS];
-    const QDate sunday = QDate(2017, 1, 1);
+    inline static const QDate sunday = QDate(2017, 1, 1);
     QLineEdit *dayLineEdits[MAX_DAYS] = {nullptr};
     QCheckBox *dayCheckBoxes[MAX_DAYS] = {nullptr};
     dayNamesDialog *daysWindow = nullptr;
@@ -91,9 +91,9 @@ private:
     void (*generateSurvey)(SurveyMaker *survey) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
-    static const int LAST_LIKERT_RESPONSE = 25;
-    static const int TIMEZONE_RESPONSE_OPTION = 101;
-    const QSize TABCLOSEICONSIZE = {8,8};
+    inline static const int LAST_LIKERT_RESPONSE = 25;
+    inline static const int TIMEZONE_RESPONSE_OPTION = 101;
+    inline static const QSize TABCLOSEICONSIZE = {8,8};
     enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
 };
 

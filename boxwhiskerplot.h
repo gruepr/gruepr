@@ -15,7 +15,7 @@ class BoxWhiskerPlot : public QtCharts::QChart
 public:
     BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "", QWidget *parent = nullptr);
     void loadNextVals(const QVector<float> &vals, const int *const orderedIndex);
-    const int plotFrequency = 5;
+    inline static const int PLOTFREQUENCY = 5;
 
 private:
     float median(const QVector<float> &vals, const int *const orderedIndex, const int begin, const int end);
@@ -25,8 +25,8 @@ private:
     float nextVals[5] = {0,0,0,0,0};
     int xAxisRange[2] = {0, 1};
     float yAxisRange[2] = {0, 1};
-    const int dataWidth = 60;
-    const int updateChunkSize = 20;
+    inline static const int DATAWIDTH = 60;
+    inline static const int UPDATECHUNKSIZE = 20;
 };
 
 #endif // BOXWHISKERPLOT_H

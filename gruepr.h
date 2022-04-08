@@ -33,9 +33,9 @@ public:
 
     static void getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
-    static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
-    static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
-    static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
+    inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
+    inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
+    inline static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -102,7 +102,6 @@ private:
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     attributeTabItem *attributeTab = nullptr;
-    const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 
         // team set optimization
     int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams

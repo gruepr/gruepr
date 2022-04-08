@@ -33,11 +33,11 @@ private:
     bool requestsInSurvey = false;
     QString sectionName;
     int numStudents;
-    const QStringList * teamSets = nullptr;
+    const QStringList *teamSets = nullptr;
     QGridLayout *theGrid = nullptr;
     QTableWidget *currentListOfTeammatesTable = nullptr;
-    static const int possibleNumIDs = 8;                // number of comboboxes in the dialog box, i.e., possible choices of teammates
-    QComboBox possibleTeammates[possibleNumIDs + 1];    // +1 for the requesting student in typeOfTeammates == requested
+    inline static const int POSSIBLENUMIDS = 8;         // number of comboboxes in the dialog box, i.e., possible choices of teammates
+    QComboBox possibleTeammates[POSSIBLENUMIDS + 1];    // +1 for the requesting student in typeOfTeammates == requested
     QPushButton *loadTeammates = nullptr;
     QComboBox *actionSelectBox = nullptr;
     QDialogButtonBox *buttonBox = nullptr;

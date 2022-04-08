@@ -30,21 +30,21 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     theTable->horizontalHeader()->setHidden(hideColHeaders);
     theTable->horizontalHeader()->setStretchLastSection(stretchLastColumn);
     theTable->setColumnCount(2);
-    theGrid->addWidget(theTable, tableRowInGrid, 0, 1, -1);
+    theGrid->addWidget(theTable, TABLEROWINGRID, 0, 1, -1);
 
     // Content allowed in rows 4&5
 
     // A spacer for row 6, then button box with OK & Cancel buttons in row 7, column 2 (column 2 to allow add'l. buttons in column 1)
-    addSpacerRow(buttonBoxRowInGrid - 1);
+    addSpacerRow(BUTTONBOXROWINGRID - 1);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, buttonBoxRowInGrid, 1, 1, -1);
+    theGrid->addWidget(buttonBox, BUTTONBOXROWINGRID, 1, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 void listTableDialog::addSpacerRow(int row)
 {
-    theGrid->setRowMinimumHeight(row, heightOfSpacerRow);
+    theGrid->setRowMinimumHeight(row, HEIGHTOFSPACERROW);
 }
 
 bool listTableDialog::eventFilter(QObject *object, QEvent *event)

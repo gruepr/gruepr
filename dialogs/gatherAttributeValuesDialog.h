@@ -56,8 +56,8 @@ private:
     QDialogButtonBox *buttonBox;
     QLabel *explanation;
 
-    const QChar BULLET = QChar(0x2022);
-    const QChar DOUBLEARROW = QChar(0x27f7);
+    inline static const QChar BULLET = QChar(0x2022);
+    inline static const QChar DOUBLEARROW = QChar(0x27f7);
 };
 
 #endif // GATHERATTRIBUTEVALUESDIALOG_H

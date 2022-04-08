@@ -31,21 +31,21 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     if(whatType == required)
     {
         typeText = tr("Required");
-        explanation->setText(tr("Select up to ") + QString::number(possibleNumIDs) +
+        explanation->setText(tr("Select up to ") + QString::number(POSSIBLENUMIDS) +
                              tr(" students that will be required to be on the same team, then click the \"Add set\" button."));
         requestsInSurvey = dataOptions->prefTeammatesIncluded;
     }
     else if (whatType == prevented)
     {
         typeText = tr("Prevented");
-        explanation->setText(tr("Select up to ") + QString::number(possibleNumIDs) +
+        explanation->setText(tr("Select up to ") + QString::number(POSSIBLENUMIDS) +
                              tr(" students that will be prevented from bring on the same team, then click the \"Add set\" button."));
         requestsInSurvey = dataOptions->prefNonTeammatesIncluded;
     }
     else    // whatType == requested
     {
         typeText = tr("Requested");
-        explanation->setText(tr("Select a student and up to ") + QString::number(possibleNumIDs) +
+        explanation->setText(tr("Select a student and up to ") + QString::number(POSSIBLENUMIDS) +
                              tr(" requested teammates, then click the \"Add set\" button."));
         requestsInSurvey = dataOptions->prefTeammatesIncluded;
     }
@@ -101,19 +101,19 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     int row = 2;
     if(whatType == requested)
     {
-        possibleTeammates[possibleNumIDs].addItem("Select the student:");
-        possibleTeammates[possibleNumIDs].setItemData(0, QBrush(Qt::gray), Qt::ForegroundRole);
-        possibleTeammates[possibleNumIDs].insertSeparator(1);
+        possibleTeammates[POSSIBLENUMIDS].addItem("Select the student:");
+        possibleTeammates[POSSIBLENUMIDS].setItemData(0, QBrush(Qt::gray), Qt::ForegroundRole);
+        possibleTeammates[POSSIBLENUMIDS].insertSeparator(1);
         for(int i = 0; i < studentsInComboBoxes.size(); i++)
         {
-            possibleTeammates[possibleNumIDs].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
+            possibleTeammates[POSSIBLENUMIDS].insertItem(i+2, studentsInComboBoxes[i].lastname + ", " + studentsInComboBoxes[i].firstname, studentsInComboBoxes[i].ID);
         }
-        theGrid->addWidget(&possibleTeammates[possibleNumIDs], row, 0, 1, 2);
+        theGrid->addWidget(&possibleTeammates[POSSIBLENUMIDS], row, 0, 1, 2);
         row++;
     }
 
     //Rows 3&4 (or 4&5) - the teammate choice box(es), a spacer, and a load button
-    for(int combobox = 0; combobox < possibleNumIDs; combobox++)
+    for(int combobox = 0; combobox < POSSIBLENUMIDS; combobox++)
     {
         if(whatType != requested)
         {
@@ -215,9 +215,9 @@ gatherTeammatesDialog::~gatherTeammatesDialog()
 void gatherTeammatesDialog::addOneTeammateSet()
 {
     //Gather all selected IDs from the comboboxes
-    int IDs[possibleNumIDs];
+    int IDs[POSSIBLENUMIDS];
     int count = 0;
-    for(int i = 0; i < possibleNumIDs; i++)
+    for(int i = 0; i < POSSIBLENUMIDS; i++)
     {
         //If a student is selected in this combobox, load their ID into an array that holds all the selections
         if(possibleTeammates[i].currentIndex() >= 1)
@@ -287,7 +287,7 @@ void gatherTeammatesDialog::addOneTeammateSet()
     }
     else
     {
-        int baseStudentID = possibleTeammates[possibleNumIDs].itemData(possibleTeammates[possibleNumIDs].currentIndex()).toInt();
+        int baseStudentID = possibleTeammates[POSSIBLENUMIDS].itemData(possibleTeammates[POSSIBLENUMIDS].currentIndex()).toInt();
         // find the student with this ID
         StudentRecord *baseStudent = nullptr;
         int index = 0;
@@ -310,7 +310,7 @@ void gatherTeammatesDialog::addOneTeammateSet()
         }
 
         //Reset combobox
-        possibleTeammates[possibleNumIDs].setCurrentIndex(0);
+        possibleTeammates[POSSIBLENUMIDS].setCurrentIndex(0);
     }
     refreshDisplay();
 }

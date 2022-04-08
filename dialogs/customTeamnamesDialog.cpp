@@ -37,7 +37,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &te
     //A reset table button
     resetNamesButton = new QPushButton(this);
     resetNamesButton->setText(tr("&Clear All Names"));
-    theGrid->addWidget(resetNamesButton, buttonBoxRowInGrid, 0, 1, 1);
+    theGrid->addWidget(resetNamesButton, BUTTONBOXROWINGRID, 0, 1, 1);
     connect(resetNamesButton, &QPushButton::clicked, this, &customTeamnamesDialog::clearAllNames);
 
     adjustSize();

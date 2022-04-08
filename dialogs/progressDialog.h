@@ -36,12 +36,12 @@ private:
     QPushButton *stopHere;
     QPushButton *showStatsButton;
     QTimer *countdownToClose;
-    const int SECSINCOUNTDOWNTIMER = 5;
+    inline static const int SECSINCOUNTDOWNTIMER = 5;
     int secsLeftToClose = SECSINCOUNTDOWNTIMER;
-    const int CHARTHEIGHT = 400;
-    const QSize SHOWPROGRESSICONSIZE = QSize(20,20);
-    const QSize STOPNOWICONSIZE = QSize(30,30);
-    const QSize OKICONSIZE = QSize(25,25);
+    inline static const int CHARTHEIGHT = 400;
+    inline static const QSize SHOWPROGRESSICONSIZE = QSize(20,20);
+    inline static const QSize STOPNOWICONSIZE = QSize(30,30);
+    inline static const QSize OKICONSIZE = QSize(25,25);
 };
 
 #endif // PROGRESSDIALOG_H
