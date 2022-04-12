@@ -35,6 +35,9 @@ const int PRINTOUT_FONTSIZE = 9;
 inline static const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
 inline static const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
 inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
+inline static const char HIGHLIGHTYELLOWHEX[] {"ffff3b"};
+inline static const char BOLDPINKHEX[] {"f283a5"};
+inline static const char BOLDGREENHEX[] {"83f2a5"};
 
 const int DIALOG_SPACER_ROWHEIGHT = 20;
 const int LG_DLG_SIZE = 600;

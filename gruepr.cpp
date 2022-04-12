@@ -315,7 +315,7 @@ void gruepr::loadStudentRoster()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
-                auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, this, true, emails.at(names.indexOf(name)));
+                auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, this, "", true, emails.at(names.indexOf(name)));
                 if(choiceWindow->exec() == QDialog::Accepted)   // not ignoring this student
                 {
                     if(choiceWindow->addStudent)    // add as a new student
@@ -1736,11 +1736,11 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability)
+void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
 {
     if((generation % (progressChart->PLOTFREQUENCY)) == 0)
     {
-        progressChart->loadNextVals(allScores, orderedIndex);
+        progressChart->loadNextVals(allScores, orderedIndex, unpenalizedGenomePresent);
     }
 
     if(generation > GA::MAX_GENERATIONS)
@@ -2829,7 +2829,7 @@ void gruepr::refreshStudentDisplay()
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
-                editButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+                editButton->setStyleSheet(QString("QPushButton {background-color: #") + HIGHLIGHTYELLOWHEX + "; border: none;}");
             }
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
@@ -2853,7 +2853,7 @@ void gruepr::refreshStudentDisplay()
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
-                removerButton->setStyleSheet("QPushButton {background-color: #ffff3b; border: none;}");
+                removerButton->setStyleSheet(QString("QPushButton {background-color: #") + HIGHLIGHTYELLOWHEX + "; border: none;}");
             }
             connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, index, removerButton] {
                                                                                 removerButton->disconnect();
@@ -2971,7 +2971,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
     bool **availabilityChart = nullptr;
-#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+    bool unpenalizedGenomePresent = false;
+#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[numTeams];
         attributeScore = new float*[dataOptions->numAttributes];
@@ -2992,6 +2993,12 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
                                             teamingOptions, dataOptions, unusedTeamScores,
                                             attributeScore, schedScore, availabilityChart, penaltyPoints);
+            int totalPenaltyPoints = 0;
+            for(int team = 0; team < numTeams; team++)
+            {
+                totalPenaltyPoints += penaltyPoints[team];
+            }
+            unpenalizedGenomePresent = unpenalizedGenomePresent || (totalPenaltyPoints == 0);
         }
         delete[] penaltyPoints;
         for(int day = 0; day < dataOptions->dayNames.size(); day++)
@@ -3010,7 +3017,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 
     // get genome indexes in order of score, largest to smallest
     std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
-    emit generationComplete(scores, orderedIndex, 0, 0);
+    emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
 
     int child[MAX_STUDENTS];
     int *mom=nullptr, *dad=nullptr;                 // pointer to genome of mom and dad
@@ -3096,7 +3103,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
             generation++;
 
             // calculate this generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+            unpenalizedGenomePresent = false;
+#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[numTeams];
                 attributeScore = new float*[dataOptions->numAttributes];
@@ -3117,6 +3125,12 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
                     scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
                                                     teamingOptions, dataOptions, unusedTeamScores,
                                                     attributeScore, schedScore, availabilityChart, penaltyPoints);
+                    int totalPenaltyPoints = 0;
+                    for(int team = 0; team < numTeams; team++)
+                    {
+                        totalPenaltyPoints += penaltyPoints[team];
+                    }
+                    unpenalizedGenomePresent = unpenalizedGenomePresent || (totalPenaltyPoints == 0);
                 }
                 delete[] penaltyPoints;
                 for(int day = 0; day < dataOptions->dayNames.size(); day++)
@@ -3150,7 +3164,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
 
-            emit generationComplete(scores, orderedIndex, generation, scoreStability);
+            emit generationComplete(scores, orderedIndex, generation, scoreStability, unpenalizedGenomePresent);
 
             optimizationStoppedmutex.lock();
             localOptimizationStopped = optimizationStopped;

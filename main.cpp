@@ -33,13 +33,14 @@
 //
 // DONE:
 // - improved UI in start window, with message confirming user has the latest version and is registered
-// - adjusted scoring when team has more-than-desired schedule overlap to prevent runaway scores with high overlap--not reduced worth of each additional time by half
+// - adjusted scoring when team has more-than-desired schedule overlap to prevent runaway scores with high overlap--now reduces worth of each added timeslot by half
 //      (i.e., 1st additional is work 1/2 of the previous one, the 2nd additional is worth 1/4, the 3rd additional is worth 1/8, etc...)
 // - increased max number of students to 500; works fast enough with 500 students, but gets very slow when Required Teammates or Non-Teammates are present
+// - improved UI in graph of optimization progress--now colors plot blue/pink when there is/is not at least one genome that meets all the rules
+// - add which student listed the name that needs to be matched in select-name-dialogue
 // - code modernization
 //
 // TO DO:
-// - add which student listed the name that needs to be matched in select-name-dialogue
 // - made the "Create Teams" button more emphasized/obvious
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - more granular scheduling option, down to the 15 minute level at least
@@ -54,6 +55,7 @@
 #include "gruepr.h"
 #include "dialogs/registerDialog.h"
 #include "surveymaker.h"
+#include <algorithm>
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QDesktopServices>
@@ -110,6 +112,7 @@ int main(int argc, char *argv[])
         thisVersionAsInt = (thisVersionAsInt*100) + thisVersion.at(field).toInt();
     }
     const bool upgradeAvailable = latestVersionAsInt > thisVersionAsInt;
+    const bool haveBetaVersion = thisVersionAsInt > latestVersionAsInt;
 
     // check to see if this copy of gruepr has been registered
     QSettings savedSettings;
@@ -130,40 +133,37 @@ int main(int argc, char *argv[])
     auto *grueprButton = new QToolButton(startWindow);
     auto *survMakeButton = new QToolButton(startWindow);
     auto *upgradeButton = new QToolButton(startWindow);
-    upgradeButton->setStyleSheet("background-color: #83f2a5");
+    upgradeButton->setStyleSheet(QString("background-color: #") + BOLDGREENHEX);
     upgradeButton->setToolTip("<html>" + QObject::tr("There is a newer version of gruepr available. You have version ") +
                               GRUEPR_VERSION_NUMBER + QObject::tr(" and you can now download version ") +
                               latestVersionString + ".</html>");
     auto *registerUserButton = new QToolButton(startWindow);
-    registerUserButton->setStyleSheet("background-color: #f283a5");
+    registerUserButton->setStyleSheet(QString("background-color: #") + BOLDPINKHEX);
     registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. "
                                    "Doing so helps me support the community of educators that use it.") + "</html>");
+    QList<QToolButton *> buttons = {survMakeButton, grueprButton, leaveButton, registerUserButton, upgradeButton};
+    QStringList buttonTexts = {"SurveyMaker", "gruepr", QObject::tr("Exit"), QObject::tr("Register")+" gruepr", QObject::tr("New version!")};
+    QStringList buttonIcons = {"surveymaker", "gruepr", "exit", "license", "website"};
     //order reverses for some reason mac->windows
-    QList<QToolButton *> buttons;
 #ifdef Q_OS_MACOS
-    buttons << upgradeButton << registerUserButton << leaveButton << grueprButton << survMakeButton;
-    QStringList texts = {QObject::tr("New version!"), QObject::tr("Register")+" gruepr", QObject::tr("Exit"), "gruepr", "SurveyMaker"};
-    QStringList icons = { "website", "license", "exit", "gruepr", "surveymaker"};
-#endif
-#ifdef Q_OS_WIN32
-    buttons << survMakeButton << grueprButton << leaveButton << registerUserButton << upgradeButton;
-    QStringList texts = {"SurveyMaker", "gruepr", QObject::tr("Exit"), QObject::tr("Register")+" gruepr", QObject::tr("New version!")};
-    QStringList icons = {"surveymaker", "gruepr", "exit", "license", "website"};
+    std::reverse(buttons.begin(), buttons.end());
+    std::reverse(buttonTexts.begin(), buttonTexts.end());
+    std::reverse(buttonIcons.begin(), buttonIcons.end());
 #endif
     //set button metrics
     boxFont->setPointSize(QApplication::font().pointSize() + gruepr::MAINWINDOWBUTTONFONT);
     const int labelWidth = (QFontMetrics(*boxFont)).boundingRect(QObject::tr("Register")+" gruepr").width();
     const QSize defIconSize(labelWidth - gruepr::MAINWINDOWPADDING,labelWidth - gruepr::MAINWINDOWPADDING);
     const QSize defButtonSize(labelWidth + gruepr::MAINWINDOWPADDING,labelWidth);
-    for(int i = 0; i < texts.size(); i++)
+    for(int i = 0; i < buttonTexts.size(); i++)
     {
         auto &button = buttons[i];
         button->setIconSize(defIconSize);
         button->setFont(*boxFont);
         button->setFixedSize(defButtonSize);
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        button->setText(texts.at(i));
-        button->setIcon(QIcon(":/icons/" + icons.at(i) + ".png"));
+        button->setText(buttonTexts.at(i));
+        button->setIcon(QIcon(":/icons/" + buttonIcons.at(i) + ".png"));
         startWindow->addButton(button, QMessageBox::YesRole);
     }
     startWindow->setEscapeButton(leaveButton);
@@ -176,7 +176,14 @@ int main(int argc, char *argv[])
         upgradeButton->hide();
         if(latestVersionAsInt != 0)     // couldn't connect to the online check, so even though we're hiding the button, we shouldn't add an affirmation of having latest version
         {
-            statusMessage = QObject::tr("You have the latest version of gruepr. ");
+            if(haveBetaVersion)
+            {
+                statusMessage = QObject::tr("You have a pre-release version of gruepr. ");
+            }
+            else
+            {
+                statusMessage = QObject::tr("You have the latest version of gruepr. ");
+            }
         }
     }
     if(registered)

@@ -749,7 +749,7 @@ bool gatherTeammatesDialog::loadStudentPrefs()
                 else
                 {
                     // No exact match, so list possible matches sorted by Levenshtein distance
-                    auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), this);
+                    auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), this, prefs.at(0));
                     if(choiceWindow->exec() == QDialog::Accepted)
                     {
                         IDs << choiceWindow->currSurveyID;

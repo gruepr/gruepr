@@ -65,7 +65,7 @@ private slots:
     void on_preventedTeammatesButton_clicked();
     void on_requestedTeammatesButton_clicked();
     void on_letsDoItButton_clicked();
-    void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability);
+    void updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
     void dataDisplayTabSwitch(int newTabIndex);
     void dataDisplayTabClose(int closingTabIndex);
@@ -77,7 +77,7 @@ private slots:
     void aboutWindow();
 
 signals:
-    void generationComplete(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability);
+    void generationComplete(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
     void turnOffBusyCursor();
 
 private:

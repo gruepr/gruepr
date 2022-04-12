@@ -8,7 +8,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRecord *const student, const QString &searchName, QWidget *parent,
-                                               const bool addStudentOption, const QString &searchEmail)
+                                               const QString &nameOfStudentWhoAsked, const bool addStudentOption, const QString &searchEmail)
     :QDialog(parent)
 {
     // create list of names (map is <Key = Levenshtein distance, Value = name & index in student array>)
@@ -33,9 +33,18 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
     QString explanationText;
     if(!addStudentOption)
     {
-        explanationText = tr("An exact match for") +
-                          "<br><b>" + searchName + "</b><br>" +
-                          tr("could not be found. The most closely matching names are:");
+        if(!nameOfStudentWhoAsked.isEmpty())
+        {
+            explanationText += tr("The student ") + nameOfStudentWhoAsked + tr(" listed the following name:") +
+                               "<br><b>" + searchName + "</b><br>" +
+                               tr("but an exact match could not be found. The most closely matching names are:");
+        }
+        else
+        {
+            explanationText += tr("An exact match for") +
+                               "<br><b>" + searchName + "</b><br>" +
+                               tr("could not be found. The most closely matching names are:");
+        }
     }
     else
     {
