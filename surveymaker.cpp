@@ -45,16 +45,16 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
 
     //Connect the simple UI interactions to a simple refresh of survey data
-    connect(ui->firstNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->lastNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::refreshPreview);
-    connect(ui->preferredTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->preferredNonTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
-    connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::refreshPreview);
-    connect(ui->additionalQuestionsCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
+    connect(ui->firstNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->lastNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+    connect(ui->preferredTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->preferredNonTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::buildSurvey);
+    connect(ui->additionalQuestionsCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
 
     //Create RegEx for punctuation not allowed within a URL (can remove if/when changing the form data upload to be a POST instead of GET
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"), this);
@@ -113,8 +113,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     {
         auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, tab, this);
         connect(attributeTab->attributeText, &QTextEdit::textChanged, this, &SurveyMaker::attributeTextChanged);
-        connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::refreshPreview);
-        connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::refreshPreview);
+        connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+        connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::buildSurvey);
         connect(attributeTab, &attributeTabItem::closeRequested, this, &SurveyMaker::attributeTabClose);
 
         ui->attributesTabWidget->addTab(attributeTab, QString::number(tab+1) + "   ");
@@ -127,7 +127,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     //create a survey
     survey = new Survey;
-    refreshPreview();
+    buildSurvey();
 }
 
 SurveyMaker::~SurveyMaker()
@@ -141,7 +141,7 @@ void SurveyMaker::resizeEvent(QResizeEvent *event)
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
 }
 
-void SurveyMaker::refreshPreview()
+void SurveyMaker::buildSurvey()
 {
     // update simple info
     firstname = ui->firstNameCheckBox->isChecked();
@@ -299,7 +299,7 @@ void SurveyMaker::createQuestion(QString &previewText, const QString &questionTe
     previewText += QUESTIONPREVIEWHEAD + questionText;
     if((questionType == Question::dropdown) || (questionType == Question::radiobutton) || (questionType == Question::checkbox))
     {
-        previewText += QUESTIONOPTIONSHEAD + options.split("/").join(" </i><b>|</b><i> ") + QUESTIONOPTIONSTAIL;
+        previewText += QUESTIONOPTIONSHEAD + options.split('/').join(" </i><b>|</b><i> ") + QUESTIONOPTIONSTAIL;
         if(questionType == Question::checkbox)
         {
             previewText += "</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>* " + tr("Multiple responses allowed") + "</small>";
@@ -328,7 +328,7 @@ void SurveyMaker::createQuestion(QString &previewText, const QString &questionTe
     }
     previewText += QUESTIONPREVIEWTAIL;
 
-    survey->questions << Question(questionText, questionType);
+    survey->questions << Question(questionText, questionType, options.split('/'));
 }
 
 void SurveyMaker::badExpression(QWidget *textWidget, QString &currText)
@@ -724,7 +724,7 @@ void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
         badExpression(ui->surveyTitleLineEdit, currText);
     }
     survey->title = currText.trimmed();
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
@@ -742,7 +742,7 @@ void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
     }
 
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::refreshAttributeTabBar(int index)
@@ -850,7 +850,7 @@ void SurveyMaker::attributeTabBarMoveTab(int /*indexFrom*/, int /*indexTo*/)
     }
 
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::attributeTabClose(int index)
@@ -867,8 +867,8 @@ void SurveyMaker::attributeTabClose(int index)
 
         auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, MAX_ATTRIBUTES-1, this);
         connect(attributeTab->attributeText, &QTextEdit::textChanged, this, &SurveyMaker::attributeTextChanged);
-        connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::refreshPreview);
-        connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::refreshPreview);
+        connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+        connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::buildSurvey);
         connect(attributeTab, &attributeTabItem::closeRequested, this, &SurveyMaker::attributeTabClose);
 
         ui->attributesTabWidget->addTab(attributeTab, QString::number(MAX_ATTRIBUTES) + "   ");
@@ -922,7 +922,7 @@ void SurveyMaker::attributeTextChanged()
                                                           "A section question may be added using the \"Section\" checkbox."));
     }
 
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_timezoneCheckBox_clicked(bool checked)
@@ -931,7 +931,7 @@ void SurveyMaker::on_timezoneCheckBox_clicked(bool checked)
 
     checkTimezoneAndSchedule();
 
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
@@ -953,7 +953,7 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
 
     checkTimezoneAndSchedule();
 
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::checkTimezoneAndSchedule()
@@ -999,7 +999,7 @@ void SurveyMaker::baseTimezoneComboBox_currentIndexChanged(int arg1)
         baseTimezone = baseTimezoneComboBox->currentText();
     }
 
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
@@ -1027,7 +1027,7 @@ void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
     {
         baseTimezoneComboBox->setCurrentIndex(TimezoneType::noneOrHome);
     }
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_daysComboBox_activated(int index)
@@ -1113,7 +1113,7 @@ void SurveyMaker::day_LineEdit_textChanged(const QString &text, QLineEdit *dayLi
         badExpression(dayLineEdit, currText);
     }
     dayname = currText.trimmed();
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_timeStartEdit_timeChanged(QTime time)
@@ -1123,7 +1123,7 @@ void SurveyMaker::on_timeStartEdit_timeChanged(QTime time)
     {
         ui->timeEndEdit->setTime(QTime(time.hour(), 0));
     }
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_timeEndEdit_timeChanged(QTime time)
@@ -1133,14 +1133,14 @@ void SurveyMaker::on_timeEndEdit_timeChanged(QTime time)
     {
         ui->timeStartEdit->setTime(QTime(time.hour(), 0));
     }
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_sectionCheckBox_clicked(bool checked)
 {
     section = checked;
     ui->sectionNamesTextEdit->setEnabled(checked);
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::on_sectionNamesTextEdit_textChanged()
@@ -1161,7 +1161,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     }
     sectionNames.removeAll(QString(""));
 
-    refreshPreview();
+    buildSurvey();
 }
 
 void SurveyMaker::openSurvey()
@@ -1314,7 +1314,7 @@ void SurveyMaker::openSurvey()
             }
             loadFile.close();
 
-            refreshPreview();
+            buildSurvey();
         }
         else
         {

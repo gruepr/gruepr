@@ -55,7 +55,7 @@ private slots:
 private:
     Ui::SurveyMaker *ui;
     Survey *survey;
-    void refreshPreview();
+    void buildSurvey();
     void createQuestion(QString &previewText, const QString &questionText, const Question::QuestionType questionType, const QString &options = "");
     void checkDays();
     bool surveyCreated = false;

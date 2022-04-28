@@ -171,9 +171,6 @@
     </item>
     <item row="8" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
      <widget class="QCheckBox" name="lastNameCheckBox">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -865,9 +862,6 @@
     </item>
     <item row="6" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
      <widget class="QCheckBox" name="firstNameCheckBox">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -890,9 +884,6 @@
     </item>
     <item row="10" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
      <widget class="QCheckBox" name="emailCheckBox">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
