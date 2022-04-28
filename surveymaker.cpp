@@ -45,14 +45,19 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
 
     //Connect the simple UI interactions to a simple refresh of survey data
+    connect(ui->firstNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
+    connect(ui->lastNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
+    connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
     connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
     connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
     connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::refreshPreview);
+    connect(ui->preferredTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
+    connect(ui->preferredNonTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
     connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::refreshPreview);
     connect(ui->additionalQuestionsCheckBox, &QPushButton::toggled, this, &SurveyMaker::refreshPreview);
 
     //Create RegEx for punctuation not allowed within a URL (can remove if/when changing the form data upload to be a POST instead of GET
-    noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>]*"), this);
+    noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"), this);
 
     //put timezones into combobox
     QStringList timeZones = QString(TIMEZONENAMES).split(";");
@@ -116,10 +121,12 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
-    responseOptions.prepend("custom options, to be added after creating the form");
+    responseOptions.prepend(tr("custom options, to be added after creating the form"));
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &SurveyMaker::refreshAttributeTabBar);
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::tabMoved, this, &SurveyMaker::attributeTabBarMoveTab);
 
+    //create a survey
+    survey = new Survey;
     refreshPreview();
 }
 
@@ -137,8 +144,15 @@ void SurveyMaker::resizeEvent(QResizeEvent *event)
 void SurveyMaker::refreshPreview()
 {
     // update simple info
+    firstname = ui->firstNameCheckBox->isChecked();
+    lastname = ui->lastNameCheckBox->isChecked();
+    email = ui->emailCheckBox->isChecked();
     gender = ui->genderCheckBox->isChecked();
     URM = ui->URMCheckBox->isChecked();
+    preferredTeammates = ui->preferredTeammatesCheckBox->isChecked();
+    preferredNonTeammates = ui->preferredNonTeammatesCheckBox->isChecked();
+    ui->numAllowedLabel->setEnabled(preferredTeammates || preferredNonTeammates);
+    ui->numAllowedSpinBox->setEnabled(preferredTeammates || preferredNonTeammates);
     numPreferredAllowed = ui->numAllowedSpinBox->value();
     additionalQuestions = ui->additionalQuestionsCheckBox->isChecked();
     busyOrFree = ((ui->busyFreeComboBox->currentText() == tr("busy"))? busy : free);
@@ -147,164 +161,200 @@ void SurveyMaker::refreshPreview()
     for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
     {
         auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(attrib));
-        attributeTexts[attrib] = attribTab->attributeText->toPlainText().simplified();//attributeTabItems.at(attrib)->attributeText->toPlainText();
-        attributeResponses[attrib] = ((attribTab->attributeResponses->currentIndex()>1) ? (attribTab->attributeResponses->currentIndex()-1) : 0);//((attributeTabItems.at(attrib)->attributeResponses->currentIndex()>1) ? (attributeTabItems.at(attrib)->attributeResponses->currentIndex()-1) : 0);
-        attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();//attributeTabItems.at(attrib)->allowMultipleResponses->isChecked();
+        attributeTexts[attrib] = attribTab->attributeText->toPlainText().simplified();
+        attributeResponses[attrib] = ((attribTab->attributeResponses->currentIndex()>1) ? (attribTab->attributeResponses->currentIndex()-1) : 0);
+        attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();
     }
 
+    numAttributes = ui->attributeCountSpinBox->value();
     if(timezone && !schedule)
     {
-        attributeTexts[numAttributes] = "What time zone will you be based in during this class?";
+        attributeTexts[numAttributes] = TIMEZONEQUESTION;
         attributeResponses[numAttributes] = TIMEZONE_RESPONSE_OPTION;
         numAttributes++;
     }
 
     int currPos = ui->previewText->verticalScrollBar()->value();
 
-    // generate preview text
-    QString preview = "<h2>" + title + "</h2>";
-    preview += "<h3>First, some basic information</h3>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your first name (or the name you prefer to be called)?<br></p>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your last name?<br></p>"
-               "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What is your email address?<br></p>";
-    preview += gender?
-                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;With which gender do you identify most closely?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                "<small>options: <b>{ </b><i>woman </i><b>|</b><i> man </i><b>|</b><i> nonbinary </i><b>|</b><i> prefer not to answer</i><b> }</b></small><br></p>"
-                : "";
-    preview += URM?
-                "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;How do you identify your race, ethnicity, or cultural heritage?<br></p>"
-                : "";
-    preview += "<hr>";
+    // generate preview text and survey object
+    QString preview;
+    if(!survey->title.isEmpty())
+    {
+        preview += "<h2>" + survey->title + "</h2>";
+    }
+    survey->questions.clear();
+
+    if(firstname)
+    {
+        createQuestion(preview, FIRSTNAMEQUESTION, Question::shorttext);
+    }
+    if(lastname)
+    {
+        createQuestion(preview, LASTNAMEQUESTION, Question::shorttext);
+    }
+    if(email)
+    {
+        createQuestion(preview, EMAILQUESTION, Question::shorttext);
+    }
+    if(gender)
+    {
+        createQuestion(preview, GENDERQUESTION, Question::radiobutton, GENDEROPTIONS);
+    }
+    if(URM)
+    {
+       createQuestion(preview, URMQUESTION, Question::shorttext);
+    }
     if(numAttributes > 0)
     {
-        preview += "<h3>This set of questions is about you, your past experiences, and / or your teamwork preferences.</h3>";
         for(int attrib = 0; attrib < numAttributes; attrib++)
         {
-                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;" +
-                           (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib])
-                           + "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                           "<small>options: <b>{ </b><i>";
-                if(attributeResponses[attrib] < responseOptions.size())
-                {
-                    preview += responseOptions.at(attributeResponses[attrib]).split("/").join("</i><b>|</b><i>");
-                }
-                else if(attributeResponses[attrib] == TIMEZONE_RESPONSE_OPTION)
-                {
-                    preview += "dropdown box of world timezones";
-                }
+            QString questionText = (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
+            QString options;
+            Question::QuestionType questionType = Question::radiobutton;
+            if(attributeResponses[attrib] < responseOptions.size())
+            {
+                options = responseOptions.at(attributeResponses[attrib]);
                 if(attributeAllowMultipleResponses[attrib])
                 {
-                    preview += "</i><b> }</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Multiple responses allowed</small> ";
+                    questionType = Question::checkbox;
                 }
-                else
-                {
-                    preview += "</i><b> }</b></small>";
-                }
+            }
+            else if(attributeResponses[attrib] == TIMEZONE_RESPONSE_OPTION)
+            {
+                options = TIMEZONEOPTIONS;
+                questionType = Question::dropdown;
+            }
+            createQuestion(preview, questionText, questionType, options);
         }
-        preview += "<hr>";
     }
     if(schedule)
     {
-        preview += "<h3>Please tell us about your weekly schedule.</h3>";
         if(timezone)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;What time zone will you be based in during this class?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                       "<small>options: <b>{ </b><i>dropdown box of world timezones</i><b> }</b></small><br></p>";
+            createQuestion(preview, TIMEZONEQUESTION, Question::dropdown, TIMEZONEOPTIONS);
         }
 
-        preview += "<p>Check the times that you are ";
-        preview += ((busyOrFree == busy)? "BUSY and will be UNAVAILABLE" : "FREE and will be AVAILABLE");
-        preview += " for group work.";
-
+        QString questionText = SCHEDULEQUESTION1 + ((busyOrFree == busy)? SCHEDULEQUESTION2BUSY : SCHEDULEQUESTION2FREE) + SCHEDULEQUESTION3 + SCHEDULEQUESTION4;
         if(timezone && baseTimezone.isEmpty())
         {
-            preview += tr(" These times refer to <u><strong>your home</strong></u> timezone.");
+            questionText += SCHEDULEQUESTIONHOME;
         }
         else if(!baseTimezone.isEmpty())
         {
-            preview += " These times refer to <u><strong>" + baseTimezone + "</strong></u> time.";
+            questionText += baseTimezone;
         }
-
-        preview += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
-        preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
-        for(int time = startTime; time <= endTime; time++)
-        {
-            preview += QTime(time, 0).toString("hA");
-            if(time != endTime)
-            {
-                preview += "&nbsp;&nbsp;&nbsp;";
-            }
-        }
-        preview += "</small></p>";
-        for(const auto & dayName : dayNames)
-        {
-            if(!(dayName.isEmpty()))
-            {
-                preview += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
-            }
-        }
-        preview += "<hr>";
+        questionText += SCHEDULEQUESTION5;
+        createQuestion(preview, questionText, Question::schedule);
     }
-    if(section || preferredTeammates || preferredNonTeammates || additionalQuestions)
+
+    if(section)
     {
-        preview += "<h3>Some final questions.</h3>";
-        if(section)
+        QString options;
+        for(int sect = 0; sect < sectionNames.size(); sect++)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;In which section are you enrolled?<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-                       "<small>options: <b>{ </b><i>";
-            for(int sect = 0; sect < sectionNames.size(); sect++)
+            if(sect > 0)
             {
-                if(sect > 0)
-                {
-                    preview += " </i><b>|</b><i> ";
-                }
-                preview += sectionNames[sect];
+                options += "/";
             }
-            preview += "</i><b> }</b></small></p>";
+            options += sectionNames[sect];
         }
-        if(preferredTeammates)
+        createQuestion(preview, SECTIONQUESTION, Question::radiobutton, options);
+    }
+
+    if(preferredTeammates)
+    {
+        if(numPreferredAllowed == 1)
         {
-            if(numPreferredAllowed == 1)
-            {
-                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please write the name of someone who you would like to have on your team. "
-                            "Write their first and last name only.</p>";
-            }
-            else
-            {
-                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please list the name(s) of up to " + QString::number(numPreferredAllowed) +
-                            " people who you would like to have on your team. "
-                            "Write their first and last name, and put a comma between multiple names.</p>";
-            }
+            createQuestion(preview, PREF1TEAMMATEQUESTION, Question::shorttext);
         }
-        if(preferredNonTeammates)
+        else
         {
-            if(numPreferredAllowed == 1)
-            {
-                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please write the name of someone who you would like to NOT have on your team. "
-                            "Write their first and last name only.</p>";
-            }
-            else
-            {
-                preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Please list the name(s) of up to " + QString::number(numPreferredAllowed) +
-                            " people who you would like to NOT have on your team. "
-                            "Write their first and last name, and put a comma between multiple names.</p>";
-            }
+            createQuestion(preview, PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2YES, Question::longtext);
         }
-        if(additionalQuestions)
+    }
+
+    if(preferredNonTeammates)
+    {
+        if(numPreferredAllowed == 1)
         {
-            preview += "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;Any additional things we should know about you before we form the teams?</p>";
+            createQuestion(preview, PREF1NONTEAMMATEQUESTION, Question::shorttext);
         }
-        preview += "<hr>";
+        else
+        {
+            createQuestion(preview, PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2NO, Question::longtext);
+        }
+    }
+
+    if(additionalQuestions)
+    {
+        createQuestion(preview, ADDLQUESTION, Question::longtext);
     }
 
     ui->previewText->setHtml(preview);
     ui->previewText->verticalScrollBar()->setValue(currPos);
 }
 
+void SurveyMaker::createQuestion(QString &previewText, const QString &questionText, const Question::QuestionType questionType, const QString &options)
+{
+    previewText += QUESTIONPREVIEWHEAD + questionText;
+    if((questionType == Question::dropdown) || (questionType == Question::radiobutton) || (questionType == Question::checkbox))
+    {
+        previewText += QUESTIONOPTIONSHEAD + options.split("/").join(" </i><b>|</b><i> ") + QUESTIONOPTIONSTAIL;
+        if(questionType == Question::checkbox)
+        {
+            previewText += "</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>* " + tr("Multiple responses allowed") + "</small>";
+        }
+    }
+    else if(questionType == Question::schedule)
+    {
+        previewText += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
+        previewText += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
+        for(int time = startTime; time <= endTime; time++)
+        {
+            previewText += QTime(time, 0).toString("hA");
+            if(time != endTime)
+            {
+                previewText += "&nbsp;&nbsp;&nbsp;";
+            }
+        }
+        previewText += "</small></p>";
+        for(const auto & dayName : dayNames)
+        {
+            if(!(dayName.isEmpty()))
+            {
+                previewText += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
+            }
+        }
+    }
+    previewText += QUESTIONPREVIEWTAIL;
+
+    survey->questions << Question(questionText, questionType);
+}
+
+void SurveyMaker::badExpression(QWidget *textWidget, QString &currText)
+{
+    auto *lineEdit = qobject_cast<QLineEdit*>(textWidget);
+    if(lineEdit != nullptr)
+    {
+        lineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
+    }
+    else
+    {
+        auto *textEdit = qobject_cast<QTextEdit*>(textWidget);
+        if(textEdit != nullptr)
+        {
+            textEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
+        }
+    }
+    QApplication::beep();
+    QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
+                                                      "    ,  &  <  > / \n"
+                                                      "Other punctuation is allowed."));
+}
+
 void SurveyMaker::on_makeSurveyButton_clicked()
 {
-    //make sure we have at least one attribute or the schedule question
-     if(((numAttributes == 0) && !schedule))
+     if(!survey->isValid())
     {
         QMessageBox::critical(this, tr("Error!"), tr("A gruepr survey must have at least one\n"
                                                      "attribute question and/or a schedule question.\n"
@@ -458,7 +508,7 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
             if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text) && saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
             {
                 int questionNumber = 0, sectionNumber = 0;
-                QString textFileContents = survey->title + "\n\n";
+                QString textFileContents = survey->survey->title + "\n\n";
                 QString csvFileContents = "Timestamp";
 
                 textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
@@ -671,14 +721,9 @@ void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        ui->surveyTitleLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
-        QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the survey title:\n"
-                                                          "    ,  &  <  >\n"
-                                                          "Other punctuation is allowed."));
+        badExpression(ui->surveyTitleLineEdit, currText);
     }
-
-    title = currText.trimmed();
+    survey->title = currText.trimmed();
     refreshPreview();
 }
 
@@ -866,11 +911,7 @@ void SurveyMaker::attributeTextChanged()
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        attribTab->attributeText->setPlainText(currText.remove(',').remove('&').remove('<').remove('>'));
-        QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the question text:\n"
-                                                          "    ,  &  <  >\n"
-                                                          "Other punctuation is allowed."));
+        badExpression(attribTab->attributeText, currText);
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
@@ -970,11 +1011,7 @@ void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        ui->baseTimezoneLineEdit->setText(baseTimezone = currText.remove(',').remove('&').remove('<').remove('>'));
-        QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the timezone name:\n"
-                                                          "    ,  &  <  >\n"
-                                                          "Other punctuation is allowed."));
+        badExpression(ui->baseTimezoneLineEdit, currText);
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
@@ -1073,13 +1110,8 @@ void SurveyMaker::day_LineEdit_textChanged(const QString &text, QLineEdit *dayLi
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        dayLineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>'));
-        QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the day name:\n"
-                                                          "    ,  &  <  >\n"
-                                                          "Other punctuation is allowed."));
+        badExpression(dayLineEdit, currText);
     }
-
     dayname = currText.trimmed();
     refreshPreview();
 }
@@ -1118,11 +1150,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
-        ui->sectionNamesTextEdit->setPlainText(currText.remove(',').remove('&').remove('<').remove('>'));
-        QApplication::beep();
-        QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed in the section names:"
-                                                          "\n    ,  &  <  >"
-                                                          "\nOther punctuation is allowed.\nPut each section's name on a new line."));
+        badExpression(ui->sectionNamesTextEdit, currText);
     }
 
     // split the input at every newline, then remove any blanks (including just spaces)
@@ -1133,22 +1161,6 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     }
     sectionNames.removeAll(QString(""));
 
-    refreshPreview();
-}
-
-void SurveyMaker::on_preferredTeammatesCheckBox_clicked(bool checked)
-{
-    preferredTeammates = checked;
-    ui->numAllowedLabel->setEnabled(preferredTeammates || preferredNonTeammates);
-    ui->numAllowedSpinBox->setEnabled(preferredTeammates || preferredNonTeammates);
-    refreshPreview();
-}
-
-void SurveyMaker::on_preferredNonTeammatesCheckBox_clicked(bool checked)
-{
-    preferredNonTeammates = checked;
-    ui->numAllowedLabel->setEnabled(preferredTeammates || preferredNonTeammates);
-    ui->numAllowedSpinBox->setEnabled(preferredTeammates || preferredNonTeammates);
     refreshPreview();
 }
 
@@ -1286,12 +1298,10 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("PreferredTeammates") && loadObject["PreferredTeammates"].isBool())
             {
                 ui->preferredTeammatesCheckBox->setChecked(loadObject["PreferredTeammates"].toBool());
-                on_preferredTeammatesCheckBox_clicked(loadObject["PreferredTeammates"].toBool());
             }
             if(loadObject.contains("PreferredNonTeammates") && loadObject["PreferredNonTeammates"].isBool())
             {
                 ui->preferredNonTeammatesCheckBox->setChecked(loadObject["PreferredNonTeammates"].toBool());
-                on_preferredNonTeammatesCheckBox_clicked(loadObject["PreferredNonTeammates"].toBool());
             }
             if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble())
             {
@@ -1324,10 +1334,10 @@ void SurveyMaker::saveSurvey()
         {
             saveFileLocation = QFileInfo(fileName).canonicalPath();
             QJsonObject saveObject;
-            saveObject["Title"] = title;
-            saveObject["FirstName"] = true;
-            saveObject["LastName"] = true;
-            saveObject["Email"] = true;
+            saveObject["Title"] = survey->title;
+            saveObject["FirstName"] = firstname;
+            saveObject["LastName"] = lastname;
+            saveObject["Email"] = email;
             saveObject["Gender"] = gender;
             saveObject["URM"] = URM;
             saveObject["numAttributes"] = numAttributes;

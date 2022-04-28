@@ -3,6 +3,7 @@
 
 #include "dialogs/dayNamesDialog.h"
 #include "gruepr_consts.h"
+#include "survey.h"
 #include "widgets/comboBoxWithElidedContents.h"
 #include <QDate>
 #include <QFileInfo>
@@ -43,8 +44,6 @@ private slots:
     void on_timeEndEdit_timeChanged(QTime time);
     void on_sectionCheckBox_clicked(bool checked);
     void on_sectionNamesTextEdit_textChanged();
-    void on_preferredTeammatesCheckBox_clicked(bool checked);
-    void on_preferredNonTeammatesCheckBox_clicked(bool checked);
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
     void openSurvey();
@@ -55,11 +54,16 @@ private slots:
 
 private:
     Ui::SurveyMaker *ui;
+    Survey *survey;
     void refreshPreview();
+    void createQuestion(QString &previewText, const QString &questionText, const Question::QuestionType questionType, const QString &options = "");
     void checkDays();
     bool surveyCreated = false;
     QRegularExpressionValidator *noInvalidPunctuation;
-    QString title = "";
+    void badExpression(QWidget *textWidget, QString &currText);
+    bool firstname = true;
+    bool lastname = true;
+    bool email = true;
     bool gender = true;
     bool URM = false;
     int numAttributes = 3;
@@ -91,10 +95,36 @@ private:
     void (*generateSurvey)(SurveyMaker *survey) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
+    enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
     inline static const int LAST_LIKERT_RESPONSE = 25;
     inline static const int TIMEZONE_RESPONSE_OPTION = 101;
     inline static const QSize TABCLOSEICONSIZE = {8,8};
-    enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
+    inline static const QString QUESTIONPREVIEWHEAD = "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;";
+    inline static const QString QUESTIONPREVIEWTAIL = "<br></p>";
+    inline static const QString QUESTIONOPTIONSHEAD = "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>" + QObject::tr("options") + ": <b>{</b><i>";
+    inline static const QString QUESTIONOPTIONSTAIL = "</i><b>}</b></small>";
+    inline static const QString FIRSTNAMEQUESTION = QObject::tr("What is your first name (or the name you prefer to be called)?");
+    inline static const QString LASTNAMEQUESTION = QObject::tr("What is your last name?");
+    inline static const QString EMAILQUESTION = QObject::tr("What is your email address?");
+    inline static const QString GENDERQUESTION = QObject::tr("With which gender do you identify most closely?");
+    inline static const QString GENDEROPTIONS = QObject::tr("woman/man/nonbinary/prefer not to answer");
+    inline static const QString URMQUESTION = QObject::tr("How do you identify your race, ethnicity, or cultural heritage?");
+    inline static const QString TIMEZONEQUESTION = QObject::tr("What time zone will you be based in during this class?");
+    inline static const QString TIMEZONEOPTIONS = QObject::tr("dropdown box of world timezones");
+    inline static const QString SCHEDULEQUESTION1 = QObject::tr("Check the times that you are ");
+    inline static const QString SCHEDULEQUESTION2BUSY = QObject::tr("BUSY and will be UNAVAILABLE");
+    inline static const QString SCHEDULEQUESTION2FREE = QObject::tr("FREE and will be AVAILABLE");
+    inline static const QString SCHEDULEQUESTION3 = QObject::tr(" for group work.");
+    inline static const QString SCHEDULEQUESTION4 = QObject::tr(" These times refer to <u><strong>");
+    inline static const QString SCHEDULEQUESTIONHOME = QObject::tr("your home");
+    inline static const QString SCHEDULEQUESTION5 = QObject::tr("</strong></u> timezone.");
+    inline static const QString SECTIONQUESTION = QObject::tr("In which section are you enrolled?");
+    inline static const QString PREF1TEAMMATEQUESTION = QObject::tr("Please write the name of someone who you would like to have on your team. Write their first and last name only.");
+    inline static const QString PREF1NONTEAMMATEQUESTION = QObject::tr("Please write the name of someone who you would like to NOT have on your team. Write their first and last name only.");
+    inline static const QString PREFMULTQUESTION1 = QObject::tr("Please list the name(s) of up to ");
+    inline static const QString PREFMULTQUESTION2YES = QObject::tr(" people who you would like to have on your team. Write their first and last name, and put a comma between multiple names.");
+    inline static const QString PREFMULTQUESTION2NO = QObject::tr(" people who you would like to NOT have on your team. Write their first and last name, and put a comma between multiple names.");
+    inline static const QString ADDLQUESTION = QObject::tr("Any additional things we should know about you before we form the teams?");
 };
 
 #endif // SURVEYMAKER_H

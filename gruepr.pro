@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.7.1
+gruepr_version = 10.7.2
 copyright_year = 2019-2022
 
 QT       += core gui widgets concurrent network printsupport charts
@@ -69,6 +69,7 @@ SOURCES += \
         gruepr.cpp \
         GA.cpp \
         studentRecord.cpp \
+        survey.cpp \
         surveymaker.cpp \
         teamRecord.cpp \
         teamingOptions.cpp \
@@ -102,6 +103,7 @@ HEADERS += \
         GA.h \
         gruepr_consts.h \
         studentRecord.h \
+        survey.h \
         surveymaker.h \
         teamRecord.h \
         teamingOptions.h \
