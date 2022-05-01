@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include <QResizeEvent>
 #include <QScrollBar>
 #include <QTextBrowser>
 #include <QtNetwork>
@@ -45,12 +46,14 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
 
     //Connect the simple UI interactions to a simple refresh of survey data
+    connect(ui->surveyTitleLineEdit, &QLineEdit::textChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->firstNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->lastNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+    connect(ui->sectionCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->preferredTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->preferredNonTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::buildSurvey);
@@ -142,193 +145,216 @@ void SurveyMaker::resizeEvent(QResizeEvent *event)
 }
 
 void SurveyMaker::buildSurvey()
-{
-    // update simple info
+{    
+    // Title
+    QString currText = ui->surveyTitleLineEdit->text();
+    int currPos = 0;
+    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
+    {
+        badExpression(ui->surveyTitleLineEdit, currText);
+    }
+    survey->title = currText.trimmed();
+
+    survey->questions.clear();
+
+    // First name
     firstname = ui->firstNameCheckBox->isChecked();
+    if(firstname)
+    {
+        survey->questions << Question(FIRSTNAMEQUESTION, Question::shorttext);
+    }
+
+    // Last name
     lastname = ui->lastNameCheckBox->isChecked();
+    if(lastname)
+    {
+        survey->questions << Question(LASTNAMEQUESTION, Question::shorttext);
+    }
+
+    // Email
     email = ui->emailCheckBox->isChecked();
+    if(email)
+    {
+        survey->questions << Question(EMAILQUESTION, Question::shorttext);
+    }
+
+    // Gender
     gender = ui->genderCheckBox->isChecked();
+    if(gender)
+    {
+        survey->questions << Question(GENDERQUESTION, Question::radiobutton, GENDEROPTIONS.split('/'));
+    }
+
+    // URM
     URM = ui->URMCheckBox->isChecked();
+    if(URM)
+    {
+        survey->questions << Question(URMQUESTION, Question::shorttext);
+    }
+
+    // Attributes (including timezone if no schedule question)
+    numAttributes = ui->attributeCountSpinBox->value();
+    if(timezone && !schedule)
+    {
+        numAttributes++;
+    }
+    for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
+    {
+        auto *attribTab = qobject_cast<attributeTabItem*>(ui->attributesTabWidget->widget(attrib));
+        attributeTexts[attrib] = attribTab->attributeText->toPlainText().simplified();
+        attributeResponses[attrib] = ((attribTab->attributeResponses->currentIndex()>1) ? (attribTab->attributeResponses->currentIndex()-1) : 0);
+        attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();
+        QString questionText = (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
+        QString options = responseOptions.at(attributeResponses[attrib]);
+        Question::QuestionType questionType = Question::radiobutton;
+        if(attributeAllowMultipleResponses[attrib])
+        {
+            questionType = Question::checkbox;
+        }
+
+        if(timezone && !schedule && attrib == (numAttributes-1))
+        {
+            questionText = TIMEZONEQUESTION;
+            options = TIMEZONEOPTIONS;
+            questionType = Question::dropdown;
+        }
+
+        if(attrib < numAttributes)
+        {
+            survey->questions << Question(questionText, questionType, options.split('/'));
+        }
+    }
+
+    // Schedule (including timezone if applicable)
+    busyOrFree = ((ui->busyFreeComboBox->currentText() == tr("busy"))? busy : free);
+    if(schedule)
+    {
+        if(timezone)
+        {
+            survey->questions << Question(TIMEZONEQUESTION, Question::dropdown, TIMEZONEOPTIONS.split('/'));
+        }
+
+        QString questionText = SCHEDULEQUESTION1 + ((busyOrFree == busy)? SCHEDULEQUESTION2BUSY : SCHEDULEQUESTION2FREE) + SCHEDULEQUESTION3;
+        if(timezone)
+        {
+            questionText += SCHEDULEQUESTION4;
+            if(baseTimezone.isEmpty())
+            {
+                questionText += SCHEDULEQUESTIONHOME;
+            }
+            else
+            {
+                questionText += baseTimezone;
+            }
+            questionText += SCHEDULEQUESTION5;
+        }
+        survey->questions << Question(questionText, Question::schedule);
+        for(int day = 0; day < MAX_DAYS; day++)
+        {
+            survey->schedDayNames[day] = dayNames[day];
+        }
+        survey->schedStartTime = startTime;
+        survey->schedEndTime = endTime;
+    }
+
+    // Section
+    section = ui->sectionCheckBox->isChecked();
+    ui->sectionNamesTextEdit->setEnabled(section);
+    if(section)
+    {
+        QStringList options;
+        for(int sect = 0; sect < sectionNames.size(); sect++)
+        {
+            options << sectionNames[sect];
+        }
+        survey->questions << Question(SECTIONQUESTION, Question::radiobutton, options);
+    }
+
+    // Preferred teammates and / or non-teammates
     preferredTeammates = ui->preferredTeammatesCheckBox->isChecked();
     preferredNonTeammates = ui->preferredNonTeammatesCheckBox->isChecked();
     ui->numAllowedLabel->setEnabled(preferredTeammates || preferredNonTeammates);
     ui->numAllowedSpinBox->setEnabled(preferredTeammates || preferredNonTeammates);
     numPreferredAllowed = ui->numAllowedSpinBox->value();
+    if(preferredTeammates)
+    {
+        if(numPreferredAllowed == 1)
+        {
+            survey->questions << Question(PREF1TEAMMATEQUESTION, Question::shorttext);
+        }
+        else
+        {
+            survey->questions << Question(PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2YES, Question::longtext);
+        }
+    }
+    if(preferredNonTeammates)
+    {
+        if(numPreferredAllowed == 1)
+        {
+            survey->questions << Question(PREF1NONTEAMMATEQUESTION, Question::shorttext);
+        }
+        else
+        {
+            survey->questions << Question(PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2NO, Question::longtext);
+        }
+    }
+
+    // Additional questions
     additionalQuestions = ui->additionalQuestionsCheckBox->isChecked();
-    busyOrFree = ((ui->busyFreeComboBox->currentText() == tr("busy"))? busy : free);
-
-    // update attribute data
-    for(int attrib = 0; attrib < MAX_ATTRIBUTES; attrib++)
+    if(additionalQuestions)
     {
-        auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(attrib));
-        attributeTexts[attrib] = attribTab->attributeText->toPlainText().simplified();
-        attributeResponses[attrib] = ((attribTab->attributeResponses->currentIndex()>1) ? (attribTab->attributeResponses->currentIndex()-1) : 0);
-        attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();
+        survey->questions << Question(ADDLQUESTION, Question::longtext);
     }
 
-    numAttributes = ui->attributeCountSpinBox->value();
-    if(timezone && !schedule)
-    {
-        attributeTexts[numAttributes] = TIMEZONEQUESTION;
-        attributeResponses[numAttributes] = TIMEZONE_RESPONSE_OPTION;
-        numAttributes++;
-    }
+    currPos = ui->previewText->verticalScrollBar()->value();
+    ui->previewText->setHtml(createPreview(survey));
+    ui->previewText->verticalScrollBar()->setValue(currPos);
+}
 
-    int currPos = ui->previewText->verticalScrollBar()->value();
-
+QString SurveyMaker::createPreview(const Survey *const survey)
+{
     // generate preview text and survey object
     QString preview;
     if(!survey->title.isEmpty())
     {
         preview += "<h2>" + survey->title + "</h2>";
     }
-    survey->questions.clear();
 
-    if(firstname)
+    for(const auto &question : qAsConst(survey->questions))
     {
-        createQuestion(preview, FIRSTNAMEQUESTION, Question::shorttext);
-    }
-    if(lastname)
-    {
-        createQuestion(preview, LASTNAMEQUESTION, Question::shorttext);
-    }
-    if(email)
-    {
-        createQuestion(preview, EMAILQUESTION, Question::shorttext);
-    }
-    if(gender)
-    {
-        createQuestion(preview, GENDERQUESTION, Question::radiobutton, GENDEROPTIONS);
-    }
-    if(URM)
-    {
-       createQuestion(preview, URMQUESTION, Question::shorttext);
-    }
-    if(numAttributes > 0)
-    {
-        for(int attrib = 0; attrib < numAttributes; attrib++)
+        preview += QUESTIONPREVIEWHEAD + question.text;
+        if((question.type == Question::dropdown) || (question.type == Question::radiobutton) || (question.type == Question::checkbox))
         {
-            QString questionText = (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
-            QString options;
-            Question::QuestionType questionType = Question::radiobutton;
-            if(attributeResponses[attrib] < responseOptions.size())
+            preview += QUESTIONOPTIONSHEAD + question.options.join(" </i><b>|</b><i> ") + QUESTIONOPTIONSTAIL;
+            if(question.type == Question::checkbox)
             {
-                options = responseOptions.at(attributeResponses[attrib]);
-                if(attributeAllowMultipleResponses[attrib])
+                preview += "</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>* " + tr("Multiple responses allowed") + "</small>";
+            }
+        }
+        else if(question.type == Question::schedule)
+        {
+            preview += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
+            preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
+            for(int time = survey->schedStartTime; time <= survey->schedEndTime; time++)
+            {
+                preview += QTime(time, 0).toString("hA");
+                if(time != survey->schedEndTime)
                 {
-                    questionType = Question::checkbox;
+                    preview += "&nbsp;&nbsp;&nbsp;";
                 }
             }
-            else if(attributeResponses[attrib] == TIMEZONE_RESPONSE_OPTION)
+            preview += "</small></p>";
+            for(const auto &dayName : qAsConst(survey->schedDayNames))
             {
-                options = TIMEZONEOPTIONS;
-                questionType = Question::dropdown;
-            }
-            createQuestion(preview, questionText, questionType, options);
-        }
-    }
-    if(schedule)
-    {
-        if(timezone)
-        {
-            createQuestion(preview, TIMEZONEQUESTION, Question::dropdown, TIMEZONEOPTIONS);
-        }
-
-        QString questionText = SCHEDULEQUESTION1 + ((busyOrFree == busy)? SCHEDULEQUESTION2BUSY : SCHEDULEQUESTION2FREE) + SCHEDULEQUESTION3 + SCHEDULEQUESTION4;
-        if(timezone && baseTimezone.isEmpty())
-        {
-            questionText += SCHEDULEQUESTIONHOME;
-        }
-        else if(!baseTimezone.isEmpty())
-        {
-            questionText += baseTimezone;
-        }
-        questionText += SCHEDULEQUESTION5;
-        createQuestion(preview, questionText, Question::schedule);
-    }
-
-    if(section)
-    {
-        QString options;
-        for(int sect = 0; sect < sectionNames.size(); sect++)
-        {
-            if(sect > 0)
-            {
-                options += "/";
-            }
-            options += sectionNames[sect];
-        }
-        createQuestion(preview, SECTIONQUESTION, Question::radiobutton, options);
-    }
-
-    if(preferredTeammates)
-    {
-        if(numPreferredAllowed == 1)
-        {
-            createQuestion(preview, PREF1TEAMMATEQUESTION, Question::shorttext);
-        }
-        else
-        {
-            createQuestion(preview, PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2YES, Question::longtext);
-        }
-    }
-
-    if(preferredNonTeammates)
-    {
-        if(numPreferredAllowed == 1)
-        {
-            createQuestion(preview, PREF1NONTEAMMATEQUESTION, Question::shorttext);
-        }
-        else
-        {
-            createQuestion(preview, PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2NO, Question::longtext);
-        }
-    }
-
-    if(additionalQuestions)
-    {
-        createQuestion(preview, ADDLQUESTION, Question::longtext);
-    }
-
-    ui->previewText->setHtml(preview);
-    ui->previewText->verticalScrollBar()->setValue(currPos);
-}
-
-void SurveyMaker::createQuestion(QString &previewText, const QString &questionText, const Question::QuestionType questionType, const QString &options)
-{
-    previewText += QUESTIONPREVIEWHEAD + questionText;
-    if((questionType == Question::dropdown) || (questionType == Question::radiobutton) || (questionType == Question::checkbox))
-    {
-        previewText += QUESTIONOPTIONSHEAD + options.split('/').join(" </i><b>|</b><i> ") + QUESTIONOPTIONSTAIL;
-        if(questionType == Question::checkbox)
-        {
-            previewText += "</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>* " + tr("Multiple responses allowed") + "</small>";
-        }
-    }
-    else if(questionType == Question::schedule)
-    {
-        previewText += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
-        previewText += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
-        for(int time = startTime; time <= endTime; time++)
-        {
-            previewText += QTime(time, 0).toString("hA");
-            if(time != endTime)
-            {
-                previewText += "&nbsp;&nbsp;&nbsp;";
+                if(!(dayName.isEmpty()))
+                {
+                    preview += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
+                }
             }
         }
-        previewText += "</small></p>";
-        for(const auto & dayName : dayNames)
-        {
-            if(!(dayName.isEmpty()))
-            {
-                previewText += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
-            }
-        }
+        preview += QUESTIONPREVIEWTAIL;
     }
-    previewText += QUESTIONPREVIEWTAIL;
-
-    survey->questions << Question(questionText, questionType, options.split('/'));
+    return preview;
 }
 
 void SurveyMaker::badExpression(QWidget *textWidget, QString &currText)
@@ -501,201 +527,210 @@ void SurveyMaker::createFiles(SurveyMaker *survey)
     {
         //get the filenames and location
         QString fileName = QFileDialog::getSaveFileName(survey, tr("Save File"), survey->saveFileLocation.canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
-        if( !(fileName.isEmpty()) )
-        {
-            //create the files
-            QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
-            if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text) && saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
-            {
-                int questionNumber = 0, sectionNumber = 0;
-                QString textFileContents = survey->survey->title + "\n\n";
-                QString csvFileContents = "Timestamp";
-
-                textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
-                textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Basic Information") + ":";
-
-                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                textFileContents += tr("What is your first name (or the name you prefer to be called)?");
-                csvFileContents += ",What is your first name (or the name you prefer to be called)?";
-
-                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                textFileContents += tr("What is your last name?");
-                csvFileContents += ",What is your last name?";
-
-                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                textFileContents += tr("What is your email address?");
-                csvFileContents += ",What is your email address?";
-
-                if(survey->gender)
-                {
-                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                    textFileContents += tr("With which gender do you identify most closely?");
-                    textFileContents += "\n     " + tr("choices: [woman | man | nonbinary | prefer not to answer]");
-                    csvFileContents += ",With which gender do you identify most closely?";
-                }
-                if(survey->URM)
-                {
-                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                    textFileContents += tr("How do you identify your race, ethnicity, or cultural heritage?");
-                    csvFileContents += ",\"How do you identify your race, ethnicity, or cultural heritage?\"";
-                }
-                if(survey->numAttributes > 0)
-                {
-                    textFileContents += "\n\n\n" + tr("Section") + " " + QString::number(++sectionNumber) + ", " + tr("Attributes") + ":";
-                    for(int attrib = 0; attrib < survey->numAttributes; attrib++)
-                    {
-                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        textFileContents += survey->attributeTexts[attrib].isEmpty()?
-                                                "{" + tr("Attribute question") + " " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
-                        textFileContents += "\n     " + tr("choices") + ": [";
-                        QStringList responses;
-                        if(survey->attributeResponses[attrib] < survey->responseOptions.size())
-                        {
-                            responses = survey->responseOptions.at(survey->attributeResponses[attrib]).split("/");
-                        }
-                        else if(survey->attributeResponses[attrib] == TIMEZONE_RESPONSE_OPTION)
-                        {
-                            responses << tr("list of relevant timezones");
-                        }
-
-                        for(int resp = 0; resp < responses.size(); resp++)
-                        {
-                            if(resp != 0)
-                            {
-                                textFileContents += " | ";
-                            }
-                            if( (survey->attributeResponses[attrib] > 0) && (survey->attributeResponses[attrib] <= LAST_LIKERT_RESPONSE) )
-                            {
-                                textFileContents += QString::number(resp+1) + ". ";
-                            }
-                            textFileContents += responses.at(resp);
-                        }
-                        textFileContents += "]\n     (" + ((survey->attributeAllowMultipleResponses[attrib]) ?
-                                                          tr("Multiple responses allowed") : tr("Only one response allowed")) + ")";
-                        csvFileContents += ",\"" + (survey->attributeTexts[attrib].isEmpty()?
-                                                        tr("Attribute question") + " " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
-                    }
-                }
-                if(survey->schedule)
-                {
-                    textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Schedule") + ":";
-                    if(survey->timezone)
-                    {
-                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        textFileContents += tr("What time zone will you be based in during this class?");
-                        textFileContents += "\n     " + tr("choices") + ": [" + tr("list of relevant timezones") + "]\n\n";
-                        csvFileContents += ",What time zone will you be based in during this class?";
-                    }
-                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                    textFileContents += tr("Please tell us about your weekly schedule.") + "\n";
-                    textFileContents += "     " + tr("Check the times that you are");
-                    textFileContents += ((survey->busyOrFree == busy)? tr(" BUSY and will be UNAVAILABLE ") : tr(" FREE and will be AVAILABLE "));
-                    textFileContents += tr("for group work.");
-                    if(survey->timezone && survey->baseTimezone.isEmpty())
-                    {
-                        textFileContents += tr(" These times refer to your home timezone.");
-                    }
-                    else if(!(survey->baseTimezone.isEmpty()))
-                    {
-                        textFileContents += tr(" These times refer to ") + survey->baseTimezone + tr(" time.");
-                    }
-                    textFileContents += "\n                 ";
-                    for(int time = survey->startTime; time <= survey->endTime; time++)
-                    {
-                        textFileContents += QTime(time, 0).toString("hA") + "    ";
-                    }
-                    textFileContents += "\n";
-                    for(const auto &dayName : survey->dayNames)
-                    {
-                        if(!(dayName.isEmpty()))
-                        {
-                            textFileContents += "\n      " + dayName + "\n";
-                            csvFileContents += ",Check the times that you are";
-                            csvFileContents += ((survey->busyOrFree == busy)? " BUSY and will be UNAVAILABLE " : " FREE and will be AVAILABLE ");
-                            csvFileContents += "for group work.";
-                            if(!(survey->baseTimezone.isEmpty()))
-                            {
-                                csvFileContents += " These times refer to " + survey->baseTimezone + " time. ";
-                            }
-                            csvFileContents += "[" + dayName + "]";
-                        }
-                    }
-                }
-                if(survey->section || survey->preferredTeammates || survey->preferredNonTeammates || survey->additionalQuestions)
-                {
-                    textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Additional Information") + ":";
-                    if(survey->section)
-                    {
-                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        textFileContents += tr("In which section are you enrolled?");
-                        textFileContents += "\n     " + tr("choices") + ": [";
-                        for(int sect = 0; sect < survey->sectionNames.size(); sect++)
-                        {
-                            if(sect > 0)
-                            {
-                                textFileContents += " | ";
-                            }
-
-                            textFileContents += survey->sectionNames[sect];
-                        }
-                        textFileContents += " ]";
-                        csvFileContents += ",In which section are you enrolled?";
-                    }
-                    if(survey->preferredTeammates)
-                    {
-                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        if(survey->numPreferredAllowed == 1)
-                        {
-                            textFileContents += tr("{Please write the name of someone you would like to have on your team. "
-                                                   "Write their first and last name only.}");
-                            csvFileContents += ",Please write the name of someone who you would like to have on your team.";
-                        }
-                        else
-                        {
-                            textFileContents += tr("{Please list the name(s) of up to ") + QString::number(survey->numPreferredAllowed) +
-                                                tr( " people who you would like to have on your team. "
-                                                   "Write their first and last name, and put a comma between multiple names.}");
-                            csvFileContents += ",Please list the name(s) of people who you would like to have on your team.";
-                        }
-                    }
-                    if(survey->preferredNonTeammates)
-                    {
-                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        if(survey->numPreferredAllowed == 1)
-                        {
-                            textFileContents += tr("{Please write the name of someone you would like to NOT have on your team. "
-                                                   "Write their first and last name only.}");
-                            csvFileContents += ",Please write the name of someone who you would like to NOT have on your team.";
-                        }
-                        else
-                        {
-                            textFileContents += tr("{Please list the name(s) of up to ") + QString::number(survey->numPreferredAllowed) +
-                                                tr( " people who you would like to NOT have on your team. "
-                                                   "Write their first and last name, and put a comma between multiple names.}");
-                            csvFileContents += ",Please list the name(s) of people who you would like to NOT have on your team.";
-                        }
-                    }
-                    if(survey->additionalQuestions)
-                    {
-                        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
-                        textFileContents += tr("{Any additional questions you wish to include in the survey but not use for forming groups.}");
-                        csvFileContents += ",Any additional questions you wish to include in the survey but not use for forming groups.";
-                    }
-                }
-
-                //write the files
-                QTextStream output(&saveFile), output2(&saveFile2);
-                output << textFileContents;
-                output2 << csvFileContents;
-                saveFile.close();
-                saveFile2.close();
-
-                survey->surveyCreated = true;
-            }
-        }
-        else
+        if(fileName.isEmpty())
         {
             QMessageBox::critical(survey, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+            return;
+        }
+        //create the files
+        QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
+        if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text) && saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            int questionNumber = 0, sectionNumber = 0;
+            QString textFileContents = survey->survey->title + "\n\n";
+            QString csvFileContents = "Timestamp";
+
+            textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
+            textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Basic Information") + ":";
+
+            if(survey->firstname)
+            {
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += FIRSTNAMEQUESTION;
+                csvFileContents += "," + FIRSTNAMEQUESTION;
+            }
+
+            if(survey->lastname)
+            {
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += LASTNAMEQUESTION;
+                csvFileContents += "," + LASTNAMEQUESTION;
+            }
+
+            if(survey->email)
+            {
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += EMAILQUESTION;
+                csvFileContents += "," + EMAILQUESTION;
+            }
+
+            if(survey->gender)
+            {
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += GENDERQUESTION;
+                textFileContents += "\n     " + tr("choices: [") + GENDEROPTIONS.split('/').join(" | ") + "]";
+                csvFileContents += "," + GENDERQUESTION;
+            }
+
+            if(survey->URM)
+            {
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += URMQUESTION;
+                csvFileContents += ",\"" + URMQUESTION + "\"";
+            }
+
+            if(survey->numAttributes > 0)
+            {
+                textFileContents += "\n\n\n" + tr("Section") + " " + QString::number(++sectionNumber) + ", " + tr("Attributes") + ":";
+                for(int attrib = 0; attrib < survey->numAttributes; attrib++)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += survey->attributeTexts[attrib].isEmpty()?
+                                "{" + tr("Attribute question") + " " + QString::number(attrib+1) + "}" : survey->attributeTexts[attrib];
+                    textFileContents += "\n     " + tr("choices") + ": [";
+                    QStringList responses;
+                    if(survey->attributeResponses[attrib] < survey->responseOptions.size())
+                    {
+                        responses = survey->responseOptions.at(survey->attributeResponses[attrib]).split("/");
+                    }
+                    else if(survey->attributeResponses[attrib] == TIMEZONE_RESPONSE_OPTION)
+                    {
+                        responses << tr("list of relevant timezones");
+                    }
+
+                    for(int resp = 0; resp < responses.size(); resp++)
+                    {
+                        if(resp != 0)
+                        {
+                            textFileContents += " | ";
+                        }
+                        if( (survey->attributeResponses[attrib] > 0) && (survey->attributeResponses[attrib] <= LAST_LIKERT_RESPONSE) )
+                        {
+                            textFileContents += QString::number(resp+1) + ". ";
+                        }
+                        textFileContents += responses.at(resp);
+                    }
+                    textFileContents += "]\n     (" + ((survey->attributeAllowMultipleResponses[attrib]) ?
+                                                           tr("Multiple responses allowed") : tr("Only one response allowed")) + ")";
+                    csvFileContents += ",\"" + (survey->attributeTexts[attrib].isEmpty()?
+                                                    tr("Attribute question") + " " + QString::number(attrib+1) : survey->attributeTexts[attrib]) + "\"";
+                }
+            }
+            if(survey->schedule)
+            {
+                textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Schedule") + ":";
+                if(survey->timezone)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += tr("What time zone will you be based in during this class?");
+                    textFileContents += "\n     " + tr("choices") + ": [" + tr("list of relevant timezones") + "]\n\n";
+                    csvFileContents += ",What time zone will you be based in during this class?";
+                }
+                textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                textFileContents += tr("Please tell us about your weekly schedule.") + "\n";
+                textFileContents += "     " + tr("Check the times that you are");
+                textFileContents += ((survey->busyOrFree == busy)? tr(" BUSY and will be UNAVAILABLE ") : tr(" FREE and will be AVAILABLE "));
+                textFileContents += tr("for group work.");
+                if(survey->timezone && survey->baseTimezone.isEmpty())
+                {
+                    textFileContents += tr(" These times refer to your home timezone.");
+                }
+                else if(!(survey->baseTimezone.isEmpty()))
+                {
+                    textFileContents += tr(" These times refer to ") + survey->baseTimezone + tr(" time.");
+                }
+                textFileContents += "\n                 ";
+                for(int time = survey->startTime; time <= survey->endTime; time++)
+                {
+                    textFileContents += QTime(time, 0).toString("hA") + "    ";
+                }
+                textFileContents += "\n";
+                for(const auto &dayName : survey->dayNames)
+                {
+                    if(!(dayName.isEmpty()))
+                    {
+                        textFileContents += "\n      " + dayName + "\n";
+                        csvFileContents += ",Check the times that you are";
+                        csvFileContents += ((survey->busyOrFree == busy)? " BUSY and will be UNAVAILABLE " : " FREE and will be AVAILABLE ");
+                        csvFileContents += "for group work.";
+                        if(!(survey->baseTimezone.isEmpty()))
+                        {
+                            csvFileContents += " These times refer to " + survey->baseTimezone + " time. ";
+                        }
+                        csvFileContents += "[" + dayName + "]";
+                    }
+                }
+            }
+            if(survey->section || survey->preferredTeammates || survey->preferredNonTeammates || survey->additionalQuestions)
+            {
+                textFileContents += "\n\n\n" + tr("Section ") + QString::number(++sectionNumber) + ", " + tr("Additional Information") + ":";
+                if(survey->section)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += tr("In which section are you enrolled?");
+                    textFileContents += "\n     " + tr("choices") + ": [";
+                    for(int sect = 0; sect < survey->sectionNames.size(); sect++)
+                    {
+                        if(sect > 0)
+                        {
+                            textFileContents += " | ";
+                        }
+
+                        textFileContents += survey->sectionNames[sect];
+                    }
+                    textFileContents += " ]";
+                    csvFileContents += ",In which section are you enrolled?";
+                }
+                if(survey->preferredTeammates)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    if(survey->numPreferredAllowed == 1)
+                    {
+                        textFileContents += tr("{Please write the name of someone you would like to have on your team. "
+                                               "Write their first and last name only.}");
+                        csvFileContents += ",Please write the name of someone who you would like to have on your team.";
+                    }
+                    else
+                    {
+                        textFileContents += tr("{Please list the name(s) of up to ") + QString::number(survey->numPreferredAllowed) +
+                                tr( " people who you would like to have on your team. "
+                                    "Write their first and last name, and put a comma between multiple names.}");
+                        csvFileContents += ",Please list the name(s) of people who you would like to have on your team.";
+                    }
+                }
+                if(survey->preferredNonTeammates)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    if(survey->numPreferredAllowed == 1)
+                    {
+                        textFileContents += tr("{Please write the name of someone you would like to NOT have on your team. "
+                                               "Write their first and last name only.}");
+                        csvFileContents += ",Please write the name of someone who you would like to NOT have on your team.";
+                    }
+                    else
+                    {
+                        textFileContents += tr("{Please list the name(s) of up to ") + QString::number(survey->numPreferredAllowed) +
+                                tr( " people who you would like to NOT have on your team. "
+                                    "Write their first and last name, and put a comma between multiple names.}");
+                        csvFileContents += ",Please list the name(s) of people who you would like to NOT have on your team.";
+                    }
+                }
+                if(survey->additionalQuestions)
+                {
+                    textFileContents += "\n\n  " + QString::number(++questionNumber) + ") ";
+                    textFileContents += tr("{Any additional questions you wish to include in the survey but not use for forming groups.}");
+                    csvFileContents += ",Any additional questions you wish to include in the survey but not use for forming groups.";
+                }
+            }
+
+            //write the files
+            QTextStream output(&saveFile), output2(&saveFile2);
+            output << textFileContents;
+            output2 << csvFileContents;
+            saveFile.close();
+            saveFile2.close();
+
+            survey->surveyCreated = true;
         }
     }
 }
@@ -714,27 +749,8 @@ void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg
     }
 }
 
-void SurveyMaker::on_surveyTitleLineEdit_textChanged(const QString &arg1)
-{
-    //validate entry
-    QString currText = arg1;
-    int currPos = 0;
-    if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
-    {
-        badExpression(ui->surveyTitleLineEdit, currText);
-    }
-    survey->title = currText.trimmed();
-    buildSurvey();
-}
-
 void SurveyMaker::on_attributeCountSpinBox_valueChanged(int arg1)
 {
-    numAttributes = arg1;
-    if(timezone && !schedule)
-    {
-        numAttributes++;
-    }
-
     ui->attributesTabWidget->setTabEnabled(0, 0 < arg1);
     for(int i = 1; i < MAX_ATTRIBUTES; i++)
     {
@@ -907,7 +923,7 @@ void SurveyMaker::attributeTextChanged()
     const int currAttribute = ui->attributesTabWidget->currentIndex();
     //validate entry
     auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(currAttribute));
-    QString currText = attribTab->attributeText->toPlainText();//attributeTabItems.at(currAttribute)->attributeText->toPlainText();
+    QString currText = attribTab->attributeText->toPlainText();
     int currPos = 0;
     if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
     {
@@ -940,8 +956,6 @@ void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
 
     ui->busyFreeLabel->setEnabled(checked);
     ui->busyFreeComboBox->setEnabled(checked);
-    baseTimezoneComboBox->setEnabled(checked);
-    ui->baseTimezoneLineEdit->setEnabled(checked);
     ui->daysComboBox->setEnabled(checked);
     for(int day = 0; day < MAX_DAYS; day++)
     {
@@ -973,14 +987,10 @@ void SurveyMaker::checkTimezoneAndSchedule()
     }
 
     // if asking students about timezone and schedule, should require survey to define timezone of schedule
-    if(timezone && schedule)
-    {
-        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[student's home timezone]"));
-    }
-    else
-    {
-        baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, tr("[no timezone given]"));
-    }
+    bool timezoneAndSchedule = timezone && schedule;
+    baseTimezoneComboBox->setEnabled(timezoneAndSchedule);
+    ui->baseTimezoneLineEdit->setEnabled(timezoneAndSchedule);
+    baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, timezoneAndSchedule? tr("[student's home timezone]") : tr("[no timezone given]"));
 }
 
 void SurveyMaker::baseTimezoneComboBox_currentIndexChanged(int arg1)
@@ -1136,13 +1146,6 @@ void SurveyMaker::on_timeEndEdit_timeChanged(QTime time)
     buildSurvey();
 }
 
-void SurveyMaker::on_sectionCheckBox_clicked(bool checked)
-{
-    section = checked;
-    ui->sectionNamesTextEdit->setEnabled(checked);
-    buildSurvey();
-}
-
 void SurveyMaker::on_sectionNamesTextEdit_textChanged()
 {
     //validate entry
@@ -1181,7 +1184,6 @@ void SurveyMaker::openSurvey()
             {
                 ui->surveyTitleLineEdit->setText(loadObject["Title"].toString());
             }
-
             if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool())
             {
                 ui->firstNameCheckBox->setChecked(loadObject["FirstName"].toBool());
@@ -1194,7 +1196,6 @@ void SurveyMaker::openSurvey()
             {
                 ui->emailCheckBox->setChecked(loadObject["Email"].toBool());
             }
-
             if(loadObject.contains("Gender") && loadObject["Gender"].isBool())
             {
                 ui->genderCheckBox->setChecked(loadObject["Gender"].toBool());
@@ -1203,7 +1204,6 @@ void SurveyMaker::openSurvey()
             {
                 ui->URMCheckBox->setChecked(loadObject["URM"].toBool());
             }
-
             if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble())
             {
                 ui->attributeCountSpinBox->setValue(loadObject["numAttributes"].toInt());
@@ -1235,8 +1235,8 @@ void SurveyMaker::openSurvey()
 
             if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
             {
-                ui->sectionCheckBox->setChecked(loadObject["Schedule"].toBool());
-                on_sectionCheckBox_clicked(loadObject["Schedule"].toBool());
+                ui->scheduleCheckBox->setChecked(loadObject["Schedule"].toBool());
+                on_scheduleCheckBox_clicked(loadObject["Schedule"].toBool());
             }
             if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
             {
@@ -1288,7 +1288,6 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("Section") && loadObject["Section"].isBool())
             {
                 ui->sectionCheckBox->setChecked(loadObject["Section"].toBool());
-                on_sectionCheckBox_clicked(loadObject["Section"].toBool());
             }
             if(loadObject.contains("SectionNames") && loadObject["SectionNames"].isString())
             {

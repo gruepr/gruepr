@@ -97,7 +97,8 @@ const char TIMEZONENAMES[] {"International Date Line West [GMT-12:00];\"Samoa: M
                             "\"New Zealand: Auckland, Wellington [GMT+12:00]\";Tonga: Nuku'alofa [GMT+13:00]"};
 
 //the built-in Likert scale responses offered in surveyMaker
-const char RESPONSE_OPTIONS[] {"Yes / No;Yes / Maybe / No;"
+const char RESPONSE_OPTIONS[] {"Yes / No;"
+                               "Yes / Maybe / No;"
                                "Definitely / Probably / Maybe / Probably not / Definitely not;"
                                "Strongly preferred / Preferred / Opposed / Strongly opposed;"
                                "True / False;"
@@ -128,7 +129,7 @@ const char RESPONSE_OPTIONS[] {"Yes / No;Yes / Maybe / No;"
                                "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8;"
                                "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9;"
                                "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10;"
-                               "custom options, to be added after creating the form;"};
+                               "custom options, to be added after creating the form"};
 
 
 // Options for the team names. A name for each list of names must be given.

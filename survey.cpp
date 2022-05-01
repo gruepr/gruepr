@@ -1,5 +1,4 @@
 #include "survey.h"
-#include "gruepr_consts.h"
 #include <algorithm>
 
 
@@ -16,8 +15,9 @@ Survey::Survey()
     questions.clear();
 }
 
-bool Survey::isValid()
+bool Survey::isValid() const
 {
+    // a survey must have at least one attribute question (including timezone) or schedule question
     return (numAttributes > 0) || (std::any_of(questions.constBegin(), questions.constEnd(),
-                                               [](Question question){return ((question.type == Question::timezone) || (question.type == Question::schedule));}));
+                                               [](const Question &question){return ((question.type == Question::timezone) || (question.type == Question::schedule));}));
 }

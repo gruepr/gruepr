@@ -426,6 +426,9 @@
           </property>
           <item alignment="Qt::AlignVCenter">
            <widget class="QComboBox" name="fillinTimezoneComboBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
               <horstretch>2</horstretch>
@@ -445,6 +448,9 @@
           </item>
           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
            <widget class="QLineEdit" name="baseTimezoneLineEdit">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>1</horstretch>
@@ -816,7 +822,7 @@
      </widget>
     </item>
     <item row="22" column="0">
-     <layout class="QHBoxLayout" name="sectionLayout" stretch="0,2">
+     <layout class="QHBoxLayout" name="sectionLayout" stretch="0,0">
       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QCheckBox" name="sectionCheckBox">
         <property name="text">
@@ -825,7 +831,10 @@
        </widget>
       </item>
       <item>
-       <widget class="QPlainTextEdit" name="sectionNamesTextEdit">
+       <widget class="QTextEdit" name="sectionNamesTextEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>2</horstretch>

@@ -76,7 +76,7 @@ attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent)
         allowMultipleResponses = new QCheckBox(tr("Allow student to select multiple options"), this);
         theGrid->addWidget(allowMultipleResponses, row++, column, 1, -1);
 
-        attributeResponses->addItem("Choose the response options...");
+        attributeResponses->addItem(tr("Choose the response options..."));
         attributeResponses->insertSeparator(1);
         QStringList responseOptions = QString(RESPONSE_OPTIONS).split(';');
         for(int response = 0; response < responseOptions.size(); response++)

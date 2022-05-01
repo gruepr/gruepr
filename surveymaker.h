@@ -22,11 +22,10 @@ public:
     ~SurveyMaker();
 
 protected:
-    void resizeEvent(QResizeEvent *event);
-    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void on_surveyTitleLineEdit_textChanged(const QString &arg1);
     void on_attributeCountSpinBox_valueChanged(int arg1);
     void attributeTabBarMoveTab(int indexFrom, int indexTo);
     void refreshAttributeTabBar(int index);
@@ -42,7 +41,6 @@ private slots:
     void day_LineEdit_textChanged(const QString &text, QLineEdit *dayLineEdit, QString &dayname);
     void on_timeStartEdit_timeChanged(QTime time);
     void on_timeEndEdit_timeChanged(QTime time);
-    void on_sectionCheckBox_clicked(bool checked);
     void on_sectionNamesTextEdit_textChanged();
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
@@ -56,7 +54,7 @@ private:
     Ui::SurveyMaker *ui;
     Survey *survey;
     void buildSurvey();
-    void createQuestion(QString &previewText, const QString &questionText, const Question::QuestionType questionType, const QString &options = "");
+    static QString createPreview(const Survey *const survey);
     void checkDays();
     bool surveyCreated = false;
     QRegularExpressionValidator *noInvalidPunctuation;
@@ -97,7 +95,6 @@ private:
     QStringList responseOptions;
     enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
     inline static const int LAST_LIKERT_RESPONSE = 25;
-    inline static const int TIMEZONE_RESPONSE_OPTION = 101;
     inline static const QSize TABCLOSEICONSIZE = {8,8};
     inline static const QString QUESTIONPREVIEWHEAD = "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;";
     inline static const QString QUESTIONPREVIEWTAIL = "<br></p>";

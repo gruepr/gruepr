@@ -1,6 +1,7 @@
 #ifndef SURVEY_H
 #define SURVEY_H
 
+#include "gruepr_consts.h"
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -23,11 +24,14 @@ class Survey
 public:
     Survey();
 
-    bool isValid();
+    bool isValid() const;
 
     QString title = "";
     QVector<Question> questions;
     int numAttributes = 0;
+    QString schedDayNames[MAX_DAYS];
+    int schedStartTime = 10;
+    int schedEndTime = 17;
 };
 
 #endif // SURVEY_H
