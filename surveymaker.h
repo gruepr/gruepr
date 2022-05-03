@@ -88,9 +88,9 @@ private:
     bool preferredNonTeammates = false;
     int numPreferredAllowed = 1;
     bool additionalQuestions = false;
-    static void postGoogleURL(SurveyMaker *survey = nullptr);
-    static void createFiles(SurveyMaker *survey = nullptr);
-    void (*generateSurvey)(SurveyMaker *survey) = SurveyMaker::postGoogleURL;
+    static void postGoogleURL(SurveyMaker *surveyMaker = nullptr);
+    static void createFiles(SurveyMaker *surveyMaker = nullptr);
+    void (*generateSurvey)(SurveyMaker *surveyMaker) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
     enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
@@ -112,9 +112,9 @@ private:
     inline static const QString SCHEDULEQUESTION2BUSY = QObject::tr("BUSY and will be UNAVAILABLE");
     inline static const QString SCHEDULEQUESTION2FREE = QObject::tr("FREE and will be AVAILABLE");
     inline static const QString SCHEDULEQUESTION3 = QObject::tr(" for group work.");
-    inline static const QString SCHEDULEQUESTION4 = QObject::tr(" These times refer to <u><strong>");
+    inline static const QString SCHEDULEQUESTION4 = QObject::tr(" These times refer to ");
     inline static const QString SCHEDULEQUESTIONHOME = QObject::tr("your home");
-    inline static const QString SCHEDULEQUESTION5 = QObject::tr("</strong></u> timezone.");
+    inline static const QString SCHEDULEQUESTION5 = QObject::tr(" timezone.");
     inline static const QString SECTIONQUESTION = QObject::tr("In which section are you enrolled?");
     inline static const QString PREF1TEAMMATEQUESTION = QObject::tr("Please write the name of someone who you would like to have on your team. Write their first and last name only.");
     inline static const QString PREF1NONTEAMMATEQUESTION = QObject::tr("Please write the name of someone who you would like to NOT have on your team. Write their first and last name only.");
