@@ -20,6 +20,10 @@ class SurveyMaker : public QMainWindow
 public:
     explicit SurveyMaker(QWidget *parent = nullptr);
     ~SurveyMaker();
+    SurveyMaker(const SurveyMaker&) = delete;
+    SurveyMaker operator= (const SurveyMaker&) = delete;
+    SurveyMaker(SurveyMaker&&) = delete;
+    SurveyMaker& operator= (SurveyMaker&&) = delete;
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -31,16 +35,11 @@ private slots:
     void refreshAttributeTabBar(int index);
     void attributeTabClose(int index);
     void attributeTextChanged();
-    void on_timezoneCheckBox_clicked(bool checked);
-    void on_scheduleCheckBox_clicked(bool checked);
-    void checkTimezoneAndSchedule();
     void baseTimezoneComboBox_currentIndexChanged(int arg1);
     void on_baseTimezoneLineEdit_textChanged();
     void on_daysComboBox_activated(int index);
     void day_CheckBox_toggled(bool checked, QLineEdit *dayLineEdit, const QString &dayname);
     void day_LineEdit_textChanged(const QString &text, QLineEdit *dayLineEdit, QString &dayname);
-    void on_timeStartEdit_timeChanged(QTime time);
-    void on_timeEndEdit_timeChanged(QTime time);
     void on_sectionNamesTextEdit_textChanged();
     void on_makeSurveyButton_clicked();
     void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);

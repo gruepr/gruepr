@@ -21,7 +21,7 @@ public:
 private slots:
     void statsButtonPushed(QtCharts::QChartView *chart);
     void updateCountdown();
-    void reject();
+    void reject() override;
 
 signals:
     void letsStop();

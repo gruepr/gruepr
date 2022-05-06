@@ -239,4 +239,23 @@ const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwq
 const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
 const char BUGREPORTPAGE[] {"http://bit.ly/grueprBugReportFromApp"};
 
+const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
+                                 "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+                                 "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>"
+                                 "<p>gruepr is an open source project. The source code is freely available at"
+                                 "<br>the project homepage: <a href = http://gruepr.com>http://gruepr.com</a>"
+                                 "<p>gruepr incorporates:"
+                                 "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
+                                 "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
+                                 "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
+                                 "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
+                                 " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
+                                 "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
+                                 "<h3>Disclaimer</h3>"
+                                 "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of "
+                                 "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
+                                 "<p>This program is free software: you can redistribute it and/or modify it under the terms of the "
+                                 "<a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> "
+                                 "as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."};
+
 #endif // GRUEPR_CONSTS

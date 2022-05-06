@@ -52,7 +52,11 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->timezoneCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->scheduleCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+    connect(ui->timeStartEdit, &QTimeEdit::timeChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->timeEndEdit, &QTimeEdit::timeChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->sectionCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->preferredTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->preferredNonTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
@@ -194,6 +198,8 @@ void SurveyMaker::buildSurvey()
 
     // Attributes (including timezone if no schedule question)
     numAttributes = ui->attributeCountSpinBox->value();
+    timezone = ui->timezoneCheckBox->isChecked();
+    schedule = ui->scheduleCheckBox->isChecked();
     if(timezone && !schedule)
     {
         numAttributes++;
@@ -226,7 +232,38 @@ void SurveyMaker::buildSurvey()
     }
 
     // Schedule (including timezone if applicable)
+    ui->busyFreeLabel->setEnabled(schedule);
+    ui->busyFreeComboBox->setEnabled(schedule);
     busyOrFree = ((ui->busyFreeComboBox->currentText() == tr("busy"))? busy : free);
+    ui->daysComboBox->setEnabled(schedule);
+    for(int day = 0; day < MAX_DAYS; day++)
+    {
+        dayCheckBoxes[day]->setEnabled(schedule);
+        dayLineEdits[day]->setEnabled(schedule && dayCheckBoxes[day]->isChecked());
+    }
+    ui->timeStartEdit->setEnabled(schedule);
+    ui->timeStartEdit->setMaximumTime(ui->timeEndEdit->time());
+    ui->timeEndEdit->setEnabled(schedule);
+    ui->timeEndEdit->setMinimumTime(ui->timeStartEdit->time());
+    startTime = ui->timeStartEdit->time().hour();
+    endTime = ui->timeEndEdit->time().hour();
+    // If user just turned on timezone but already had full number of attributes, need to first remove last attribute to make room
+    // Note that changing the spinbox value will automatically add the timezone question to the end of the attributes
+    if(timezone && ui->attributeCountSpinBox->value() == MAX_ATTRIBUTES)
+    {
+        ui->attributeCountSpinBox->setValue(MAX_ATTRIBUTES - 1);
+        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - 1);
+    }
+    else
+    {
+        // reduce max attributes by 1 anytime we have timezone on, then refresh attribute questions
+        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - (timezone? 1 : 0));
+    }
+    // if asking students about timezone and schedule, should require survey to define timezone of schedule
+    bool timezoneAndSchedule = timezone && schedule;
+    baseTimezoneComboBox->setEnabled(timezoneAndSchedule);
+    ui->baseTimezoneLineEdit->setEnabled(timezoneAndSchedule);
+    baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, timezoneAndSchedule? tr("[student's home timezone]") : tr("[no timezone given]"));
     if(schedule)
     {
         if(timezone)
@@ -640,14 +677,15 @@ void SurveyMaker::refreshAttributeTabBar(int index)
 
     const int widthOfTabWidget = tabs->size().width();
     int lastVisibleIndex = firstVisibleIndex;
+    int numNonTimezoneAttributes = ui->attributeCountSpinBox->value();
     // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
-    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numAttributes))
+    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numNonTimezoneAttributes))
     {
         lastVisibleIndex++;
     }
     auto lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
     // move back one if this last tab is less than 1/2 visible or if we've exceeded the number of tabs possible
-    if((((lastTabGeom.left() + lastTabGeom.right()) / 2) > widthOfTabWidget) || (lastVisibleIndex == numAttributes))
+    if((((lastTabGeom.left() + lastTabGeom.right()) / 2) > widthOfTabWidget) || (lastVisibleIndex == numNonTimezoneAttributes))
     {
         lastVisibleIndex--;
         lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
@@ -664,19 +702,19 @@ void SurveyMaker::refreshAttributeTabBar(int index)
             firstVisibleIndex--;
         }
     }
-    else if((firstVisibleIndex != 0) && (lastVisibleIndex == numAttributes - 1) && (lastTabGeom.right() + lastTabGeom.width() < widthOfTabWidget))
+    else if((firstVisibleIndex != 0) && (lastVisibleIndex == numNonTimezoneAttributes - 1) && (lastTabGeom.right() + lastTabGeom.width() < widthOfTabWidget))
     {
         // expanding one tab to the left if there are previous tabs to expand and there's simply enough room now due to closing a tab or expanding the window
         tabs->setTabVisible(firstVisibleIndex-1, true);
         firstVisibleIndex--;
     }
-    else if((lastVisibleIndex != numAttributes-1) && (index >= lastVisibleIndex))
+    else if((lastVisibleIndex != numNonTimezoneAttributes-1) && (index >= lastVisibleIndex))
     {
         // expanding one or two tabs to right if there are subsequent tabs to expand and the current one is the last one visible
         tabs->setTabVisible(firstVisibleIndex, false);
         firstVisibleIndex++;
         lastVisibleIndex++;
-        if(lastVisibleIndex != numAttributes-1)
+        if(lastVisibleIndex != numNonTimezoneAttributes-1)
         {
             tabs->setTabVisible(firstVisibleIndex, false);
             firstVisibleIndex++;
@@ -686,13 +724,13 @@ void SurveyMaker::refreshAttributeTabBar(int index)
     // redetermine the last visible index now for the sake of labeling the tabs
     lastVisibleIndex = firstVisibleIndex;
     // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
-    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numAttributes))
+    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < numNonTimezoneAttributes))
     {
         lastVisibleIndex++;
     }
     // move back one if this last tab is less than 1/2 visible or if we've exceeded the number of tabs possible
     if((((tabs->tabBar()->tabRect(lastVisibleIndex).left() + tabs->tabBar()->tabRect(lastVisibleIndex).right()) / 2) > widthOfTabWidget)
-            || (lastVisibleIndex == numAttributes))
+            || (lastVisibleIndex == numNonTimezoneAttributes))
     {
         lastVisibleIndex--;
     }
@@ -705,7 +743,7 @@ void SurveyMaker::refreshAttributeTabBar(int index)
         {
             label = QString(LEFTARROW) + " " + QString::number(tab+1);
         }
-        else if((tab != numAttributes-1) && (tab == lastVisibleIndex))
+        else if((tab != numNonTimezoneAttributes-1) && (tab == lastVisibleIndex))
         {
             label = QString::number(tab+1) + " " + QString(RIGHTARROW);
         }
@@ -760,7 +798,7 @@ void SurveyMaker::attributeTabClose(int index)
     }
 
     // keep the current tab open unless it is the one being closed; if it is being closed, open the most sensible one
-    if((index == currIndex) && (currIndex == numAttributes - 1))
+    if((index == currIndex) && (currIndex == ui->attributeCountSpinBox->value() - 1))
     {
         // the open tab is being closed and is the last visible one, so open the next one down
         ui->attributesTabWidget->setCurrentIndex(currIndex-1);
@@ -776,7 +814,7 @@ void SurveyMaker::attributeTabClose(int index)
         ui->attributesTabWidget->setCurrentIndex(index < currIndex? currIndex-1 : currIndex);
     }
 
-    ui->attributeCountSpinBox->setValue(numAttributes - 1);
+    ui->attributeCountSpinBox->setValue(ui->attributeCountSpinBox->value() - 1);
 }
 
 void SurveyMaker::attributeTextChanged()
@@ -800,58 +838,6 @@ void SurveyMaker::attributeTextChanged()
     }
 
     buildSurvey();
-}
-
-void SurveyMaker::on_timezoneCheckBox_clicked(bool checked)
-{
-    timezone = checked;
-
-    checkTimezoneAndSchedule();
-
-    buildSurvey();
-}
-
-void SurveyMaker::on_scheduleCheckBox_clicked(bool checked)
-{
-    schedule = checked;
-
-    ui->busyFreeLabel->setEnabled(checked);
-    ui->busyFreeComboBox->setEnabled(checked);
-    ui->daysComboBox->setEnabled(checked);
-    for(int day = 0; day < MAX_DAYS; day++)
-    {
-        dayCheckBoxes[day]->setEnabled(checked);
-        dayLineEdits[day]->setEnabled(checked && dayCheckBoxes[day]->isChecked());
-    }
-    ui->timeStartEdit->setEnabled(checked);
-    ui->timeEndEdit->setEnabled(checked);
-
-    checkTimezoneAndSchedule();
-
-    buildSurvey();
-}
-
-void SurveyMaker::checkTimezoneAndSchedule()
-{
-    // If user just turned on timezone but already had full number of attributes, need to first remove last attribute to make room
-    // Note that changing the spinbox value will automatically add the timezone question to the end of the attributes
-    if(timezone && ui->attributeCountSpinBox->value() == MAX_ATTRIBUTES)
-    {
-        ui->attributeCountSpinBox->setValue(MAX_ATTRIBUTES - 1);
-        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - 1);
-    }
-    else
-    {
-        // reduce max attributes by 1 anytime we have timezone on, then refresh attribute questions
-        ui->attributeCountSpinBox->setMaximum(MAX_ATTRIBUTES - (timezone? 1 : 0));
-        on_attributeCountSpinBox_valueChanged(ui->attributeCountSpinBox->value());
-    }
-
-    // if asking students about timezone and schedule, should require survey to define timezone of schedule
-    bool timezoneAndSchedule = timezone && schedule;
-    baseTimezoneComboBox->setEnabled(timezoneAndSchedule);
-    ui->baseTimezoneLineEdit->setEnabled(timezoneAndSchedule);
-    baseTimezoneComboBox->setItemText(TimezoneType::noneOrHome, timezoneAndSchedule? tr("[student's home timezone]") : tr("[no timezone given]"));
 }
 
 void SurveyMaker::baseTimezoneComboBox_currentIndexChanged(int arg1)
@@ -987,26 +973,6 @@ void SurveyMaker::day_LineEdit_textChanged(const QString &text, QLineEdit *dayLi
     buildSurvey();
 }
 
-void SurveyMaker::on_timeStartEdit_timeChanged(QTime time)
-{
-    startTime = time.hour();
-    if(ui->timeEndEdit->time() <= time)
-    {
-        ui->timeEndEdit->setTime(QTime(time.hour(), 0));
-    }
-    buildSurvey();
-}
-
-void SurveyMaker::on_timeEndEdit_timeChanged(QTime time)
-{
-    endTime = time.hour();
-    if(ui->timeStartEdit->time() >= time)
-    {
-        ui->timeStartEdit->setTime(QTime(time.hour(), 0));
-    }
-    buildSurvey();
-}
-
 void SurveyMaker::on_sectionNamesTextEdit_textChanged()
 {
     //validate entry
@@ -1097,7 +1063,6 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
             {
                 ui->scheduleCheckBox->setChecked(loadObject["Schedule"].toBool());
-                on_scheduleCheckBox_clicked(loadObject["Schedule"].toBool());
             }
             if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
             {
@@ -1106,7 +1071,6 @@ void SurveyMaker::openSurvey()
             if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool())
             {
                 ui->timezoneCheckBox->setChecked(loadObject["Timezone"].toBool());
-                on_timezoneCheckBox_clicked(loadObject["Timezone"].toBool());
             }
             if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString())
             {
@@ -1272,24 +1236,10 @@ void SurveyMaker::helpWindow()
 
 void SurveyMaker::aboutWindow()
 {
-    QMessageBox::about(this, tr("About gruepr: SurveyMaker"),
-                       tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
-                          "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                          "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>"
-                          "<p>gruepr is an open source project. The source code is freely available at"
-                          "<br>the project homepage: <a href = http://gruepr.com>gruepr.com</a>."
-                          "<p>gruepr incorporates:"
-                              "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
-                              "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
-                              "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
-                                                                    "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
-                                                                    " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
-                              "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
-                          "<h3>Disclaimer</h3>"
-                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or "
-                          "FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
-                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href = https://www.gnu.org/licenses/gpl.html>"
-                          "GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
+    QSettings savedSettings;
+    QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
+    QMessageBox::about(this, tr("About gruepr"), ABOUTWINDOWCONTENT  + tr("<p><b>This copy of gruepr is ") + user + "</b>.");
 }
 
 

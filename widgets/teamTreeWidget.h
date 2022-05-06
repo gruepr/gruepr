@@ -21,7 +21,7 @@ public:
     enum TreeItemType{team, student};
     TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
     void setBackgroundColor(float teamScore);
-    bool operator<(const QTreeWidgetItem &other) const;
+    bool operator<(const QTreeWidgetItem &other) const override;
 
 private:
     int numColumns;
@@ -44,10 +44,10 @@ public:
     void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions);
 
 protected:
-    void dragEnterEvent(QDragEnterEvent *event);        // remember which item is being dragged
-    void dragMoveEvent(QDragMoveEvent *event);          // update tooltip during drag
-    void dropEvent(QDropEvent *event);                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
-    void leaveEvent(QEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event) override;        // remember which item is being dragged
+    void dragMoveEvent(QDragMoveEvent *event) override;          // update tooltip during drag
+    void dropEvent(QDropEvent *event) override;                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
+    void leaveEvent(QEvent *event) override;
 
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it

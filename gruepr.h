@@ -30,6 +30,10 @@ class gruepr : public QMainWindow
 public:
     explicit gruepr(QWidget *parent = nullptr);
     ~gruepr();
+    gruepr(const gruepr&) = delete;
+    gruepr operator= (const gruepr&) = delete;
+    gruepr(gruepr&&) = delete;
+    gruepr& operator= (gruepr&&) = delete;
 
     static void getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
@@ -38,7 +42,7 @@ public:
     inline static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void on_loadSurveyFileButton_clicked();
@@ -105,7 +109,7 @@ private:
 
         // team set optimization
     int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams
-    QVector<int> optimizeTeams(const int *const studentIndexes);    // returns a single permutation-of-indexes
+    QVector<int> optimizeTeams(const int *const studentIndexes);    // return value is a single permutation-of-indexes
     QFuture< QVector<int> > future;                                 // needed so that optimization can happen in a separate thread
     QFutureWatcher<void> futureWatcher;                             // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;

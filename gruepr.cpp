@@ -1,5 +1,5 @@
-#include "ui_gruepr.h"
 #include "gruepr.h"
+#include "ui_gruepr.h"
 #include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
@@ -1963,26 +1963,7 @@ void gruepr::aboutWindow()
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
-    QMessageBox::about(this, tr("About gruepr"),
-                          "<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
-                          "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                          "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>" +
-                          tr("<p>This copy of gruepr is ") + user + "." +
-                          tr("<p>gruepr is an open source project. The source code is freely available at"
-                          "<br>the project homepage: <a href = ") + GRUEPRHOMEPAGE + ">" + GRUEPRHOMEPAGE + "</a>" +
-                          tr("<p>gruepr incorporates:"
-                             "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
-                             "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
-                             "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
-                                                                   "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
-                                                                   " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
-                             "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
-                          "<h3>Disclaimer</h3>"
-                          "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of "
-                          "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
-                          "<p>This program is free software: you can redistribute it and/or modify it under the terms of the "
-                          "<a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> "
-                          "as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."));
+    QMessageBox::about(this, tr("About gruepr"), ABOUTWINDOWCONTENT + tr("<p><b>This copy of gruepr is ") + user + "</b>.");
 }
 
 

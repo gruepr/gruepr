@@ -59,7 +59,7 @@ attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent)
     {
         closeButton = new QPushButton(QIcon(":/icons/delete.png"), tr("Delete"), this);
         closeButton->setToolTip(tr("<html>Delete this question from the survey. (This cannot be undone.)</html>"));
-        connect(closeButton, &QPushButton::clicked, this, &attributeTabItem::closeButtonPushed);
+        connect(closeButton, &QPushButton::clicked, this, [this]{emit closeRequested(index);});
         theGrid->addWidget(closeButton, row++, column, 1, -1, Qt::AlignRight);
 
         attributeText = new QTextEdit(this);
@@ -195,9 +195,4 @@ void attributeTabItem::setTabNum(int tabNum)
 {
     index = tabNum;
     attributeText->setPlaceholderText(tr("Enter attribute question ") + QString::number(tabNum + 1));
-}
-
-void attributeTabItem::closeButtonPushed()
-{
-    emit closeRequested(index);
 }

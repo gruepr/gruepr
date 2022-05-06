@@ -38,9 +38,6 @@ public:
 signals:
     void closeRequested(int index);
 
-private slots:
-    void closeButtonPushed();
-
 private:
     QGridLayout *theGrid = nullptr;
     QLabel *weightPreLabel = nullptr;

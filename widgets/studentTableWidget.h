@@ -18,7 +18,7 @@ public slots:
     void sortByColumn(int column);
 
 protected:
-    void leaveEvent(QEvent *event);
+    void leaveEvent(QEvent *event) override;
 
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it

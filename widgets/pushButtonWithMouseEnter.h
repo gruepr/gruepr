@@ -14,8 +14,8 @@ public:
     PushButtonWithMouseEnter(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
 
 protected:
-    void enterEvent(QEvent *event);
-    void leaveEvent(QEvent *event);
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
 signals:
     void mouseEntered();
