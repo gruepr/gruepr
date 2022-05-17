@@ -139,6 +139,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
 SurveyMaker::~SurveyMaker()
 {
+    delete survey;
     delete ui;
 }
 

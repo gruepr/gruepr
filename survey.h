@@ -10,11 +10,12 @@
 class Question
 {
 public:
-    enum QuestionType{shorttext, dropdown, radiobutton, checkbox, timezone, schedule, longtext} type;
+    enum QuestionType{shorttext, dropdown, radiobutton, checkbox, timezone, schedule, longtext};
 
-    Question(const QString &questionText = "", QuestionType questionType = longtext, const QStringList &responseOptions = {});
+    Question(const QString &questionText = "", const QuestionType questionType = longtext, const QStringList &responseOptions = {});
 
     QString text;
+    QuestionType type;
     QStringList options;
 };
 

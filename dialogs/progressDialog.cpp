@@ -26,7 +26,7 @@ progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
 
     explanationIcon = new QLabel(this);
     explanationIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    auto *movie = new QMovie(":/icons/loading.gif");
+    auto *movie = new QMovie(":/icons/loading.gif", "GIF", this);
     movie->setParent(explanationIcon);
     explanationIcon->setMovie(movie);
     movie->start();

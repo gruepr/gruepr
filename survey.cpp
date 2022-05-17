@@ -2,7 +2,7 @@
 #include <algorithm>
 
 
-Question::Question(const QString &questionText, QuestionType questionType, const QStringList &responseOptions)
+Question::Question(const QString &questionText, const QuestionType questionType, const QStringList &responseOptions)
 {
     text = questionText;
     type = questionType;
