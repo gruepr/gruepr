@@ -117,7 +117,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
     {
         showColumn(i);
     }
-    hideColumn(headerLabels.size()-1);
+    hideColumn(headerLabels.size()-1);  // don't show the sort order column (can comment this out when debugging sorting operations)
 
     auto *headerTextWithIcon = new QTreeWidgetItem;
     for(int i = 0; i < headerLabels.size(); i++)
@@ -490,16 +490,16 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     if(dragItemIsStudent && dropItemIsStudent)          // two students
     {
         // UserRole data stored in the item is the studentRecord.ID; TeamNumber data stored in the parent's column 0 is the team number
-        emit swapChildren((draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
-                          (droppedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt());
+        emit swapChildren({(draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
+                          (droppedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt()});
     }
     else if(!dragItemIsStudent && !dropItemIsStudent)   // two teams
     {
-        emit reorderParents((draggedItem->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt());
+        emit reorderParents({(draggedItem->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt()});
     }
     else if(dragItemIsStudent && !dropItemIsStudent && (draggedItem->parent()->childCount() != 1))  // dragging student onto team and not the only student left on the team
     {
-        emit moveChild((draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt());
+        emit moveChild({(draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt()});
     }
     else
     {

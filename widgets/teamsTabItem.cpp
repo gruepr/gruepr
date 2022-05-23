@@ -18,7 +18,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
                            TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
-    addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting, to mark when prevented teammates are added
+    addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
     dataOptions = new DataOptions(*incomingDataOptions);
     teams = incomingTeams;
     numTeams = incomingNumTeams;
@@ -90,8 +90,26 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     teamDataTree->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     teamDataLayout->addWidget(teamDataTree);
 
+    dragDropLayout = new QHBoxLayout;
+    dragDropLayout->setSpacing(6);
+    teamDataLayout->addLayout(dragDropLayout);
+
     dragDropExplanation = new QLabel(tr("Use drag-and-drop to adjust the placement of teams and students."), this);
-    teamDataLayout->addWidget(dragDropExplanation);
+    dragDropLayout->addWidget(dragDropExplanation);
+
+    undoButton = new QPushButton(QIcon(":/icons/undo.png"), "", this);
+    undoButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    undoButton->setEnabled(false);
+    undoButton->setToolTip("");
+    connect(undoButton, &QPushButton::clicked, this, &TeamsTabItem::undoRedoDragDrop);
+    dragDropLayout->addWidget(undoButton);
+    redoButton = new QPushButton(QIcon(":/icons/redo.png"), "", this);
+    redoButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    redoButton->setEnabled(false);
+    redoButton->setToolTip("");
+    connect(redoButton, &QPushButton::clicked, this, &TeamsTabItem::undoRedoDragDrop);
+    dragDropLayout->addWidget(redoButton);
+    dragDropLayout->addStretch();
 
     teamOptionsLayout = new QHBoxLayout;
     teamOptionsLayout->setSpacing(6);
@@ -163,6 +181,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
 
     sendToPreventedTeammates = new QPushButton(QIcon(":/icons/notfriends.png"), tr("Load as\nprevented\nteammates"), this);
     sendToPreventedTeammates->setIconSize(SAVEPRINTICONSIZE);
+    sendToPreventedTeammates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sendToPreventedTeammates->setToolTip(tr("<html>Send all of these teams to the \"Prevented Teammates\" teaming option so that "
                                             "another set of teams can be created with everyone getting all new teammates</html>"));
     connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makePrevented);
@@ -443,8 +462,9 @@ QVector<int> TeamsTabItem::getTeamNumbersInDisplayOrder()
 }
 
 
-void TeamsTabItem::swapStudents(int studentAteam, int studentAID, int studentBteam, int studentBID)
+void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
 {
+    int studentAteam = arguments.at(0), studentAID = arguments.at(1), studentBteam = arguments.at(2), studentBID = arguments.at(3);
     if(studentAID == studentBID)
     {
         return;
@@ -460,6 +480,16 @@ void TeamsTabItem::swapStudents(int studentAteam, int studentAID, int studentBte
     {
         studentBIndex++;
     }
+
+    //Load undo onto stack anc clear redo stack
+    QString UndoTooltip = tr("Undo swapping ") + students[studentAIndex].firstname + " " + students[studentAIndex].lastname +
+                           tr(" with ") + students[studentBIndex].firstname + " " + students[studentBIndex].lastname;
+    undoItems.prepend({&TeamsTabItem::swapStudents, {studentAteam, studentBID, studentBteam, studentAID}, UndoTooltip});
+    undoButton->setEnabled(true);
+    undoButton->setToolTip(UndoTooltip);
+    redoItems.clear();
+    redoButton->setEnabled(false);
+    redoButton->setToolTip("");
 
     teamDataTree->setUpdatesEnabled(false);
 
@@ -567,8 +597,10 @@ void TeamsTabItem::swapStudents(int studentAteam, int studentAID, int studentBte
 }
 
 
-void TeamsTabItem::moveAStudent(int oldTeam, int studentID, int newTeam)
+void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> arguments = int oldTeam, int studentID, int newTeam
 {
+    int oldTeam = arguments.at(0), studentID = arguments.at(1), newTeam = arguments.at(2);
+
     if((oldTeam == newTeam) || (teams[oldTeam].size == 1))
     {
         return;
@@ -580,6 +612,16 @@ void TeamsTabItem::moveAStudent(int oldTeam, int studentID, int newTeam)
     {
         studentIndex++;
     }
+
+    //Load undo onto stack and clear redo stack
+    QString UndoTooltip = tr("Undo moving ") + students[studentIndex].firstname + " " + students[studentIndex].lastname +
+                           tr(" from Team ") + teams[oldTeam].name + tr(" to Team ") + teams[newTeam].name;
+    undoItems.prepend({&TeamsTabItem::moveAStudent, {newTeam, studentID, oldTeam}, UndoTooltip});
+    undoButton->setEnabled(true);
+    undoButton->setToolTip(UndoTooltip);
+    redoItems.clear();
+    redoButton->setEnabled(false);
+    redoButton->setToolTip("");
 
     teamDataTree->setUpdatesEnabled(false);
 
@@ -654,21 +696,17 @@ void TeamsTabItem::moveAStudent(int oldTeam, int studentID, int newTeam)
 }
 
 
-void TeamsTabItem::moveATeam(int teamA, int teamB)
+void TeamsTabItem::moveATeam(const QVector<int> &arguments)  // QVector<int> arguments = int teamA, int teamB
 {
+    int teamA = arguments.at(0), teamB = arguments.at(1);   // teamB = -1 if moving to the last row
+
     if(teamA == teamB)
     {
         return;
     }
 
-    teamDataTree->setUpdatesEnabled(false);
-
-    //maintain current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
-    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
-
     // find the teamA and teamB top level items in teamDataTree
-    int teamARow=0, teamBRow=0;
+    int teamARow = 0, teamBRow = teamDataTree->topLevelItemCount();    // teamBRow == teamDataTree->topLevelItemCount() will correspond to teamB == -1
     for(int row = 0; row < numTeams; row++)
     {
         if(teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamA)
@@ -685,7 +723,23 @@ void TeamsTabItem::moveATeam(int teamA, int teamB)
     {
         return;
     }
-    else if(teamARow - teamBRow == 1)       // dragging just one row above ==> just swap the two
+
+    //Load undo onto stack and clear redo stack
+    int teamBelowTeamA = ((teamARow < numTeams-1) ? teamDataTree->topLevelItem(teamARow+1)->data(0, TEAM_NUMBER_ROLE).toInt() : -1);
+    QString UndoTooltip = tr("Undo reordering Team ") + teams[teamA].name;
+    undoItems.prepend({&TeamsTabItem::moveATeam, {teamA, teamBelowTeamA}, UndoTooltip});
+    undoButton->setEnabled(true);
+    undoButton->setToolTip(UndoTooltip);
+    redoItems.clear();
+    redoButton->setEnabled(false);
+    redoButton->setToolTip("");
+
+    teamDataTree->setUpdatesEnabled(false);
+
+    //hold current sort order, then adjust sort data for teamA and teamB, then resort
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
+    if(teamARow - teamBRow == 1)    // dragging just one row above ==> just swap the two
     {
         // swap sort column data
         int teamASortOrder = teamDataTree->topLevelItem(teamARow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
@@ -697,7 +751,7 @@ void TeamsTabItem::moveATeam(int teamA, int teamB)
         teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamASortOrder));
         teamDataTree->topLevelItem(teamBRow)->setText(teamDataTree->columnCount()-1, QString::number(teamASortOrder));
     }
-    else if(teamARow > teamBRow)            // dragging team onto a team listed earlier in the table
+    else if(teamARow > teamBRow)    // dragging team onto a team listed earlier in the table
     {
         // backwards from teamA-1 up to teamB, increment sort column data
         for(int row = teamARow-1; row > teamBRow; row--)
@@ -713,32 +767,63 @@ void TeamsTabItem::moveATeam(int teamA, int teamB)
         teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
         teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
     }
-    else                                    // dragging team onto a team listed later in the table
+    else                            // dragging team onto a team listed later in the table (including to the bottom of the table, when teamBRow == teamDataTree->topLevelItemCount())
     {
-        // remember where team B is
-        int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-
-        // backwards from teamB up to teamA, decrement sort column data
-        for(int row = teamBRow; row < teamARow; row++)
+        if(teamBRow == teamDataTree->topLevelItemCount())
         {
-            int teamAboveRow = teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() - 1;
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamAboveRow);
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamAboveRow));
-            teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(teamAboveRow));
+            // set sort column data for teamA to end
+            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBRow);
+            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBRow));
+            teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBRow));
         }
-
-        // set sort column data for teamA to teamB
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        else
+        {
+            int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+            // set sort column data for teamA to teamB
+            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
+            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
+            teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        }
     }
-
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
-    // rewrite all of the sort column data, just to be sure (can remove this line?)
+    // rewrite all of the sort column data
     refreshDisplayOrder();
 
     teamDataTree->setUpdatesEnabled(true);
+}
+
+
+void TeamsTabItem::undoRedoDragDrop()
+{
+    bool undoingSomething = (sender() == undoButton);
+
+    auto redoItemsCopy = redoItems;
+
+    auto *itemStack = (undoingSomething? &undoItems : &redoItems);
+    if(itemStack->isEmpty())
+    {
+        return;
+    }
+    auto item = itemStack->takeFirst();
+
+    (this->*(item.action))(item.arguments);
+
+    redoItems = redoItemsCopy;      // performing the action (in the previous line) puts it back on the undo list and clears the redo list
+    if(undoingSomething)
+    {
+        redoItems.prepend(undoItems.takeFirst());
+        redoItems.first().ToolTip.replace(tr("Undo"), tr("Redo"));
+    }
+    else    // redoingSomething
+    {
+        redoItems.removeFirst();
+    }
+
+    redoButton->setEnabled(!redoItems.isEmpty());
+    redoButton->setToolTip(redoItems.isEmpty()? "" : redoItems.first().ToolTip);
+    undoButton->setEnabled(!undoItems.isEmpty());
+    undoButton->setToolTip(undoItems.isEmpty()? "" : undoItems.first().ToolTip);
 }
 
 

@@ -33,9 +33,10 @@ private slots:
     void teamNamesChanged(int index);
     void randomizeTeamnames();
     void makePrevented();
-    void swapStudents(int studentAteam, int studentAID, int studentBteam, int studentBID);
-    void moveAStudent(int oldTeam, int studentID, int newTeam);
-    void moveATeam(int teamA, int teamB);
+    void swapStudents(const QVector<int> &arguments); // arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
+    void moveAStudent(const QVector<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
+    void moveATeam(const QVector<int> &arguments);    // arguments = int teamA, int teamB
+    void undoRedoDragDrop();
 
 private:
     void refreshTeamDisplay();
@@ -48,7 +49,13 @@ private:
 
     TeamTreeWidget *teamDataTree = nullptr;
 
+    QHBoxLayout *dragDropLayout = nullptr;
     QLabel *dragDropExplanation = nullptr;
+    struct UndoRedoItem{void (TeamsTabItem::*action)(const QVector<int> &arguments); QVector<int> arguments; QString ToolTip;};
+    QList<UndoRedoItem> undoItems;
+    QList<UndoRedoItem> redoItems;
+    QPushButton *undoButton = nullptr;
+    QPushButton *redoButton = nullptr;
 
     QHBoxLayout *teamOptionsLayout = nullptr;
     QPushButton *expandAllButton = nullptr;
@@ -58,7 +65,7 @@ private:
     QComboBox *teamnamesComboBox = nullptr;
     QStringList teamnameCategories;
     QStringList teamnameLists;
-    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_structs_and_consts.h for how teamname lists are signified
+    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_consts.h for how teamname lists are signified
     QVector<TeamNameType> teamnameTypes;
     QCheckBox *randTeamnamesCheckBox = nullptr;
     QPushButton *sendToPreventedTeammates = nullptr;

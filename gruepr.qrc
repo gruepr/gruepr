@@ -50,5 +50,7 @@
         <file>icons/loadRoster.png</file>
         <file>icons/bug.png</file>
         <file>icons/notfriends.png</file>
+        <file>icons/redo.png</file>
+        <file>icons/undo.png</file>
     </qresource>
 </RCC>

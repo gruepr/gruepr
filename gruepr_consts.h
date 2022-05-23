@@ -47,7 +47,7 @@ const int SMALL_SCREENSIZE_WIN = 900;
 const int SMALL_SCREENSIZE_MAC = 800;
 const int REDUCED_ICON_SIZE = 30;
 
-const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown when team is collapsed
+const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown as the team's data value for the column
 const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
 const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
 

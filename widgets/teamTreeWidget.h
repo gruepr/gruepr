@@ -56,9 +56,9 @@ public slots:
     void resorting(int column);
 
 signals:
-    void swapChildren(int studentAteam, int studentAID, int studentBteam, int studentBID);  // if drag-and-dropping chid onto child, swap teammates
-    void reorderParents(int teamA, int teamB);             // if drag-and-dropping parent onto parent, reorder teams
-    void moveChild(int studentTeam, int studentID, int NewTeam);  // if drag-and-dropping child onto parent, move student
+    void swapChildren(QVector<int> arguments); // QVector<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID); // chid onto child, swap teammates
+    void reorderParents(QVector<int> arguments); // QVector<int> arguments = int teamA, int teamB); // parent onto parent, reorder teams
+    void moveChild(QVector<int> arguments); // QVector<int> arguments = int studentTeam, int studentID, int NewTeam); // child onto parent, move student
     void updateTeamOrder();
 
 private:

@@ -32,7 +32,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - generalizing behind-the-scenes code in SurveyMaker in prep for integration with Canvas and Google
+// - generalized behind-the-scenes code in SurveyMaker in prep for integration with Canvas and Google
+// - Drag-and-drop adjustments of teams now has undo and redo buttons
+// - executables are now codesigned (and notarized for macOS)
 //
 // TO DO:
 // - make the "Create Teams" button more emphasized/obvious
