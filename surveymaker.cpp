@@ -664,7 +664,7 @@ void SurveyMaker::refreshAttributeTabBar(int index)
 {
     auto &tabs = ui->attributesTabWidget;
 
-    if(tabs->count() < 2)
+    if(tabs->count() < 3)
     {
         return;
     }
@@ -692,9 +692,9 @@ void SurveyMaker::refreshAttributeTabBar(int index)
         lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
     }
 
-    if((firstVisibleIndex != 0) && (index == firstVisibleIndex))
+    if((index == firstVisibleIndex) && (firstVisibleIndex != 0))
     {
-        // expanding one or two tabs to left if there are previous tabs to expand the current tab is the first visible
+        // expanding one or two tabs to left if the current tab is the first visible and there are previous tabs to expand
         tabs->setTabVisible(firstVisibleIndex-1, true);
         firstVisibleIndex--;
         if(firstVisibleIndex != 0)
@@ -742,11 +742,11 @@ void SurveyMaker::refreshAttributeTabBar(int index)
         QString label;
         if((tab != 0) && (tab == firstVisibleIndex))
         {
-            label = QString(LEFTARROW) + " " + QString::number(tab+1);
+            label = QString(LEFTARROW) + "  " + QString::number(tab+1);
         }
         else if((tab != numNonTimezoneAttributes-1) && (tab == lastVisibleIndex))
         {
-            label = QString::number(tab+1) + " " + QString(RIGHTARROW);
+            label = QString::number(tab+1) + "  " + QString(RIGHTARROW);
         }
         else
         {

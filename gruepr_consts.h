@@ -247,7 +247,7 @@ const char TEAMNAMELISTS[]   {";"
 const char VERSION_CHECK_URL[] {"http://www1.coe.neu.edu/~jhertz/grueprcurrentversion.html"};
 const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
 const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
-const char BUGREPORTPAGE[] {"http://bit.ly/grueprBugReportFromApp"};
+const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issues"};
 
 const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                                  "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR

@@ -81,6 +81,27 @@ int main(int argc, char *argv[])
     splash->show();
 
     // check the latest version available for download and compare to this current version
+    /*
+    ********** better option for future--requires ssl, but directly pulls latest version number using tag name of latest release on github
+    request = new QNetworkRequest;
+    request->setUrl(QUrl("https://api.github.com/repos/gruepr/gruepr/releases/latest"));
+    request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
+    request->setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, 1);
+    //request->setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    ui->textBrowser->append(request->url().toString());
+    reply = manager->get(*request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]{
+        if(reply->bytesAvailable() == 0)
+        {QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));}
+        else
+        {QString rep = reply->readAll();
+            QRegularExpression versionNum("\\\"tag_name\\\":\\\"v([\\d*.]{1,})\\\"");
+            QRegularExpressionMatch match = versionNum.match(rep);
+         ui->textBrowser->append(match.hasMatch()? match.captured(1) : ("No match" + rep));
+         reply->deleteLater();}});
+    *************
+    */
     auto *manager = new QNetworkAccessManager(splash);
     QNetworkRequest request((QUrl(VERSION_CHECK_URL)));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
