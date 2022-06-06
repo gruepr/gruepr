@@ -106,24 +106,29 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->genderIncluded)
     {
-        explanation[field].setText(tr("Gender identity"));
-        databox[gender].addItems(QStringList() << tr("woman") << tr("man") << tr("nonbinary") << tr("unknown"));
-        if(student.gender == StudentRecord::woman)
+        QStringList genderOptions;
+        if(dataOptions->genderType == GenderType::biol)
         {
-            databox[gender].setCurrentText(tr("woman"));
+            explanation[field].setText(tr("Gender"));
+            genderOptions = QString(BIOLGENDERS).split('/');
         }
-        else if(student.gender == StudentRecord::man)
+        else if(dataOptions->genderType == GenderType::adult)
         {
-            databox[gender].setCurrentText(tr("man"));
+            explanation[field].setText(tr("Gender identity"));
+            genderOptions = QString(ADULTGENDERS).split('/');
         }
-        else if(student.gender == StudentRecord::nonbinary)
+        else if(dataOptions->genderType == GenderType::child)
         {
-            databox[gender].setCurrentText(tr("nonbinary"));
+            explanation[field].setText(tr("Gender identity"));
+            genderOptions = QString(CHILDGENDERS).split('/');
         }
-        else
+        else //if(dataOptions->genderResponses == GenderType::pronoun)
         {
-           databox[gender].setCurrentText(tr("unknown"));
+            explanation[field].setText(tr("Pronouns"));
+            genderOptions = QString(PRONOUNS).split('/');
         }
+        databox[gender].addItems(genderOptions);
+        databox[gender].setCurrentIndex(static_cast<int>(student.gender));
         theGrid->addWidget(&explanation[field], field, 0);
         theGrid->addWidget(&databox[gender], field, 1);
         field++;
@@ -350,22 +355,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     student.email = datatext[email].text();
     if(dataOptions->genderIncluded)
     {
-        if(databox[gender].currentText() == tr("woman"))
-        {
-            student.gender = StudentRecord::woman;
-        }
-        else if(databox[gender].currentText() == tr("man"))
-        {
-            student.gender = StudentRecord::man;
-        }
-        else if(databox[gender].currentText() == tr("nonbinary"))
-        {
-            student.gender = StudentRecord::nonbinary;
-        }
-        else
-        {
-            student.gender = StudentRecord::unknown;
-        }
+        student.gender = static_cast<Gender>(databox[gender].currentIndex());
     }
     if(dataOptions->URMIncluded)
     {

@@ -91,7 +91,14 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
     headerLabels << tr("name") << tr("team\nscore");
     if(dataOptions->genderIncluded)
     {
-        headerLabels << tr("gender");
+        if(dataOptions->genderType == GenderType::pronoun)
+        {
+            headerLabels << tr("pronouns");
+        }
+        else
+        {
+            headerLabels << tr("gender");
+        }
     }
     if(dataOptions->URMIncluded)
     {
@@ -154,34 +161,51 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     column++;
     if(dataOptions->genderIncluded)
     {
+        QStringList genderInitials;
+        if(dataOptions->genderType == GenderType::biol)
+        {
+            genderInitials = QString(BIOLGENDERSINITIALS).split('/');
+        }
+        else if(dataOptions->genderType == GenderType::adult)
+        {
+            genderInitials = QString(ADULTGENDERSINITIALS).split('/');
+        }
+        else if(dataOptions->genderType == GenderType::child)
+        {
+            genderInitials = QString(CHILDGENDERSINITIALS).split('/');
+        }
+        else //if(dataOptions->genderResponses == GenderType::pronoun)
+        {
+            genderInitials = QString(PRONOUNSINITIALS).split('/');
+        }
         QString genderText;
         if(team.numWomen > 0)
         {
-            genderText += QString::number(team.numWomen) + tr("W");
-        }
-        if(team.numWomen > 0 && (team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0))
-        {
-            genderText += ", ";
+            genderText += QString::number(team.numWomen) + genderInitials.at(static_cast<int>(Gender::woman));
+            if(team.numMen > 0 || team.numNonbinary > 0 || team.numUnknown > 0)
+            {
+                genderText += ", ";
+            }
         }
         if(team.numMen > 0)
         {
-            genderText += QString::number(team.numMen) + tr("M");
-        }
-        if(team.numMen > 0 && (team.numNonbinary > 0 || team.numUnknown > 0))
-        {
-            genderText += ", ";
+            genderText += QString::number(team.numMen) + genderInitials.at(static_cast<int>(Gender::man));
+            if(team.numNonbinary > 0 || team.numUnknown > 0)
+            {
+                genderText += ", ";
+            }
         }
         if(team.numNonbinary > 0)
         {
-            genderText += QString::number(team.numNonbinary) + tr("X");
-        }
-        if(team.numNonbinary > 0 && team.numUnknown > 0)
-        {
-            genderText += ", ";
+            genderText += QString::number(team.numNonbinary) + genderInitials.at(static_cast<int>(Gender::nonbinary));
+            if(team.numUnknown > 0)
+            {
+                genderText += ", ";
+            }
         }
         if(team.numUnknown > 0)
         {
-            genderText += QString::number(team.numUnknown) + tr("?");
+            genderText += QString::number(team.numUnknown) + genderInitials.at(static_cast<int>(Gender::unknown));
         }
         teamItem->setText(column, genderText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -309,24 +333,24 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     column++;
     if(dataOptions->genderIncluded)
     {
-        if(stu.gender == StudentRecord::woman)
+        QStringList genderOptions;
+        if(dataOptions->genderType == GenderType::biol)
         {
-            studentItem->setText(column,tr("woman"));
-
+            genderOptions = QString(BIOLGENDERS).split('/');
         }
-        else if(stu.gender == StudentRecord::man)
+        else if(dataOptions->genderType == GenderType::adult)
         {
-            studentItem->setText(column,tr("man"));
+            genderOptions = QString(ADULTGENDERS).split('/');
         }
-        else if(stu.gender == StudentRecord::nonbinary)
+        else if(dataOptions->genderType == GenderType::child)
         {
-            studentItem->setText(column,tr("nonbinary"));
+            genderOptions = QString(CHILDGENDERS).split('/');
         }
-        else
+        else //if(dataOptions->genderType == GenderType::pronoun)
         {
-            studentItem->setText(column,tr("unknown"));
+            genderOptions = QString(PRONOUNS).split('/');
         }
-
+        studentItem->setText(column, genderOptions.at(static_cast<int>(stu.gender)));
         studentItem->setToolTip(column, stu.tooltip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;

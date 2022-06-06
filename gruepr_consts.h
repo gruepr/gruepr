@@ -51,7 +51,28 @@ const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role i
 const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
 const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // data with this role is stored in column 0 of the team info display tree, used when swapping teams or teammates
 
-//map of the "meaning" of strings that might be used in the Google Form to refer to hours of the day
+enum class GenderType {biol, adult, child, pronoun};
+//order of enum below MUST match order of options within the subsequent strings
+enum class Gender {woman, man, nonbinary, unknown};
+const char BIOLGENDERS[] {"female/male/nonbinary/unknown"};
+const char BIOLGENDERS7CHAR[] {"Female / Male  /Nonbin./Unknown"};  // 7 character names are used for printing
+const char BIOLGENDERSINITIALS[] {"F/M/X/?"};                       // initials are used in table of teams
+const char ADULTGENDERS[] {"woman/man/nonbinary/unknown"};
+const char ADULTGENDERSPLURAL[] {"women/men/nonbinary/unknown"};
+const char ADULTGENDERS7CHAR[] {" Woman /  Man  /Nonbin./Unknown"};
+const char ADULTGENDERSINITIALS[] {"W/M/X/?"};
+const char CHILDGENDERS[] {"girl/boy/nonbinary/unknown"};
+const char CHILDGENDERSPLURAL[] {"girls/boys/nonbinary/unknown"};
+const char CHILDGENDERS7CHAR[] {" Girl  /  Boy  /Nonbin./Unknown"};
+const char CHILDGENDERSINITIALS[] {"G/B/X/?"};
+const char PRONOUNS[] {"she-her/he-him/they-them/unknown"};
+const char PRONOUNS7CHAR[] {"she-her/he-him /they-th/Unknown"};
+const char PRONOUNSINITIALS[] {"S/H/T/?"};
+//next two used to replace "unknown" for the response option in the survey
+const char UNKNOWNVALUE[] {"unknown"};
+const char PREFERNOTRESPONSE[] {"prefer not to answer"};
+
+//map of the "meaning" of strings that might be used in the survey to refer to hours of the day
 const char TIME_NAMES[] {"1am,1 am,1:00,2am,2 am,2:00,3am,3 am,3:00,4am,4 am,4:00,5am,5 am,5:00,6am,6 am,6:00,7am,7 am,7:00,8am,8 am,8:00,9am,9 am,9:00,10am,10 am,10:00,"
                          "11am,11 am,11:00,12pm,12 pm,12:00,1pm,1 pm,13:00,2pm,2 pm,14:00,3pm,3 pm,15:00,4pm,4 pm,16:00,5pm,5 pm,17:00,6pm,6 pm,18:00,7pm,7 pm,19:00,8pm,8 pm,20:00,"
                          "9pm,9 pm,21:00,10pm,10 pm,22:00,11pm,11 pm,23:00,12am,12 am,0:00,noon,midnight"};
@@ -64,6 +85,8 @@ const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}):?(\d{2}).*)"
                                                                                    // skip ":" if present,
                                                                                    // capture (3) 2 digits
                                                                                    // skip rest
+const int STANDARDSCHEDSTARTTIME = 10;  //10 am
+const int STANDARDSCHEDENDTIME = 17;  //5 pm
 
 const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
 const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
@@ -246,6 +269,7 @@ const char TEAMNAMELISTS[]   {";"
 
 const char VERSION_CHECK_URL[] {"http://www1.coe.neu.edu/~jhertz/grueprcurrentversion.html"};
 const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
+const char GOOGLEFORMCREATORSCRIPT_URL[] {"https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?"};
 const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
 const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issues"};
 

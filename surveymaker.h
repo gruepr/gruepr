@@ -62,6 +62,7 @@ private:
     bool lastname = true;
     bool email = true;
     bool gender = true;
+    GenderType genderType = GenderType::adult;
     bool URM = false;
     int numAttributes = 3;
     QString attributeTexts[MAX_ATTRIBUTES] = {""};
@@ -79,8 +80,8 @@ private:
     QLineEdit *dayLineEdits[MAX_DAYS] = {nullptr};
     QCheckBox *dayCheckBoxes[MAX_DAYS] = {nullptr};
     dayNamesDialog *daysWindow = nullptr;
-    int startTime = 10;
-    int endTime = 17;
+    int startTime = STANDARDSCHEDSTARTTIME;
+    int endTime = STANDARDSCHEDENDTIME;
     bool section = false;
     QStringList sectionNames = {""};
     bool preferredTeammates = false;
@@ -92,7 +93,6 @@ private:
     void (*generateSurvey)(SurveyMaker *surveyMaker) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
-    enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
     inline static const int LAST_LIKERT_RESPONSE = 25;
     inline static const QSize TABCLOSEICONSIZE = {8,8};
     inline static const QString QUESTIONPREVIEWHEAD = "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;";
@@ -103,10 +103,11 @@ private:
     inline static const QString LASTNAMEQUESTION = QObject::tr("What is your last name?");
     inline static const QString EMAILQUESTION = QObject::tr("What is your email address?");
     inline static const QString GENDERQUESTION = QObject::tr("With which gender do you identify most closely?");
-    inline static const QString GENDEROPTIONS = QObject::tr("woman/man/nonbinary/prefer not to answer");
+    inline static const QString PRONOUNQUESTION = QObject::tr("What are your pronouns?");
     inline static const QString URMQUESTION = QObject::tr("How do you identify your race, ethnicity, or cultural heritage?");
     inline static const QString TIMEZONEQUESTION = QObject::tr("What time zone will you be based in during this class?");
     inline static const QString TIMEZONEOPTIONS = QObject::tr("dropdown box of world timezones");
+    enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
     inline static const QString SCHEDULEQUESTION1 = QObject::tr("Check the times that you are ");
     inline static const QString SCHEDULEQUESTION2BUSY = QObject::tr("BUSY and will be UNAVAILABLE");
     inline static const QString SCHEDULEQUESTION2FREE = QObject::tr("FREE and will be AVAILABLE");

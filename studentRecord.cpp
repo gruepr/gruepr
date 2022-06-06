@@ -91,28 +91,29 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     {
         fieldnum = dataOptions->genderField;
         QString field = fields.at(fieldnum).toUtf8();
-        if(field.contains(QObject::tr("woman"), Qt::CaseInsensitive) || field.contains(QObject::tr("female"), Qt::CaseInsensitive))
+        if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) || field.contains(QObject::tr("woman"), Qt::CaseInsensitive)  || field.contains(QObject::tr("girl"), Qt::CaseInsensitive)
+                 || field.contains(QObject::tr("she"), Qt::CaseInsensitive))
         {
-            gender = StudentRecord::woman;
-        }
-        else if(field.contains(QObject::tr("man"), Qt::CaseInsensitive) || field.contains(QObject::tr("male"), Qt::CaseInsensitive))
-        {
-            gender = StudentRecord::man;
+            gender = Gender::woman;
         }
         else if((field.contains(QObject::tr("non"), Qt::CaseInsensitive) && field.contains(QObject::tr("binary"), Qt::CaseInsensitive)) ||
-                 field.contains(QObject::tr("queer"), Qt::CaseInsensitive) ||
-                 field.contains(QObject::tr("trans"), Qt::CaseInsensitive))
+                 field.contains(QObject::tr("queer"), Qt::CaseInsensitive) || field.contains(QObject::tr("trans"), Qt::CaseInsensitive)  || field.contains(QObject::tr("they"), Qt::CaseInsensitive))
         {
-            gender = StudentRecord::nonbinary;
+            gender = Gender::nonbinary;
+        }
+        else if(field.contains(QObject::tr("male"), Qt::CaseInsensitive) || field.contains(QObject::tr("man"), Qt::CaseInsensitive) || field.contains(QObject::tr("boy"), Qt::CaseInsensitive)
+                 || field.contains(QObject::tr("he"), Qt::CaseInsensitive))
+        {
+            gender = Gender::man;
         }
         else
         {
-            gender = StudentRecord::unknown;
+            gender = Gender::unknown;
         }
     }
     else
     {
-        gender = StudentRecord::unknown;
+        gender = Gender::unknown;
     }
 
     // racial/ethnic heritage
@@ -266,27 +267,35 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         toolTip += "<table><tr><td bgcolor=#ffff3b><b>" + QObject::tr("There appears to be multiple survey submissions from this student!") + "</b></td></tr></table><br>";
     }
     toolTip += firstname + " " + lastname;
-    toolTip += "<br>" + email;
+    if(dataOptions->emailField != -1)
+    {
+        toolTip += "<br>" + email;
+    }
     if(dataOptions->genderIncluded)
     {
-        toolTip += "<br>" + QObject::tr("Gender") + ":  ";
-        if(gender == StudentRecord::woman)
+        toolTip += "<br>";
+        QStringList genderOptions;
+        if(dataOptions->genderType == GenderType::biol)
         {
-            toolTip += QObject::tr("woman");
+            toolTip += QObject::tr("Gender");
+            genderOptions = QString(BIOLGENDERS).split('/');
         }
-        else if(gender == StudentRecord::man)
+        else if(dataOptions->genderType == GenderType::adult)
         {
-            toolTip += QObject::tr("man");
+            toolTip += QObject::tr("Gender");
+            genderOptions = QString(ADULTGENDERS).split('/');
         }
-        else if(gender == StudentRecord::nonbinary)
+        else if(dataOptions->genderType == GenderType::child)
         {
-            toolTip += QObject::tr("nonbinary");
+            toolTip += QObject::tr("Gender");
+            genderOptions = QString(CHILDGENDERS).split('/');
         }
-        else
+        else //if(dataOptions->genderType == GenderType::pronoun)
         {
-            toolTip += QObject::tr("unknown");
+            toolTip += QObject::tr("Pronouns");
+            genderOptions = QString(PRONOUNS).split('/');
         }
-
+        toolTip += ":  " + genderOptions.at(static_cast<int>(gender));
     }
     if(dataOptions->URMIncluded)
     {

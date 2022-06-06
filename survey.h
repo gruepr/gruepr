@@ -31,8 +31,8 @@ public:
     QVector<Question> questions;
     int numAttributes = 0;
     QString schedDayNames[MAX_DAYS];
-    int schedStartTime = 10;
-    int schedEndTime = 17;
+    int schedStartTime = STANDARDSCHEDSTARTTIME;
+    int schedEndTime = STANDARDSCHEDENDTIME;
 };
 
 #endif // SURVEY_H

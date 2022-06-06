@@ -1076,6 +1076,25 @@ void TeamsTabItem::createFileContents()
         teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
     }
 
+    // get the relevant gender terminology
+    QStringList genderOptions;
+    if(dataOptions->genderType == GenderType::biol)
+    {
+        genderOptions = QString(BIOLGENDERS7CHAR).split('/');
+    }
+    else if(dataOptions->genderType == GenderType::adult)
+    {
+        genderOptions = QString(ADULTGENDERS7CHAR).split('/');
+    }
+    else if(dataOptions->genderType == GenderType::child)
+    {
+        genderOptions = QString(CHILDGENDERS7CHAR).split('/');
+    }
+    else //if(dataOptions->genderType == GenderType::pronoun)
+    {
+        genderOptions = QString(PRONOUNS7CHAR).split('/');
+    }
+
     //loop through every team
     for(int teamNum = 0; teamNum < numTeams; teamNum++)
     {
@@ -1089,22 +1108,7 @@ void TeamsTabItem::createFileContents()
             const auto &thisStudent = students[teams[team].studentIndexes.at(teammate)];
             if(dataOptions->genderIncluded)
             {
-                if(thisStudent.gender == StudentRecord::woman)
-                {
-                    instructorsFileContents += "  woman  ";
-                }
-                else if(thisStudent.gender == StudentRecord::man)
-                {
-                    instructorsFileContents += "   man   ";
-                }
-                else if(thisStudent.gender == StudentRecord::nonbinary)
-                {
-                    instructorsFileContents += " nonbin. ";
-                }
-                else
-                {
-                    instructorsFileContents += " unknown ";
-                }
+                instructorsFileContents += " " + genderOptions.at(static_cast<int>(thisStudent.gender)) + " ";
             }
             if(dataOptions->URMIncluded)
             {

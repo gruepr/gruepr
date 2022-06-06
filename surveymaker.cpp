@@ -51,6 +51,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->lastNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->genderResponsesComboBox, &QComboBox::currentTextChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->timezoneCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->scheduleCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
@@ -185,9 +186,35 @@ void SurveyMaker::buildSurvey()
 
     // Gender
     gender = ui->genderCheckBox->isChecked();
+    ui->genderResponsesComboBox->setEnabled(gender);
+    ui->genderResponsesLabel->setEnabled(gender);
+    genderType = static_cast<GenderType>(ui->genderResponsesComboBox->currentIndex());
     if(gender)
     {
-        survey->questions << Question(GENDERQUESTION, Question::radiobutton, GENDEROPTIONS.split('/'));
+        QString genderQuestion;
+        QStringList genderOptions;
+        if(genderType == GenderType::biol)
+        {
+            genderQuestion = GENDERQUESTION;
+            genderOptions = QString(BIOLGENDERS).split('/');
+        }
+        else if(genderType == GenderType::adult)
+        {
+            genderQuestion = GENDERQUESTION;
+            genderOptions = QString(ADULTGENDERS).split('/');
+        }
+        else if(genderType == GenderType::child)
+        {
+            genderQuestion = GENDERQUESTION;
+            genderOptions = QString(CHILDGENDERS).split('/');
+        }
+        else //if(genderType == GenderType::pronoun)
+        {
+            genderQuestion = PRONOUNQUESTION;
+            genderOptions = QString(PRONOUNS).split('/');
+        }
+        genderOptions.replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
+        survey->questions << Question(genderQuestion, Question::radiobutton, genderOptions);
     }
 
     // URM
@@ -449,9 +476,10 @@ void SurveyMaker::postGoogleURL(SurveyMaker *surveyMaker)
     }
 
     //generate Google URL
-    QString URL = "https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?";
+    QString URL = GOOGLEFORMCREATORSCRIPT_URL;
     URL += "title=" + QUrl::toPercentEncoding(surveyMaker->ui->surveyTitleLineEdit->text()) + "&";
     URL += "gend=" + QString(surveyMaker->gender? "true" : "false") + "&";
+    URL += "gentype=" + QString::number(static_cast<int>(surveyMaker->genderType)) + "&";
     URL += "urm=" + QString(surveyMaker->URM? "true" : "false") + "&";
     URL += "numattr=" + QString::number(surveyMaker->numAttributes) + "&";
     QString allAttributeTexts;
@@ -1028,6 +1056,10 @@ void SurveyMaker::openSurvey()
             {
                 ui->genderCheckBox->setChecked(loadObject["Gender"].toBool());
             }
+            if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble())
+            {
+                ui->genderResponsesComboBox->setCurrentIndex(loadObject["GenderType"].toInt());
+            }
             if(loadObject.contains("URM") && loadObject["URM"].isBool())
             {
                 ui->URMCheckBox->setChecked(loadObject["URM"].toBool());
@@ -1164,6 +1196,7 @@ void SurveyMaker::saveSurvey()
             saveObject["LastName"] = lastname;
             saveObject["Email"] = email;
             saveObject["Gender"] = gender;
+            saveObject["GenderType"] = static_cast<int>(genderType);
             saveObject["URM"] = URM;
             saveObject["numAttributes"] = numAttributes;
             for(int attribute = 0; attribute < numAttributes; attribute++)

@@ -24,6 +24,7 @@ public:
     int firstNameField = -1;
     int lastNameField = -1;
     bool genderIncluded = false;                    // is gender data included in the survey?
+    GenderType genderType = GenderType::adult;
     int genderField = -1;                           // which field in surveyFile has the gender info? -1 if not included in survey
     bool URMIncluded = false;                       // is URM data included in the survey?
     int URMField = -1;                              // which field in surveyFile has the ethnicity info? -1 if not included in survey

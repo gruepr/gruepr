@@ -21,33 +21,54 @@ void TeamRecord::createTooltip()
     if(dataOptions->genderIncluded)
     {
         toolTip += QObject::tr("Gender") + ":  ";
+        QStringList genderSingularOptions, genderPluralOptions;
+        if(dataOptions->genderType == GenderType::biol)
+        {
+            genderSingularOptions = QString(BIOLGENDERS).split('/');
+            genderPluralOptions = QString(BIOLGENDERS).split('/');
+        }
+        else if(dataOptions->genderType == GenderType::adult)
+        {
+            genderSingularOptions = QString(ADULTGENDERS).split('/');
+            genderPluralOptions = QString(ADULTGENDERSPLURAL).split('/');
+        }
+        else if(dataOptions->genderType == GenderType::child)
+        {
+            genderSingularOptions = QString(CHILDGENDERS).split('/');
+            genderPluralOptions = QString(CHILDGENDERSPLURAL).split('/');
+        }
+        else //if(dataOptions->genderResponses == GenderType::pronoun)
+        {
+            genderSingularOptions = QString(PRONOUNS).split('/');
+            genderPluralOptions = QString(PRONOUNS).split('/');
+        }
         if(numWomen > 0)
         {
-            toolTip += QString::number(numWomen) + (numWomen > 1? QObject::tr(" women") : QObject::tr(" woman"));
-        }
-        if(numWomen > 0 && (numMen > 0 || numNonbinary > 0 || numUnknown > 0))
-        {
-            toolTip += ", ";
+            toolTip += QString::number(numWomen) + " " + ((numWomen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::woman))) : (genderPluralOptions.at(static_cast<int>(Gender::woman))));
+            if(numMen > 0 || numNonbinary > 0 || numUnknown > 0)
+            {
+                toolTip += ", ";
+            }
         }
         if(numMen > 0)
         {
-            toolTip += QString::number(numMen) + (numMen > 1? QObject::tr(" men") : QObject::tr(" man"));
-        }
-        if(numMen > 0 && (numNonbinary > 0 || numUnknown > 0))
-        {
-            toolTip += ", ";
+            toolTip += QString::number(numMen) + " " + ((numMen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::man))) : (genderPluralOptions.at(static_cast<int>(Gender::man))));
+            if(numNonbinary > 0 || numUnknown > 0)
+            {
+                toolTip += ", ";
+            }
         }
         if(numNonbinary > 0)
         {
-            toolTip += QString::number(numNonbinary) + QObject::tr(" nonbinary");
-        }
-        if(numNonbinary > 0 && numUnknown > 0)
-        {
-            toolTip += ", ";
+            toolTip += QString::number(numNonbinary) + " " + ((numNonbinary == 1)? (genderSingularOptions.at(static_cast<int>(Gender::nonbinary))) : (genderPluralOptions.at(static_cast<int>(Gender::nonbinary))));
+            if(numUnknown > 0)
+            {
+                toolTip += ", ";
+            }
         }
         if(numUnknown > 0)
         {
-            toolTip += QString::number(numUnknown) + QObject::tr(" unknown");
+            toolTip += QString::number(numUnknown) + " " + ((numUnknown == 1)? (genderSingularOptions.at(static_cast<int>(Gender::unknown))) : (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
         }
     }
     if(dataOptions->URMIncluded)
@@ -176,15 +197,15 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
         const StudentRecord &stu = student[studentIndexes.at(teammate)];
         if(dataOptions->genderIncluded)
         {
-            if(stu.gender == StudentRecord::woman)
+            if(stu.gender == Gender::woman)
             {
                 numWomen++;
             }
-            else if(stu.gender == StudentRecord::man)
+            else if(stu.gender == Gender::man)
             {
                 numMen++;
             }
-            else if(stu.gender == StudentRecord::nonbinary)
+            else if(stu.gender == Gender::nonbinary)
             {
                 numNonbinary++;
             }

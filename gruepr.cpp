@@ -189,7 +189,7 @@ void gruepr::on_loadSurveyFileButton_clicked()
     /*  Used if the open file dialog will display auto-read field meanings - idea abandoned for now because non-native file dialog is ugly
     surveyFile.defaultFieldMeanings = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
                                        {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
-                                       {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                       {"Gender", "((gender)|(pronoun))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                        {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
                                        {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
                                        {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
@@ -1060,7 +1060,14 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     }
     if(dataOptions->genderIncluded)
     {
-        newSurveyFile.headerValues << "With which gender do you identify?";
+        if(dataOptions->genderType == GenderType::pronoun)
+        {
+            newSurveyFile.headerValues << "What are your pronouns?";
+        }
+        else
+        {
+            newSurveyFile.headerValues << "With which gender do you identify most closely?";
+        }
     }
     if(dataOptions->URMIncluded)
     {
@@ -1111,22 +1118,24 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
                                      student[index].firstname << student[index].lastname << student[index].email;
         if(dataOptions->genderIncluded)
         {
-            if(student[index].gender == StudentRecord::woman)
+            QStringList genderOptions;
+            if(dataOptions->genderType == GenderType::biol)
             {
-                newSurveyFile.fieldValues << tr("woman");
+                genderOptions = QString(BIOLGENDERS).split('/');
             }
-            else if(student[index].gender == StudentRecord::man)
+            else if(dataOptions->genderType == GenderType::adult)
             {
-                newSurveyFile.fieldValues << tr("man");
+                genderOptions = QString(ADULTGENDERS).split('/');
             }
-            else if(student[index].gender == StudentRecord::nonbinary)
+            else if(dataOptions->genderType == GenderType::child)
             {
-                newSurveyFile.fieldValues << tr("nonbinary");
+                genderOptions = QString(CHILDGENDERS).split('/');
             }
-            else
+            else //if(dataOptions->genderResponses == GenderType::pronoun)
             {
-                newSurveyFile.fieldValues << tr("unknown");
+                genderOptions = QString(PRONOUNS).split('/');
             }
+            newSurveyFile.fieldValues << genderOptions.at(static_cast<int>(student[index].gender));
         }
         if(dataOptions->URMIncluded)
         {
@@ -2275,7 +2284,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     // Ask user what the columns mean
     QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
                                                     {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
-                                                    {"Gender", "(gender)", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                    {"Gender", "((gender)|(pronoun))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                                     {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
                                                     {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
                                                     {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
@@ -2367,7 +2376,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     if(!surveyFile.readDataRow())
     {
         QMessageBox::critical(this, tr("Insufficient number of students."),
-                              tr("There are no survey responses in this file."), QMessageBox::Ok);
+                                    tr("There are no survey responses in this file."), QMessageBox::Ok);
         surveyFile.close();
         return false;
     }
@@ -2442,6 +2451,28 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             {
                 student[numStudents].duplicateRecord = true;
                 student[index].duplicateRecord = true;
+            }
+        }
+
+        // Figure out what type of gender data was given (if any) -- initialized value is GenderType::adult, and we're checking each student because some values are ambiguous to GenderType (e.g. "nonbinary")
+        if(dataOptions->genderIncluded)
+        {
+            QString genderText = surveyFile.fieldValues.at(dataOptions->genderField).toUtf8();
+            if(genderText.contains(tr("male"), Qt::CaseInsensitive))    // contains "male" also picks up "female"
+            {
+                dataOptions->genderType = GenderType::biol;
+            }
+            else if(genderText.contains(tr("man"), Qt::CaseInsensitive))    // contains "man" also picks up "woman"
+            {
+                dataOptions->genderType = GenderType::adult;
+            }
+            else if((genderText.contains(tr("girl"), Qt::CaseInsensitive)) || (genderText.contains("boy", Qt::CaseInsensitive)))
+            {
+                dataOptions->genderType = GenderType::child;
+            }
+            else if(genderText.contains(tr("he"), Qt::CaseInsensitive))    // contains "he" also picks up "she" and "they"
+            {
+                dataOptions->genderType = GenderType::pronoun;
             }
         }
 
@@ -2579,7 +2610,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
             else
             {
-                // INPROG: for timezone, values should be the GMT offsets (rounded to nearest hour?); currently, same as categorical
                 for(int i = 1; i <= responses.size(); i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);
@@ -3489,15 +3519,15 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
             int numNonbinary = 0;
             for(int teammate = 0; teammate < _teamSizes[team]; teammate++)
             {
-                if(_student[_teammates[studentNum]].gender == StudentRecord::man)
+                if(_student[_teammates[studentNum]].gender == Gender::man)
                 {
                     numMen++;
                 }
-                else if(_student[_teammates[studentNum]].gender == StudentRecord::woman)
+                else if(_student[_teammates[studentNum]].gender == Gender::woman)
                 {
                     numWomen++;
                 }
-                else if(_student[_teammates[studentNum]].gender == StudentRecord::nonbinary)
+                else if(_student[_teammates[studentNum]].gender == Gender::nonbinary)
                 {
                     numNonbinary++;
                 }
