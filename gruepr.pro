@@ -4,10 +4,10 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 10.9
+gruepr_version = 11.0
 copyright_year = 2019-2022
 
-QT       += core gui widgets concurrent network printsupport charts
+QT       += core gui widgets concurrent network printsupport charts networkauth
 win32: QT += winextras
 
 TARGET = gruepr
@@ -47,6 +47,7 @@ QMAKE_CXXFLAGS_RELEASE += -O2
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -fopenmp #use -fopenmp for mingw, -openmp for msvc
 win32: LIBS += -fopenmp
+win32: LIBS += -L"C:\msys64\home\jhertz\openssl-1.1.1d\dist\bin"
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
 macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
@@ -63,6 +64,7 @@ equals(QTPREFIX, "C:/Qt/5.15.2/mingw81_64_static"){
 SOURCES += \
         Levenshtein.cpp \
         boxwhiskerplot.cpp \
+        canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
         main.cpp \
@@ -97,6 +99,7 @@ SOURCES += \
 HEADERS += \
         Levenshtein.h \
         boxwhiskerplot.h \
+        canvashandler.h \
         csvfile.h \
         dataOptions.h \
         gruepr.h \

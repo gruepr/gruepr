@@ -75,7 +75,7 @@ private:
     ComboBoxWithElidedContents *baseTimezoneComboBox = nullptr;
     enum TimezoneType {noneOrHome, custom=2, set=4};
     QStringList defaultDayNames;
-    QString dayNames[MAX_DAYS];
+    QStringList dayNames;
     inline static const QDate sunday = QDate(2017, 1, 1);
     QLineEdit *dayLineEdits[MAX_DAYS] = {nullptr};
     QCheckBox *dayCheckBoxes[MAX_DAYS] = {nullptr};
@@ -90,6 +90,7 @@ private:
     bool additionalQuestions = false;
     static void postGoogleURL(SurveyMaker *surveyMaker = nullptr);
     static void createFiles(SurveyMaker *surveyMaker = nullptr);
+    static void createCanvasQuiz(SurveyMaker *surveyMaker = nullptr);
     void (*generateSurvey)(SurveyMaker *surveyMaker) = SurveyMaker::postGoogleURL;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
@@ -106,7 +107,6 @@ private:
     inline static const QString PRONOUNQUESTION = QObject::tr("What are your pronouns?");
     inline static const QString URMQUESTION = QObject::tr("How do you identify your race, ethnicity, or cultural heritage?");
     inline static const QString TIMEZONEQUESTION = QObject::tr("What time zone will you be based in during this class?");
-    inline static const QString TIMEZONEOPTIONS = QObject::tr("dropdown box of world timezones");
     enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
     inline static const QString SCHEDULEQUESTION1 = QObject::tr("Check the times that you are ");
     inline static const QString SCHEDULEQUESTION2BUSY = QObject::tr("BUSY and will be UNAVAILABLE");

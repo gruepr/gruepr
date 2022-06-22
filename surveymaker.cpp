@@ -1,5 +1,6 @@
 #include "ui_surveymaker.h"
 #include "surveymaker.h"
+#include "canvashandler.h"
 #include "widgets/attributeTabItem.h"
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -33,6 +34,10 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
                                                                      generateSurvey = prevSurveyMethod;});
     connect(ui->actionText_files, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
                                                                      generateSurvey = &SurveyMaker::createFiles;
+                                                                     on_makeSurveyButton_clicked();
+                                                                     generateSurvey = prevSurveyMethod;});
+    connect(ui->actionCanvas_quiz, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
+                                                                     generateSurvey = &SurveyMaker::createCanvasQuiz;
                                                                      on_makeSurveyButton_clicked();
                                                                      generateSurvey = prevSurveyMethod;});
     ui->actionExit->setMenuRole(QAction::QuitRole);
@@ -90,10 +95,11 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     //load in local day names, and connect subwindow ui to slots
     defaultDayNames.reserve(MAX_DAYS);
+    dayNames.reserve(MAX_DAYS);
     for(int day = 0; day < MAX_DAYS; day++)
     {
         defaultDayNames << sunday.addDays(day).toString("dddd");
-        dayNames[day] = defaultDayNames.at(day);
+        dayNames << defaultDayNames.at(day);
         dayCheckBoxes[day] = new QCheckBox;
         dayLineEdits[day] = new QLineEdit;
         dayCheckBoxes[day]->setChecked(true);
@@ -167,21 +173,21 @@ void SurveyMaker::buildSurvey()
     firstname = ui->firstNameCheckBox->isChecked();
     if(firstname)
     {
-        survey->questions << Question(FIRSTNAMEQUESTION, Question::shorttext);
+        survey->questions << Question(FIRSTNAMEQUESTION, Question::QuestionType::shorttext);
     }
 
     // Last name
     lastname = ui->lastNameCheckBox->isChecked();
     if(lastname)
     {
-        survey->questions << Question(LASTNAMEQUESTION, Question::shorttext);
+        survey->questions << Question(LASTNAMEQUESTION, Question::QuestionType::shorttext);
     }
 
     // Email
     email = ui->emailCheckBox->isChecked();
     if(email)
     {
-        survey->questions << Question(EMAILQUESTION, Question::shorttext);
+        survey->questions << Question(EMAILQUESTION, Question::QuestionType::shorttext);
     }
 
     // Gender
@@ -214,14 +220,14 @@ void SurveyMaker::buildSurvey()
             genderOptions = QString(PRONOUNS).split('/');
         }
         genderOptions.replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
-        survey->questions << Question(genderQuestion, Question::radiobutton, genderOptions);
+        survey->questions << Question(genderQuestion, Question::QuestionType::radiobutton, genderOptions);
     }
 
     // URM
     URM = ui->URMCheckBox->isChecked();
     if(URM)
     {
-        survey->questions << Question(URMQUESTION, Question::shorttext);
+        survey->questions << Question(URMQUESTION, Question::QuestionType::shorttext);
     }
 
     // Attributes (including timezone if no schedule question)
@@ -240,17 +246,17 @@ void SurveyMaker::buildSurvey()
         attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();
         QString questionText = (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
         QString options = responseOptions.at(attributeResponses[attrib]);
-        Question::QuestionType questionType = Question::radiobutton;
+        Question::QuestionType questionType = Question::QuestionType::radiobutton;
         if(attributeAllowMultipleResponses[attrib])
         {
-            questionType = Question::checkbox;
+            questionType = Question::QuestionType::checkbox;
         }
 
         if(timezone && !schedule && attrib == (numAttributes-1))
         {
             questionText = TIMEZONEQUESTION;
-            options = TIMEZONEOPTIONS;
-            questionType = Question::dropdown;
+            options = QString(TIMEZONENAMES).replace(';', '/');
+            questionType = Question::QuestionType::dropdown;
         }
 
         if(attrib < numAttributes)
@@ -296,7 +302,7 @@ void SurveyMaker::buildSurvey()
     {
         if(timezone)
         {
-            survey->questions << Question(TIMEZONEQUESTION, Question::dropdown, TIMEZONEOPTIONS.split('/'));
+            survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, QString(TIMEZONENAMES).split(';'));
         }
 
         QString questionText = SCHEDULEQUESTION1 + ((busyOrFree == busy)? SCHEDULEQUESTION2BUSY : SCHEDULEQUESTION2FREE) + SCHEDULEQUESTION3;
@@ -313,10 +319,11 @@ void SurveyMaker::buildSurvey()
             }
             questionText += SCHEDULEQUESTION5;
         }
-        survey->questions << Question(questionText, Question::schedule);
+        survey->questions << Question(questionText, Question::QuestionType::schedule);
+        survey->schedDayNames.clear();
         for(int day = 0; day < MAX_DAYS; day++)
         {
-            survey->schedDayNames[day] = dayNames[day];
+            survey->schedDayNames << dayNames[day];
         }
         survey->schedStartTime = startTime;
         survey->schedEndTime = endTime;
@@ -332,7 +339,7 @@ void SurveyMaker::buildSurvey()
         {
             options << sectionNames[sect];
         }
-        survey->questions << Question(SECTIONQUESTION, Question::radiobutton, options);
+        survey->questions << Question(SECTIONQUESTION, Question::QuestionType::radiobutton, options);
     }
 
     // Preferred teammates and / or non-teammates
@@ -345,22 +352,22 @@ void SurveyMaker::buildSurvey()
     {
         if(numPreferredAllowed == 1)
         {
-            survey->questions << Question(PREF1TEAMMATEQUESTION, Question::shorttext);
+            survey->questions << Question(PREF1TEAMMATEQUESTION, Question::QuestionType::shorttext);
         }
         else
         {
-            survey->questions << Question(PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2YES, Question::longtext);
+            survey->questions << Question(PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2YES, Question::QuestionType::longtext);
         }
     }
     if(preferredNonTeammates)
     {
         if(numPreferredAllowed == 1)
         {
-            survey->questions << Question(PREF1NONTEAMMATEQUESTION, Question::shorttext);
+            survey->questions << Question(PREF1NONTEAMMATEQUESTION, Question::QuestionType::shorttext);
         }
         else
         {
-            survey->questions << Question(PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2NO, Question::longtext);
+            survey->questions << Question(PREFMULTQUESTION1 + QString::number(numPreferredAllowed) + PREFMULTQUESTION2NO, Question::QuestionType::longtext);
         }
     }
 
@@ -368,7 +375,7 @@ void SurveyMaker::buildSurvey()
     additionalQuestions = ui->additionalQuestionsCheckBox->isChecked();
     if(additionalQuestions)
     {
-        survey->questions << Question(ADDLQUESTION, Question::longtext);
+        survey->questions << Question(ADDLQUESTION, Question::QuestionType::longtext);
     }
 
     currPos = ui->previewText->verticalScrollBar()->value();
@@ -388,15 +395,31 @@ QString SurveyMaker::createPreview(const Survey *const survey)
     for(const auto &question : qAsConst(survey->questions))
     {
         preview += QUESTIONPREVIEWHEAD + question.text;
-        if((question.type == Question::dropdown) || (question.type == Question::radiobutton) || (question.type == Question::checkbox))
+        if((question.type == Question::QuestionType::dropdown) || (question.type == Question::QuestionType::radiobutton) || (question.type == Question::QuestionType::checkbox))
         {
-            preview += QUESTIONOPTIONSHEAD + question.options.join(" </i><b>|</b><i> ") + QUESTIONOPTIONSTAIL;
-            if(question.type == Question::checkbox)
+            preview += QUESTIONOPTIONSHEAD;
+            if(question.options.size() <= 10)
+            {
+                preview += question.options.join(" </i><b>|</b><i> ");
+            }
+            else
+            {
+                QStringList first6;
+                for(int i = 0; i < 6; i++)
+                {
+                    first6 << question.options.at(i);
+
+                }
+                first6 << "...";
+                preview += first6.join(" </i><b>|</b><i> ");
+            }
+            preview += QUESTIONOPTIONSTAIL;
+            if(question.type == Question::QuestionType::checkbox)
             {
                 preview += "</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>* " + tr("Multiple responses allowed") + "</small>";
             }
         }
-        else if(question.type == Question::schedule)
+        else if(question.type == Question::QuestionType::schedule)
         {
             preview += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
             preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
@@ -527,7 +550,7 @@ void SurveyMaker::postGoogleURL(SurveyMaker *surveyMaker)
     URL += "start=" + QString::number(surveyMaker->startTime) + "&end=" + QString::number(surveyMaker->endTime);
     QString allDayNames;
     bool firstDay = true;
-    for(const auto & dayName : surveyMaker->dayNames)
+    for(const auto & dayName : qAsConst(surveyMaker->dayNames))
     {
         if(!(dayName.isEmpty()))
         {
@@ -621,7 +644,7 @@ void SurveyMaker::createFiles(SurveyMaker *surveyMaker)
     for(const auto &question : qAsConst(survey->questions))
     {
         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
-        if(question.type == Question::schedule)
+        if(question.type == Question::QuestionType::schedule)
         {
             textFileContents += "\n                 ";
             for(int time = survey->schedStartTime; time <= survey->schedEndTime; time++)
@@ -641,10 +664,10 @@ void SurveyMaker::createFiles(SurveyMaker *surveyMaker)
         else
         {
             csvFileContents += "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text);
-            if((question.type == Question::dropdown) || (question.type == Question::radiobutton) || (question.type == Question::checkbox))
+            if((question.type == Question::QuestionType::dropdown) || (question.type == Question::QuestionType::radiobutton) || (question.type == Question::QuestionType::checkbox))
             {
                 textFileContents += "\n     " + tr("choices") + ": [" + question.options.join(" | ") + "]";
-                if(question.type == Question::checkbox)
+                if(question.type == Question::QuestionType::checkbox)
                 {
                     textFileContents += "\n     (" + tr("Multiple responses allowed") + ")";
                 }
@@ -658,6 +681,125 @@ void SurveyMaker::createFiles(SurveyMaker *surveyMaker)
     output2 << csvFileContents;
     saveFile.close();
     saveFile2.close();
+
+    surveyMaker->surveyCreated = true;
+}
+
+void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
+{
+    //make sure we can connect to google
+    auto *manager = new QNetworkAccessManager(surveyMaker);
+    QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    delete manager;
+
+    if(weGotProblems)
+    {
+        QMessageBox::critical(surveyMaker, tr("Error!"), tr("There does not seem to be an internet connection.\n"
+                                                       "Check your network connection and try again.\n"
+                                                       "The survey has NOT been created."));
+        return;
+    }
+
+    //give instructions about how this option works and get the canvas URL and API token
+    QSettings savedSettings;
+    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+    auto *getCanvasInfoDialog = new QDialog;
+    auto *vLayout = new QVBoxLayout;
+    auto *label = new QLabel(tr("The next step will create this survey in your Canvas course. This feature is currently in beta.\n\n"
+                            "First, please enter your institution's canvas URL (e.g.: https://example.instructure.com).\n"
+                            "Next, create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
+                            "  »  Log into Canvas,\n"
+                            "  »  click \"Account\" in the left menu\n"
+                            "  »  click \"Settings\", \n"
+                            "  »  scroll to Approved Integration,\n"
+                            "  »  click \"+ New Access Token\",\n"
+                            "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
+                            "  »  click \"Generate Token\", and\n"
+                            "  »  copy your freshly generated token and paste it into the second field below (if you have previously done this, the token will be shown below).\n\n"));
+    QLineEdit *canvasURL, *canvasToken;
+    canvasURL = new QLineEdit;
+    canvasToken = new QLineEdit;
+    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
+    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
+    if(!savedCanvasURL.isEmpty())
+    {
+        canvasURL->setText(savedCanvasURL);
+    }
+    if(!savedCanvasToken.isEmpty())
+    {
+        canvasToken->setText(savedCanvasToken);
+    }
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
+    vLayout->addWidget(label);
+    vLayout->addWidget(canvasURL);
+    vLayout->addWidget(canvasToken);
+    vLayout->addWidget(buttonBox);
+    getCanvasInfoDialog->setLayout(vLayout);
+    if((getCanvasInfoDialog->exec() == QDialog::Rejected) || (canvasToken->text().isEmpty()) || (canvasURL->text().isEmpty()))
+    {
+        return;
+    }
+
+    savedCanvasURL = canvasURL->text();
+    savedCanvasToken = canvasToken->text();
+    savedSettings.setValue("canvasURL", savedCanvasURL);
+    savedSettings.setValue("canvasToken", savedCanvasToken);
+
+    delete getCanvasInfoDialog;
+
+    auto *canvas = new CanvasHandler("", "", savedCanvasURL);
+    canvas->authenticate(savedCanvasToken);
+
+    auto *busyBox = canvas->busy();
+    QStringList courseNames = canvas->getCourses();
+    canvas->notBusy(busyBox);
+
+    auto *canvasCourses = new QDialog;
+    vLayout = new QVBoxLayout;
+    int i = 1;
+    label = new QLabel(tr("In which course should this survey be created?"));
+    auto *coursesComboBox = new QComboBox;
+    for(const auto &courseName : qAsConst(courseNames))
+    {
+        coursesComboBox->addItem(courseName);
+        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    }
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    vLayout->addWidget(label);
+    vLayout->addWidget(coursesComboBox);
+    vLayout->addWidget(buttonBox);
+    canvasCourses->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
+    if((canvasCourses->exec() == QDialog::Rejected))
+    {
+        return;
+    }
+
+    busyBox = canvas->busy();
+    QSize iconSize = busyBox->iconPixmap().size();
+    QPixmap icon;
+    if(canvas->createSurvey(coursesComboBox->currentText(), surveyMaker->survey)) {
+        busyBox->setText(tr("Success! Survey created."));
+        icon.load(":/icons/ok.png");
+    }
+    else {
+        busyBox->setText(tr("Error. Something has gone wrong. The survey was not created"));
+        icon.load(":/icons/delete.png");
+    }
+    busyBox->setIconPixmap(icon.scaled(iconSize));
+    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    loop.exec();
+    canvas->notBusy(busyBox);
+
+    delete canvasCourses;
 
     surveyMaker->surveyCreated = true;
 }

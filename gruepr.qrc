@@ -52,5 +52,7 @@
         <file>icons/notfriends.png</file>
         <file>icons/redo.png</file>
         <file>icons/undo.png</file>
+        <file>icons/canvas.png</file>
+        <file>icons/google.png</file>
     </qresource>
 </RCC>

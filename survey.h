@@ -10,9 +10,9 @@
 class Question
 {
 public:
-    enum QuestionType{shorttext, dropdown, radiobutton, checkbox, timezone, schedule, longtext};
+    enum class QuestionType{shorttext, dropdown, radiobutton, checkbox, schedule, longtext};
 
-    Question(const QString &questionText = "", const QuestionType questionType = longtext, const QStringList &responseOptions = {});
+    Question(const QString &questionText = "", const QuestionType questionType = QuestionType::longtext, const QStringList &responseOptions = {});
 
     QString text;
     QuestionType type;
@@ -30,7 +30,7 @@ public:
     QString title = "";
     QVector<Question> questions;
     int numAttributes = 0;
-    QString schedDayNames[MAX_DAYS];
+    QStringList schedDayNames;
     int schedStartTime = STANDARDSCHEDSTARTTIME;
     int schedEndTime = STANDARDSCHEDENDTIME;
 };
