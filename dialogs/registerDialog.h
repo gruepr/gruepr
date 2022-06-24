@@ -19,7 +19,7 @@ public:
     QLineEdit *email;
 
 private:
-    QGridLayout *theGrid;
+    QVBoxLayout *theBox;
     QLabel *explanation;
     QDialogButtonBox *buttonBox;
     inline static const QString EMAILADDRESSREGEX = "^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$";

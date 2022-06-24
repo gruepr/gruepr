@@ -1378,7 +1378,7 @@ Teammates</string>
      <x>0</x>
      <y>0</y>
      <width>930</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1392,6 +1392,7 @@ Teammates</string>
     <addaction name="actionSave_Survey_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Student_Roster"/>
+    <addaction name="actionCompare_Students_to_Canvas_Course"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Teaming_Options_File"/>
     <addaction name="actionSave_Teaming_Options_File"/>
@@ -1420,6 +1421,7 @@ Teammates</string>
     <addaction name="separator"/>
     <addaction name="actionSave_Teams"/>
     <addaction name="actionPrint_Teams"/>
+    <addaction name="actionPost_Teams_to_Canvas"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTeams"/>
@@ -1597,6 +1599,36 @@ Teammates</string>
    </property>
    <property name="text">
     <string>Report a Bug or Feature Request...</string>
+   </property>
+  </action>
+  <action name="actionCompare_Students_to_Canvas_Course">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/canvas.png</normaloff>:/icons/canvas.png</iconset>
+   </property>
+   <property name="text">
+    <string>Compare Students to Canvas Course...</string>
+   </property>
+   <property name="toolTip">
+    <string>Check the names listed in the table against a Canvas class roster. Note: this feature is in beta currently.</string>
+   </property>
+  </action>
+  <action name="actionPost_Teams_to_Canvas">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/canvas.png</normaloff>:/icons/canvas.png</iconset>
+   </property>
+   <property name="text">
+    <string>Post Teams to Canvas...</string>
+   </property>
+   <property name="toolTip">
+    <string>Upload this set of teams to a Canvas course. Note: this feature is in beta currently.</string>
    </property>
   </action>
  </widget>

@@ -54,5 +54,6 @@
         <file>icons/undo.png</file>
         <file>icons/canvas.png</file>
         <file>icons/google.png</file>
+        <file>icons/wait.png</file>
     </qresource>
 </RCC>

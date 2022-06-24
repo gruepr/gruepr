@@ -72,6 +72,7 @@ private:
     enum {busy, free} busyOrFree = free;
     bool timezone = false;
     QString baseTimezone = "";
+    QStringList timeZoneNames;
     ComboBoxWithElidedContents *baseTimezoneComboBox = nullptr;
     enum TimezoneType {noneOrHome, custom=2, set=4};
     QStringList defaultDayNames;

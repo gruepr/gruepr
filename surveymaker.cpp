@@ -73,7 +73,11 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"), this);
 
     //put timezones into combobox
-    QStringList timeZones = QString(TIMEZONENAMES).split(";");
+    timeZoneNames = QString(TIMEZONENAMES).split(";");
+    for(auto &timeZoneName : timeZoneNames)
+    {
+        timeZoneName.remove('"');
+    }
     baseTimezoneComboBox = new ComboBoxWithElidedContents("Pacific: US and Canada, Tijuana [GMT-08:00]", this);
     baseTimezoneComboBox->setToolTip(tr("<html>Description of the timezone students should use to interpret the times in the grid.&nbsp;"
                                         "<b>Be aware how the meaning of the times in the grid changes depending on this setting.</b></html>"));
@@ -81,10 +85,9 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     baseTimezoneComboBox->insertSeparator(TimezoneType::noneOrHome+1);
     baseTimezoneComboBox->insertItem(TimezoneType::custom, tr("Custom timezone:"));
     baseTimezoneComboBox->insertSeparator(TimezoneType::custom+1);
-    for(int zone = 0; zone < timeZones.size(); zone++)
+    for(int zone = 0; zone < timeZoneNames.size(); zone++)
     {
-        QString zonename = timeZones.at(zone);
-        zonename.remove('"');
+        const QString &zonename = timeZoneNames.at(zone);
         baseTimezoneComboBox->insertItem(TimezoneType::set + zone, zonename);
         baseTimezoneComboBox->setItemData(TimezoneType::set + zone, zonename, Qt::ToolTipRole);
     }
@@ -106,8 +109,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         dayLineEdits[day]->setText(defaultDayNames.at(day));
         dayLineEdits[day]->setPlaceholderText(tr("Day ") + QString::number(day + 1) + tr(" name"));
         connect(dayLineEdits[day], &QLineEdit::textChanged, this, [this, day](const QString &text) {day_LineEdit_textChanged(text, dayLineEdits[day], dayNames[day]);});
-        connect(dayLineEdits[day], &QLineEdit::editingFinished, this, [this, day] {if(dayNames[day].isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
-        connect(dayCheckBoxes[day], &QCheckBox::toggled, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames[day]);});
+        connect(dayLineEdits[day], &QLineEdit::editingFinished, this, [this, day] {if(dayNames.at(day).isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
+        connect(dayCheckBoxes[day], &QCheckBox::toggled, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames.at(day));});
     }
     daysWindow = new dayNamesDialog(dayCheckBoxes, dayLineEdits, this);
 
@@ -220,7 +223,7 @@ void SurveyMaker::buildSurvey()
             genderOptions = QString(PRONOUNS).split('/');
         }
         genderOptions.replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
-        survey->questions << Question(genderQuestion, Question::QuestionType::radiobutton, genderOptions);
+        survey->questions << Question(genderQuestion, Question::QuestionType::dropdown, genderOptions);
     }
 
     // URM
@@ -245,7 +248,7 @@ void SurveyMaker::buildSurvey()
         attributeResponses[attrib] = ((attribTab->attributeResponses->currentIndex()>1) ? (attribTab->attributeResponses->currentIndex()-1) : 0);
         attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();
         QString questionText = (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
-        QString options = responseOptions.at(attributeResponses[attrib]);
+        QStringList options = responseOptions.at(attributeResponses[attrib]).split('/');
         Question::QuestionType questionType = Question::QuestionType::radiobutton;
         if(attributeAllowMultipleResponses[attrib])
         {
@@ -255,13 +258,13 @@ void SurveyMaker::buildSurvey()
         if(timezone && !schedule && attrib == (numAttributes-1))
         {
             questionText = TIMEZONEQUESTION;
-            options = QString(TIMEZONENAMES).replace(';', '/');
+            options = timeZoneNames;
             questionType = Question::QuestionType::dropdown;
         }
 
         if(attrib < numAttributes)
         {
-            survey->questions << Question(questionText, questionType, options.split('/'));
+            survey->questions << Question(questionText, questionType, options);
         }
     }
 
@@ -302,7 +305,7 @@ void SurveyMaker::buildSurvey()
     {
         if(timezone)
         {
-            survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, QString(TIMEZONENAMES).split(';'));
+            survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, timeZoneNames);
         }
 
         QString questionText = SCHEDULEQUESTION1 + ((busyOrFree == busy)? SCHEDULEQUESTION2BUSY : SCHEDULEQUESTION2FREE) + SCHEDULEQUESTION3;
@@ -323,7 +326,10 @@ void SurveyMaker::buildSurvey()
         survey->schedDayNames.clear();
         for(int day = 0; day < MAX_DAYS; day++)
         {
-            survey->schedDayNames << dayNames[day];
+            if(!dayNames.at(day).isEmpty())
+            {
+                survey->schedDayNames << dayNames.at(day);
+            }
         }
         survey->schedStartTime = startTime;
         survey->schedEndTime = endTime;
@@ -337,7 +343,7 @@ void SurveyMaker::buildSurvey()
         QStringList options;
         for(int sect = 0; sect < sectionNames.size(); sect++)
         {
-            options << sectionNames[sect];
+            options << sectionNames.at(sect);
         }
         survey->questions << Question(SECTIONQUESTION, Question::QuestionType::radiobutton, options);
     }
@@ -434,10 +440,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
             preview += "</small></p>";
             for(const auto &dayName : qAsConst(survey->schedDayNames))
             {
-                if(!(dayName.isEmpty()))
-                {
-                    preview += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
-                }
+                preview += "<p>&nbsp;&nbsp;&nbsp;<small>" + dayName + "</small></p>";
             }
         }
         preview += QUESTIONPREVIEWTAIL;
@@ -573,7 +576,7 @@ void SurveyMaker::postGoogleURL(SurveyMaker *surveyMaker)
             {
                 allSectionNames += ",";
             }
-            allSectionNames += QUrl::toPercentEncoding(surveyMaker->sectionNames[sect]);
+            allSectionNames += QUrl::toPercentEncoding(surveyMaker->sectionNames.at(sect));
         }
     }
     URL += "sects=" + allSectionNames + "&";
@@ -699,8 +702,8 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     if(weGotProblems)
     {
         QMessageBox::critical(surveyMaker, tr("Error!"), tr("There does not seem to be an internet connection.\n"
-                                                       "Check your network connection and try again.\n"
-                                                       "The survey has NOT been created."));
+                                                            "Check your network connection and try again.\n"
+                                                            "The survey has NOT been created."));
         return;
     }
 
@@ -711,8 +714,9 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     auto *getCanvasInfoDialog = new QDialog;
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("The next step will create this survey in your Canvas course. This feature is currently in beta.\n\n"
-                            "First, please enter your institution's canvas URL (e.g.: https://example.instructure.com).\n"
-                            "Next, create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
+                            "You will only have to perform the following steps once.\n"
+                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
+                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
                             "  »  Log into Canvas,\n"
                             "  »  click \"Account\" in the left menu\n"
                             "  »  click \"Settings\", \n"
@@ -720,7 +724,7 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
                             "  »  click \"+ New Access Token\",\n"
                             "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
                             "  »  click \"Generate Token\", and\n"
-                            "  »  copy your freshly generated token and paste it into the second field below (if you have previously done this, the token will be shown below).\n\n"));
+                            "  »  copy your freshly generated token and paste it into the second field below.\n\n"));
     QLineEdit *canvasURL, *canvasToken;
     canvasURL = new QLineEdit;
     canvasToken = new QLineEdit;
@@ -791,7 +795,7 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
         icon.load(":/icons/ok.png");
     }
     else {
-        busyBox->setText(tr("Error. Something has gone wrong. The survey was not created"));
+        busyBox->setText(tr("Error. The survey was not created."));
         icon.load(":/icons/delete.png");
     }
     busyBox->setIconPixmap(icon.scaled(iconSize));
@@ -1263,7 +1267,7 @@ void SurveyMaker::openSurvey()
             {
                 QString dayString1 = "scheduleDay" + QString::number(day+1);
                 QString dayString2 = dayString1 + "Name";
-                QString dayName = defaultDayNames[day];
+                QString dayName = defaultDayNames.at(day);
                 if(loadObject.contains(dayString2) && loadObject[dayString2].isString())
                 {
                     dayLineEdits[day]->setText(loadObject[dayString2].toString());

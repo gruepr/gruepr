@@ -1,4 +1,5 @@
 #include "teamsTabItem.h"
+#include "canvashandler.h"
 #include "dialogs/customTeamnamesDialog.h"
 #include "dialogs/whichFilesDialog.h"
 #include "gruepr.h"
@@ -15,7 +16,8 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions,
-                           TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent) : QWidget(parent)
+                           TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[],
+                           QString incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
@@ -24,6 +26,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     numTeams = incomingNumTeams;
     students = incomingStudents;
     numStudents = dataOptions->numStudentsInSystem;
+    tabName = incomingTabName;
 
     setContentsMargins(0,0,0,0);
     teamDataLayout = new QVBoxLayout;
@@ -923,6 +926,163 @@ void TeamsTabItem::saveTeams()
         printFiles(window->instructorFilepdf->isChecked(), window->studentFilepdf->isChecked(), false, true);
     }
     delete window;
+}
+
+
+void TeamsTabItem::postTeamsToCanvas()
+{
+
+    //make sure we can connect to google
+    auto *manager = new QNetworkAccessManager(this);
+    QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    delete manager;
+
+    if(weGotProblems)
+    {
+        QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\n"
+                                                     "Check your network connection and try again.\n"
+                                                     "The survey has NOT been created."));
+        return;
+    }
+
+    //give instructions about how this option works and get the canvas URL and API token
+    QSettings savedSettings;
+    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+    auto *getCanvasInfoDialog = new QDialog;
+    auto *vLayout = new QVBoxLayout;
+    auto *label = new QLabel(tr("The next step will download the roster from your Canvas course. This feature is currently in beta.\n\n"
+                            "You will only have to perform the following steps once.\n"
+                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
+                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
+                            "  »  Log into Canvas,\n"
+                            "  »  click \"Account\" in the left menu\n"
+                            "  »  click \"Settings\", \n"
+                            "  »  scroll to Approved Integration,\n"
+                            "  »  click \"+ New Access Token\",\n"
+                            "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
+                            "  »  click \"Generate Token\", and\n"
+                            "  »  copy your freshly generated token and paste it into the second field below.\n\n"));
+    QLineEdit *canvasURL, *canvasToken;
+    canvasURL = new QLineEdit;
+    canvasToken = new QLineEdit;
+    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
+    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
+    if(!savedCanvasURL.isEmpty())
+    {
+        canvasURL->setText(savedCanvasURL);
+    }
+    if(!savedCanvasToken.isEmpty())
+    {
+        canvasToken->setText(savedCanvasToken);
+    }
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
+    vLayout->addWidget(label);
+    vLayout->addWidget(canvasURL);
+    vLayout->addWidget(canvasToken);
+    vLayout->addWidget(buttonBox);
+    getCanvasInfoDialog->setLayout(vLayout);
+    if((getCanvasInfoDialog->exec() == QDialog::Rejected) || (canvasToken->text().isEmpty()) || (canvasURL->text().isEmpty()))
+    {
+        return;
+    }
+
+    savedCanvasURL = canvasURL->text();
+    savedCanvasToken = canvasToken->text();
+    savedSettings.setValue("canvasURL", savedCanvasURL);
+    savedSettings.setValue("canvasToken", savedCanvasToken);
+
+    delete getCanvasInfoDialog;
+
+    auto *canvas = new CanvasHandler("", "", savedCanvasURL);
+    canvas->authenticate(savedCanvasToken);
+
+    auto *busyBox = canvas->busy();
+    QStringList courseNames = canvas->getCourses();
+    canvas->notBusy(busyBox);
+
+    auto *canvasCourses = new QDialog;
+    vLayout = new QVBoxLayout;
+    int i = 1;
+    label = new QLabel(tr("In which course should these teams be created?"));
+    auto *coursesComboBox = new QComboBox;
+    for(const auto &courseName : qAsConst(courseNames))
+    {
+        coursesComboBox->addItem(courseName);
+        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    }
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    vLayout->addWidget(label);
+    vLayout->addWidget(coursesComboBox);
+    vLayout->addWidget(buttonBox);
+    canvasCourses->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
+    if((canvasCourses->exec() == QDialog::Rejected))
+    {
+        return;
+    }
+
+    QStringList teamNames;
+    QList<QPair<QString, QString>> teamRoster;
+    QList<QList<QPair<QString, QString>>> teamRosters;
+    // get team numbers in the order that they are currently displayed/sorted
+    QVector<int> teamDisplayNum;
+    teamDisplayNum.reserve(numTeams);
+    for(int row = 0; row < numTeams; row++)
+    {
+        int team = 0;
+        while(teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != team)
+        {
+            team++;
+        }
+        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
+    }
+    //loop through every team in display order
+    for(int teamNum = 0; teamNum < numTeams; teamNum++)
+    {
+        int team = teamDisplayNum.at(teamNum);
+        teamNames << teams[team].name;
+        teamRoster.clear();
+        //loop through each teammate in the team
+        for(int teammate = 0; teammate < teams[team].size; teammate++)
+        {
+            const auto &thisStudent = students[teams[team].studentIndexes.at(teammate)];
+            teamRoster.append({thisStudent.firstname, thisStudent.lastname});
+        }
+        teamRosters << teamRoster;
+    }
+
+    busyBox = canvas->busy();
+    QSize iconSize = busyBox->iconPixmap().size();
+    QPixmap icon;
+    canvas->getStudentRoster(coursesComboBox->currentText());
+    if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters))
+    {
+        busyBox->setText(tr("Success!"));
+        icon.load(":/icons/ok.png");
+        busyBox->setIconPixmap(icon.scaled(iconSize));
+        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        loop.exec();
+        canvas->notBusy(busyBox);
+    }
+    else
+    {
+        busyBox->setText(tr("Error. Teams not created."));
+        icon.load(":/icons/delete.png");
+        busyBox->setIconPixmap(icon.scaled(iconSize));
+        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        loop.exec();
+        canvas->notBusy(busyBox);
+        return;
+    }
+    delete canvasCourses;
 }
 
 

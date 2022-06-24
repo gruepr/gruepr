@@ -267,7 +267,7 @@ const char TEAMNAMELISTS[]   {";"
                               "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
                                  "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik"};
 
-const char VERSION_CHECK_URL[] {"http://www1.coe.neu.edu/~jhertz/grueprcurrentversion.html"};
+const char VERSION_CHECK_URL[] {"https://api.github.com/repos/gruepr/gruepr/releases/latest"};
 const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
 const char GOOGLEFORMCREATORSCRIPT_URL[] {"https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?"};
 const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};

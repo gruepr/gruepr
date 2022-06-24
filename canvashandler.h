@@ -8,7 +8,8 @@
 
 struct CanvasStudent
 {
-    QString name;
+    QString firstName;
+    QString lastName;
     int ID = 0;
 };
 
@@ -41,15 +42,15 @@ public:
 
     QStringList getCourses();
     int getStudentCount(const QString &courseName);
-    QStringList getStudentRoster(const QString &courseName);
-    QStringList getQuizList(const QString &courseName);
-    bool createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QStringList> &teams);
+    QList<QPair<QString, QString>> getStudentRoster(const QString &courseName);
+    bool createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<QPair<QString, QString>>> &teams);
     bool createSurvey(const QString &courseName, const Survey *const survey);
+    QStringList getQuizList(const QString &courseName);
     bool downloadQuizResult(const QString &courseName, const QString &quizName);
 
 private:
     int getCourseID(const QString &courseName);
-    int getStudentID(const QString &studentName);
+    int getStudentID(const QString &studentFirstName, const QString &studentLastName);
     int getQuizID(const QString &quizName);
     QUrl getQuizResultsURL(const int courseID, const int quizID);
 
@@ -73,7 +74,7 @@ private:
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 20000;   //msec
     inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};
-    inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on different days:")};
+    inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on ")};
     inline static const int NUM_PAGES_TO_LOAD = 20;
     inline static const QString CLIENT_ID{""};
     inline static const QString CLIENT_SECRET{""};

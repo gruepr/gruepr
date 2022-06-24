@@ -47,6 +47,7 @@ protected:
 private slots:
     void on_loadSurveyFileButton_clicked();
     void loadStudentRoster();
+    void compareRosterToCanvas();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
     void editAStudent();
     void removeAStudent(const QString &name, bool delayVisualUpdate);

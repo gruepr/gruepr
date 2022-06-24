@@ -16,6 +16,7 @@ TEMPLATE = app
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
 DEFINES += NUMBER_VERSION_FIELDS=4  # Allowing for version numbers 4 levels deep (i.e., 0.0.0.0)
+DEFINES += NUMBER_VERSION_PRECISION=100 # Allowing for version values up to but not including 100 (i.e., 0.0.0.0 -> 99.99.99.99)
 
 # set application properties
 VERSION = $$gruepr_version
@@ -27,6 +28,8 @@ QMAKE_TARGET_PRODUCT = gruepr
 win32: RC_ICONS = icons\gruepr.ico
 macx: ICON = icons\gruepr.icns
 
+# set mac info.plist
+macx: QMAKE_INFO_PLIST = macOS\MyAppInfo.plist
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -39,6 +42,7 @@ CONFIG += c++17
 # remove possible other optimization flags
 QMAKE_CXXFLAGS_RELEASE -= -O
 QMAKE_CXXFLAGS_RELEASE -= -O1
+QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE -= -O3
 QMAKE_CXXFLAGS_RELEASE -= -Os
 # add the desired -O2 if not present

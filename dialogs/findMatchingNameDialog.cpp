@@ -125,11 +125,14 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const StudentRec
         useSurveyEmailCheckbox->setChecked(true);
         useSurveyEmailCheckbox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         emailGroup->addButton(useSurveyEmailCheckbox);
-        if(searchEmail == currSurveyEmail)
+        if((searchEmail == currSurveyEmail) || (searchEmail.isEmpty()))
         {
             useRosterEmailCheckbox->setEnabled(false);
             useSurveyEmailCheckbox->setEnabled(false);
-            useSurveyEmailCheckbox->setText(tr("The survey email address matches the roster"));
+            if((searchEmail == currSurveyEmail))
+            {
+                useSurveyEmailCheckbox->setText(tr("The survey email address matches the roster"));
+            }
         }
 
         // setting up grid

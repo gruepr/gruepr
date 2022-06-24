@@ -17,6 +17,7 @@ CanvasHandler::CanvasHandler(const QString &authenticateURL, const QString &acce
 }
 
 CanvasHandler::~CanvasHandler() {
+    delete manager;
     delete canvas;
 }
 
@@ -52,7 +53,7 @@ int CanvasHandler::getStudentCount(const QString &courseName) {
 }
 
 // Retrieves the StudentRoster given course
-QStringList CanvasHandler::getStudentRoster(const QString &courseName) {
+QList<QPair<QString, QString>> CanvasHandler::getStudentRoster(const QString &courseName) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return {};
@@ -64,39 +65,27 @@ QStringList CanvasHandler::getStudentRoster(const QString &courseName) {
     QList<QStringList*> studentNamesInList = {&studentNames};
     QList<QList<int>*> idsInList = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student", {"name"}, studentNamesInList, {"id"}, idsInList, {}, stringInSubobjectParams);
+    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student", {"sortable_name"}, studentNamesInList, {"id"}, idsInList, {}, stringInSubobjectParams);
 
+    QStringList firstNames, lastNames;
+    for(const auto &studentName : studentNames) {
+        auto names = studentName.split(',');
+        firstNames << (names.at(1).isEmpty()? "" : names.at(1).trimmed());
+        lastNames << (names.at(0).isEmpty()? "" : names.at(0).trimmed());
+    }
+
+    QList<QPair<QString, QString>> listOfNames;
     roster.clear();
     for(int i = 0; i < studentNames.size(); i++) {
-        roster.append({studentNames.at(i), ids.at(i)});
+        roster.append({firstNames.at(i), lastNames.at(i), ids.at(i)});
+        listOfNames.append({firstNames.at(i), lastNames.at(i)});
     }
 
-    return studentNames;
-}
-
-QStringList CanvasHandler::getQuizList(const QString &courseName) {
-    int courseID = getCourseID(courseName);
-    if(courseID == -1) {
-        return {};
-    }
-
-    QStringList titles;
-    QList<int> ids;
-    QStringList x;
-    QList<QStringList*> titlesInList = {&titles};
-    QList<QList<int>*> idsInList = {&ids};
-    QList<QStringList*> stringInSubobjectParams = {&x};
-    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes", {"title"}, titlesInList, {"id"}, idsInList, {}, stringInSubobjectParams);
-
-    quizList.clear();
-    for(int i = 0; i < titles.size(); i++) {
-        quizList.append({titles.at(i), ids.at(i)});
-    }
-    return titles;
+    return listOfNames;    //these are the "sortable" names (Last, First)
 }
 
 // Creates a teamset
-bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QStringList> &teams) {
+bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<QPair<QString, QString>>> &teams) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return false;
@@ -134,14 +123,14 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
             //add one student
             url = "/api/v1/groups/" + QString::number(groupID[0]) + "/memberships";
             query.clear();
-            query.addQueryItem("user_id", QString::number(getStudentID(teams.at(i).at(j))));
+            query.addQueryItem("user_id", QString::number(getStudentID(teams.at(i).at(j).first, teams.at(i).at(j).second)));
             postData = query.toString(QUrl::FullyEncoded).toUtf8();
             QStringList workflowState;
             QList<int> membershipID, newUserID;
             stringParams = {&workflowState};
             intParams = {&membershipID, &newUserID};
             postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, intParams, {}, stringInSubobjectParams);
-            allGood = allGood && (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == getStudentID(teams.at(i).at(j)));
+            allGood = allGood && (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == getStudentID(teams.at(i).at(j).first, teams.at(i).at(j).second));
         }
     }
 
@@ -216,23 +205,11 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             }
             break;}
         case Question::QuestionType::schedule:{
-            // create a text "question" to clarify that the next n questions will be schedule for different days
-            query.addQueryItem("question[question_type]", "text_only_question");
-            query.addQueryItem("question[question_text]", "<strong><u>" + SCHEDULEQUESTIONINTRO1
-                                                          + QString::number(survey->schedDayNames.size()) + SCHEDULEQUESTIONINTRO2 + "</u></strong>");
-            // post the question and then add a question for each day (final day will get posted outside of switch/case)
-            for(const auto &dayName : survey->schedDayNames) {
-                postData = query.toString(QUrl::FullyEncoded).toUtf8();
-                postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
-                allGood = allGood && (!newQuestionText.constFirst().isEmpty());
-                questionNum++;
-                newQuestionText.clear();
-                questionID.clear();
-                query.clear();
-                query.addQueryItem("question[question_name]", "Question " + QString::number(questionNum+1));
-                query.addQueryItem("question[position]", QString::number(questionNum+1));
+            if(survey->schedDayNames.size() == 1)
+            {
+                //just one question, set it up to post
                 query.addQueryItem("question[question_type]", "multiple_answers_question");
-                query.addQueryItem("question[question_text]", question.text + " [" + dayName + "]");
+                query.addQueryItem("question[question_text]", question.text + " <strong><u>[" + survey->schedDayNames.first() + "]</u></strong>");
                 int optionNum = 0;
                 for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
                     query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]",
@@ -241,8 +218,41 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                     optionNum++;
                 }
             }
+            else
+            {
+                // if there will be more than one day in the schedule, create a text "question" to clarify that the next n questions will be for the schedule on different days
+                query.addQueryItem("question[question_type]", "text_only_question");
+                QString scheduleIntroStatement = "<strong>" + SCHEDULEQUESTIONINTRO1 + QString::number(survey->schedDayNames.size()) + SCHEDULEQUESTIONINTRO2;
+                for(const auto &dayName : survey->schedDayNames) {
+                    scheduleIntroStatement += " <u>[" + dayName + "]</u> ";
+                }
+                scheduleIntroStatement += "</strong>:";
+                query.addQueryItem("question[question_text]", scheduleIntroStatement);
+                // post the question and then add a question for each day (final day will get posted outside of switch/case)
+                for(const auto &dayName : survey->schedDayNames) {
+                    postData = query.toString(QUrl::FullyEncoded).toUtf8();
+                    postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+                    allGood = allGood && (!newQuestionText.constFirst().isEmpty());
+                    questionNum++;
+                    newQuestionText.clear();
+                    questionID.clear();
+                    query.clear();
+                    query.addQueryItem("question[question_name]", "Question " + QString::number(questionNum+1));
+                    query.addQueryItem("question[position]", QString::number(questionNum+1));
+                    query.addQueryItem("question[question_type]", "multiple_answers_question");
+                    query.addQueryItem("question[question_text]", question.text + " <strong><u>[" + dayName + "]</u></strong>");
+                    int optionNum = 0;
+                    for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
+                        query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]",
+                                           QString::number((i <= 12) ? i : (i - 12)) + ":00" + (i < 12 ? "am" : "pm"));
+                        query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_weight]", "100");
+                        optionNum++;
+                    }
+                }
+            }
+            break;}
 /*
- * Functional but aesthetically displeasing mechanism to ask for schedule in single Canvas quiz question as as grid of dropdowns (rows are days and columns are times)
+ * Functional but aesthetically displeasing mechanism to ask for the schedule in a single Canvas quiz question as as grid of dropdowns (rows are days and columns are times)
             query.addQueryItem("question[question_type]", "multiple_dropdowns_question");
             QString cellText = "<td style =\"width: 80px;\"><span style=\"width: 80px;\">";
             QString rowText = "<tr style=\"height: 10px;\">";
@@ -278,8 +288,8 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             }
             questionText += "</tbody></table>";
             query.addQueryItem("question[question_text]", question.text);
-*/
             break;}
+*/
         }
         postData = query.toString(QUrl::FullyEncoded).toUtf8();
         postToCanvasGetSingleResult(url, postData, {"question_text"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
@@ -289,6 +299,27 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
 
     return allGood;
 
+}
+
+QStringList CanvasHandler::getQuizList(const QString &courseName) {
+    int courseID = getCourseID(courseName);
+    if(courseID == -1) {
+        return {};
+    }
+
+    QStringList titles;
+    QList<int> ids;
+    QStringList x;
+    QList<QStringList*> titlesInList = {&titles};
+    QList<QList<int>*> idsInList = {&ids};
+    QList<QStringList*> stringInSubobjectParams = {&x};
+    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes", {"title"}, titlesInList, {"id"}, idsInList, {}, stringInSubobjectParams);
+
+    quizList.clear();
+    for(int i = 0; i < titles.size(); i++) {
+        quizList.append({titles.at(i), ids.at(i)});
+    }
+    return titles;
 }
 
 bool CanvasHandler::downloadQuizResult(const QString &courseName, const QString &quizName) {
@@ -346,10 +377,10 @@ int CanvasHandler::getCourseID(const QString &courseName) {
     return courseID;
 }
 
-int CanvasHandler::getStudentID(const QString &studentName) {
+int CanvasHandler::getStudentID(const QString &studentFirstName, const QString &studentLastName) {
     int studentID = -1;
     for(const auto &student : qAsConst(roster)) {
-        if(student.name == studentName) {
+        if((student.firstName == studentFirstName) && (student.lastName == studentLastName)) {
             studentID = student.ID;
         }
     }

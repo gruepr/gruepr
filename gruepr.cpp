@@ -1,5 +1,6 @@
 #include "gruepr.h"
 #include "ui_gruepr.h"
+#include "canvashandler.h"
 #include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
@@ -52,6 +53,7 @@ gruepr::gruepr(QWidget *parent) :
     //Setup the main window menu items
     connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
     connect(ui->actionLoad_Student_Roster, &QAction::triggered, this, &gruepr::loadStudentRoster);
+    connect(ui->actionCompare_Students_to_Canvas_Course, &QAction::triggered, this, &gruepr::compareRosterToCanvas);
     connect(ui->actionSave_Survey_File, &QAction::triggered, this, &gruepr::on_saveSurveyFilePushButton_clicked);
     connect(ui->actionLoad_Teaming_Options_File, &QAction::triggered, this, &gruepr::loadOptionsFile);
     connect(ui->actionSave_Teaming_Options_File, &QAction::triggered, this, &gruepr::saveOptionsFile);
@@ -264,6 +266,260 @@ void gruepr::on_loadSurveyFileButton_clicked()
     loadUI();
 
     QApplication::restoreOverrideCursor();
+}
+
+
+void gruepr::compareRosterToCanvas()
+{
+    //make sure we can connect to google
+    auto *manager = new QNetworkAccessManager(this);
+    QEventLoop loop;
+    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    delete manager;
+
+    if(weGotProblems)
+    {
+        QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\n"
+                                                     "Check your network connection and try again.\n"
+                                                     "The survey has NOT been created."));
+        return;
+    }
+
+    //give instructions about how this option works and get the canvas URL and API token
+    QSettings savedSettings;
+    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+    auto *getCanvasInfoDialog = new QDialog;
+    auto *vLayout = new QVBoxLayout;
+    auto *label = new QLabel(tr("The next step will download the roster from your Canvas course. This feature is currently in beta.\n\n"
+                            "You will only have to perform the following steps once.\n"
+                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
+                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
+                            "  »  Log into Canvas,\n"
+                            "  »  click \"Account\" in the left menu\n"
+                            "  »  click \"Settings\", \n"
+                            "  »  scroll to Approved Integration,\n"
+                            "  »  click \"+ New Access Token\",\n"
+                            "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
+                            "  »  click \"Generate Token\", and\n"
+                            "  »  copy your freshly generated token and paste it into the second field below.\n\n"));
+    QLineEdit *canvasURL, *canvasToken;
+    canvasURL = new QLineEdit;
+    canvasToken = new QLineEdit;
+    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
+    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
+    if(!savedCanvasURL.isEmpty())
+    {
+        canvasURL->setText(savedCanvasURL);
+    }
+    if(!savedCanvasToken.isEmpty())
+    {
+        canvasToken->setText(savedCanvasToken);
+    }
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
+    vLayout->addWidget(label);
+    vLayout->addWidget(canvasURL);
+    vLayout->addWidget(canvasToken);
+    vLayout->addWidget(buttonBox);
+    getCanvasInfoDialog->setLayout(vLayout);
+    if((getCanvasInfoDialog->exec() == QDialog::Rejected) || (canvasToken->text().isEmpty()) || (canvasURL->text().isEmpty()))
+    {
+        return;
+    }
+
+    savedCanvasURL = canvasURL->text();
+    savedCanvasToken = canvasToken->text();
+    savedSettings.setValue("canvasURL", savedCanvasURL);
+    savedSettings.setValue("canvasToken", savedCanvasToken);
+
+    delete getCanvasInfoDialog;
+
+    auto *canvas = new CanvasHandler("", "", savedCanvasURL);
+    canvas->authenticate(savedCanvasToken);
+
+    auto *busyBox = canvas->busy();
+    QStringList courseNames = canvas->getCourses();
+    canvas->notBusy(busyBox);
+
+    auto *canvasCourses = new QDialog;
+    vLayout = new QVBoxLayout;
+    int i = 1;
+    label = new QLabel(tr("From which course should the roster be downloaded?"));
+    auto *coursesComboBox = new QComboBox;
+    for(const auto &courseName : qAsConst(courseNames))
+    {
+        coursesComboBox->addItem(courseName);
+        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    }
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    vLayout->addWidget(label);
+    vLayout->addWidget(coursesComboBox);
+    vLayout->addWidget(buttonBox);
+    canvasCourses->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
+    if((canvasCourses->exec() == QDialog::Rejected))
+    {
+        return;
+    }
+
+    busyBox = canvas->busy();
+    QSize iconSize = busyBox->iconPixmap().size();
+    QPixmap icon;
+    auto firstAndLastNames = canvas->getStudentRoster(coursesComboBox->currentText());
+    if(firstAndLastNames.size() > 1)
+    {
+        busyBox->setText(tr("Success!"));
+        icon.load(":/icons/ok.png");
+        busyBox->setIconPixmap(icon.scaled(iconSize));
+        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        loop.exec();
+        canvas->notBusy(busyBox);
+    }
+    else
+    {
+        busyBox->setText(tr("Error. Roster not received."));
+        icon.load(":/icons/delete.png");
+        busyBox->setIconPixmap(icon.scaled(iconSize));
+        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        loop.exec();
+        canvas->notBusy(busyBox);
+        return;
+    }
+    delete canvasCourses;
+
+    QStringList names;
+    for(const auto &firstAndLastName : firstAndLastNames)
+    {
+        names << firstAndLastName.first + " " + firstAndLastName.second;
+    }
+
+    bool dataHasChanged = false;
+
+    // load all current names from the survey so we can later remove them as they're found in the roster and be left with problem cases
+    QStringList namesNotFound;
+    namesNotFound.reserve(dataOptions->numStudentsInSystem);
+    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+    {
+        namesNotFound << student[index].firstname + " " + student[index].lastname;
+    }
+
+    for(auto &name : names)
+    {
+        int index = 0;     // start at first student in database and look until we find a matching firstname + " " +last name
+        while((index < dataOptions->numStudentsInSystem) &&
+              (name.compare(student[index].firstname + " " + student[index].lastname, Qt::CaseInsensitive) != 0))
+        {
+            index++;
+        }
+
+        if(index != dataOptions->numStudentsInSystem)
+        {
+            // Exact match found
+            namesNotFound.removeAll(student[index].firstname + " " + student[index].lastname);
+        }
+        else
+        {
+            // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
+            auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, student, name, this, "", true);
+            if(choiceWindow->exec() == QDialog::Accepted)   // not ignoring this student
+            {
+                if(choiceWindow->addStudent)    // add as a new student
+                {
+                    dataHasChanged = true;
+                    auto &newStudent = student[dataOptions->numStudentsInSystem];
+                    dataOptions->numStudentsInSystem++;
+                    numStudents = dataOptions->numStudentsInSystem;
+                    newStudent = StudentRecord();
+                    newStudent.ID = dataOptions->latestStudentID;
+                    dataOptions->latestStudentID++;
+                    newStudent.firstname = name.split(" ").first();
+                    newStudent.lastname = name.split(" ").mid(1).join(" ");
+                    newStudent.ambiguousSchedule = true;
+                    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+                    {
+                        newStudent.attributeVals[attribute] << -1;
+                    }
+                    newStudent.createTooltip(dataOptions);
+                }
+                else   // selected an inexact match
+                {
+                    QString surveyName = choiceWindow->currSurveyName;
+                    namesNotFound.removeAll(surveyName);
+                    index = 0;
+                    while(surveyName != (student[index].firstname + " " + student[index].lastname))
+                    {
+                        index++;
+                    }
+                    if(choiceWindow->useRosterEmail)
+                    {
+                        dataHasChanged = true;
+                        student[index].email = "";
+                        student[index].createTooltip(dataOptions);
+                    }
+                    if(choiceWindow->useRosterName)
+                    {
+                        dataHasChanged = true;
+                        student[index].firstname = name.split(" ").first();
+                        student[index].lastname = name.split(" ").mid(1).join(" ");
+                        student[index].createTooltip(dataOptions);
+                    }
+                }
+            }
+            delete choiceWindow;
+        }
+    }
+
+    // Now handle the names on the survey that were not found in the roster
+    bool keepAsking = true, makeTheChange = false;
+    i = 0;
+    for(auto &name : namesNotFound)
+    {
+        if(keepAsking)
+        {
+            auto *keepOrDeleteWindow = new QMessageBox(QMessageBox::Question, tr("Student not in roster file"),
+                                                       tr("This student:") +
+                                                       "<br><b>" + name + "</b><br>" +
+                                                       tr("submitted a survey but was not found in the roster file.") + "<br><br>" +
+                                                       tr("Should we keep this student or remove them?"),
+                                                       QMessageBox::Ok | QMessageBox::Cancel, this);
+            auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"));
+            keepOrDeleteWindow->setCheckBox(applyToAll);
+            connect(applyToAll, &QCheckBox::clicked, keepOrDeleteWindow, [&keepAsking] (bool checked) {keepAsking = !checked;});
+            keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep ") + name);
+            connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
+            keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Remove ") + name);
+            connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
+
+            if(keepOrDeleteWindow->exec() == QDialog::Rejected)
+            {
+                dataHasChanged = true;
+                makeTheChange = true;
+                removeAStudent(name, true);
+            }
+            else
+            {
+                makeTheChange = false;
+            }
+
+            delete keepOrDeleteWindow;
+        }
+        else if(makeTheChange)
+        {
+            removeAStudent(name, true);
+        }
+        i++;
+    }
+
+    if(dataHasChanged)
+    {
+        rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+    }
 }
 
 
@@ -1832,11 +2088,13 @@ void gruepr::optimizationComplete()
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
-    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, teams, numTeams, student, this);
-    ui->dataDisplayTabWidget->addTab(teamTab, tr("Team set ") + QString::number(teamingOptions->teamsetNumber));
+    QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
+    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, teams, numTeams, student, teamSetName, this);
+    ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     teamingOptions->teamsetNumber++;
 
     ui->actionSave_Teams->setEnabled(true);
+    ui->actionPost_Teams_to_Canvas->setEnabled(true);
     ui->actionPrint_Teams->setEnabled(true);
 
     ui->dataDisplayTabWidget->setCurrentWidget(teamTab);
@@ -1853,11 +2111,14 @@ void gruepr::dataDisplayTabSwitch(int newTabIndex)
 
     // update the save and print teams menu items to this new tab
     ui->actionSave_Teams->disconnect();
+    ui->actionPost_Teams_to_Canvas->disconnect();
     ui->actionPrint_Teams->disconnect();
     auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(newTabIndex));
     ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-    connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
+    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
     ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
+    connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
+    connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
     connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
 }
 
@@ -1874,10 +2135,13 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
     {
         // we're going to be down to just the student tab, so disable the save and print teams menu items
         ui->actionSave_Teams->disconnect();
+        ui->actionPost_Teams_to_Canvas->disconnect();
         ui->actionPrint_Teams->disconnect();
         ui->actionSave_Teams->setText(tr("Save Teams..."));
-        ui->actionSave_Teams->setEnabled(false);
+        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
         ui->actionPrint_Teams->setText(tr("Print Teams..."));
+        ui->actionSave_Teams->setEnabled(false);
+        ui->actionPost_Teams_to_Canvas->setEnabled(false);
         ui->actionPrint_Teams->setEnabled(false);
     }
     else if(ui->dataDisplayTabWidget->currentIndex() == 0 && ui->actionSave_Teams->text().contains(ui->dataDisplayTabWidget->tabText(closingTabIndex)))
@@ -1885,12 +2149,15 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
         // we're viewing the student tab and the tab we're closing is the one currently pointed to by the save and print teams menu items
         // redirect these menu items to point to the next tab down (or next one up if next one down is the students tab
         ui->actionSave_Teams->disconnect();
+        ui->actionPost_Teams_to_Canvas->disconnect();
         ui->actionPrint_Teams->disconnect();
         int nextLogicalIndex = ((closingTabIndex == 1) ? (2) : (closingTabIndex - 1));
         auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(nextLogicalIndex));
         ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-        connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
+        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
         ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
+        connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
+        connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
         connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
     }
 
@@ -1926,11 +2193,14 @@ void gruepr::editDataDisplayTabName(int tabIndex)
     if(win->exec() == QDialog::Accepted && !newNameEditor->text().isEmpty())
     {
         ui->dataDisplayTabWidget->setTabText(tabIndex, newNameEditor->text());
+        auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(tabIndex));
+        tab->tabName = newNameEditor->text();
     }
     win->deleteLater();
 
     // update the text in the save and print teams menu items to this new tab name
     ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
+    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
     ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
 }
 
@@ -2085,9 +2355,13 @@ void gruepr::resetUI()
     ui->letsDoItButton->setEnabled(false);
     ui->actionCreate_Teams->setEnabled(false);
     ui->actionLoad_Student_Roster->setEnabled(false);
+    ui->actionCompare_Students_to_Canvas_Course->setEnabled(false);
     ui->actionSave_Teams->setEnabled(false);
     ui->actionSave_Teams->disconnect();
     ui->actionSave_Teams->setText(tr("Save Teams..."));
+    ui->actionPost_Teams_to_Canvas->setEnabled(false);
+    ui->actionPost_Teams_to_Canvas->disconnect();
+    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
     ui->actionPrint_Teams->setEnabled(false);
     ui->actionPrint_Teams->disconnect();
     ui->actionPrint_Teams->setText(tr("Print Teams..."));
@@ -2107,6 +2381,7 @@ void gruepr::loadUI()
 {
     statusBarLabel->setText("File: " + dataOptions->dataFile.fileName());
     ui->actionLoad_Student_Roster->setEnabled(true);
+    ui->actionCompare_Students_to_Canvas_Course->setEnabled(true);
     ui->studentTable->setEnabled(true);
     ui->addStudentPushButton->setEnabled(true);
     ui->requiredTeammatesButton->setEnabled(true);

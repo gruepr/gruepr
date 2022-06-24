@@ -32,6 +32,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - integrate SurveyMaker with Canvas as beta (i.e., user-generated token)
+// - move Windows binary to non-static build with OpenSSL to allow direct use of https calls instead of thru-browser
+//
+// INPROG:
+// - integrate gruepr with Canvas as beta (i.e., user-generated token)
 //
 // TO DO:
 // - make the "Create Teams" button more emphasized/obvious
@@ -77,53 +82,47 @@ int main(int argc, char *argv[])
     splash->showMessage("version " GRUEPR_VERSION_NUMBER "\nCopyright © " GRUEPR_COPYRIGHT_YEAR "\nJoshua Hertz\ninfo@gruepr.com", Qt::AlignCenter, Qt::white);
     splash->show();
 
-    // check the latest version available for download and compare to this current version
-    /*
-    ********** better option for future--requires ssl, but directly pulls latest version number using tag name of latest release on github
-    request = new QNetworkRequest;
-    request->setUrl(QUrl("https://api.github.com/repos/gruepr/gruepr/releases/latest"));
-    request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
-    request->setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-    request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, 1);
-    //request->setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    ui->textBrowser->append(request->url().toString());
-    reply = manager->get(*request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]{
-        if(reply->bytesAvailable() == 0)
-        {QMessageBox::critical(this, tr("No Internet Connection"), tr("There does not seem to be an internet connection.\nPlease register at another time."));}
-        else
-        {QString rep = reply->readAll();
-            QRegularExpression versionNum("\\\"tag_name\\\":\\\"v([\\d*.]{1,})\\\"");
-            QRegularExpressionMatch match = versionNum.match(rep);
-         ui->textBrowser->append(match.hasMatch()? match.captured(1) : ("No match" + rep));
-         reply->deleteLater();}});
-    *************
-    */
+    // check github for the latest version available for download and compare to this current version
     auto *manager = new QNetworkAccessManager(splash);
-    QNetworkRequest request((QUrl(VERSION_CHECK_URL)));
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    QNetworkReply *networkReply = manager->get(request);
+    auto *request = new QNetworkRequest(QUrl(VERSION_CHECK_URL));
+    request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
+    request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    auto *reply = manager->get(*request);
+    QString latestVersionString;
     QEventLoop loop;
-    QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    QString latestVersionString = (networkReply->bytesAvailable() != 0) ? networkReply->readAll() : "0";
+    if(reply->bytesAvailable() == 0)
+    {
+        latestVersionString = "0";
+    }
+    else
+    {
+        QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
+        QRegularExpressionMatch match = versionNum.match(reply->readAll());
+        latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
+    }
+    delete reply;
+    delete request;
     delete manager;
+
     QStringList latestVersion = latestVersionString.split('.');
     QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
     // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
     for(int field = latestVersion.size(); field < NUMBER_VERSION_FIELDS; field++)
     {
-        latestVersion << QString("0");
+        latestVersion << "0";
     }
     for(int field = thisVersion.size(); field < NUMBER_VERSION_FIELDS; field++)
     {
-        thisVersion << QString("0");
+        thisVersion << "0";
     }
+    // convert to single integer
     unsigned long long int latestVersionAsInt = 0, thisVersionAsInt = 0;
     for(int field = 0; field < NUMBER_VERSION_FIELDS; field++)
     {
-        latestVersionAsInt = (latestVersionAsInt*100) + latestVersion.at(field).toInt();
-        thisVersionAsInt = (thisVersionAsInt*100) + thisVersion.at(field).toInt();
+        latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
+        thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();
     }
     const bool upgradeAvailable = latestVersionAsInt > thisVersionAsInt;
     const bool haveBetaVersion = thisVersionAsInt > latestVersionAsInt;
@@ -251,54 +250,82 @@ int main(int argc, char *argv[])
         else if(result == registerUserButton)
         {
             //make sure we can connect to google
-            auto *manager = new QNetworkAccessManager(startWindow);
-            QEventLoop loop;
-            QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-            QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            manager = new QNetworkAccessManager(startWindow);
+            reply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+            QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
-            if(networkReply->bytesAvailable() == 0)
+            if(reply->bytesAvailable() == 0)
             {
                 //no internet right now
                 QMessageBox::critical(startWindow, QObject::tr("No Internet Connection"), QObject::tr("There does not seem to be an internet connection.\n"
                                                                                                       "Please register at another time."));
-                delete manager;
             }
             else
             {
                 //we can connect, so gather name, institution, and email address for submission
-                auto *window = new registerDialog(startWindow);
-                int reply = window->exec();
-                //If user clicks OK, email registration info and add to saved settings
-                if(reply == QDialog::Accepted)
+                auto *registerWin = new registerDialog(startWindow);
+                int OkOrCancel = registerWin->exec();
+                //If user clicks OK, add to saved settings
+                if(OkOrCancel == QDialog::Accepted)
                 {
-                    // using DesktopServices (i.e., user's browser) because access to Google Script is via https, and ssl is tough in Qt
-                    if(QDesktopServices::openUrl(QUrl(QString(USER_REGISTRATION_URL)+
-                                                      "?name="+QUrl::toPercentEncoding(window->name->text())+
-                                                      "&institution="+QUrl::toPercentEncoding(window->institution->text())+
-                                                      "&email="+QUrl::toPercentEncoding(window->email->text()))))
+                    registerWin->show();
+                    auto *box = new QHBoxLayout;
+                    auto *icon = new QLabel;
+                    auto *message = new QLabel;
+                    box->addWidget(icon);
+                    box->addWidget(message, 0, Qt::AlignLeft);
+                    (qobject_cast<QBoxLayout *>(registerWin->layout()))->addLayout(box);
+                    icon->setPixmap(QPixmap(":/icons/wait.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                    message->setText(QObject::tr("Communicating..."));
+
+                    delete manager;
+                    manager = new QNetworkAccessManager(startWindow);
+                    request = new QNetworkRequest(QUrl(USER_REGISTRATION_URL));
+                    request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
+                    request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+                    request->setHeader(QNetworkRequest::ContentTypeHeader,QVariant("application/x-www-form-urlencoded"));
+                    QJsonObject data;
+                    data["name"] = registerWin->name->text();
+                    data["institution"] = registerWin->institution->text();
+                    data["email"] = registerWin->email->text();
+                    QJsonDocument doc(data);
+                    QByteArray postData = doc.toJson();
+                    reply = manager->post(*request, postData);
+                    QEventLoop loop;
+                    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+                    loop.exec();
+                    QString replyBody = (reply->bytesAvailable() == 0 ? "" : reply->readAll());
+                    if(replyBody.contains("Registration successful"))
                     {
-                        registeredUser = window->name->text();
+                        registeredUser = registerWin->name->text();
                         QSettings savedSettings;
                         savedSettings.setValue("registeredUser", registeredUser);
-                        savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()),QCryptographicHash::Md5).toHex()));
+                        savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
                         startWindow->removeButton(registerUserButton);
+                        statusLabel->setText(statusLabel->text() + QObject::tr("Thank you for being a registered user."));
+                        icon->setPixmap(QPixmap(":/icons/ok.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                        message->setText(QObject::tr("Success!"));
                     }
                     else
                     {
-                        QMessageBox::critical(startWindow, QObject::tr("No Internet Connection"),
-                                              QObject::tr("There seems to be a problem with submitting your registration.\n"
-                                                          "Please try again at another time or contact <info@gruepr.com>."));
+                        icon->setPixmap(QPixmap(":/icons/delete.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                        message->setText(QObject::tr("Error. Please try again later or contact <info@gruepr.com>."));
                     }
+                    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+                    loop.exec();
+                    registerWin->hide();
                 }
-                delete manager;
-                delete window;
+                delete registerWin;
             }
+            delete reply;
+            delete request;
+            delete manager;
             startWindow->exec();
             result = startWindow->clickedButton();
         }
         else if(result == upgradeButton)
         {
-            QDesktopServices::openUrl(QUrl("http://gruepr.com"));
+            QDesktopServices::openUrl(QUrl(GRUEPRHOMEPAGE));
             startWindow->exec();
             result = startWindow->clickedButton();
         }

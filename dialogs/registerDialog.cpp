@@ -14,28 +14,27 @@ registerDialog::registerDialog(QWidget *parent)
     //Set up window with a grid layout
     setWindowTitle(tr("Register your copy of gruepr"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    theGrid = new QGridLayout(this);
-    int row = 0;
+    theBox = new QVBoxLayout(this);
 
     explanation = new QLabel(this);
     explanation->setText(tr("\nThank you for registering your copy of gruepr.\n"
                             "Doing so enables me to best support\nthe community of educators that uses it.\n"
-                            "This information will never be sold or shared."
+                            "This information will never be sold or shared.\n"
                             "\t-Josh\n"
                             "\t info@gruepr.com\n"));
-    theGrid->addWidget(explanation, row++, 0);
+    theBox->addWidget(explanation);
 
     name = new QLineEdit(this);
     name->setPlaceholderText(tr("full name [required]"));
-    theGrid->addWidget(name, row++, 0);
+    theBox->addWidget(name);
 
     institution = new QLineEdit(this);
     institution->setPlaceholderText(tr("institution [required]"));
-    theGrid->addWidget(institution, row++, 0);
+    theBox->addWidget(institution);
 
     email = new QLineEdit(this);
     email->setPlaceholderText(tr("email address [required]"));
-    theGrid->addWidget(email, row++, 0);
+    theBox->addWidget(email);
     //force an email address-like input
     //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
     QRegularExpression emailAddressFormat(EMAILADDRESSREGEX, QRegularExpression::CaseInsensitiveOption);
@@ -45,10 +44,10 @@ registerDialog::registerDialog(QWidget *parent)
                                               email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
 
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(row++, DIALOG_SPACER_ROWHEIGHT);
+    theBox->addSpacing(DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    theGrid->addWidget(buttonBox, row++, 0);
+    theBox->addWidget(buttonBox);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 

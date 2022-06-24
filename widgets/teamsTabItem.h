@@ -22,11 +22,15 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions,
-                          TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[], QWidget *parent = nullptr);
+                          TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[],
+                          QString incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
+
+    QString tabName;
 
 public slots:
     void saveTeams();
+    void postTeamsToCanvas();
     void printTeams();
 
 private slots:
