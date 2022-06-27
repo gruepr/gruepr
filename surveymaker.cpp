@@ -1,6 +1,5 @@
 #include "ui_surveymaker.h"
 #include "surveymaker.h"
-#include "canvashandler.h"
 #include "widgets/attributeTabItem.h"
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -40,6 +39,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
                                                                      generateSurvey = &SurveyMaker::createCanvasQuiz;
                                                                      on_makeSurveyButton_clicked();
                                                                      generateSurvey = prevSurveyMethod;});
+    canvas = new CanvasHandler();
     ui->actionExit->setMenuRole(QAction::QuitRole);
     connect(ui->actionExit, &QAction::triggered, this, &SurveyMaker::close);
     //ui->actionSettings->setMenuRole(QAction::PreferencesRole);
@@ -149,6 +149,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
 SurveyMaker::~SurveyMaker()
 {
+    delete canvas;
     delete survey;
     delete ui;
 }
@@ -340,12 +341,7 @@ void SurveyMaker::buildSurvey()
     ui->sectionNamesTextEdit->setEnabled(section);
     if(section)
     {
-        QStringList options;
-        for(int sect = 0; sect < sectionNames.size(); sect++)
-        {
-            options << sectionNames.at(sect);
-        }
-        survey->questions << Question(SECTIONQUESTION, Question::QuestionType::radiobutton, options);
+        survey->questions << Question(SECTIONQUESTION, Question::QuestionType::radiobutton, sectionNames);
     }
 
     // Preferred teammates and / or non-teammates
@@ -698,7 +694,6 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     loop.exec();
     bool weGotProblems = (networkReply->bytesAvailable() == 0);
     delete manager;
-
     if(weGotProblems)
     {
         QMessageBox::critical(surveyMaker, tr("Error!"), tr("There does not seem to be an internet connection.\n"
@@ -707,75 +702,47 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
         return;
     }
 
-    //give instructions about how this option works and get the canvas URL and API token
-    QSettings savedSettings;
-    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
-    auto *getCanvasInfoDialog = new QDialog;
-    auto *vLayout = new QVBoxLayout;
-    auto *label = new QLabel(tr("The next step will create this survey in your Canvas course. This feature is currently in beta.\n\n"
-                            "You will only have to perform the following steps once.\n"
-                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
-                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
-                            "  »  Log into Canvas,\n"
-                            "  »  click \"Account\" in the left menu\n"
-                            "  »  click \"Settings\", \n"
-                            "  »  scroll to Approved Integration,\n"
-                            "  »  click \"+ New Access Token\",\n"
-                            "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
-                            "  »  click \"Generate Token\", and\n"
-                            "  »  copy your freshly generated token and paste it into the second field below.\n\n"));
-    QLineEdit *canvasURL, *canvasToken;
-    canvasURL = new QLineEdit;
-    canvasToken = new QLineEdit;
-    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
-    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
-    if(!savedCanvasURL.isEmpty())
+    //create canvasHandler and/or authenticate as needed
+    if(surveyMaker->canvas == nullptr)
     {
-        canvasURL->setText(savedCanvasURL);
+        surveyMaker->canvas = new CanvasHandler();
     }
-    if(!savedCanvasToken.isEmpty())
+    if(!surveyMaker->canvas->authenticated)
     {
-        canvasToken->setText(savedCanvasToken);
-    }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
-    vLayout->addWidget(label);
-    vLayout->addWidget(canvasURL);
-    vLayout->addWidget(canvasToken);
-    vLayout->addWidget(buttonBox);
-    getCanvasInfoDialog->setLayout(vLayout);
-    if((getCanvasInfoDialog->exec() == QDialog::Rejected) || (canvasToken->text().isEmpty()) || (canvasURL->text().isEmpty()))
-    {
-        return;
+        QSettings savedSettings;
+        QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+        QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+
+        QStringList newURLAndToken = surveyMaker->canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
+
+        if(newURLAndToken.isEmpty())
+        {
+            return;
+        }
+        savedCanvasURL = newURLAndToken.at(0);
+        savedCanvasToken = newURLAndToken.at(1);
+        savedSettings.setValue("canvasURL", savedCanvasURL);
+        savedSettings.setValue("canvasToken", savedCanvasToken);
+
+        surveyMaker->canvas->setBaseURL(savedCanvasURL);
+        surveyMaker->canvas->authenticate(savedCanvasToken);
     }
 
-    savedCanvasURL = canvasURL->text();
-    savedCanvasToken = canvasToken->text();
-    savedSettings.setValue("canvasURL", savedCanvasURL);
-    savedSettings.setValue("canvasToken", savedCanvasToken);
-
-    delete getCanvasInfoDialog;
-
-    auto *canvas = new CanvasHandler("", "", savedCanvasURL);
-    canvas->authenticate(savedCanvasToken);
-
-    auto *busyBox = canvas->busy();
-    QStringList courseNames = canvas->getCourses();
-    canvas->notBusy(busyBox);
-
+    //ask the user in which course we're creating the survey
+    auto *busyBox = surveyMaker->canvas->busy();
+    QStringList courseNames = surveyMaker->canvas->getCourses();
+    surveyMaker->canvas->notBusy(busyBox);
     auto *canvasCourses = new QDialog;
-    vLayout = new QVBoxLayout;
+    auto *vLayout = new QVBoxLayout;
     int i = 1;
-    label = new QLabel(tr("In which course should this survey be created?"));
+    auto *label = new QLabel(tr("In which course should this survey be created?"));
     auto *coursesComboBox = new QComboBox;
     for(const auto &courseName : qAsConst(courseNames))
     {
         coursesComboBox->addItem(courseName);
-        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+        coursesComboBox->setItemData(i++, QString::number(surveyMaker->canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
@@ -787,10 +754,11 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
         return;
     }
 
-    busyBox = canvas->busy();
+    //upload the survey as a quiz
+    busyBox = surveyMaker->canvas->busy();
     QSize iconSize = busyBox->iconPixmap().size();
     QPixmap icon;
-    if(canvas->createSurvey(coursesComboBox->currentText(), surveyMaker->survey)) {
+    if(surveyMaker->canvas->createSurvey(coursesComboBox->currentText(), surveyMaker->survey)) {
         busyBox->setText(tr("Success! Survey created."));
         icon.load(":/icons/ok.png");
     }
@@ -801,7 +769,7 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     busyBox->setIconPixmap(icon.scaled(iconSize));
     QTimer::singleShot(1500, &loop, &QEventLoop::quit);
     loop.exec();
-    canvas->notBusy(busyBox);
+    surveyMaker->canvas->notBusy(busyBox);
 
     delete canvasCourses;
 
@@ -1164,7 +1132,7 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
     {
         sectionNames[line] = sectionNames.at(line).trimmed();
     }
-    sectionNames.removeAll(QString(""));
+    sectionNames.removeAll("");
 
     buildSurvey();
 }

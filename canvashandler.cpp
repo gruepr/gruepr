@@ -1,9 +1,13 @@
 #include "canvashandler.h"
 #include <QApplication>
 #include <QDesktopServices>
+#include <QDialogButtonBox>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
+#include <QLineEdit>
 #include <QOAuthHttpServerReplyHandler>
+#include <QVBoxLayout>
 
 CanvasHandler::CanvasHandler(const QString &authenticateURL, const QString &accessTokenURL, const QString &baseAPIURL) {
     baseURL = baseAPIURL;
@@ -52,8 +56,8 @@ int CanvasHandler::getStudentCount(const QString &courseName) {
     return 0;
 }
 
-// Retrieves the StudentRoster given course
-QList<QPair<QString, QString>> CanvasHandler::getStudentRoster(const QString &courseName) {
+// Retrieves the StudentRoster in the given course
+QVector<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return {};
@@ -74,18 +78,21 @@ QList<QPair<QString, QString>> CanvasHandler::getStudentRoster(const QString &co
         lastNames << (names.at(0).isEmpty()? "" : names.at(0).trimmed());
     }
 
-    QList<QPair<QString, QString>> listOfNames;
     roster.clear();
+    roster.reserve(studentNames.size());
     for(int i = 0; i < studentNames.size(); i++) {
-        roster.append({firstNames.at(i), lastNames.at(i), ids.at(i)});
-        listOfNames.append({firstNames.at(i), lastNames.at(i)});
+        StudentRecord student;
+        student.firstname = firstNames.at(i);
+        student.lastname = lastNames.at(i);
+        student.LMSID = ids.at(i);
+        roster << student;
     }
 
-    return listOfNames;    //these are the "sortable" names (Last, First)
+    return roster;
 }
 
 // Creates a teamset
-bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<QPair<QString, QString>>> &teams) {
+bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QVector<QVector<StudentRecord>> &teams) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return false;
@@ -118,19 +125,18 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
         intParams = {&groupID};
         postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
 
-        //add the students
-        for(int j = 0; j < teams.at(i).size(); j++) {
-            //add one student
+        //add each student on the team
+        for(const auto &student : teams.at(i)) {
             url = "/api/v1/groups/" + QString::number(groupID[0]) + "/memberships";
             query.clear();
-            query.addQueryItem("user_id", QString::number(getStudentID(teams.at(i).at(j).first, teams.at(i).at(j).second)));
+            query.addQueryItem("user_id", QString::number(student.LMSID));
             postData = query.toString(QUrl::FullyEncoded).toUtf8();
             QStringList workflowState;
             QList<int> membershipID, newUserID;
             stringParams = {&workflowState};
             intParams = {&membershipID, &newUserID};
             postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, intParams, {}, stringInSubobjectParams);
-            allGood = allGood && (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == getStudentID(teams.at(i).at(j).first, teams.at(i).at(j).second));
+            allGood = allGood && (workflowState.constFirst() == "accepted") && (newUserID.constFirst() == student.LMSID);
         }
     }
 
@@ -377,16 +383,6 @@ int CanvasHandler::getCourseID(const QString &courseName) {
     return courseID;
 }
 
-int CanvasHandler::getStudentID(const QString &studentFirstName, const QString &studentLastName) {
-    int studentID = -1;
-    for(const auto &student : qAsConst(roster)) {
-        if((student.firstName == studentFirstName) && (student.lastName == studentLastName)) {
-            studentID = student.ID;
-        }
-    }
-    return studentID;
-}
-
 int CanvasHandler::getQuizID(const QString &quizName) {
     int quizID = -1;
     for(const auto &quiz : qAsConst(quizList)) {
@@ -602,11 +598,52 @@ void CanvasHandler::authenticate() {
     canvas->setReplyHandler(replyHandler);
 
     canvas->grant();
+    authenticated = true;
 }
 
 // For testing: sets token manually
 void CanvasHandler::authenticate(const QString &token) {
     canvas->setToken(token);
+    authenticated = true;
+}
+
+QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, const QString &currentToken, QWidget *parent) {
+    auto *getCanvasInfoDialog = new QDialog(parent);
+    auto *vLayout = new QVBoxLayout;
+    auto *label = new QLabel(tr("The next step will download the roster from your Canvas course. This feature is currently in beta.\n"
+                            "You will only have to perform the following steps once.\n\n"
+                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
+                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
+                            "   »  Log into Canvas,\n"
+                            "   »  click \"Account\" in the left menu\n"
+                            "   »  click \"Settings\", \n"
+                            "   »  scroll to Approved Integration,\n"
+                            "   »  click \"+ New Access Token\",\n"
+                            "   »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
+                            "   »  click \"Generate Token\", and\n"
+                            "   »  copy your freshly generated token and paste it into the second field below.\n\n"));
+    auto *canvasURL = new QLineEdit(currentURL);
+    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
+    auto *canvasToken = new QLineEdit(currentToken);
+    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
+    vLayout->addWidget(label);
+    vLayout->addWidget(canvasURL);
+    vLayout->addWidget(canvasToken);
+    vLayout->addWidget(buttonBox);
+    getCanvasInfoDialog->setLayout(vLayout);
+
+    if(getCanvasInfoDialog->exec() == QDialog::Rejected || (canvasToken->text().isEmpty() && canvasURL->text().isEmpty()))
+    {
+        return {};
+    }
+    return {canvasToken->text(), canvasURL->text()};
+}
+
+void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
+    baseURL = baseAPIURL;
 }
 
 QMessageBox* CanvasHandler::busy(QWidget *parent) {

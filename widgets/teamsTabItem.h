@@ -1,6 +1,7 @@
 #ifndef TEAMSTABITEM_H
 #define TEAMSTABITEM_H
 
+#include "canvashandler.h"
 #include "dataOptions.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
@@ -21,7 +22,7 @@ class TeamsTabItem : public QWidget
 Q_OBJECT
 
 public:
-    explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions,
+    explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
                           TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[],
                           QString incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
@@ -93,6 +94,7 @@ private:
     void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
     QPrinter *setupPrinter();
     void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
+    CanvasHandler *canvas = nullptr;
 
     const QSize SAVEPRINTICONSIZE = QSize(30, 30);
     const int BIGGERFONTSIZE = 12;

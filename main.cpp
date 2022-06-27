@@ -32,17 +32,16 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - integrate SurveyMaker with Canvas as beta (i.e., user-generated token)
+// - integrate SurveyMaker and gruepr with Canvas (NOTE: in beta--for now uses a user-generated token instead of OAuth token)
 // - move Windows binary to non-static build with OpenSSL to allow direct use of https calls instead of thru-browser
 //
 // INPROG:
-// - integrate gruepr with Canvas as beta (i.e., user-generated token)
+// - modifying behind the scenes to make the app submittbale to apple and windows app stores
 //
 // TO DO:
 // - make the "Create Teams" button more emphasized/obvious
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - more granular scheduling option, down to the 15 minute level at least
-// - Sync with Canvas to load the teams into the groups part of Canvas (under the people tab)
 // - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

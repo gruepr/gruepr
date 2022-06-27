@@ -279,7 +279,6 @@ void gruepr::compareRosterToCanvas()
     loop.exec();
     bool weGotProblems = (networkReply->bytesAvailable() == 0);
     delete manager;
-
     if(weGotProblems)
     {
         QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\n"
@@ -288,75 +287,47 @@ void gruepr::compareRosterToCanvas()
         return;
     }
 
-    //give instructions about how this option works and get the canvas URL and API token
-    QSettings savedSettings;
-    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
-    auto *getCanvasInfoDialog = new QDialog;
-    auto *vLayout = new QVBoxLayout;
-    auto *label = new QLabel(tr("The next step will download the roster from your Canvas course. This feature is currently in beta.\n\n"
-                            "You will only have to perform the following steps once.\n"
-                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
-                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
-                            "  »  Log into Canvas,\n"
-                            "  »  click \"Account\" in the left menu\n"
-                            "  »  click \"Settings\", \n"
-                            "  »  scroll to Approved Integration,\n"
-                            "  »  click \"+ New Access Token\",\n"
-                            "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
-                            "  »  click \"Generate Token\", and\n"
-                            "  »  copy your freshly generated token and paste it into the second field below.\n\n"));
-    QLineEdit *canvasURL, *canvasToken;
-    canvasURL = new QLineEdit;
-    canvasToken = new QLineEdit;
-    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
-    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
-    if(!savedCanvasURL.isEmpty())
+    //create canvasHandler and/or authenticate as needed
+    if(canvas == nullptr)
     {
-        canvasURL->setText(savedCanvasURL);
+        canvas = new CanvasHandler();
     }
-    if(!savedCanvasToken.isEmpty())
+    if(!canvas->authenticated)
     {
-        canvasToken->setText(savedCanvasToken);
-    }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
-    vLayout->addWidget(label);
-    vLayout->addWidget(canvasURL);
-    vLayout->addWidget(canvasToken);
-    vLayout->addWidget(buttonBox);
-    getCanvasInfoDialog->setLayout(vLayout);
-    if((getCanvasInfoDialog->exec() == QDialog::Rejected) || (canvasToken->text().isEmpty()) || (canvasURL->text().isEmpty()))
-    {
-        return;
+        QSettings savedSettings;
+        QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+        QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+
+        QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken, this);
+
+        if(newURLAndToken.isEmpty())
+        {
+            return;
+        }
+        savedCanvasURL = newURLAndToken.at(0);
+        savedCanvasToken = newURLAndToken.at(1);
+        savedSettings.setValue("canvasURL", savedCanvasURL);
+        savedSettings.setValue("canvasToken", savedCanvasToken);
+
+        canvas->setBaseURL(savedCanvasURL);
+        canvas->authenticate(savedCanvasToken);
     }
 
-    savedCanvasURL = canvasURL->text();
-    savedCanvasToken = canvasToken->text();
-    savedSettings.setValue("canvasURL", savedCanvasURL);
-    savedSettings.setValue("canvasToken", savedCanvasToken);
-
-    delete getCanvasInfoDialog;
-
-    auto *canvas = new CanvasHandler("", "", savedCanvasURL);
-    canvas->authenticate(savedCanvasToken);
-
+    //ask the user from which course we're comparing the roster
     auto *busyBox = canvas->busy();
     QStringList courseNames = canvas->getCourses();
     canvas->notBusy(busyBox);
-
     auto *canvasCourses = new QDialog;
-    vLayout = new QVBoxLayout;
+    auto *vLayout = new QVBoxLayout;
     int i = 1;
-    label = new QLabel(tr("From which course should the roster be downloaded?"));
+    auto *label = new QLabel(tr("From which course should the roster be downloaded?"));
     auto *coursesComboBox = new QComboBox;
     for(const auto &courseName : qAsConst(courseNames))
     {
         coursesComboBox->addItem(courseName);
         coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
@@ -368,20 +339,12 @@ void gruepr::compareRosterToCanvas()
         return;
     }
 
+    //download the roster
     busyBox = canvas->busy();
     QSize iconSize = busyBox->iconPixmap().size();
     QPixmap icon;
-    auto firstAndLastNames = canvas->getStudentRoster(coursesComboBox->currentText());
-    if(firstAndLastNames.size() > 1)
-    {
-        busyBox->setText(tr("Success!"));
-        icon.load(":/icons/ok.png");
-        busyBox->setIconPixmap(icon.scaled(iconSize));
-        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
-        loop.exec();
-        canvas->notBusy(busyBox);
-    }
-    else
+    auto studentsInCanvasCourse = canvas->getStudentRoster(coursesComboBox->currentText());
+    if(studentsInCanvasCourse.empty())
     {
         busyBox->setText(tr("Error. Roster not received."));
         icon.load(":/icons/delete.png");
@@ -391,13 +354,13 @@ void gruepr::compareRosterToCanvas()
         canvas->notBusy(busyBox);
         return;
     }
+    busyBox->setText(tr("Success!"));
+    icon.load(":/icons/ok.png");
+    busyBox->setIconPixmap(icon.scaled(iconSize));
+    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    loop.exec();
+    canvas->notBusy(busyBox);
     delete canvasCourses;
-
-    QStringList names;
-    for(const auto &firstAndLastName : firstAndLastNames)
-    {
-        names << firstAndLastName.first + " " + firstAndLastName.second;
-    }
 
     bool dataHasChanged = false;
 
@@ -409,9 +372,10 @@ void gruepr::compareRosterToCanvas()
         namesNotFound << student[index].firstname + " " + student[index].lastname;
     }
 
-    for(auto &name : names)
+    for(const auto &studentInCanvasCourse : studentsInCanvasCourse)
     {
         int index = 0;     // start at first student in database and look until we find a matching firstname + " " +last name
+        QString name = studentInCanvasCourse.firstname + " " + studentInCanvasCourse.lastname;
         while((index < dataOptions->numStudentsInSystem) &&
               (name.compare(student[index].firstname + " " + student[index].lastname, Qt::CaseInsensitive) != 0))
         {
@@ -422,6 +386,7 @@ void gruepr::compareRosterToCanvas()
         {
             // Exact match found
             namesNotFound.removeAll(student[index].firstname + " " + student[index].lastname);
+            student[index].LMSID = studentInCanvasCourse.LMSID;
         }
         else
         {
@@ -438,8 +403,9 @@ void gruepr::compareRosterToCanvas()
                     newStudent = StudentRecord();
                     newStudent.ID = dataOptions->latestStudentID;
                     dataOptions->latestStudentID++;
-                    newStudent.firstname = name.split(" ").first();
-                    newStudent.lastname = name.split(" ").mid(1).join(" ");
+                    newStudent.LMSID = studentInCanvasCourse.LMSID;
+                    newStudent.firstname = studentInCanvasCourse.firstname;
+                    newStudent.lastname = studentInCanvasCourse.lastname;
                     newStudent.ambiguousSchedule = true;
                     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
                     {
@@ -465,10 +431,11 @@ void gruepr::compareRosterToCanvas()
                     if(choiceWindow->useRosterName)
                     {
                         dataHasChanged = true;
-                        student[index].firstname = name.split(" ").first();
-                        student[index].lastname = name.split(" ").mid(1).join(" ");
+                        student[index].firstname = studentInCanvasCourse.firstname;
+                        student[index].lastname = studentInCanvasCourse.lastname;
                         student[index].createTooltip(dataOptions);
                     }
+                    student[index].LMSID = studentInCanvasCourse.LMSID;
                 }
             }
             delete choiceWindow;
@@ -2089,7 +2056,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, teams, numTeams, student, teamSetName, this);
+    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, canvas, teams, numTeams, student, teamSetName, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     teamingOptions->teamsetNumber++;
 

@@ -1,6 +1,7 @@
 #ifndef SURVEYMAKER_H
 #define SURVEYMAKER_H
 
+#include "canvashandler.h"
 #include "dialogs/dayNamesDialog.h"
 #include "gruepr_consts.h"
 #include "survey.h"
@@ -93,6 +94,7 @@ private:
     static void createFiles(SurveyMaker *surveyMaker = nullptr);
     static void createCanvasQuiz(SurveyMaker *surveyMaker = nullptr);
     void (*generateSurvey)(SurveyMaker *surveyMaker) = SurveyMaker::postGoogleURL;
+    CanvasHandler *canvas = nullptr;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
     inline static const int LAST_LIKERT_RESPONSE = 25;

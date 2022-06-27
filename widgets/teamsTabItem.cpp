@@ -15,13 +15,14 @@
 #include <QTextStream>
 #include <QtConcurrent>
 
-TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions,
+TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
                            TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[],
                            QString incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
     dataOptions = new DataOptions(*incomingDataOptions);
+    canvas = incomingCanvas;
     teams = incomingTeams;
     numTeams = incomingNumTeams;
     students = incomingStudents;
@@ -949,75 +950,47 @@ void TeamsTabItem::postTeamsToCanvas()
         return;
     }
 
-    //give instructions about how this option works and get the canvas URL and API token
-    QSettings savedSettings;
-    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
-    auto *getCanvasInfoDialog = new QDialog;
-    auto *vLayout = new QVBoxLayout;
-    auto *label = new QLabel(tr("The next step will download the roster from your Canvas course. This feature is currently in beta.\n\n"
-                            "You will only have to perform the following steps once.\n"
-                            "1) enter your institution's canvas URL (e.g.: https://example.instructure.com) in the first field below.\n"
-                            "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
-                            "  »  Log into Canvas,\n"
-                            "  »  click \"Account\" in the left menu\n"
-                            "  »  click \"Settings\", \n"
-                            "  »  scroll to Approved Integration,\n"
-                            "  »  click \"+ New Access Token\",\n"
-                            "  »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
-                            "  »  click \"Generate Token\", and\n"
-                            "  »  copy your freshly generated token and paste it into the second field below.\n\n"));
-    QLineEdit *canvasURL, *canvasToken;
-    canvasURL = new QLineEdit;
-    canvasToken = new QLineEdit;
-    canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
-    canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
-    if(!savedCanvasURL.isEmpty())
+    //create canvasHandler and/or authenticate as needed
+    if(canvas == nullptr)
     {
-        canvasURL->setText(savedCanvasURL);
+        canvas = new CanvasHandler();
     }
-    if(!savedCanvasToken.isEmpty())
+    if(!canvas->authenticated)
     {
-        canvasToken->setText(savedCanvasToken);
-    }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
-    vLayout->addWidget(label);
-    vLayout->addWidget(canvasURL);
-    vLayout->addWidget(canvasToken);
-    vLayout->addWidget(buttonBox);
-    getCanvasInfoDialog->setLayout(vLayout);
-    if((getCanvasInfoDialog->exec() == QDialog::Rejected) || (canvasToken->text().isEmpty()) || (canvasURL->text().isEmpty()))
-    {
-        return;
+        QSettings savedSettings;
+        QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+        QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+
+        QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken, this);
+
+        if(newURLAndToken.isEmpty())
+        {
+            return;
+        }
+        savedCanvasURL = newURLAndToken.at(0);
+        savedCanvasToken = newURLAndToken.at(1);
+        savedSettings.setValue("canvasURL", savedCanvasURL);
+        savedSettings.setValue("canvasToken", savedCanvasToken);
+
+        canvas->setBaseURL(savedCanvasURL);
+        canvas->authenticate(savedCanvasToken);
     }
 
-    savedCanvasURL = canvasURL->text();
-    savedCanvasToken = canvasToken->text();
-    savedSettings.setValue("canvasURL", savedCanvasURL);
-    savedSettings.setValue("canvasToken", savedCanvasToken);
-
-    delete getCanvasInfoDialog;
-
-    auto *canvas = new CanvasHandler("", "", savedCanvasURL);
-    canvas->authenticate(savedCanvasToken);
-
+    //ask the user in which course we're creating the teams
     auto *busyBox = canvas->busy();
     QStringList courseNames = canvas->getCourses();
     canvas->notBusy(busyBox);
-
     auto *canvasCourses = new QDialog;
-    vLayout = new QVBoxLayout;
+    auto *vLayout = new QVBoxLayout;
     int i = 1;
-    label = new QLabel(tr("In which course should these teams be created?"));
+    auto *label = new QLabel(tr("In which course should these teams be created?"));
     auto *coursesComboBox = new QComboBox;
     for(const auto &courseName : qAsConst(courseNames))
     {
         coursesComboBox->addItem(courseName);
         coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
@@ -1029,9 +1002,6 @@ void TeamsTabItem::postTeamsToCanvas()
         return;
     }
 
-    QStringList teamNames;
-    QList<QPair<QString, QString>> teamRoster;
-    QList<QList<QPair<QString, QString>>> teamRosters;
     // get team numbers in the order that they are currently displayed/sorted
     QVector<int> teamDisplayNum;
     teamDisplayNum.reserve(numTeams);
@@ -1044,7 +1014,10 @@ void TeamsTabItem::postTeamsToCanvas()
         }
         teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
     }
-    //loop through every team in display order
+    // assemble each team in display order
+    QStringList teamNames;
+    QVector<StudentRecord> teamRoster;
+    QVector<QVector<StudentRecord>> teamRosters;
     for(int teamNum = 0; teamNum < numTeams; teamNum++)
     {
         int team = teamDisplayNum.at(teamNum);
@@ -1053,8 +1026,7 @@ void TeamsTabItem::postTeamsToCanvas()
         //loop through each teammate in the team
         for(int teammate = 0; teammate < teams[team].size; teammate++)
         {
-            const auto &thisStudent = students[teams[team].studentIndexes.at(teammate)];
-            teamRoster.append({thisStudent.firstname, thisStudent.lastname});
+            teamRoster << students[teams[team].studentIndexes.at(teammate)];
         }
         teamRosters << teamRoster;
     }
@@ -1062,7 +1034,6 @@ void TeamsTabItem::postTeamsToCanvas()
     busyBox = canvas->busy();
     QSize iconSize = busyBox->iconPixmap().size();
     QPixmap icon;
-    canvas->getStudentRoster(coursesComboBox->currentText());
     if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters))
     {
         busyBox->setText(tr("Success!"));

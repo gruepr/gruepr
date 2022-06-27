@@ -10,6 +10,7 @@
   #include <QWinTaskbarProgress>
 #endif
 #include "boxwhiskerplot.h"
+#include "canvashandler.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
@@ -94,6 +95,7 @@ private:
     void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
+    CanvasHandler *canvas = nullptr;
     int numTeams = 1;
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
