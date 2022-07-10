@@ -28,6 +28,7 @@ public:
     enum Operation {read, write};
     bool open(QWidget *parent = nullptr, Operation operation = read, const QString &caption = tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
+    bool openKnownFile(const QString &filepath);
     QFileInfo fileInfo();
     void close();
     bool readHeader();
@@ -44,6 +45,7 @@ public:
 //    QVector<possFieldMeaning> defaultFieldMeanings;   // used if the open file dialog will display auto-read meanings
     QStringList fieldMeanings;
     QStringList fieldValues;
+    QStringList fieldsToBeIgnored;
 
 private:
     QFile *file = nullptr;

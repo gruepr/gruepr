@@ -1,5 +1,5 @@
 #include "boxwhiskerplot.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 
 
 BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle, QWidget *parent)

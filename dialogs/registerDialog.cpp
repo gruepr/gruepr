@@ -1,5 +1,5 @@
 #include "registerDialog.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>

@@ -2,7 +2,7 @@
 #define TEAMRECORD_H
 
 #include "dataOptions.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include "studentRecord.h"
 #include <QString>
 #include <QVector>

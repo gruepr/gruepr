@@ -21,7 +21,7 @@ struct CanvasCourse
     int numStudents = 0;
 };
 
-class CanvasHandler : QObject
+class CanvasHandler : public QObject
 {
     Q_OBJECT
 
@@ -44,7 +44,10 @@ public:
     bool createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QVector<QVector<StudentRecord>> &teams);
     bool createSurvey(const QString &courseName, const Survey *const survey);
     QStringList getQuizList(const QString &courseName);
-    bool downloadQuizResult(const QString &courseName, const QString &quizName);
+    QString downloadQuizResult(const QString &courseName, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
+
+signals:
+    void granted();
 
 private:
     int getCourseID(const QString &courseName);
@@ -67,7 +70,7 @@ private:
     QVector<StudentRecord> roster;
     QVector<CanvasQuiz> quizList;
 
-    inline static const QSize CANVASICONSIZE{40,40};
+    inline static const QSize CANVASICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 20000;   //msec
     inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};

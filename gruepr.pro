@@ -28,8 +28,9 @@ QMAKE_TARGET_PRODUCT = gruepr
 win32: RC_ICONS = icons\gruepr.ico
 macx: ICON = icons\gruepr.icns
 
-# set mac info.plist
+# set mac info.plist and bundle
 macx: QMAKE_INFO_PLIST = macOS\MyAppInfo.plist
+macx: QMAKE_TARGET_BUNDLE_PREFIX = com.gruepr
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -71,6 +72,8 @@ SOURCES += \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        googlehandler.cpp \
+        gruepr_globals.cpp \
         main.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -80,6 +83,7 @@ SOURCES += \
         teamRecord.cpp \
         teamingOptions.cpp \
         dialogs/baseTimeZoneDialog.cpp \
+        dialogs/customResponseOptionsDialog.cpp \
         dialogs/customTeamnamesDialog.cpp \
         dialogs/customTeamsizesDialog.cpp \
         dialogs/dayNamesDialog.cpp \
@@ -106,15 +110,17 @@ HEADERS += \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
+        googlehandler.h \
         gruepr.h \
         GA.h \
-        gruepr_consts.h \
+        gruepr_globals.h \
         studentRecord.h \
         survey.h \
         surveymaker.h \
         teamRecord.h \
         teamingOptions.h \
         dialogs/baseTimeZoneDialog.h \
+        dialogs/customResponseOptionsDialog.h \
         dialogs/customTeamnamesDialog.h \
         dialogs/customTeamsizesDialog.h \
         dialogs/dayNamesDialog.h \

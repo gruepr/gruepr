@@ -1378,7 +1378,7 @@ Teammates</string>
      <x>0</x>
      <y>0</y>
      <width>930</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1389,6 +1389,8 @@ Teammates</string>
      <bool>true</bool>
     </property>
     <addaction name="actionLoad_Survey_File"/>
+    <addaction name="actionLoad_Survey_Results_from_Google"/>
+    <addaction name="actionLoad_Survey_Results_from_Canvas"/>
     <addaction name="actionSave_Survey_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Student_Roster"/>
@@ -1629,6 +1631,30 @@ Teammates</string>
    </property>
    <property name="toolTip">
     <string>Upload this set of teams to a Canvas course. Note: this feature is in beta currently.</string>
+   </property>
+  </action>
+  <action name="actionLoad_Survey_Results_from_Google">
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/google.png</normaloff>:/icons/google.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Survey Results from Google...</string>
+   </property>
+   <property name="toolTip">
+    <string>Download the results of a survey that SurveyMaker created on your Google drive.</string>
+   </property>
+  </action>
+  <action name="actionLoad_Survey_Results_from_Canvas">
+   <property name="icon">
+    <iconset resource="gruepr.qrc">
+     <normaloff>:/icons/canvas.png</normaloff>:/icons/canvas.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Survey Results from Canvas...</string>
+   </property>
+   <property name="toolTip">
+    <string>Download the results of a survey that SurveyMaker created on your course Canvas site. Note: this feature is in beta currently.</string>
    </property>
   </action>
  </widget>

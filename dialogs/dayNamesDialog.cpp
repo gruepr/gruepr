@@ -1,5 +1,5 @@
 #include "dayNamesDialog.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to select / name days for the schedule in the survey

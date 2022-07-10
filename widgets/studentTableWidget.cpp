@@ -1,5 +1,5 @@
 #include "studentTableWidget.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QHeaderView>
 
 

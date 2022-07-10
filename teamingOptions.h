@@ -1,7 +1,7 @@
 #ifndef TEAMINGOPTIONS_H
 #define TEAMINGOPTIONS_H
 
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QObject>
 #include <QStringList>
 

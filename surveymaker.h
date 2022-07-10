@@ -3,7 +3,8 @@
 
 #include "canvashandler.h"
 #include "dialogs/dayNamesDialog.h"
-#include "gruepr_consts.h"
+#include "googlehandler.h"
+#include "gruepr_globals.h"
 #include "survey.h"
 #include "widgets/comboBoxWithElidedContents.h"
 #include <QDate>
@@ -36,6 +37,7 @@ private slots:
     void refreshAttributeTabBar(int index);
     void attributeTabClose(int index);
     void attributeTextChanged();
+    void attributeResponseChanged();
     void baseTimezoneComboBox_currentIndexChanged(int arg1);
     void on_baseTimezoneLineEdit_textChanged();
     void on_daysComboBox_activated(int index);
@@ -85,19 +87,19 @@ private:
     int startTime = STANDARDSCHEDSTARTTIME;
     int endTime = STANDARDSCHEDENDTIME;
     bool section = false;
-    QStringList sectionNames = {""};
+    QStringList sectionNames;
     bool preferredTeammates = false;
     bool preferredNonTeammates = false;
     int numPreferredAllowed = 1;
     bool additionalQuestions = false;
-    static void postGoogleURL(SurveyMaker *surveyMaker = nullptr);
     static void createFiles(SurveyMaker *surveyMaker = nullptr);
+    static void createGoogleForm(SurveyMaker *surveyMaker = nullptr);
     static void createCanvasQuiz(SurveyMaker *surveyMaker = nullptr);
-    void (*generateSurvey)(SurveyMaker *surveyMaker) = SurveyMaker::postGoogleURL;
+    void (*generateSurvey)(SurveyMaker *surveyMaker) = SurveyMaker::createGoogleForm;
     CanvasHandler *canvas = nullptr;
+    GoogleHandler *google = nullptr;
     QFileInfo saveFileLocation;
     QStringList responseOptions;
-    inline static const int LAST_LIKERT_RESPONSE = 25;
     inline static const QSize TABCLOSEICONSIZE = {8,8};
     inline static const QString QUESTIONPREVIEWHEAD = "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;";
     inline static const QString QUESTIONPREVIEWTAIL = "<br></p>";

@@ -1,5 +1,5 @@
-#ifndef GRUEPR_CONSTS
-#define GRUEPR_CONSTS
+#ifndef GRUEPR_GLOBALS
+#define GRUEPR_GLOBALS
 
 #include "GA.h"
 #include <QColor>
@@ -46,6 +46,7 @@ const int XS_DLG_SIZE = 200;
 const int SMALL_SCREENSIZE_WIN = 900;
 const int SMALL_SCREENSIZE_MAC = 800;
 const int REDUCED_ICON_SIZE = 30;
+const int MSGBOX_ICON_SIZE = 40;
 
 const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown as the team's data value for the column
 const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
@@ -120,39 +121,35 @@ const char TIMEZONENAMES[] {"International Date Line West [GMT-12:00];\"Samoa: M
                             "\"New Zealand: Auckland, Wellington [GMT+12:00]\";Tonga: Nuku'alofa [GMT+13:00]"};
 
 //the built-in Likert scale responses offered in surveyMaker
-const char RESPONSE_OPTIONS[] {"Yes / No;"
-                               "Yes / Maybe / No;"
-                               "Definitely / Probably / Maybe / Probably not / Definitely not;"
-                               "Strongly preferred / Preferred / Opposed / Strongly opposed;"
-                               "True / False;"
-                               "Like me / Not like me;"
-                               "Agree / Disagree;"
-                               "Strongly agree / Agree / Undecided / Disagree / Strongly disagree;"
-                               "4.0— 3.75 / 3.74— 3.5 / 3.49— 3.25 / 3.24— 3.0 / 2.99— 2.75 / 2.74— 2.5 / 2.49— 2.0 / Below 2.0 / Not sure, or prefer not to say;"
-                               "100— 90 / 89— 80 / 79— 70 / 69— 60 / 59— 50 / Below 50 / Not sure, or prefer not to say;"
-                               "A / B / C / D / F / Not sure, or prefer not to say;"
-                               "Very high / Above average / Average / Below average / Very low;"
-                               "Excellent / Very good / Good / Fair / Poor;"
-                               "Highly positive / Somewhat positive / Neutral / Somewhat negative / Highly negative;"
-                               "A lot of experience / Some experience / Little experience / No experience;"
-                               "Extremely / Very / Moderately / Slightly / Not at all;"
-                               "A lot / Some / Very Little / None;"
-                               "Much more / More / About the same / Less / Much less;"
-                               "Most of the time / Some of the time / Seldom / Never;"
-                               "Available / Available, but prefer not to / Not available;"
-                               "Very frequently / Frequently / Occasionally / Rarely / Never;"
-                               "Definitely will / Probably will / Probably won't / Definitely won't;"
-                               "Very important / Important / Somewhat important / Not important;"
-                               "Leader / Mix of leader and follower / Follower;"
-                               "Highly confident / Moderately confident / Somewhat confident / Not confident;"
-                               "1. / 2. / 3. / 4.;"
+const char RESPONSE_OPTIONS[] {"1. Yes / 2. No;"
+                               "1. Yes / 2. Maybe / 3. No;"
+                               "1. Definitely / 2. Probably / 3. Maybe / 4. Probably not / 5. Definitely not;"
+                               "1. Strongly preferred / 2. Preferred / 3. Opposed / 4. Strongly opposed;"
+                               "1. True / 2. False;"
+                               "1. Like me / 2. Not like me;"
+                               "1. Agree / 2. Disagree;"
+                               "1. Strongly agree / 2. Agree / 3. Undecided / 4. Disagree / 5. Strongly disagree;"
+                               "1. 4.0— 3.75 / 2. 3.74— 3.5 / 3. 3.49— 3.25 / 4. 3.24— 3.0 / 5. 2.99— 2.75 / 6. 2.74— 2.5 / 7. 2.49— 2.0 / 8. Below 2.0 / 9. Not sure, or prefer not to say;"
+                               "1. 100— 90 / 2. 89— 80 / 3. 79— 70 / 4. 69— 60 / 5. 59— 50 / 6. Below 50 / 7. Not sure, or prefer not to say;"
+                               "1. A / 2. B / 3. C / 4. D / 5. F / 6. Not sure, or prefer not to say;"
+                               "1. Very high / 2. Above average / 3. Average / 4. Below average / 5. Very low;"
+                               "1. Excellent / 2. Very good / 3. Good / 4. Fair / 5. Poor;"
+                               "1. Highly positive / 2. Somewhat positive / 3. Neutral / 4. Somewhat negative / 5. Highly negative;"
+                               "1. A lot of experience / 2. Some experience / 3. Little experience / 4. No experience;"
+                               "1. Extremely / 2. Very / 3. Moderately / 4. Slightly / 5. Not at all;"
+                               "1. A lot / 2. Some / 3. Very Little / 4. None;"
+                               "1. Much more / 2. More / 3. About the same / 4. Less / 5. Much less;"
+                               "1. Most of the time / 2. Some of the time / 3. Seldom / 4. Never;"
+                               "1. Available / 2. Available, but prefer not to / 3. Not available;"
+                               "1. Very frequently / 2. Frequently / 3. Occasionally / 4. Rarely / 5. Never;"
+                               "1. Definitely will / 2. Probably will / 3. Probably won't / 4. Definitely won't;"
+                               "1. Very important / 2. Important / 3. Somewhat important / 4. Not important;"
+                               "1. Leader / 2. Mix of leader and follower / 3. Follower;"
+                               "1. Highly confident / 2. Moderately confident / 3. Somewhat confident / 4. Not confident;"
+                               "1. / 2. / 3.;"
                                "1. / 2. / 3. / 4. / 5.;"
-                               "1. / 2. / 3. / 4. / 5. / 6.;"
-                               "1. / 2. / 3. / 4. / 5. / 6. / 7.;"
-                               "1. / 2. / 3. / 4. / 5. / 6. / 7. / 8.;"
-                               "1. / 2. / 3. / 4. / 5. / 6. / 7. / 8. / 9.;"
                                "1. / 2. / 3. / 4. / 5. / 6. / 7. / 8. / 9. / 10.;"
-                               "custom options, to be added after creating the form"};
+                               "Custom options..."};
 
 
 // Options for the team names. A name for each list of names must be given.
@@ -265,13 +262,13 @@ const char TEAMNAMELISTS[]   {";"
                                  "Bed of Oysters,String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
                                  "Committee of Vultures,Colony of Weasels;"
                               "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
-                                 "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik"};
+                                 "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire"};
 
 const char VERSION_CHECK_URL[] {"https://api.github.com/repos/gruepr/gruepr/releases/latest"};
 const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
-const char GOOGLEFORMCREATORSCRIPT_URL[] {"https://script.google.com/macros/s/AKfycbwG5i6NP_Y092fUq7bjlhwubm2MX1HgHMKw9S496VBvStewDUE/exec?"};
 const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
 const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issues"};
+bool internetIsGood();
 
 const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                                  "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
@@ -292,4 +289,4 @@ const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen Mono';\">gruep
                                  "<a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> "
                                  "as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."};
 
-#endif // GRUEPR_CONSTS
+#endif // GRUEPR_GLOBALS

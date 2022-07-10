@@ -1,6 +1,6 @@
 #include "baseTimeZoneDialog.h"
 #include "dataOptions.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QDateTime>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

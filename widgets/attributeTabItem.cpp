@@ -77,12 +77,20 @@ attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent)
         theGrid->addWidget(allowMultipleResponses, row++, column, 1, -1);
 
         attributeResponses->addItem(tr("Choose the response options..."));
+        attributeResponses->setItemData(0, "");
         attributeResponses->insertSeparator(1);
         QStringList responseOptions = QString(RESPONSE_OPTIONS).split(';');
+        QStringList specificOptions;
         for(int response = 0; response < responseOptions.size(); response++)
         {
             attributeResponses->addItem(responseOptions.at(response));
-            attributeResponses->setItemData(response + 2, responseOptions.at(response), Qt::ToolTipRole);
+            specificOptions = responseOptions.at(response).split(('/'));
+            for(auto &specificOption : specificOptions)
+            {
+                specificOption = specificOption.trimmed();
+            }
+            attributeResponses->setItemData(response + 2, specificOptions);
+            attributeResponses->setItemData(response + 2, specificOptions, Qt::ToolTipRole);
         }
 
         setTabNum(tabNum);

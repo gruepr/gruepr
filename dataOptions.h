@@ -1,7 +1,7 @@
 #ifndef DATAOPTIONS_H
 #define DATAOPTIONS_H
 
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QFileInfo>
 #include <QStringList>
 #include <map>

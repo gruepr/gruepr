@@ -1,5 +1,5 @@
 #include "customTeamnamesDialog.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
@@ -9,7 +9,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &teamNames, QWidget *parent)
-    :listTableDialog (tr("Choose custom team names"), true, true, parent)
+    :listTableDialog (tr("Enter custom team names"), true, true, parent)
 {
     this->numTeams = numTeams;
     teamName = new QLineEdit[numTeams];

@@ -51,7 +51,10 @@ gruepr::gruepr(QWidget *parent) :
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
 
     //Setup the main window menu items
-    connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::on_loadSurveyFileButton_clicked);
+    connect(ui->actionLoad_Survey_File, &QAction::triggered, this, &gruepr::openSurveyFromFile);
+    connect(ui->loadSurveyFileButton, &QPushButton::clicked, this, &gruepr::openSurveyFromFile);
+    connect(ui->actionLoad_Survey_Results_from_Google, &QAction::triggered, this, &gruepr::downloadSurveyFromGoogle);
+    connect(ui->actionLoad_Survey_Results_from_Canvas, &QAction::triggered, this, &gruepr::downloadSurveyFromCanvas);
     connect(ui->actionLoad_Student_Roster, &QAction::triggered, this, &gruepr::loadStudentRoster);
     connect(ui->actionCompare_Students_to_Canvas_Course, &QAction::triggered, this, &gruepr::compareRosterToCanvas);
     connect(ui->actionSave_Survey_File, &QAction::triggered, this, &gruepr::on_saveSurveyFilePushButton_clicked);
@@ -185,13 +188,13 @@ void gruepr::getTeamScores(const StudentRecord _student[], const int _numStudent
 }
 
 
-void gruepr::on_loadSurveyFileButton_clicked()
+void gruepr::openSurveyFromFile()
 {
     CsvFile surveyFile;
     /*  Used if the open file dialog will display auto-read field meanings - idea abandoned for now because non-native file dialog is ugly
     surveyFile.defaultFieldMeanings = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
                                        {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
-                                       {"Gender", "((gender)|(pronoun))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                       {"Gender", "((gender)|(pronouns))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                        {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
                                        {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
                                        {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
@@ -202,6 +205,237 @@ void gruepr::on_loadSurveyFileButton_clicked()
         return;
     }
 
+    loadSurvey(surveyFile);
+}
+
+
+void gruepr::downloadSurveyFromGoogle()
+{
+    if(!internetIsGood())
+    {
+        return;
+    }
+
+    //create googleHandler and authenticate
+    if(google == nullptr)
+    {
+        google = new GoogleHandler();
+    }
+    if(!google->authenticated)
+    {
+        auto *loginDialog = new QMessageBox(this);
+        QPixmap icon(":/icons/google.png");
+        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE));
+        loginDialog->setText(tr("The next step will open a browser window so you can log in to Google."));
+        loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        if(loginDialog->exec() == QMessageBox::Cancel)
+        {
+            delete loginDialog;
+            return;
+        }
+
+        google->authenticate(GoogleHandler::Permissions::readonly);
+
+        loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
+        loginDialog->setStandardButtons(QMessageBox::Cancel);
+        connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
+        if(loginDialog->exec() == QMessageBox::Cancel)
+        {
+            delete loginDialog;
+            return;
+        }
+        delete loginDialog;
+    }
+
+    //ask which survey to download
+    QStringList formsList = google->getSurveyList();
+    auto *googleFormsDialog = new QDialog(this);
+    googleFormsDialog->setWindowTitle(tr("Choose Google survey"));
+    googleFormsDialog->setWindowIcon(QIcon(":/icons/google.png"));
+    googleFormsDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *vLayout = new QVBoxLayout;
+    auto *label = new QLabel(tr("Which survey should be opened?"));
+    auto *formsComboBox = new QComboBox;
+    for(const auto &form : qAsConst(formsList))
+    {
+        formsComboBox->addItem(form);
+    }
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    vLayout->addWidget(label);
+    vLayout->addWidget(formsComboBox);
+    vLayout->addWidget(buttonBox);
+    googleFormsDialog->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, googleFormsDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, googleFormsDialog, &QDialog::reject);
+    if((googleFormsDialog->exec() == QDialog::Rejected))
+    {
+        delete googleFormsDialog;
+        return;
+    }
+    const QString survey = formsComboBox->currentText();
+    delete googleFormsDialog;
+
+    //download the survey
+    auto *busyBox = google->busy();
+    QString filepath = google->downloadSurveyResult(survey);
+    QPixmap icon;
+    QSize iconSize = busyBox->iconPixmap().size();
+    QEventLoop loop;
+    if(filepath.isEmpty())
+    {
+        busyBox->setText(tr("Error. Survey not received."));
+        icon.load(":/icons/delete.png");
+        busyBox->setIconPixmap(icon.scaled(iconSize));
+        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        loop.exec();
+        google->notBusy(busyBox);
+        return;
+    }
+    busyBox->setText(tr("Success! File will be saved in your Downloads folder."));
+    icon.load(":/icons/ok.png");
+    busyBox->setIconPixmap(icon.scaled(iconSize));
+    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    loop.exec();
+    google->notBusy(busyBox);
+
+    //open the downloaded file
+    CsvFile surveyFile;
+    if(!surveyFile.openKnownFile(filepath))
+    {
+        return;
+    }
+
+    loadSurvey(surveyFile);
+}
+
+
+void gruepr::downloadSurveyFromCanvas()
+{
+    if(!internetIsGood())
+    {
+        return;
+    }
+
+    //create canvasHandler and/or authenticate as needed
+    if(canvas == nullptr)
+    {
+        canvas = new CanvasHandler();
+    }
+    if(!canvas->authenticated)
+    {
+        //IN BETA--GETS USER'S API TOKEM MANUALLY
+        QSettings savedSettings;
+        QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+        QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+
+        QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
+        if(newURLAndToken.isEmpty())
+        {
+            return;
+        }
+
+        savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
+        savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
+        savedSettings.setValue("canvasURL", savedCanvasURL);
+        savedSettings.setValue("canvasToken", savedCanvasToken);
+
+        canvas->setBaseURL(savedCanvasURL);
+        canvas->authenticate(savedCanvasToken);
+    }
+
+    //ask the user from which course we're downloading the survey
+    auto *busyBox = canvas->busy();
+    QStringList courseNames = canvas->getCourses();
+    canvas->notBusy(busyBox);
+
+    auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
+    canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas course"));
+    canvasCoursesAndQuizzesDialog->setWindowIcon(QIcon(":/icons/canvas.png"));
+    canvasCoursesAndQuizzesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *vLayout = new QVBoxLayout;
+    int i = 1;
+    auto *label = new QLabel(tr("From which course should the survey be downloaded?"));
+    auto *coursesAndQuizzesComboBox = new QComboBox;
+    for(const auto &courseName : qAsConst(courseNames))
+    {
+        coursesAndQuizzesComboBox->addItem(courseName);
+        coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    }
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    vLayout->addWidget(label);
+    vLayout->addWidget(coursesAndQuizzesComboBox);
+    vLayout->addWidget(buttonBox);
+    canvasCoursesAndQuizzesDialog->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesAndQuizzesDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesAndQuizzesDialog, &QDialog::reject);
+    if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected))
+    {
+        delete canvasCoursesAndQuizzesDialog;
+        return;
+    }
+    const QString course = coursesAndQuizzesComboBox->currentText();
+    canvasCoursesAndQuizzesDialog->hide();
+
+    //ask which survey (canvas Quiz) to download
+    busyBox = canvas->busy();
+    QStringList formsList = canvas->getQuizList(course);
+    canvas->notBusy(busyBox);
+
+    canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas quiz"));
+    label->setText(tr("Which survey should be downloaded?"));
+    coursesAndQuizzesComboBox->clear();
+    for(const auto &form : qAsConst(formsList))
+    {
+        coursesAndQuizzesComboBox->addItem(form);
+    }
+    if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected))
+    {
+        delete canvasCoursesAndQuizzesDialog;
+        return;
+    }
+    const QString survey = coursesAndQuizzesComboBox->currentText();
+    delete canvasCoursesAndQuizzesDialog;
+
+    //download the survey
+    busyBox = canvas->busy();
+    QString filepath = canvas->downloadQuizResult(course, survey);
+    QPixmap icon;
+    QSize iconSize = busyBox->iconPixmap().size();
+    QEventLoop loop;
+    if(filepath.isEmpty())
+    {
+        busyBox->setText(tr("Error. Survey not received."));
+        icon.load(":/icons/delete.png");
+        busyBox->setIconPixmap(icon.scaled(iconSize));
+        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        loop.exec();
+        canvas->notBusy(busyBox);
+        return;
+    }
+    busyBox->setText(tr("Success! File will be saved in your Downloads folder."));
+    icon.load(":/icons/ok.png");
+    busyBox->setIconPixmap(icon.scaled(iconSize));
+    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    loop.exec();
+    canvas->notBusy(busyBox);
+
+    //open the downloaded file
+    CsvFile surveyFile;
+    if(!surveyFile.openKnownFile(filepath))
+    {
+        return;
+    }
+
+    // Only include the timestamp question ("submitted") and then the questions we've asked, which will all begin with (possibly a quotation mark then) an integer then a colon then a space.
+    // (Also ignore the text "question" which the notifier that several schedule questions are coming up).
+    surveyFile.fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", R"(.*questions ask about your schedule on.*)"};
+
+    loadSurvey(surveyFile);
+}
+
+
+void gruepr::loadSurvey(CsvFile &surveyFile)
+{
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
     resetUI();
@@ -271,19 +505,8 @@ void gruepr::on_loadSurveyFileButton_clicked()
 
 void gruepr::compareRosterToCanvas()
 {
-    //make sure we can connect to google
-    auto *manager = new QNetworkAccessManager(this);
-    QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    bool weGotProblems = (networkReply->bytesAvailable() == 0);
-    delete manager;
-    if(weGotProblems)
+    if(!internetIsGood())
     {
-        QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\n"
-                                                     "Check your network connection and try again.\n"
-                                                     "The survey has NOT been created."));
         return;
     }
 
@@ -299,13 +522,13 @@ void gruepr::compareRosterToCanvas()
         QString savedCanvasToken = savedSettings.value("canvasToken").toString();
 
         QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken, this);
-
         if(newURLAndToken.isEmpty())
         {
             return;
         }
-        savedCanvasURL = newURLAndToken.at(0);
-        savedCanvasToken = newURLAndToken.at(1);
+
+        savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
+        savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
         savedSettings.setValue("canvasURL", savedCanvasURL);
         savedSettings.setValue("canvasToken", savedCanvasToken);
 
@@ -317,7 +540,10 @@ void gruepr::compareRosterToCanvas()
     auto *busyBox = canvas->busy();
     QStringList courseNames = canvas->getCourses();
     canvas->notBusy(busyBox);
-    auto *canvasCourses = new QDialog;
+    auto *canvasCourses = new QDialog(this);
+    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
+    canvasCourses->setWindowIcon(QIcon(":/icons/canvas.png"));
+    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
     auto *label = new QLabel(tr("From which course should the roster be downloaded?"));
@@ -341,9 +567,10 @@ void gruepr::compareRosterToCanvas()
 
     //download the roster
     busyBox = canvas->busy();
-    QSize iconSize = busyBox->iconPixmap().size();
-    QPixmap icon;
     auto studentsInCanvasCourse = canvas->getStudentRoster(coursesComboBox->currentText());
+    QPixmap icon;
+    QSize iconSize = busyBox->iconPixmap().size();
+    QEventLoop loop;
     if(studentsInCanvasCourse.empty())
     {
         busyBox->setText(tr("Error. Roster not received."));
@@ -1621,7 +1848,7 @@ void gruepr::on_desiredMeetingTimes_valueChanged(int arg1)
 void gruepr::on_meetingLength_currentIndexChanged(int index)
 {
     teamingOptions->meetingBlockSize = (index + 1);
-    if((dataOptions->timeNames.size() * dataOptions->dayNames.size() !=0))
+    if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0))
     {
         ui->minMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
         ui->desiredMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
@@ -2502,7 +2729,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         return false;
     }
 
-    if(surveyFile.headerValues.size() < 4)
+    if(surveyFile.headerValues.size() < 2)
     {
         QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
         surveyFile.close();
@@ -2524,9 +2751,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
 
     // Ask user what the columns mean
-    QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+    QVector<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
                                                     {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
-                                                    {"Gender", "((gender)|(pronoun))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                    {"Gender", "((gender)|(pronouns))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
                                                     {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "in which section are you enrolled", 1},
                                                     {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(name).*(like to have on your team)", 1},
                                                     {"Preferred Non-teammates", "(name).*(like to not have on your team)", 1},
@@ -2729,7 +2956,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                                    tr("The maximum number of students have been read from the file."
                                       " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
     }
-    else if(numStudents < 4)
+    else if(numStudents < 2) //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     {
         QMessageBox::critical(this, tr("Insufficient number of students."),
                                     tr("There are not enough survey responses in the file."
@@ -2765,8 +2992,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
 
             // Figure out what type of attribute this is: timezone, ordered/numerical, categorical (one response), or categorical (mult. responses)
             // If this is the timezone field, it's timezone type;
-            // otherwise if every response starts with an integer, then it is ordered (numerical);
-            // but if any response is missing the number at the start, then it is categorical or multicategorical--multicategorical if any response contains a comma
+            // otherwise, if any response contains a comma, then it's multicategorical
+            // otheriwse, if every response starts with an integer, it is ordered (numerical);
+            // otherwise, if any response is missing an integer at the start, then it is categorical
             // The regex to recognize ordered/numerical is:
             // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
             QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
@@ -2774,25 +3002,17 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             {
                 attributeType = DataOptions::timezone;
             }
+            else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return response.contains(',');}))
+            {
+                attributeType = DataOptions::multicategorical;
+            }
+            else if(std::all_of(responses.constBegin(), responses.constEnd(), [&startsWithInteger](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
+            {
+                attributeType = DataOptions::ordered;
+            }
             else
             {
-                attributeType = DataOptions::ordered;           // assume it's ordered
-                for(const auto &response : qAsConst(responses))
-                {
-                    // type stays ordered until and unless we don't have a regex match
-                    if((attributeType != DataOptions::ordered) || !(startsWithInteger.match(response).hasMatch()))
-                    {
-                        // type stays categorical until and unless we have a response with a comma in it
-                        if((attributeType == DataOptions::multicategorical) || (response.contains(',')))
-                        {
-                            attributeType = DataOptions::multicategorical;
-                        }
-                        else
-                        {
-                            attributeType = DataOptions::categorical;
-                        }
-                    }
-                }
+                attributeType = DataOptions::categorical;
             }
 
             // for multicategorical, have to reprocess the responses to delimit at the commas

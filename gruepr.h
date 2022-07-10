@@ -14,7 +14,8 @@
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
-#include "gruepr_consts.h"
+#include "googlehandler.h"
+#include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
@@ -46,7 +47,10 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void on_loadSurveyFileButton_clicked();
+    void openSurveyFromFile();
+    void downloadSurveyFromGoogle();
+    void downloadSurveyFromCanvas();
+    void loadSurvey(CsvFile &surveyFile);
     void loadStudentRoster();
     void compareRosterToCanvas();
     void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
@@ -95,12 +99,11 @@ private:
     void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
-    CanvasHandler *canvas = nullptr;
     int numTeams = 1;
     void setTeamSizes(const int teamSizes[]);
     void setTeamSizes(const int singleSize);
 
-        // reading survey data file
+        // reading survey data
     int numStudents = MAX_STUDENTS;
     StudentRecord *student = nullptr;                   // array to hold the students' data
     bool loadSurveyData(CsvFile &surveyFile);           // returns false if file is invalid
@@ -109,6 +112,8 @@ private:
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     attributeTabItem *attributeTab = nullptr;
+    GoogleHandler *google = nullptr;
+    CanvasHandler *canvas = nullptr;
 
         // team set optimization
     int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams

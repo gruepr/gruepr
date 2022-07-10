@@ -1,5 +1,5 @@
 #include "teamTreeWidget.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QDropEvent>
 
 

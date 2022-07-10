@@ -32,17 +32,23 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - integrate SurveyMaker and gruepr with Canvas (NOTE: in beta--for now uses a user-generated token instead of OAuth token)
 // - move Windows binary to non-static build with OpenSSL to allow direct use of https calls instead of thru-browser
+// - enable custom response options dialog in surveymaker attribute tab
+// - integrate SurveyMaker and gruepr with Google and with Canvas (NOTE: Canvas in beta--for now uses a user-generated token instead of OAuth token)
 //
 // INPROG:
-// - modifying behind the scenes to make the app submittbale to apple and windows app stores
+// - prevent custom response options from having any commas
+// - add custom response options to load and save survey file
+// - check for memory leaks surrounding CanvasHandlers and GoogleHandlers
+// - add timeout to canvas and google connections
+// - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
 // - make the "Create Teams" button more emphasized/obvious
+// - create an LMS class and then subclass Canvas, Google, and others
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - more granular scheduling option, down to the 15 minute level at least
-// - integrate with Google Drive: download survey results from within the application; expand to Canvas, Qualtrics, and other OAuth2 integration
+// - add integration with Blackboard, Qualtrics, others
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - use multiple genepools with limited cross-breeding

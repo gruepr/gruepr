@@ -70,7 +70,7 @@ private:
     QComboBox *teamnamesComboBox = nullptr;
     QStringList teamnameCategories;
     QStringList teamnameLists;
-    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_consts.h for how teamname lists are signified
+    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_globals.h for how teamname lists are signified
     QVector<TeamNameType> teamnameTypes;
     QCheckBox *randTeamnamesCheckBox = nullptr;
     QPushButton *sendToPreventedTeammates = nullptr;

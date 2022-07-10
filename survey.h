@@ -1,7 +1,7 @@
 #ifndef SURVEY_H
 #define SURVEY_H
 
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -24,8 +24,6 @@ class Survey
 {
 public:
     Survey();
-
-    bool isValid() const;
 
     QString title = "";
     QVector<Question> questions;

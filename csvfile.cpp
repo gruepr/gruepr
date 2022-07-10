@@ -1,5 +1,5 @@
 #include "csvfile.h"
-#include "gruepr_consts.h"
+#include "gruepr_globals.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
@@ -109,6 +109,21 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
             stream = new QTextStream(file);
         }
     }
+    return (stream != nullptr);
+}
+
+
+bool CsvFile::openKnownFile(const QString &filepath)
+{
+    file = nullptr;
+    stream = nullptr;
+    if (!filepath.isEmpty())
+    {
+        file = new QFile(filepath);
+        file->open(QIODevice::ReadOnly);
+        stream = new QTextStream(file);
+    }
+
     return (stream != nullptr);
 }
 
@@ -234,12 +249,23 @@ void CsvFile::writeDataRow()
 //////////////////
 QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
 {
-    // if any of the fieldMeanings are empty, preload with possibleFieldMeaning based on matches to the patterns, if given
+    // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < numFields; i++)
     {
-        if(fieldMeanings.at(i).isEmpty())
+        const QString &headerVal = headerValues.at(i);
+
+        bool ignore = false;
+        for(const auto &matchpattern : qAsConst(fieldsToBeIgnored))
         {
-            const QString &headerVal = headerValues.at(i);
+            if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption)))
+            {
+                fieldMeanings[i] = "**IGNORE**";
+                ignore = true;
+            }
+        }
+
+        if(!ignore && fieldMeanings.at(i).isEmpty())
+        {
             int matchPattern = 0;
             QString match;
             do
@@ -249,7 +275,6 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
             }
             while((matchPattern < possibleFieldMeanings.size()) &&
                   !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)));
-
             if(matchPattern != possibleFieldMeanings.size())
             {
                 fieldMeanings[i] = possibleFieldMeanings.at(matchPattern - 1).nameShownToUser;
@@ -305,7 +330,16 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
         auto *model = qobject_cast<QStandardItemModel *>(selector->model());
         model->item(0)->setForeground(Qt::darkRed);
         selector->insertSeparator(1);
-        selector->setCurrentText(fieldMeanings.at(row));
+        if(fieldMeanings.at(row) == "**IGNORE**")
+        {
+            selector->setCurrentText(UNUSEDTEXT);
+            fieldMeanings[row] = UNUSEDTEXT;
+            window->theTable->hideRow(row);
+        }
+        else
+        {
+            selector->setCurrentText(fieldMeanings.at(row));
+        }
         selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
         int width = selector->minimumSizeHint().width();
         selector->setMinimumWidth(width);

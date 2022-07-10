@@ -1,6 +1,8 @@
 #include "ui_surveymaker.h"
 #include "surveymaker.h"
+#include "dialogs/customResponseOptionsDialog.h"
 #include "widgets/attributeTabItem.h"
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QJsonDocument>
@@ -28,7 +30,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->actionOpenSurvey, &QAction::triggered, this, &SurveyMaker::openSurvey);
     connect(ui->actionSaveSurvey, &QAction::triggered, this, &SurveyMaker::saveSurvey);
     connect(ui->actionGoogle_form, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
-                                                                     generateSurvey = &SurveyMaker::postGoogleURL;
+                                                                     generateSurvey = &SurveyMaker::createGoogleForm;
                                                                      on_makeSurveyButton_clicked();
                                                                      generateSurvey = prevSurveyMethod;});
     connect(ui->actionText_files, &QAction::triggered, this, [this]{auto prevSurveyMethod = generateSurvey;
@@ -39,7 +41,6 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
                                                                      generateSurvey = &SurveyMaker::createCanvasQuiz;
                                                                      on_makeSurveyButton_clicked();
                                                                      generateSurvey = prevSurveyMethod;});
-    canvas = new CanvasHandler();
     ui->actionExit->setMenuRole(QAction::QuitRole);
     connect(ui->actionExit, &QAction::triggered, this, &SurveyMaker::close);
     //ui->actionSettings->setMenuRole(QAction::PreferencesRole);
@@ -130,7 +131,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     {
         auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, tab, this);
         connect(attributeTab->attributeText, &QTextEdit::textChanged, this, &SurveyMaker::attributeTextChanged);
-        connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+        connect(attributeTab->attributeResponses, QOverload<int>::of(&QComboBox::activated), this, &SurveyMaker::attributeResponseChanged);
         connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::buildSurvey);
         connect(attributeTab, &attributeTabItem::closeRequested, this, &SurveyMaker::attributeTabClose);
 
@@ -138,7 +139,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         ui->attributesTabWidget->setTabVisible(tab, tab < numAttributes);
     }
     refreshAttributeTabBar(ui->attributesTabWidget->currentIndex());
-    responseOptions.prepend(tr("custom options, to be added after creating the form"));
+    responseOptions.prepend(tr(" "));
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &SurveyMaker::refreshAttributeTabBar);
     connect(ui->attributesTabWidget->tabBar(), &QTabBar::tabMoved, this, &SurveyMaker::attributeTabBarMoveTab);
 
@@ -150,6 +151,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 SurveyMaker::~SurveyMaker()
 {
     delete canvas;
+    delete google;
     delete survey;
     delete ui;
 }
@@ -248,8 +250,8 @@ void SurveyMaker::buildSurvey()
         attributeTexts[attrib] = attribTab->attributeText->toPlainText().simplified();
         attributeResponses[attrib] = ((attribTab->attributeResponses->currentIndex()>1) ? (attribTab->attributeResponses->currentIndex()-1) : 0);
         attributeAllowMultipleResponses[attrib] = attribTab->allowMultipleResponses->isChecked();
-        QString questionText = (attributeTexts[attrib].isEmpty()? "{Attribute question " + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
-        QStringList options = responseOptions.at(attributeResponses[attrib]).split('/');
+        QString questionText = (attributeTexts[attrib].isEmpty()? "{" + tr("Attribute question ") + QString::number(attrib+1) + "}" : attributeTexts[attrib]);
+        QStringList options = attribTab->attributeResponses->currentData().toStringList();
         Question::QuestionType questionType = Question::QuestionType::radiobutton;
         if(attributeAllowMultipleResponses[attrib])
         {
@@ -423,7 +425,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
         }
         else if(question.type == Question::QuestionType::schedule)
         {
-            preview += "</p><p>&nbsp;&nbsp;&nbsp;<i>grid of checkboxes:</i></p>";
+            preview += "</p><p>&nbsp;&nbsp;&nbsp;<i>set of checkboxes:</i></p>";
             preview += "<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>";
             for(int time = survey->schedStartTime; time <= survey->schedEndTime; time++)
             {
@@ -441,6 +443,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
         }
         preview += QUESTIONPREVIEWTAIL;
     }
+
     return preview;
 }
 
@@ -467,138 +470,34 @@ void SurveyMaker::badExpression(QWidget *textWidget, QString &currText)
 
 void SurveyMaker::on_makeSurveyButton_clicked()
 {
-     if(!survey->isValid())
+    if(section && sectionNames.isEmpty())
     {
-        QMessageBox::critical(this, tr("Error!"), tr("A gruepr survey must have at least one\n"
-                                                     "attribute question and/or a schedule question.\n"
+        QMessageBox::critical(this, tr("Error!"), tr("The Section question is enabled, but no section "
+                                                     "names have beed added for the students to select.\n"
+                                                     "The survey has NOT been created."));
+        return;
+    }
+
+    if(std::any_of(attributeTexts, attributeTexts + ui->attributeCountSpinBox->value(),
+                   [](const QString &questionText){return questionText.isEmpty();}))
+    {
+        QMessageBox::critical(this, tr("Error!"), tr("One or more Attribute questions is blank.\n"
+                                                     "The survey has NOT been created."));
+        return;
+    }
+
+    if(std::any_of(survey->questions.constBegin(), survey->questions.constEnd(),
+                   [](const Question &question){return (((question.type == Question::QuestionType::dropdown) ||
+                                                         (question.type == Question::QuestionType::radiobutton) ||
+                                                         (question.type == Question::QuestionType::checkbox)) &&
+                                                         (question.options.size() <= 1));}))
+    {
+        QMessageBox::critical(this, tr("Error!"), tr("One or more Attribute questions has no response options.\n"
                                                      "The survey has NOT been created."));
         return;
     }
 
     generateSurvey(this);
-}
-
-void SurveyMaker::postGoogleURL(SurveyMaker *surveyMaker)
-{
-    //make sure we can connect to google
-    auto *manager = new QNetworkAccessManager(surveyMaker);
-    QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    bool weGotProblems = (networkReply->bytesAvailable() == 0);
-    delete manager;
-
-    if(weGotProblems)
-    {
-        QMessageBox::critical(surveyMaker, tr("Error!"), tr("There does not seem to be an internet connection.\n"
-                                                       "Check your network connection and try again.\n"
-                                                       "The survey has NOT been created."));
-        return;
-    }
-
-    //generate Google URL
-    QString URL = GOOGLEFORMCREATORSCRIPT_URL;
-    URL += "title=" + QUrl::toPercentEncoding(surveyMaker->ui->surveyTitleLineEdit->text()) + "&";
-    URL += "gend=" + QString(surveyMaker->gender? "true" : "false") + "&";
-    URL += "gentype=" + QString::number(static_cast<int>(surveyMaker->genderType)) + "&";
-    URL += "urm=" + QString(surveyMaker->URM? "true" : "false") + "&";
-    URL += "numattr=" + QString::number(surveyMaker->numAttributes) + "&";
-    QString allAttributeTexts;
-    for(int attrib = 0; attrib < surveyMaker->numAttributes; attrib++)
-    {
-        if(attrib != 0)
-        {
-            allAttributeTexts += ",";
-        }
-
-        if(!(surveyMaker->attributeTexts[attrib].isEmpty()))
-        {
-            allAttributeTexts += QUrl::toPercentEncoding(surveyMaker->attributeTexts[attrib]);
-        }
-        else
-        {
-            allAttributeTexts += QUrl::toPercentEncoding(tr("Question ") + QString::number(attrib+1));
-        }
-    }
-    URL += "attrtext=" + allAttributeTexts + "&";
-    QString allAttributeResponses;
-    for(int attrib = 0; attrib < surveyMaker->numAttributes; attrib++)
-    {
-        if(attrib != 0)
-        {
-            allAttributeResponses += ",";
-        }
-        allAttributeResponses += QString::number(surveyMaker->attributeResponses[attrib]);
-    }
-    URL += "attrresps=" + allAttributeResponses + "&";
-    QString allAttributeMultAllowed;
-    for(int attrib = 0; attrib < surveyMaker->numAttributes; attrib++)
-    {
-        if(attrib != 0)
-        {
-            allAttributeMultAllowed += ",";
-        }
-        allAttributeMultAllowed += ((surveyMaker->attributeAllowMultipleResponses[attrib])? "true" : "false");
-    }
-    URL += "attrmulti=" + allAttributeMultAllowed + "&";
-    URL += "sched=" + QString(surveyMaker->schedule? "true" : "false") + "&";
-    URL += "tzone=" + QString((surveyMaker->timezone && surveyMaker->schedule)? "true" : "false") + "&";
-    URL += "bzone=" + surveyMaker->baseTimezone + "&";
-    URL += "busy=" + QString((surveyMaker->busyOrFree == busy)? "true" : "false") + "&";
-    URL += "start=" + QString::number(surveyMaker->startTime) + "&end=" + QString::number(surveyMaker->endTime);
-    QString allDayNames;
-    bool firstDay = true;
-    for(const auto & dayName : qAsConst(surveyMaker->dayNames))
-    {
-        if(!(dayName.isEmpty()))
-        {
-            if(!firstDay)
-            {
-                allDayNames += ",";
-            }
-            allDayNames += QUrl::toPercentEncoding(dayName);
-            firstDay = false;
-        }
-    }
-    URL += "&days=" + allDayNames + "&";
-    URL += "sect=" + QString(surveyMaker->section? "true" : "false") + "&";
-    QString allSectionNames;
-    if(surveyMaker->section)
-    {
-        for(int sect = 0; sect < surveyMaker->sectionNames.size(); sect++)
-        {
-            if(sect != 0)
-            {
-                allSectionNames += ",";
-            }
-            allSectionNames += QUrl::toPercentEncoding(surveyMaker->sectionNames.at(sect));
-        }
-    }
-    URL += "sects=" + allSectionNames + "&";
-    URL += "prefmate=" + QString(surveyMaker->preferredTeammates? "true" : "false") + "&";
-    URL += "prefnon=" + QString(surveyMaker->preferredNonTeammates? "true" : "false") + "&";
-    URL += "numprefs=" + QString::number(surveyMaker->numPreferredAllowed) + "&";
-    URL += "addl=" + QString(surveyMaker->additionalQuestions? "true" : "false");
-    //qDebug() << URL;
-
-    //upload to Google
-    QMessageBox createSurvey;
-    createSurvey.setIcon(QMessageBox::Information);
-    createSurvey.setWindowTitle(tr("Survey Creation"));
-    createSurvey.setText(tr("The next step will open a browser window and connect to Google.\n\n"
-                            "  » You may be asked first to log in to Google and/or authorize gruepr to access your Google Drive. "
-                            "This authorization is needed so that the Google Form and the results spreadsheet can be created for you.\n\n"
-                            "  » The survey, the survey responses, and all data associated with this survey will exist in your Google Drive. "
-                            "No data from this survey is stored or sent anywhere else.\n\n"
-                            "  » The survey creation process will take 10 - 20 seconds. During this time, the browser window will be blank. "
-                            "A screen with additional information will be shown in your browser window as soon as the process is complete."));
-    createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-    if(createSurvey.exec() == QMessageBox::Ok)
-    {
-        QDesktopServices::openUrl(QUrl(URL));
-        surveyMaker->surveyCreated = true;
-    }
 }
 
 void SurveyMaker::createFiles(SurveyMaker *surveyMaker)
@@ -684,21 +583,109 @@ void SurveyMaker::createFiles(SurveyMaker *surveyMaker)
     surveyMaker->surveyCreated = true;
 }
 
+void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
+{
+    if(!internetIsGood())
+    {
+        return;
+    }
+
+    //create googleHandler and/or authenticate as needed
+    if(surveyMaker->google == nullptr)
+    {
+        surveyMaker->google = new GoogleHandler();
+    }
+    if(!surveyMaker->google->authenticated)
+    {
+        auto *loginDialog = new QMessageBox(surveyMaker);
+        QPixmap icon(":/icons/google.png");
+        loginDialog->setIconPixmap(icon.scaled(40,40));
+        loginDialog->setText(tr("The next step will open a browser window so you can log in to Google.\n\n"
+                                "  » Your computer may ask whether gruepr can access the network. "
+                                "This access is needed so that gruepr and Google can communicate.\n\n"
+                                "  » In the browser, Google may ask whether you authorize gruepr to do 3 things: (1) create Google Forms, (2) create Google Sheets, and (3) access your Google Drive. "
+                                "All 3 authorizations are needed so that the survey Form and the results Sheet can be created and saved in your Drive.\n\n"
+                                "  » All data associated with this survey, including the questions asked and responses received, will exist in your Google Drive only. "
+                                "No data from or about this survey will ever be stored or sent anywhere else."));
+        loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        if(loginDialog->exec() == QMessageBox::Cancel)
+        {
+            delete loginDialog;
+            return;
+        }
+
+        surveyMaker->google->authenticate();
+
+        loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
+        loginDialog->setStandardButtons(QMessageBox::Cancel);
+        connect(surveyMaker->google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
+        if(loginDialog->exec() == QMessageBox::Cancel)
+        {
+            delete loginDialog;
+            return;
+        }
+        delete loginDialog;
+    }
+
+    //upload the survey as a form then, if successful, finalize the form by sending to the finalize script
+    auto *busyBox = surveyMaker->google->busy();
+    QStringList URLs;
+    auto form = surveyMaker->google->createSurvey(surveyMaker->survey);
+    if(!form.name.isEmpty()) {
+        URLs = surveyMaker->google->sendSurveyToFinalizeScript(form);
+    }
+    busyBox->hide();
+
+    QPixmap icon;
+    if(URLs.isEmpty()) {
+        busyBox->setText(tr("Error. The survey was not created."));
+        icon.load(":/icons/delete.png");
+    }
+    else {
+        // append this survey to the saved values
+        QSettings settings;
+        int currentArraySize = settings.beginReadArray("GoogleForm");
+        settings.endArray();
+        settings.beginWriteArray("GoogleForm");
+        settings.setArrayIndex(currentArraySize);
+        settings.setValue("name", form.name);
+        settings.setValue("ID", form.ID);
+        settings.setValue("createdTime", form.createdTime);
+        settings.setValue("downloadURL", URLs.at(2));
+        settings.endArray();
+
+        // add the URL to fill out the form to the clipboard
+        QClipboard *clipboard = QGuiApplication::clipboard();
+        clipboard->setText(URLs.at(1));
+
+        busyBox->setTextFormat(Qt::RichText);
+        busyBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        QApplication::restoreOverrideCursor();
+        busyBox->setText(tr("Success! Survey created in your Google Drive.<br>"
+                            "If you'd like to view or edit the survey, you can <a href='") + URLs.at(0) + tr("'>click here</a>.<br>"
+                            "If you wish, you can modify:<br>"
+                            "  » the survey title<br>"
+                            "  » the instructions shown at the top of the survey<br>"
+                            "  » the \"description text\" shown with any of the questions<br>"
+                            "Changing the wording of a question or the order of the questions is not recommended.<br><br>"
+                            "Students should fill out the survey by going to:<br><br>") +
+                            URLs.at(1) +
+                            tr("<br><br>This URL has been copied to your clipboard and should now be pasted elsewhere to save."));
+        icon.load(":/icons/ok.png");
+    }
+    QSize iconSize = busyBox->iconPixmap().size();
+    busyBox->setIconPixmap(icon.scaled(iconSize));
+    busyBox->setStandardButtons(QMessageBox::Ok);
+    busyBox->exec();
+    surveyMaker->google->notBusy(busyBox);
+
+    surveyMaker->surveyCreated = true;
+}
+
 void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
 {
-    //make sure we can connect to google
-    auto *manager = new QNetworkAccessManager(surveyMaker);
-    QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    bool weGotProblems = (networkReply->bytesAvailable() == 0);
-    delete manager;
-    if(weGotProblems)
+    if(!internetIsGood())
     {
-        QMessageBox::critical(surveyMaker, tr("Error!"), tr("There does not seem to be an internet connection.\n"
-                                                            "Check your network connection and try again.\n"
-                                                            "The survey has NOT been created."));
         return;
     }
 
@@ -709,18 +696,19 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     }
     if(!surveyMaker->canvas->authenticated)
     {
+        //IN BETA--GETS USER'S API TOKEM MANUALLY
         QSettings savedSettings;
         QString savedCanvasURL = savedSettings.value("canvasURL").toString();
         QString savedCanvasToken = savedSettings.value("canvasToken").toString();
 
         QStringList newURLAndToken = surveyMaker->canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
-
         if(newURLAndToken.isEmpty())
         {
             return;
         }
-        savedCanvasURL = newURLAndToken.at(0);
-        savedCanvasToken = newURLAndToken.at(1);
+
+        savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
+        savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
         savedSettings.setValue("canvasURL", savedCanvasURL);
         savedSettings.setValue("canvasToken", savedCanvasToken);
 
@@ -732,7 +720,11 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     auto *busyBox = surveyMaker->canvas->busy();
     QStringList courseNames = surveyMaker->canvas->getCourses();
     surveyMaker->canvas->notBusy(busyBox);
-    auto *canvasCourses = new QDialog;
+
+    auto *canvasCourses = new QDialog(surveyMaker);
+    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
+    canvasCourses->setWindowIcon(QIcon(":/icons/canvas.png"));
+    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
     auto *label = new QLabel(tr("In which course should this survey be created?"));
@@ -751,24 +743,37 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
     if((canvasCourses->exec() == QDialog::Rejected))
     {
+        delete canvasCourses;
         return;
     }
 
     //upload the survey as a quiz
     busyBox = surveyMaker->canvas->busy();
-    QSize iconSize = busyBox->iconPixmap().size();
     QPixmap icon;
     if(surveyMaker->canvas->createSurvey(coursesComboBox->currentText(), surveyMaker->survey)) {
-        busyBox->setText(tr("Success! Survey created."));
+        busyBox->hide();
+        busyBox->setTextFormat(Qt::RichText);
+        busyBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        QApplication::restoreOverrideCursor();
+        busyBox->setText(tr("Success! Survey created in your Canvas course.<br>"
+                            "If you'd like to preview or edit the survey, you can find it under the \"Quizzes\" navigation item in your course Canvas site.<br>"
+                            "If you wish, you can modify:<br>"
+                            "  » the survey title<br>"
+                            "  » the Quiz Instructions shown at the start of the survey<br>"
+                            "Changing the wording of a question or the order of the questions is not recommended.<br><br>"
+                            "<strong>The survey is currently \"Unpublished\".</strong><br>"
+                            "When you are ready for students to fill out the survey, you must log in to your course Canvas site and \"Publish\" it."));
         icon.load(":/icons/ok.png");
     }
     else {
+        busyBox->hide();
         busyBox->setText(tr("Error. The survey was not created."));
         icon.load(":/icons/delete.png");
     }
+    QSize iconSize = busyBox->iconPixmap().size();
     busyBox->setIconPixmap(icon.scaled(iconSize));
-    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
-    loop.exec();
+    busyBox->setStandardButtons(QMessageBox::Ok);
+    busyBox->exec();
     surveyMaker->canvas->notBusy(busyBox);
 
     delete canvasCourses;
@@ -781,7 +786,7 @@ void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg
     if(arg1 == "Google form")
     {
         ui->makeSurveyButton->setToolTip("<html>Upload the survey to your Google Drive.</html>");
-        generateSurvey = &SurveyMaker::postGoogleURL;
+        generateSurvey = &SurveyMaker::createGoogleForm;
     }
     else if(arg1 == "text files")
     {
@@ -925,7 +930,7 @@ void SurveyMaker::attributeTabClose(int index)
 
         auto *attributeTab = new attributeTabItem(attributeTabItem::surveyMaker, MAX_ATTRIBUTES-1, this);
         connect(attributeTab->attributeText, &QTextEdit::textChanged, this, &SurveyMaker::attributeTextChanged);
-        connect(attributeTab->attributeResponses, QOverload<int>::of(&ComboBoxWithElidedContents::currentIndexChanged), this, &SurveyMaker::buildSurvey);
+        connect(attributeTab->attributeResponses, QOverload<int>::of(&QComboBox::activated), this, &SurveyMaker::attributeResponseChanged);
         connect(attributeTab->allowMultipleResponses, &QCheckBox::toggled, this, &SurveyMaker::buildSurvey);
         connect(attributeTab, &attributeTabItem::closeRequested, this, &SurveyMaker::attributeTabClose);
 
@@ -978,6 +983,58 @@ void SurveyMaker::attributeTextChanged()
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, attribute questions may not containt the exact wording:\n"
                                                           "\"In which section are you enrolled\"\nwithin the question text.\n"
                                                           "A section question may be added using the \"Section\" checkbox."));
+    }
+
+    buildSurvey();
+}
+
+void SurveyMaker::attributeResponseChanged()
+{
+    static int prevIndex = 0;
+    static QStringList currentCustomOptions;
+    const int currAttribute = ui->attributesTabWidget->currentIndex();
+    //see if custom options being enabled
+    auto *attribTab = qobject_cast<attributeTabItem *>(ui->attributesTabWidget->widget(currAttribute));
+    auto &responseComboBox = attribTab->attributeResponses;
+    if(responseComboBox->currentText() == tr("Custom options..."))
+    {
+        auto *window = new customResponseOptionsDialog(currentCustomOptions, this);
+
+        // If user clicks OK, use these options
+        int reply = window->exec();
+        if(reply == QDialog::Accepted)
+        {
+            prevIndex = responseComboBox->currentIndex();
+            bool currentValue = responseComboBox->blockSignals(true);
+            responseComboBox->setItemText(responseOptions.size(), tr("Current options"));
+            currentCustomOptions = window->options;
+            responseComboBox->setItemData(responseOptions.size(), currentCustomOptions);
+
+            responseComboBox->removeItem(responseOptions.size()+1);
+            responseComboBox->addItem(tr("Custom options..."));
+            responseComboBox->blockSignals(currentValue);
+        }
+        else
+        {
+            bool currentValue = responseComboBox->blockSignals(true);
+            responseComboBox->setCurrentIndex(prevIndex);
+            responseComboBox->blockSignals(currentValue);
+        }
+
+        delete window;
+    }
+    else
+    {
+        currentCustomOptions = responseComboBox->currentData().toStringList();
+        prevIndex = responseComboBox->currentIndex();
+    }
+
+    // Put list of options back to just built-ins plus "Custom options"
+    if(responseComboBox->currentIndex() < responseOptions.size())
+    {
+        responseComboBox->removeItem(responseOptions.size()+1);
+        responseComboBox->removeItem(responseOptions.size());
+        responseComboBox->addItem(tr("Custom options..."));
     }
 
     buildSurvey();

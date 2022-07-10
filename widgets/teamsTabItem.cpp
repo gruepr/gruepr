@@ -164,7 +164,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     }
     teamnamesComboBox = new QComboBox(this);
     teamnamesComboBox->addItems(teamnameCategories);
-    teamnamesComboBox->addItem(tr("Custom names"));
+    teamnamesComboBox->addItem(tr("Custom names..."));
     teamnamesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     teamnamesComboBox->setCurrentIndex(0);
     teamnamesComboBox->setToolTip(tr("Change the team names"));
@@ -250,7 +250,7 @@ void TeamsTabItem::teamNamesChanged(int index)
     if(index != prevIndex)      // reset the randomize teamnames checkbox if we just moved to a new index
     {
         randTeamnamesCheckBox->setChecked(false);
-        randTeamnamesCheckBox->setEnabled(index > 7 && index < teamnameLists.size());
+        randTeamnamesCheckBox->setEnabled(index > 3 && index < teamnameLists.size());
     }
 
     // Get team numbers in the order that they are currently displayed/sorted
@@ -296,7 +296,7 @@ void TeamsTabItem::teamNamesChanged(int index)
         {
             teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
         }
-        prevIndex = 2;
+        prevIndex = 3;
     }
     else if(index < teamnameLists.size())
     {
@@ -370,25 +370,26 @@ void TeamsTabItem::teamNamesChanged(int index)
             teamnamesComboBox->setCurrentIndex(prevIndex);
             teamnamesComboBox->setItemText(teamnameLists.size(), tr("Current names"));
             teamnamesComboBox->removeItem(teamnameLists.size()+1);
-            teamnamesComboBox->addItem(tr("Custom names"));
+            teamnamesComboBox->addItem(tr("Custom names..."));
             teamnamesComboBox->blockSignals(currentValue);
         }
         else
         {
             bool currentValue = teamnamesComboBox->blockSignals(true);
             teamnamesComboBox->setCurrentIndex(prevIndex);
+            randTeamnamesCheckBox->setEnabled(prevIndex > 3 && prevIndex < teamnameLists.size());
             teamnamesComboBox->blockSignals(currentValue);
         }
 
         delete window;
     }
 
-    // Put list of options back to just built-ins plus "Custom names"
+    // Put list of options back to just built-ins plus "Custom names..."
     if(teamnamesComboBox->currentIndex() < teamnameLists.size())
     {
         teamnamesComboBox->removeItem(teamnameLists.size()+1);
         teamnamesComboBox->removeItem(teamnameLists.size());
-        teamnamesComboBox->addItem(tr("Custom names"));
+        teamnamesComboBox->addItem(tr("Custom names..."));
     }
 
     // Update team names in table and tooltips
@@ -932,21 +933,8 @@ void TeamsTabItem::saveTeams()
 
 void TeamsTabItem::postTeamsToCanvas()
 {
-
-    //make sure we can connect to google
-    auto *manager = new QNetworkAccessManager(this);
-    QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-    connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    bool weGotProblems = (networkReply->bytesAvailable() == 0);
-    delete manager;
-
-    if(weGotProblems)
+    if(!internetIsGood())
     {
-        QMessageBox::critical(this, tr("Error!"), tr("There does not seem to be an internet connection.\n"
-                                                     "Check your network connection and try again.\n"
-                                                     "The survey has NOT been created."));
         return;
     }
 
@@ -962,13 +950,13 @@ void TeamsTabItem::postTeamsToCanvas()
         QString savedCanvasToken = savedSettings.value("canvasToken").toString();
 
         QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken, this);
-
         if(newURLAndToken.isEmpty())
         {
             return;
         }
-        savedCanvasURL = newURLAndToken.at(0);
-        savedCanvasToken = newURLAndToken.at(1);
+
+        savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
+        savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
         savedSettings.setValue("canvasURL", savedCanvasURL);
         savedSettings.setValue("canvasToken", savedCanvasToken);
 
@@ -981,6 +969,9 @@ void TeamsTabItem::postTeamsToCanvas()
     QStringList courseNames = canvas->getCourses();
     canvas->notBusy(busyBox);
     auto *canvasCourses = new QDialog;
+    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
+    canvasCourses->setWindowIcon(QIcon(":/icons/canvas.png"));
+    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
     auto *label = new QLabel(tr("In which course should these teams be created?"));
@@ -1034,6 +1025,7 @@ void TeamsTabItem::postTeamsToCanvas()
     busyBox = canvas->busy();
     QSize iconSize = busyBox->iconPixmap().size();
     QPixmap icon;
+    QEventLoop loop;
     if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters))
     {
         busyBox->setText(tr("Success!"));

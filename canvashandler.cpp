@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
+#include <QIcon>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
@@ -10,11 +11,12 @@
 #include <QVBoxLayout>
 
 CanvasHandler::CanvasHandler(const QString &authenticateURL, const QString &accessTokenURL, const QString &baseAPIURL) {
-    baseURL = baseAPIURL;
 
     manager = new QNetworkAccessManager;
     canvas = new QOAuth2AuthorizationCodeFlow(authenticateURL, accessTokenURL, manager, this);
     canvas->networkAccessManager()->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+
+    baseURL = baseAPIURL;
 
     canvasCourses.clear();
     roster.clear();
@@ -328,20 +330,20 @@ QStringList CanvasHandler::getQuizList(const QString &courseName) {
     return titles;
 }
 
-bool CanvasHandler::downloadQuizResult(const QString &courseName, const QString &quizName) {
+QString CanvasHandler::downloadQuizResult(const QString &courseName, const QString &quizName) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
-        return false;
+        return {};
     }
 
     int quizID = getQuizID(quizName);
     if(quizID == -1) {
-        return false;
+        return {};
     }
 
     QUrl URL = getQuizResultsURL(courseID, quizID);
     if(URL.isEmpty()) {
-        return false;
+        return {};
     }
 
     // wait until the results file is ready
@@ -367,7 +369,7 @@ bool CanvasHandler::downloadQuizResult(const QString &courseName, const QString 
         loop.exec();
     }
 
-    return true;
+    return filepath.absoluteFilePath();
 }
 
 
@@ -598,7 +600,7 @@ void CanvasHandler::authenticate() {
     canvas->setReplyHandler(replyHandler);
 
     canvas->grant();
-    authenticated = true;
+    connect(canvas, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){emit granted(); authenticated = true;});
 }
 
 // For testing: sets token manually
@@ -609,6 +611,9 @@ void CanvasHandler::authenticate(const QString &token) {
 
 QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, const QString &currentToken, QWidget *parent) {
     auto *getCanvasInfoDialog = new QDialog(parent);
+    getCanvasInfoDialog->setWindowTitle(tr("Connect to Canvas"));
+    getCanvasInfoDialog->setWindowIcon(QIcon(":/icons/canvas.png"));
+    getCanvasInfoDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("The next step will download the roster from your Canvas course. This feature is currently in beta.\n"
                             "You will only have to perform the following steps once.\n\n"
@@ -635,11 +640,11 @@ QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, cons
     vLayout->addWidget(buttonBox);
     getCanvasInfoDialog->setLayout(vLayout);
 
-    if(getCanvasInfoDialog->exec() == QDialog::Rejected || (canvasToken->text().isEmpty() && canvasURL->text().isEmpty()))
+    if(getCanvasInfoDialog->exec() == QDialog::Rejected)
     {
         return {};
     }
-    return {canvasToken->text(), canvasURL->text()};
+    return {canvasURL->text(), canvasToken->text()};
 }
 
 void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
