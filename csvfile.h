@@ -24,11 +24,15 @@ public:
 
     CsvFile(Delimiter dlmtr = comma, QObject *parent = nullptr);
     ~CsvFile();
+    CsvFile(const CsvFile&) = delete;
+    CsvFile operator= (const CsvFile&) = delete;
+    CsvFile(CsvFile&&) = delete;
+    CsvFile& operator= (CsvFile&&) = delete;
 
     enum Operation {read, write};
     bool open(QWidget *parent = nullptr, Operation operation = read, const QString &caption = tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
-    bool openKnownFile(const QString &filepath);
+    bool openExistingFile(const QString &filepath);
     QFileInfo fileInfo();
     void close();
     bool readHeader();

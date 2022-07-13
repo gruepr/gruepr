@@ -46,6 +46,9 @@ public:
     QStringList getQuizList(const QString &courseName);
     QString downloadQuizResult(const QString &courseName, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
 
+    inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};
+    inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on ")};
+
 signals:
     void granted();
 
@@ -73,8 +76,6 @@ private:
     inline static const QSize CANVASICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 20000;   //msec
-    inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};
-    inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on ")};
     inline static const int NUM_PAGES_TO_LOAD = 20;
     inline static const QString CLIENT_ID{""};
     inline static const QString CLIENT_SECRET{""};

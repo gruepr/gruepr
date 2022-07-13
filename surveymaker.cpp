@@ -70,7 +70,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::buildSurvey);
     connect(ui->additionalQuestionsCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
 
-    //Create RegEx for punctuation not allowed within a URL (can remove if/when changing the form data upload to be a POST instead of GET
+    //Create RegEx for punctuation not allowed within a URL
     noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"), this);
 
     //put timezones into combobox
@@ -152,6 +152,7 @@ SurveyMaker::~SurveyMaker()
 {
     delete canvas;
     delete google;
+    delete noInvalidPunctuation;
     delete survey;
     delete ui;
 }
@@ -599,15 +600,24 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
     {
         auto *loginDialog = new QMessageBox(surveyMaker);
         QPixmap icon(":/icons/google.png");
-        loginDialog->setIconPixmap(icon.scaled(40,40));
-        loginDialog->setText(tr("The next step will open a browser window so you can log in to Google.\n\n"
+        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
+        loginDialog->setText(tr("The next step will open a browser window so you can sign in with Google.\n\n"
                                 "  » Your computer may ask whether gruepr can access the network. "
                                 "This access is needed so that gruepr and Google can communicate.\n\n"
-                                "  » In the browser, Google may ask whether you authorize gruepr to do 3 things: (1) create Google Forms, (2) create Google Sheets, and (3) access your Google Drive. "
+                                "  » In the browser, Google may ask whether you authorize gruepr to do 3 things: (1) create a Google Form, (2) create a Google Sheet, and (3) access these files on your Google Drive. "
                                 "All 3 authorizations are needed so that the survey Form and the results Sheet can be created and saved in your Drive.\n\n"
                                 "  » All data associated with this survey, including the questions asked and responses received, will exist in your Google Drive only. "
                                 "No data from or about this survey will ever be stored or sent anywhere else."));
         loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        auto *okButton = loginDialog->button(QMessageBox::Ok);
+        int height = okButton->height();
+        okButton->setText("");
+        QPixmap loginpic(":/icons/google_signin_button.png");
+        loginpic = loginpic.scaledToHeight(2*height, Qt::SmoothTransformation);
+        okButton->setIconSize(loginpic.rect().size());
+        okButton->setIcon(loginpic);
+        okButton->adjustSize();
+        loginDialog->button(QMessageBox::Cancel)->setMinimumSize(0, okButton->height());
         if(loginDialog->exec() == QMessageBox::Cancel)
         {
             delete loginDialog;
@@ -1004,9 +1014,9 @@ void SurveyMaker::attributeResponseChanged()
         int reply = window->exec();
         if(reply == QDialog::Accepted)
         {
-            prevIndex = responseComboBox->currentIndex();
             bool currentValue = responseComboBox->blockSignals(true);
             responseComboBox->setItemText(responseOptions.size(), tr("Current options"));
+            prevIndex = responseOptions.size();
             currentCustomOptions = window->options;
             responseComboBox->setItemData(responseOptions.size(), currentCustomOptions);
 
@@ -1260,6 +1270,18 @@ void SurveyMaker::openSurvey()
                      attributeAllowMultipleResponses[attribute] = loadObject["Attribute" + QString::number(attribute+1)+"AllowMultiResponse"].toBool();
                      attribTab->allowMultipleResponses->setChecked(attributeAllowMultipleResponses[attribute]);
                 }
+                if(loadObject.contains("Attribute" + QString::number(attribute+1)+"Options") &&
+                        loadObject["Attribute" + QString::number(attribute+1)+"Options"].isString())
+                {
+                     QStringList options = loadObject["Attribute" + QString::number(attribute+1)+"Options"].toString().split('/');
+                     auto &responseComboBox = attribTab->attributeResponses;
+
+                     responseComboBox->setItemText(responseOptions.size(), tr("Current options"));
+                     responseComboBox->setItemData(responseOptions.size(), options);
+
+                     responseComboBox->removeItem(responseOptions.size()+1);
+                     responseComboBox->addItem(tr("Custom options..."));
+                }
             }
             // show first attribute question
             ui->attributesTabWidget->setCurrentIndex(0);
@@ -1369,12 +1391,18 @@ void SurveyMaker::saveSurvey()
             saveObject["Gender"] = gender;
             saveObject["GenderType"] = static_cast<int>(genderType);
             saveObject["URM"] = URM;
-            saveObject["numAttributes"] = numAttributes;
-            for(int attribute = 0; attribute < numAttributes; attribute++)
+            const int numRealAttributes = numAttributes - ((timezone && !schedule) ? 1 : 0);
+            saveObject["numAttributes"] = numRealAttributes;
+            for(int attribute = 0; attribute < numRealAttributes; attribute++)
             {
                 saveObject["Attribute" + QString::number(attribute+1)+"Question"] = attributeTexts[attribute];
                 saveObject["Attribute" + QString::number(attribute+1)+"Response"] = attributeResponses[attribute];
                 saveObject["Attribute" + QString::number(attribute+1)+"AllowMultiResponse"] = attributeAllowMultipleResponses[attribute];
+                if(attributeResponses[attribute] == (responseOptions.size()-1)) // custom options being used
+                {
+                    auto *attribTab = qobject_cast<attributeTabItem*>(ui->attributesTabWidget->widget(attribute));
+                    saveObject["Attribute" + QString::number(attribute+1)+"Options"] = attribTab->attributeResponses->currentData().toStringList().join('/');
+                }
             }
             saveObject["Schedule"] = schedule;
             saveObject["ScheduleAsBusy"] = (busyOrFree == busy);

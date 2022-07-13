@@ -56,16 +56,6 @@ win32: LIBS += -L"C:\msys64\home\jhertz\openssl-1.1.1d\dist\bin"
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
 macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
-# static builds
-QTPREFIX=$$[QT_INSTALL_PREFIX]
-equals(QTPREFIX, "C:/Qt/5.15.2/mingw81_64_static"){
-    message("--STATIC BUILD--")
-    CONFIG += qt static
-    QMAKE_LFLAGS += -static-libgcc -static-libstdc++
-} else {
-    message("--NON-STATIC BUILD--")
-}
-
 SOURCES += \
         Levenshtein.cpp \
         boxwhiskerplot.cpp \

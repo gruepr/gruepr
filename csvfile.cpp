@@ -113,7 +113,7 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
 }
 
 
-bool CsvFile::openKnownFile(const QString &filepath)
+bool CsvFile::openExistingFile(const QString &filepath)
 {
     file = nullptr;
     stream = nullptr;

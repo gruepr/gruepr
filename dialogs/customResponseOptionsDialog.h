@@ -23,12 +23,14 @@ private slots:
     void clearAll();
 
 private:
-    bool allFilled();
+    inline bool allFilled();
 
     QLabel numOptionsLabel;
     QSpinBox numOptionsBox;
     QLineEdit *optionLineEdit;
     QLabel numberingReminderLabel;
+
+    QRegularExpressionValidator *noInvalidPunctuation;
 
     inline const static int MAXRESPONSEOPTIONS = 100;
 };

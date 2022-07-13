@@ -225,9 +225,18 @@ void gruepr::downloadSurveyFromGoogle()
     {
         auto *loginDialog = new QMessageBox(this);
         QPixmap icon(":/icons/google.png");
-        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE));
-        loginDialog->setText(tr("The next step will open a browser window so you can log in to Google."));
+        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
+        loginDialog->setText(tr("The next step will open a browser window so you can sign in with Google."));
         loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        auto *okButton = loginDialog->button(QMessageBox::Ok);
+        int height = okButton->height();
+        okButton->setText("");
+        QPixmap loginpic(":/icons/google_signin_button.png");
+        loginpic = loginpic.scaledToHeight(2*height, Qt::SmoothTransformation);
+        okButton->setIconSize(loginpic.rect().size());
+        okButton->setIcon(loginpic);
+        okButton->adjustSize();
+        loginDialog->button(QMessageBox::Cancel)->setMinimumSize(0, okButton->height());
         if(loginDialog->exec() == QMessageBox::Cancel)
         {
             delete loginDialog;
@@ -300,7 +309,7 @@ void gruepr::downloadSurveyFromGoogle()
 
     //open the downloaded file
     CsvFile surveyFile;
-    if(!surveyFile.openKnownFile(filepath))
+    if(!surveyFile.openExistingFile(filepath))
     {
         return;
     }
@@ -421,14 +430,14 @@ void gruepr::downloadSurveyFromCanvas()
 
     //open the downloaded file
     CsvFile surveyFile;
-    if(!surveyFile.openKnownFile(filepath))
+    if(!surveyFile.openExistingFile(filepath))
     {
         return;
     }
 
     // Only include the timestamp question ("submitted") and then the questions we've asked, which will all begin with (possibly a quotation mark then) an integer then a colon then a space.
-    // (Also ignore the text "question" which the notifier that several schedule questions are coming up).
-    surveyFile.fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", R"(.*questions ask about your schedule on.*)"};
+    // (Also ignore the text "question" which serves as the text notifier that several schedule questions are coming up).
+    surveyFile.fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", ".*" + canvas->SCHEDULEQUESTIONINTRO2.trimmed() + ".*"};
 
     loadSurvey(surveyFile);
 }
@@ -2955,19 +2964,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         QMessageBox::warning(this, tr("Reached maximum number of students."),
                                    tr("The maximum number of students have been read from the file."
                                       " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
-    }
-    else if(numStudents < 2) //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    {
-        QMessageBox::critical(this, tr("Insufficient number of students."),
-                                    tr("There are not enough survey responses in the file."
-                                       " There must be at least 4 students for gruepr to work properly."), QMessageBox::Ok);
-        //reset the data
-        delete[] student;
-        student = new StudentRecord[MAX_STUDENTS];
-        dataOptions->reset();
-
-        surveyFile.close();
-        return false;
     }
 
     // Set the attribute question options and numerical values for each student

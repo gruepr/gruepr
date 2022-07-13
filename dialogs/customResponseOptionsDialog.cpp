@@ -1,6 +1,7 @@
 #include "customResponseOptionsDialog.h"
 #include "gruepr_globals.h"
 #include <QHeaderView>
+#include <QMessageBox>
 #include <QPushButton>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -13,6 +14,8 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     optionLineEdit = new QLineEdit[MAXRESPONSEOPTIONS];
 
     setMinimumSize(XS_DLG_SIZE, XS_DLG_SIZE);
+
+    noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"), this);
 
     //Rows 1&2 - the number of teams selector and a spacer
     numOptionsLabel.setText(tr("Number of response options: "));
@@ -61,6 +64,7 @@ customResponseOptionsDialog::~customResponseOptionsDialog()
 {
     //delete dynamically allocated arrays created in class constructor
     delete [] optionLineEdit;
+    delete noInvalidPunctuation;
 }
 
 
@@ -101,7 +105,18 @@ void customResponseOptionsDialog::optionChanged()
     options.reserve(numOptions);
     for(int i = 0; i < numOptions; i++)
     {
-        options << optionLineEdit[i].text().trimmed();
+        QString currText = optionLineEdit[i].text();
+        int currPos = 0;
+        if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
+        {
+            QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
+                                                              "    ,  &  <  > / \n"
+                                                              "Other punctuation is allowed."));
+
+            optionLineEdit[i].setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
+        }
+
+        options << currText.trimmed();
     }
 
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(allFilled());
@@ -124,14 +139,5 @@ void customResponseOptionsDialog::clearAll()
 
 bool customResponseOptionsDialog::allFilled()
 {
-    // see if all options have values filled in
-    bool allFilled = true;
-    for(int i = 0; i < MAXRESPONSEOPTIONS; i++)
-    {
-        if(i < numOptions)
-        {
-            allFilled = allFilled && !optionLineEdit[i].text().isEmpty();
-        }
-    }
-    return allFilled;
+    return std::all_of(optionLineEdit, optionLineEdit + numOptions, [](const QLineEdit &lineEdit){return !lineEdit.text().isEmpty();});
 }

@@ -159,11 +159,12 @@ QStringList GoogleHandler::sendSurveyToFinalizeScript(const GoogleForm &form){
     loop.exec();
 
     // expected data is all between the 2 __USERDATA__ signals
-    QStringList replybody = QString(reply->bytesAvailable() == 0 ? "" : reply->readAll()).split("__USERDATA__");
-    if(replybody.size() != 3) {
+    QString replybody = ((reply->bytesAvailable() == 0) ? "" : reply->readAll());
+    QStringList userData = replybody.split("__USERDATA__");
+    if(userData.size() != 3) {
         return {};
     }
-    QString data = replybody.at(1);
+    QString data = userData.at(1);
     data.replace(R"(\x3d)", R"(=)").replace(R"(\x26)", R"( )").replace(R"(\/)", R"(/)");
 
     QStringList urlsInReply = data.split(' ');
@@ -389,7 +390,10 @@ void GoogleHandler::authenticate(Permissions permissions) {
         google->setScope("https://www.googleapis.com/auth/drive.readonly");
     }
     else {
-        google->setScope("https://www.googleapis.com/auth/forms.body https://www.googleapis.com/auth/forms https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive");
+        google->setScope("https://www.googleapis.com/auth/forms.body "
+                         "https://www.googleapis.com/auth/forms "
+                         "https://www.googleapis.com/auth/spreadsheets "
+                         "https://www.googleapis.com/auth/drive.file");
     }
     QAbstractOAuth2::connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
 
@@ -411,7 +415,7 @@ void GoogleHandler::authenticate(Permissions permissions) {
     google->setReplyHandler(replyHandler);
 
     google->grant();
-    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){emit granted(); authenticated = true;});
+    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){emit granted(); authenticated = true;/*    qDebug() << google->refreshToken();*/});
 }
 
 QMessageBox* GoogleHandler::busy(QWidget *parent) {
