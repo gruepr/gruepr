@@ -610,14 +610,20 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
                                 "No data from or about this survey will ever be stored or sent anywhere else."));
         loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
         auto *okButton = loginDialog->button(QMessageBox::Ok);
+        auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
         int height = okButton->height();
-        okButton->setText("");
         QPixmap loginpic(":/icons/google_signin_button.png");
-        loginpic = loginpic.scaledToHeight(2*height, Qt::SmoothTransformation);
+        loginpic = loginpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+        okButton->setText("");
         okButton->setIconSize(loginpic.rect().size());
         okButton->setIcon(loginpic);
         okButton->adjustSize();
-        loginDialog->button(QMessageBox::Cancel)->setMinimumSize(0, okButton->height());
+        QPixmap cancelpic(":/icons/cancel_signin_button.png");
+        cancelpic = cancelpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+        cancelButton->setText("");
+        cancelButton->setIconSize(cancelpic.rect().size());
+        cancelButton->setIcon(cancelpic);
+        cancelButton->adjustSize();
         if(loginDialog->exec() == QMessageBox::Cancel)
         {
             delete loginDialog;

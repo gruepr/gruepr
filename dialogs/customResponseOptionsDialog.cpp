@@ -30,6 +30,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     //Row 3 - table of the option choices
     theTable->setRowCount(MAXRESPONSEOPTIONS);
     int widthCol0 = 0;
+    options.reserve(MAXRESPONSEOPTIONS);
     for(int i = 0; i < MAXRESPONSEOPTIONS; i++)
     {
         auto *label = new QLabel(tr("Option ") + QString::number(i+1) + " ");
