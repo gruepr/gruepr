@@ -84,7 +84,7 @@ attributeTabItem::attributeTabItem(TabType tabType, int tabNum, QWidget *parent)
         for(int response = 0; response < responseOptions.size(); response++)
         {
             attributeResponses->addItem(responseOptions.at(response));
-            specificOptions = responseOptions.at(response).split(('/'));
+            specificOptions = responseOptions.at(response).split('/');
             for(auto &specificOption : specificOptions)
             {
                 specificOption = specificOption.trimmed();

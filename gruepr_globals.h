@@ -272,7 +272,7 @@ const char TEAMNAMELISTS[]   {";"
                                  "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire"};
 
 const char VERSION_CHECK_URL[] {"https://api.github.com/repos/gruepr/gruepr/releases/latest"};
-const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwqGejEAumqgwpxDdXrV5CJS54gm_0N_du7BweU3wHG-XORT8g/exec"};
+const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwRyI2PjgSGjMWJbhoAZIcz4K0BVx3yvbISY6pCg6cV8NVshUw-F6s1Qjg5LLU_qa4H/exec"};
 const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
 const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issues"};
 bool internetIsGood();

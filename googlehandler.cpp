@@ -14,9 +14,13 @@ GoogleHandler::GoogleHandler() {
     manager = new QNetworkAccessManager;
     google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
     google->networkAccessManager()->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+    QSettings settings;
+    google->setRefreshToken(settings.value("GoogleRefreshToken", "").toString());
 }
 
 GoogleHandler::~GoogleHandler() {
+    QSettings settings;
+    settings.setValue("GoogleRefreshToken", google->refreshToken());
     delete manager;
     delete google;
 }
@@ -385,13 +389,12 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     reply->deleteLater();
 }
 
-void GoogleHandler::authenticate(Permissions permissions) {
+void GoogleHandler::authenticate(Permissions permissions) {    
     if(permissions == Permissions::readonly) {
         google->setScope("https://www.googleapis.com/auth/drive.readonly");
     }
     else {
-        google->setScope("https://www.googleapis.com/auth/forms.body "
-                         "https://www.googleapis.com/auth/forms "
+        google->setScope("https://www.googleapis.com/auth/forms "
                          "https://www.googleapis.com/auth/spreadsheets "
                          "https://www.googleapis.com/auth/drive.file");
     }
@@ -415,7 +418,7 @@ void GoogleHandler::authenticate(Permissions permissions) {
     google->setReplyHandler(replyHandler);
 
     google->grant();
-    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){emit granted(); authenticated = true;/*    qDebug() << google->refreshToken();*/});
+    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true; emit granted();});
 }
 
 QMessageBox* GoogleHandler::busy(QWidget *parent) {

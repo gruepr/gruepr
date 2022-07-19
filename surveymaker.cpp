@@ -677,7 +677,7 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
         busyBox->setTextFormat(Qt::RichText);
         busyBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
         QApplication::restoreOverrideCursor();
-        busyBox->setText(tr("Success! Survey created in your Google Drive.<br>"
+        busyBox->setText(tr("Success! Survey created in your Google Drive.<br><br>"
                             "If you'd like to view or edit the survey, you can <a href='") + URLs.at(0) + tr("'>click here</a>.<br>"
                             "If you wish, you can modify:<br>"
                             "  » the survey title<br>"
