@@ -417,8 +417,8 @@ void GoogleHandler::authenticate(Permissions permissions) {
     auto *replyHandler = new QOAuthHttpServerReplyHandler(port);
     google->setReplyHandler(replyHandler);
 
-    google->grant();
     connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true; emit granted();});
+    google->grant();
 }
 
 QMessageBox* GoogleHandler::busy(QWidget *parent) {

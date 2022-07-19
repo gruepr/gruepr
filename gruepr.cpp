@@ -2852,13 +2852,6 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex));
     }
 
-    if(!surveyFile.fieldMeanings.contains("Schedule") && !surveyFile.fieldMeanings.contains("Attribute"))
-    {
-        QMessageBox::critical(this, tr("File error."), tr("A survey file must contain at least one schedule question or one attribute question."), QMessageBox::Ok);
-        surveyFile.close();
-        return false;
-    }
-
     // read one line of data; if no data after header row then file is invalid
     if(!surveyFile.readDataRow())
     {
