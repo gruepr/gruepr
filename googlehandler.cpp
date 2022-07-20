@@ -10,17 +10,40 @@
 #include <QOAuthHttpServerReplyHandler>
 #include <QVBoxLayout>
 
-GoogleHandler::GoogleHandler() {
+GoogleHandler::GoogleHandler(Scope incomingScope) {
     manager = new QNetworkAccessManager;
     google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
     google->networkAccessManager()->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-    QSettings settings;
-    google->setRefreshToken(settings.value("GoogleRefreshToken", "").toString());
+
+    scope = incomingScope;
+
+    QString refreshToken;
+    if(scope == Scope::readonly) {
+        QSettings settings;
+        refreshToken = settings.value("GoogleReadOnlyScopeRefreshToken", "").toString();
+    }
+    else {
+        QSettings settings;
+        refreshToken = settings.value("GoogleWriteScopeRefreshToken", "").toString();
+    }
+
+    if(!refreshToken.isEmpty()) {
+        refreshTokenExists = true;
+        google->setRefreshToken(refreshToken);
+    }
 }
 
 GoogleHandler::~GoogleHandler() {
-    QSettings settings;
-    settings.setValue("GoogleRefreshToken", google->refreshToken());
+    if(scope == Scope::readonly) {
+        QSettings settings;
+        settings.setValue("GoogleReadOnlyScopeRefreshToken", google->refreshToken());
+    }
+    else {
+        QSettings settings;
+        settings.setValue("GoogleWriteScopeRefreshToken", google->refreshToken());
+    }
+
+    delete google->replyHandler();
     delete manager;
     delete google;
 }
@@ -244,8 +267,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
     auto *reply = google->get(URL);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    if(reply->bytesAvailable() == 0)
-    {
+    if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
         delete reply;
         return {};
@@ -356,30 +378,24 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     replyBody = reply->readAll();
     //qDebug() << replyBody;
     json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
-    if(json_doc.isArray())
-    {
+    if(json_doc.isArray()) {
         json_array = json_doc.array();
     }
-    else if(json_doc.isObject())
-    {
+    else if(json_doc.isObject()) {
         json_array << json_doc.object();
     }
-    else
-    {
+    else {
         //empty or null
         reply->deleteLater();
         return;
     }
 
-    for(const auto &value : qAsConst(json_array))
-    {
+    for(const auto &value : qAsConst(json_array)) {
         QJsonObject json_obj = value.toObject();
-        for(int i = 0; i < stringParams.size(); i++)
-        {
+        for(int i = 0; i < stringParams.size(); i++) {
             *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
         }
-        for(int i = 0; i < stringInSubobjectParams.size(); i++)
-        {
+        for(int i = 0; i < stringInSubobjectParams.size(); i++) {
             QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
             QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
@@ -389,8 +405,8 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     reply->deleteLater();
 }
 
-void GoogleHandler::authenticate(Permissions permissions) {    
-    if(permissions == Permissions::readonly) {
+void GoogleHandler::authenticate() {
+    if(scope == Scope::readonly) {
         google->setScope("https://www.googleapis.com/auth/drive.readonly");
     }
     else {
@@ -398,7 +414,6 @@ void GoogleHandler::authenticate(Permissions permissions) {
                          "https://www.googleapis.com/auth/spreadsheets "
                          "https://www.googleapis.com/auth/drive.file");
     }
-    QAbstractOAuth2::connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
 
     const QUrl redirectUri = QString(REDIRECT_URI);
     const auto port = static_cast<quint16>(redirectUri.port(REDIRECT_URI_PORT));
@@ -414,11 +429,23 @@ void GoogleHandler::authenticate(Permissions permissions) {
         }
     });
 
-    auto *replyHandler = new QOAuthHttpServerReplyHandler(port);
+    auto *replyHandler = new GoogleOAuthHttpServerReplyHandler(port);
     google->setReplyHandler(replyHandler);
 
-    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true; emit granted();});
-    google->grant();
+    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
+                                                                           emit granted();});
+    connect(replyHandler, &GoogleOAuthHttpServerReplyHandler::error, this, [this](){authenticated = false;
+                                                                                    google->setRefreshToken("");
+                                                                                    refreshTokenExists = false;
+                                                                                    emit denied();});
+
+    if(refreshTokenExists) {
+        google->refreshAccessToken();
+    }
+    else {
+        QAbstractOAuth2::connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
+        google->grant();
+    }
 }
 
 QMessageBox* GoogleHandler::busy(QWidget *parent) {
@@ -438,3 +465,15 @@ void GoogleHandler::notBusy(QMessageBox *busyDialog) {
     busyDialog->close();
     delete busyDialog;
 }
+
+
+GoogleOAuthHttpServerReplyHandler::GoogleOAuthHttpServerReplyHandler(quint16 port, QObject *parent) : QOAuthHttpServerReplyHandler(port, parent) {}
+
+void GoogleOAuthHttpServerReplyHandler::networkReplyFinished(QNetworkReply *reply)
+{
+    if(reply->error() != QNetworkReply::NoError) {
+        emit error(reply->errorString());
+    }
+
+    QOAuthHttpServerReplyHandler::networkReplyFinished(reply);
+};

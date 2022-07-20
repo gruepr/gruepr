@@ -74,18 +74,18 @@ const char UNKNOWNVALUE[] {"unknown"};
 const char PREFERNOTRESPONSE[] {"prefer not to answer"};
 
 //map of the "meaning" of strings that might be used in the survey to refer to hours of the day
-const char TIME_NAMES[] {"1am,1 am,1:00,1:00am,1:00 am,2am,2 am,2:00,2:00am,2:00 am,3am,3 am,3:00,3:00am,3:00 am,4am,4 am,4:00,4:00am,4:00 am,"
-                         "5am,5 am,5:00,5:00am,5:00 am,6am,6 am,6:00,6:00am,6:00 am,7am,7 am,7:00,7:00am,7:00 am,8am,8 am,8:00,8:00am,8:00 am,"
-                         "9am,9 am,9:00,9:00am,9:00 am,10am,10 am,10:00,10:00am,10:00 am,11am,11 am,11:00,11:00am,11:00 am,12pm,12 pm,12:00,12:00pm,12:00 pm,"
-                         "1pm,1 pm,13:00,1:00pm,1:00 pm,2pm,2 pm,14:00,2:00pm,2:00 pm,3pm,3 pm,15:00,3:00pm,3:00 pm,4pm,4 pm,16:00,4:00pm,4:00 pm,"
-                         "5pm,5 pm,17:00,5:00pm,5:00 pm,6pm,6 pm,18:00,6:00pm,6:00 pm,7pm,7 pm,19:00,7:00pm,7:00 pm,8pm,8 pm,20:00,8:00pm,8:00 pm,"
-                         "9pm,9 pm,21:00,9:00pm,9:00 pm,10pm,10 pm,22:00,10:00pm,10:00 pm,11pm,11 pm,23:00,11:00pm,11:00 pm,12am,12 am,0:00,12:00am,12:00 am,noon,midnight"};
+const char TIME_NAMES[] {"1:00,1am,1 am,1:00am,1:00 am,2:00,2am,2 am,2:00am,2:00 am,3:00,3am,3 am,3:00am,3:00 am,4:00,4am,4 am,4:00am,4:00 am,"
+                         "5:00,5am,5 am,5:00am,5:00 am,6:00,6am,6 am,6:00am,6:00 am,7:00,7am,7 am,7:00am,7:00 am,8:00,8am,8 am,8:00am,8:00 am,"
+                         "9:00,9am,9 am,9:00am,9:00 am,10:00,10am,10 am,10:00am,10:00 am,11:00,11am,11 am,11:00am,11:00 am,12:00,12pm,12 pm,12:00pm,12:00 pm,"
+                         "13:00,1pm,1 pm,1:00pm,1:00 pm,14:00,2pm,2 pm,2:00pm,2:00 pm,15:00,3pm,3 pm,3:00pm,3:00 pm,16:00,4pm,4 pm,4:00pm,4:00 pm,"
+                         "17:00,5pm,5 pm,5:00pm,5:00 pm,18:00,6pm,6 pm,6:00pm,6:00 pm,19:00,7pm,7 pm,7:00pm,7:00 pm,20:00,8pm,8 pm,8:00pm,8:00 pm,"
+                         "21:00,9pm,9 pm,9:00pm,9:00 pm,22:00,10pm,10 pm,10:00pm,10:00 pm,23:00,11pm,11 pm,11:00pm,11:00 pm,0:00,12am,12 am,12:00am,12:00 am,noon,midnight"};
 const int TIME_MEANINGS[] {1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,
                            5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,
                            9,9,9,9,9,10,10,10,10,10,11,11,11,11,11,12,12,12,12,12,
                            13,13,13,13,13,14,14,14,14,14,15,15,15,15,15,16,16,16,16,16,
                            17,17,17,17,17,18,18,18,18,18,19,19,19,19,19,20,20,20,20,20,
-                           21,21,21,21,21,22,22,22,22,22,23,23,23,0,0,0,0,0,12,0};
+                           21,21,21,21,21,22,22,22,22,22,23,23,23,23,23,0,0,0,0,0,12,0};
 
 const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}):?(\d{2}).*)"}; // capture (1) intro text,
                                                                                    // skip "[" if present, then either "GMT" or "UTC", then any whitespace if present

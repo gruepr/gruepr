@@ -38,6 +38,7 @@
 //    - create Canvas survey (quiz) and Google Form from surveymaker
 //    - download results of Canvas survey and Google Form from gruepr
 //    - upload created teams to Canvas
+//    - saves and uses refresh tokens to reduce need for re-authorization every time
 //
 // INPROG:
 // - add timeout to canvas and google connections and check for memory leaks
@@ -46,7 +47,6 @@
 // TO DO:
 // - make the "Create Teams" button more emphasized/obvious
 // - create an LMS class and then subclass Canvas, Google
-// - update oauth2 handling to use refresh tokens
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others

@@ -5,6 +5,7 @@
 #include "survey.h"
 #include <QMessageBox>
 #include <QOAuth2AuthorizationCodeFlow>
+#include <QOAuthHttpServerReplyHandler>
 #include <QtNetwork>
 
 
@@ -21,12 +22,15 @@ class GoogleHandler : public QObject
     Q_OBJECT
 
 public:
-    GoogleHandler();
+
+    enum class Scope{write, readonly} scope;
+
+    GoogleHandler(Scope incomingScope);
     ~GoogleHandler();
 
-    enum class Permissions{write, readonly};
-    void authenticate(Permissions permissions = Permissions::write);
+    void authenticate();
     bool authenticated = false;
+    bool refreshTokenExists = false;
 
     QMessageBox* busy(QWidget *parent = nullptr);
     void notBusy(QMessageBox *busyDialog);
@@ -38,6 +42,7 @@ public:
 
 signals:
     void granted();
+    void denied();
 
 private:
     void postToGoogleGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
@@ -55,8 +60,22 @@ private:
     //inline static const char FINALIZESCRIPTURL[]{** Hidden in googlesecrets.h **};
     //inline static const char CLIENT_ID[]{** Hidden in googlesecrets.h **};
     //inline static const char CLIENT_SECRET[]{** Hidden in googlesecrets.h **};
-    inline static const int REDIRECT_URI_PORT = 1234;
+    inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT)};
+};
+
+class GoogleOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
+{
+    Q_OBJECT
+
+public:
+    GoogleOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
+
+signals:
+    void error(const QString &errorString);
+
+private:
+    void networkReplyFinished(QNetworkReply *reply) override;
 };
 
 #endif // GOOGLEHANDLER_H

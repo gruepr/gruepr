@@ -150,8 +150,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
 SurveyMaker::~SurveyMaker()
 {
-    delete canvas;
     delete google;
+    delete canvas;
     delete noInvalidPunctuation;
     delete survey;
     delete ui;
@@ -592,63 +592,97 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
     }
 
     //create googleHandler and/or authenticate as needed
-    if(surveyMaker->google == nullptr)
+    auto &google = surveyMaker->google;
+    if(google == nullptr)
     {
-        surveyMaker->google = new GoogleHandler();
+        google = new GoogleHandler(GoogleHandler::Scope::write);
     }
-    if(!surveyMaker->google->authenticated)
+    if(!google->authenticated)
     {
         auto *loginDialog = new QMessageBox(surveyMaker);
         QPixmap icon(":/icons/google.png");
         loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
-        loginDialog->setText(tr("The next step will open a browser window so you can sign in with Google.\n\n"
-                                "  » Your computer may ask whether gruepr can access the network. "
-                                "This access is needed so that gruepr and Google can communicate.\n\n"
-                                "  » In the browser, Google may ask whether you authorize gruepr to do 3 things: (1) create a Google Form, (2) create a Google Sheet, and (3) access these files on your Google Drive. "
-                                "All 3 authorizations are needed so that the survey Form and the results Sheet can be created and saved in your Drive.\n\n"
-                                "  » All data associated with this survey, including the questions asked and responses received, will exist in your Google Drive only. "
-                                "No data from or about this survey will ever be stored or sent anywhere else."));
-        loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-        auto *okButton = loginDialog->button(QMessageBox::Ok);
-        auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
-        int height = okButton->height();
-        QPixmap loginpic(":/icons/google_signin_button.png");
-        loginpic = loginpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
-        okButton->setText("");
-        okButton->setIconSize(loginpic.rect().size());
-        okButton->setIcon(loginpic);
-        okButton->adjustSize();
-        QPixmap cancelpic(":/icons/cancel_signin_button.png");
-        cancelpic = cancelpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
-        cancelButton->setText("");
-        cancelButton->setIconSize(cancelpic.rect().size());
-        cancelButton->setIcon(cancelpic);
-        cancelButton->adjustSize();
-        if(loginDialog->exec() == QMessageBox::Cancel)
+        loginDialog->setText("");
+
+        // if refreshToken is found, try to use it to get accessTokens without re-granting permission
+        if(google->refreshTokenExists)
         {
-            delete loginDialog;
-            return;
+            loginDialog->setText(tr("Contacting Google..."));
+            loginDialog->setStandardButtons(QMessageBox::Cancel);
+            connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
+            connect(google, &GoogleHandler::denied, loginDialog, [&loginDialog]() {loginDialog->setText(tr("Google is requesting that you re-authorize gruepr.\n\n"));
+                                                                                   loginDialog->accept();});
+
+            google->authenticate();
+
+            if(loginDialog->exec() == QMessageBox::Cancel)
+            {
+                delete loginDialog;
+                return;
+            }
+
+            //refreshToken failed, so need to start over
+            if(!google->authenticated)
+            {
+                delete google;
+                google = new GoogleHandler(GoogleHandler::Scope::write);
+            }
         }
 
-        surveyMaker->google->authenticate();
-
-        loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
-        loginDialog->setStandardButtons(QMessageBox::Cancel);
-        connect(surveyMaker->google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
-        if(loginDialog->exec() == QMessageBox::Cancel)
+        // still not authenticated, so either didn't have a refreshToken to use or the refreshToken didn't work; need to re-log in on the browser
+        if(!google->authenticated)
         {
-            delete loginDialog;
-            return;
+            loginDialog->setText(loginDialog->text() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
+                                    "  » Your computer may ask whether gruepr can access the network. "
+                                    "This access is needed so that gruepr and Google can communicate.\n\n"
+                                    "  » In the browser, Google may ask whether you authorize gruepr to do 3 things: "
+                                    "(1) create a Google Form, (2) create a Google Sheet, and (3) access these files on your Google Drive. "
+                                    "All 3 authorizations are needed so that the survey Form and the results Sheet can be created and saved in your Drive.\n\n"
+                                    "  » All data associated with this survey, including the questions asked and responses received, will exist in your Google Drive only. "
+                                    "No data from or about this survey will ever be stored or sent anywhere else."));
+            loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+            auto *okButton = loginDialog->button(QMessageBox::Ok);
+            auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
+            int height = okButton->height();
+            QPixmap loginpic(":/icons/google_signin_button.png");
+            loginpic = loginpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+            okButton->setText("");
+            okButton->setIconSize(loginpic.rect().size());
+            okButton->setIcon(loginpic);
+            okButton->adjustSize();
+            QPixmap cancelpic(":/icons/cancel_signin_button.png");
+            cancelpic = cancelpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+            cancelButton->setText("");
+            cancelButton->setIconSize(cancelpic.rect().size());
+            cancelButton->setIcon(cancelpic);
+            cancelButton->adjustSize();
+            if(loginDialog->exec() == QMessageBox::Cancel)
+            {
+                delete loginDialog;
+                return;
+            }
+
+            google->authenticate();
+
+            loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
+            loginDialog->setStandardButtons(QMessageBox::Cancel);
+            connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
+            if(loginDialog->exec() == QMessageBox::Cancel)
+            {
+                delete loginDialog;
+                return;
+            }
         }
         delete loginDialog;
     }
 
     //upload the survey as a form then, if successful, finalize the form by sending to the finalize script
-    auto *busyBox = surveyMaker->google->busy();
+    // (eventually, if Google updates the Forms API to be more functional, would be good to get rid of script)
+    auto *busyBox = google->busy();
     QStringList URLs;
-    auto form = surveyMaker->google->createSurvey(surveyMaker->survey);
+    auto form = google->createSurvey(surveyMaker->survey);
     if(!form.name.isEmpty()) {
-        URLs = surveyMaker->google->sendSurveyToFinalizeScript(form);
+        URLs = google->sendSurveyToFinalizeScript(form);
     }
     busyBox->hide();
 
@@ -693,7 +727,7 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
     busyBox->setIconPixmap(icon.scaled(iconSize));
     busyBox->setStandardButtons(QMessageBox::Ok);
     busyBox->exec();
-    surveyMaker->google->notBusy(busyBox);
+    google->notBusy(busyBox);
 
     surveyMaker->surveyCreated = true;
 }
