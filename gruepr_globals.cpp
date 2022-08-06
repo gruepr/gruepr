@@ -16,7 +16,7 @@ bool internetIsGood()
     if(weGotProblems)
     {
         QMessageBox::critical(nullptr, QObject::tr("Error!"), QObject::tr("There does not seem to be an internet connection.\n"
-                                                     "Check your network connection and try again."));
+                                                                          "Check your network connection and try again."));
     }
     return !weGotProblems;
 }

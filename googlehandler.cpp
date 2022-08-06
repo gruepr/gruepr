@@ -10,22 +10,14 @@
 #include <QOAuthHttpServerReplyHandler>
 #include <QVBoxLayout>
 
-GoogleHandler::GoogleHandler(Scope incomingScope) {
+GoogleHandler::GoogleHandler() {
     manager = new QNetworkAccessManager;
     google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
     google->networkAccessManager()->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
 
-    scope = incomingScope;
-
     QString refreshToken;
-    if(scope == Scope::readonly) {
-        QSettings settings;
-        refreshToken = settings.value("GoogleReadOnlyScopeRefreshToken", "").toString();
-    }
-    else {
-        QSettings settings;
-        refreshToken = settings.value("GoogleWriteScopeRefreshToken", "").toString();
-    }
+    QSettings settings;
+    refreshToken = settings.value("GoogleRefreshToken", "").toString();
 
     if(!refreshToken.isEmpty()) {
         refreshTokenExists = true;
@@ -34,14 +26,8 @@ GoogleHandler::GoogleHandler(Scope incomingScope) {
 }
 
 GoogleHandler::~GoogleHandler() {
-    if(scope == Scope::readonly) {
-        QSettings settings;
-        settings.setValue("GoogleReadOnlyScopeRefreshToken", google->refreshToken());
-    }
-    else {
-        QSettings settings;
-        settings.setValue("GoogleWriteScopeRefreshToken", google->refreshToken());
-    }
+    QSettings settings;
+    settings.setValue("GoogleRefreshToken", google->refreshToken());
 
     delete google->replyHandler();
     delete manager;
@@ -49,7 +35,7 @@ GoogleHandler::~GoogleHandler() {
 }
 
 GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
-    //create a Google Form
+    //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
     google->setContentType(QAbstractOAuth::ContentType::Json);
     QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title;
@@ -70,6 +56,8 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
         return {};
     }
 
+    //"update" the form by adding each of the questions one-at-a-time and then updating the description
+    //in future version of Forms API, can hopefully also update additional forms settings: setAcceptingResponses(true).setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(false)
     url = "https://forms.googleapis.com/v1/forms/" + formID + ":batchUpdate";
     QJsonObject requestBody;
     requestBody["includeFormInResponse"] = false;
@@ -158,6 +146,17 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
         requests << createItem;
         questionNum++;
     }
+
+    //update the description
+    info.remove("document_title");
+    info["description"] = SURVEYINSTRUCTIONS;
+    QJsonObject UpdateFormInfoRequest;
+    UpdateFormInfoRequest["info"] = info;
+    UpdateFormInfoRequest["updateMask"] = "description";
+    QJsonObject updateItem;
+    updateItem["updateFormInfo"] = UpdateFormInfoRequest;
+    requests << updateItem;
+
     requestBody["requests"] = requests;
 
     stringParams = {&y};
@@ -169,9 +168,12 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     if(revisionID.isEmpty()) {
         return {};
     }
-    return {title, formID, QDateTime::currentDateTime().toString(Qt::ISODate), ""};
+    return {title, formID, QDateTime::currentDateTime().toString(Qt::ISODate), QUrl(surveySubmissionURL)};
 }
 
+// function below sends the Google Form to a 'finalize script' to set some options not available currently in Forms API
+// and to create a Sheet to hold the results. Requires opening a browser to give the script access to Google Drive and Sheets
+/*
 QStringList GoogleHandler::sendSurveyToFinalizeScript(const GoogleForm &form){
     // Finish the job with the script
     QUrl script(FINALIZESCRIPTURL);
@@ -211,6 +213,7 @@ QStringList GoogleHandler::sendSurveyToFinalizeScript(const GoogleForm &form){
 
     return {editURL, responseURL, csvURL};
 }
+*/
 
 QStringList GoogleHandler::getSurveyList() {
     formsList.clear();
@@ -222,9 +225,9 @@ QStringList GoogleHandler::getSurveyList() {
         QString name = settings.value("name").toString();
         QString id = settings.value("ID").toString();
         QString createdTime = settings.value("createdTime").toString();
-        QString downloadURL = settings.value("downloadURL").toString();
-        if(!downloadURL.isEmpty()) {
-            formsList.append({name, id, createdTime, downloadURL});
+        QString responderURL = settings.value("responderURL").toString();
+        if(!id.isEmpty()) {
+            formsList.append({name, id, createdTime, responderURL});
         }
     }
     settings.endArray();
@@ -253,18 +256,21 @@ QStringList GoogleHandler::getSurveyList() {
 }
 
 QString GoogleHandler::downloadSurveyResult(const QString &formName) {
-    QString URL;
+    //get the ID
+    QString ID;
     for(const auto &form : qAsConst(formsList)) {
         if(form.name == formName) {
-            URL = form.downloadURL;
+            ID = form.ID;
         }
     }
-    if(URL.isEmpty()) {
+    if(ID.isEmpty()) {
         return {};
     }
 
+    //download the form itself into a JSON so that we can get the questions
+    QString url = "https://forms.googleapis.com/v1/forms/" + ID;
     QEventLoop loop;
-    auto *reply = google->get(URL);
+    auto *reply = google->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -272,23 +278,81 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
         delete reply;
         return {};
     }
-    QByteArray replyBody = reply->readAll();
+    QString replyBody = reply->readAll();
     //qDebug() << replyBody;
     reply->deleteLater();
+    QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    //pull out each question and save the question ID and text
+    const QJsonArray items = json_doc["items"].toArray();
+    QVector<GoogleFormQuestion> questions;
+    questions.reserve(items.size());
+    for(const auto &item : items) {
+        const QJsonObject object = item.toObject();
+        if(object.contains("questionItem")) {
+            questions.append({object["questionItem"]["question"]["questionId"].toString(), object["title"].toString(), false});
+        }
+        else if(object.contains("questionGroupItem")) {
+            const QJsonArray questionsInGroup = object["questionGroupItem"]["questions"].toArray();
+            for(const auto &questionInGroup : questionsInGroup) {
+                const QJsonObject rowQuestion = questionInGroup["rowQuestion"].toObject();
+                questions.append({questionInGroup["questionId"].toString(), object["title"].toString() + "[" + rowQuestion["title"].toString() + "]", true});
+            }
+        }
+    }
 
+    //prepare a file for the results
     QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
     QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation), formName.simplified().replace(unallowedChars, "_") + ".csv");
     QFile file(filepath.absoluteFilePath());
-    file.open(QIODevice::WriteOnly);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
     //qDebug() << file.errorString();
-    QDataStream out(&file);
-    out << replyBody;
+    QTextStream out(&file);
 
+    //save the header row
+    out << "Timestamp";
+    for(const auto &question : qAsConst(questions)) {
+        out << ",\"" << question.text << "\"";
+    }
+    out << Qt::endl;
+
+    //now download into a big JSON all of the responses (actually it's just the first 5000 responses! if there are >5000, will need to work with paginated results!)
+    url = "https://forms.googleapis.com/v1/forms/" + ID + "/responses";
+    reply = google->get(url);
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    if(reply->bytesAvailable() == 0) {
+        //qDebug() << "no reply";
+        delete reply;
+        file.close();
+        return filepath.absoluteFilePath();
+    }
+    replyBody = reply->readAll();
+    //qDebug() << replyBody;
+    reply->deleteLater();
+    json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
+    const QJsonArray responses = json_doc["responses"].toArray();
+    for(const auto &response : qAsConst(responses)) {
+        out << response.toObject()["lastSubmittedTime"].toString();
+
+        //pull out the answer(s) to each question in order, joining the answers with a semicolon if >1
+        const QJsonObject answers = response.toObject()["answers"].toObject();
+        for(const auto &question : qAsConst(questions)) {
+            const QJsonArray nestedAnswers = answers[question.ID]["textAnswers"]["answers"].toArray();
+            QStringList allValues;
+            allValues.reserve(nestedAnswers.size());
+            for(const auto &nestedAnswer : qAsConst(nestedAnswers)) {
+                allValues << nestedAnswer["value"].toString();
+            }
+            out << ",\"" << allValues.join(question.scheduleQuestion? ';' : ',') << "\"";
+        }
+
+        out << Qt::endl;
+    }
+
+    file.close();
     return filepath.absoluteFilePath();
 }
-
-
-////////////////////////////////////////////
 
 // function below gives list of Google Forms on Google Drive; requires direct access to Google Drive, which is a restricted scope and requires high security
 /*
@@ -406,14 +470,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
 }
 
 void GoogleHandler::authenticate() {
-    if(scope == Scope::readonly) {
-        google->setScope("https://www.googleapis.com/auth/drive.readonly");
-    }
-    else {
-        google->setScope("https://www.googleapis.com/auth/forms "
-                         "https://www.googleapis.com/auth/spreadsheets "
-                         "https://www.googleapis.com/auth/drive.file");
-    }
+    google->setScope("https://www.googleapis.com/auth/drive.file");
 
     const QUrl redirectUri = QString(REDIRECT_URI);
     const auto port = static_cast<quint16>(redirectUri.port(REDIRECT_URI_PORT));

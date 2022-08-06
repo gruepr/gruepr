@@ -14,7 +14,14 @@ struct GoogleForm
     QString name;
     QString ID;
     QString createdTime;
-    QString downloadURL;
+    QUrl responderURL;
+};
+
+struct GoogleFormQuestion
+{
+    QString ID;
+    QString text;
+    bool scheduleQuestion;
 };
 
 class GoogleHandler : public QObject
@@ -22,10 +29,7 @@ class GoogleHandler : public QObject
     Q_OBJECT
 
 public:
-
-    enum class Scope{write, readonly} scope;
-
-    GoogleHandler(Scope incomingScope);
+    GoogleHandler();
     ~GoogleHandler();
 
     void authenticate();
@@ -36,7 +40,6 @@ public:
     void notBusy(QMessageBox *busyDialog);
 
     GoogleForm createSurvey(const Survey *const survey);
-    QStringList sendSurveyToFinalizeScript(const GoogleForm &form); // sends back the: (0) editURL, (1) responseURL, (2) csvURL
     QStringList getSurveyList();
     QString downloadSurveyResult(const QString &surveyName);
 
@@ -64,6 +67,8 @@ private:
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT)};
 };
 
+
+// helper class below is used in order to expose & emit the errorString
 class GoogleOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
 {
     Q_OBJECT

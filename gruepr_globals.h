@@ -66,12 +66,17 @@ const char CHILDGENDERS[] {"girl/boy/nonbinary/unknown"};
 const char CHILDGENDERSPLURAL[] {"girls/boys/nonbinary/unknown"};
 const char CHILDGENDERS7CHAR[] {" Girl  /  Boy  /Nonbin./Unknown"};
 const char CHILDGENDERSINITIALS[] {"G/B/X/?"};
-const char PRONOUNS[] {"she-her/he-him/they-them/unknown"};
+const char PRONOUNS[] {"she - her/he - him/they - them/unknown"};
 const char PRONOUNS7CHAR[] {"she-her/he-him /they-th/Unknown"};
 const char PRONOUNSINITIALS[] {"S/H/T/?"};
 //next two used to replace "unknown" for the response option in the survey
 const char UNKNOWNVALUE[] {"unknown"};
 const char PREFERNOTRESPONSE[] {"prefer not to answer"};
+
+const char SURVEYINSTRUCTIONS[] {"Instructions:\n\n"
+                                 "Your response to this survey will help you be on the best possible project team.\n\n"
+                                 "All answers are strictly confidential, and all answers are acceptable.\n\n"
+                                 "Please be as honest as possible!"};
 
 //map of the "meaning" of strings that might be used in the survey to refer to hours of the day
 const char TIME_NAMES[] {"1:00,1am,1 am,1:00am,1:00 am,2:00,2am,2 am,2:00am,2:00 am,3:00,3am,3 am,3:00am,3:00 am,4:00,4am,4 am,4:00am,4:00 am,"
@@ -157,7 +162,6 @@ const char RESPONSE_OPTIONS[] {"1. Yes / 2. No;"
                                "1. / 2. / 3. / 4. / 5.;"
                                "1. / 2. / 3. / 4. / 5. / 6. / 7. / 8. / 9. / 10.;"
                                "Custom options..."};
-
 
 // Options for the team names. A name for each list of names must be given.
 // If name ends with period, names are numeric and increase without end

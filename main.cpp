@@ -32,11 +32,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - move Windows binary to non-static build with OpenSSL to allow direct use of https calls instead of thru-browser
+// - move Windows binary to non-static build with OpenSSL to allow direct use of https calls instead of thru-browser, removing all use of browser except OAuth login as needed
 // - enable custom attribute response options within SurveyMaker
 // - integrate SurveyMaker and gruepr with Google and with Canvas (NOTE: Canvas in beta--for now uses a user-generated token instead of OAuth token)
-//    - create Canvas survey (quiz) and Google Form from surveymaker
-//    - download results of Canvas survey and Google Form from gruepr
+//    - create Canvas survey (quiz) and Google Form directly from surveymaker
+//    - download results of Canvas survey and Google Form directly from gruepr
 //    - upload created teams to Canvas
 //    - saves and uses refresh tokens to reduce need for re-authorization every time
 //
@@ -45,6 +45,9 @@
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
+// - create multi-ordered attribute type
+// - auto-shorten URL for Google Form
+// - enable Form options and Question options (req'd response, answer validity checks) in Google Forms -- will require new API functionality from Google
 // - make the "Create Teams" button more emphasized/obvious
 // - create an LMS class and then subclass Canvas, Google
 // - in gatherteammates dialog, enable the 'load from teamsTab' action

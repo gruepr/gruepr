@@ -10,6 +10,7 @@
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QTextBrowser>
+#include <QToolTip>
 #include <QtNetwork>
 
 SurveyMaker::SurveyMaker(QWidget *parent) :
@@ -595,7 +596,7 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
     auto &google = surveyMaker->google;
     if(google == nullptr)
     {
-        google = new GoogleHandler(GoogleHandler::Scope::write);
+        google = new GoogleHandler();
     }
     if(!google->authenticated)
     {
@@ -625,7 +626,7 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
             if(!google->authenticated)
             {
                 delete google;
-                google = new GoogleHandler(GoogleHandler::Scope::write);
+                google = new GoogleHandler();
             }
         }
 
@@ -635,9 +636,8 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
             loginDialog->setText(loginDialog->text() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
                                     "  » Your computer may ask whether gruepr can access the network. "
                                     "This access is needed so that gruepr and Google can communicate.\n\n"
-                                    "  » In the browser, Google may ask whether you authorize gruepr to do 3 things: "
-                                    "(1) create a Google Form, (2) create a Google Sheet, and (3) access these files on your Google Drive. "
-                                    "All 3 authorizations are needed so that the survey Form and the results Sheet can be created and saved in your Drive.\n\n"
+                                    "  » In the browser, Google will ask whether you authorize gruepr to create and access a file on your Google Drive. "
+                                    "This access is needed so that the survey Form can be created now and the responses can be downloaded to your computer later.\n\n"
                                     "  » All data associated with this survey, including the questions asked and responses received, will exist in your Google Drive only. "
                                     "No data from or about this survey will ever be stored or sent anywhere else."));
             loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
@@ -676,20 +676,16 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
         delete loginDialog;
     }
 
-    //upload the survey as a form then, if successful, finalize the form by sending to the finalize script
-    // (eventually, if Google updates the Forms API to be more functional, would be good to get rid of script)
+    //upload the survey as a form then
     auto *busyBox = google->busy();
-    QStringList URLs;
     auto form = google->createSurvey(surveyMaker->survey);
-    if(!form.name.isEmpty()) {
-        URLs = google->sendSurveyToFinalizeScript(form);
-    }
     busyBox->hide();
 
     QPixmap icon;
-    if(URLs.isEmpty()) {
+    if(form.name.isEmpty()) {
         busyBox->setText(tr("Error. The survey was not created."));
         icon.load(":/icons/delete.png");
+        busyBox->setStandardButtons(QMessageBox::Ok);
     }
     else {
         // append this survey to the saved values
@@ -701,31 +697,41 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
         settings.setValue("name", form.name);
         settings.setValue("ID", form.ID);
         settings.setValue("createdTime", form.createdTime);
-        settings.setValue("downloadURL", URLs.at(2));
+        settings.setValue("responderURL", form.responderURL);
         settings.endArray();
-
-        // add the URL to fill out the form to the clipboard
-        QClipboard *clipboard = QGuiApplication::clipboard();
-        clipboard->setText(URLs.at(1));
 
         busyBox->setTextFormat(Qt::RichText);
         busyBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
         QApplication::restoreOverrideCursor();
-        busyBox->setText(tr("Success! Survey created in your Google Drive.<br><br>"
-                            "If you'd like to view or edit the survey, you can <a href='") + URLs.at(0) + tr("'>click here</a>.<br>"
-                            "If you wish, you can modify:<br>"
-                            "  » the survey title<br>"
-                            "  » the instructions shown at the top of the survey<br>"
-                            "  » the \"description text\" shown with any of the questions<br>"
-                            "Changing the wording of a question or the order of the questions is not recommended.<br><br>"
-                            "Students should fill out the survey by going to:<br><br>") +
-                            URLs.at(1) +
-                            tr("<br><br>This URL has been copied to your clipboard and should now be pasted elsewhere to save."));
+        QString textheight = QString::number(busyBox->fontMetrics().boundingRect('G').height() * 2);
+        QString explanationText = tr("Success! Survey created.<br><br>"
+                                     "If you'd like to edit the survey, find it on <a href='https://drive.google.com'>Google Drive</a>"
+                                     "<img height=\"") + textheight + tr("\" width=\"") + textheight + tr("\" src=\":/icons/external-link.png\">.<br>"
+                                     "If you wish, you can modify:<br>"
+                                     "&nbsp;&nbsp;» the survey title<br>"
+                                     "&nbsp;&nbsp;» the instructions shown at the top of the survey<br>"
+                                     "&nbsp;&nbsp;» the \"description text\" shown with any of the questions<br>");
+        if(surveyMaker->additionalQuestions)
+        {
+            explanationText += tr("&nbsp;&nbsp;» the \"additional question\" at the end of the survey, including adding more questions of any type<br>");
+        }
+        explanationText += tr("<br>Changing the wording of a question or the order of the questions in any other way is not recommended.<br><br>"
+                              "Students should fill out the survey by going to the following URL:<br><strong>") +
+                              form.responderURL.toEncoded() +
+                              tr("</strong><br>You can copy this URL to your clipboard with the button below.");
+        busyBox->setText(explanationText);
         icon.load(":/icons/ok.png");
+        busyBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Reset);
+        auto *copyButton = busyBox->button(QMessageBox::Reset);
+        copyButton->setText(tr("Copy URL to clipboard"));
+        copyButton->setStyleSheet("QToolTip { color: #000000; background-color: #" + QString(BOLDGREENHEX) + "; border: 0px; }");
+        copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the busyBox when clicked
+        connect(copyButton, &QPushButton::clicked, busyBox, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
+                                                                                   clipboard->setText(form.responderURL.toEncoded());
+                                                                                   QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)), tr("URL copied"), copyButton, QRect(), 1500);});
     }
     QSize iconSize = busyBox->iconPixmap().size();
     busyBox->setIconPixmap(icon.scaled(iconSize));
-    busyBox->setStandardButtons(QMessageBox::Ok);
     busyBox->exec();
     google->notBusy(busyBox);
 

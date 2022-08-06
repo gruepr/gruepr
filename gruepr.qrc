@@ -57,5 +57,6 @@
         <file>icons/wait.png</file>
         <file>icons/google_signin_button.png</file>
         <file>icons/cancel_signin_button.png</file>
+        <file>icons/external-link.png</file>
     </qresource>
 </RCC>

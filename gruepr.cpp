@@ -221,7 +221,7 @@ void gruepr::downloadSurveyFromGoogle()
     //create googleHandler and/or authenticate as needed
     if(google == nullptr)
     {
-        google = new GoogleHandler(GoogleHandler::Scope::readonly);
+        google = new GoogleHandler();
     }
     if(!google->authenticated)
     {
@@ -251,16 +251,20 @@ void gruepr::downloadSurveyFromGoogle()
             if(!google->authenticated)
             {
                 delete google;
-                google = new GoogleHandler(GoogleHandler::Scope::readonly);
+                google = new GoogleHandler();
             }
         }
 
         // still not authenticated, so either didn't have a refreshToken to use or the refreshToken didn't work; need to re-log in on the browser
         if(!google->authenticated)
         {
-            loginDialog->setText(tr("The next step will open a browser window so you can sign in with Google.\n\n"
-                                    "Your computer may ask whether gruepr can access the network. "
-                                    "This access is needed so that gruepr and Google can communicate."));
+            loginDialog->setText(loginDialog->text() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
+                                                          "  » Your computer may ask whether gruepr can access the network. "
+                                                          "This access is needed so that gruepr and Google can communicate.\n\n"
+                                                          "  » In the browser, Google will ask whether you authorize gruepr to access the files gruepr created on your Google Drive. "
+                                                          "This access is needed so that the survey responses can now be downloaded.\n\n"
+                                                          "  » All data associated with this survey, including the questions asked and responses received, exist in your Google Drive only. "
+                                                          "No data from or about this survey will ever be stored or sent anywhere else."));
             loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
             loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
             auto *okButton = loginDialog->button(QMessageBox::Ok);
@@ -334,7 +338,7 @@ void gruepr::downloadSurveyFromGoogle()
     QEventLoop loop;
     if(filepath.isEmpty())
     {
-        busyBox->setText(tr("Error. Survey not received."));
+        busyBox->setText(tr("Error. Survey not downloaded."));
         icon.load(":/icons/delete.png");
         busyBox->setIconPixmap(icon.scaled(iconSize));
         QTimer::singleShot(1500, &loop, &QEventLoop::quit);
@@ -342,7 +346,7 @@ void gruepr::downloadSurveyFromGoogle()
         google->notBusy(busyBox);
         return;
     }
-    busyBox->setText(tr("Success! File will be saved in your Downloads folder."));
+    busyBox->setText(tr("Success! The survey file is in your Downloads folder."));
     icon.load(":/icons/ok.png");
     busyBox->setIconPixmap(icon.scaled(iconSize));
     QTimer::singleShot(1500, &loop, &QEventLoop::quit);
@@ -2503,6 +2507,10 @@ void gruepr::loadDefaultSettings()
 
     //Restore last data file folder location
     dataOptions->dataFile.setFile(savedSettings.value("dataFileLocation", "").toString());
+
+    //Enable download from Google only if we know of some that exist
+    ui->actionLoad_Survey_Results_from_Google->setEnabled(savedSettings.beginReadArray("GoogleForm") > 0);
+    savedSettings.endArray();
 
     //Restore teaming options
     ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
