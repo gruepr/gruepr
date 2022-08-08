@@ -32,28 +32,32 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     datamultiline = new QPlainTextEdit[NUMMULTILINES];
     databox = new QComboBox[NUMCOMBOBOXES];
     attributeTabs = new QTabWidget(this);
-    QVector<int> orderedAttributes, categoricalAttributes, multicategoricalAttributes, timezoneAttribute;
+    QVector<int> orderedAttributes, categoricalAttributes, multicategoricalAttributes, multiorderedAttributes, timezoneAttribute;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
-        if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
         {
             orderedAttributes << attribute;
         }
-        else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+        else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical)
         {
             categoricalAttributes << attribute;
         }
-        else if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+        else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
         {
             multicategoricalAttributes << attribute;
         }
-        else if(dataOptions->attributeType[attribute] == DataOptions::timezone)
+        else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
+        {
+            multiorderedAttributes << attribute;
+        }
+        else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
         {
             timezoneAttribute << attribute;
         }
     }
     attributeCombobox = new QComboBox[orderedAttributes.size() + categoricalAttributes.size() + timezoneAttribute.size()];
-    attributemulticategoricalbox = new QGroupBox[multicategoricalAttributes.size()];
+    attributeMultibox = new QGroupBox[multicategoricalAttributes.size() + multiorderedAttributes.size()];
 
     // calculate the height of 1 row of text in the multilines
     QFontMetrics fm(datamultiline[0].document()->defaultFont());
@@ -159,7 +163,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     if(dataOptions->numAttributes != 0)
     {
         // create the UI for each attribute - either a combobox with single possible values loaded or checkboxes for multiple possible values
-        int comboboxNum = 0, multicategoricalbox = 0;
+        int comboboxNum = 0, multiboxNum = 0;
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
         {
             if(orderedAttributes.contains(attribute) || categoricalAttributes.contains(attribute))
@@ -213,9 +217,9 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 }
                 comboboxNum++;
             }
-            else if(multicategoricalAttributes.contains(attribute))
+            else if(multicategoricalAttributes.contains(attribute) || multiorderedAttributes.contains(attribute))
             {
-                attributemulticategoricalbox[multicategoricalbox].setFlat(true);
+                attributeMultibox[multiboxNum].setFlat(true);
                 auto *layout = new QVBoxLayout;
                 for(int option = 0, totNumOptions = dataOptions->attributeQuestionResponses[attribute].size(); option < totNumOptions; option++)
                 {
@@ -224,14 +228,14 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                     layout->addWidget(responseCheckBox);
                 }
                 layout->addStretch(1);
-                attributemulticategoricalbox->setLayout(layout);
-                multicategoricalbox++;
+                attributeMultibox[multiboxNum].setLayout(layout);
+                multiboxNum++;
             }
         }
 
         // add to window the single attribute or, in tabs, the multiple attributes
         comboboxNum = 0;
-        multicategoricalbox = 0;
+        multiboxNum = 0;
         if(dataOptions->numAttributes == 1)
         {
             if(timezoneAttribute.contains(0))
@@ -249,7 +253,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             }
             else
             {
-                theGrid->addWidget(&attributemulticategoricalbox[multicategoricalbox], field, 1);
+                theGrid->addWidget(&attributeMultibox[multiboxNum], field, 1);
             }
         }
         else    // more than one attribute
@@ -273,11 +277,11 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                     layout->addWidget(&attributeCombobox[comboboxNum], 1, Qt::AlignVCenter);
                     comboboxNum++;
                 }
-                else if(multicategoricalAttributes.contains(attribute))
+                else if(multicategoricalAttributes.contains(attribute) || multiorderedAttributes.contains(attribute))
                 {
                     attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
-                    layout->addWidget(&attributemulticategoricalbox[multicategoricalbox], 1, Qt::AlignVCenter);
-                    multicategoricalbox++;
+                    layout->addWidget(&attributeMultibox[multiboxNum], 1, Qt::AlignVCenter);
+                    multiboxNum++;
                 }
                 layout->addStretch(1);
                 w->setLayout(layout);
@@ -343,7 +347,7 @@ editOrAddStudentDialog::~editOrAddStudentDialog()
     delete [] datamultiline;
     delete [] databox;
     delete [] attributeCombobox;
-    delete [] attributemulticategoricalbox;
+    delete [] attributeMultibox;
 }
 
 
@@ -365,17 +369,18 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     {
         student.section = databox[section].currentText();
     }
-    int comboboxNum = 0, multicategoricalbox = 0;
+    int comboboxNum = 0, multiboxNum = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         student.attributeVals[attribute].clear();
-        if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+           (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
         {
             QStringList attributeResponse;
-            for(int itemNum = 0; itemNum < attributemulticategoricalbox[multicategoricalbox].layout()->count(); itemNum++)
+            for(int itemNum = 0; itemNum < attributeMultibox[multiboxNum].layout()->count(); itemNum++)
             {
-                // loop through all items in the attributemulticategoricalbox: make sure it's a checkbox, then add the response if it's checked
-                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributemulticategoricalbox[multicategoricalbox].layout()->itemAt(itemNum)->widget());
+                // loop through all items in the attributeMultibox: make sure it's a checkbox, then add the response if it's checked
+                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox[multiboxNum].layout()->itemAt(itemNum)->widget());
                 if((optionCheckBox != nullptr) && (optionCheckBox->isChecked()))
                 {
                     student.attributeVals[attribute] << (dataOptions->attributeQuestionResponses[attribute].indexOf(optionCheckBox->text()) + 1);
@@ -396,7 +401,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
             {
                 student.attributeResponse[attribute] = "";
                 student.attributeVals[attribute] << -1;
-                if(dataOptions->attributeType[attribute] == DataOptions::timezone)
+                if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
                 {
                     student.timezone = 0;
                 }
@@ -404,7 +409,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
             else
             {
                 student.attributeResponse[attribute] = attributeCombobox[comboboxNum].currentText();
-                if(dataOptions->attributeType[attribute] == DataOptions::timezone)
+                if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
                 {
                     student.timezone = attributeCombobox[comboboxNum].currentData().toFloat();
                     student.attributeVals[attribute] << int(student.timezone);

@@ -230,7 +230,8 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
         int sortData;
         auto firstTeamVal = team.attributeVals[attribute].cbegin();
         auto lastTeamVal = team.attributeVals[attribute].crbegin();
-        if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+            (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
         {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
             if(*firstTeamVal == -1)
@@ -376,22 +377,36 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         const auto *value = stu.attributeVals[attribute].constBegin();
         if(*value != -1)
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
             {
                 studentItem->setText(column, QString::number(*value));
             }
-            else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical)
             {
                 studentItem->setText(column, ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
             }
-            else
+            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
             {
-                //multicategorical
                 QString studentsVals;
                 const auto *lastVal = stu.attributeVals[attribute].constEnd();
                 while(value != lastVal)
                 {
                     studentsVals += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
+                    value++;
+                    if(value != lastVal)
+                    {
+                        studentsVals += ", ";
+                    }
+                }
+                studentItem->setText(column, studentsVals);
+            }
+            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
+            {
+                QString studentsVals;
+                const auto *lastVal = stu.attributeVals[attribute].constEnd();
+                while(value != lastVal)
+                {
+                    studentsVals += QString::number(*value);
                     value++;
                     if(value != lastVal)
                     {

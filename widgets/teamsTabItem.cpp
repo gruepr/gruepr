@@ -841,7 +841,7 @@ void TeamsTabItem::saveTeams()
                             spreadsheetFileContents.left(previewLength) + "..."};
 
     //Open specialized dialog box to choose which file(s) to save
-    auto *window = new whichFilesDialog(whichFilesDialog::save, previews, this);
+    auto *window = new whichFilesDialog(whichFilesDialog::Action::save, previews, this);
     int result = window->exec();
 
     if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
@@ -1031,7 +1031,7 @@ void TeamsTabItem::postTeamsToCanvas()
         busyBox->setText(tr("Success!"));
         icon.load(":/icons/ok.png");
         busyBox->setIconPixmap(icon.scaled(iconSize));
-        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
     }
@@ -1040,7 +1040,7 @@ void TeamsTabItem::postTeamsToCanvas()
         busyBox->setText(tr("Error. Teams not created."));
         icon.load(":/icons/delete.png");
         busyBox->setIconPixmap(icon.scaled(iconSize));
-        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
         return;
@@ -1058,7 +1058,7 @@ void TeamsTabItem::printTeams()
                             spreadsheetFileContents.left(previewLength) + "..."};
 
     //Open specialized dialog box to choose which file(s) to print
-    auto *window = new whichFilesDialog(whichFilesDialog::print, previews, this);
+    auto *window = new whichFilesDialog(whichFilesDialog::Action::print, previews, this);
     int result = window->exec();
 
     if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
@@ -1165,19 +1165,16 @@ void TeamsTabItem::createFileContents()
                                         dataOptions->attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
         for(int response = 0; response < dataOptions->attributeQuestionResponses[attrib].size(); response++)
         {
-            if(dataOptions->attributeType[attrib] == DataOptions::ordered)
+            if((dataOptions->attributeType[attrib] == DataOptions::AttributeType::ordered) ||
+                (dataOptions->attributeType[attrib] == DataOptions::AttributeType::multiordered))
             {
                 questionWithResponses += "\n\t" + dataOptions->attributeQuestionResponses[attrib].at(response);
             }
-            else if(dataOptions->attributeType[attrib] == DataOptions::categorical)
+            else if((dataOptions->attributeType[attrib] == DataOptions::AttributeType::categorical) ||
+                    (dataOptions->attributeType[attrib] == DataOptions::AttributeType::multicategorical))
             {
-                // show response with a preceding letter (letter repeated for responses after 26)
                 questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) : QString(char(response%26 + 'A')).repeated(1 + (response/26)));
                 questionWithResponses += ". " + dataOptions->attributeQuestionResponses[attrib].at(response);
-            }
-            else
-            {
-                // multicategorical--collect all letters
             }
         }
         questionWithResponses += "\n\n\n";
@@ -1249,24 +1246,38 @@ void TeamsTabItem::createFileContents()
                 const auto *value = thisStudent.attributeVals[attribute].constBegin();
                 if(*value != -1)
                 {
-                    if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+                    if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
                     {
                         instructorsFileContents += (QString::number(*value)).leftJustified(3);
                     }
-                    else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+                    else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical)
                     {
                         instructorsFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
                                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
                     }
-                    else
+                    else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
                     {
-                        //multicategorical
                         const auto *const lastValue = thisStudent.attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue)
                         {
                             attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
                                                                (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
+                            value++;
+                            if(value != lastValue)
+                            {
+                                 attributeList += ",";
+                            }
+                        }
+                        instructorsFileContents += attributeList.leftJustified(3);
+                    }
+                    else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
+                    {
+                        const auto *const lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        QString attributeList;
+                        while(value != lastValue)
+                        {
+                            attributeList += QString::number(*value);
                             value++;
                             if(value != lastValue)
                             {

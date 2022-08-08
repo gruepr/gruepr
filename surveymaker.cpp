@@ -728,7 +728,9 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
         copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the busyBox when clicked
         connect(copyButton, &QPushButton::clicked, busyBox, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
                                                                                    clipboard->setText(form.responderURL.toEncoded());
-                                                                                   QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)), tr("URL copied"), copyButton, QRect(), 1500);});
+                                                                                   QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
+                                                                                                      tr("URL copied"), copyButton, QRect(),
+                                                                                                      UI_DISPLAY_DELAYTIME);});
     }
     QSize iconSize = busyBox->iconPixmap().size();
     busyBox->setIconPixmap(icon.scaled(iconSize));

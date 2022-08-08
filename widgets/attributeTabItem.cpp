@@ -145,7 +145,7 @@ void attributeTabItem::updateQuestionAndResponses(int attribute, const DataOptio
     const auto type = dataOptions->attributeType[attribute];
 
     QString questionWithResponses = "<html>" + dataOptions->attributeQuestionText.at(attribute);
-    if(type == DataOptions::multicategorical)
+    if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered))
     {
         questionWithResponses += "<br><i>Multiple responses allowed.</i>";
     }
@@ -155,13 +155,13 @@ void attributeTabItem::updateQuestionAndResponses(int attribute, const DataOptio
     int responseNum = 0;
     for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute]))
     {
-        if(type == DataOptions::ordered)
+        if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered))
         {
             // show response with starting number in bold
             QRegularExpressionMatch match = startsWithInteger.match(response);
             questionWithResponses += "<br><b>" + match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
         }
-        else if((type == DataOptions::categorical) || (type == DataOptions::multicategorical))
+        else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical))
         {
             // show response with a preceding letter in bold (letter repeated for responses after 26)
             questionWithResponses += "<br><b>";

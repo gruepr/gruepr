@@ -42,7 +42,10 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
     attributeDescription += dataOptions->attributeQuestionText.at(attribute) +"<hr>";
     for(const auto &attributeValue : qAsConst(attributeValues))
     {
-        if(attributeValue.value == -1 || attributeType != DataOptions::ordered)  // ordered responses already start with number (except the token value of -1)
+        // create numbered list of responses (prefixing a number for the token value of -1 and
+        // for unordered responses, since they already start with number)
+        if((attributeValue.value == -1) ||
+           ((attributeType != DataOptions::AttributeType::ordered) && (attributeType != DataOptions::AttributeType::multiordered)))
         {
             attributeDescription += valuePrefix(attributeValue.value) + ". ";
         }
@@ -197,7 +200,7 @@ QString gatherAttributeValuesDialog::valuePrefix(int value)
         return tr("--");
     }
 
-    if(attributeType == DataOptions::ordered)
+    if((attributeType == DataOptions::AttributeType::ordered) || (attributeType == DataOptions::AttributeType::multiordered))
     {
         // response's starting number
         return QString::number(value);

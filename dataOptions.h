@@ -42,8 +42,7 @@ public:
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
     int earlyHourAsked = 0;                         // earliest hour asked in survey
     int lateHourAsked = MAX_BLOCKS_PER_DAY;         // latest hour asked in survey
-    enum AttributeType {ordered, timezone, categorical, multicategorical};
-    AttributeType attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? If categorical are multiple values allowed?
+    enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? Are multiple values allowed?
     bool prefTeammatesIncluded = false;             // did students get to include preferred teammates?
     int prefTeammatesField = -1;                    // which field in surveyFile has the preferred teammates info? -1 if not included in survey
     bool prefNonTeammatesIncluded = false;          // did students get to include preferred non-teammates?

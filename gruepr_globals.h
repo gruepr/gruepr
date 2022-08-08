@@ -47,6 +47,7 @@ const int SMALL_SCREENSIZE_WIN = 900;
 const int SMALL_SCREENSIZE_MAC = 800;
 const int REDUCED_ICON_SIZE = 30;
 const int MSGBOX_ICON_SIZE = 40;
+const int UI_DISPLAY_DELAYTIME = 2000;
 
 const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // data with this role is stored in each column of the team info display tree, shown as the team's data value for the column
 const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // data with this role is stored in each column of the team info display tree, used when sorting the column
@@ -91,6 +92,7 @@ const int TIME_MEANINGS[] {1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,
                            13,13,13,13,13,14,14,14,14,14,15,15,15,15,15,16,16,16,16,16,
                            17,17,17,17,17,18,18,18,18,18,19,19,19,19,19,20,20,20,20,20,
                            21,21,21,21,21,22,22,22,22,22,23,23,23,23,23,0,0,0,0,0,12,0};
+const long int NUMOFTIMENAMESPERHOUR = 5;
 
 const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}):?(\d{2}).*)"}; // capture (1) intro text,
                                                                                    // skip "[" if present, then either "GMT" or "UTC", then any whitespace if present
@@ -141,9 +143,9 @@ const char RESPONSE_OPTIONS[] {"1. Yes / 2. No;"
                                "1. Like me / 2. Not like me;"
                                "1. Agree / 2. Disagree;"
                                "1. Strongly agree / 2. Agree / 3. Undecided / 4. Disagree / 5. Strongly disagree;"
-                               "1. 4.0— 3.75 / 2. 3.74— 3.5 / 3. 3.49— 3.25 / 4. 3.24— 3.0 / 5. 2.99— 2.75 / 6. 2.74— 2.5 / 7. 2.49— 2.0 / 8. Below 2.0 / 9. Not sure, or prefer not to say;"
-                               "1. 100— 90 / 2. 89— 80 / 3. 79— 70 / 4. 69— 60 / 5. 59— 50 / 6. Below 50 / 7. Not sure, or prefer not to say;"
-                               "1. A / 2. B / 3. C / 4. D / 5. F / 6. Not sure, or prefer not to say;"
+                               "1. 4.0— 3.75 / 2. 3.74— 3.5 / 3. 3.49— 3.25 / 4. 3.24— 3.0 / 5. 2.99— 2.75 / 6. 2.74— 2.5 / 7. 2.49— 2.0 / 8. Below 2.0 / 9. Not sure or prefer not to say;"
+                               "1. 100— 90 / 2. 89— 80 / 3. 79— 70 / 4. 69— 60 / 5. 59— 50 / 6. Below 50 / 7. Not sure or prefer not to say;"
+                               "1. A / 2. B / 3. C / 4. D / 5. F / 6. Not sure or prefer not to say;"
                                "1. Very high / 2. Above average / 3. Average / 4. Below average / 5. Very low;"
                                "1. Excellent / 2. Very good / 3. Good / 4. Fair / 5. Poor;"
                                "1. Highly positive / 2. Somewhat positive / 3. Neutral / 4. Somewhat negative / 5. Highly negative;"
@@ -152,7 +154,7 @@ const char RESPONSE_OPTIONS[] {"1. Yes / 2. No;"
                                "1. A lot / 2. Some / 3. Very Little / 4. None;"
                                "1. Much more / 2. More / 3. About the same / 4. Less / 5. Much less;"
                                "1. Most of the time / 2. Some of the time / 3. Seldom / 4. Never;"
-                               "1. Available / 2. Available, but prefer not to / 3. Not available;"
+                               "1. Available / 2. Available but prefer not to / 3. Not available;"
                                "1. Very frequently / 2. Frequently / 3. Occasionally / 4. Rarely / 5. Never;"
                                "1. Definitely will / 2. Probably will / 3. Probably won't / 4. Definitely won't;"
                                "1. Very important / 2. Important / 3. Somewhat important / 4. Not important;"

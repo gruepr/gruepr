@@ -341,7 +341,7 @@ void gruepr::downloadSurveyFromGoogle()
         busyBox->setText(tr("Error. Survey not downloaded."));
         icon.load(":/icons/delete.png");
         busyBox->setIconPixmap(icon.scaled(iconSize));
-        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         google->notBusy(busyBox);
         return;
@@ -349,7 +349,7 @@ void gruepr::downloadSurveyFromGoogle()
     busyBox->setText(tr("Success! The survey file is in your Downloads folder."));
     icon.load(":/icons/ok.png");
     busyBox->setIconPixmap(icon.scaled(iconSize));
-    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
     google->notBusy(busyBox);
 
@@ -462,7 +462,7 @@ void gruepr::downloadSurveyFromCanvas()
         busyBox->setText(tr("Error. Survey not received."));
         icon.load(":/icons/delete.png");
         busyBox->setIconPixmap(icon.scaled(iconSize));
-        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
         return;
@@ -470,7 +470,7 @@ void gruepr::downloadSurveyFromCanvas()
     busyBox->setText(tr("Success! File will be saved in your Downloads folder."));
     icon.load(":/icons/ok.png");
     busyBox->setIconPixmap(icon.scaled(iconSize));
-    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
     canvas->notBusy(busyBox);
 
@@ -631,7 +631,7 @@ void gruepr::compareRosterToCanvas()
         busyBox->setText(tr("Error. Roster not received."));
         icon.load(":/icons/delete.png");
         busyBox->setIconPixmap(icon.scaled(iconSize));
-        QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
         return;
@@ -639,7 +639,7 @@ void gruepr::compareRosterToCanvas()
     busyBox->setText(tr("Success!"));
     icon.load(":/icons/ok.png");
     busyBox->setIconPixmap(icon.scaled(iconSize));
-    QTimer::singleShot(1500, &loop, &QEventLoop::quit);
+    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
     canvas->notBusy(busyBox);
     delete canvasCourses;
@@ -1222,9 +1222,10 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
 
                 if(!student[index].attributeResponse[attribute].isEmpty())
                 {
-                    if(attributeType == DataOptions::multicategorical)
+                    if((attributeType == DataOptions::AttributeType::multicategorical) ||
+                        (attributeType == DataOptions::AttributeType::multiordered))
                     {
-                        //multicategorical - tally each value
+                        //multivalued - tally each value
                         const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
                         for(const auto &responseFromStudent : setOfResponsesFromStudent)
                         {
@@ -1258,7 +1259,8 @@ void gruepr::editAStudent()
         const QString &currentStudentResponse = student[indexBeingEdited].attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty())
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+            if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
             {
                 //need to process each one
                 const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
@@ -1293,7 +1295,8 @@ void gruepr::editAStudent()
         const QString &currentStudentResponse = student[indexBeingEdited].attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty())
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+            if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
             {
                 //need to process each one
                 const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
@@ -1352,7 +1355,8 @@ void gruepr::removeAStudent(int index, bool delayVisualUpdate)
         const QString &currentStudentResponse = student[index].attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty())
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+            if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
             {
                 //need to process each one
                 const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
@@ -1410,7 +1414,8 @@ void gruepr::on_addStudentPushButton_clicked()
                 const QString &currentStudentResponse = studentToAdd.attributeResponse[attribute];
                 if(!currentStudentResponse.isEmpty())
                 {
-                    if(dataOptions->attributeType[attribute] == DataOptions::multicategorical)
+                    if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
+                        (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
                     {
                         //need to process each one
                         const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
@@ -2928,16 +2933,19 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         {
             dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()))];
             dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constLast()))];
+            const int offsetToTimeNamesUsed = std::min(NUMOFTIMENAMESPERHOUR, std::max(0L,
+                                              timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()) -
+                                              std::distance(TIME_MEANINGS, std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), dataOptions->earlyHourAsked))));
             for(int hour = 0; hour < dataOptions->earlyHourAsked; hour++)
             {
                 const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
-                int index = std::distance(TIME_MEANINGS, val);
+                const int index = std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed;
                 dataOptions->timeNames.insert(hour, timeNamesStrings.at(index));
             }
             for(int hour = dataOptions->lateHourAsked + 1; hour < MAX_BLOCKS_PER_DAY; hour++)
             {
                 const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
-                int index = std::distance(TIME_MEANINGS, val);
+                const int index = std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed;
                 dataOptions->timeNames << timeNamesStrings.at(index);
             }
 
@@ -3039,23 +3047,23 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
             if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
             {
-                attributeType = DataOptions::timezone;
+                attributeType = DataOptions::AttributeType::timezone;
             }
             else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return response.contains(',');}))
             {
-                attributeType = DataOptions::multicategorical;
+                attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
             }
             else if(std::all_of(responses.constBegin(), responses.constEnd(), [&startsWithInteger](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
             {
-                attributeType = DataOptions::ordered;
+                attributeType = DataOptions::AttributeType::ordered;
             }
             else
             {
-                attributeType = DataOptions::categorical;
+                attributeType = DataOptions::AttributeType::categorical;
             }
 
-            // for multicategorical, have to reprocess the responses to delimit at the commas
-            if(attributeType == DataOptions::multicategorical)
+            // for multicategorical, have to reprocess the responses to delimit at the commas and then determine if actually multiordered
+            if(attributeType == DataOptions::AttributeType::multicategorical)
             {
                 for(int originalResponseNum = 0, numOriginalResponses = responses.size(); originalResponseNum < numOriginalResponses; originalResponseNum++)
                 {
@@ -3070,10 +3078,15 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                     }
                 }
                 responses.removeAll(QString(""));
+                // now that we've split them up, let's see if actually multiordered instead of multicategorical
+                if(std::all_of(responses.constBegin(), responses.constEnd(), [&startsWithInteger](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
+                {
+                    attributeType = DataOptions::AttributeType::multiordered;
+                }
             }
 
             // sort alphanumerically unless it's timezone, in which case sort according to offset from GMT
-            if(attributeType != DataOptions::timezone)
+            if(attributeType != DataOptions::AttributeType::timezone)
             {
                 QCollator sortAlphanumerically;
                 sortAlphanumerically.setNumericMode(true);
@@ -3091,7 +3104,8 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             }
 
             // set values associated with each response and create a spot to hold the responseCounts
-            if(attributeType == DataOptions::ordered)
+            if((attributeType == DataOptions::AttributeType::ordered) ||
+                (attributeType == DataOptions::AttributeType::multiordered))
             {
                 // ordered/numerical values. value is based on number at start of response
                 for(const auto &response : qAsConst(responses))
@@ -3100,9 +3114,10 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                     dataOptions->attributeQuestionResponseCounts[attribute].insert({response, 0});
                 }
             }
-            else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::multicategorical))
+            else if((attributeType == DataOptions::AttributeType::categorical) ||
+                    (attributeType == DataOptions::AttributeType::multicategorical))
             {
-                // categorical or multicategorical. value is based on index of response within sorted list
+                // categorical values. value is based on index of response within sorted list
                 for(int i = 1; i <= responses.size(); i++)
                 {
                     dataOptions->attributeVals[attribute].insert(i);
@@ -3125,25 +3140,36 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                 QVector<int> &currentStudentAttributeVals = student[index].attributeVals[attribute];
                 if(!student[index].attributeResponse[attribute].isEmpty())
                 {
-                    if(attributeType == DataOptions::ordered)
+                    if(attributeType == DataOptions::AttributeType::ordered)
                     {
                         // for numerical/ordered, set numerical value of students' attribute responses according to the number at the start of the response
                         currentStudentAttributeVals << startsWithInteger.match(currentStudentResponse).captured(1).toInt();
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
-                    else if((attributeType == DataOptions::categorical) || (attributeType == DataOptions::timezone))
+                    else if((attributeType == DataOptions::AttributeType::categorical) ||
+                            (attributeType == DataOptions::AttributeType::timezone))
                     {
                         // set numerical value instead according to their place in the sorted list of responses
                         currentStudentAttributeVals << responses.indexOf(currentStudentResponse) + 1;
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
-                    else
+                    else if(attributeType == DataOptions::AttributeType::multicategorical)
                     {
                         //multicategorical - set numerical values according to each value
                         const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
                         for(const auto &responseFromStudent : setOfResponsesFromStudent)
                         {
                             currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
+                            dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
+                        }
+                    }
+                    else if(attributeType == DataOptions::AttributeType::multiordered)
+                    {
+                        //multiordered - set numerical values according to the numbers at the start of the responses
+                        const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
+                        for(const auto &responseFromStudent : setOfResponsesFromStudent)
+                        {
+                            currentStudentAttributeVals << startsWithInteger.match(responseFromStudent.trimmed()).captured(1).toInt();
                             dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
                         }
                     }
@@ -3820,7 +3846,8 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
                         // "attribute" is timezone, so use timezone values
                         attributeRangeInTeam = *timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin();
                     }
-                    else if(_dataOptions->attributeType[attribute] == DataOptions::ordered)
+                    else if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+                            (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
                     {
                         // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
                         attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last = largest val; cbegin is 1st = smallest

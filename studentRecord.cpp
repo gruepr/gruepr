@@ -309,24 +309,37 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         const auto *value = attributeVals[attribute].constBegin();
         if(*value != -1)
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
             {
                 toolTip += QString::number(*value);
             }
-            else if(dataOptions->attributeType[attribute] == DataOptions::categorical)
+            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical)
             {
                 // if attribute value is > 26, letters are repeated as needed
                 toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
                                              QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
             }
-            else
+            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
             {
-                //multicategorical
                 const auto *lastVal = attributeVals[attribute].constEnd();
                 while(value != lastVal)
                 {
                     toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
                                                  QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
+                    value++;
+                    if(value != lastVal)
+                    {
+                        toolTip += ",";
+                    }
+                }
+            }
+            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
+            {
+                const auto *lastVal = attributeVals[attribute].constEnd();
+                while(value != lastVal)
+                {
+                    toolTip += QString::number(*value);
+
                     value++;
                     if(value != lastVal)
                     {
@@ -342,9 +355,25 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
     }
     if(dataOptions->timezoneIncluded)
     {
-        int hour = int(timezone);
-        int minutes = 60*(timezone - int(timezone));
-        toolTip += "<br>" + QObject::tr("Timezone") + QString(":  GMT%1%2:%3").arg(timezone >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));
+        toolTip += "<br>" + QObject::tr("Timezone:  ");
+        //find the timezone as attribute value so that -1 can show as unknown timezone
+        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+        {
+            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
+            {
+                const auto *value = attributeVals[attribute].constBegin();
+                if(*value != -1)
+                {
+                    int hour = int(timezone);
+                    int minutes = 60*(timezone - int(timezone));
+                    toolTip += QString("GMT%1%2:%3").arg(timezone >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));
+                }
+                else
+                {
+                    toolTip += "?";
+                }
+            }
+        }
     }
     if(!(availabilityChart.isEmpty()))
     {

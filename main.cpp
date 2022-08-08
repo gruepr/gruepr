@@ -32,22 +32,27 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - move Windows binary to non-static build with OpenSSL to allow direct use of https calls instead of thru-browser, removing all use of browser except OAuth login as needed
-// - enable custom attribute response options within SurveyMaker
+// - moved Windows binary to non-static build with OpenSSL
+// - implemented an installation program for Windows now that non-static build
+// - moved all https calls to be direct from program instead of thru browser, removing all use of browser except OAuth login as needed
 // - integrate SurveyMaker and gruepr with Google and with Canvas (NOTE: Canvas in beta--for now uses a user-generated token instead of OAuth token)
 //    - create Canvas survey (quiz) and Google Form directly from surveymaker
 //    - download results of Canvas survey and Google Form directly from gruepr
 //    - upload created teams to Canvas
 //    - saves and uses refresh tokens to reduce need for re-authorization every time
+// - enable custom attribute response options within SurveyMaker
+// - when adjusting schedules to class timezone, now uses the same style of time name (e.g., "1:00pm" vs "13:00") from the survey within the UI
+// - now correctly shows timezone as "?" in tooltips when it is unknown
+// - now correctly handles attributes that are ordered and multi-valued ("multiordered")
 //
 // INPROG:
 // - add timeout to canvas and google connections and check for memory leaks
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
-// - create multi-ordered attribute type
+// - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around from Saturday to Sunday
 // - auto-shorten URL for Google Form
-// - enable Form options and Question options (req'd response, answer validity checks) in Google Forms -- will require new API functionality from Google
+// - enable in Google Forms various Form options (don't collect email, accepting responses) and Question options (req'd question, answer validity checks) -- will require new API functionality from Google
 // - make the "Create Teams" button more emphasized/obvious
 // - create an LMS class and then subclass Canvas, Google
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
@@ -61,6 +66,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr.h"
+#include "gruepr_globals.h"
 #include "dialogs/registerDialog.h"
 #include "surveymaker.h"
 #include <algorithm>
@@ -149,7 +155,7 @@ int main(int argc, char *argv[])
     startWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     startWindow->setWindowTitle("gruepr");
     startWindow->setFont(*boxFont);
-    startWindow->setText(QObject::tr("Select an app to run:"));
+    startWindow->setText(QObject::tr("What would you like to do?"));
 
     // Create buttons and add to window
     auto *leaveButton = new QToolButton(startWindow);
@@ -165,7 +171,7 @@ int main(int argc, char *argv[])
     registerUserButton->setToolTip("<html>" + QObject::tr("Please register your copy of gruepr. "
                                    "Doing so helps me support the community of educators that use it.") + "</html>");
     QList<QToolButton *> buttons = {survMakeButton, grueprButton, leaveButton, registerUserButton, upgradeButton};
-    QStringList buttonTexts = {"SurveyMaker", "gruepr", QObject::tr("Exit"), QObject::tr("Register")+" gruepr", QObject::tr("New version!")};
+    QStringList buttonTexts = {"Make a survey", "Form teams", QObject::tr("Exit"), QObject::tr("Register")+" gruepr", QObject::tr("New version!")};
     QStringList buttonIcons = {"surveymaker", "gruepr", "exit", "license", "website"};
     //order reverses for some reason mac->windows
 #ifdef Q_OS_MACOS
@@ -201,7 +207,7 @@ int main(int argc, char *argv[])
         {
             if(haveBetaVersion)
             {
-                statusMessage = QObject::tr("You have a pre-release version of gruepr. ");
+                statusMessage = QObject::tr("You have a pre-release version of gruepr! ");
             }
             else
             {
@@ -259,25 +265,13 @@ int main(int argc, char *argv[])
         }
         else if(result == registerUserButton)
         {
-            //make sure we can connect to google
-            manager = new QNetworkAccessManager(startWindow);
-            reply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
-            QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-            loop.exec();
-            if(reply->bytesAvailable() == 0)
-            {
-                //no internet right now
-                QMessageBox::critical(startWindow, QObject::tr("No Internet Connection"), QObject::tr("There does not seem to be an internet connection.\n"
-                                                                                                      "Please register at another time."));
-            }
-            else
+            if(internetIsGood())
             {
                 //we can connect, so gather name, institution, and email address for submission
                 auto *registerWin = new registerDialog(startWindow);
-                int OkOrCancel = registerWin->exec();
-                //If user clicks OK, add to saved settings
-                if(OkOrCancel == QDialog::Accepted)
+                if(registerWin->exec() == QDialog::Accepted)
                 {
+                    //If user clicks OK, add to saved settings
                     registerWin->show();
                     auto *box = new QHBoxLayout;
                     auto *icon = new QLabel;
@@ -288,7 +282,6 @@ int main(int argc, char *argv[])
                     icon->setPixmap(QPixmap(":/icons/wait.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
                     message->setText(QObject::tr("Communicating..."));
 
-                    delete manager;
                     manager = new QNetworkAccessManager(startWindow);
                     request = new QNetworkRequest(QUrl(USER_REGISTRATION_URL));
                     request->setSslConfiguration(QSslConfiguration::defaultConfiguration());
@@ -321,7 +314,7 @@ int main(int argc, char *argv[])
                         icon->setPixmap(QPixmap(":/icons/delete.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
                         message->setText(QObject::tr("Error. Please try again later or contact <info@gruepr.com>."));
                     }
-                    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+                    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
                     loop.exec();
                     registerWin->hide();
                 }

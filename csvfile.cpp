@@ -509,7 +509,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
         line.append(externalStream.readLine());
     }
 
-    enum State {Normal, Quote} state = Normal;
+    enum {Normal, Quote} state = Normal;
     QStringList fields;
     fields.reserve(std::max(minFields, line.count(',')));
     QString value;

@@ -289,13 +289,13 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
     for(const auto &item : items) {
         const QJsonObject object = item.toObject();
         if(object.contains("questionItem")) {
-            questions.append({object["questionItem"]["question"]["questionId"].toString(), object["title"].toString(), false});
+            questions.append({object["questionItem"]["question"]["questionId"].toString(), object["title"].toString(), GoogleFormQuestion::Type::notSchedule});
         }
         else if(object.contains("questionGroupItem")) {
             const QJsonArray questionsInGroup = object["questionGroupItem"]["questions"].toArray();
             for(const auto &questionInGroup : questionsInGroup) {
                 const QJsonObject rowQuestion = questionInGroup["rowQuestion"].toObject();
-                questions.append({questionInGroup["questionId"].toString(), object["title"].toString() + "[" + rowQuestion["title"].toString() + "]", true});
+                questions.append({questionInGroup["questionId"].toString(), object["title"].toString() + "[" + rowQuestion["title"].toString() + "]", GoogleFormQuestion::Type::schedule});
             }
         }
     }
@@ -344,7 +344,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
             for(const auto &nestedAnswer : qAsConst(nestedAnswers)) {
                 allValues << nestedAnswer["value"].toString();
             }
-            out << ",\"" << allValues.join(question.scheduleQuestion? ';' : ',') << "\"";
+            out << ",\"" << allValues.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";
         }
 
         out << Qt::endl;

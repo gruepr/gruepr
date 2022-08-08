@@ -12,9 +12,9 @@ class whichFilesDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum action{save, print};
+    enum class Action {save, print};
 
-    whichFilesDialog(const action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
+    whichFilesDialog(const Action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
     ~whichFilesDialog();
 
     QCheckBox *studentFiletxt;

@@ -7,10 +7,10 @@
 // A dialog to choose which item(s) to save or print
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-whichFilesDialog::whichFilesDialog(const action saveOrPrint, const QStringList &previews, QWidget *parent)
+whichFilesDialog::whichFilesDialog(const Action saveOrPrint, const QStringList &previews, QWidget *parent)
     :QDialog (parent)
 {
-    saveDialog = (saveOrPrint == whichFilesDialog::save);
+    saveDialog = (saveOrPrint == whichFilesDialog::Action::save);
     QString saveOrPrintString = (saveDialog? tr("save") : tr("print"));
 
     //Set up window with a grid layout

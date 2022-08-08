@@ -8,7 +8,7 @@ DataOptions::DataOptions()
         attributeField[i] = -1;
         attributeVals[i].clear();
         attributeQuestionResponseCounts[i].clear();
-        attributeType[i] = categorical;
+        attributeType[i] = AttributeType::categorical;
     }
 
     for(int &field : notesField)

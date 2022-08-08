@@ -31,7 +31,7 @@ private:
     QTabWidget *attributeTabs;
 //    CategoricalSpinBox *dataspinbox;
     QComboBox *attributeCombobox;
-    QGroupBox *attributemulticategoricalbox;
+    QGroupBox *attributeMultibox;
     QDialogButtonBox *buttonBox;
     inline static const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email
     enum {timestamp, firstname, lastname, email};

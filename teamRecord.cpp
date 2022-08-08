@@ -81,7 +81,8 @@ void TeamRecord::createTooltip()
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         auto teamVals = attributeVals[attribute].cbegin();
         auto lastVal = attributeVals[attribute].cend();
-        if(dataOptions->attributeType[attribute] == DataOptions::ordered)
+        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+           (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
         {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
             if(*teamVals == -1)
@@ -104,7 +105,8 @@ void TeamRecord::createTooltip()
                 toolTip += "?";
             }
         }
-        else if((dataOptions->attributeType[attribute] == DataOptions::categorical) || (dataOptions->attributeType[attribute] == DataOptions::multicategorical))
+        else if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) ||
+                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical))
         {
             // attribute is categorical, so important info is the list of values
             // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
