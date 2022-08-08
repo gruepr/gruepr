@@ -2933,9 +2933,10 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         {
             dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()))];
             dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constLast()))];
-            const int offsetToTimeNamesUsed = std::min(NUMOFTIMENAMESPERHOUR, std::max(0L,
+            const int offsetToTimeNamesUsed = std::min(NUMOFTIMENAMESPERHOUR, std::max(0,
                                               timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()) -
-                                              std::distance(TIME_MEANINGS, std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), dataOptions->earlyHourAsked))));
+                                              static_cast<int>(std::distance(TIME_MEANINGS,
+                                                                             std::find(std::cbegin(TIME_MEANINGS), std::cend(TIME_MEANINGS), dataOptions->earlyHourAsked)))));
             for(int hour = 0; hour < dataOptions->earlyHourAsked; hour++)
             {
                 const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);

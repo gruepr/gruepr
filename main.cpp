@@ -50,7 +50,7 @@
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
-// - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around from Saturday to Sunday
+// - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday
 // - auto-shorten URL for Google Form
 // - enable in Google Forms various Form options (don't collect email, accepting responses) and Question options (req'd question, answer validity checks) -- will require new API functionality from Google
 // - make the "Create Teams" button more emphasized/obvious

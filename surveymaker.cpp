@@ -406,7 +406,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
             preview += QUESTIONOPTIONSHEAD;
             if(question.options.size() <= 10)
             {
-                preview += question.options.join(" </i><b>|</b><i> ");
+                preview += question.options.join(" </i><b>|</b><i> ").replace('-', QString::fromWCharArray(L"— "));       // replace cause font makes single dash look weird
             }
             else
             {
@@ -417,7 +417,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
 
                 }
                 first6 << "...";
-                preview += first6.join(" </i><b>|</b><i> ");
+                preview += first6.join(" </i><b>|</b><i> ").replace('-', QString::fromWCharArray(L"— "));       // replace cause font makes single dash look weird
             }
             preview += QUESTIONOPTIONSTAIL;
             if(question.type == Question::QuestionType::checkbox)

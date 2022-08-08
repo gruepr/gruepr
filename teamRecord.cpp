@@ -121,12 +121,23 @@ void TeamRecord::createTooltip()
     {
         float timezoneA = *timezoneVals.cbegin();
         float timezoneB = *timezoneVals.crbegin();
-        int hourA = int(timezoneA);
-        int hourB = int(timezoneB);
-        int minutesA = 60*(timezoneA - int(timezoneA));
-        int minutesB = 60*(timezoneB - int(timezoneB));
-        toolTip += "<br>" + QObject::tr("Timezones") + QString(":  GMT%1%2:%3 \u2192 %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(minutesA, 2, 10, QChar('0'))
-                                                                                              .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(minutesB, 2, 10, QChar('0'));
+        QString timezoneText;
+        if(timezoneA == timezoneB)
+        {
+            int hour = int(timezoneA);
+            int minutes = 60*(timezoneA - int(timezoneA));
+            timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));;
+        }
+        else
+        {
+            int hourA = int(timezoneA);
+            int hourB = int(timezoneB);
+            int minutesA = 60*(timezoneA - int(timezoneA));
+            int minutesB = 60*(timezoneB - int(timezoneB));
+            timezoneText = QString("%1%2:%3 \u2192 %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
+                                                                  .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(std::abs(minutesB), 2, 10, QChar('0'));
+        }
+        toolTip += "<br>" + QObject::tr("Timezones:  GMT") + timezoneText;
     }
     if(!dataOptions->dayNames.isEmpty())
     {

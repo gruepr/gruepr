@@ -366,7 +366,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
                 {
                     int hour = int(timezone);
                     int minutes = 60*(timezone - int(timezone));
-                    toolTip += QString("GMT%1%2:%3").arg(timezone >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0'));
+                    toolTip += QString("GMT%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs((minutes)), 2, 10, QChar('0'));
                 }
                 else
                 {
