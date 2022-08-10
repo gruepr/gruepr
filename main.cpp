@@ -32,18 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - moved Windows binary to non-static build with OpenSSL
-// - implemented an installation program for Windows now that non-static build
-// - moved all https calls to be direct from program instead of thru browser, removing all use of browser except OAuth login as needed
-// - integrate SurveyMaker and gruepr with Google and with Canvas (NOTE: Canvas in beta--for now uses a user-generated token instead of OAuth token)
-//    - create Canvas survey (quiz) and Google Form directly from surveymaker
-//    - download results of Canvas survey and Google Form directly from gruepr
-//    - upload created teams to Canvas
-//    - saves and uses refresh tokens to reduce need for re-authorization every time
-// - enable custom attribute response options within SurveyMaker
-// - when adjusting schedules to class timezone, now uses the same style of time name (e.g., "1:00pm" vs "13:00") from the survey within the UI
-// - now correctly shows timezone as "?" in tooltips when it is unknown
-// - now correctly handles attributes that are ordered and multi-valued ("multiordered")
 //
 // INPROG:
 // - add timeout to canvas and google connections and check for memory leaks
@@ -51,14 +39,17 @@
 //
 // TO DO:
 // - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday
-// - auto-shorten URL for Google Form
-// - enable in Google Forms various Form options (don't collect email, accepting responses) and Question options (req'd question, answer validity checks) -- will require new API functionality from Google
-// - make the "Create Teams" button more emphasized/obvious
-// - create an LMS class and then subclass Canvas, Google
-// - in gatherteammates dialog, enable the 'load from teamsTab' action
+// - auto-shorten URL for Google Form (using Google's firebase API?)
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
 // - modernize use of pointers throughout to C++17 style
+// - enable in Google Forms various options -- must wait on new API functionality from Google
+//     - Form ooptions: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
+//     - Question options: req'd question, answer validity checks
+// - make the "Create Teams" button more emphasized/obvious
+// - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
+// - create an LMS class and then subclass Canvas, Google
+// - in gatherteammates dialog, enable the 'load from teamsTab' action
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - use multiple genepools with limited cross-breeding
