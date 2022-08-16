@@ -6,69 +6,45 @@ Copyright (C) 2019-2022, Joshua Hertz < info@gruepr.com >
 Description of gruepr:
 
         Gruepr is a program for splitting a section of 4-500 students into optimized teams.
-        It is originally based on CATME's team forming routine as described in their paper
+        It was inspired by CATME's team forming routine as described in their paper
         [ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
 
-        All the student data is read from a file, and the students are split into teams of any desired size(s). A
+        Data about the students are collected and the students are split into teams of any desired size(s). A
         good distribution of students into teams is determined by a numerical score. The score can be based on:
            1) preventing isolated women, isolated men, isolated non-binary persons, and/or single-gender teams;
            2) preventing isolated URM students;
            3) achieving within each team either homogeneity or heterogeneity of up to 15 "attributes", which could
-              be skills assessments, work preferences, attitudes, major, or any other categorical/Likert question;
-           4) preventing students with incompatible attributes from being on the same team;
-           5) achieving a high degree of overlap in schedule freetime (with timezone awareness);
-           6) preventing any particular students from being on the same team;
-           7) requiring any particular students to be on the same team; and/or
-           8) requiring at least a certain number of students from a particular list to be on the same team.
+              be skills assessments, work preferences, attitudes, major, topic preference(s), or any other question 
+              that is answered by selecting one or more values from a limited set of possibilities;
+           4) requiring each team to have at least one student with a particular attribute;
+           5) preventing students with incompatible attributes from being on the same team;
+           6) achieving a high degree of overlap in schedule freetime (with timezone awareness);
+           7) preventing any particular students from being on the same team;
+           8) requiring any particular students to be on the same team; and/or
+           9) requiring at least a certain number of students from a particular list to be on the same team.
 
-        After optimizing the teams for some time, the best set of teams found is shown on the screen. The teams
-        are displayed showing the students names, emails, gender, URM status, and attribute values. Each team's
+        After the optimization process runs for some time, the best set of teams found is shown on the screen. The
+        teams are displayed showing the students names, emails, gender, URM status, and attribute values. Each team's
         score is also shown along with a table of student availability at each time slot throughout the week. You
-        can choose whether to save this teamset, adjust this teamset by rearranging teams or students, or throw away
-        the teamset entirely and start over. If you save the teamset, three files can be saved: 1) an instructor's
+        can choose whether to save this teamset, adjust this teamset by rearranging teams or students, or to change
+        the teaming options and try again. If you save the teamset, three files can be saved: 1) an instructor's
         file containing all the team and student information; 2) a student's file showing the same but without
         listing team scores or student demographics/attributes; and 3) the section, team, and student names in a
         spreadsheet format.
 
-        The datafile of student information has a specific required format. Using the Google Form allows you to
-        download the data into exactly this file format without modification. After collecting responses, go to the
-        Google Form and, in the "Responses" tab, click the three-dot icon and select "Download responses (.csv)".
-        A section question can be included so that multiple sections can all be sent the same form; if more than
-        one section is present in the data, you can select which section to team. Additional questions for your own
-        use can be included at the end of the survey.
+        The student data are typically collected using a survey that the students fill out. Gruepr will help the
+        instructor create this survey, outputting the survey as either text files or, more commonly, by creating the
+        survey as a Google Form on the instructor's Google Drive. After collecting the students' survey responses, the
+        results are loaded into gruepr. If using the Google Form, the results can be directly imported. If an alternate
+        surveying instrument is used, the results must be as a comma-separated-values (.csv) file with each question as
+        a separate column and each student as a separate row.
 
-        The datafile must be a comma-separated-values (.csv) file with these contents:
-           - header row, contains only the comma-separated question texts
-           - each student on a separate row, starting at the row immediately after the header
-           - in each row, comma-separated values are:
-               ~ timestamp
-               ~ first name or preferred name
-               ~ last name
-               ~ [optional] email
-               ~ [optional] "Woman", "Man", or any number of additional gender categories ("Prefer not to say",
-                     "Nonbinary", etc.)
-               ~ [optional] self-reported racial/ethnic/cultural background
-               ~ [0 to 15 values] text responses to "attribute" questions, each in own field
-               ~ [0 to 7 values] semicolon-separated list of times each day that the student is either available or
-                     unavailable to work
-               ~ [optional] section
-               ~ [optional] any additional notes for student additional columns can be included and left ignored
+        Integration with various learning management systems is currently in development. Canvas integrations currently
+        use a user-generated API token. Gruepr can create the survey as an ungraded quiz in the Canvas course, can
+        directly import the survey results, and can upload the created teams as groups in the Canvas course.
 
-        COMPILING NOTES: Need C++11 and OpenMP. Using gcc/mingw, enabling the speed optimization of -O2 seems to
-        offer significant speed boost.
-
-
----------------
-Description of gruepr-SurveyMaker:
-
-        gruepr-SurveyMaker is a secondary app used to easily create and use a customized Google Form to collect
-        the student data used by gruepr. After selecting the desired options in SurveyMaker and hitting the "Create
-        Survey" button, a browser window opens to run the Google script and show additional information. Once
-        complete, the user has two new files on their Google Drive: the Google Form itself and a spreadsheet that
-        will contain the students' responses. A page of instructions for use of the Form and spreadsheet are shown
-        in the browser, along with several direct URLs to edit the form, to send the form to the students, and to
-        download the form results after the students have submitted them.
-
+        COMPILING NOTES: Need C++17 and OpenMP on all systems. Needs OpenSSL on Windows. Using gcc/mingw, enabling the 
+        speed optimization of -O2 seems to offer significant speed boost; -O3 does not seem to offer any improvement.
 
 ---------------
 Details on how the teams are optimized:

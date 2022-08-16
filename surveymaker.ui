@@ -387,6 +387,11 @@
           <string>text files</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Canvas quiz</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
