@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QTextEdit>
 
 struct AttributeValue
 {
@@ -43,7 +44,7 @@ private:
     QVector<AttributeValue> attributeValues;
     int numPossibleValues;
     QGridLayout *theGrid;
-    QLabel *attributeQuestion;
+    QTextEdit *attributeQuestion;
     QLabel *selectOneExplanation;
     QLabel *selectMultipleExplanation;
     QRadioButton *selectOneValues;

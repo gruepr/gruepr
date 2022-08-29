@@ -1,5 +1,6 @@
 #include "gatherAttributeValuesDialog.h"
 #include <QButtonGroup>
+#include <QScrollArea>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to gather which attribute values should be required on each team or which pairings should be disallowed on the same team
@@ -25,36 +26,35 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
     numPossibleValues = attributeValues.size();
 
     //Set up window with a grid layout
-    if(gatherType == incompatible)
-    {
-        setWindowTitle(tr("Incompatible responses for attribute ") + QString::number(attribute + 1));
-    }
-    else
-    {
-        setWindowTitle(tr("Required responses for attribute ") + QString::number(attribute + 1));
-    }
-
+    setWindowTitle(((gatherType == incompatible) ? tr("Incompatible") : tr("Required")) + tr(" responses for attribute ") + QString::number(attribute + 1));
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theGrid = new QGridLayout(this);
     int row = 0;
 
     QString attributeDescription = "<html><br><b>" + tr("Attribute") + " " + QString::number(attribute + 1) + ":</b><br>";
     attributeDescription += dataOptions->attributeQuestionText.at(attribute) +"<hr>";
+    bool firstTime = true;
     for(const auto &attributeValue : qAsConst(attributeValues))
     {
         // create numbered list of responses (prefixing a number for the token value of -1 and
         // for unordered responses, since they already start with number)
+        if(!firstTime)
+        {
+            attributeDescription += "<br>";
+        }
+        firstTime = false;
         if((attributeValue.value == -1) ||
            ((attributeType != DataOptions::AttributeType::ordered) && (attributeType != DataOptions::AttributeType::multiordered)))
         {
             attributeDescription += valuePrefix(attributeValue.value) + ". ";
         }
-        attributeDescription += attributeValue.response + "<br>";
+        attributeDescription += attributeValue.response;
     }
 
-    attributeQuestion = new QLabel(this);
-    attributeQuestion->setText(attributeDescription + "</html>");
-    attributeQuestion->setWordWrap(true);
+    attributeQuestion = new QTextEdit(this);
+    attributeQuestion->setHtml(attributeDescription + "</html>");
+    attributeQuestion->setReadOnly(true);
+    attributeQuestion->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     theGrid->addWidget(attributeQuestion, row++, 0, 1, -1);
 
     auto *hline = new QFrame(this);
@@ -62,78 +62,86 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
     hline->setFrameShadow(QFrame::Sunken);
     theGrid->addWidget(hline, row++, 0, 1, -1);
 
+    auto *attributeValueAreaWidg = new QWidget;
+    auto *attributeValueAreaGrid = new QGridLayout(attributeValueAreaWidg);
+    attributeValueAreaWidg->setLayout(attributeValueAreaGrid);
+    int attributeValueAreaRow = 0, attributeValueAreaColumn = 0;
+
     if(gatherType == incompatible)
     {
-        // for each response value, a radio button and a label with vline between
-
-        auto *vline = new QFrame(this);
-        vline->setFrameShape(QFrame::VLine);
-        vline->setFrameShadow(QFrame::Sunken);
-        theGrid->addWidget(vline, row, 2, numPossibleValues + 1, 1);
-
-        selectOneExplanation = new QLabel(this);
+        // an explanation and a vline to the right of everything
+        selectOneExplanation = new QLabel(attributeValueAreaWidg);
         selectOneExplanation->setText("<html>" + tr("Prevent placing students with this response:") + "</html>");
         selectOneExplanation->setWordWrap(true);
-        theGrid->addWidget(selectOneExplanation, row++, 0, 1, 2);
+        attributeValueAreaGrid->addWidget(selectOneExplanation, attributeValueAreaRow, attributeValueAreaColumn, 1, 2);
 
+        auto *vline = new QFrame(attributeValueAreaWidg);
+        vline->setFrameShape(QFrame::VLine);
+        vline->setFrameShadow(QFrame::Sunken);
+        attributeValueAreaGrid->addWidget(vline, attributeValueAreaRow++, attributeValueAreaColumn + 2, numPossibleValues + 1, 1);
+
+        // for each response value a radio button and a label
         selectOneValues = new QRadioButton[numPossibleValues];
         selectOneResponses = new QPushButton[numPossibleValues];
-        selectOneValuesGroup = new QButtonGroup(this);
+        selectOneValuesGroup = new QButtonGroup(attributeValueAreaWidg);
         int response = 0;
         for(const auto &attributeValue : qAsConst(attributeValues))
         {
-            theGrid->addWidget(&selectOneValues[response], row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+            attributeValueAreaGrid->addWidget(&selectOneValues[response], attributeValueAreaRow, attributeValueAreaColumn, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
             selectOneValuesGroup->addButton(&selectOneValues[response]);
             selectOneResponses[response].setText(valuePrefix(attributeValue.value));
             selectOneResponses[response].setFlat(true);
             selectOneResponses[response].setStyleSheet("Text-align:left");
             connect(&selectOneResponses[response], &QPushButton::clicked, &selectOneValues[response], &QRadioButton::toggle);
-            theGrid->addWidget(&selectOneResponses[response], row++, 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+            attributeValueAreaGrid->addWidget(&selectOneResponses[response], attributeValueAreaRow++, attributeValueAreaColumn + 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
             response++;
         }
+        attributeValueAreaColumn = 3;
     }
 
     // a checkbox and a label for each response value to set as required or as incompatible with the primary
-    selectMultipleExplanation = new QLabel(this);
-    int column = 0;
-    row = 2;
+    selectMultipleExplanation = new QLabel(attributeValueAreaWidg);
+    attributeValueAreaRow = 0;
     if(gatherType == incompatible)
     {
         selectMultipleExplanation->setText("<html>" + tr("on the same team as students with any of these responses:") + "</html>");
-        column = 3;
     }
     else
     {
         selectMultipleExplanation->setText("<html>" + tr("Ensure each team has at least one student with each of these responses:") + "</html>");
     }
     selectMultipleExplanation->setWordWrap(true);
-    theGrid->addWidget(selectMultipleExplanation, row++, column, 1, -1);
+    attributeValueAreaGrid->addWidget(selectMultipleExplanation, attributeValueAreaRow++, attributeValueAreaColumn, 1, 2);
 
     selectMultipleValues = new QCheckBox[numPossibleValues];
     selectMultipleResponses = new QPushButton[numPossibleValues];
     int response = 0;
     for(const auto &attributeValue : qAsConst(attributeValues))
     {
-        theGrid->addWidget(&selectMultipleValues[response], row, column, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        attributeValueAreaGrid->addWidget(&selectMultipleValues[response], attributeValueAreaRow, attributeValueAreaColumn, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
         selectMultipleResponses[response].setText(valuePrefix(attributeValue.value));
         selectMultipleResponses[response].setFlat(true);
         selectMultipleResponses[response].setStyleSheet("Text-align:left");
         connect(&selectMultipleResponses[response], &QPushButton::clicked, &selectMultipleValues[response], &QCheckBox::toggle);
-        theGrid->addWidget(&selectMultipleResponses[response], row++, column + 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
+        attributeValueAreaGrid->addWidget(&selectMultipleResponses[response], attributeValueAreaRow++, attributeValueAreaColumn + 1, 1, 1,  Qt::AlignLeft | Qt::AlignVCenter);
         response++;
     }
 
     if(gatherType == incompatible)
     {
         // set second and fifth columns as the ones to grow
-        theGrid->setColumnStretch(1, 1);
-        theGrid->setColumnStretch(4, 1);
+        attributeValueAreaGrid->setColumnStretch(1, 1);
+        attributeValueAreaGrid->setColumnStretch(4, 1);
     }
     else
     {
         // set second column as the one to grow
-        theGrid->setColumnStretch(1, 1);
+        attributeValueAreaGrid->setColumnStretch(1, 1);
     }
+    auto *attributeValueArea = new QScrollArea(this);
+    attributeValueArea->setWidget(attributeValueAreaWidg);
+    attributeValueArea->setWidgetResizable(true);
+    theGrid->addWidget(attributeValueArea, row++, 0, 1, -1);
 
     //button to add the currently checked values as required or incompatible
     addValuesButton = new QPushButton(this);

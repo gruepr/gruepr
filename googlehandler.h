@@ -68,12 +68,12 @@ private:
 
 
 // helper class below is used in order to expose & emit the errorString
-class GoogleOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
+class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
 {
     Q_OBJECT
 
 public:
-    GoogleOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
+    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
 
 signals:
     void error(const QString &errorString);

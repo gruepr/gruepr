@@ -486,12 +486,12 @@ void GoogleHandler::authenticate() {
         }
     });
 
-    auto *replyHandler = new GoogleOAuthHttpServerReplyHandler(port);
+    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port);
     google->setReplyHandler(replyHandler);
 
     connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
                                                                            emit granted();});
-    connect(replyHandler, &GoogleOAuthHttpServerReplyHandler::error, this, [this](){authenticated = false;
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](){authenticated = false;
                                                                                     google->setRefreshToken("");
                                                                                     refreshTokenExists = false;
                                                                                     emit denied();});
@@ -524,9 +524,9 @@ void GoogleHandler::notBusy(QMessageBox *busyDialog) {
 }
 
 
-GoogleOAuthHttpServerReplyHandler::GoogleOAuthHttpServerReplyHandler(quint16 port, QObject *parent) : QOAuthHttpServerReplyHandler(port, parent) {}
+grueprOAuthHttpServerReplyHandler::grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent) : QOAuthHttpServerReplyHandler(port, parent) {}
 
-void GoogleOAuthHttpServerReplyHandler::networkReplyFinished(QNetworkReply *reply)
+void grueprOAuthHttpServerReplyHandler::networkReplyFinished(QNetworkReply *reply)
 {
     if(reply->error() != QNetworkReply::NoError) {
         emit error(reply->errorString());

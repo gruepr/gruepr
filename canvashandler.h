@@ -79,8 +79,8 @@ private:
     inline static const int NUM_PAGES_TO_LOAD = 20;
     inline static const QString CLIENT_ID{""};
     inline static const QString CLIENT_SECRET{""};
-    inline static const int REDIRECT_URI_PORT = 1234;
-    inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};
+    inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
+    inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT)};
 };
 
 #endif // CANVASHANDLER_H

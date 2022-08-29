@@ -38,6 +38,7 @@
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
+// - if the number of unique responses for a particular attribute is large enough, then the incompatible/required attributes window will be too tall to fit on the screen --> make selection and text areas scrollable
 // - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday
 // - auto-shorten URL for Google Form (using Google's firebase API?)
 // - more granular scheduling option, down to the 15 minute level at least

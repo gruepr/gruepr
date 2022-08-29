@@ -212,7 +212,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 optionNum++;
             }
             break;}
-        case Question::QuestionType::schedule:{
+        case Question::QuestionType::schedule: {
             if(survey->schedDayNames.size() == 1)
             {
                 //just one question, set it up to post
@@ -579,7 +579,16 @@ bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
 // IN PROG
 // Authenticates data access using OAuth2 protocol
 void CanvasHandler::authenticate() {
-    canvas->setScope("placeholder");
+    canvas->setScope("url:GET|/api/v1/courses "                                             // get list of user's courses
+                     "url:GET|/api/v1/courses/:course_id/users "                            // get roster of students in a course
+                     "url:POST|/api/v1/courses/:course_id/quizzes "                         // create a quiz (i.e., survey)
+                     "url:POST|/api/v1/courses/:course_id/quizzes/:quiz_id/questions "      // create a quiz question
+                     "url:GET|/api/v1/courses/:course_id/quizzes "                          // get list of quizzes in a course
+                     "url:POST|/api/v1/courses/:course_id/quizzes/:quiz_id/reports "        // create a quiz report (i.e., csv file of responses)
+                     "url:GET|/api/v1/courses/:course_id/quizzes/:quiz_id/reports "         // obtain the URL of the quiz report
+                     "url:POST|/api/v1/courses/:course_id/group_categories "                // create a group set
+                     "url:POST|/api/v1/group_categories/:group_category_id/groups "         // create a group in a group set
+                     "url:POST|/api/v1/groups/:group_id/memberships");                      // put students on a group
     QAbstractOAuth2::connect(canvas, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
 
     const QUrl redirectUri = QString(REDIRECT_URI);
