@@ -13,8 +13,9 @@
 CanvasHandler::CanvasHandler(const QString &authenticateURL, const QString &accessTokenURL, const QString &baseAPIURL) {
 
     manager = new QNetworkAccessManager;
+    manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+    manager->setTransferTimeout(TIMEOUT_TIME);
     canvas = new QOAuth2AuthorizationCodeFlow(authenticateURL, accessTokenURL, manager, this);
-    canvas->networkAccessManager()->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
 
     baseURL = baseAPIURL;
 

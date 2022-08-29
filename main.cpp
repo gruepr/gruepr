@@ -32,24 +32,24 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - updated UI for incompatible/required attributes window by making text and selection areas scrollable (needed when # of value is large and thus window is too tall for screen)
+// - added timeout to canvas and google connections
 //
 // INPROG:
-// - add timeout to canvas and google connections and check for memory leaks
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
-// - if the number of unique responses for a particular attribute is large enough, then the incompatible/required attributes window will be too tall to fit on the screen --> make selection and text areas scrollable
 // - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday
-// - auto-shorten URL for Google Form (using Google's firebase API?)
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
-// - modernize use of pointers throughout to C++17 style
+// - modernize use of pointers throughout to C++17 style; check for memory leaks (esp. in new canvas and google code)
 // - enable in Google Forms various options -- must wait on new API functionality from Google
-//     - Form ooptions: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
+//     - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
 //     - Question options: req'd question, answer validity checks
 // - make the "Create Teams" button more emphasized/obvious
 // - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 // - create an LMS class and then subclass Canvas, Google
+// - auto-shorten URL for Google Form (using Google's firebase API?)
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:

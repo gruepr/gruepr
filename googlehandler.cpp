@@ -12,8 +12,9 @@
 
 GoogleHandler::GoogleHandler() {
     manager = new QNetworkAccessManager;
+    manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+    manager->setTransferTimeout(TIMEOUT_TIME);
     google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
-    google->networkAccessManager()->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
 
     QString refreshToken;
     QSettings settings;
