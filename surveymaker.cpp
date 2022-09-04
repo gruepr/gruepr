@@ -841,20 +841,20 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
 
 void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg1)
 {
-    if(arg1.compare(tr("Google form"), Qt::CaseInsensitive))
+    if(arg1.compare(tr("Google form"), Qt::CaseInsensitive) == 0)
     {
         ui->makeSurveyButton->setToolTip("<html>Upload the survey to your Google Drive.</html>");
         generateSurvey = &SurveyMaker::createGoogleForm;
     }
-    else if(arg1.compare(tr("text files"), Qt::CaseInsensitive))
+    else if(arg1.compare(tr("text files"), Qt::CaseInsensitive) == 0)
     {
         ui->makeSurveyButton->setToolTip("<html>Create a text file with the required question texts and a csv file to paste the results in afterwards.</html>");
         generateSurvey = &SurveyMaker::createFiles;
     }
-    else if(arg1.compare(tr("Canvas quiz"), Qt::CaseInsensitive))
+    else if(arg1.compare(tr("Canvas quiz"), Qt::CaseInsensitive) == 0)
     {
         ui->makeSurveyButton->setToolTip("<html>Create a survey in your Canvas class. Note: this feature is in beta currently.</html>");
-        generateSurvey = &SurveyMaker::createFiles;
+        generateSurvey = &SurveyMaker::createCanvasQuiz;
     }
 }
 

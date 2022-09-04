@@ -34,12 +34,13 @@
 // DONE:
 // - updated UI for incompatible/required attributes window by making text and selection areas scrollable (needed when # of value is large and thus window is too tall for screen)
 // - added timeout to canvas and google connections
+// - added Canvas quiz upload to surveymaker's create survey UI buttons
 //
 // INPROG:
+// - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday [studentrecord.cpp line 167]
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
-// - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
 // - modernize use of pointers throughout to C++17 style; check for memory leaks (esp. in new canvas and google code)

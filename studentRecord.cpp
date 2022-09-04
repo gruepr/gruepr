@@ -164,28 +164,56 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
         for(int time = 0; time < numTimes; time++)
         {
+            // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
+            if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > MAX_BLOCKS_PER_DAY)))
+            {
+                continue;
+            }
+
             timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
+
+            // determine which spot in the unavailability chart to put this date/time
+            int actualday = day;
+            int actualtime = time + timezoneOffset;
+            // if this one wraps around the day, then adjust to the correct day/time
+            if(actualtime < 0)
+            {
+                actualtime += MAX_BLOCKS_PER_DAY;
+                actualday--;
+                if(actualday < 0)
+                {
+                    if(numDays < MAX_DAYS)  // less than all 7 days, so not clear where to shift this time--just ignore
+                    {
+                        continue;
+                    }
+                    actualday += MAX_DAYS;
+                }
+            }
+            if(actualtime > MAX_BLOCKS_PER_DAY)
+            {
+                actualtime -= MAX_BLOCKS_PER_DAY;
+                actualday++;
+                if(actualday > numDays)
+                {
+                    if(numDays < MAX_DAYS)  // less than all 7 days, so not clear where to shift this time--just ignore
+                    {
+                        continue;
+                    }
+                    actualday -= MAX_DAYS;
+                }
+            }
+            bool &unavailabilitySpot = unavailable[actualday][actualtime];
+
             if(dataOptions->scheduleDataIsFreetime)
             {
-                // need to ignore when we're outside the bounds of the array, or we're not looking at all 7 days and this one wraps around the day
-                if(((day + time + timezoneOffset) >= 0) &&
-                   (((day * numTimes) + time + timezoneOffset) <= (numDays * numTimes)) &&
-                   ((numDays == MAX_DAYS) || (((time + timezoneOffset) >= 0) && ((time + timezoneOffset) <= MAX_BLOCKS_PER_DAY))))
-                {
-                    unavailable[day][time + timezoneOffset] = !timename.match(field).hasMatch();
-                }
+                unavailabilitySpot = !timename.match(field).hasMatch();
             }
             else
             {
-                // need to ignore when we're outside the bounds of the array, when we're not looking at all 7 days and this one wraps around the day,
-                // or--since we asked when they're unavailable--any times that we didn't actually ask about
-                if(((day + time + timezoneOffset) >= 0) &&
-                   (((day * numTimes) + time + timezoneOffset) <= (numDays * numTimes)) &&
-                   (time >= dataOptions->earlyHourAsked) &&
-                   (time <= dataOptions->lateHourAsked) &&
-                   ((numDays == MAX_DAYS) || (((time + timezoneOffset) >= 0) && ((time + timezoneOffset) <= MAX_BLOCKS_PER_DAY))))
+                // since we asked when they're unavailable, ignore any times that we didn't actually ask about
+                if((time >= dataOptions->earlyHourAsked) && (time <= dataOptions->lateHourAsked))
                 {
-                    unavailable[day][time + timezoneOffset] = timename.match(field).hasMatch();
+                    unavailabilitySpot = timename.match(field).hasMatch();
                 }
             }
         }
