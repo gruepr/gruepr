@@ -38,9 +38,12 @@
 //
 // INPROG:
 // - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday [studentrecord.cpp line 167]
+// - enable "Students in all sections separately" option to gruepr--manifest as multiple loops of create teams, but will need to figure out teamsizes when going in and should add section to team display
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
+// - create timeout function for canvas and google connections
+// - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
 // - modernize use of pointers throughout to C++17 style; check for memory leaks (esp. in new canvas and google code)

@@ -1216,7 +1216,7 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
         }
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            if((ui->sectionSelectionBox->currentIndex() == 0) || (student[index].section == ui->sectionSelectionBox->currentText()))
+            if((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1) || (student[index].section == ui->sectionSelectionBox->currentText()))
             {
                 const QString &currentStudentResponse = student[index].attributeResponse[attribute];
 
@@ -1514,7 +1514,8 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             ui->label_2->setEnabled(true);
             ui->label_22->setEnabled(true);
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
-            ui->sectionSelectionBox->insertSeparator(1);
+            ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
+            ui->sectionSelectionBox->insertSeparator(2);
             ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
         }
         else
@@ -1925,7 +1926,7 @@ void gruepr::on_requiredTeammatesButton_clicked()
     }
     //Open specialized dialog box to collect pairings that are required
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::required, student, dataOptions->numStudentsInSystem,
-                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : teamingOptions->sectionName, &teamTabNames, this);
+                                          dataOptions, ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
@@ -1951,7 +1952,7 @@ void gruepr::on_preventedTeammatesButton_clicked()
     }
     //Open specialized dialog box to collect pairings that are prevented
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::prevented, student, dataOptions->numStudentsInSystem,
-                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : teamingOptions->sectionName, &teamTabNames, this);
+                                          dataOptions, ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
@@ -1977,7 +1978,7 @@ void gruepr::on_requestedTeammatesButton_clicked()
     }
     //Open specialized dialog box to collect pairings that are requested
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::requested, student, dataOptions->numStudentsInSystem,
-                                          dataOptions, (ui->sectionSelectionBox->currentIndex()==0)? "" : teamingOptions->sectionName, &teamTabNames, this);
+                                          dataOptions, ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
@@ -2240,7 +2241,7 @@ void gruepr::on_letsDoItButton_clicked()
     studentIndexes = new int[dataOptions->numStudentsInSystem];
     for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == student[index].section)
+        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentIndex() == 1 ||ui->sectionSelectionBox->currentText() == student[index].section)
         {
             studentIndexes[numStudentsInSection] = index;
             numStudentsInSection++;
@@ -2658,7 +2659,8 @@ void gruepr::loadUI()
             ui->label_2->setEnabled(true);
             ui->label_22->setEnabled(true);
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
-            ui->sectionSelectionBox->insertSeparator(1);
+            ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
+            ui->sectionSelectionBox->insertSeparator(2);
             ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
         }
         else
@@ -3321,7 +3323,7 @@ void gruepr::refreshStudentDisplay()
     numStudents = 0;
     for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
     {
-        if((ui->sectionSelectionBox->currentIndex() == 0) || (student[index].section == ui->sectionSelectionBox->currentText()))
+        if((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1) || (student[index].section == ui->sectionSelectionBox->currentText()))
         {
             bool duplicate = student[index].duplicateRecord;
 
@@ -3415,7 +3417,7 @@ void gruepr::refreshStudentDisplay()
     }
     ui->studentTable->setRowCount(numStudents);
 
-    QString sectiontext = (ui->sectionSelectionBox->currentIndex() == 0? "All sections" : " Section: " + teamingOptions->sectionName);
+    QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))? "All sections" : " Section: " + teamingOptions->sectionName);
     statusBarLabel->setText(statusBarLabel->text().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
 
     ui->studentTable->setUpdatesEnabled(true);
