@@ -16,7 +16,7 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                           TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[],
+                           TeamRecord *const incomingTeams, int incomingNumTeams, StudentRecord incomingStudents[],
                            QString incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made

@@ -1,6 +1,7 @@
 #include "editOrAddStudentDialog.h"
 #include <QCheckBox>
 #include <QCollator>
+#include <QScrollArea>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to show/edit student data
@@ -65,13 +66,19 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     const int rowOfTextHeight = fm.lineSpacing() + qRound(datamultiline[0].document()->documentMargin()) +
                                 datamultiline[0].frameWidth() * 2 + margin.top() + margin.bottom();
 
+    auto *fieldAreaWidg = new QWidget;
+    auto *fieldAreaGrid = new QGridLayout(fieldAreaWidg);
+    fieldAreaWidg->setLayout(fieldAreaGrid);
+    auto *fieldArea = new QScrollArea(this);
+    fieldArea->setWidget(fieldAreaWidg);
+
     int field = 0;
     if(dataOptions->timestampField != -1)
     {
         explanation[field].setText(tr("Survey timestamp"));
         datatext[timestamp].setText(student.surveyTimestamp.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)));
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datatext[timestamp], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datatext[timestamp], field, 1);
         //Flag invalid timestamps
         connect(&datatext[timestamp], &QLineEdit::textChanged, this, [this]()
                                                          {bool validTimeStamp = QDateTime::fromString(datatext[timestamp].text(),
@@ -85,8 +92,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     {
         explanation[field].setText(tr("First name"));
         datatext[firstname].setText(student.firstname);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datatext[firstname], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datatext[firstname], field, 1);
         field++;
     }
 
@@ -94,8 +101,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     {
         explanation[field].setText(tr("Last name"));
         datatext[lastname].setText(student.lastname);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datatext[lastname], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datatext[lastname], field, 1);
         field++;
     }
 
@@ -103,8 +110,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     {
         explanation[field].setText(tr("Email address"));
         datatext[email].setText(student.email);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datatext[email], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datatext[email], field, 1);
         field++;
     }
 
@@ -133,8 +140,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         }
         databox[gender].addItems(genderOptions);
         databox[gender].setCurrentIndex(static_cast<int>(student.gender));
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&databox[gender], field, 1);
+        databox[gender].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        databox[gender].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&databox[gender], field, 1);
         field++;
     }
 
@@ -144,8 +153,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         databox[ethnicity].addItems(dataOptions->URMResponses);
         databox[ethnicity].setEditable(true);
         databox[ethnicity].setCurrentText(student.URMResponse);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&databox[ethnicity], field, 1);
+        databox[ethnicity].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        databox[ethnicity].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&databox[ethnicity], field, 1);
         field++;
     }
 
@@ -155,8 +166,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         databox[section].addItems(dataOptions->sectionNames);
         databox[section].setEditable(true);
         databox[section].setCurrentText(student.section);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&databox[section], field, 1);
+        databox[section].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        databox[section].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&databox[section], field, 1);
         field++;
     }
 
@@ -249,11 +262,13 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
             if(orderedAttributes.contains(0) || categoricalAttributes.contains(0) || timezoneAttribute.contains(0))
             {
-                theGrid->addWidget(&attributeCombobox[comboboxNum], field, 1);
+                attributeCombobox[comboboxNum].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+                attributeCombobox[comboboxNum].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
+                fieldAreaGrid->addWidget(&attributeCombobox[comboboxNum], field, 1);
             }
             else
             {
-                theGrid->addWidget(&attributeMultibox[multiboxNum], field, 1);
+                fieldAreaGrid->addWidget(&attributeMultibox[multiboxNum], field, 1);
             }
         }
         else    // more than one attribute
@@ -268,12 +283,16 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 if(orderedAttributes.contains(attribute) || categoricalAttributes.contains(attribute))
                 {
                     attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
+                    attributeCombobox[comboboxNum].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+                    attributeCombobox[comboboxNum].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
                     layout->addWidget(&attributeCombobox[comboboxNum], 1, Qt::AlignVCenter);
                     comboboxNum++;
                 }
                 else if(timezoneAttribute.contains(attribute))
                 {
                     attributeQuestionText->setText(tr("Timezone"));
+                    attributeCombobox[comboboxNum].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+                    attributeCombobox[comboboxNum].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
                     layout->addWidget(&attributeCombobox[comboboxNum], 1, Qt::AlignVCenter);
                     comboboxNum++;
                 }
@@ -287,10 +306,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 w->setLayout(layout);
                 attributeTabs->addTab(w, QString::number(attribute+1));
             }
-            theGrid->addWidget(attributeTabs, field, 1);
-            theGrid->setRowMinimumHeight(field, rowOfTextHeight * 3);
+            fieldAreaGrid->addWidget(attributeTabs, field, 1);
+            fieldAreaGrid->setRowMinimumHeight(field, rowOfTextHeight * 3);
         }
-        theGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
         field++;
     }
 
@@ -301,8 +320,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                                       "<br>&nbsp;&nbsp;" + tr("Enter each name on a separate line") + "</i>");
         datamultiline[prefTeammates].setPlainText(student.prefTeammates);
         datamultiline[prefTeammates].setFixedHeight(rowOfTextHeight * 3);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datamultiline[prefTeammates], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datamultiline[prefTeammates], field, 1);
         field++;
     }
 
@@ -313,8 +332,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                                       "<br>&nbsp;&nbsp;" + tr("Enter each name on a separate line") + "</i>");
         datamultiline[prefNonTeammates].setPlainText(student.prefNonTeammates);
         datamultiline[prefNonTeammates].setFixedHeight(rowOfTextHeight * 3);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datamultiline[prefNonTeammates], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datamultiline[prefNonTeammates], field, 1);
         field++;
     }
 
@@ -323,15 +342,20 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation[field].setText(tr("Notes"));
         datamultiline[notes].setPlainText(student.notes);
         datamultiline[notes].setFixedHeight(rowOfTextHeight * 3);
-        theGrid->addWidget(&explanation[field], field, 0);
-        theGrid->addWidget(&datamultiline[notes], field, 1);
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(&datamultiline[notes], field, 1);
         field++;
     }
 
+    fieldAreaWidg->adjustSize();
+    fieldArea->setWidgetResizable(true);
+    theGrid->addWidget(fieldArea, 0, 0, 1, -1);
+    fieldArea->adjustSize();
+
     //a spacer then ok/cancel buttons
-    theGrid->setRowMinimumHeight(numFields+1, rowOfTextHeight);
+    theGrid->setRowMinimumHeight(1, rowOfTextHeight);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    theGrid->addWidget(buttonBox, numFields+2, 0, -1, -1);
+    theGrid->addWidget(buttonBox, 2, 0, -1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, [this, &student, dataOptions]{updateRecord(student, dataOptions); accept();});
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 

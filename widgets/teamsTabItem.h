@@ -23,7 +23,7 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                          TeamRecord incomingTeams[], int incomingNumTeams, StudentRecord incomingStudents[],
+                          TeamRecord *const incomingTeams, int incomingNumTeams, StudentRecord incomingStudents[],
                           QString incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
 

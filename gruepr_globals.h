@@ -192,7 +192,8 @@ inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers.,"
                                  "Minor league baseball teams#,"
                                  "Discontinued Olympic sports#,"
                                  "Groups of animals#,"
-                                 "Obsolete units of measure (rand.)@"};
+                                 "Obsolete units of measure (rand.)@,"
+                                 "Everyone's a winner (rand.)@"};
 inline static const char TEAMNAMELISTS[]   {";"
                               ";"
                               ";"
@@ -275,7 +276,8 @@ inline static const char TEAMNAMELISTS[]   {";"
                                  "Bed of Oysters,String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
                                  "Committee of Vultures,Colony of Weasels;"
                               "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
-                                 "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire"};
+                                 "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire;"
+                              "1,A,Alpha,Numero Uno,Gold,Blue Ribbon,First Place,Pole Position"};
 
 inline static const char VERSION_CHECK_URL[] {"https://api.github.com/repos/gruepr/gruepr/releases/latest"};
 inline static const char USER_REGISTRATION_URL[] {"https://script.google.com/macros/s/AKfycbwRyI2PjgSGjMWJbhoAZIcz4K0BVx3yvbISY6pCg6cV8NVshUw-F6s1Qjg5LLU_qa4H/exec"};

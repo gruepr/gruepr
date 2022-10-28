@@ -137,7 +137,7 @@ gruepr::~gruepr()
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
-void gruepr::getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
+void gruepr::getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord *const _teams, const int _numTeams,
                            const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions)
 {
     auto *teamScores = new float[_numTeams];
@@ -1999,130 +1999,172 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 {
     ui->requestedTeammateNumberBox->setMaximum(arg1);
 
-    //put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
-    ui->teamSizeBox->clear();
+    // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
+    ui->teamSizeBox->setUpdatesEnabled(false);
 
-    teamingOptions->numTeamsDesired = std::max(1, numStudents/arg1);
-    teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired;
-    teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
-
-    if(numStudents%arg1 != 0)       //if teams can't be evenly divided into this size
+    // typically just figuring out team sizes for one section or for all students together, but need to re-calculate for each section if we will team all sections independently
+    const int numSectionsToCalculate = (ui->sectionSelectionBox->currentIndex() == 1? dataOptions->sectionNames.size() : 1);
+    int numStudentsBeingTeamed = numStudents;
+    int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
+    int cumNumSmallerATeams=0, cumNumSmallerBTeams = 0, cumNumLargerATeams=0, cumNumLargerBTeams = 0;
+    for(int section = 0; section < numSectionsToCalculate; section++)
     {
-        int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
+        ui->teamSizeBox->clear();
 
-        // reset the potential team sizes
-        for(int student = 0; student < MAX_STUDENTS; student++)
+        if(ui->sectionSelectionBox->currentIndex() == 1)
         {
-            teamingOptions->smallerTeamsSizes[student] = 0;
-            teamingOptions->largerTeamsSizes[student] = 0;
+            // if teaming all sections independently, figure out how many students in this section
+            const QString sectionName = ui->sectionSelectionBox->itemText(section + 3);
+            numStudentsBeingTeamed = 0;
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+            {
+                if(student[index].section == sectionName)
+                {
+                    numStudentsBeingTeamed++;
+                }
+            }
+        }
+        else
+        {
+            numStudentsBeingTeamed = numStudents;
         }
 
-        // What are the team sizes when desiredTeamSize represents a maximum size?
-        teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired+1;
-        for(int student = 0; student < numStudents; student++)      // run through every student
-        {
-            // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
-            (teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams])++;
-            smallerTeamsSizeA = teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams];  // the larger of the two (uneven) team sizes
-            numSmallerATeams = (student%teamingOptions->smallerTeamsNumTeams)+1;                                 // the number of larger teams
-        }
-        smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
-
-        // And what are the team sizes when desiredTeamSize represents a minimum size?
+        teamingOptions->numTeamsDesired = std::max(1, numStudentsBeingTeamed/arg1);
+        teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired;
         teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
-        for(int student = 0; student < numStudents; student++)	// run through every student
-        {
-            // add one student to each team in turn until we run out of students
-            (teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams])++;
-            largerTeamsSizeA = teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams];     // the larger of the two (uneven) team sizes
-            numLargerATeams = (student%teamingOptions->largerTeamsNumTeams)+1;                                   // the number of larger teams
-        }
-        largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
 
-        // Add first option to selection box
-        QString smallerTeamOption;
-        if(numSmallerATeams > 0)
+        if(numStudentsBeingTeamed%arg1 != 0)       //if teams can't be evenly divided into this size
         {
-            smallerTeamOption += QString::number(numSmallerATeams) + tr(" team");
-            if(numSmallerATeams > 1)
-            {
-                smallerTeamOption += "s";
-            }
-            smallerTeamOption += " of " + QString::number(smallerTeamsSizeA) + tr(" student");
-            if(smallerTeamsSizeA > 1)
-            {
-                smallerTeamOption += "s";
-            }
-        }
-        if((numSmallerATeams > 0) && ((teamingOptions->numTeamsDesired+1-numSmallerATeams) > 0))
-        {
-            smallerTeamOption += " + ";
-        }
-        if((teamingOptions->numTeamsDesired+1-numSmallerATeams) > 0)
-        {
-            smallerTeamOption += QString::number(teamingOptions->numTeamsDesired+1-numSmallerATeams) + tr(" team");
-            if((teamingOptions->numTeamsDesired+1-numSmallerATeams) > 1)
-            {
-                smallerTeamOption += "s";
-            }
-            smallerTeamOption += " of " + QString::number(smallerTeamsSizeB) + tr(" student");
-            if(smallerTeamsSizeB > 1)
-            {
-                smallerTeamOption += "s";
-            }
-        }
 
-        // Add second option to selection box
-        QString largerTeamOption;
-        if((teamingOptions->numTeamsDesired-numLargerATeams) > 0)
-        {
-            largerTeamOption += QString::number(teamingOptions->numTeamsDesired-numLargerATeams) + tr(" team");
-            if((teamingOptions->numTeamsDesired-numLargerATeams) > 1)
+            // reset the potential team sizes
+            for(int student = 0; student < MAX_STUDENTS; student++)
             {
-                largerTeamOption += "s";
+                teamingOptions->smallerTeamsSizes[student] = 0;
+                teamingOptions->largerTeamsSizes[student] = 0;
             }
-            largerTeamOption += " of " + QString::number(largerTeamsSizeB) + tr(" student");
-            if(largerTeamsSizeB > 1)
+
+            // What are the team sizes when desiredTeamSize represents a maximum size?
+            teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired+1;
+            for(int student = 0; student < numStudentsBeingTeamed; student++)      // run through every student
             {
-                largerTeamOption += "s";
+                // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
+                (teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams])++;
+                smallerTeamsSizeA = teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams];  // the larger of the two (uneven) team sizes
+                numSmallerATeams = (student%teamingOptions->smallerTeamsNumTeams)+1;                                 // the number of larger teams
+            }
+            smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
+
+            // And what are the team sizes when desiredTeamSize represents a minimum size?
+            teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
+            for(int student = 0; student < numStudentsBeingTeamed; student++)	// run through every student
+            {
+                // add one student to each team in turn until we run out of students
+                (teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams])++;
+                largerTeamsSizeA = teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams];     // the larger of the two (uneven) team sizes
+                numLargerATeams = (student%teamingOptions->largerTeamsNumTeams)+1;                                   // the number of larger teams
+            }
+            largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
+
+            // Add first option to selection box
+            QString smallerTeamOption = writeTeamSizeOption(numSmallerATeams, smallerTeamsSizeA, teamingOptions->numTeamsDesired+1-numSmallerATeams, smallerTeamsSizeB);
+            if(numSmallerATeams > 0)
+            {
+                cumNumSmallerATeams += numSmallerATeams;
+            }
+            if((teamingOptions->numTeamsDesired+1-numSmallerATeams) > 0)
+            {
+                cumNumSmallerBTeams += teamingOptions->numTeamsDesired+1-numSmallerATeams;
+            }
+
+            // Add second option to selection box
+            QString largerTeamOption = writeTeamSizeOption(teamingOptions->numTeamsDesired-numLargerATeams, largerTeamsSizeB, numLargerATeams, largerTeamsSizeA);
+            if((teamingOptions->numTeamsDesired-numLargerATeams) > 0)
+            {
+                cumNumLargerBTeams += teamingOptions->numTeamsDesired-numLargerATeams;
+            }
+            if(numLargerATeams > 0)
+            {
+                cumNumLargerATeams += numLargerATeams;
+            }
+
+            if(ui->sectionSelectionBox->currentIndex() != 1)
+            {
+                ui->teamSizeBox->addItem(smallerTeamOption);
+                ui->teamSizeBox->addItem(largerTeamOption);
             }
         }
-        if(((teamingOptions->numTeamsDesired-numLargerATeams) > 0) && (numLargerATeams > 0))
+        else
         {
-            largerTeamOption += " + ";
-        }
-        if(numLargerATeams > 0)
-        {
-            largerTeamOption += QString::number(numLargerATeams) + tr(" team");
-            if(numLargerATeams > 1)
+            cumNumSmallerATeams += teamingOptions->numTeamsDesired;
+            smallerTeamsSizeA = arg1;
+            cumNumLargerBTeams += teamingOptions->numTeamsDesired;
+            largerTeamsSizeB = arg1;
+
+            if(ui->sectionSelectionBox->currentIndex() != 1)
             {
-                largerTeamOption += "s";
-            }
-            largerTeamOption += " of " + QString::number(largerTeamsSizeA) + tr(" student");
-            if(largerTeamsSizeA > 1)
-            {
-                largerTeamOption += "s";
+                ui->teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(arg1) + tr(" students each)"));
             }
         }
+    }
+
+    if(ui->sectionSelectionBox->currentIndex() == 1)
+    {
+        // load new team sizes in selection box by adding together the sizes from each section
+        QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB);
+        QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA);
 
         ui->teamSizeBox->addItem(smallerTeamOption);
-        ui->teamSizeBox->addItem(largerTeamOption);
+        if(smallerTeamOption != largerTeamOption)
+        {
+            ui->teamSizeBox->addItem(largerTeamOption);
+        }
     }
     else
     {
-        ui->teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams of ") + QString::number(arg1) + tr(" students"));
+        // allow custom team sizes (too complicated to allow this if teaming all sections separately
+        ui->teamSizeBox->insertSeparator(ui->teamSizeBox->count());
+        ui->teamSizeBox->addItem(tr("Custom team sizes"));
     }
-    ui->teamSizeBox->insertSeparator(ui->teamSizeBox->count());
-    ui->teamSizeBox->addItem(tr("Custom team sizes"));
 
     // if we have fewer than 4 students somehow, disable the form teams button
-    ui->letsDoItButton->setEnabled(numStudents >= 4);
+    ui->letsDoItButton->setEnabled(numStudentsBeingTeamed >= 4);
+
+    ui->teamSizeBox->setUpdatesEnabled(true);
+}
+
+
+inline QString gruepr::writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB)
+{
+    QString teamOption = QString::number(numTeamsA + numTeamsB) + ((numTeamsA + numTeamsB > 1)? tr(" teams") : tr(" team")) + " (";
+    if(numTeamsA > 0)
+    {
+        teamOption += QString::number(numTeamsA) + tr(" of ") + QString::number(teamsizeA) + tr(" student");
+        if(teamsizeA > 1)
+        {
+            teamOption += "s";
+        }
+    }
+    if((numTeamsA > 0) && (numTeamsB > 0))
+    {
+        teamOption += ";  ";
+    }
+    if(numTeamsB > 0)
+    {
+        teamOption += QString::number(numTeamsB) + " of " + QString::number(teamsizeB) + tr(" student");
+        if(teamsizeB > 1)
+        {
+            teamOption += "s";
+        }
+    }
+    teamOption += ")";
+
+    return teamOption;
 }
 
 
 void gruepr::on_teamSizeBox_currentIndexChanged(int index)
 {
-    if(ui->teamSizeBox->currentText() == (QString::number(teamingOptions->numTeamsDesired) + tr(" teams of ") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
+    if(ui->teamSizeBox->currentText() == QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(ui->idealTeamSizeBox->value()) + tr(" students each)"))
     {
         // Evenly divisible teams, all same size
         setTeamSizes(ui->idealTeamSizeBox->value());
@@ -2194,71 +2236,103 @@ void gruepr::on_letsDoItButton_clicked()
         }
     }
 
-    // Create a new array of TeamRecords to hold the eventual results
-    numTeams = teamingOptions->numTeamsDesired;
-    teams = new TeamRecord[numTeams];
-    for(int team = 0; team < numTeams; team++)	// run through every team to load dataOptions and size
-    {
-        teams[team] = TeamRecord(*dataOptions, teamingOptions->teamSizesDesired[team]);
-    }
+    bestTeamSet.clear();
+    finalTeams.clear();
 
-    // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-    teamingOptions->realNumScoringFactors = dataOptions->numAttributes + (dataOptions->dayNames.isEmpty()? 0 : 1);
-    float normFactor = (float(teamingOptions->realNumScoringFactors)) /
-            (std::accumulate(teamingOptions->attributeWeights, teamingOptions->attributeWeights + dataOptions->numAttributes, float(0.0)) +
-             (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight));
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    const bool teamingMultipleSections = (ui->sectionSelectionBox->currentIndex() == 1);
+    const int numSectionsToTeam = (ui->sectionSelectionBox->currentIndex() == 1? dataOptions->sectionNames.size() : 1);
+    const int teamSizeSelector = ui->teamSizeBox->currentIndex();
+    for(int section = 0; section < numSectionsToTeam; section++)
     {
-        teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
-    }
-    teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
+        QString currSection;
+        if(teamingMultipleSections)
+        {
+            // team each section one at a time by changing the section and teamsize selection boxes
+            ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section
+            currSection = ui->sectionSelectionBox->currentText();
+            ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
+        }
+
+        // Create a new set of TeamRecords to hold the eventual results
+        numTeams = teamingOptions->numTeamsDesired;
+        teams.clear();
+        teams.reserve(numTeams);
+        for(int team = 0; team < numTeams; team++)	// run through every team to load dataOptions and size
+        {
+            teams << TeamRecord(*dataOptions, teamingOptions->teamSizesDesired[team]);
+        }
+
+        // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
+        teamingOptions->realNumScoringFactors = dataOptions->numAttributes + (dataOptions->dayNames.isEmpty()? 0 : 1);
+        float normFactor = (float(teamingOptions->realNumScoringFactors)) /
+                (std::accumulate(teamingOptions->attributeWeights, teamingOptions->attributeWeights + dataOptions->numAttributes, float(0.0)) +
+                 (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight));
+        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+        {
+            teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
+        }
+        teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
 
 #ifdef Q_OS_WIN32
-    // Set up to show progess on windows taskbar
-    taskbarButton = new QWinTaskbarButton(this);
-    taskbarButton->setWindow(windowHandle());
-    taskbarProgress = taskbarButton->progress();
-    taskbarProgress->show();
-    taskbarProgress->setMaximum(0);
+        // Set up to show progess on windows taskbar
+        taskbarButton = new QWinTaskbarButton(this);
+        taskbarButton->setWindow(windowHandle());
+        taskbarProgress = taskbarButton->progress();
+        taskbarProgress->show();
+        taskbarProgress->setMaximum(0);
 #endif
 
-    // Create progress display plot
-    progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
-    auto *chartView = new QtCharts::QChartView(progressChart);
-    chartView->setRenderHint(QPainter::Antialiasing);
+        // Create progress display plot
+        progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
+        auto *chartView = new QtCharts::QChartView(progressChart);
+        chartView->setRenderHint(QPainter::Antialiasing);
 
-    // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-    progressWindow = new progressDialog(chartView, this);
-    progressWindow->show();
-    connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-        connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
-        optimizationStoppedmutex.lock();
-        optimizationStopped = true;
-        optimizationStoppedmutex.unlock();});
+        // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
+        progressWindow = new progressDialog(currSection, chartView, this);
+        progressWindow->show();
+        connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+                                                                         connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
+                                                                         optimizationStoppedmutex.lock();
+                                                                         optimizationStopped = true;
+                                                                         optimizationStoppedmutex.unlock();});
 
-    // Get the IDs of students from desired section and change numStudents accordingly
-    int numStudentsInSection = 0;
-    studentIndexes = new int[dataOptions->numStudentsInSystem];
-    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
-    {
-        if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentIndex() == 1 ||ui->sectionSelectionBox->currentText() == student[index].section)
+        // Get the IDs of students from desired section and change numStudents accordingly
+        int numStudentsInSection = 0;
+        studentIndexes = new int[dataOptions->numStudentsInSystem];
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            studentIndexes[numStudentsInSection] = index;
-            numStudentsInSection++;
+            if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == student[index].section)
+            {
+                studentIndexes[numStudentsInSection] = index;
+                numStudentsInSection++;
+            }
         }
-    }
-    numStudents = numStudentsInSection;
+        numStudents = numStudentsInSection;
 
-    // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
-    optimizationStopped = false;
-    future = QtConcurrent::run(this, &gruepr::optimizeTeams, studentIndexes);       // spin optimization off into a separate thread
-    futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
+        // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
+        optimizationStopped = false;
+        future = QtConcurrent::run(this, &gruepr::optimizeTeams, studentIndexes);       // spin optimization off into a separate thread
+        futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
+        multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
+
+        // hold here until the optimization is done
+        QEventLoop loop;
+        connect(this, &gruepr::sectionOptimizationFullyComplete, &loop, &QEventLoop::quit);
+        loop.exec();
+    }
+
+    if(teamingMultipleSections)
+    {
+        // put ui elements back
+        ui->sectionSelectionBox->setCurrentIndex(1);
+        ui->teamSizeBox->setCurrentIndex(teamSizeSelector);
+    }
 }
 
 
 void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
 {
-    if((generation % (progressChart->PLOTFREQUENCY)) == 0)
+    if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0)
     {
         progressChart->loadNextVals(allScores, orderedIndex, unpenalizedGenomePresent);
     }
@@ -2291,13 +2365,10 @@ void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const i
 
 void gruepr::optimizationComplete()
 {
-    //alert
-    QApplication::beep();
-    QApplication::alert(this);
-
     // update UI
 #ifdef Q_OS_WIN32
     taskbarProgress->hide();
+    delete taskbarButton;
 #endif
     delete progressChart;
     delete progressWindow;
@@ -2306,9 +2377,22 @@ void gruepr::optimizationComplete()
     delete[] studentIndexes;
 
     // Get the results
-    QVector<int> bestTeamSet = future.result();
+    bestTeamSet << future.result();
+    finalTeams << teams;
+
+    emit sectionOptimizationFullyComplete();
+
+    if(multipleSectionsInProgress)
+    {
+        return;
+    }
+
+    //alert
+    QApplication::beep();
+    QApplication::alert(this);
 
     // Load students into teams
+    teams = finalTeams;
     int indexInTeamset = 0;
     for(int team = 0; team < numTeams; team++)
     {
@@ -2325,16 +2409,16 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    getTeamScores(student, numStudents, teams, numTeams, teamingOptions, dataOptions);
+    getTeamScores(student, numStudents, teams.data(), numTeams, teamingOptions, dataOptions);
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].refreshTeamInfo(student);
     }
 
     // Sort teams by 1st student's name, then set default teamnames and create tooltips
-    std::sort(teams, teams+numTeams, [this](const TeamRecord &a, const TeamRecord &b)
-                                            {return ((student[a.studentIndexes.at(0)].lastname + student[a.studentIndexes.at(0)].firstname) <
-                                                    (student[b.studentIndexes.at(0)].lastname + student[b.studentIndexes.at(0)].firstname));});
+    std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
+                                                 {return ((student[a.studentIndexes.at(0)].lastname + student[a.studentIndexes.at(0)].firstname) <
+                                                          (student[b.studentIndexes.at(0)].lastname + student[b.studentIndexes.at(0)].firstname));});
     for(int team = 0; team < numTeams; team++)
     {
         teams[team].name = QString::number(team+1);
@@ -2344,7 +2428,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, canvas, teams, numTeams, student, teamSetName, this);
+    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, canvas, teams.data(), numTeams, student, teamSetName, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     teamingOptions->teamsetNumber++;
 
@@ -2766,14 +2850,14 @@ void gruepr::loadUI()
 //////////////////
 // Set the "official" team sizes using an array of different sizes or a single, constant size
 //////////////////
-void gruepr::setTeamSizes(const int teamSizes[])
+inline void gruepr::setTeamSizes(const int teamSizes[])
 {
     for(int team = 0; team < teamingOptions->numTeamsDesired; team++)	// run through every team
     {
         teamingOptions->teamSizesDesired[team] = teamSizes[team];
     }
 }
-void gruepr::setTeamSizes(const int singleSize)
+inline void gruepr::setTeamSizes(const int singleSize)
 {
     for(int team = 0; team < teamingOptions->numTeamsDesired; team++)	// run through every team
     {

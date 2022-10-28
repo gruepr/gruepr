@@ -35,10 +35,12 @@
 // - updated UI for incompatible/required attributes window by making text and selection areas scrollable (needed when # of value is large and thus window is too tall for screen)
 // - added timeout to canvas and google connections
 // - added Canvas quiz upload to surveymaker's create survey UI buttons
+// - updated regex recognition of the word "and" in the prefteammates and prefnonteammates fields of a student record--now requires a space on either side of the word
 //
 // INPROG:
+// - update UI for add/edit student dialogs by making scrollable [need to move scroll wheel action from comboboxes to scroll area; need to resize inside of scrollwheel to fit as well as possible]
 // - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday [studentrecord.cpp line 167]
-// - enable "Students in all sections separately" option to gruepr--manifest as multiple loops of create teams, but will need to figure out teamsizes when going in and should add section to team display
+// - enable "Students in all sections separately" option to gruepr--manifest as multiple loops of create teams, [gruepr.cpp line 2323]
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
@@ -55,6 +57,7 @@
 // - create an LMS class and then subclass Canvas, Google
 // - auto-shorten URL for Google Form (using Google's firebase API?)
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
+// - edit schedule for student (including flip schedule)
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - use multiple genepools with limited cross-breeding

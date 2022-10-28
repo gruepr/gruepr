@@ -37,7 +37,7 @@ public:
     gruepr(gruepr&&) = delete;
     gruepr& operator= (gruepr&&) = delete;
 
-    static void getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord _teams[], const int _numTeams,
+    static void getTeamScores(const StudentRecord _student[], const int _numStudents, TeamRecord *const _teams, const int _numTeams,
                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
     inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
     inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
@@ -88,6 +88,7 @@ private slots:
 
 signals:
     void generationComplete(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
+    void sectionOptimizationFullyComplete();
     void turnOffBusyCursor();
 
 private:
@@ -100,8 +101,9 @@ private:
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
-    void setTeamSizes(const int teamSizes[]);
-    void setTeamSizes(const int singleSize);
+    inline void setTeamSizes(const int teamSizes[]);
+    inline void setTeamSizes(const int singleSize);
+    inline QString writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB);
 
         // reading survey data
     int numStudents = MAX_STUDENTS;
@@ -132,11 +134,14 @@ private:
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
+    bool multipleSectionsInProgress = false;
     bool optimizationStopped = false;
     bool keepOptimizing = false;
 
         // reporting results
-    TeamRecord *teams = nullptr;
+    QVector<TeamRecord> teams;
+    QVector<int> bestTeamSet;
+    QVector<TeamRecord> finalTeams;
 };
 
 #endif // GRUEPR_H

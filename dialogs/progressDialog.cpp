@@ -8,11 +8,11 @@
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(QtCharts::QChartView *chart, QWidget *parent)
+progressDialog::progressDialog(const QString &currSection, QtCharts::QChartView *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window with a grid layout
-    setWindowTitle(tr("Optimizing teams..."));
+    setWindowTitle(currSection.isEmpty() ? tr("Optimizing teams...") : tr("Optimizing teams in ") + currSection + "...");
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
     setSizeGripEnabled(true);
     setModal(true);

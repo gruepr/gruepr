@@ -12,7 +12,7 @@ class progressDialog : public QDialog
     Q_OBJECT
 
 public:
-    progressDialog(QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
+    progressDialog(const QString &currSection = "", QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog();
 
     void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
