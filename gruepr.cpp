@@ -1199,6 +1199,18 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
     }
 
     teamingOptions->sectionName = desiredSection;
+    if(ui->sectionSelectionBox->currentIndex() == 1)
+    {
+        teamingOptions->sectionType = TeamingOptions::SectionType::allSeparately;
+    }
+    else if((ui->sectionSelectionBox->currentIndex() == 0) && (dataOptions->sectionNames.size() > 1))
+    {
+        teamingOptions->sectionType = TeamingOptions::SectionType::allTogether;
+    }
+    else
+    {
+        teamingOptions->sectionType = TeamingOptions::SectionType::oneSection;
+    }
 
     refreshStudentDisplay();
     ui->studentTable->clearSortIndicator();
@@ -2239,17 +2251,15 @@ void gruepr::on_letsDoItButton_clicked()
     bestTeamSet.clear();
     finalTeams.clear();
 
-    const bool teamingMultipleSections = (ui->sectionSelectionBox->currentIndex() == 1);
-    const int numSectionsToTeam = (ui->sectionSelectionBox->currentIndex() == 1? dataOptions->sectionNames.size() : 1);
+    const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
+    const int numSectionsToTeam = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately? dataOptions->sectionNames.size() : 1);
     const int teamSizeSelector = ui->teamSizeBox->currentIndex();
     for(int section = 0; section < numSectionsToTeam; section++)
     {
-        QString currSection;
         if(teamingMultipleSections)
         {
             // team each section one at a time by changing the section and teamsize selection boxes
             ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section
-            currSection = ui->sectionSelectionBox->currentText();
             ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
         }
 
@@ -2288,7 +2298,12 @@ void gruepr::on_letsDoItButton_clicked()
         chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-        progressWindow = new progressDialog(currSection, chartView, this);
+        QString sectionName = ui->sectionSelectionBox->currentText();
+        if(teamingMultipleSections)
+        {
+            sectionName = tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " + sectionName;
+        }
+        progressWindow = new progressDialog(sectionName, chartView, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
                                                                          connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
@@ -2319,13 +2334,6 @@ void gruepr::on_letsDoItButton_clicked()
         QEventLoop loop;
         connect(this, &gruepr::sectionOptimizationFullyComplete, &loop, &QEventLoop::quit);
         loop.exec();
-    }
-
-    if(teamingMultipleSections)
-    {
-        // put ui elements back
-        ui->sectionSelectionBox->setCurrentIndex(1);
-        ui->teamSizeBox->setCurrentIndex(teamSizeSelector);
     }
 }
 
@@ -2393,6 +2401,7 @@ void gruepr::optimizationComplete()
 
     // Load students into teams
     teams = finalTeams;
+    numTeams = teams.size();
     int indexInTeamset = 0;
     for(int team = 0; team < numTeams; team++)
     {
@@ -3023,17 +3032,15 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                                               timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()) -
                                               static_cast<int>(std::distance(TIME_MEANINGS,
                                                                              std::find(std::cbegin(TIME_MEANINGS), std::cend(TIME_MEANINGS), dataOptions->earlyHourAsked)))));
-            for(int hour = 0; hour < dataOptions->earlyHourAsked; hour++)
+            for(int hour = 0; hour < MAX_BLOCKS_PER_DAY; hour++)
             {
+                if((dataOptions->timeNames.size() > hour) && (TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames[hour]))] == hour))
+                {
+                    continue;
+                }
                 const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
                 const int index = std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed;
                 dataOptions->timeNames.insert(hour, timeNamesStrings.at(index));
-            }
-            for(int hour = dataOptions->lateHourAsked + 1; hour < MAX_BLOCKS_PER_DAY; hour++)
-            {
-                const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
-                const int index = std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed;
-                dataOptions->timeNames << timeNamesStrings.at(index);
             }
 
             // Ask what should be used as the base timezone to which schedules will all be adjusted

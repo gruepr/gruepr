@@ -7,6 +7,7 @@
 #include "dataOptions.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
+#include "teamingOptions.h"
 #include "teamRecord.h"
 #include <QHeaderView>
 #include <QLabel>
@@ -39,9 +40,11 @@ public:
     void collapseAll();
     void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
     void expandAll();
-    void resetDisplay(const DataOptions *const dataOptions);
-    void refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions);
-    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions);
+    void resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
+    void refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
+                     const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
+    void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
+                        const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;        // remember which item is being dragged

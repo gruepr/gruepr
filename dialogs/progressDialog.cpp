@@ -12,7 +12,7 @@ progressDialog::progressDialog(const QString &currSection, QtCharts::QChartView 
     :QDialog (parent)
 {
     //Set up window with a grid layout
-    setWindowTitle(currSection.isEmpty() ? tr("Optimizing teams...") : tr("Optimizing teams in ") + currSection + "...");
+    setWindowTitle(currSection.isEmpty() ? tr("Grueping...") : tr("Grueping ") + currSection + "...");
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
     setSizeGripEnabled(true);
     setModal(true);

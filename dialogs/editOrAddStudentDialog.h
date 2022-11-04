@@ -3,6 +3,7 @@
 
 #include "dataOptions.h"
 #include "studentRecord.h"
+#include "widgets/comboBoxThatPassesScrollwheel.h"
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -11,7 +12,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
-//#include "widgets/categoricalSpinBox.h"
 
 class editOrAddStudentDialog : public QDialog
 {
@@ -27,10 +27,9 @@ private:
     QLabel *explanation;
     QLineEdit *datatext;
     QPlainTextEdit *datamultiline;
-    QComboBox *databox;
+    ComboBoxThatPassesScrollwheel *databox;
     QTabWidget *attributeTabs;
-//    CategoricalSpinBox *dataspinbox;
-    QComboBox *attributeCombobox;
+    ComboBoxThatPassesScrollwheel *attributeCombobox;
     QGroupBox *attributeMultibox;
     QDialogButtonBox *buttonBox;
     inline static const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email

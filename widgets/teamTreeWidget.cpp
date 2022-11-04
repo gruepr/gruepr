@@ -85,10 +85,14 @@ void TeamTreeWidget::expandAll()
 }
 
 
-void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
+void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     QStringList headerLabels;
     headerLabels << tr("name") << tr("team\nscore");
+    if(teamingOptions->sectionType != TeamingOptions::SectionType::oneSection)
+    {
+        headerLabels << tr("section(s)");
+    }
     if(dataOptions->genderIncluded)
     {
         if(dataOptions->genderType == GenderType::pronoun)
@@ -142,7 +146,8 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions)
 }
 
 
-void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const DataOptions *const dataOptions)
+void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
+                                 const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     //create team items and fill in information
     int column = 0;
@@ -159,6 +164,15 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     teamItem->setData(column, TEAMINFO_SORT_ROLE, team.score);
     teamItem->setToolTip(column, team.tooltip);
     column++;
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether)
+    {
+        teamItem->setText(column, QString::number(team.numSections));
+        teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(team.numSections));
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numSections);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
     if(dataOptions->genderIncluded)
     {
         QStringList genderInitials;
@@ -320,7 +334,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
 }
 
 
-void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions)
+void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     int column = 0;
     studentItem->setText(column, stu.firstname + " " + stu.lastname);
@@ -332,6 +346,12 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     studentItem->setText(column, " ");
     studentItem->setToolTip(column, stu.tooltip);
     column++;
+    if(teamingOptions->sectionType != TeamingOptions::SectionType::oneSection)
+    {
+        studentItem->setText(column, stu.section);
+        studentItem->setToolTip(column, stu.tooltip);
+        column++;
+    }
     if(dataOptions->genderIncluded)
     {
         QStringList genderOptions;

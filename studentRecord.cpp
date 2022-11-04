@@ -189,11 +189,11 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     actualday += MAX_DAYS;
                 }
             }
-            if(actualtime > MAX_BLOCKS_PER_DAY)
+            if(actualtime >= MAX_BLOCKS_PER_DAY)
             {
                 actualtime -= MAX_BLOCKS_PER_DAY;
                 actualday++;
-                if(actualday > numDays)
+                if(actualday >= numDays)
                 {
                     if(numDays < MAX_DAYS)  // less than all 7 days, so not clear where to shift this time--just ignore
                     {
@@ -330,9 +330,12 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         toolTip += "<br>" + QObject::tr("Identity") + ":  ";
         toolTip += URMResponse;
     }
-    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
-    for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
+        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
+        {
+            continue;
+        }
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         const auto *value = attributeVals[attribute].constBegin();
         if(*value != -1)
@@ -389,8 +392,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         {
             if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
             {
-                const auto *value = attributeVals[attribute].constBegin();
-                if(*value != -1)
+                if(*attributeVals[attribute].constBegin() != -1)
                 {
                     int hour = int(timezone);
                     int minutes = 60*(timezone - int(timezone));

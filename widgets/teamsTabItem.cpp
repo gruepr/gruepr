@@ -221,7 +221,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     savePrintLayout->addWidget(printTeamsButton);
 
     teamDataTree->collapseAll();
-    teamDataTree->resetDisplay(dataOptions);
+    teamDataTree->resetDisplay(dataOptions, teamingOptions);
     refreshTeamDisplay();
     teamDataTree->sortByColumn(0, Qt::AscendingOrder);
     teamDataTree->headerItem()->setIcon(0, QIcon(":/icons/blank_arrow.png"));
@@ -532,7 +532,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], dataOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], dataOptions, teamingOptions);
             teamItem->addChild(childItems[studentNum]);
         }
     }
@@ -564,9 +564,9 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         teams[studentBteam].createTooltip();
 
         QString firstStudentName = students[teams[studentAteam].studentIndexes[0]].lastname+students[teams[studentAteam].studentIndexes[0]].firstname;
-        teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, dataOptions);
+        teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, dataOptions, teamingOptions);
         firstStudentName = students[teams[studentBteam].studentIndexes[0]].lastname+students[teams[studentBteam].studentIndexes[0]].firstname;
-        teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, dataOptions);
+        teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, dataOptions, teamingOptions);
         teamAItem->setBackgroundColor(teams[studentAteam].score);
         teamBItem->setBackgroundColor(teams[studentBteam].score);
 
@@ -586,14 +586,14 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], dataOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], dataOptions, teamingOptions);
             teamAItem->addChild(childItems[studentNum]);
         }
         childItems.clear();
         for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentBteam].studentIndexes[studentNum]], dataOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentBteam].studentIndexes[studentNum]], dataOptions, teamingOptions);
             teamBItem->addChild(childItems[studentNum]);
         }
     }
@@ -663,9 +663,9 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
     teams[newTeam].createTooltip();
 
     QString firstStudentName = students[teams[oldTeam].studentIndexes[0]].lastname+students[teams[oldTeam].studentIndexes[0]].firstname;
-    teamDataTree->refreshTeam(oldTeamItem, teams[oldTeam], oldTeam, firstStudentName, dataOptions);
+    teamDataTree->refreshTeam(oldTeamItem, teams[oldTeam], oldTeam, firstStudentName, dataOptions, teamingOptions);
     firstStudentName = students[teams[newTeam].studentIndexes[0]].lastname+students[teams[newTeam].studentIndexes[0]].firstname;
-    teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, dataOptions);
+    teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, dataOptions, teamingOptions);
     oldTeamItem->setBackgroundColor(teams[oldTeam].score);
     newTeamItem->setBackgroundColor(teams[newTeam].score);
 
@@ -686,14 +686,14 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
     for(int studentNum = 0; studentNum < numStudentsOnStudentTeam; studentNum++)
     {
         childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-        teamDataTree->refreshStudent(childItems[studentNum], students[teams[oldTeam].studentIndexes[studentNum]], dataOptions);
+        teamDataTree->refreshStudent(childItems[studentNum], students[teams[oldTeam].studentIndexes[studentNum]], dataOptions, teamingOptions);
         oldTeamItem->addChild(childItems[studentNum]);
     }
     childItems.clear();
     for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++)
     {
         childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-        teamDataTree->refreshStudent(childItems[studentNum], students[teams[newTeam].studentIndexes[studentNum]], dataOptions);
+        teamDataTree->refreshStudent(childItems[studentNum], students[teams[newTeam].studentIndexes[studentNum]], dataOptions, teamingOptions);
         newTeamItem->addChild(childItems[studentNum]);
     }
 
@@ -1084,7 +1084,7 @@ void TeamsTabItem::refreshTeamDisplay()
         const auto &currentTeam = teams[teamNum];
         parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, teamDataTree->columnCount(), currentTeam.score);
         QString firstStudentName = students[currentTeam.studentIndexes[0]].lastname+students[currentTeam.studentIndexes[0]].firstname;
-        teamDataTree->refreshTeam(parentItems[teamNum], currentTeam, teamNum, firstStudentName, dataOptions);
+        teamDataTree->refreshTeam(parentItems[teamNum], currentTeam, teamNum, firstStudentName, dataOptions, teamingOptions);
 
         //remove all student items in the team
         for(auto &studentItem : parentItems[teamNum]->takeChildren())
@@ -1097,7 +1097,7 @@ void TeamsTabItem::refreshTeamDisplay()
         for(int studentOnTeam = 0, numStudentsOnTeam = currentTeam.size; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
         {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[currentTeam.studentIndexes[studentOnTeam]], dataOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[currentTeam.studentIndexes[studentOnTeam]], dataOptions, teamingOptions);
             parentItems[teamNum]->addChild(childItems[studentNum]);
             studentNum++;
         }

@@ -2,6 +2,7 @@
 #include <QCheckBox>
 #include <QCollator>
 #include <QScrollArea>
+#include <QScrollBar>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to show/edit student data
@@ -31,7 +32,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[NUMSINGLELINES];
     datamultiline = new QPlainTextEdit[NUMMULTILINES];
-    databox = new QComboBox[NUMCOMBOBOXES];
+    databox = new ComboBoxThatPassesScrollwheel[NUMCOMBOBOXES];
     attributeTabs = new QTabWidget(this);
     QVector<int> orderedAttributes, categoricalAttributes, multicategoricalAttributes, multiorderedAttributes, timezoneAttribute;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
@@ -57,7 +58,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             timezoneAttribute << attribute;
         }
     }
-    attributeCombobox = new QComboBox[orderedAttributes.size() + categoricalAttributes.size() + timezoneAttribute.size()];
+    attributeCombobox = new ComboBoxThatPassesScrollwheel[orderedAttributes.size() + categoricalAttributes.size() + timezoneAttribute.size()];
     attributeMultibox = new QGroupBox[multicategoricalAttributes.size() + multiorderedAttributes.size()];
 
     // calculate the height of 1 row of text in the multilines
@@ -140,8 +141,6 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         }
         databox[gender].addItems(genderOptions);
         databox[gender].setCurrentIndex(static_cast<int>(student.gender));
-        databox[gender].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        databox[gender].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
         fieldAreaGrid->addWidget(&explanation[field], field, 0);
         fieldAreaGrid->addWidget(&databox[gender], field, 1);
         field++;
@@ -153,8 +152,6 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         databox[ethnicity].addItems(dataOptions->URMResponses);
         databox[ethnicity].setEditable(true);
         databox[ethnicity].setCurrentText(student.URMResponse);
-        databox[ethnicity].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        databox[ethnicity].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
         fieldAreaGrid->addWidget(&explanation[field], field, 0);
         fieldAreaGrid->addWidget(&databox[ethnicity], field, 1);
         field++;
@@ -166,8 +163,6 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         databox[section].addItems(dataOptions->sectionNames);
         databox[section].setEditable(true);
         databox[section].setCurrentText(student.section);
-        databox[section].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        databox[section].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
         fieldAreaGrid->addWidget(&explanation[field], field, 0);
         fieldAreaGrid->addWidget(&databox[section], field, 1);
         field++;
@@ -262,8 +257,6 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
             if(orderedAttributes.contains(0) || categoricalAttributes.contains(0) || timezoneAttribute.contains(0))
             {
-                attributeCombobox[comboboxNum].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-                attributeCombobox[comboboxNum].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
                 fieldAreaGrid->addWidget(&attributeCombobox[comboboxNum], field, 1);
             }
             else
@@ -283,16 +276,12 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 if(orderedAttributes.contains(attribute) || categoricalAttributes.contains(attribute))
                 {
                     attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
-                    attributeCombobox[comboboxNum].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-                    attributeCombobox[comboboxNum].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
                     layout->addWidget(&attributeCombobox[comboboxNum], 1, Qt::AlignVCenter);
                     comboboxNum++;
                 }
                 else if(timezoneAttribute.contains(attribute))
                 {
                     attributeQuestionText->setText(tr("Timezone"));
-                    attributeCombobox[comboboxNum].setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-                    attributeCombobox[comboboxNum].installEventFilter(fieldArea);       // as it's too easy to mistake scrolling through the rows with changing the value
                     layout->addWidget(&attributeCombobox[comboboxNum], 1, Qt::AlignVCenter);
                     comboboxNum++;
                 }
@@ -347,10 +336,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         field++;
     }
 
-    fieldAreaWidg->adjustSize();
     fieldArea->setWidgetResizable(true);
     theGrid->addWidget(fieldArea, 0, 0, 1, -1);
-    fieldArea->adjustSize();
 
     //a spacer then ok/cancel buttons
     theGrid->setRowMinimumHeight(1, rowOfTextHeight);
@@ -359,6 +346,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     connect(buttonBox, &QDialogButtonBox::accepted, this, [this, &student, dataOptions]{updateRecord(student, dataOptions); accept();});
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
+    fieldArea->setMinimumWidth(fieldAreaWidg->width() + fieldArea->verticalScrollBar()->sizeHint().width() + (2 * frameSize().width()));
+    setMaximumHeight(parent->height());
     adjustSize();
 }
 

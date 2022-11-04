@@ -43,6 +43,7 @@ public:
     int numTeamsDesired = 1;
     int teamSizesDesired[MAX_STUDENTS] = {0};
     QString sectionName;
+    enum class SectionType {allTogether, allSeparately, oneSection} sectionType = SectionType::allTogether;
     int teamsetNumber = 1;                              // which teamset are we working on now?
     inline static const int MAXWEIGHT = 10;             // the maximum value the user can assign for an attribute or schedule weight
     inline static const QString WEIGHTTOOLTIP = "<html>" + QObject::tr("The relative importance of this attribute in forming the teams. The range is from 0 to ") +

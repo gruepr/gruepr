@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 11.0.1
+gruepr_version = 11.1
 copyright_year = 2019-2022
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
@@ -86,6 +86,7 @@ SOURCES += \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
         dialogs/whichFilesDialog.cpp \
+        widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/teamsTabItem.cpp \
         widgets/attributeTabItem.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -123,6 +124,7 @@ HEADERS += \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
         dialogs/whichFilesDialog.h \
+        widgets/comboBoxThatPassesScrollwheel.h \
         widgets/teamsTabItem.h \
         widgets/attributeTabItem.h \
         widgets/comboBoxWithElidedContents.h \

@@ -22,6 +22,7 @@ public:
     int LMSID = -1;         // ID number for this team according to the learning management system
     float score = 0;
     int size = 1;
+    int numSections = 1;
     int numWomen = 0;
     int numMen = 0;
     int numNonbinary = 0;

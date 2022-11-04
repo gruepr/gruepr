@@ -186,6 +186,8 @@ void TeamRecord::createTooltip()
 void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
 {
     //re-zero values
+    numSections = 0;
+    QStringList sections;
     numWomen = 0;
     numMen = 0;
     numNonbinary = 0;
@@ -208,6 +210,11 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
     for(int teammate = 0; teammate < size; teammate++)
     {
         const StudentRecord &stu = student[studentIndexes.at(teammate)];
+        if(!sections.contains(stu.section))
+        {
+            sections << stu.section;
+            numSections++;
+        }
         if(dataOptions->genderIncluded)
         {
             if(stu.gender == Gender::woman)

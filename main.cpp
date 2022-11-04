@@ -32,15 +32,15 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - updated UI for incompatible/required attributes window by making text and selection areas scrollable (needed when # of value is large and thus window is too tall for screen)
+// - bugfix: corrected regex recognition of the word "and" in the prefteammates and prefnonteammates fields of a student record by requiring a space on either side of the word (so doesn't match, e.g., "Sanders")
+// - bugfix: corrected the shifting of schedules based on use of home timezone for schedule, including when there are 7 days in schedule wrapping around Saturday <--> Sunday
+// - updated UI for gather attributes dialogs by making text and selection areas scrollable (needed when # of value is large and thus window is too tall for screen)
+// - updated UI for add/edit student dialogs by making scrollable
 // - added timeout to canvas and google connections
 // - added Canvas quiz upload to surveymaker's create survey UI buttons
-// - updated regex recognition of the word "and" in the prefteammates and prefnonteammates fields of a student record--now requires a space on either side of the word
 //
 // INPROG:
-// - update UI for add/edit student dialogs by making scrollable [need to move scroll wheel action from comboboxes to scroll area; need to resize inside of scrollwheel to fit as well as possible]
-// - if there are 7 days in schedule and are adjusting schedules to class timezone, wrap around Saturday <--> Sunday [studentrecord.cpp line 167]
-// - enable "Students in all sections separately" option to gruepr--manifest as multiple loops of create teams, [gruepr.cpp line 2323]
+// - enable "Students in all sections separately" option to gruepr--fix crash when completing optimization when this option is used & fix temsizes shown in selector box
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
@@ -48,7 +48,7 @@
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
-// - modernize use of pointers throughout to C++17 style; check for memory leaks (esp. in new canvas and google code)
+// - modernize use of pointers throughout to C++17 style; check for memory leaks
 // - enable in Google Forms various options -- must wait on new API functionality from Google
 //     - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
 //     - Question options: req'd question, answer validity checks
