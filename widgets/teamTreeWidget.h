@@ -41,7 +41,7 @@ public:
     void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
     void expandAll();
     void resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
-    void refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
+    void refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const QString &firstStudentSection,
                      const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
                         const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);

@@ -89,9 +89,13 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
 {
     QStringList headerLabels;
     headerLabels << tr("name") << tr("team\nscore");
-    if(teamingOptions->sectionType != TeamingOptions::SectionType::oneSection)
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether)
     {
-        headerLabels << tr("section(s)");
+        headerLabels << tr("sections");
+    }
+    else if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately)
+    {
+        headerLabels << tr("section");
     }
     if(dataOptions->genderIncluded)
     {
@@ -146,7 +150,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
 }
 
 
-void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
+void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const QString &firstStudentSection,
                                  const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     //create team items and fill in information
@@ -170,6 +174,15 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
         teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(team.numSections));
         teamItem->setData(column, TEAMINFO_SORT_ROLE, team.numSections);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
+    else if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately)
+    {
+        teamItem->setText(column, firstStudentSection);
+        teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, firstStudentSection);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, firstStudentSection);
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }

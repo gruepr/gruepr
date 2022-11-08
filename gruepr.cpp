@@ -1198,18 +1198,22 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSe
         return;
     }
 
-    teamingOptions->sectionName = desiredSection;
-    if(ui->sectionSelectionBox->currentIndex() == 1)
+    if(!multipleSectionsInProgress)
     {
-        teamingOptions->sectionType = TeamingOptions::SectionType::allSeparately;
-    }
-    else if((ui->sectionSelectionBox->currentIndex() == 0) && (dataOptions->sectionNames.size() > 1))
-    {
-        teamingOptions->sectionType = TeamingOptions::SectionType::allTogether;
-    }
-    else
-    {
-        teamingOptions->sectionType = TeamingOptions::SectionType::oneSection;
+        teamingOptions->sectionName = desiredSection;
+
+        if(ui->sectionSelectionBox->currentIndex() == 1)
+        {
+            teamingOptions->sectionType = TeamingOptions::SectionType::allSeparately;
+        }
+        else if((ui->sectionSelectionBox->currentIndex() == 0) && (dataOptions->sectionNames.size() > 1))
+        {
+            teamingOptions->sectionType = TeamingOptions::SectionType::allTogether;
+        }
+        else
+        {
+            teamingOptions->sectionType = TeamingOptions::SectionType::oneSection;
+        }
     }
 
     refreshStudentDisplay();
@@ -2248,12 +2252,24 @@ void gruepr::on_letsDoItButton_clicked()
         }
     }
 
+    // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
+    teamingOptions->realNumScoringFactors = dataOptions->numAttributes + (dataOptions->dayNames.isEmpty()? 0 : 1);
+    float normFactor = (float(teamingOptions->realNumScoringFactors)) /
+            (std::accumulate(teamingOptions->attributeWeights, teamingOptions->attributeWeights + dataOptions->numAttributes, 0.0f) +
+             (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight));
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    {
+        teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
+    }
+    teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
+
     bestTeamSet.clear();
     finalTeams.clear();
 
     const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
     const int numSectionsToTeam = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately? dataOptions->sectionNames.size() : 1);
     const int teamSizeSelector = ui->teamSizeBox->currentIndex();
+    multipleSectionsInProgress = teamingMultipleSections;
     for(int section = 0; section < numSectionsToTeam; section++)
     {
         if(teamingMultipleSections)
@@ -2269,19 +2285,8 @@ void gruepr::on_letsDoItButton_clicked()
         teams.reserve(numTeams);
         for(int team = 0; team < numTeams; team++)	// run through every team to load dataOptions and size
         {
-            teams << TeamRecord(*dataOptions, teamingOptions->teamSizesDesired[team]);
+            teams << TeamRecord(dataOptions, teamingOptions->teamSizesDesired[team]);
         }
-
-        // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-        teamingOptions->realNumScoringFactors = dataOptions->numAttributes + (dataOptions->dayNames.isEmpty()? 0 : 1);
-        float normFactor = (float(teamingOptions->realNumScoringFactors)) /
-                (std::accumulate(teamingOptions->attributeWeights, teamingOptions->attributeWeights + dataOptions->numAttributes, float(0.0)) +
-                 (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight));
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-        {
-            teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
-        }
-        teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
 
 #ifdef Q_OS_WIN32
         // Set up to show progess on windows taskbar
@@ -2298,11 +2303,7 @@ void gruepr::on_letsDoItButton_clicked()
         chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-        QString sectionName = ui->sectionSelectionBox->currentText();
-        if(teamingMultipleSections)
-        {
-            sectionName = tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " + sectionName;
-        }
+        QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": ") : "") + ui->sectionSelectionBox->currentText();
         progressWindow = new progressDialog(sectionName, chartView, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -2332,7 +2333,14 @@ void gruepr::on_letsDoItButton_clicked()
 
         // hold here until the optimization is done
         QEventLoop loop;
-        connect(this, &gruepr::sectionOptimizationFullyComplete, &loop, &QEventLoop::quit);
+        connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, teamSizeSelector]
+                                                                       { if(teamingMultipleSections && !multipleSectionsInProgress)
+                                                                         {
+                                                                            ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
+                                                                            ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
+                                                                         }
+                                                                         loop.quit();
+                                                                       });
         loop.exec();
     }
 }
@@ -2401,13 +2409,12 @@ void gruepr::optimizationComplete()
 
     // Load students into teams
     teams = finalTeams;
-    numTeams = teams.size();
     int indexInTeamset = 0;
-    for(int team = 0; team < numTeams; team++)
+    for(auto &team : teams)
     {
-        auto &IndexList = teams[team].studentIndexes;
+        auto &IndexList = team.studentIndexes;
         IndexList.clear();
-        for(int studentNum = 0, size = teams[team].size; studentNum < size; studentNum++)
+        for(int studentNum = 0, size = team.size; studentNum < size; studentNum++)
         {
             IndexList << bestTeamSet.at(indexInTeamset);
             indexInTeamset++;
@@ -2418,17 +2425,17 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    getTeamScores(student, numStudents, teams.data(), numTeams, teamingOptions, dataOptions);
-    for(int team = 0; team < numTeams; team++)
+    getTeamScores(student, numStudents, teams.data(), teams.size(), teamingOptions, dataOptions);
+    for(auto &team:teams)
     {
-        teams[team].refreshTeamInfo(student);
+        team.refreshTeamInfo(student);
     }
 
     // Sort teams by 1st student's name, then set default teamnames and create tooltips
     std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
                                                  {return ((student[a.studentIndexes.at(0)].lastname + student[a.studentIndexes.at(0)].firstname) <
                                                           (student[b.studentIndexes.at(0)].lastname + student[b.studentIndexes.at(0)].firstname));});
-    for(int team = 0; team < numTeams; team++)
+    for(int team = 0; team < teams.size(); team++)
     {
         teams[team].name = QString::number(team+1);
         teams[team].createTooltip();
@@ -2437,8 +2444,9 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, canvas, teams.data(), numTeams, student, teamSetName, this);
+    auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, canvas, teams, student, teamSetName, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
+    numTeams = teams.size();
     teamingOptions->teamsetNumber++;
 
     ui->actionSave_Teams->setEnabled(true);

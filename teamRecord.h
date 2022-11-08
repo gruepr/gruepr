@@ -13,8 +13,7 @@
 class TeamRecord
 {
 public:
-    TeamRecord();
-    TeamRecord(const DataOptions &dataOptions, int teamSize);
+    explicit TeamRecord(const DataOptions *const incomingDataOptions, int teamSize);
 
     void createTooltip();
     void refreshTeamInfo(const StudentRecord* const student);
@@ -22,11 +21,11 @@ public:
     int LMSID = -1;         // ID number for this team according to the learning management system
     float score = 0;
     int size = 1;
-    int numSections = 1;
+    int numSections = 0;
     int numWomen = 0;
     int numMen = 0;
     int numNonbinary = 0;
-    int numUnknown = 1;
+    int numUnknown = 0;
     int numURM = 0;
     std::set<int> attributeVals[MAX_ATTRIBUTES];
     std::set<float> timezoneVals;
@@ -36,6 +35,8 @@ public:
     QString name;
     QString availabilityChart;
     QString tooltip;
+
+private:
     const DataOptions *dataOptions = nullptr;
 };
 

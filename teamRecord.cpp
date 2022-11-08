@@ -1,26 +1,24 @@
 #include "teamRecord.h"
 
-
-TeamRecord::TeamRecord() = default;
-TeamRecord::TeamRecord(const DataOptions &incomingDataOptions, int teamSize)
+TeamRecord::TeamRecord(const DataOptions *const incomingDataOptions, int teamSize)
 {
-    dataOptions = &incomingDataOptions;
+    dataOptions = incomingDataOptions;
     size = teamSize;
 }
 
 
 void TeamRecord::createTooltip()
 {
-    QString toolTip = "<html>";
+    QString toolTipText = "<html>";
     if(score < 0)
     {
-        toolTip += "<table><tr><td bgcolor=#fbcfce><b>" + QObject::tr("This team has a negative compatibility score, indicating one or more teaming requirements have not been met."
-                   " You may want to relax some constraints and try to form teams again.") + "</b></td></tr></table><br>";
+        toolTipText += "<table><tr><td bgcolor=#fbcfce><b>" + QObject::tr("This team has a negative compatibility score, indicating one or more teaming requirements have not been met."
+                       " You may want to relax some constraints and try to form teams again.") + "</b></td></tr></table><br>";
     }
-    toolTip += QObject::tr("Team ") + name + "<br>";
+    toolTipText += QObject::tr("Team ") + name + "<br>";
     if(dataOptions->genderIncluded)
     {
-        toolTip += QObject::tr("Gender") + ":  ";
+        toolTipText += QObject::tr("Gender") + ":  ";
         QStringList genderSingularOptions, genderPluralOptions;
         if(dataOptions->genderType == GenderType::biol)
         {
@@ -37,48 +35,48 @@ void TeamRecord::createTooltip()
             genderSingularOptions = QString(CHILDGENDERS).split('/');
             genderPluralOptions = QString(CHILDGENDERSPLURAL).split('/');
         }
-        else //if(dataOptions->genderResponses == GenderType::pronoun)
+        else //if(dataOptions->genderType == GenderType::pronoun)
         {
             genderSingularOptions = QString(PRONOUNS).split('/');
             genderPluralOptions = QString(PRONOUNS).split('/');
         }
         if(numWomen > 0)
         {
-            toolTip += QString::number(numWomen) + " " + ((numWomen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::woman))) : (genderPluralOptions.at(static_cast<int>(Gender::woman))));
+            toolTipText += QString::number(numWomen) + " " + ((numWomen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::woman))) : (genderPluralOptions.at(static_cast<int>(Gender::woman))));
             if(numMen > 0 || numNonbinary > 0 || numUnknown > 0)
             {
-                toolTip += ", ";
+                toolTipText += ", ";
             }
         }
         if(numMen > 0)
         {
-            toolTip += QString::number(numMen) + " " + ((numMen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::man))) : (genderPluralOptions.at(static_cast<int>(Gender::man))));
+            toolTipText += QString::number(numMen) + " " + ((numMen == 1)? (genderSingularOptions.at(static_cast<int>(Gender::man))) : (genderPluralOptions.at(static_cast<int>(Gender::man))));
             if(numNonbinary > 0 || numUnknown > 0)
             {
-                toolTip += ", ";
+                toolTipText += ", ";
             }
         }
         if(numNonbinary > 0)
         {
-            toolTip += QString::number(numNonbinary) + " " + ((numNonbinary == 1)? (genderSingularOptions.at(static_cast<int>(Gender::nonbinary))) : (genderPluralOptions.at(static_cast<int>(Gender::nonbinary))));
+            toolTipText += QString::number(numNonbinary) + " " + ((numNonbinary == 1)? (genderSingularOptions.at(static_cast<int>(Gender::nonbinary))) : (genderPluralOptions.at(static_cast<int>(Gender::nonbinary))));
             if(numUnknown > 0)
             {
-                toolTip += ", ";
+                toolTipText += ", ";
             }
         }
         if(numUnknown > 0)
         {
-            toolTip += QString::number(numUnknown) + " " + ((numUnknown == 1)? (genderSingularOptions.at(static_cast<int>(Gender::unknown))) : (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
+            toolTipText += QString::number(numUnknown) + " " + ((numUnknown == 1)? (genderSingularOptions.at(static_cast<int>(Gender::unknown))) : (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
         }
     }
     if(dataOptions->URMIncluded)
     {
-        toolTip += "<br>" + QObject::tr("URM") + ":  " + QString::number(numURM);
+        toolTipText += "<br>" + QObject::tr("URM") + ":  " + QString::number(numURM);
     }
     int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
-        toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+        toolTipText += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         auto teamVals = attributeVals[attribute].cbegin();
         auto lastVal = attributeVals[attribute].cend();
         if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
@@ -93,16 +91,16 @@ void TeamRecord::createTooltip()
             {
                 if(*teamVals == *attributeVals[attribute].crbegin())
                 {
-                    toolTip += QString::number(*teamVals);
+                    toolTipText += QString::number(*teamVals);
                 }
                 else
                 {
-                    toolTip += QString::number(*teamVals) + " - " + QString::number(*attributeVals[attribute].crbegin());
+                    toolTipText += QString::number(*teamVals) + " - " + QString::number(*attributeVals[attribute].crbegin());
                 }
             }
             else
             {
-                toolTip += "?";
+                toolTipText += "?";
             }
         }
         else if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) ||
@@ -110,10 +108,10 @@ void TeamRecord::createTooltip()
         {
             // attribute is categorical, so important info is the list of values
             // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
-            toolTip += (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
+            toolTipText += (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
             for(teamVals++; teamVals != lastVal; teamVals++)
             {
-                toolTip += ", " + (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
+                toolTipText += ", " + (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
             }
         }
     }
@@ -137,22 +135,22 @@ void TeamRecord::createTooltip()
             timezoneText = QString("%1%2:%3 \u2192 %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
                                                                   .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(std::abs(minutesB), 2, 10, QChar('0'));
         }
-        toolTip += "<br>" + QObject::tr("Timezones:  GMT") + timezoneText;
+        toolTipText += "<br>" + QObject::tr("Timezones:  GMT") + timezoneText;
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        toolTip += "<br>--<br>" + QObject::tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
+        toolTipText += "<br>--<br>" + QObject::tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
         for(int day = 0; day < dataOptions->dayNames.size(); day++)
         {
             // using first 3 characters in day name as abbreviation
-            toolTip += "<th>" + dataOptions->dayNames.at(day).left(3) + "</th>";
+            toolTipText += "<th>" + dataOptions->dayNames.at(day).left(3) + "</th>";
         }
-        toolTip += "</tr>";
+        toolTipText += "</tr>";
 
         for(int time = 0; time < dataOptions->timeNames.size(); time++)
         {
-            toolTip += "<tr><th>" + dataOptions->timeNames.at(time) + "</th>";
+            toolTipText += "<tr><th>" + dataOptions->timeNames.at(time) + "</th>";
             for(int day = 0; day < dataOptions->dayNames.size(); day++)
             {
                 QString percentage;
@@ -167,19 +165,19 @@ void TeamRecord::createTooltip()
 
                 if(percentage == "100% ")
                 {
-                    toolTip += "<td align='center' bgcolor='PaleGreen'><b>" + percentage + "</b></td>";
+                    toolTipText += "<td align='center' bgcolor='PaleGreen'><b>" + percentage + "</b></td>";
                 }
                 else
                 {
-                    toolTip += "<td align='center'>" + percentage + "</td>";
+                    toolTipText += "<td align='center'>" + percentage + "</td>";
                 }
             }
-            toolTip += "</tr>";
+            toolTipText += "</tr>";
         }
-        toolTip += "</table></html>";
+        toolTipText += "</table></html>";
     }
 
-    tooltip = toolTip;
+    tooltip = toolTipText;
 }
 
 

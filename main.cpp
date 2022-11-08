@@ -40,7 +40,7 @@
 // - added Canvas quiz upload to surveymaker's create survey UI buttons
 //
 // INPROG:
-// - enable "Students in all sections separately" option to gruepr--fix crash when completing optimization when this option is used & fix temsizes shown in selector box
+// - enable "Students in all sections separately" option to gruepr--fix teamsizes shown in selector box
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
