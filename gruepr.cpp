@@ -2029,7 +2029,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 
         if(ui->sectionSelectionBox->currentIndex() == 1)
         {
-            // if teaming all sections independently, figure out how many students in this section
+            // if teaming all sections separately, figure out how many students in this section
             const QString sectionName = ui->sectionSelectionBox->itemText(section + 3);
             numStudentsBeingTeamed = 0;
             for(int index = 0; index < dataOptions->numStudentsInSystem; index++)

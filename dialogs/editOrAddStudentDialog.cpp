@@ -296,7 +296,6 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeTabs->addTab(w, QString::number(attribute+1));
             }
             fieldAreaGrid->addWidget(attributeTabs, field, 1);
-            fieldAreaGrid->setRowMinimumHeight(field, rowOfTextHeight * 3);
         }
         fieldAreaGrid->addWidget(&explanation[field], field, 0);
         field++;
