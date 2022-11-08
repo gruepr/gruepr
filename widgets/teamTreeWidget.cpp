@@ -182,7 +182,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
         teamItem->setText(column, firstStudentSection);
         teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, firstStudentSection);
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, firstStudentSection);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, dataOptions->sectionNames.indexOf(firstStudentSection));
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
