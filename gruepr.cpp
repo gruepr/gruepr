@@ -2267,15 +2267,15 @@ void gruepr::on_letsDoItButton_clicked()
     finalTeams.clear();
 
     const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
-    const int numSectionsToTeam = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately? dataOptions->sectionNames.size() : 1);
-    const int teamSizeSelector = ui->teamSizeBox->currentIndex();
     multipleSectionsInProgress = teamingMultipleSections;
+    const int numSectionsToTeam = (teamingMultipleSections? dataOptions->sectionNames.size() : 1);
+    const int teamSizeSelector = ui->teamSizeBox->currentIndex();
     for(int section = 0; section < numSectionsToTeam; section++)
     {
         if(teamingMultipleSections)
         {
             // team each section one at a time by changing the section and teamsize selection boxes
-            ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section
+            ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
             ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
         }
 
@@ -2331,7 +2331,7 @@ void gruepr::on_letsDoItButton_clicked()
         futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
         multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
 
-        // hold here until the optimization is done
+        // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
         connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, teamSizeSelector]
                                                                        { if(teamingMultipleSections && !multipleSectionsInProgress)
@@ -2339,6 +2339,7 @@ void gruepr::on_letsDoItButton_clicked()
                                                                             ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
                                                                             ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
                                                                          }
+                                                                         this->disconnect(SIGNAL(sectionOptimizationFullyComplete()));
                                                                          loop.quit();
                                                                        });
         loop.exec();
