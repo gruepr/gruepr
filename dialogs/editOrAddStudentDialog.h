@@ -23,6 +23,7 @@ public:
 
 private:
     void updateRecord(StudentRecord &student, const DataOptions *const dataOptions);
+    void adjustSchedule(const StudentRecord &student, const DataOptions *const dataOptions);
     QGridLayout *theGrid;
     QLabel *explanation;
     QLineEdit *datatext;
@@ -31,6 +32,7 @@ private:
     QTabWidget *attributeTabs;
     ComboBoxThatPassesScrollwheel *attributeCombobox;
     QGroupBox *attributeMultibox;
+    bool tempUnavailability[MAX_DAYS][MAX_BLOCKS_PER_DAY];
     QDialogButtonBox *buttonBox;
     inline static const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email
     enum {timestamp, firstname, lastname, email};

@@ -36,6 +36,7 @@
 // - bugfix: corrected the shifting of schedules based on use of home timezone for schedule, including when there are 7 days in schedule wrapping around Saturday <--> Sunday
 // - updated UI for gather attributes dialogs by making text and selection areas scrollable (needed when # of values is large and thus window is too tall for screen)
 // - updated UI for add/edit student dialogs by making scrollable (needed most when a select-multiple-options attribute has a lot of options, and so attribute tab is tall)
+// - added option to edit schedule in the add/edit student dialog (including flipping an existing schedule)
 // - added "Students in all sections separately" option to gruepr
 // - added timeout to canvas and google connections
 // - added Canvas quiz upload to surveymaker's create survey UI buttons
@@ -44,7 +45,7 @@
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
-// - create timeout function for canvas and google connections
+// - create timeout function to nicely handle canvas and google connections
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
@@ -57,7 +58,6 @@
 // - create an LMS class and then subclass Canvas, Google
 // - auto-shorten URL for Google Form (using Google's firebase API?)
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
-// - edit schedule for student (including flip schedule)
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 // - use multiple genepools with limited cross-breeding

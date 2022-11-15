@@ -1,6 +1,7 @@
 #include "editOrAddStudentDialog.h"
 #include <QCheckBox>
 #include <QCollator>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 
@@ -27,7 +28,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     int numFields = (dataOptions->timestampField != -1? 1 : 0) + (dataOptions->firstNameField != -1? 1 : 0) +
                     (dataOptions->lastNameField != -1? 1 : 0) + (dataOptions->emailField != -1? 1 : 0) +
                     (dataOptions->genderIncluded? 1 : 0) + (dataOptions->URMIncluded? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0) +
-                    ((dataOptions->numAttributes > 0)? 1 : 0) + (dataOptions->prefTeammatesIncluded? 1 : 0) +
+                    ((dataOptions->numAttributes > 0)? 1 : 0) + (dataOptions->dayNames.isEmpty()? 0 : 1) + (dataOptions->prefTeammatesIncluded? 1 : 0) +
                     (dataOptions->prefNonTeammatesIncluded? 1 : 0) + ((dataOptions->numNotes > 0)? 1 : 0);
     explanation = new QLabel[numFields];
     datatext = new QLineEdit[NUMSINGLELINES];
@@ -253,6 +254,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             else
             {
                 explanation[field].setText(dataOptions->attributeQuestionText.at(0));
+                explanation[field].setWordWrap(true);
             }
 
             if(orderedAttributes.contains(0) || categoricalAttributes.contains(0) || timezoneAttribute.contains(0))
@@ -276,6 +278,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 if(orderedAttributes.contains(attribute) || categoricalAttributes.contains(attribute))
                 {
                     attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
+                    attributeQuestionText->setWordWrap(true);
                     layout->addWidget(&attributeCombobox[comboboxNum], 1, Qt::AlignVCenter);
                     comboboxNum++;
                 }
@@ -288,6 +291,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 else if(multicategoricalAttributes.contains(attribute) || multiorderedAttributes.contains(attribute))
                 {
                     attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
+                    attributeQuestionText->setWordWrap(true);
                     layout->addWidget(&attributeMultibox[multiboxNum], 1, Qt::AlignVCenter);
                     multiboxNum++;
                 }
@@ -298,6 +302,22 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             fieldAreaGrid->addWidget(attributeTabs, field, 1);
         }
         fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        field++;
+    }
+
+    if(!dataOptions->dayNames.isEmpty())
+    {
+        explanation[field].setText(tr("Schedule"));
+        auto *adjustScheduleButton = new QPushButton(this);
+        adjustScheduleButton->setText(tr("Adjust schedule"));
+        connect(adjustScheduleButton, &QPushButton::clicked, this, [this, &student, dataOptions](){adjustSchedule(student, dataOptions);});
+        fieldAreaGrid->addWidget(&explanation[field], field, 0);
+        fieldAreaGrid->addWidget(adjustScheduleButton, field, 1);
+        for(int day = 0; day < MAX_DAYS; day++) {
+            for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
+                tempUnavailability[day][time] = student.unavailable[day][time];
+            }
+        }
         field++;
     }
 
@@ -345,7 +365,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     connect(buttonBox, &QDialogButtonBox::accepted, this, [this, &student, dataOptions]{updateRecord(student, dataOptions); accept();});
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    fieldArea->setMinimumWidth(fieldAreaWidg->width() + fieldArea->verticalScrollBar()->sizeHint().width() + (2 * frameSize().width()));
+    setMinimumHeight(LG_DLG_SIZE);
     setMaximumHeight(parent->height());
     adjustSize();
 }
@@ -434,6 +454,33 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
             comboboxNum++;
         }
     }
+    if(!dataOptions->dayNames.isEmpty()){
+        for(int day = 0; day < MAX_DAYS; day++) {
+            for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
+                student.unavailable[day][time] = tempUnavailability[day][time];
+            }
+        }
+        student.availabilityChart = QObject::tr("Availability:");
+        student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
+        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        {
+            student.availabilityChart += "<th>" + dataOptions->dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
+        }
+        student.availabilityChart += "</tr>";
+        for(int time = 0; time < dataOptions->timeNames.size(); time++)
+        {
+            student.availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time).toUtf8() + "</th>";
+            for(int day = 0; day < dataOptions->dayNames.size(); day++)
+            {
+                student.availabilityChart += QString(student.unavailable[day][time]?
+                                                         "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
+            }
+            student.availabilityChart += "</tr>";
+        }
+        student.availabilityChart += "</table>";
+
+        student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (dataOptions->dayNames.size() * dataOptions->timeNames.size()));
+    }
     if(dataOptions->prefTeammatesIncluded)
     {
         student.prefTeammates = datamultiline[prefTeammates].toPlainText();
@@ -446,4 +493,83 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     {
         student.notes = datamultiline[notes].toPlainText();
     }
+}
+
+
+void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const DataOptions *const dataOptions)
+{
+    auto *adjustScheduleWindow = new QDialog(this);
+    //Set up window with a grid layout
+    adjustScheduleWindow->setWindowTitle(tr("Adjust Schedule"));
+    adjustScheduleWindow->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
+    auto *adjustScheduleWindowGrid = new QGridLayout(adjustScheduleWindow);
+    int gridrow = 0, gridcolumn = 0;
+
+    //explanation and a spacer row
+    auto *adjustScheduleWindowExplanation = new QLabel(adjustScheduleWindow);
+    adjustScheduleWindowExplanation->setText("<html>" + student.firstname + " " + student.lastname + tr(" is AVAILABLE to meet at these times: <hr></html>"));
+    adjustScheduleWindowExplanation->setWordWrap(true);
+    adjustScheduleWindowGrid->addWidget(adjustScheduleWindowExplanation, gridrow++, gridcolumn, 1, -1);
+    adjustScheduleWindowGrid->setRowMinimumHeight(gridrow++, DIALOG_SPACER_ROWHEIGHT);
+
+    //create a window copy of the temp schedule array, and use the values to pre-fill the grid of checkboxes
+    //connect the clicking of any checkbox to updating the corresponding element in the window copy of the array
+    bool windowUnavailability[MAX_DAYS][MAX_BLOCKS_PER_DAY];
+    QCheckBox *checkBox[MAX_DAYS][MAX_BLOCKS_PER_DAY];
+    for(int day = 0; day < MAX_DAYS; day++) {
+        for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
+            windowUnavailability[day][time] = tempUnavailability[day][time];
+        }
+    }
+    gridcolumn = 1;
+    for(int day = 0; day < dataOptions->dayNames.size(); day++)
+    {
+        auto *columnHeader = new QLabel(adjustScheduleWindow);
+        columnHeader->setText(dataOptions->dayNames.at(day).toUtf8().left(3));   // using first 3 characters in day name as abbreviation
+        adjustScheduleWindowGrid->addWidget(columnHeader, gridrow, gridcolumn++, 1, 1);
+    }
+    gridrow++;
+    for(int time = 0; time < dataOptions->timeNames.size(); time++)
+    {
+        gridcolumn = 0;
+        auto *rowHeader = new QLabel(adjustScheduleWindow);
+        rowHeader->setText(dataOptions->timeNames.at(time).toUtf8());
+        adjustScheduleWindowGrid->addWidget(rowHeader, gridrow, gridcolumn++, 1, 1);
+        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        {
+            checkBox[day][time] = new QCheckBox(adjustScheduleWindow);
+            checkBox[day][time]->setChecked(!windowUnavailability[day][time]);
+            adjustScheduleWindowGrid->addWidget(checkBox[day][time], gridrow, gridcolumn++, 1, 1);
+            connect(checkBox[day][time], &QCheckBox::clicked, adjustScheduleWindow, [&windowUnavailability, day, time](bool checked){windowUnavailability[day][time] = !checked;});
+        }
+        gridrow++;
+    }
+
+    //a spacer then an invertAll button and ok/cancel buttons
+    //if ok button is pushed, copy the window copy of the schedule array back in to the temp array
+    gridcolumn = 0;
+    adjustScheduleWindowGrid->setRowMinimumHeight(gridrow++, DIALOG_SPACER_ROWHEIGHT);
+    auto *invertAllButton = new QPushButton(QIcon(":/icons/swap.png"), tr("Invert Schedule"), adjustScheduleWindow);
+    connect(invertAllButton, &QPushButton::clicked, adjustScheduleWindow, [&windowUnavailability, &dataOptions, checkBox]()
+                                                                           {for(int day = 0; day < dataOptions->dayNames.size(); day++) {
+                                                                                for(int time = 0; time < dataOptions->timeNames.size(); time++) {
+                                                                                    windowUnavailability[day][time] = !windowUnavailability[day][time];
+                                                                                    checkBox[day][time]->toggle();
+                                                                                }
+                                                                           }
+                                                                           });
+    adjustScheduleWindowGrid->addWidget(invertAllButton, gridrow, gridcolumn++, 1, 1);
+    auto *adjustScheduleWindowButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, adjustScheduleWindow);
+    connect(adjustScheduleWindowButtonBox, &QDialogButtonBox::accepted, adjustScheduleWindow, [this, &windowUnavailability, adjustScheduleWindow]()
+                                                                                               {for(int day = 0; day < MAX_DAYS; day++) {
+                                                                                                    for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
+                                                                                                        tempUnavailability[day][time] = windowUnavailability[day][time];
+                                                                                                    }
+                                                                                                }
+                                                                                                adjustScheduleWindow->accept();});
+    connect(adjustScheduleWindowButtonBox, &QDialogButtonBox::rejected, adjustScheduleWindow, &QDialog::reject);
+    adjustScheduleWindowGrid->addWidget(adjustScheduleWindowButtonBox, gridrow, gridcolumn, 1, -1);
+
+    adjustScheduleWindow->adjustSize();
+    adjustScheduleWindow->exec();
 }
