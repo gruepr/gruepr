@@ -32,19 +32,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - bugfix: corrected regex recognition of the word "and" in the prefteammates and prefnonteammates fields of a student record by requiring a space on either side of the word (so doesn't match, e.g., "Sanders")
-// - bugfix: corrected the shifting of schedules based on use of home timezone for schedule, including when there are 7 days in schedule wrapping around Saturday <--> Sunday
-// - updated UI for gather attributes dialogs by making text and selection areas scrollable (needed when # of values is large and thus window is too tall for screen)
-// - updated UI for add/edit student dialogs by making scrollable (needed most when a select-multiple-options attribute has a lot of options, and so attribute tab is tall)
-// - added option to edit schedule in the add/edit student dialog (including flipping an existing schedule)
-// - added "Students in all sections separately" option to gruepr
-// - added timeout to canvas and google connections
-// - added Canvas quiz upload to surveymaker's create survey UI buttons
 //
 // INPROG:
 // - modifying behind the scenes to make the app submittable to apple and windows app stores
 //
 // TO DO:
+// - BUGFIX: does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
 // - create timeout function to nicely handle canvas and google connections
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - more granular scheduling option, down to the 15 minute level at least
