@@ -172,7 +172,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
             (qobject_cast< QStandardItemModel * >(actionSelectBox->model()))->item(studentPrefs)->setEnabled(false);
         }
     }
-    actionSelectBox->insertItem(spreadsheet, QIcon(":/icons/gruepr.png"), tr("Load a gruepr spreadsheet file..."));
+    actionSelectBox->insertItem(spreadsheet, QIcon(":/icons_new/icon.svg"), tr("Load a gruepr spreadsheet file..."));
     actionSelectBox->setItemData(spreadsheet, tr("Add to the table a previous set of gruepr-created teams"), Qt::ToolTipRole);
     actionSelectBox->insertItem(saveCSV, QIcon(":/icons/save.png"), tr("Save to a CSV file..."));
     actionSelectBox->setItemData(saveCSV, tr("Save the table to a csv file for later reuse"), Qt::ToolTipRole);

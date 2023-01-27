@@ -32,9 +32,14 @@ inline static const int PRINTOUT_FONTSIZE = 9;
 #endif
 
 // define colors used throughout gruepr
+inline static const QColor GRUEPRDARKBLUE = QColor(0x05, 0x34, 0x37);
 inline static const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
 inline static const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
 inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
+inline static const char GRUEPRDARKBLUEHEX[] {"053437"};
+inline static const char GRUEPRMEDBLUEHEX[] {"07878e"};
+inline static const char GRUEPRLIGHTBLUEHEX[] {"41d2ca"};
+inline static const char GRUEPRYELLOWHEX[] {"ffd771"};
 inline static const char HIGHLIGHTYELLOWHEX[] {"ffff3b"};
 inline static const char BOLDPINKHEX[] {"f283a5"};
 inline static const char BOLDGREENHEX[] {"83f2a5"};
@@ -294,11 +299,16 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen 
                                  "<br>the project homepage: <a href = http://gruepr.com>http://gruepr.com</a>"
                                  "<p>gruepr incorporates:"
                                  "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
-                                 "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\"</li>"
-                                 "<li><span style=\"font-family:'Oxygen Mono';\">The font <a href = https://www.fontsquirrel.com/fonts/oxygen-mono>"
-                                 "Oxygen Mono</a>, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk),"
-                                 " released under SIL OPEN FONT LICENSE V1.1.</span></li>"
-                                 "<li>A photo of a grouper, courtesy Rich Whalen</li></ul>"
+                                 "<li>Icons are from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\","
+                                 " and from <a href = https://scout.camd.northeastern.edu/>Scout</a> as original creations for the gruepr project</li>"
+                                 "<li>The fonts"
+                                 "<span style=\"font-family:'Oxygen Mono';\">"
+                                 "Oxygen Mono, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk); "
+                                 "<span style=\"font-family:'DM Sans';\">"
+                                 "DM Sans Copyright &copy; 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and "
+                                 "<span style=\"font-family:'Paytone One';\">"
+                                 "Paytone One Copyright &copy; 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont)"
+                                 " all released under SIL OPEN FONT LICENSE V1.1.</span></li>"
                                  "<h3>Disclaimer</h3>"
                                  "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of "
                                  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."

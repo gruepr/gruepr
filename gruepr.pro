@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 11.1
-copyright_year = 2019-2022
+gruepr_version = 12.0
+copyright_year = 2019-2023
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
 win32: QT += winextras
@@ -25,7 +25,7 @@ QMAKE_TARGET_COMPANY = gruepr
 QMAKE_TARGET_PRODUCT = gruepr
 
 # set application icon
-win32: RC_ICONS = icons\gruepr.ico
+win32: RC_ICONS = icons_new\icons.ico
 macx: ICON = icons\gruepr.icns
 
 # set mac info.plist and bundle
@@ -62,6 +62,7 @@ SOURCES += \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/startDialog.cpp \
         googlehandler.cpp \
         gruepr_globals.cpp \
         main.cpp \
@@ -101,6 +102,7 @@ HEADERS += \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/startDialog.h \
         googlehandler.h \
         gruepr.h \
         GA.h \

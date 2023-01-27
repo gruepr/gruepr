@@ -30,7 +30,7 @@ gruepr::gruepr(QWidget *parent) :
     //Setup the main window
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
-    setWindowIcon(QIcon(":/icons/gruepr.png"));
+    setWindowIcon(QIcon(":/icons_new/icon.svg"));
     statusBarLabel = new QLabel("", this);
     ui->statusBar->addWidget(statusBarLabel);
     qRegisterMetaType<QVector<float> >("QVector<float>");

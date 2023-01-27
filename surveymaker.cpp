@@ -20,7 +20,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     //Setup the main window
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
-    setWindowIcon(QIcon(":/icons/surveymaker.png"));
+    setWindowIcon(QIcon(":/icons_new/icon.svg"));
 
     //Restore window geometry
     QSettings savedSettings;

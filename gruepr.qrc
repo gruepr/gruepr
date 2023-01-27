@@ -5,8 +5,6 @@
         <file>icons/schedule.png</file>
         <file>icons/classroom.png</file>
         <file>icons/attributes.png</file>
-        <file>icons/gruepr.ico</file>
-        <file>icons/gruepr.png</file>
         <file>icons/about.png</file>
         <file>icons/save.png</file>
         <file>icons/party.png</file>
@@ -34,7 +32,6 @@
         <file>help-surveymaker.html</file>
         <file>icons/exit.png</file>
         <file>icons/surveymaker.png</file>
-        <file>icons/fish.png</file>
         <file>icons/license.png</file>
         <file>icons/updown_arrow.png</file>
         <file>icons/blank_arrow.png</file>
@@ -58,5 +55,13 @@
         <file>icons/google_signin_button.png</file>
         <file>icons/cancel_signin_button.png</file>
         <file>icons/external-link.png</file>
+        <file>icons_new/splash_new.png</file>
+        <file>fonts/DMSans-Regular.ttf</file>
+        <file>fonts/PaytoneOne-Regular.ttf</file>
+        <file>icons_new/icon.svg</file>
+        <file>icons_new/startup_new.png</file>
+        <file>icons_new/icons.ico</file>
+        <file>icons_new/formTeams.png</file>
+        <file>icons_new/makeASurvey.png</file>
     </qresource>
 </RCC>
