@@ -62,7 +62,6 @@ SOURCES += \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
-        dialogs/startDialog.cpp \
         googlehandler.cpp \
         gruepr_globals.cpp \
         main.cpp \
@@ -86,6 +85,7 @@ SOURCES += \
         dialogs/listTableDialog.cpp \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
+        dialogs/startDialog.cpp \
         dialogs/whichFilesDialog.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/teamsTabItem.cpp \
@@ -102,7 +102,6 @@ HEADERS += \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
-        dialogs/startDialog.h \
         googlehandler.h \
         gruepr.h \
         GA.h \
@@ -125,6 +124,7 @@ HEADERS += \
         dialogs/listTableDialog.h \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
+        dialogs/startDialog.h \
         dialogs/whichFilesDialog.h \
         widgets/comboBoxThatPassesScrollwheel.h \
         widgets/teamsTabItem.h \
