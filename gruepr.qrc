@@ -20,7 +20,6 @@
         <file>fonts/OxygenMono-Regular.otf</file>
         <file>icons/gender.png</file>
         <file>icons/allkinds.png</file>
-        <file>icons/gruepr.icns</file>
         <file>icons/branch-closed.png</file>
         <file>icons/branch-end.png</file>
         <file>icons/branch-more.png</file>
@@ -63,5 +62,6 @@
         <file>icons_new/icons.ico</file>
         <file>icons_new/formTeams.png</file>
         <file>icons_new/makeASurvey.png</file>
+        <file>icons_new/gruepr.icns</file>
     </qresource>
 </RCC>

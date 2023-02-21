@@ -26,7 +26,7 @@ QMAKE_TARGET_PRODUCT = gruepr
 
 # set application icon
 win32: RC_ICONS = icons_new\icons.ico
-macx: ICON = icons\gruepr.icns
+macx: ICON = icons_new\gruepr.icns
 
 # set mac info.plist and bundle
 macx: QMAKE_INFO_PLIST = macOS\MyAppInfo.plist
