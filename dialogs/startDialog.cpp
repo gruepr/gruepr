@@ -1,7 +1,8 @@
 #include "startDialog.h"
 #include "dialogs/registerDialog.h"
+#include <QApplication>
 #include <QCryptographicHash>
-#include <QDesktopServices>
+#include <QScreen>
 #include <QSettings>
 #include <QStringList>
 #include <QThread>
@@ -17,6 +18,11 @@ startDialog::startDialog(QWidget *parent)
 {
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
     setWindowTitle("Welcome to gruepr!");
+
+    // Get the screen size
+    QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
+    int screenWidth = screenGeometry.width();
+    int screenHeight = screenGeometry.height();
 
     mainBoxFont = new QFont("DM Sans", 24);
     labelFont = new QFont("DM Sans", 12);
@@ -70,30 +76,29 @@ startDialog::startDialog(QWidget *parent)
 
     theGrid->setRowMinimumHeight(row++, 34);
 
-    // find out if there is an upgrade available
-    GrueprVersion version = getLatestVersionFromGithub();
-
-    // check to see if this copy of gruepr has been registered
-    QSettings savedSettings;
-    QString registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString UserID = savedSettings.value("registeredUserID", "").toString();
-    const bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
-
     // Create status labels to show when registered and/or latest version installed
     auto *registerLabel = new QLabel(this);
-    auto *upgradeLabel = new QLabel(this);
+    registerLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
     registerLabel->setFont(*labelFont);
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
     connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
-    registerLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
+    // check to see if this copy of gruepr has been registered
+    QSettings savedSettings;
+    QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    QString UserID = savedSettings.value("registeredUserID", "").toString();
+    const bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
+    QString registerMessage = (registered? (tr("Thank you for being a registered user.")) : (tr("Just downloaded? <a href = \"openRegisterDialog\">Register now</a>.")));
+    registerLabel->setText(registerMessage);
+    upgradeLabel = new QLabel(this);
+    upgradeLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
     upgradeLabel->setFont(*labelFont);
     upgradeLabel->setTextFormat(Qt::RichText);
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     upgradeLabel->setOpenExternalLinks(true);
-    upgradeLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
-    QString registerMessage = (registered? (tr("Thank you for being a registered user.")) : (tr("Just downloaded? <a href = \"openRegisterDialog\">Register now</a>.")));
+    // find out if there is an upgrade available
+    GrueprVersion version = getLatestVersionFromGithub();
     QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER;
     if(version == GrueprVersion::old)
     {
@@ -103,12 +108,10 @@ startDialog::startDialog(QWidget *parent)
     {
         upgradeMessage += " <small><a href = \"https://www.gruepr.com/#/Download\">" + tr("(pre-release)") + "<\a></small>";
     }
-    registerLabel->setText(registerMessage);
     upgradeLabel->setText(upgradeMessage);
     upgradeLabel->setAlignment(Qt::AlignRight);
     theGrid->addWidget(registerLabel, row, 1, 1, 2, Qt::AlignLeft);
     theGrid->addWidget(upgradeLabel, row, 3, 1, 1, Qt::AlignRight);
-
 }
 
 
@@ -138,6 +141,7 @@ startDialog::GrueprVersion startDialog::getLatestVersionFromGithub() {
         QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
         QRegularExpressionMatch match = versionNum.match(reply->readAll());
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
+        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available for download"));
     }
     delete reply;
     delete request;

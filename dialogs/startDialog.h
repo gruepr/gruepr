@@ -3,7 +3,6 @@
 
 #include "gruepr_globals.h"
 #include <QDialog>
-#include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
 
@@ -21,6 +20,7 @@ private:
     QFont *mainBoxFont = nullptr;
     QFont *labelFont = nullptr;
     QGridLayout *theGrid = nullptr;
+    QLabel *upgradeLabel = nullptr;
     enum class GrueprVersion{unknown, old, current, beta};
     GrueprVersion getLatestVersionFromGithub();
     void openRegisterDialog();

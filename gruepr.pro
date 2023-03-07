@@ -50,7 +50,7 @@ QMAKE_CXXFLAGS_RELEASE -= -Os
 QMAKE_CXXFLAGS_RELEASE += -O2
 
 # add OpenMP
-win32: QMAKE_CXXFLAGS += -fopenmp #use -fopenmp for mingw, -openmp for msvc
+win32: QMAKE_CXXFLAGS += -openmp #use -fopenmp for mingw, -openmp for msvc
 win32: LIBS += -fopenmp
 win32: LIBS += -L"C:\msys64\home\jhertz\openssl-1.1.1d\dist\bin"
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
