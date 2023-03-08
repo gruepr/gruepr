@@ -21,6 +21,7 @@ inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a te
 
 inline static const int PRINTOUT_FONTSIZE = 9;
 
+inline static const QChar LITTLEARROW = 0x2192;
 // define the left and right arrow characters for use in the attribute tabs when scrolling is needed
 #ifdef Q_OS_WIN32
     inline static const wchar_t LEFTARROW = 0x25C4;
@@ -39,6 +40,7 @@ inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 inline static const char GRUEPRDARKBLUEHEX[] {"053437"};
 inline static const char GRUEPRMEDBLUEHEX[] {"07878e"};
 inline static const char GRUEPRLIGHTBLUEHEX[] {"41d2ca"};
+inline static const char GRUEPRVERYLIGHTBLUEHEX[] {"e7f6f7"};
 inline static const char GRUEPRYELLOWHEX[] {"ffd771"};
 inline static const char HIGHLIGHTYELLOWHEX[] {"ffff3b"};
 inline static const char BOLDPINKHEX[] {"f283a5"};
@@ -291,6 +293,7 @@ inline static const char USER_REGISTRATION_URL[] {"https://script.google.com/mac
 inline static const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
 inline static const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issues"};
 bool internetIsGood();
+void webTest();
 
 inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
                                  "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR

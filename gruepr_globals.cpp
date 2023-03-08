@@ -1,5 +1,6 @@
 #include "gruepr_globals.h"
 #include <QMessageBox>
+#include <QWebEngineView>
 #include <QtNetwork>
 
 bool internetIsGood()
@@ -19,4 +20,15 @@ bool internetIsGood()
                                                                           "Check your network connection and try again."));
     }
     return !weGotProblems;
+}
+
+void webTest() {
+    auto *win = new QDialog;
+    auto *view = new QWebEngineView(win);
+    view->load(QUrl("http://gruepr.com/"));
+    win->setMinimumSize(LG_DLG_SIZE*2, LG_DLG_SIZE);
+    view->resize(win->size());
+    win->exec();
+    delete view;
+    delete win;
 }

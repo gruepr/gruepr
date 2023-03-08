@@ -3518,7 +3518,9 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->setRowCount(numStudents);
 
     QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))? "All sections" : " Section: " + teamingOptions->sectionName);
-    statusBarLabel->setText(statusBarLabel->text().split("\u2192")[0].trimmed() + "  \u2192 " + sectiontext + "  \u2192 " + QString::number(numStudents) + " students");
+    statusBarLabel->setText(statusBarLabel->text().split(LITTLEARROW)[0].trimmed() +
+                                                        "  " + LITTLEARROW + " " + sectiontext +
+                                                        "  " + LITTLEARROW + " " + QString::number(numStudents) + " students");
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();
@@ -3613,42 +3615,46 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     int *penaltyPoints = nullptr;
     bool **availabilityChart = nullptr;
     bool unpenalizedGenomePresent = false;
-#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+    auto sharedStudent = student;
+    auto sharedNumTeams = numTeams;
+    auto sharedTeamingOptions = teamingOptions;
+    auto sharedDataOptions = dataOptions;
+#pragma omp parallel default(none) shared(scores, sharedStudent, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
-        unusedTeamScores = new float[numTeams];
-        attributeScore = new float*[dataOptions->numAttributes];
-        for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
+        unusedTeamScores = new float[sharedNumTeams];
+        attributeScore = new float*[sharedDataOptions->numAttributes];
+        for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++)
         {
-            attributeScore[attrib] = new float[numTeams];
+            attributeScore[attrib] = new float[sharedNumTeams];
         }
-        schedScore = new float[numTeams];
-        availabilityChart = new bool*[dataOptions->dayNames.size()];
-        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        schedScore = new float[sharedNumTeams];
+        availabilityChart = new bool*[sharedDataOptions->dayNames.size()];
+        for(int day = 0; day < sharedDataOptions->dayNames.size(); day++)
         {
-            availabilityChart[day] = new bool[dataOptions->timeNames.size()];
+            availabilityChart[day] = new bool[sharedDataOptions->timeNames.size()];
         }
-        penaltyPoints = new int[numTeams];
+        penaltyPoints = new int[sharedNumTeams];
 #pragma omp for
         for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
         {
-            scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
-                                            teamingOptions, dataOptions, unusedTeamScores,
+            scores[genome] = getGenomeScore(sharedStudent, genePool[genome], sharedNumTeams, teamSizes,
+                                            sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
                                             attributeScore, schedScore, availabilityChart, penaltyPoints);
             int totalPenaltyPoints = 0;
-            for(int team = 0; team < numTeams; team++)
+            for(int team = 0; team < sharedNumTeams; team++)
             {
                 totalPenaltyPoints += penaltyPoints[team];
             }
             unpenalizedGenomePresent = unpenalizedGenomePresent || (totalPenaltyPoints == 0);
         }
         delete[] penaltyPoints;
-        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        for(int day = 0; day < sharedDataOptions->dayNames.size(); day++)
         {
             delete[] availabilityChart[day];
         }
         delete[] availabilityChart;
         delete[] schedScore;
-        for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
+        for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++)
         {
             delete[] attributeScore[attrib];
         }
@@ -3745,42 +3751,46 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 
             // calculate this generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
             unpenalizedGenomePresent = false;
-#pragma omp parallel default(none) shared(scores, student, genePool, numTeams, teamSizes, teamingOptions, dataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+            sharedStudent = student;
+            sharedNumTeams = numTeams;
+            sharedTeamingOptions = teamingOptions;
+            sharedDataOptions = dataOptions;
+#pragma omp parallel default(none) shared(scores, sharedStudent, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
-                unusedTeamScores = new float[numTeams];
-                attributeScore = new float*[dataOptions->numAttributes];
-                for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
+                unusedTeamScores = new float[sharedNumTeams];
+                attributeScore = new float*[sharedDataOptions->numAttributes];
+                for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++)
                 {
-                    attributeScore[attrib] = new float[numTeams];
+                    attributeScore[attrib] = new float[sharedNumTeams];
                 }
-                schedScore = new float[numTeams];
-                availabilityChart = new bool*[dataOptions->dayNames.size()];
-                for(int day = 0; day < dataOptions->dayNames.size(); day++)
+                schedScore = new float[sharedNumTeams];
+                availabilityChart = new bool*[sharedDataOptions->dayNames.size()];
+                for(int day = 0; day < sharedDataOptions->dayNames.size(); day++)
                 {
-                    availabilityChart[day] = new bool[dataOptions->timeNames.size()];
+                    availabilityChart[day] = new bool[sharedDataOptions->timeNames.size()];
                 }
-                penaltyPoints = new int[numTeams];
+                penaltyPoints = new int[sharedNumTeams];
 #pragma omp for nowait
                 for(int genome = 0; genome < GA::POPULATIONSIZE; genome++)
                 {
-                    scores[genome] = getGenomeScore(student, genePool[genome], numTeams, teamSizes,
-                                                    teamingOptions, dataOptions, unusedTeamScores,
+                    scores[genome] = getGenomeScore(sharedStudent, genePool[genome], sharedNumTeams, teamSizes,
+                                                    sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
                                                     attributeScore, schedScore, availabilityChart, penaltyPoints);
                     int totalPenaltyPoints = 0;
-                    for(int team = 0; team < numTeams; team++)
+                    for(int team = 0; team < sharedNumTeams; team++)
                     {
                         totalPenaltyPoints += penaltyPoints[team];
                     }
                     unpenalizedGenomePresent = unpenalizedGenomePresent || (totalPenaltyPoints == 0);
                 }
                 delete[] penaltyPoints;
-                for(int day = 0; day < dataOptions->dayNames.size(); day++)
+                for(int day = 0; day < sharedDataOptions->dayNames.size(); day++)
                 {
                     delete[] availabilityChart[day];
                 }
                 delete[] availabilityChart;
                 delete[] schedScore;
-                for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
+                for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++)
                 {
                     delete[] attributeScore[attrib];
                 }

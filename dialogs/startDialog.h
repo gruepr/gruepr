@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QGridLayout>
 #include <QLabel>
+#include <QToolButton>
 
 class startDialog : public QDialog
 {
@@ -20,6 +21,10 @@ private:
     QFont *mainBoxFont = nullptr;
     QFont *labelFont = nullptr;
     QGridLayout *theGrid = nullptr;
+    QLabel *topLabel = nullptr;
+    QToolButton *survMakeButton = nullptr;
+    QToolButton *grueprButton = nullptr;
+    QLabel *registerLabel = nullptr;
     QLabel *upgradeLabel = nullptr;
     enum class GrueprVersion{unknown, old, current, beta};
     GrueprVersion getLatestVersionFromGithub();
@@ -29,7 +34,7 @@ private:
     const int BASEWINDOWHEIGHT = 456;
     const QString BUTTONSTYLE = QString("QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: #") + GRUEPRDARKBLUEHEX +";"
                                                      "color: #" + GRUEPRDARKBLUEHEX + "; background-color: white;} "
-                                        "QToolButton:hover {border-color: #" + GRUEPRLIGHTBLUEHEX + ";}";
+                                        "QToolButton:hover {border-color: #" + GRUEPRMEDBLUEHEX + "; background-color: #" + GRUEPRVERYLIGHTBLUEHEX + "}";
 };
 
 #endif // STARTDIALOG_H

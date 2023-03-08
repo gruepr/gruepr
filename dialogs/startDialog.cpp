@@ -6,7 +6,6 @@
 #include <QSettings>
 #include <QStringList>
 #include <QThread>
-#include <QToolButton>
 #include <QtNetwork>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,9 +22,19 @@ startDialog::startDialog(QWidget *parent)
     QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
     int screenWidth = screenGeometry.width();
     int screenHeight = screenGeometry.height();
+    const int LEFTRIGHTSPACERWIDTH = 74;
+    const int MIDDLESPACERWIDTH = 42;
+    const int TOPSPACERHEIGHT = 30;
+    const int MIDDLESPACERHEIGHT = 36;
+    const int BOTTOMSPACERHEIGHT = 46;
+    const QSize TOOLBUTTONSIZE(300, 256);
+    const int ICONHEIGHT = 117;
+    const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
+    const int BIGFONTSIZE = 24;
+    const int LITTLEFONTSIZE = 12;
 
-    mainBoxFont = new QFont("DM Sans", 24);
-    labelFont = new QFont("DM Sans", 12);
+    mainBoxFont = new QFont("DM Sans", BIGFONTSIZE);
+    labelFont = new QFont("DM Sans", LITTLEFONTSIZE);
     setFont(*mainBoxFont);
     QPixmap backgroundPic(":/icons_new/startup_new");
     setFixedSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
@@ -36,60 +45,61 @@ startDialog::startDialog(QWidget *parent)
     theGrid = new QGridLayout(this);
     int row = 0, col = 0;
 
-    theGrid->setRowMinimumHeight(row++, 30);
+    theGrid->setRowMinimumHeight(row++, TOPSPACERHEIGHT);
 
-    auto *topLabel = new QLabel(tr("What would you like to do?"), this);
+    topLabel = new QLabel(tr("What would you like to do?"), this);
     topLabel->setFont(*mainBoxFont);
     topLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
     theGrid->addWidget(topLabel, row++, col, 1, -1, Qt::AlignCenter);
 
-    theGrid->setRowMinimumHeight(row++, 48);
+    theGrid->setRowMinimumHeight(row++, MIDDLESPACERHEIGHT);
 
     // Create buttons and add to window
-    theGrid->setColumnMinimumWidth(col++, 74);
+    theGrid->setColumnMinimumWidth(col++, LEFTRIGHTSPACERWIDTH);
 
-    auto *survMakeButton = new QToolButton(this);
-    survMakeButton->setFixedSize(QSize(300, 256));
+    survMakeButton = new QToolButton(this);
+    survMakeButton->setFixedSize(TOOLBUTTONSIZE);
     survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     survMakeButton->setIcon(QIcon(":/icons_new/makeASurvey.png"));
-    survMakeButton->setIconSize(QSize(177, 117));
+    survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(*labelFont);
     survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
     survMakeButton->setStyleSheet(BUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, [&](){done(Result::makeSurvey);});
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
 
-    theGrid->setColumnMinimumWidth(col++, 42);
+    theGrid->setColumnMinimumWidth(col++, MIDDLESPACERWIDTH);
 
-    auto *grueprButton = new QToolButton(this);
-    grueprButton->setFixedSize(QSize(300, 256));
+    grueprButton = new QToolButton(this);
+    grueprButton->setFixedSize(TOOLBUTTONSIZE);
     grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
-    grueprButton->setIconSize(QSize(148, 117));
+    grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(*labelFont);
     grueprButton->setText(tr("Upload your survey results\nand have the grueps appear\nright before your eyes."));
     grueprButton->setStyleSheet(BUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, [&](){done(Result::makeGroups);});
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
 
-    theGrid->setColumnMinimumWidth(col, 74);
+    theGrid->setColumnMinimumWidth(col, LEFTRIGHTSPACERWIDTH);
 
-    theGrid->setRowMinimumHeight(row++, 34);
+    theGrid->setRowMinimumHeight(row++, BOTTOMSPACERHEIGHT);
 
     // Create status labels to show when registered and/or latest version installed
-    auto *registerLabel = new QLabel(this);
+    registerLabel = new QLabel(this);
     registerLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
     registerLabel->setFont(*labelFont);
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
-    connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
+//    connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
+    connect(registerLabel, &QLabel::linkActivated, this, &webTest);
     // check to see if this copy of gruepr has been registered
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString UserID = savedSettings.value("registeredUserID", "").toString();
     const bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
-    QString registerMessage = (registered? (tr("Thank you for being a registered user.")) : (tr("Just downloaded? <a href = \"openRegisterDialog\">Register now</a>.")));
+    QString registerMessage = (registered? (tr("<a href = \"webTest\">Thank you for being a registered user.</a>")) : (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
     registerLabel->setText(registerMessage);
     upgradeLabel = new QLabel(this);
     upgradeLabel->setStyleSheet(QString("QLabel { color: #") + GRUEPRDARKBLUEHEX + "; }");
@@ -189,7 +199,8 @@ void startDialog::openRegisterDialog() {
         {
             //If user clicks OK, add to saved settings
             registerWin->show();
-            auto *box = new QHBoxLayout(registerWin);
+            registerWin->raise();
+            auto *box = new QHBoxLayout;
             auto *icon = new QLabel(registerWin);
             auto *message = new QLabel(registerWin);
             box->addWidget(icon);
@@ -222,6 +233,7 @@ void startDialog::openRegisterDialog() {
                 savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
                 icon->setPixmap(QPixmap(":/icons/ok.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
                 message->setText(tr("Success!"));
+                registerLabel->setText(tr("Thank you for being a registered user."));
             }
             else
             {
@@ -232,6 +244,7 @@ void startDialog::openRegisterDialog() {
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
             registerWin->hide();
+            delete box;
             delete reply;
             delete request;
             delete manager;

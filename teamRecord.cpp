@@ -132,7 +132,7 @@ void TeamRecord::createTooltip()
             int hourB = int(timezoneB);
             int minutesA = 60*(timezoneA - int(timezoneA));
             int minutesB = 60*(timezoneB - int(timezoneB));
-            timezoneText = QString("%1%2:%3 \u2192 %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
+            timezoneText = (QString("%1%2:%3 ") + LITTLEARROW + " %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
                                                                   .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(std::abs(minutesB), 2, 10, QChar('0'));
         }
         toolTipText += "<br>" + QObject::tr("Timezones:  GMT") + timezoneText;

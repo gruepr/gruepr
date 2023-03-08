@@ -7,7 +7,7 @@
 gruepr_version = 12.0
 copyright_year = 2019-2023
 
-QT       += core gui widgets concurrent network printsupport charts networkauth
+QT       += core gui widgets concurrent network printsupport charts networkauth webenginewidgets
 win32: QT += winextras
 
 TARGET = gruepr
@@ -43,7 +43,6 @@ CONFIG += c++17
 # remove possible other optimization flags
 QMAKE_CXXFLAGS_RELEASE -= -O
 QMAKE_CXXFLAGS_RELEASE -= -O1
-QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE -= -O3
 QMAKE_CXXFLAGS_RELEASE -= -Os
 # add the desired -O2 if not present
@@ -51,7 +50,7 @@ QMAKE_CXXFLAGS_RELEASE += -O2
 
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp #use -fopenmp for mingw, -openmp for msvc
-win32: LIBS += -fopenmp
+#win32: LIBS += -openmp          #needed for mingw (?)
 win32: LIBS += -L"C:\msys64\home\jhertz\openssl-1.1.1d\dist\bin"
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
 macx: LIBS += -L /usr/local/lib /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
