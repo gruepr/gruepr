@@ -337,7 +337,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
             continue;
         }
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
-        const auto *value = attributeVals[attribute].constBegin();
+        auto value = attributeVals[attribute].constBegin();
         if(*value != -1)
         {
             if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
@@ -352,7 +352,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
             }
             else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
             {
-                const auto *lastVal = attributeVals[attribute].constEnd();
+                const auto lastVal = attributeVals[attribute].constEnd();
                 while(value != lastVal)
                 {
                     toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
@@ -366,7 +366,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
             }
             else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
             {
-                const auto *lastVal = attributeVals[attribute].constEnd();
+                const auto lastVal = attributeVals[attribute].constEnd();
                 while(value != lastVal)
                 {
                     toolTip += QString::number(*value);

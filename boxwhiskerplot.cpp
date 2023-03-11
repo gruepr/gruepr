@@ -10,12 +10,12 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     labelsFont.setPointSize(titleFont.pointSize()-2);
     legend()->hide();
 
-    dataSeries = new QtCharts::QBoxPlotSeries();
+    dataSeries = new QBoxPlotSeries();
     this->addSeries(dataSeries);
 
     setTitle(title);
 
-    axisX = new QtCharts::QCategoryAxis;
+    axisX = new QCategoryAxis;
     this->addAxis(axisX, Qt::AlignBottom);
     dataSeries->attachAxis(axisX);
     xAxisRange[axismin] = 0;
@@ -25,12 +25,12 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     {
         axisX->append(QString::number(label*PLOTFREQUENCY), label);
     }
-    axisX->setLabelsPosition(QtCharts::QCategoryAxis::AxisLabelsPositionOnValue);
+    axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
     axisX->setLabelsFont(labelsFont);
     axisX->setTitleFont(titleFont);
     axisX->setTitleText(xAxisTitle);
 
-    axisY = new QtCharts::QValueAxis;
+    axisY = new QValueAxis;
     this->addAxis(axisY, Qt::AlignLeft);
     dataSeries->attachAxis(axisY);
     axisY->setRange(yAxisRange[axismin], yAxisRange[axismax]);
@@ -49,16 +49,16 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const o
     int count = vals.count() - (vals.count()*IGNORE_LOWEST_X_PERCENT_DATA/100);
     if(count >= NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER)
     {
-        nextVals[QtCharts::QBoxSet::LowerExtreme] = vals.at(orderedIndex[count]);
-        nextVals[QtCharts::QBoxSet::LowerQuartile] = median(vals, orderedIndex, count/2, count);
-        nextVals[QtCharts::QBoxSet::Median] = median(vals, orderedIndex, 0, count);
-        nextVals[QtCharts::QBoxSet::UpperQuartile] = median(vals, orderedIndex, 0, count/2);
-        nextVals[QtCharts::QBoxSet::UpperExtreme] = vals.at(orderedIndex[0]);
+        nextVals[QBoxSet::LowerExtreme] = vals.at(orderedIndex[count]);
+        nextVals[QBoxSet::LowerQuartile] = median(vals, orderedIndex, count/2, count);
+        nextVals[QBoxSet::Median] = median(vals, orderedIndex, 0, count);
+        nextVals[QBoxSet::UpperQuartile] = median(vals, orderedIndex, 0, count/2);
+        nextVals[QBoxSet::UpperExtreme] = vals.at(orderedIndex[0]);
     }
 
-    auto *set = new QtCharts::QBoxSet(nextVals[QtCharts::QBoxSet::LowerExtreme], nextVals[QtCharts::QBoxSet::LowerQuartile],
-                                      nextVals[QtCharts::QBoxSet::Median], nextVals[QtCharts::QBoxSet::UpperQuartile],
-                                      nextVals[QtCharts::QBoxSet::UpperExtreme]);
+    auto *set = new QBoxSet(nextVals[QBoxSet::LowerExtreme], nextVals[QBoxSet::LowerQuartile],
+                                      nextVals[QBoxSet::Median], nextVals[QBoxSet::UpperQuartile],
+                                      nextVals[QBoxSet::UpperExtreme]);
     if(set != nullptr)
     {
         set->setBrush(QBrush(unpenalizedGenomePresent? LIGHTBLUE : LIGHTPINK));
@@ -84,8 +84,8 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const o
         axisX->setStartValue(xAxisRange[axismin]);
     }
 
-    yAxisRange[axismin] = std::min(yAxisRange[axismin], nextVals[QtCharts::QBoxSet::LowerExtreme]);
-    yAxisRange[axismax] = std::max(yAxisRange[axismax], nextVals[QtCharts::QBoxSet::UpperExtreme]);
+    yAxisRange[axismin] = std::min(yAxisRange[axismin], nextVals[QBoxSet::LowerExtreme]);
+    yAxisRange[axismax] = std::max(yAxisRange[axismax], nextVals[QBoxSet::UpperExtreme]);
     axisY->setRange(yAxisRange[axismin], yAxisRange[axismax]);
     axisY->applyNiceNumbers();
 }

@@ -12,14 +12,14 @@ class progressDialog : public QDialog
     Q_OBJECT
 
 public:
-    progressDialog(const QString &currSection = "", QtCharts::QChartView *chart = nullptr, QWidget *parent = nullptr);
+    progressDialog(const QString &currSection = "", QChartView *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog();
 
     void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
     void highlightStopButton();
 
 private slots:
-    void statsButtonPushed(QtCharts::QChartView *chart);
+    void statsButtonPushed(QChartView *chart);
     void updateCountdown();
     void reject() override;
 

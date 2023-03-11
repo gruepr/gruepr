@@ -45,7 +45,7 @@ private slots:
     void day_LineEdit_textChanged(const QString &text, QLineEdit *dayLineEdit, QString &dayname);
     void on_sectionNamesTextEdit_textChanged();
     void on_makeSurveyButton_clicked();
-    void on_surveyDestinationBox_currentIndexChanged(const QString &arg1);
+    void on_surveyDestinationBox_currentIndexChanged(const int index);
     void openSurvey();
     void saveSurvey();
     void settingsWindow();

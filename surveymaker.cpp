@@ -839,19 +839,20 @@ void SurveyMaker::createCanvasQuiz(SurveyMaker *surveyMaker)
     surveyMaker->surveyCreated = true;
 }
 
-void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const QString &arg1)
+void SurveyMaker::on_surveyDestinationBox_currentIndexChanged(const int index)
 {
-    if(arg1.compare(tr("Google form"), Qt::CaseInsensitive) == 0)
+    const QString desiredDestination = ui->surveyDestinationBox->itemText(index);
+    if(desiredDestination.compare(tr("Google form"), Qt::CaseInsensitive) == 0)
     {
         ui->makeSurveyButton->setToolTip("<html>Upload the survey to your Google Drive.</html>");
         generateSurvey = &SurveyMaker::createGoogleForm;
     }
-    else if(arg1.compare(tr("text files"), Qt::CaseInsensitive) == 0)
+    else if(desiredDestination.compare(tr("text files"), Qt::CaseInsensitive) == 0)
     {
         ui->makeSurveyButton->setToolTip("<html>Create a text file with the required question texts and a csv file to paste the results in afterwards.</html>");
         generateSurvey = &SurveyMaker::createFiles;
     }
-    else if(arg1.compare(tr("Canvas quiz"), Qt::CaseInsensitive) == 0)
+    else if(desiredDestination.compare(tr("Canvas quiz"), Qt::CaseInsensitive) == 0)
     {
         ui->makeSurveyButton->setToolTip("<html>Create a survey in your Canvas class. Note: this feature is in beta currently.</html>");
         generateSurvey = &SurveyMaker::createCanvasQuiz;
@@ -1266,7 +1267,7 @@ void SurveyMaker::openSurvey()
         QFile loadFile(fileName);
         if(loadFile.open(QIODevice::ReadOnly))
         {
-            saveFileLocation = QFileInfo(fileName).canonicalPath();
+            saveFileLocation.setFile(QFileInfo(fileName).canonicalPath());
             QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
             QJsonObject loadObject = loadDoc.object();
 
@@ -1435,7 +1436,7 @@ void SurveyMaker::saveSurvey()
         QFile saveFile(fileName);
         if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            saveFileLocation = QFileInfo(fileName).canonicalPath();
+            saveFileLocation.setFile(QFileInfo(fileName).canonicalPath());
             QJsonObject saveObject;
             saveObject["Title"] = survey->title;
             saveObject["FirstName"] = firstname;

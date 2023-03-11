@@ -1190,8 +1190,9 @@ void gruepr::saveOptionsFile()
 }
 
 
-void gruepr::on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection)
+void gruepr::on_sectionSelectionBox_currentIndexChanged(int index)
 {
+    const QString desiredSection = ui->sectionSelectionBox->itemText(index);
     if(desiredSection == "")
     {
         numStudents = 0;
@@ -1460,7 +1461,7 @@ void gruepr::on_addStudentPushButton_clicked()
     {
         QMessageBox::warning(this, tr("Cannot add student."),
                              tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") +
-                             QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
+                             QString::number(MAX_STUDENTS) + ".", QMessageBox::Ok);
     }
 }
 
@@ -2299,7 +2300,7 @@ void gruepr::on_letsDoItButton_clicked()
 
         // Create progress display plot
         progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
-        auto *chartView = new QtCharts::QChartView(progressChart);
+        auto *chartView = new QChartView(progressChart);
         chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
@@ -2327,7 +2328,7 @@ void gruepr::on_letsDoItButton_clicked()
 
         // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
         optimizationStopped = false;
-        future = QtConcurrent::run(this, &gruepr::optimizeTeams, studentIndexes);       // spin optimization off into a separate thread
+        future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
         futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
         multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
 
@@ -2956,7 +2957,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     for(int note = 0; note < dataOptions->numNotes; note++)
     {
         dataOptions->notesField[note] = surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex);
-        lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex));
+        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex)));
     }
     // attribute fields, adding timezone field as an attribute if it exists
     lastFoundIndex = 0;
@@ -2965,7 +2966,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     {
         dataOptions->attributeField[attribute] = surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex);
         dataOptions->attributeQuestionText << surveyFile.headerValues.at(dataOptions->attributeField[attribute]);
-        lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex));
+        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex)));
     }
     if(dataOptions->timezoneIncluded)
     {
@@ -2999,7 +3000,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         {
             dataOptions->dayNames << " " + QString::number(scheduleQuestion+1) + " ";
         }
-        lastFoundIndex = std::max(lastFoundIndex, 1 + surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex));
+        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex)));
     }
 
     // read one line of data; if no data after header row then file is invalid
@@ -3030,20 +3031,20 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         //sort allTimeNames smartly, using mapped string -> hour of day integer; any timeName not found is put at the beginning of the list
         QStringList timeNamesStrings = QString(TIME_NAMES).split(",");
         std::sort(allTimeNames.begin(), allTimeNames.end(), [&timeNamesStrings] (const QString &a, const QString &b)
-                                        {return TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(a))] < TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(b))];});
+                                        {return TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(a)))] < TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(b)))];});
         dataOptions->timeNames = allTimeNames;
         //pad the timeNames to include all 24 hours if we will be time-shifting student responses based on their home timezones later
         if(dataOptions->homeTimezoneUsed)
         {
-            dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()))];
-            dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames.constLast()))];
+            dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(dataOptions->timeNames.constFirst())))];
+            dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(dataOptions->timeNames.constLast())))];
             const int offsetToTimeNamesUsed = std::min(NUMOFTIMENAMESPERHOUR, std::max(0,
-                                              timeNamesStrings.indexOf(dataOptions->timeNames.constFirst()) -
+                                              int(timeNamesStrings.indexOf(dataOptions->timeNames.constFirst())) -
                                               static_cast<int>(std::distance(TIME_MEANINGS,
                                                                              std::find(std::cbegin(TIME_MEANINGS), std::cend(TIME_MEANINGS), dataOptions->earlyHourAsked)))));
             for(int hour = 0; hour < MAX_BLOCKS_PER_DAY; hour++)
             {
-                if((dataOptions->timeNames.size() > hour) && (TIME_MEANINGS[std::max(0,timeNamesStrings.indexOf(dataOptions->timeNames[hour]))] == hour))
+                if((dataOptions->timeNames.size() > hour) && (TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(dataOptions->timeNames[hour])))] == hour))
                 {
                     continue;
                 }
@@ -3117,7 +3118,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     {
         QMessageBox::warning(this, tr("Reached maximum number of students."),
                                    tr("The maximum number of students have been read from the file."
-                                      " This version of gruepr does not allow more than ") + QString(MAX_STUDENTS) + tr("."), QMessageBox::Ok);
+                                      " This version of gruepr does not allow more than ") + QString::number(MAX_STUDENTS) + ".", QMessageBox::Ok);
     }
 
     // Set the attribute question options and numerical values for each student

@@ -21,15 +21,16 @@ inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a te
 
 inline static const int PRINTOUT_FONTSIZE = 9;
 
-inline static const QChar LITTLEARROW = 0x2192;
 // define the left and right arrow characters for use in the attribute tabs when scrolling is needed
 #ifdef Q_OS_WIN32
     inline static const wchar_t LEFTARROW = 0x25C4;
     inline static const wchar_t RIGHTARROW = 0x25BA;
+    inline static const wchar_t LITTLEARROW = 0x2192;
 #endif
 #ifdef Q_OS_MACOS
-    inline static const wchar_t LEFTARROW = 0x2B05;
-    inline static const wchar_t RIGHTARROW = 0x27A1;
+    inline static const QChar LEFTARROW = u'\u2B05';
+    inline static const QChar RIGHTARROW = u'\u27A1';
+    inline static const QChar LITTLEARROW = u'\u2192';
 #endif
 
 // define colors used throughout gruepr

@@ -8,7 +8,7 @@
 #include <QChartView>
 #include <QValueAxis>
 
-class BoxWhiskerPlot : public QtCharts::QChart
+class BoxWhiskerPlot : public QChart
 {
     Q_OBJECT
 
@@ -19,9 +19,9 @@ public:
 
 private:
     float median(const QVector<float> &vals, const int *const orderedIndex, const int begin, const int end);
-    QtCharts::QBoxPlotSeries *dataSeries;
-    QtCharts::QCategoryAxis *axisX;
-    QtCharts::QValueAxis *axisY;
+    QBoxPlotSeries *dataSeries;
+    QCategoryAxis *axisX;
+    QValueAxis *axisY;
     float nextVals[5] = {0,0,0,0,0};
     int xAxisRange[2] = {0, 1};
     float yAxisRange[2] = {0, 1};

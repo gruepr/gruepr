@@ -8,7 +8,7 @@
 // A dialog to show progress in optimization
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-progressDialog::progressDialog(const QString &currSection, QtCharts::QChartView *chart, QWidget *parent)
+progressDialog::progressDialog(const QString &currSection, QChartView *chart, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window with a grid layout
@@ -141,7 +141,7 @@ void progressDialog::reject()
     QDialog::reject();
 }
 
-void progressDialog::statsButtonPushed(QtCharts::QChartView *chart)
+void progressDialog::statsButtonPushed(QChartView *chart)
 {
     graphShown = !graphShown;
 

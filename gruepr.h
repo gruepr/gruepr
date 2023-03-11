@@ -53,7 +53,7 @@ private slots:
     void loadSurvey(CsvFile &surveyFile);
     void loadStudentRoster();
     void compareRosterToCanvas();
-    void on_sectionSelectionBox_currentIndexChanged(const QString &desiredSection);
+    void on_sectionSelectionBox_currentIndexChanged(int index);
     void editAStudent();
     void removeAStudent(const QString &name, bool delayVisualUpdate);
     void removeAStudent(int index, bool delayVisualUpdate);
@@ -121,7 +121,7 @@ private:
     int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams
     QVector<int> optimizeTeams(const int *const studentIndexes);    // return value is a single permutation-of-indexes
     QFuture< QVector<int> > future;                                 // needed so that optimization can happen in a separate thread
-    QFutureWatcher<void> futureWatcher;                             // used for signaling of optimization completion
+    QFutureWatcher< QVector<int> > futureWatcher;                   // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
 #ifdef Q_OS_WIN32

@@ -407,7 +407,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
-        const auto *value = stu.attributeVals[attribute].constBegin();
+        auto value = stu.attributeVals[attribute].constBegin();
         if(*value != -1)
         {
             if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
@@ -421,7 +421,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
             else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
             {
                 QString studentsVals;
-                const auto *lastVal = stu.attributeVals[attribute].constEnd();
+                const auto lastVal = stu.attributeVals[attribute].constEnd();
                 while(value != lastVal)
                 {
                     studentsVals += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) : QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
@@ -436,7 +436,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
             else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
             {
                 QString studentsVals;
-                const auto *lastVal = stu.attributeVals[attribute].constEnd();
+                const auto lastVal = stu.attributeVals[attribute].constEnd();
                 while(value != lastVal)
                 {
                     studentsVals += QString::number(*value);
@@ -495,7 +495,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     QTreeWidget::dragMoveEvent(event);
 
     // get the item currently under the cursor and ensure that the item is a TeamTreeWidgetItem
-    QTreeWidgetItem* itemUnderCursor = itemAt(event->pos());
+    QTreeWidgetItem* itemUnderCursor = itemAt(event->position().toPoint());
     auto *dropItem = dynamic_cast<TeamTreeWidgetItem*>(itemUnderCursor);
     if(dropItem == nullptr)
     {
@@ -550,7 +550,7 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     dragDropEventLabel->hide();
     delete dragDropEventLabel;
 
-    droppedItem = itemAt(event->pos());
+    droppedItem = itemAt(event->position().toPoint());
     QModelIndex droppedIndex = indexFromItem(droppedItem);
     if( !droppedIndex.isValid() )
     {

@@ -295,8 +295,9 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
         else if(object.contains("questionGroupItem")) {
             const QJsonArray questionsInGroup = object["questionGroupItem"]["questions"].toArray();
             for(const auto &questionInGroup : questionsInGroup) {
-                const QJsonObject rowQuestion = questionInGroup["rowQuestion"].toObject();
-                questions.append({questionInGroup["questionId"].toString(), object["title"].toString() + "[" + rowQuestion["title"].toString() + "]", GoogleFormQuestion::Type::schedule});
+                const auto &questionObject = questionInGroup.toObject();
+                const QJsonObject rowQuestion = questionObject["rowQuestion"].toObject();
+                questions.append({questionObject["questionId"].toString(), object["title"].toString() + "[" + rowQuestion["title"].toString() + "]", GoogleFormQuestion::Type::schedule});
             }
         }
     }
@@ -343,7 +344,8 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
             QStringList allValues;
             allValues.reserve(nestedAnswers.size());
             for(const auto &nestedAnswer : qAsConst(nestedAnswers)) {
-                allValues << nestedAnswer["value"].toString();
+                const auto &answerObject = nestedAnswer.toObject();
+                allValues << answerObject["value"].toString();
             }
             out << ",\"" << allValues.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";
         }
@@ -479,11 +481,11 @@ void GoogleHandler::authenticate() {
     google->setClientIdentifier(CLIENT_ID);
     google->setClientIdentifierSharedKey(CLIENT_SECRET);
 
-    google->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QVariantMap *parameters) {
+    google->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         // Percent-decode the "code" parameter so Google can match it
         if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
             QByteArray code = parameters->value("code").toByteArray();
-            (*parameters)["code"] = QUrl::fromPercentEncoding(code);
+            parameters->insert("code", QUrl::fromPercentEncoding(code));
         }
     });
 

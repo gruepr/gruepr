@@ -133,7 +133,8 @@ bool CsvFile::openExistingFile(const QString &filepath)
 //////////////////
 QFileInfo CsvFile::fileInfo()
 {
-    return {*file};
+    QFileInfo f{*file};
+    return f;
 }
 
 
@@ -511,7 +512,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 
     enum {Normal, Quote} state = Normal;
     QStringList fields;
-    fields.reserve(std::max(minFields, line.count(',')));
+    fields.reserve(std::max(minFields, int(line.count(','))));
     QString value;
 
     for(int i = 0; i < line.size(); i++)

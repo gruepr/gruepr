@@ -1245,7 +1245,7 @@ void TeamsTabItem::createFileContents()
             }
             for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
             {
-                const auto *value = thisStudent.attributeVals[attribute].constBegin();
+                auto value = thisStudent.attributeVals[attribute].constBegin();
                 if(*value != -1)
                 {
                     if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
@@ -1259,7 +1259,7 @@ void TeamsTabItem::createFileContents()
                     }
                     else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
                     {
-                        const auto *const lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue)
                         {
@@ -1275,7 +1275,7 @@ void TeamsTabItem::createFileContents()
                     }
                     else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
                     {
-                        const auto *const lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue)
                         {
@@ -1332,8 +1332,9 @@ void TeamsTabItem::createFileContents()
                     {
                         percentage = "?";
                     }
-                    instructorsFileContents += QString((4+dataOptions->dayNames.at(day).leftRef(3).size())-percentage.size(), ' ') + percentage;
-                    studentsFileContents += QString((4+dataOptions->dayNames.at(day).leftRef(3).size())-percentage.size(), ' ') + percentage;
+                    QStringView left3 = QStringView{dataOptions->dayNames.at(day).left(3)};
+                    instructorsFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
+                    studentsFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
                 }
                 instructorsFileContents += "\n";
                 studentsFileContents += "\n";
@@ -1362,7 +1363,7 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
     QEventLoop loop;
     connect(this, &TeamsTabItem::connectedToPrinter, &loop, &QEventLoop::quit);
     QPrinter *printer = nullptr;
-    QFuture<QPrinter*> future = QtConcurrent::run(this, &TeamsTabItem::setupPrinter);
+    QFuture<QPrinter*> future = QtConcurrent::run(&TeamsTabItem::setupPrinter, this);
     loop.exec();
     printer = future.result();
     msgBox->close();

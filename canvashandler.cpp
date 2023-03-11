@@ -598,11 +598,11 @@ void CanvasHandler::authenticate() {
     canvas->setClientIdentifier(CLIENT_ID);
     canvas->setClientIdentifierSharedKey(CLIENT_SECRET);
 
-    canvas->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QVariantMap* parameters) {
+    canvas->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
        // Percent-decode the "code" parameter so Google can match it
        if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
           QByteArray code = parameters->value("code").toByteArray();
-          (*parameters)["code"] = QUrl::fromPercentEncoding(code);
+          parameters->insert("code", QUrl::fromPercentEncoding(code));
        }
     });
 
