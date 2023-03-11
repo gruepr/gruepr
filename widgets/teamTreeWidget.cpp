@@ -296,7 +296,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
                 attributeText += (*val <= 26 ? QString(char(*val - 1 + 'A')) : QString(char((*val - 1)%26 + 'A')).repeated(1+((*val - 1)/26)));
             }
             // sort by first item, then number of items, then second item
-            sortData = (*firstTeamVal * 10000) + (team.attributeVals[attribute].size() * 100) + (team.attributeVals[attribute].size() > 1 ? *lastTeamVal : 0);
+            sortData = (*firstTeamVal * 10000) + (int(team.attributeVals[attribute].size()) * 100) + (int(team.attributeVals[attribute].size()) > 1 ? *lastTeamVal : 0);
         }
         teamItem->setText(column, attributeText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);

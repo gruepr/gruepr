@@ -5,10 +5,10 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QPrinter>
-#ifdef Q_OS_WIN32
-  #include <QWinTaskbarButton>
-  #include <QWinTaskbarProgress>
-#endif
+//#ifdef Q_OS_WIN32
+//  #include <QWinTaskbarButton>
+//  #include <QWinTaskbarProgress>
+//#endif
 #include "boxwhiskerplot.h"
 #include "canvashandler.h"
 #include "csvfile.h"
@@ -124,10 +124,10 @@ private:
     QFutureWatcher< QVector<int> > futureWatcher;                   // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
-#ifdef Q_OS_WIN32
-    QWinTaskbarButton *taskbarButton = nullptr;
-    QWinTaskbarProgress *taskbarProgress = nullptr;
-#endif
+//#ifdef Q_OS_WIN32
+//    QWinTaskbarButton *taskbarButton = nullptr;
+//    QWinTaskbarProgress *taskbarProgress = nullptr;
+//#endif
     static float getGenomeScore(const StudentRecord _student[], const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                 float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);

@@ -224,7 +224,7 @@ void startDialog::openRegisterDialog() {
             QEventLoop loop;
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
-            QString replyBody = (reply->bytesAvailable() == 0 ? "" : reply->readAll());
+            QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
             if(replyBody.contains("Registration successful"))
             {
                 registeredUser = registerWin->name->text();

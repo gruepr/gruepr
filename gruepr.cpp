@@ -2289,14 +2289,14 @@ void gruepr::on_letsDoItButton_clicked()
             teams << TeamRecord(dataOptions, teamingOptions->teamSizesDesired[team]);
         }
 
-#ifdef Q_OS_WIN32
-        // Set up to show progess on windows taskbar
-        taskbarButton = new QWinTaskbarButton(this);
-        taskbarButton->setWindow(windowHandle());
-        taskbarProgress = taskbarButton->progress();
-        taskbarProgress->show();
-        taskbarProgress->setMaximum(0);
-#endif
+//#ifdef Q_OS_WIN32
+//        // Set up to show progess on windows taskbar
+//        taskbarButton = new QWinTaskbarButton(this);
+//        taskbarButton->setWindow(windowHandle());
+//        taskbarProgress = taskbarButton->progress();
+//        taskbarProgress->show();
+//        taskbarProgress->setMaximum(0);
+//#endif
 
         // Create progress display plot
         progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
@@ -2371,23 +2371,23 @@ void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const i
         progressWindow->setText(tr("Optimization in progress."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), false);
     }
 
-#ifdef Q_OS_WIN32
-    if(generation >= GA::GENERATIONS_OF_STABILITY)
-    {
-        taskbarProgress->setMaximum(100);
-        taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
-    }
-#endif
+//#ifdef Q_OS_WIN32
+//    if(generation >= GA::GENERATIONS_OF_STABILITY)
+//    {
+//        taskbarProgress->setMaximum(100);
+//        taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
+//    }
+//#endif
 }
 
 
 void gruepr::optimizationComplete()
 {
     // update UI
-#ifdef Q_OS_WIN32
-    taskbarProgress->hide();
-    delete taskbarButton;
-#endif
+//#ifdef Q_OS_WIN32
+//    taskbarProgress->hide();
+//    delete taskbarButton;
+//#endif
     delete progressChart;
     delete progressWindow;
 
@@ -3924,14 +3924,14 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
                     // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
                     for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute]))
                     {
-                        int n = attributeLevelsInTeam.count(pair.first);
+                        int n = int(attributeLevelsInTeam.count(pair.first));
                         if(pair.first == pair.second)
                         {
                             _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (calculation = 0 if n == 0 or n == 1)
                         }
                         else
                         {
-                            int m = attributeLevelsInTeam.count(pair.second);
+                            int m = int(attributeLevelsInTeam.count(pair.second));
                             _penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions (calculation = 0 if n == 0 or m == 0)
                         }
                     }
@@ -4404,8 +4404,8 @@ void gruepr::closeEvent(QCloseEvent *event)
         saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
         saveOptionsOnClose.setText(tr("Before exiting, should we save the\ncurrent teaming options as defaults?"));
         saveOptionsOnClose.setCheckBox(&neverShowAgain);
-        saveOptionsOnClose.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        saveOptionsOnClose.setButtonText(QMessageBox::Discard, tr("Don't Save"));
+        saveOptionsOnClose.setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
+        saveOptionsOnClose.addButton(tr("Don't Save"), QMessageBox::DestructiveRole);
         saveOptionsOnClose.exec();
 
         if(saveOptionsOnClose.result() == QMessageBox::Save)

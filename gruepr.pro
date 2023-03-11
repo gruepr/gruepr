@@ -8,7 +8,6 @@ gruepr_version = 12.0
 copyright_year = 2019-2023
 
 QT       += core gui widgets concurrent network printsupport charts networkauth webenginewidgets
-win32: QT += winextras
 
 TARGET = gruepr
 TEMPLATE = app
