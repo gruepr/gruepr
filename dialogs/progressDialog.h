@@ -14,6 +14,10 @@ class progressDialog : public QDialog
 public:
     progressDialog(const QString &currSection = "", QChartView *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog();
+    progressDialog(const progressDialog&) = delete;
+    progressDialog operator= (const progressDialog&) = delete;
+    progressDialog(progressDialog&&) = delete;
+    progressDialog& operator= (progressDialog&&) = delete;
 
     void setText(const QString &text = "", int generation = 0, float score = 0, bool autostopInProgress = false);
     void highlightStopButton();

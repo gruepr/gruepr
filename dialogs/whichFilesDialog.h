@@ -16,6 +16,10 @@ public:
 
     whichFilesDialog(const Action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
     ~whichFilesDialog();
+    whichFilesDialog(const whichFilesDialog&) = delete;
+    whichFilesDialog operator= (const whichFilesDialog&) = delete;
+    whichFilesDialog(whichFilesDialog&&) = delete;
+    whichFilesDialog& operator= (whichFilesDialog&&) = delete;
 
     QCheckBox *studentFiletxt;
     QCheckBox *studentFilepdf;

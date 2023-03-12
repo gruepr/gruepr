@@ -127,12 +127,12 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     }
     headerLabels << tr("display_order");
 
-    setColumnCount(headerLabels.size());
+    setColumnCount(int(headerLabels.size()));
     for(int i = 0; i < headerLabels.size()-1; i++)
     {
         showColumn(i);
     }
-    hideColumn(headerLabels.size()-1);  // don't show the sort order column (can comment this out when debugging sorting operations)
+    hideColumn(int(headerLabels.size())-1);  // don't show the sort order column (can comment this out when debugging sorting operations)
 
     auto *headerTextWithIcon = new QTreeWidgetItem;
     for(int i = 0; i < headerLabels.size(); i++)
@@ -336,7 +336,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        int numAvailTimes = team.tooltip.count("100%");
+        int numAvailTimes = int(team.tooltip.count("100%"));
         teamItem->setText(column, ((team.size > 1)? (QString::number(numAvailTimes)) : ("  --  ")));
         teamItem->setTextAlignment(column, Qt::AlignCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(numAvailTimes));
@@ -468,7 +468,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        int availableTimes = stu.ambiguousSchedule? 0 : stu.availabilityChart.count("√");
+        int availableTimes = stu.ambiguousSchedule? 0 : int(stu.availabilityChart.count("√"));
         studentItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
         studentItem->setToolTip(column, stu.tooltip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);

@@ -141,10 +141,10 @@ void TeamRecord::createTooltip()
     {
         toolTipText += "<br>--<br>" + QObject::tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
-        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        for(const auto &dayName : dataOptions->dayNames)
         {
             // using first 3 characters in day name as abbreviation
-            toolTipText += "<th>" + dataOptions->dayNames.at(day).left(3) + "</th>";
+            toolTipText += "<th>" + dayName.left(3) + "</th>";
         }
         toolTipText += "</tr>";
 

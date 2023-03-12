@@ -44,7 +44,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
         connect(&teamsizeBox[i], QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::teamsizeChanged);
         theTable->setCellWidget(i, 1, &teamsizeBox[i]);
     }
-    theTable->horizontalHeader()->resizeSection(0, int(widthCol0 * TABLECOLUMN0OVERWIDTH));
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
 
     //Rows 4&5 - a spacer and remaining students label

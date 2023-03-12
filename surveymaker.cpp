@@ -1,5 +1,5 @@
-#include "ui_surveymaker.h"
 #include "surveymaker.h"
+#include "ui_surveymaker.h"
 #include "dialogs/customResponseOptionsDialog.h"
 #include "widgets/attributeTabItem.h"
 #include <QClipboard>
@@ -645,13 +645,13 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
             auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
             int height = okButton->height();
             QPixmap loginpic(":/icons/google_signin_button.png");
-            loginpic = loginpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+            loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             okButton->setText("");
             okButton->setIconSize(loginpic.rect().size());
             okButton->setIcon(loginpic);
             okButton->adjustSize();
             QPixmap cancelpic(":/icons/cancel_signin_button.png");
-            cancelpic = cancelpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+            cancelpic = cancelpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             cancelButton->setText("");
             cancelButton->setIconSize(cancelpic.rect().size());
             cancelButton->setIcon(cancelpic);
@@ -1069,12 +1069,12 @@ void SurveyMaker::attributeResponseChanged()
         if(reply == QDialog::Accepted)
         {
             bool currentValue = responseComboBox->blockSignals(true);
-            responseComboBox->setItemText(responseOptions.size(), tr("Current options"));
-            prevIndex = responseOptions.size();
+            responseComboBox->setItemText(int(responseOptions.size()), tr("Current options"));
+            prevIndex = int(responseOptions.size());
             currentCustomOptions = window->options;
-            responseComboBox->setItemData(responseOptions.size(), currentCustomOptions);
+            responseComboBox->setItemData(int(responseOptions.size()), currentCustomOptions);
 
-            responseComboBox->removeItem(responseOptions.size()+1);
+            responseComboBox->removeItem(int(responseOptions.size())+1);
             responseComboBox->addItem(tr("Custom options..."));
             responseComboBox->blockSignals(currentValue);
         }
@@ -1096,8 +1096,8 @@ void SurveyMaker::attributeResponseChanged()
     // Put list of options back to just built-ins plus "Custom options"
     if(responseComboBox->currentIndex() < responseOptions.size())
     {
-        responseComboBox->removeItem(responseOptions.size()+1);
-        responseComboBox->removeItem(responseOptions.size());
+        responseComboBox->removeItem(int(responseOptions.size())+1);
+        responseComboBox->removeItem(int(responseOptions.size()));
         responseComboBox->addItem(tr("Custom options..."));
     }
 
@@ -1249,9 +1249,9 @@ void SurveyMaker::on_sectionNamesTextEdit_textChanged()
 
     // split the input at every newline, then remove any blanks (including just spaces)
     sectionNames = currText.split("\n");
-    for (int line = 0; line < sectionNames.size(); line++)
+    for (auto &sectionName : sectionNames)
     {
-        sectionNames[line] = sectionNames.at(line).trimmed();
+        sectionName = sectionName.trimmed();
     }
     sectionNames.removeAll("");
 
@@ -1330,10 +1330,10 @@ void SurveyMaker::openSurvey()
                      QStringList options = loadObject["Attribute" + QString::number(attribute+1)+"Options"].toString().split('/');
                      auto &responseComboBox = attribTab->attributeResponses;
 
-                     responseComboBox->setItemText(responseOptions.size(), tr("Current options"));
-                     responseComboBox->setItemData(responseOptions.size(), options);
+                     responseComboBox->setItemText(int(responseOptions.size()), tr("Current options"));
+                     responseComboBox->setItemData(int(responseOptions.size()), options);
 
-                     responseComboBox->removeItem(responseOptions.size()+1);
+                     responseComboBox->removeItem(int(responseOptions.size())+1);
                      responseComboBox->addItem(tr("Custom options..."));
                 }
             }

@@ -14,6 +14,10 @@ class startDialog : public QDialog
 public:
     startDialog(QWidget *parent = nullptr);
     ~startDialog();
+    startDialog(const startDialog&) = delete;
+    startDialog operator= (const startDialog&) = delete;
+    startDialog(startDialog&&) = delete;
+    startDialog& operator= (startDialog&&) = delete;
 
     enum Result{makeSurvey = 100, makeGroups};
 

@@ -21,7 +21,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     numOptionsLabel.setText(tr("Number of response options: "));
     theGrid->addWidget(&numOptionsLabel, 0, 0, 1, 1, Qt::AlignRight);
     numOptionsBox.setRange(2, MAXRESPONSEOPTIONS);
-    numOptions = (currentCustomOptions.isEmpty() ? 4 : currentCustomOptions.size());
+    numOptions = (currentCustomOptions.isEmpty() ? 4 : int(currentCustomOptions.size()));
     numOptionsBox.setValue(numOptions);
     connect(&numOptionsBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &customResponseOptionsDialog::refreshDisplay);
     theGrid->addWidget(&numOptionsBox, 0, 1, 1, -1, Qt::AlignLeft);
@@ -41,7 +41,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
         optionLineEdit[i].setText(i < currentCustomOptions.size() ? currentCustomOptions.at(i) : "");
         options << optionLineEdit[i].text();
     }
-    theTable->horizontalHeader()->resizeSection(0, int(widthCol0 * TABLECOLUMN0OVERWIDTH));
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
 
     //Rows 4&5 - a spacer and a reminder to include numbering if the options are in a natural order

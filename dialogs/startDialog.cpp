@@ -160,11 +160,11 @@ startDialog::GrueprVersion startDialog::getLatestVersionFromGithub() {
     QStringList latestVersion = latestVersionString.split('.');
     QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
     // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
-    for(int field = latestVersion.size(); field < NUMBER_VERSION_FIELDS; field++)
+    for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++)
     {
         latestVersion << "0";
     }
-    for(int field = thisVersion.size(); field < NUMBER_VERSION_FIELDS; field++)
+    for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++)
     {
         thisVersion << "0";
     }

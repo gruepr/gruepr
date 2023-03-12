@@ -142,8 +142,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // schedule days
-    const int numDays = dataOptions->dayNames.size();
-    const int numTimes = dataOptions->timeNames.size();
+    const int numDays = int(dataOptions->dayNames.size());
+    const int numTimes = int(dataOptions->timeNames.size());
     int timezoneOffset = 0;
     fieldnum = dataOptions->timezoneField;
     if(fieldnum != -1)
@@ -239,7 +239,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         }
         availabilityChart += "</table>";
     }
-    ambiguousSchedule = (availabilityChart.count("√") == 0 || availabilityChart.count("√") == (numDays * numTimes));
+    ambiguousSchedule = (availabilityChart.count("√") == 0 || int(availabilityChart.count("√")) == (numDays * numTimes));
 
     // section
     if(dataOptions->sectionIncluded)
@@ -258,7 +258,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     {
         fieldnum = dataOptions->prefTeammatesField;
         prefTeammates = fields.at(fieldnum).toLatin1();
-        prefTeammates.replace(QRegularExpression("\\s*([,;&]|(?:\\sand\\s))\\s*"), "\n");     // replace every [, ; & and] with new line
+        prefTeammates.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
         prefTeammates = prefTeammates.trimmed();
     }
 
@@ -267,7 +267,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     {
         fieldnum = dataOptions->prefNonTeammatesField;
         prefNonTeammates = fields.at(fieldnum).toLatin1();
-        prefNonTeammates.replace(QRegularExpression("\\s*([,;&]|(?:\\sand\\s))\\s*"), "\n");     // replace every [, ; & and] with new line
+        prefNonTeammates.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
         prefNonTeammates = prefNonTeammates.trimmed();
     }
 

@@ -28,6 +28,10 @@ class CanvasHandler : public QObject
 public:
     CanvasHandler(const QString &authenticateURL = "", const QString &accessTokenURL = "", const QString &baseAPIURL = "");
     ~CanvasHandler();
+    CanvasHandler(const CanvasHandler&) = delete;
+    CanvasHandler operator= (const CanvasHandler&) = delete;
+    CanvasHandler(CanvasHandler&&) = delete;
+    CanvasHandler& operator= (CanvasHandler&&) = delete;
 
     void authenticate();
     QStringList askUserForManualToken(const QString &currentURL = "", const QString &currentToken = "", QWidget *parent = nullptr);

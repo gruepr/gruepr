@@ -249,6 +249,7 @@ QStringList GoogleHandler::getSurveyList() {
     std::sort(formsList.begin(), formsList.end(), [](const GoogleForm &lhs, const GoogleForm &rhs)
                                                   {return (QDateTime::fromString(lhs.createdTime,Qt::ISODate) < QDateTime::fromString(rhs.createdTime,Qt::ISODate));});
     QStringList formNames;
+    formNames.reserve(formsList.size());
     for(const auto &form : qAsConst(formsList)) {
         formNames.append(form.name);
     }
@@ -256,11 +257,11 @@ QStringList GoogleHandler::getSurveyList() {
     return formNames;
 }
 
-QString GoogleHandler::downloadSurveyResult(const QString &formName) {
+QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //get the ID
     QString ID;
     for(const auto &form : qAsConst(formsList)) {
-        if(form.name == formName) {
+        if(form.name == surveyName) {
             ID = form.ID;
         }
     }
@@ -295,7 +296,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
         else if(object.contains("questionGroupItem")) {
             const QJsonArray questionsInGroup = object["questionGroupItem"]["questions"].toArray();
             for(const auto &questionInGroup : questionsInGroup) {
-                const auto &questionObject = questionInGroup.toObject();
+                const auto questionObject = questionInGroup.toObject();
                 const QJsonObject rowQuestion = questionObject["rowQuestion"].toObject();
                 questions.append({questionObject["questionId"].toString(), object["title"].toString() + "[" + rowQuestion["title"].toString() + "]", GoogleFormQuestion::Type::schedule});
             }
@@ -304,7 +305,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
 
     //prepare a file for the results
     QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
-    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation), formName.simplified().replace(unallowedChars, "_") + ".csv");
+    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
     QFile file(filepath.absoluteFilePath());
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     //qDebug() << file.errorString();
@@ -344,7 +345,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &formName) {
             QStringList allValues;
             allValues.reserve(nestedAnswers.size());
             for(const auto &nestedAnswer : qAsConst(nestedAnswers)) {
-                const auto &answerObject = nestedAnswer.toObject();
+                const auto answerObject = nestedAnswer.toObject();
                 allValues << answerObject["value"].toString();
             }
             out << ",\"" << allValues.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";

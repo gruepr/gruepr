@@ -230,7 +230,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             {
                 attributeMultibox[multiboxNum].setFlat(true);
                 auto *layout = new QVBoxLayout;
-                for(int option = 0, totNumOptions = dataOptions->attributeQuestionResponses[attribute].size(); option < totNumOptions; option++)
+                for(int option = 0, totNumOptions = int(dataOptions->attributeQuestionResponses[attribute].size()); option < totNumOptions; option++)
                 {
                     auto *responseCheckBox = new QCheckBox(dataOptions->attributeQuestionResponses[attribute].at(option));
                     responseCheckBox->setChecked(student.attributeVals[attribute].contains(option + 1));
@@ -415,7 +415,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
                 auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox[multiboxNum].layout()->itemAt(itemNum)->widget());
                 if((optionCheckBox != nullptr) && (optionCheckBox->isChecked()))
                 {
-                    student.attributeVals[attribute] << (dataOptions->attributeQuestionResponses[attribute].indexOf(optionCheckBox->text()) + 1);
+                    student.attributeVals[attribute] << int(dataOptions->attributeQuestionResponses[attribute].indexOf(optionCheckBox->text()) + 1);
                     attributeResponse << optionCheckBox->text();
                 }
             }
@@ -462,9 +462,9 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         }
         student.availabilityChart = QObject::tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
-        for(int day = 0; day < dataOptions->dayNames.size(); day++)
+        for(const auto &dayName : dataOptions->dayNames)
         {
-            student.availabilityChart += "<th>" + dataOptions->dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
+            student.availabilityChart += "<th>" + dayName.toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         student.availabilityChart += "</tr>";
         for(int time = 0; time < dataOptions->timeNames.size(); time++)
@@ -522,10 +522,10 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
         }
     }
     gridcolumn = 1;
-    for(int day = 0; day < dataOptions->dayNames.size(); day++)
+    for(const auto &dayName : dataOptions->dayNames)
     {
         auto *columnHeader = new QLabel(adjustScheduleWindow);
-        columnHeader->setText(dataOptions->dayNames.at(day).toUtf8().left(3));   // using first 3 characters in day name as abbreviation
+        columnHeader->setText(dayName.toUtf8().left(3));   // using first 3 characters in day name as abbreviation
         adjustScheduleWindowGrid->addWidget(columnHeader, gridrow, gridcolumn++, 1, 1);
     }
     gridrow++;
@@ -572,4 +572,6 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
 
     adjustScheduleWindow->adjustSize();
     adjustScheduleWindow->exec();
+
+    delete adjustScheduleWindow;
 }

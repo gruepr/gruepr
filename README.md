@@ -33,9 +33,9 @@ Description of gruepr:
         spreadsheet format.
 
         The student data are typically collected using a survey that the students fill out. Gruepr will help the
-        instructor create this survey, outputting the survey as either text files or, more commonly, by creating the
-        survey as a Google Form on the instructor's Google Drive. After collecting the students' survey responses, the
-        results are loaded into gruepr. If using the Google Form, the results can be directly imported. If an alternate
+        instructor create this survey, outputting the survey as either text files, a Canvas quiz, or, more commonly,
+        a Google Form on the instructor's Google Drive. After collecting the students' survey responses, the results
+        are loaded into gruepr. If using the Google Form, the results can be directly imported. If an alternate
         surveying instrument is used, the results must be as a comma-separated-values (.csv) file with each question as
         a separate column and each student as a separate row.
 
@@ -43,8 +43,8 @@ Description of gruepr:
         use a user-generated API token. Gruepr can create the survey as an ungraded quiz in the Canvas course, can
         directly import the survey results, and can upload the created teams as groups in the Canvas course.
 
-        COMPILING NOTES: Need C++17 and OpenMP on all systems. Needs OpenSSL on Windows. Using gcc/mingw, enabling the 
-        speed optimization of -O2 seems to offer significant speed boost; -O3 does not seem to offer any improvement.
+        COMPILING NOTES: Need C++17 and OpenMP on all systems. Needs OpenSSL on Windows. Enabling the speed optimization
+        switch -O2 seems to offer significant speed boost; -O3 does not seem to offer any improvement.
 
 ---------------
 Details on how the teams are optimized:
@@ -98,7 +98,7 @@ DISCLAIMER:
         You should have received a copy of the GNU General Public License along with this program.  If not, see
         < https://www.gnu.org/licenses/ >.
 
-        This software incorporates code from the open source Qt libraries, using version 5.15. These can be
+        This software incorporates code from the open source Qt libraries, using version 6.4. These can be
         freely downloaded from < http://qt.io/download >.
 
         Some icons were originally created by Icons8 < https://icons8.com >. These icons have been made available

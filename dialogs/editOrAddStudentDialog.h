@@ -20,6 +20,10 @@ class editOrAddStudentDialog : public QDialog
 public:
     editOrAddStudentDialog(StudentRecord &student, const DataOptions *const dataOptions, QWidget *parent = nullptr, bool newStudent = false);
     ~editOrAddStudentDialog();
+    editOrAddStudentDialog(const editOrAddStudentDialog&) = delete;
+    editOrAddStudentDialog operator= (const editOrAddStudentDialog&) = delete;
+    editOrAddStudentDialog(editOrAddStudentDialog&&) = delete;
+    editOrAddStudentDialog& operator= (editOrAddStudentDialog&&) = delete;
 
 private:
     void updateRecord(StudentRecord &student, const DataOptions *const dataOptions);

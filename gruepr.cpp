@@ -271,13 +271,13 @@ void gruepr::downloadSurveyFromGoogle()
             auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
             int height = okButton->height();
             QPixmap loginpic(":/icons/google_signin_button.png");
-            loginpic = loginpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+            loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             okButton->setText("");
             okButton->setIconSize(loginpic.rect().size());
             okButton->setIcon(loginpic);
             okButton->adjustSize();
             QPixmap cancelpic(":/icons/cancel_signin_button.png");
-            cancelpic = cancelpic.scaledToHeight(1.5*height, Qt::SmoothTransformation);
+            cancelpic = cancelpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             cancelButton->setText("");
             cancelButton->setIconSize(cancelpic.rect().size());
             cancelButton->setIcon(cancelpic);
@@ -483,7 +483,7 @@ void gruepr::downloadSurveyFromCanvas()
 
     // Only include the timestamp question ("submitted") and then the questions we've asked, which will all begin with (possibly a quotation mark then) an integer then a colon then a space.
     // (Also ignore the text "question" which serves as the text notifier that several schedule questions are coming up).
-    surveyFile.fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", ".*" + canvas->SCHEDULEQUESTIONINTRO2.trimmed() + ".*"};
+    surveyFile.fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", ".*" + CanvasHandler::SCHEDULEQUESTIONINTRO2.trimmed() + ".*"};
 
     loadSurvey(surveyFile);
 }
@@ -1605,15 +1605,15 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     {
         newSurveyFile.headerValues << dataOptions->attributeQuestionText[attrib];
     }
-    for(int day = 0; day < dataOptions->dayNames.size(); day++)
+    for(const auto &dayName : dataOptions->dayNames)
     {
         if(dataOptions->scheduleDataIsFreetime)
         {
-            newSurveyFile.headerValues << "Check the times that you are FREE and will be AVAILABLE for group work. [" + dataOptions->dayNames[day] + "]";
+            newSurveyFile.headerValues << "Check the times that you are FREE and will be AVAILABLE for group work. [" + dayName + "]";
         }
         else
         {
-            newSurveyFile.headerValues << "Check the times that you are BUSY and will be UNAVAILABLE for group work. [" + dataOptions->dayNames[day] + "]";
+            newSurveyFile.headerValues << "Check the times that you are BUSY and will be UNAVAILABLE for group work. [" + dayName + "]";
         }
     }
     if(dataOptions->sectionIncluded)
@@ -1928,8 +1928,8 @@ void gruepr::on_meetingLength_currentIndexChanged(int index)
     teamingOptions->meetingBlockSize = (index + 1);
     if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0))
     {
-        ui->minMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
-        ui->desiredMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
+        ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
+        ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
     }
 }
 
@@ -2020,7 +2020,7 @@ void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
     ui->teamSizeBox->setUpdatesEnabled(false);
 
     // typically just figuring out team sizes for one section or for all students together, but need to re-calculate for each section if we will team all sections independently
-    const int numSectionsToCalculate = (ui->sectionSelectionBox->currentIndex() == 1? dataOptions->sectionNames.size() : 1);
+    const int numSectionsToCalculate = (ui->sectionSelectionBox->currentIndex() == 1? int(dataOptions->sectionNames.size()) : 1);
     int numStudentsBeingTeamed = numStudents;
     int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
     int cumNumSmallerATeams=0, cumNumSmallerBTeams = 0, cumNumLargerATeams=0, cumNumLargerBTeams = 0;
@@ -2269,7 +2269,7 @@ void gruepr::on_letsDoItButton_clicked()
 
     const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
     multipleSectionsInProgress = teamingMultipleSections;
-    const int numSectionsToTeam = (teamingMultipleSections? dataOptions->sectionNames.size() : 1);
+    const int numSectionsToTeam = (teamingMultipleSections? int(dataOptions->sectionNames.size()) : 1);
     const int teamSizeSelector = ui->teamSizeBox->currentIndex();
     for(int section = 0; section < numSectionsToTeam; section++)
     {
@@ -2427,7 +2427,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    getTeamScores(student, numStudents, teams.data(), teams.size(), teamingOptions, dataOptions);
+    getTeamScores(student, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     for(auto &team:teams)
     {
         team.refreshTeamInfo(student);
@@ -2448,7 +2448,7 @@ void gruepr::optimizationComplete()
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
     auto *teamTab = new TeamsTabItem(teamingOptions, dataOptions, canvas, teams, student, teamSetName, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
-    numTeams = teams.size();
+    numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
 
     ui->actionSave_Teams->setEnabled(true);
@@ -2849,8 +2849,8 @@ void gruepr::loadUI()
         ui->label_7->setEnabled(true);
         ui->label_8->setEnabled(true);
         ui->label_9->setEnabled(true);
-        ui->minMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1));
-        ui->desiredMeetingTimes->setMaximum((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1));
+        ui->minMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1)));
+        ui->desiredMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1)));
     }
 
     ui->idealTeamSizeBox->setEnabled(true);
@@ -2908,7 +2908,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
     auto lastKnownMeaningfulField = QRegularExpression("(.*(name).*(like to not have on your team).*)|(.*(name).*(like to have on your team).*)|"
                                                        ".*(in which section are you enrolled).*|(.*(check).+(times).*)", QRegularExpression::CaseInsensitiveOption);
-    int notesFieldsProbBeginAt = 1 + surveyFile.headerValues.lastIndexOf(lastKnownMeaningfulField);
+    int notesFieldsProbBeginAt = 1 + int(surveyFile.headerValues.lastIndexOf(lastKnownMeaningfulField));
     if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile.headerValues.size()))
     {
         //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
@@ -2935,36 +2935,36 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
     // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
-    dataOptions->timestampField = surveyFile.fieldMeanings.indexOf("Timestamp");
-    dataOptions->firstNameField = surveyFile.fieldMeanings.indexOf("First Name");
-    dataOptions->lastNameField = surveyFile.fieldMeanings.indexOf("Last Name");
-    dataOptions->emailField = surveyFile.fieldMeanings.indexOf("Email Address");
-    dataOptions->genderField = surveyFile.fieldMeanings.indexOf("Gender");
+    dataOptions->timestampField = int(surveyFile.fieldMeanings.indexOf("Timestamp"));
+    dataOptions->firstNameField = int(surveyFile.fieldMeanings.indexOf("First Name"));
+    dataOptions->lastNameField = int(surveyFile.fieldMeanings.indexOf("Last Name"));
+    dataOptions->emailField = int(surveyFile.fieldMeanings.indexOf("Email Address"));
+    dataOptions->genderField = int(surveyFile.fieldMeanings.indexOf("Gender"));
     dataOptions->genderIncluded = (dataOptions->genderField != -1);
-    dataOptions->URMField = surveyFile.fieldMeanings.indexOf("Racial/ethnic identity");
+    dataOptions->URMField = int(surveyFile.fieldMeanings.indexOf("Racial/ethnic identity"));
     dataOptions->URMIncluded = (dataOptions->URMField != -1);
-    dataOptions->sectionField = surveyFile.fieldMeanings.indexOf("Section");
+    dataOptions->sectionField = int(surveyFile.fieldMeanings.indexOf("Section"));
     dataOptions->sectionIncluded = (dataOptions->sectionField != -1);
-    dataOptions->timezoneField = surveyFile.fieldMeanings.indexOf("Timezone");
+    dataOptions->timezoneField = int(surveyFile.fieldMeanings.indexOf("Timezone"));
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != -1);
-    dataOptions->prefTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Teammates");
+    dataOptions->prefTeammatesField = int(surveyFile.fieldMeanings.indexOf("Preferred Teammates"));
     dataOptions->prefTeammatesIncluded = (dataOptions->prefTeammatesField != -1);
-    dataOptions->prefNonTeammatesField = surveyFile.fieldMeanings.indexOf("Preferred Non-teammates");
+    dataOptions->prefNonTeammatesField = int(surveyFile.fieldMeanings.indexOf("Preferred Non-teammates"));
     dataOptions->prefNonTeammatesIncluded = (dataOptions->prefNonTeammatesField != -1);
     // notes fields
     int lastFoundIndex = 0;
-    dataOptions->numNotes = surveyFile.fieldMeanings.count("Notes");
+    dataOptions->numNotes = int(surveyFile.fieldMeanings.count("Notes"));
     for(int note = 0; note < dataOptions->numNotes; note++)
     {
-        dataOptions->notesField[note] = surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex);
+        dataOptions->notesField[note] = int(surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile.fieldMeanings.indexOf("Notes", lastFoundIndex)));
     }
     // attribute fields, adding timezone field as an attribute if it exists
     lastFoundIndex = 0;
-    dataOptions->numAttributes = surveyFile.fieldMeanings.count("Attribute");
+    dataOptions->numAttributes = int(surveyFile.fieldMeanings.count("Attribute"));
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
-        dataOptions->attributeField[attribute] = surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex);
+        dataOptions->attributeField[attribute] = int(surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex));
         dataOptions->attributeQuestionText << surveyFile.headerValues.at(dataOptions->attributeField[attribute]);
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile.fieldMeanings.indexOf("Attribute", lastFoundIndex)));
     }
@@ -2976,9 +2976,9 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
     }
     // schedule fields
     lastFoundIndex = 0;
-    for(int scheduleQuestion = 0, numScheduleFields = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleFields; scheduleQuestion++)
+    for(int scheduleQuestion = 0, numScheduleFields = int(surveyFile.fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleFields; scheduleQuestion++)
     {
-        dataOptions->scheduleField[scheduleQuestion] = surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex);
+        dataOptions->scheduleField[scheduleQuestion] = int(surveyFile.fieldMeanings.indexOf("Schedule", lastFoundIndex));
         QString scheduleQuestionText = surveyFile.headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
         if(scheduleQuestionText.contains(QRegularExpression(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption)))
         {
@@ -3018,7 +3018,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
         QStringList allTimeNames;
         do
         {
-            for(int scheduleQuestion = 0, numScheduleQuestions = surveyFile.fieldMeanings.count("Schedule"); scheduleQuestion < numScheduleQuestions; scheduleQuestion++)
+            for(int scheduleQuestion = 0, numScheduleQuestions = int(surveyFile.fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleQuestions; scheduleQuestion++)
             {
                 QString scheduleFieldText = QString(surveyFile.fieldValues.at(dataOptions->scheduleField[scheduleQuestion]).toUtf8()).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
@@ -3049,7 +3049,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                     continue;
                 }
                 const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
-                const int index = std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed;
+                const int index = int(std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed);
                 dataOptions->timeNames.insert(hour, timeNamesStrings.at(index));
             }
 
@@ -3169,7 +3169,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
             // for multicategorical, have to reprocess the responses to delimit at the commas and then determine if actually multiordered
             if(attributeType == DataOptions::AttributeType::multicategorical)
             {
-                for(int originalResponseNum = 0, numOriginalResponses = responses.size(); originalResponseNum < numOriginalResponses; originalResponseNum++)
+                for(int originalResponseNum = 0, numOriginalResponses = int(responses.size()); originalResponseNum < numOriginalResponses; originalResponseNum++)
                 {
                     QStringList newResponses = responses.takeFirst().split(',');
                     for(auto &newResponse : newResponses)
@@ -3254,7 +3254,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                             (attributeType == DataOptions::AttributeType::timezone))
                     {
                         // set numerical value instead according to their place in the sorted list of responses
-                        currentStudentAttributeVals << responses.indexOf(currentStudentResponse) + 1;
+                        currentStudentAttributeVals << int(responses.indexOf(currentStudentResponse)) + 1;
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
                     else if(attributeType == DataOptions::AttributeType::multicategorical)
@@ -3263,7 +3263,7 @@ bool gruepr::loadSurveyData(CsvFile &surveyFile)
                         const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
                         for(const auto &responseFromStudent : setOfResponsesFromStudent)
                         {
-                            currentStudentAttributeVals << responses.indexOf(responseFromStudent.trimmed()) + 1;
+                            currentStudentAttributeVals << int(responses.indexOf(responseFromStudent.trimmed())) + 1;
                             dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
                         }
                     }
@@ -3347,11 +3347,11 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
     }
 
     // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
-    int emailField = rosterFile.fieldMeanings.indexOf("Email Address");
-    int firstNameField = rosterFile.fieldMeanings.indexOf("First Name");
-    int lastNameField = rosterFile.fieldMeanings.indexOf("Last Name");
-    int firstLastNameField = rosterFile.fieldMeanings.indexOf("Full Name (First Last)");
-    int lastFirstNameField = rosterFile.fieldMeanings.indexOf("Full Name (Last, First)");
+    int emailField = int(rosterFile.fieldMeanings.indexOf("Email Address"));
+    int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
+    int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
+    int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
+    int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
 
     // Process each row until there's an empty one. Load names and email addresses
     names.clear();
@@ -3535,13 +3535,9 @@ void gruepr::refreshStudentDisplay()
 QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
-#ifdef Q_OS_MACOS
-            std::random_device randDev;
-            std::mt19937 pRNG(randDev());
-#endif
-#ifdef Q_OS_WIN32
-            std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};
-#endif
+    std::random_device randDev;
+    std::mt19937 pRNG(randDev());
+    //std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};     //only for minGW, which does not play well with std::random_device
 
     // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
     // Each genome in this generation stores (by permutation) which students are in which team.
@@ -3599,7 +3595,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     {
         for(int ancestor = 0; ancestor < numAncestors; ancestor++)
         {
-            ancestors[genome][ancestor] = randAncestor(pRNG);
+            ancestors[genome][ancestor] = int(randAncestor(pRNG));
         }
     }
 
@@ -3616,10 +3612,10 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     int *penaltyPoints = nullptr;
     bool **availabilityChart = nullptr;
     bool unpenalizedGenomePresent = false;
-    auto sharedStudent = student;
+    auto *sharedStudent = student;
     auto sharedNumTeams = numTeams;
-    auto sharedTeamingOptions = teamingOptions;
-    auto sharedDataOptions = dataOptions;
+    auto *sharedTeamingOptions = teamingOptions;
+    auto *sharedDataOptions = dataOptions;
 #pragma omp parallel default(none) shared(scores, sharedStudent, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[sharedNumTeams];
@@ -3997,8 +3993,8 @@ float gruepr::getGenomeScore(const StudentRecord _student[], const int _teammate
     // Calculate schedule scores for each team:
     if(_teamingOptions->realScheduleWeight > 0)
     {
-        const int numDays = _dataOptions->dayNames.size();
-        const int numTimes = _dataOptions->timeNames.size();
+        const int numDays = int(_dataOptions->dayNames.size());
+        const int numTimes = int(_dataOptions->timeNames.size());
 
         // combine each student's schedule array into a team schedule array
         studentNum = 0;

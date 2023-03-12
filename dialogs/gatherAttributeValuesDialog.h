@@ -28,6 +28,10 @@ public:
     gatherAttributeValuesDialog(const int attribute, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions, const GatherType gathertype,
                                 QWidget *parent = nullptr);
     ~gatherAttributeValuesDialog();
+    gatherAttributeValuesDialog(const gatherAttributeValuesDialog&) = delete;
+    gatherAttributeValuesDialog operator= (const gatherAttributeValuesDialog&) = delete;
+    gatherAttributeValuesDialog(gatherAttributeValuesDialog&&) = delete;
+    gatherAttributeValuesDialog& operator= (gatherAttributeValuesDialog&&) = delete;
 
     QVector<int> requiredValues;
     QVector< QPair<int,int> > incompatibleValues;

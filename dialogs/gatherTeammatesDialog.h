@@ -20,6 +20,10 @@ public:
     gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn,
                           const DataOptions *const dataOptions, const QString &sectionname, const QStringList *const currTeamSets, QWidget *parent = nullptr);
     ~gatherTeammatesDialog();
+    gatherTeammatesDialog(const gatherTeammatesDialog&) = delete;
+    gatherTeammatesDialog operator= (const gatherTeammatesDialog&) = delete;
+    gatherTeammatesDialog(gatherTeammatesDialog&&) = delete;
+    gatherTeammatesDialog& operator= (gatherTeammatesDialog&&) = delete;
 
     StudentRecord *student = nullptr;
     bool teammatesSpecified = false;

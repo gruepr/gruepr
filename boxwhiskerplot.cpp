@@ -46,7 +46,7 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const o
     const int NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER = 5;
     const int IGNORE_LOWEST_X_PERCENT_DATA = 5;  //drop outliers at low end
 
-    int count = vals.count() - (vals.count()*IGNORE_LOWEST_X_PERCENT_DATA/100);
+    int count = int(vals.count()) - (int(vals.count())*IGNORE_LOWEST_X_PERCENT_DATA/100);
     if(count >= NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER)
     {
         nextVals[QBoxSet::LowerExtreme] = vals.at(orderedIndex[count]);

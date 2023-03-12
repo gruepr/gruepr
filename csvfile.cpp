@@ -158,7 +158,7 @@ bool CsvFile::readHeader()
 {
     stream->seek(0);
     headerValues = getLine();
-    numFields = headerValues.size();
+    numFields = int(headerValues.size());
     fieldMeanings.clear();
     fieldMeanings.reserve(numFields);
     for(int i = 0; i < numFields; i++)
@@ -208,7 +208,7 @@ bool CsvFile::writeHeader()
             }
         }
         *stream << Qt::endl;
-        numFields = headerValues.size();
+        numFields = int(headerValues.size());
         return true;
     }
     return false;
@@ -237,7 +237,7 @@ void CsvFile::writeDataRow()
             *stream << value;
         }
     }
-    for(int i = fieldValues.size(); i < numFields; i++)
+    for(int i = int(fieldValues.size()); i < numFields; i++)
     {
         *stream << delimiter;
     }
@@ -582,18 +582,18 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 
     // Quotes are left in until here; so when fields are trimmed, only whitespace outside of
     // quotes is removed.  The quotes are removed here.
-    for (int i=0; i<fields.size(); ++i)
+    for (auto &field : fields)
     {
-        if(fields[i].length() >= 1)
+        if(field.length() >= 1)
         {
-            if(fields[i].at(0) == '"')
+            if(field.at(0) == '"')
             {
-                fields[i] = fields[i].mid(1);
-                if(fields[i].length() >= 1)
+                field = field.mid(1);
+                if(field.length() >= 1)
                 {
-                    if(fields[i].right(1) == '"')
+                    if(field.right(1) == '"')
                     {
-                        fields[i] = fields[i].left(fields[i].length() - 1);
+                        field = field.left(field.length() - 1);
                     }
                 }
             }

@@ -13,6 +13,10 @@ class gatherURMResponsesDialog : public listTableDialog
 public:
     gatherURMResponsesDialog(const QStringList &URMResponses, const QStringList &currURMResponsesConsideredUR, QWidget *parent = nullptr);
     ~gatherURMResponsesDialog();
+    gatherURMResponsesDialog(const gatherURMResponsesDialog&) = delete;
+    gatherURMResponsesDialog operator= (const gatherURMResponsesDialog&) = delete;
+    gatherURMResponsesDialog(gatherURMResponsesDialog&&) = delete;
+    gatherURMResponsesDialog& operator= (gatherURMResponsesDialog&&) = delete;
 
     QStringList URMResponsesConsideredUR;
 

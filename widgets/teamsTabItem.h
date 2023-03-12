@@ -25,6 +25,10 @@ public:
     explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
                           const QVector<TeamRecord> &incomingTeams, StudentRecord incomingStudents[], QString incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
+    TeamsTabItem(const TeamsTabItem&) = delete;
+    TeamsTabItem operator= (const TeamsTabItem&) = delete;
+    TeamsTabItem(TeamsTabItem&&) = delete;
+    TeamsTabItem& operator= (TeamsTabItem&&) = delete;
 
     QString tabName;
 

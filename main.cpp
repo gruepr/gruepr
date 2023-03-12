@@ -19,7 +19,7 @@
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
 //
 //    This software incorporates code from the open source Qt libraries,
-//    using version 5.15. These can be freely downloaded from
+//    using version 6.4. These can be freely downloaded from
 //    < http://qt.io/download >.
 //
 //    Some icons were originally created by Icons8 < https://icons8.com >.
@@ -36,9 +36,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - moved codebase to Qt 6.4
+// - moved Windows compiler to msvc
 //
 // INPROG:
-// - modifying behind the scenes to make the app submittable to apple and windows app stores
 // - updating to all new UI design!
 //
 // TO DO:

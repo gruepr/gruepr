@@ -31,6 +31,10 @@ class GoogleHandler : public QObject
 public:
     GoogleHandler();
     ~GoogleHandler();
+    GoogleHandler(const GoogleHandler&) = delete;
+    GoogleHandler operator= (const GoogleHandler&) = delete;
+    GoogleHandler(GoogleHandler&&) = delete;
+    GoogleHandler& operator= (GoogleHandler&&) = delete;
 
     void authenticate();
     bool authenticated = false;

@@ -5,10 +5,9 @@
 // includes a subclassed QTreeWidgetItem and QHeaderView
 
 #include "dataOptions.h"
-#include "gruepr_globals.h"
 #include "studentRecord.h"
-#include "teamingOptions.h"
 #include "teamRecord.h"
+#include "teamingOptions.h"
 #include <QHeaderView>
 #include <QLabel>
 #include <QTreeWidget>

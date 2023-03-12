@@ -17,6 +17,10 @@ public:
     findMatchingNameDialog(int numStudents, const StudentRecord *const student, const QString &searchName, QWidget *parent = nullptr,
                            const QString &nameOfStudentWhoAsked = "", const bool addStudentOption = false, const QString &searchEmail = "");
     ~findMatchingNameDialog();
+    findMatchingNameDialog(const findMatchingNameDialog&) = delete;
+    findMatchingNameDialog operator= (const findMatchingNameDialog&) = delete;
+    findMatchingNameDialog(findMatchingNameDialog&&) = delete;
+    findMatchingNameDialog& operator= (findMatchingNameDialog&&) = delete;
 
     bool addStudent = false;
     bool useRosterName = false;

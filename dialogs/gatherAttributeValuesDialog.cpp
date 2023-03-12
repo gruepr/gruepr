@@ -23,7 +23,7 @@ gatherAttributeValuesDialog::gatherAttributeValuesDialog(const int attribute, co
         attributeValues.append({*valueIter, response});
         valueIter++;
     }
-    numPossibleValues = attributeValues.size();
+    numPossibleValues = int(attributeValues.size());
 
     //Set up window with a grid layout
     setWindowTitle(((gatherType == incompatible) ? tr("Incompatible") : tr("Required")) + tr(" responses for attribute ") + QString::number(attribute + 1));

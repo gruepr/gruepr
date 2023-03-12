@@ -414,7 +414,7 @@ bool gatherTeammatesDialog::loadCSVFile()
     int numFields = 0;
     if(csvFile.readHeader())
     {
-        numFields = csvFile.headerValues.size();
+        numFields = int(csvFile.headerValues.size());
     }
     if(numFields < 2)       // should be basename, name1, name2, name3, ..., nameN
     {
@@ -446,7 +446,7 @@ bool gatherTeammatesDialog::loadCSVFile()
     csvFile.readHeader();
     while(csvFile.readDataRow())
     {
-        int pos = basenames.indexOf(csvFile.fieldValues.at(0).trimmed()); // get index of this name
+        int pos = int(basenames.indexOf(csvFile.fieldValues.at(0).trimmed())); // get index of this name
 
         if(pos == -1)   // basename is not yet found in basenames list
         {
@@ -484,11 +484,11 @@ bool gatherTeammatesDialog::loadCSVFile()
     for(int basename = 0; basename < basenames.size(); basename++)
     {
         IDs.clear();
-        for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++)  // searchStudent is the name we're looking for
+        for(const auto &searchStudent : teammates.at(basename))  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (teammates.at(basename).at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                  (searchStudent.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -501,7 +501,7 @@ bool gatherTeammatesDialog::loadCSVFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, searchStudent, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << choiceWindow->currSurveyID;
@@ -834,7 +834,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     int numFields = 0;
     if(spreadsheetFile.readHeader())
     {
-        numFields = spreadsheetFile.headerValues.size();
+        numFields = int(spreadsheetFile.headerValues.size());
     }
     if(numFields < 4)       // should be section, team, name, email
     {
@@ -867,7 +867,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     spreadsheetFile.readHeader();
     while(spreadsheetFile.readDataRow())
     {
-        int pos = teamnames.indexOf(spreadsheetFile.fieldValues.at(1).trimmed()); // get index of this team
+        int pos = int(teamnames.indexOf(spreadsheetFile.fieldValues.at(1).trimmed())); // get index of this team
 
         if(pos == -1)   // team is not yet found in teams list
         {
@@ -888,11 +888,11 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     {
         IDs.clear();
         IDs.reserve(teammateList.size());
-        for(int searchStudent = 0; searchStudent < teammateList.size(); searchStudent++)  // searchStudent is the name we're looking for
+        for(const auto &searchStudent : teammateList)  // searchStudent is the name we're looking for
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (teammateList.at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                  (searchStudent.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -905,7 +905,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammateList.at(searchStudent), this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, searchStudent, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << choiceWindow->currSurveyID;

@@ -288,7 +288,7 @@ void TeamsTabItem::teamNamesChanged(int index)
     else if(index == 3)
     {
         // binary numbers
-        const int numDigitsInLargestTeam = QString::number(teams.size()-1, 2).size();       // the '-1' is to make the first team 0
+        const int numDigitsInLargestTeam = QString::number(int(teams.size())-1, 2).size();       // the '-1' is to make the first team 0
         for(int team = 0; team < teams.size(); team++)
         {
             teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
@@ -305,13 +305,9 @@ void TeamsTabItem::teamNamesChanged(int index)
         if(teamNameType == random_sequeled)
         {
             std::iota(random_order.begin(), random_order.end(), 0);
-#ifdef Q_OS_MACOS
             std::random_device randDev;
             std::mt19937 pRNG(randDev());
-#endif
-#ifdef Q_OS_WIN32
-            std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};     //minGW does not play well with std::random_device
-#endif
+            //std::mt19937 pRNG{static_cast<long unsigned int>(time(nullptr))};     //only for minGW, which does not play well with std::random_device
             std::shuffle(random_order.begin(), random_order.end(), pRNG);
         }
 
@@ -352,7 +348,7 @@ void TeamsTabItem::teamNamesChanged(int index)
         {
             teamNames << teams[teamDisplayNums.at(team)].name;
         }
-        auto *window = new customTeamnamesDialog(teams.size(), teamNames, this);
+        auto *window = new customTeamnamesDialog(int(teams.size()), teamNames, this);
 
         // If user clicks OK, use these team names, otherwise revert to previous option
         int reply = window->exec();
@@ -362,11 +358,11 @@ void TeamsTabItem::teamNamesChanged(int index)
             {
                 teams[teamDisplayNums.at(team)].name = (window->teamName[team].text().isEmpty()? QString::number(team+1) : window->teamName[team].text());
             }
-            prevIndex = teamnameLists.size();
+            prevIndex = int(teamnameLists.size());
             bool currentValue = teamnamesComboBox->blockSignals(true);
             teamnamesComboBox->setCurrentIndex(prevIndex);
-            teamnamesComboBox->setItemText(teamnameLists.size(), tr("Current names"));
-            teamnamesComboBox->removeItem(teamnameLists.size()+1);
+            teamnamesComboBox->setItemText(int(teamnameLists.size()), tr("Current names"));
+            teamnamesComboBox->removeItem(int(teamnameLists.size())+1);
             teamnamesComboBox->addItem(tr("Custom names..."));
             teamnamesComboBox->blockSignals(currentValue);
         }
@@ -384,8 +380,8 @@ void TeamsTabItem::teamNamesChanged(int index)
     // Put list of options back to just built-ins plus "Custom names..."
     if(teamnamesComboBox->currentIndex() < teamnameLists.size())
     {
-        teamnamesComboBox->removeItem(teamnameLists.size()+1);
-        teamnamesComboBox->removeItem(teamnameLists.size());
+        teamnamesComboBox->removeItem(int(teamnameLists.size())+1);
+        teamnamesComboBox->removeItem(int(teamnameLists.size()));
         teamnamesComboBox->addItem(tr("Custom names..."));
     }
 
@@ -413,11 +409,11 @@ void TeamsTabItem::randomizeTeamnames()
 
 void TeamsTabItem::makePrevented()
 {
-    for(int teamNum = 0; teamNum < teams.size(); teamNum++)
+    for(auto &team : teams)
     {
-        for(const auto index1 : qAsConst(teams[teamNum].studentIndexes))
+        for(const auto index1 : qAsConst(team.studentIndexes))
         {
-            for(const auto index2 : qAsConst(teams[teamNum].studentIndexes))
+            for(const auto index2 : qAsConst(team.studentIndexes))
             {
                 if(index1 != index2)
                 {
@@ -505,7 +501,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
                   teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
         // Re-score the teams and refresh all the info
-        gruepr::getTeamScores(students, numStudents, teams.data(), teams.size(), teamingOptions, dataOptions);
+        gruepr::getTeamScores(students, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students);
         teams[studentAteam].createTooltip();
 
@@ -554,7 +550,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::getTeamScores(students, numStudents, teams.data(), teams.size(), teamingOptions, dataOptions);
+        gruepr::getTeamScores(students, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students);
         teams[studentAteam].createTooltip();
         teams[studentBteam].refreshTeamInfo(students);
@@ -655,7 +651,7 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
-    gruepr::getTeamScores(students, numStudents, teams.data(), teams.size(), teamingOptions, dataOptions);
+    gruepr::getTeamScores(students, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     teams[oldTeam].refreshTeamInfo(students);
     teams[oldTeam].createTooltip();
     teams[newTeam].refreshTeamInfo(students);
@@ -1294,7 +1290,7 @@ void TeamsTabItem::createFileContents()
                     instructorsFileContents += (QString("?")).leftJustified(3);
                 }
             }
-            int nameSize = (thisStudent.firstname + " " + thisStudent.lastname).size();
+            int nameSize = int((thisStudent.firstname + " " + thisStudent.lastname).size());
             instructorsFileContents += "\t" + thisStudent.firstname + " " + thisStudent.lastname +
                     QString(std::max(2,30-nameSize), ' ') + thisStudent.email + "\n";
             studentsFileContents += thisStudent.firstname + " " + thisStudent.lastname +
@@ -1307,11 +1303,11 @@ void TeamsTabItem::createFileContents()
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(int day = 0; day < dataOptions->dayNames.size(); day++)
+            for(const auto &dayName : dataOptions->dayNames)
             {
                 // using first 3 characters in day name as abbreviation
-                instructorsFileContents += "  " + dataOptions->dayNames.at(day).left(3) + "  ";
-                studentsFileContents += "  " + dataOptions->dayNames.at(day).left(3) + "  ";
+                instructorsFileContents += "  " + dayName.left(3) + "  ";
+                studentsFileContents += "  " + dayName.left(3) + "  ";
             }
             instructorsFileContents += "\n";
             studentsFileContents += "\n";

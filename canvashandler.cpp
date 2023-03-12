@@ -116,14 +116,17 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
 
     //create the teams
     bool allGood = true;
+    QStringList groupName;
+    QList<int> groupID;
+    QStringList workflowState;
     for(int i = 0; i < teamNames.size(); i++) {
         //create one team
         url = "/api/v1/group_categories/" + QString::number(groupCategoryID[0]) + "/groups";
         query.clear();
         query.addQueryItem("name", teamNames.at(i));
         postData = query.toString(QUrl::FullyEncoded).toUtf8();
-        QStringList groupName;
-        QList<int> groupID;
+        groupName.clear();
+        groupID.clear();
         stringParams = {&groupName};
         intParams = {&groupID};
         postToCanvasGetSingleResult(url, postData, {"name"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
@@ -134,8 +137,8 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
             query.clear();
             query.addQueryItem("user_id", QString::number(student.LMSID));
             postData = query.toString(QUrl::FullyEncoded).toUtf8();
-            QStringList workflowState;
             QList<int> membershipID, newUserID;
+            workflowState.clear();
             stringParams = {&workflowState};
             intParams = {&membershipID, &newUserID};
             postToCanvasGetSingleResult(url, postData, {"workflow_state"}, stringParams, {"id", "user_id"}, intParams, {}, stringInSubobjectParams);
@@ -172,11 +175,13 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
 
     //add each question
     int questionNum = 0;
+    QStringList newQuestionText;
+    QList<int> questionID;
     for(const auto &question : survey->questions) {
         //create one question
         url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(surveyID) + "/questions";
-        QStringList newQuestionText;
-        QList<int> questionID;
+        newQuestionText.clear();
+        questionID.clear();
         stringParams = {&newQuestionText};
         intParams = {&questionID};
         query.clear();

@@ -11,6 +11,10 @@ class customTeamnamesDialog : public listTableDialog
 public:
     customTeamnamesDialog(int numTeams = 1, const QStringList &teamNames = {}, QWidget *parent = nullptr);
     ~customTeamnamesDialog();
+    customTeamnamesDialog(const customTeamnamesDialog&) = delete;
+    customTeamnamesDialog operator= (const customTeamnamesDialog&) = delete;
+    customTeamnamesDialog(customTeamnamesDialog&&) = delete;
+    customTeamnamesDialog& operator= (customTeamnamesDialog&&) = delete;
 
     QLineEdit *teamName;
 

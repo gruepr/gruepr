@@ -5,8 +5,8 @@ int levenshtein::distance(const QString &source, const QString &target, const Qt
 {
     // (mostly from https://qgis.org/api/qgsstringutils_8cpp_source.html)
 
-    int sourceLength = source.length();
-    int targetLength = target.length();
+    int sourceLength = int(source.length());
+    int targetLength = int(target.length());
 
     if (source.isEmpty()) {
         return targetLength;

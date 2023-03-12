@@ -26,7 +26,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 
     const QDateTime local(QDateTime::currentDateTime());
     const QDateTime UTC(local.date(), local.time(), Qt::UTC);
-    const float hoursToGMTFromHere = (local.secsTo(UTC)/3600.0F) - (local.isDaylightTime()? 1.0F : 0.0F);
+    const float hoursToGMTFromHere = (float(local.secsTo(UTC))/3600.0F) - (local.isDaylightTime()? 1.0F : 0.0F);
 
     QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");
     timezones = new QComboBox(this);

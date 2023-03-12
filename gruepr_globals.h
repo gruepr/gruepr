@@ -302,7 +302,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen 
                                  "<p>gruepr is an open source project. The source code is freely available at"
                                  "<br>the project homepage: <a href = http://gruepr.com>http://gruepr.com</a>"
                                  "<p>gruepr incorporates:"
-                                 "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 5.15</a>, released under the GNU Lesser General Public License version 3</li>"
+                                 "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 6.4</a>, released under the GNU Lesser General Public License version 3</li>"
                                  "<li>Icons are from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\","
                                  " and from <a href = https://scout.camd.northeastern.edu/>Scout</a> as original creations for the gruepr project</li>"
                                  "<li>The fonts"

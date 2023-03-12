@@ -22,7 +22,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     addSpacerRow(1);
 
     // In table, a checkbox and a label for each response values
-    const int numResponses = URMResponses.size();
+    const int numResponses = int(URMResponses.size());
     enableValue = new QCheckBox[numResponses];
     responses = new QPushButton[numResponses];
     theTable->setRowCount(numResponses);
@@ -48,7 +48,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
                                                                                     responses[response].setStyleSheet("Text-align:left;");}
                                                                                  });
     }
-    theTable->horizontalHeader()->resizeSection(0, int(widthCol0 * TABLECOLUMN0OVERWIDTH));
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
 
     adjustSize();
