@@ -4,6 +4,7 @@
 // a subclassed QPushButton that passes mouse enter events to its parent
 
 #include <QPushButton>
+#include <QEnterEvent>
 
 
 class PushButtonWithMouseEnter : public QPushButton
@@ -14,7 +15,7 @@ public:
     PushButtonWithMouseEnter(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
 
 protected:
-    void enterEvent(QEvent *event);
+    void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
 
 signals:

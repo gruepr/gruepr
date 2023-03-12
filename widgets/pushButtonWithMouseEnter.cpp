@@ -13,7 +13,7 @@ PushButtonWithMouseEnter::PushButtonWithMouseEnter(const QIcon &icon, const QStr
     this->setIconSize(ICONSIZE);
 }
 
-void PushButtonWithMouseEnter::enterEvent(QEvent *event)
+void PushButtonWithMouseEnter::enterEvent(QEnterEvent *event)
 {
     emit mouseEntered();
     event->ignore();
