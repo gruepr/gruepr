@@ -296,23 +296,23 @@ inline static const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issu
 bool internetIsGood();
 void webTest();
 
-inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
-                                 "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
+                                 "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                  "<br>Joshua Hertz<br><a href = mailto:info@gruepr.com>info@gruepr.com</a>"
                                  "<p>gruepr is an open source project. The source code is freely available at"
                                  "<br>the project homepage: <a href = http://gruepr.com>http://gruepr.com</a>"
                                  "<p>gruepr incorporates:"
-                                 "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 6.4</a>, released under the GNU Lesser General Public License version 3</li>"
-                                 "<li>Icons are from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\","
+                                 "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 6.5</a>, released under the GNU Lesser General Public License version 3</li>"
+                                 "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\","
                                  " and from <a href = https://scout.camd.northeastern.edu/>Scout</a> as original creations for the gruepr project</li>"
-                                 "<li>The fonts"
+                                 "<li>The following fonts: "
                                  "<span style=\"font-family:'Oxygen Mono';\">"
-                                 "Oxygen Mono, Copyright &copy; 2012, Vernon Adams (vern@newtypography.co.uk); "
+                                 "Oxygen Mono</span> &copy; 2012 Vernon Adams (vern@newtypography.co.uk); "
                                  "<span style=\"font-family:'DM Sans';\">"
-                                 "DM Sans Copyright &copy; 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and "
+                                 "DM Sans</span> &copy; 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and "
                                  "<span style=\"font-family:'Paytone One';\">"
-                                 "Paytone One Copyright &copy; 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont)"
-                                 " all released under SIL OPEN FONT LICENSE V1.1.</span></li>"
+                                 "Paytone One</span> &copy; 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont), "
+                                 "all released under SIL OPEN FONT LICENSE V1.1.</li></ul>"
                                  "<h3>Disclaimer</h3>"
                                  "<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of "
                                  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."

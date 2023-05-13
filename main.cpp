@@ -19,7 +19,7 @@
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
 //
 //    This software incorporates code from the open source Qt libraries,
-//    using version 6.4. These can be freely downloaded from
+//    using version 6.5. These can be freely downloaded from
 //    < http://qt.io/download >.
 //
 //    Some icons were originally created by Icons8 < https://icons8.com >.
@@ -29,14 +29,14 @@
 //    < https://scout.camd.northeastern.edu/ >.
 //
 //    Several embedded fonts are used:
-//    - Oxygen Mono, Copyright (C) 2012, Vernon Adams (vern@newtypography.co.uk);
-//    - DM Sans, Copyright (C) 2014-2017 Indian Type Foundry (info@indiantypefoundry.com);
-//    - Paytone One, Copyright (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
+//    - Oxygen Mono, (C) 2012, Vernon Adams (vern@newtypography.co.uk);
+//    - DM Sans, (C) 2014-2017 Indian Type Foundry (info@indiantypefoundry.com);
+//    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - moved codebase to Qt 6.4
+// - moved codebase to Qt 6.5
 // - moved Windows compiler to msvc
 //
 // INPROG:
