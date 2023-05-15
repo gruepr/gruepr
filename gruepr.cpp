@@ -2304,7 +2304,7 @@ void gruepr::on_letsDoItButton_clicked()
         chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-        QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": ") : "") + ui->sectionSelectionBox->currentText();
+        QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " + ui->sectionSelectionBox->currentText()) : "");
         progressWindow = new progressDialog(sectionName, chartView, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));

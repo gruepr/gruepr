@@ -11,7 +11,7 @@ QT       += core gui widgets concurrent network printsupport charts networkauth 
 
 TARGET = gruepr
 TEMPLATE = app
-macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
 
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
@@ -87,6 +87,7 @@ SOURCES += \
         dialogs/startDialog.cpp \
         dialogs/whichFilesDialog.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
+        widgets/switchButton.cpp \
         widgets/teamsTabItem.cpp \
         widgets/attributeTabItem.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -126,6 +127,7 @@ HEADERS += \
         dialogs/startDialog.h \
         dialogs/whichFilesDialog.h \
         widgets/comboBoxThatPassesScrollwheel.h \
+        widgets/switchButton.h \
         widgets/teamsTabItem.h \
         widgets/attributeTabItem.h \
         widgets/comboBoxWithElidedContents.h \

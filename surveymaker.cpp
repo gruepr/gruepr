@@ -54,18 +54,18 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     //Connect the simple UI interactions to a simple refresh of survey data
     connect(ui->surveyTitleLineEdit, &QLineEdit::textChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->firstNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
-    connect(ui->lastNameCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
-    connect(ui->emailCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
-    connect(ui->genderCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->firstNameSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->lastNameSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->emailSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->genderSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->genderResponsesComboBox, &QComboBox::currentTextChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->URMCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
-    connect(ui->timezoneCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
-    connect(ui->scheduleCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->URMSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->timezoneSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->scheduleSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->busyFreeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SurveyMaker::buildSurvey);
     connect(ui->timeStartEdit, &QTimeEdit::timeChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->timeEndEdit, &QTimeEdit::timeChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->sectionCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
+    connect(ui->sectionSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->preferredTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->preferredNonTeammatesCheckBox, &QPushButton::toggled, this, &SurveyMaker::buildSurvey);
     connect(ui->numAllowedSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SurveyMaker::buildSurvey);
@@ -147,6 +147,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     //create a survey
     survey = new Survey;
     buildSurvey();
+    ui->attributeCountSpinBox->setValue(0);
 }
 
 SurveyMaker::~SurveyMaker()
@@ -178,28 +179,28 @@ void SurveyMaker::buildSurvey()
     survey->questions.clear();
 
     // First name
-    firstname = ui->firstNameCheckBox->isChecked();
+    firstname = ui->firstNameSwitch->value();
     if(firstname)
     {
         survey->questions << Question(FIRSTNAMEQUESTION, Question::QuestionType::shorttext);
     }
 
     // Last name
-    lastname = ui->lastNameCheckBox->isChecked();
+    lastname = ui->lastNameSwitch->value();
     if(lastname)
     {
         survey->questions << Question(LASTNAMEQUESTION, Question::QuestionType::shorttext);
     }
 
     // Email
-    email = ui->emailCheckBox->isChecked();
+    email = ui->emailSwitch->value();
     if(email)
     {
         survey->questions << Question(EMAILQUESTION, Question::QuestionType::shorttext);
     }
 
     // Gender
-    gender = ui->genderCheckBox->isChecked();
+    gender = ui->genderSwitch->value();
     ui->genderResponsesComboBox->setEnabled(gender);
     ui->genderResponsesLabel->setEnabled(gender);
     genderType = static_cast<GenderType>(ui->genderResponsesComboBox->currentIndex());
@@ -232,7 +233,7 @@ void SurveyMaker::buildSurvey()
     }
 
     // URM
-    URM = ui->URMCheckBox->isChecked();
+    URM = ui->URMSwitch->value();
     if(URM)
     {
         survey->questions << Question(URMQUESTION, Question::QuestionType::shorttext);
@@ -240,8 +241,8 @@ void SurveyMaker::buildSurvey()
 
     // Attributes (including timezone if no schedule question)
     numAttributes = ui->attributeCountSpinBox->value();
-    timezone = ui->timezoneCheckBox->isChecked();
-    schedule = ui->scheduleCheckBox->isChecked();
+    timezone = ui->timezoneSwitch->value();
+    schedule = ui->scheduleSwitch->value();
     if(timezone && !schedule)
     {
         numAttributes++;
@@ -283,8 +284,10 @@ void SurveyMaker::buildSurvey()
         dayCheckBoxes[day]->setEnabled(schedule);
         dayLineEdits[day]->setEnabled(schedule && dayCheckBoxes[day]->isChecked());
     }
+    ui->timeStartLabel->setEnabled(schedule);
     ui->timeStartEdit->setEnabled(schedule);
     ui->timeStartEdit->setMaximumTime(ui->timeEndEdit->time());
+    ui->timeEndLabel->setEnabled(schedule);
     ui->timeEndEdit->setEnabled(schedule);
     ui->timeEndEdit->setMinimumTime(ui->timeStartEdit->time());
     startTime = ui->timeStartEdit->time().hour();
@@ -341,7 +344,7 @@ void SurveyMaker::buildSurvey()
     }
 
     // Section
-    section = ui->sectionCheckBox->isChecked();
+    section = ui->sectionSwitch->value();
     ui->sectionNamesTextEdit->setEnabled(section);
     if(section)
     {
@@ -1277,19 +1280,19 @@ void SurveyMaker::openSurvey()
             }
             if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool())
             {
-                ui->firstNameCheckBox->setChecked(loadObject["FirstName"].toBool());
+                ui->firstNameSwitch->setValue(loadObject["FirstName"].toBool());
             }
             if(loadObject.contains("LastName") && loadObject["LastName"].isBool())
             {
-                ui->lastNameCheckBox->setChecked(loadObject["LastName"].toBool());
+                ui->lastNameSwitch->setValue(loadObject["LastName"].toBool());
             }
             if(loadObject.contains("Email") && loadObject["Email"].isBool())
             {
-                ui->emailCheckBox->setChecked(loadObject["Email"].toBool());
+                ui->emailSwitch->setValue(loadObject["Email"].toBool());
             }
             if(loadObject.contains("Gender") && loadObject["Gender"].isBool())
             {
-                ui->genderCheckBox->setChecked(loadObject["Gender"].toBool());
+                ui->genderSwitch->setValue(loadObject["Gender"].toBool());
             }
             if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble())
             {
@@ -1297,7 +1300,7 @@ void SurveyMaker::openSurvey()
             }
             if(loadObject.contains("URM") && loadObject["URM"].isBool())
             {
-                ui->URMCheckBox->setChecked(loadObject["URM"].toBool());
+                ui->URMSwitch->setValue(loadObject["URM"].toBool());
             }
             if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble())
             {
@@ -1342,7 +1345,7 @@ void SurveyMaker::openSurvey()
 
             if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
             {
-                ui->scheduleCheckBox->setChecked(loadObject["Schedule"].toBool());
+                ui->scheduleSwitch->setValue(loadObject["Schedule"].toBool());
             }
             if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
             {
@@ -1350,7 +1353,7 @@ void SurveyMaker::openSurvey()
             }
             if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool())
             {
-                ui->timezoneCheckBox->setChecked(loadObject["Timezone"].toBool());
+                ui->timezoneSwitch->setValue(loadObject["Timezone"].toBool());
             }
             if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString())
             {
@@ -1392,7 +1395,7 @@ void SurveyMaker::openSurvey()
 
             if(loadObject.contains("Section") && loadObject["Section"].isBool())
             {
-                ui->sectionCheckBox->setChecked(loadObject["Section"].toBool());
+                ui->sectionSwitch->setValue(loadObject["Section"].toBool());
             }
             if(loadObject.contains("SectionNames") && loadObject["SectionNames"].isString())
             {
@@ -1508,8 +1511,8 @@ void SurveyMaker::helpWindow()
     helpWindow.setWindowTitle("Help");
     QGridLayout theGrid(&helpWindow);
     QTextBrowser helpContents(&helpWindow);
-    helpContents.setHtml(tr("<h1 style=\"font-family:'Oxygen Mono';\">gruepr: SurveyMaker " GRUEPR_VERSION_NUMBER "</h1>"
-                            "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
+    helpContents.setHtml(tr("<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
+                            "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                             "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
                             "<p>Project homepage: <a href = ") + GRUEPRHOMEPAGE + ">" + GRUEPRHOMEPAGE + "</a>");
     helpContents.append(helpFile.readAll());

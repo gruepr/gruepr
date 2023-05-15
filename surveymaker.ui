@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>893</width>
-    <height>798</height>
+    <width>912</width>
+    <height>779</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,97 +20,416 @@
      <verstretch>1</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,75,0,0,0,0,0,0,25,0,0,0,0,0,0,0" columnstretch="2,0,1,0">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="2,0,0,0">
     <property name="verticalSpacing">
      <number>4</number>
     </property>
-    <item row="9" column="0">
+    <item row="5" column="0" alignment="Qt::AlignVCenter">
+     <widget class="QLineEdit" name="surveyTitleLineEdit">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::NoContextMenu</enum>
+      </property>
+      <property name="placeholderText">
+       <string>Enter a Survey Title</string>
+      </property>
+     </widget>
+    </item>
+    <item row="33" column="0">
+     <widget class="Line" name="line_13">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="0">
+     <layout class="QHBoxLayout" name="genderLayout" stretch="0,0,0,0,0,2">
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <item>
+       <widget class="SwitchButton" name="genderSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="genderLabel">
+        <property name="text">
+         <string>Gender</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_8">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="genderResponsesLabel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Ask as:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="genderResponsesComboBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+        <item>
+         <property name="text">
+          <string>Biological sex</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Adult identity</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Child identity</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Pronouns</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_7">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item row="28" column="0">
+     <layout class="QHBoxLayout" name="sectionLayout" stretch="0,0,0">
+      <item>
+       <widget class="SwitchButton" name="sectionSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="sectionLabel">
+        <property name="text">
+         <string>Section</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextEdit" name="sectionNamesTextEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>2</horstretch>
+          <verstretch>2</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="placeholderText">
+         <string>Enter section names on separate lines.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="11" column="0">
      <widget class="Line" name="line_6">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="3" column="0" colspan="4">
-     <widget class="Line" name="line_12">
+    <item row="29" column="0">
+     <widget class="Line" name="line_10">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="10" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="emailCheckBox">
+    <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+     <widget class="QLabel" name="OptionsLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="toolTip">
-       <string>This question is required.</string>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <underline>true</underline>
+       </font>
       </property>
       <property name="text">
-       <string>Email Address</string>
+       <string>Survey options</string>
       </property>
-      <property name="checked">
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2" rowspan="32" colspan="2">
+     <widget class="QTextEdit" name="previewText">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+        <horstretch>2</horstretch>
+        <verstretch>2</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>450</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>DM Sans</family>
+        <pointsize>12</pointsize>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::NoContextMenu</enum>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 12pt &quot;DM Sans&quot;;</string>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="undoRedoEnabled">
+       <bool>false</bool>
+      </property>
+      <property name="readOnly">
        <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="18" column="0">
-     <widget class="Line" name="line_14">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
+    <item row="12" column="0" rowspan="2">
+     <layout class="QHBoxLayout" name="emailLayout">
+      <item>
+       <widget class="SwitchButton" name="emailSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="emailLabel">
+        <property name="text">
+         <string>Email address</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_11">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
-    <item row="20" column="0">
-     <widget class="Line" name="line_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
+    <item row="6" column="0" rowspan="2">
+     <layout class="QHBoxLayout" name="firstNameLayout">
+      <item>
+       <widget class="SwitchButton" name="firstNameSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="firstNameLabel">
+        <property name="text">
+         <string>First / preferred name</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_9">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
-    <item row="8" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="lastNameCheckBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>This question is required.</string>
-      </property>
-      <property name="text">
-       <string>Last Name</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="URMCheckBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Race / ethnicity / cultural identity</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="0">
+    <item row="8" column="0">
      <widget class="Line" name="line_7">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="26" column="0">
+    <item row="9" column="0" rowspan="2">
+     <layout class="QHBoxLayout" name="lastNameLayout">
+      <item>
+       <widget class="SwitchButton" name="lastNameSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="lastNameLabel">
+        <property name="text">
+         <string>Last name</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_10">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item row="25" column="0">
+     <widget class="Line" name="line_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="20" column="0">
+     <widget class="Line" name="line_4">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="34" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+     <widget class="QCheckBox" name="additionalQuestionsCheckBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Add a placeholder for additional questions</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2" colspan="2" alignment="Qt::AlignHCenter">
+     <widget class="QLabel" name="PreviewLabel">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <underline>true</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Survey preview</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="0">
+     <widget class="Line" name="line_5">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="27" column="0">
+     <widget class="Line" name="line_9">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="18" column="0">
+     <layout class="QHBoxLayout" name="URMLayout">
+      <item>
+       <widget class="SwitchButton" name="URMSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="URMLabel">
+        <property name="text">
+         <string>Race / ethnicity / cultural identity</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_12">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item row="17" column="0">
+     <widget class="Line" name="line_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="31" column="0">
      <layout class="QGridLayout" name="teammatesGrid">
       <property name="verticalSpacing">
        <number>2</number>
@@ -181,124 +500,12 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>40</width>
-          <height>20</height>
+          <height>0</height>
          </size>
         </property>
        </spacer>
       </item>
      </layout>
-    </item>
-    <item row="4" column="2" colspan="2" alignment="Qt::AlignHCenter">
-     <widget class="QLabel" name="PreviewLabel">
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <underline>true</underline>
-       </font>
-      </property>
-      <property name="text">
-       <string>Survey preview</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-     <widget class="QLabel" name="OptionsLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <underline>true</underline>
-       </font>
-      </property>
-      <property name="text">
-       <string>Survey options</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0" alignment="Qt::AlignVCenter">
-     <widget class="QLineEdit" name="surveyTitleLineEdit">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::NoContextMenu</enum>
-      </property>
-      <property name="placeholderText">
-       <string>Enter a Survey Title</string>
-      </property>
-     </widget>
-    </item>
-    <item row="19" column="0">
-     <widget class="QCheckBox" name="timezoneCheckBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;If students will be in multiple timezones, this option adds a timezone question.&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Timezone</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2" rowspan="27" colspan="2">
-     <widget class="QTextEdit" name="previewText">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-        <horstretch>2</horstretch>
-        <verstretch>2</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>450</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>Oxygen Mono</family>
-        <pointsize>10</pointsize>
-        <italic>false</italic>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::NoContextMenu</enum>
-      </property>
-      <property name="acceptDrops">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font: 10pt &quot;Oxygen Mono&quot;;</string>
-      </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhNone</set>
-      </property>
-      <property name="undoRedoEnabled">
-       <bool>false</bool>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
     </item>
     <item row="1" column="0" colspan="4">
      <layout class="QHBoxLayout" name="topBarLayout">
@@ -409,48 +616,14 @@
       </item>
      </layout>
     </item>
-    <item row="4" column="1" rowspan="28" colspan="2">
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="16" column="0">
-     <widget class="Line" name="line_4">
+    <item row="22" column="0">
+     <widget class="Line" name="line_14">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="24" column="0">
-     <widget class="Line" name="line_10">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="29" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="additionalQuestionsCheckBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>Add a placeholder for additional questions</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="0">
-     <widget class="Line" name="line_5">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="17" column="0">
+    <item row="21" column="0">
      <layout class="QHBoxLayout" name="attributesLayout" stretch="0,0,2">
       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
        <widget class="QSpinBox" name="attributeCountSpinBox">
@@ -467,7 +640,7 @@
          <number>15</number>
         </property>
         <property name="value">
-         <number>3</number>
+         <number>1</number>
         </property>
        </widget>
       </item>
@@ -486,6 +659,9 @@
       </item>
       <item>
        <widget class="QTabWidget" name="attributesTabWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Ignored" vsizetype="MinimumExpanding">
           <horstretch>2</horstretch>
@@ -516,90 +692,15 @@
       </item>
      </layout>
     </item>
-    <item row="23" column="0">
-     <layout class="QHBoxLayout" name="sectionLayout" stretch="0,0">
-      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="sectionCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Section</string>
-        </property>
-       </widget>
+    <item row="26" column="0">
+     <layout class="QHBoxLayout" name="scheduleLayout" stretch="0,0,2">
+      <item>
+       <widget class="SwitchButton" name="scheduleSwitch" native="true"/>
       </item>
       <item>
-       <widget class="QTextEdit" name="sectionNamesTextEdit">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>2</horstretch>
-          <verstretch>2</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="placeholderText">
-         <string>Enter section names on separate lines.</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="28" column="0">
-     <widget class="Line" name="line_13">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="0">
-     <widget class="Line" name="line_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-     <widget class="QCheckBox" name="firstNameCheckBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>This question is required.</string>
-      </property>
-      <property name="text">
-       <string>First / Preferred Name</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="21" column="0">
-     <layout class="QHBoxLayout" name="scheduleLayout" stretch="0,2">
-      <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="scheduleCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+       <widget class="QLabel" name="scheduleLabel">
         <property name="text">
          <string>Schedule</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -609,7 +710,7 @@
          <number>3</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="timezoneLayout" stretch="2,1">
+         <layout class="QHBoxLayout" name="timezoneinSchedLayout" stretch="2,1">
           <property name="spacing">
            <number>2</number>
           </property>
@@ -930,101 +1031,34 @@
       </item>
      </layout>
     </item>
-    <item row="22" column="0">
-     <widget class="Line" name="line_9">
+    <item row="3" column="0" colspan="4">
+     <widget class="Line" name="line_12">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="12" column="0">
-     <layout class="QHBoxLayout" name="genderLayout" stretch="0,0,0,0,2">
-      <property name="spacing">
-       <number>2</number>
+    <item row="4" column="1" rowspan="33" colspan="2">
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
+     </widget>
+    </item>
+    <item row="23" column="0">
+     <layout class="QHBoxLayout" name="timezoneLayout">
       <item>
-       <widget class="QCheckBox" name="genderCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+       <widget class="SwitchButton" name="timezoneSwitch" native="true"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="timezoneLabel">
         <property name="text">
-         <string>Gender</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>Timezone</string>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer_8">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>0</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QLabel" name="genderResponsesLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Ask as:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="genderResponsesComboBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="currentIndex">
-         <number>1</number>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToContents</enum>
-        </property>
-        <item>
-         <property name="text">
-          <string>Biological sex</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Adult identity</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Child identity</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Pronouns</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_7">
+       <spacer name="horizontalSpacer_13">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -1045,8 +1079,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>893</width>
-     <height>21</height>
+     <width>912</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1220,6 +1254,14 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>SwitchButton</class>
+   <extends>QWidget</extends>
+   <header>widgets/switchButton.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="gruepr.qrc"/>
  </resources>

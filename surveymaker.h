@@ -7,6 +7,7 @@
 #include "gruepr_globals.h"
 #include "survey.h"
 #include "widgets/comboBoxWithElidedContents.h"
+#include "widgets/switchButton.h"
 #include <QDate>
 #include <QFileInfo>
 #include <QLabel>
@@ -61,13 +62,13 @@ private:
     bool surveyCreated = false;
     QRegularExpressionValidator *noInvalidPunctuation;
     void badExpression(QWidget *textWidget, QString &currText);
-    bool firstname = true;
-    bool lastname = true;
-    bool email = true;
-    bool gender = true;
+    bool firstname = false;
+    bool lastname = false;
+    bool email = false;
+    bool gender = false;
     GenderType genderType = GenderType::adult;
     bool URM = false;
-    int numAttributes = 3;
+    int numAttributes = 1;
     QString attributeTexts[MAX_ATTRIBUTES] = {""};
     int attributeResponses[MAX_ATTRIBUTES] = {0};
     bool attributeAllowMultipleResponses[MAX_ATTRIBUTES] = {false};
