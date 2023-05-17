@@ -20,6 +20,7 @@ public:
 
 public:
     explicit SwitchButton(QWidget* parent = nullptr, bool startingValue = false, Style style = Style::YESNO);
+    explicit SwitchButton(bool startingValue = false) : SwitchButton(nullptr, startingValue) {};
     ~SwitchButton() override;
 
     //-- QWidget methods
@@ -28,7 +29,6 @@ public:
     void setEnabled(bool);
 
     //-- Setters
-    void setDuration(int);
     void setValue(bool);
 
     //-- Getters

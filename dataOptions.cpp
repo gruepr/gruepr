@@ -22,21 +22,6 @@ DataOptions::DataOptions()
     }
 }
 
-void DataOptions::reset()
-{
-    latestStudentID = 0;
-    numStudentsInSystem = 0;
-    numAttributes = 0;
-    attributeQuestionText.clear();
-    for(int i = 0; i < MAX_ATTRIBUTES; i++)
-    {
-        attributeQuestionResponses[i].clear();
-        attributeQuestionResponseCounts[i].clear();
-        attributeVals[i].clear();
-    }
-    dayNames.clear();
-    timeNames.clear();
-}
 
 bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &hours, float &minutes, float &offsetFromGMT)
 {

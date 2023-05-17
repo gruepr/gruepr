@@ -54,8 +54,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     //Connect the simple UI interactions to a simple refresh of survey data
     connect(ui->surveyTitleLineEdit, &QLineEdit::textChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->firstNameSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->lastNameSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->firstNameSwitchItem, &SwitchItem::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->lastNameSwitchItem, &SwitchItem::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->emailSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->genderSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->genderResponsesComboBox, &QComboBox::currentTextChanged, this, &SurveyMaker::buildSurvey);
@@ -148,6 +148,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
     survey = new Survey;
     buildSurvey();
     ui->attributeCountSpinBox->setValue(0);
+    ui->firstNameSwitchItem->setLabel("First name");
+    ui->lastNameSwitchItem->setLabel("Last name");
 }
 
 SurveyMaker::~SurveyMaker()
@@ -179,14 +181,14 @@ void SurveyMaker::buildSurvey()
     survey->questions.clear();
 
     // First name
-    firstname = ui->firstNameSwitch->value();
+    firstname = ui->firstNameSwitchItem->value();
     if(firstname)
     {
         survey->questions << Question(FIRSTNAMEQUESTION, Question::QuestionType::shorttext);
     }
 
     // Last name
-    lastname = ui->lastNameSwitch->value();
+    lastname = ui->lastNameSwitchItem->value();
     if(lastname)
     {
         survey->questions << Question(LASTNAMEQUESTION, Question::QuestionType::shorttext);
@@ -1280,11 +1282,11 @@ void SurveyMaker::openSurvey()
             }
             if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool())
             {
-                ui->firstNameSwitch->setValue(loadObject["FirstName"].toBool());
+                ui->firstNameSwitchItem->setValue(loadObject["FirstName"].toBool());
             }
             if(loadObject.contains("LastName") && loadObject["LastName"].isBool())
             {
-                ui->lastNameSwitch->setValue(loadObject["LastName"].toBool());
+                ui->lastNameSwitchItem->setValue(loadObject["LastName"].toBool());
             }
             if(loadObject.contains("Email") && loadObject["Email"].isBool())
             {

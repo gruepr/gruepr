@@ -56,7 +56,7 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
         setFixedSize(QSize(45, 24));
     }
 
-    _labeloff->setStyleSheet("color: #" + QString(GRUEPRDARKBLUEHEX) + ";");
+    _labeloff->setStyleSheet("color: #" + QString(GRUEPRMEDBLUEHEX) + ";");
     _labelon->setStyleSheet("color: #" + QString(GRUEPRVERYLIGHTBLUEHEX) + ";");
 
 
@@ -98,7 +98,7 @@ void SwitchButton::paintEvent(QPaintEvent*)
     if (_enabled) {
         painter->setBrush(_bordercolor);
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
-        painter->setBrush(QColor(Qt::white));
+        painter->setBrush(GRUEPRVERYLIGHTBLUE);
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
     }
     else {
@@ -165,11 +165,6 @@ void SwitchButton::setEnabled(bool flag)
     _circle->setEnabled(flag);
     _background->setEnabled(flag);
     QWidget::setEnabled(flag);
-}
-
-void SwitchButton::setDuration(int time)
-{
-    _duration = time;
 }
 
 void SwitchButton::setValue(bool flag)
@@ -256,7 +251,7 @@ SwitchButton::SwitchCircle::SwitchCircle(QWidget* parent)
     setFixedSize(20, 20);
 
     _bluebrush = GRUEPRMEDBLUE;
-    _whitebrush = QColor(Qt::white);
+    _whitebrush = GRUEPRVERYLIGHTBLUE;
     _graybrush = QColor(230, 230, 230);
 
     _enabled = true;

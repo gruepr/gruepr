@@ -13,7 +13,6 @@ class DataOptions
 {
 public:
     DataOptions();
-    void reset();
 
     static bool parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &hours, float &minutes, float &offsetFromGMT);
     static bool parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &offsetFromGMT);

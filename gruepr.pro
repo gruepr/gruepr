@@ -88,6 +88,7 @@ SOURCES += \
         dialogs/whichFilesDialog.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/switchButton.cpp \
+        widgets/switchItem.cpp \
         widgets/teamsTabItem.cpp \
         widgets/attributeTabItem.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -128,6 +129,7 @@ HEADERS += \
         dialogs/whichFilesDialog.h \
         widgets/comboBoxThatPassesScrollwheel.h \
         widgets/switchButton.h \
+        widgets/switchItem.h \
         widgets/teamsTabItem.h \
         widgets/attributeTabItem.h \
         widgets/comboBoxWithElidedContents.h \
@@ -138,7 +140,8 @@ HEADERS += \
 
 FORMS += \
       gruepr.ui \
-      surveymaker.ui
+      surveymaker.ui \
+      surveymaker_wizard.ui
 
 RESOURCES += \
           gruepr.qrc
