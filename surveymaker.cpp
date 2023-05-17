@@ -409,7 +409,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
             preview += QUESTIONOPTIONSHEAD;
             if(question.options.size() <= 10)
             {
-                preview += question.options.join(" </i><b>|</b><i> ").replace('-', QString::fromWCharArray(L"— "));       // replace cause font makes single dash look weird
+                preview += question.options.join(" </i><b>|</b><i> ");
             }
             else
             {
@@ -420,7 +420,7 @@ QString SurveyMaker::createPreview(const Survey *const survey)
 
                 }
                 first6 << "...";
-                preview += first6.join(" </i><b>|</b><i> ").replace('-', QString::fromWCharArray(L"— "));       // replace cause font makes single dash look weird
+                preview += first6.join(" </i><b>|</b><i> ");
             }
             preview += QUESTIONOPTIONSTAIL;
             if(question.type == Question::QuestionType::checkbox)
@@ -1045,7 +1045,7 @@ void SurveyMaker::attributeTextChanged()
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
-        attribTab->attributeText->setPlainText(currText.replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
+        attribTab->attributeText->setPlainText(currText.replace(tr("In which section are you enrolled"), "_", Qt::CaseInsensitive));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, attribute questions may not containt the exact wording:\n"
                                                           "\"In which section are you enrolled\"\nwithin the question text.\n"
@@ -1139,7 +1139,7 @@ void SurveyMaker::on_baseTimezoneLineEdit_textChanged()
     }
     else if(currText.contains(tr("In which section are you enrolled"), Qt::CaseInsensitive))
     {
-        ui->baseTimezoneLineEdit->setText(currText.replace(tr("In which section are you enrolled"), tr("_"), Qt::CaseInsensitive));
+        ui->baseTimezoneLineEdit->setText(currText.replace(tr("In which section are you enrolled"), "_", Qt::CaseInsensitive));
         QApplication::beep();
         QMessageBox::warning(this, tr("Format error"), tr("Sorry, the timezone name may not containt the exact wording:\n"
                                                           "\"In which section are you enrolled\".\n"

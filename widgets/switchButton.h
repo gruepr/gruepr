@@ -19,7 +19,7 @@ public:
     };
 
 public:
-    explicit SwitchButton(QWidget* parent = nullptr, Style style = Style::YESNO);
+    explicit SwitchButton(QWidget* parent = nullptr, bool startingValue = false, Style style = Style::YESNO);
     ~SwitchButton() override;
 
     //-- QWidget methods
@@ -46,26 +46,19 @@ private:
     bool _value;
     int  _duration;
 
-    QLinearGradient _lg;
-    QLinearGradient _lg2;
-    QLinearGradient _lg_disabled;
-
-    QColor _pencolor;
-    QColor _offcolor;
-    QColor _oncolor;
+    QColor _bordercolor;
     int    _tol;
-    int    _borderradius;
 
     // This order for definition is important (these widgets overlap)
-    QLabel*           _labeloff;
     SwitchBackground* _background;
+    QLabel*           _labeloff;
     QLabel*           _labelon;
     SwitchCircle*     _circle;
 
     bool _enabled;
 
     QPropertyAnimation* __btn_move;
-    QPropertyAnimation* __back_move;
+    QPropertyAnimation* __back_resize;
 };
 
 class SwitchButton::SwitchBackground : public QWidget
@@ -74,7 +67,7 @@ class SwitchButton::SwitchBackground : public QWidget
     Q_DISABLE_COPY(SwitchBackground)
 
 public:
-    explicit SwitchBackground(QWidget* parent = nullptr, QColor color = QColor(154, 205, 50), bool rect = false);
+    explicit SwitchBackground(QWidget* parent = nullptr);
     ~SwitchBackground() override;
 
     //-- QWidget methods
@@ -82,13 +75,8 @@ public:
     void setEnabled(bool);
 
 private:
-    bool            _rect;
-    int             _borderradius;
-    QColor          _color;
-    QColor          _pencolor;
-    QLinearGradient _lg;
-    QLinearGradient _lg_disabled;
-
+    QColor          _bluebrush;
+    QColor          _graybrush;
     bool _enabled;
 };
 
@@ -99,7 +87,7 @@ class SwitchButton::SwitchCircle : public QWidget
     Q_DISABLE_COPY(SwitchCircle)
 
 public:
-    explicit SwitchCircle(QWidget* parent = nullptr, QColor color = QColor(255, 255, 255), bool rect = false);
+    explicit SwitchCircle(QWidget* parent = nullptr);
     ~SwitchCircle() override;
 
     //-- QWidget methods
@@ -107,14 +95,9 @@ public:
     void setEnabled(bool);
 
 private:
-    bool            _rect;
-    int             _borderradius;
-    QColor          _color;
-    QColor          _pencolor;
-    QRadialGradient _rg;
-    QLinearGradient _lg;
-    QLinearGradient _lg_disabled;
-
+    QColor          _bluebrush;
+    QColor          _whitebrush;
+    QColor          _graybrush;
     bool _enabled;
 };
 

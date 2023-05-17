@@ -35,6 +35,9 @@ inline static const int PRINTOUT_FONTSIZE = 9;
 
 // define colors used throughout gruepr
 inline static const QColor GRUEPRDARKBLUE = QColor(0x05, 0x34, 0x37);
+inline static const QColor GRUEPRMEDBLUE = QColor(0x07, 0x87, 0x8e);
+inline static const QColor GRUEPRLIGHTBLUE = QColor(0x41, 0xd2, 0xca);
+inline static const QColor GRUEPRVERYLIGHTBLUE = QColor(0xe7, 0xf6, 0xf7);
 inline static const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
 inline static const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
 inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
@@ -65,7 +68,7 @@ inline static const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // column 
 enum class GenderType {biol, adult, child, pronoun};
 //order of enum below MUST match order of options within the subsequent strings
 enum class Gender {woman, man, nonbinary, unknown};
-inline static const char BIOLGENDERS[] {"female/male/nonbinary/unknown"};
+inline static const char BIOLGENDERS[] {"female/male/intersex or nonbinary/unknown"};
 inline static const char BIOLGENDERS7CHAR[] {"Female / Male  /Nonbin./Unknown"};  // 7 character names are used for printing
 inline static const char BIOLGENDERSINITIALS[] {"F/M/X/?"};                       // initials are used in table of teams
 inline static const char ADULTGENDERS[] {"woman/man/nonbinary/unknown"};
