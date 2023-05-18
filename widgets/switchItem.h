@@ -2,9 +2,9 @@
 #define SWITCHITEM_H
 
 #include "switchButton.h"
-#include <QHBoxLayout>
-#include <QLabel>
 #include <QFrame>
+#include <QGridLayout>
+#include <QLabel>
 
 class SwitchItem : public QFrame
 {
@@ -18,8 +18,11 @@ public:
     void setValue(bool value);
     bool value();
 
-    //-- QWidget methods
-    //void mousePressEvent(QMouseEvent *) override; // pass to switchButton?
+    void addWidget(QWidget *widget);
+
+    void mousePressEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent* event) override;
+    void setEnabled(bool);
 
 signals:
     void valueChanged(bool newvalue);
@@ -30,7 +33,10 @@ private slots:
 private:
     QLabel *label;
     SwitchButton *switchButton;
-    QHBoxLayout *layout;
+    QGridLayout *layout;
+
+    bool _enabled;
+    int _extraWidgetsIndex;
 };
 
 #endif // SWITCHITEM_H

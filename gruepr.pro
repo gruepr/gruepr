@@ -140,8 +140,7 @@ HEADERS += \
 
 FORMS += \
       gruepr.ui \
-      surveymaker.ui \
-      surveymaker_wizard.ui
+      surveymaker.ui
 
 RESOURCES += \
           gruepr.qrc

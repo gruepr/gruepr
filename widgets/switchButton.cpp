@@ -59,7 +59,6 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     _labeloff->setStyleSheet("color: #" + QString(GRUEPRMEDBLUEHEX) + ";");
     _labelon->setStyleSheet("color: #" + QString(GRUEPRVERYLIGHTBLUEHEX) + ";");
 
-
     if(_value) {
         _background->resize(width() - 4, 20);
         _background->move(2, 2);
@@ -100,12 +99,16 @@ void SwitchButton::paintEvent(QPaintEvent*)
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
         painter->setBrush(GRUEPRVERYLIGHTBLUE);
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
+        _labeloff->setStyleSheet(_labeloff->styleSheet().replace("bebebe", GRUEPRMEDBLUEHEX));
+        _labelon->setStyleSheet(_labelon->styleSheet().replace("e6e6e6", GRUEPRVERYLIGHTBLUEHEX));
     }
     else {
         painter->setBrush(QColor(190, 190, 190));
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
         painter->setBrush(QColor(QColor(230, 230, 230)));
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
+        _labeloff->setStyleSheet(_labeloff->styleSheet().replace(GRUEPRMEDBLUEHEX, "bebebe"));
+        _labelon->setStyleSheet(_labelon->styleSheet().replace(GRUEPRVERYLIGHTBLUEHEX, "e6e6e6"));
     }
     painter->end();
 }
@@ -188,14 +191,14 @@ bool SwitchButton::value() const
 void SwitchButton::_update()
 {
     int hback = 20;
-    QSize final_size(width() - 4, hback);
+    QSize final_size(hback, hback);
 
     int y = 2;
-    int xf = width() - 22;
+    int xf = 2;
 
     if (_value) {
-        final_size = QSize(hback, hback);
-        xf = 2;
+        final_size = QSize(width() - 4, hback);
+        xf = width() - 22;
 
         _labelon->show();
         _labeloff->hide();
