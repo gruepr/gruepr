@@ -87,16 +87,16 @@ SOURCES += \
         dialogs/registerDialog.cpp \
         dialogs/startDialog.cpp \
         dialogs/whichFilesDialog.cpp \
-        widgets/comboBoxThatPassesScrollwheel.cpp \
-        widgets/surveyMakerPage.cpp \
-        widgets/surveyMakerQuestionWithSwitch.cpp \
-        widgets/switchButton.cpp \
-        widgets/teamsTabItem.cpp \
         widgets/attributeTabItem.cpp \
+        widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
+        widgets/surveyMakerPage.cpp \
+        widgets/surveyMakerQuestionWithSwitch.cpp \
+        widgets/switchButton.cpp \
+        widgets/teamsTabItem.cpp \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
@@ -130,16 +130,16 @@ HEADERS += \
         dialogs/registerDialog.h \
         dialogs/startDialog.h \
         dialogs/whichFilesDialog.h \
-        widgets/comboBoxThatPassesScrollwheel.h \
-        widgets/surveyMakerPage.h \
-        widgets/surveyMakerQuestionWithSwitch.h \
-        widgets/switchButton.h \
-        widgets/teamsTabItem.h \
         widgets/attributeTabItem.h \
+        widgets/comboBoxThatPassesScrollwheel.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
+        widgets/surveyMakerPage.h \
+        widgets/surveyMakerQuestionWithSwitch.h \
+        widgets/switchButton.h \
+        widgets/teamsTabItem.h \
         widgets/teamTreeWidget.h
 
 FORMS += \

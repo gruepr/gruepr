@@ -39,7 +39,7 @@
      </widget>
     </item>
     <item row="7" column="0">
-     <widget class="SwitchItem" name="lastNameSwitchItem">
+     <widget class="SurveyMakerQuestionWithSwitch" name="lastNameSwitchItem">
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -567,7 +567,7 @@
      </layout>
     </item>
     <item row="6" column="0">
-     <widget class="SwitchItem" name="firstNameSwitchItem">
+     <widget class="SurveyMakerQuestionWithSwitch" name="firstNameSwitchItem">
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -1038,7 +1038,7 @@
      <x>0</x>
      <y>0</y>
      <width>916</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1220,9 +1220,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>SwitchItem</class>
+   <class>SurveyMakerQuestionWithSwitch</class>
    <extends>QFrame</extends>
-   <header>widgets/switchItem.h</header>
+   <header>widgets/surveyMakerQuestionWithSwitch.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

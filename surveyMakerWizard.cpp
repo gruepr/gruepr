@@ -1,5 +1,4 @@
 #include "surveyMakerWizard.h"
-#include "gruepr_globals.h"
 #include <QMessageBox>
 #include <QPrintDialog>
 #include <QPrinter>
@@ -26,21 +25,12 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     palette.setColor(QPalette::Mid, palette.color(QPalette::Base));
     setPalette(palette);
 
-    QString buttonStyle1 = "background-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
-                           "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                           "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 6px;";
-    QString nextButtonStyle = "background-color: #" + QString(GRUEPRMEDBLUEHEX) + "; "
-                              "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                              "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 6px;";
-    QString finishButtonStyle = "background-color: white; "
-                                "border-style: outset; border-width: 2px; border-radius: 5px; border-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
-                                "color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family: 'DM Sans'; font-size: 12pt; padding: 6px;";
-    button(QWizard::CancelButton)->setStyleSheet(buttonStyle1);
-    button(QWizard::BackButton)->setStyleSheet(buttonStyle1);
+    button(QWizard::CancelButton)->setStyleSheet(stdButtonStyle);
+    button(QWizard::BackButton)->setStyleSheet(stdButtonStyle);
     setButtonText(QWizard::BackButton, "\u2B60  Previous Step");
-    button(QWizard::NextButton)->setStyleSheet(nextButtonStyle);
+    button(QWizard::NextButton)->setStyleSheet(getStartedButtonStyle);
     setButtonText(QWizard::NextButton, "Get Started  \u2B62");
-    button(QWizard::FinishButton)->setStyleSheet(finishButtonStyle);
+    button(QWizard::FinishButton)->setStyleSheet(nextButtonStyle);
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::FinishButton << QWizard::Stretch;
     setButtonLayout(buttonLayout);
@@ -74,9 +64,6 @@ DemographicsPage::DemographicsPage(QWidget *parent)
 {
     setTitle(tr("Demographic Questions"));
 
-    QGridLayout *layout = new QGridLayout;
-    setLayout(layout);
-
     const int numQuestions = 5;
     questions = new SurveyMakerQuestionWithSwitch[numQuestions];
     QStringList questionLabels = {"First name", "Last name", "Email", "Gender", "Race / ethnicity"};
@@ -97,10 +84,7 @@ void DemographicsPage::initializePage()
     palette.setColor(QPalette::Window, GRUEPRDARKBLUE);
     wizard()->setPalette(palette);
 
-    QString buttonStyle1 = "background-color: white; "
-                           "border-style: outset; border-width: 2px; border-radius: 5px; border-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
-                           "color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family: 'DM Sans'; font-size: 12pt; padding: 6px;";
-    wizard()->button(QWizard::NextButton)->setStyleSheet(buttonStyle1);
+    wizard()->button(QWizard::NextButton)->setStyleSheet(nextButtonStyle);
     wizard()->setButtonText(QWizard::NextButton, "Next Step  \u2B62");
     wizard()->setOption(QWizard::NoCancelButton, false);
     QList<QWizard::WizardButton> buttonLayout;
@@ -114,10 +98,7 @@ void DemographicsPage::cleanupPage()
     palette.setColor(QPalette::Window, Qt::white);
     wizard()->setPalette(palette);
 
-    QString buttonStyle = "background-color: #" + QString(GRUEPRMEDBLUEHEX) + "; "
-                          "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                          "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 6px;";
-    wizard()->button(QWizard::NextButton)->setStyleSheet(buttonStyle);
+    wizard()->button(QWizard::NextButton)->setStyleSheet(getStartedButtonStyle);
     wizard()->setButtonText(QWizard::NextButton, "Get Started  \u2B62");
     wizard()->setOption(QWizard::NoCancelButton);
     QList<QWizard::WizardButton> buttonLayout;
@@ -131,8 +112,6 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
 {
     setTitle(tr("Multiple Choice Questions"));
 
-    QGridLayout *layout = new QGridLayout;
-    setLayout(layout);
 }
 
 int MultipleChoicePage::nextId() const
@@ -146,8 +125,6 @@ SchedulePage::SchedulePage(QWidget *parent)
 {
     setTitle(tr("Schedule Questions"));
 
-    QGridLayout *layout = new QGridLayout;
-    setLayout(layout);
 }
 
 int SchedulePage::nextId() const
@@ -161,8 +138,6 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
 {
     setTitle(tr("Course Info Questions"));
 
-    QGridLayout *layout = new QGridLayout;
-    setLayout(layout);
 }
 
 int CourseInfoPage::nextId() const
@@ -218,28 +193,4 @@ void PreviewAndExportPage::initializePage()
                          "current license.");
     }
     bottomLabel->setText(licenseText);
-}
-
-void PreviewAndExportPage::setVisible(bool visible)
-{
-    QWizardPage::setVisible(visible);
-
-    if (visible) {
-        wizard()->setButtonText(QWizard::CustomButton1, tr("&Print"));
-        wizard()->setOption(QWizard::HaveCustomButton1, true);
-        connect(wizard(), &QWizard::customButtonClicked,
-                this, &PreviewAndExportPage::printButtonClicked);
-    } else {
-        wizard()->setOption(QWizard::HaveCustomButton1, false);
-        disconnect(wizard(), &QWizard::customButtonClicked,
-                   this, &PreviewAndExportPage::printButtonClicked);
-    }
-}
-
-void PreviewAndExportPage::printButtonClicked()
-{
-    QPrinter printer;
-    QPrintDialog dialog(&printer, this);
-    if (dialog.exec())
-        QMessageBox::warning(this, tr("Print License"), tr("As an environmentally friendly measure, the license text will not actually be printed."));
 }

@@ -4,6 +4,7 @@
 #include <QWizardPage>
 #include "widgets/surveyMakerQuestionWithSwitch.h"
 #include <QLabel>
+#include <QTextEdit>
 
 class SurveyMakerPage : public QWizardPage
 {
@@ -13,8 +14,10 @@ public:
     ~SurveyMakerPage();
 
 protected:
-    QLabel *topLabel;
-    SurveyMakerQuestionWithSwitch *questions;
+    QGridLayout *layout = nullptr;
+    QLabel *topLabel = nullptr;
+    SurveyMakerQuestionWithSwitch *questions = nullptr;
+    QTextEdit *preview = nullptr;
 };
 
 #endif // SURVEYMAKERPAGE_H

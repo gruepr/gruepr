@@ -297,7 +297,7 @@ inline static const char USER_REGISTRATION_URL[] {"https://script.google.com/mac
 inline static const char GRUEPRHOMEPAGE[] {"http://gruepr.com"};
 inline static const char BUGREPORTPAGE[] {"https://github.com/gruepr/gruepr/issues"};
 bool internetIsGood();
-void webTest();
+void testFunction();
 
 inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                  "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR

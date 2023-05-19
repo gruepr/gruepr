@@ -31,9 +31,9 @@ private slots:
     void valueChange(bool newvalue);
 
 private:
-    QLabel *label;
-    SwitchButton *switchButton;
-    QGridLayout *layout;
+    QLabel *label = nullptr;
+    SwitchButton *switchButton = nullptr;
+    QGridLayout *layout = nullptr;
 
     bool _enabled;
     int _extraWidgetsIndex;

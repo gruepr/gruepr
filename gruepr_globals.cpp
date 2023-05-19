@@ -1,4 +1,5 @@
 #include "gruepr_globals.h"
+#include "surveyMakerWizard.h"
 #include <QMessageBox>
 #include <QWebEngineView>
 #include <QtNetwork>
@@ -22,7 +23,12 @@ bool internetIsGood()
     return !weGotProblems;
 }
 
-void webTest() {
+void testFunction() {
+    auto *surveyMakerWizard = new SurveyMakerWizard;
+    surveyMakerWizard->exec();
+    delete surveyMakerWizard;
+    return;
+
     auto *win = new QDialog;
     auto *view = new QWebEngineView(win);
     view->load(QUrl("http://gruepr.com/"));

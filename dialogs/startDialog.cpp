@@ -94,8 +94,7 @@ startDialog::startDialog(QWidget *parent)
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
 //    connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
-//    connect(registerLabel, &QLabel::linkActivated, this, &webTest);
-    connect(registerLabel, &QLabel::linkActivated, this, [&](){SurveyMakerWizard surveyMakerWizard; surveyMakerWizard.exec();});
+    connect(registerLabel, &QLabel::linkActivated, this, &testFunction);
     // check to see if this copy of gruepr has been registered
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();

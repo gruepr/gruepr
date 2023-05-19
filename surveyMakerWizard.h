@@ -2,11 +2,22 @@
 #define SURVEYMAKERWIZARD_H
 
 #include <QWizard>
+#include "gruepr_globals.h"
 #include "widgets/surveyMakerPage.h"
 #include <QCheckBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+
+const QString stdButtonStyle = "background-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
+                               "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                               "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 15px;";
+const QString getStartedButtonStyle = "background-color: #" + QString(GRUEPRMEDBLUEHEX) + "; "
+                                      "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                      "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 15px;";
+const QString nextButtonStyle = "background-color: white; "
+                                "border-style: outset; border-width: 2px; border-radius: 5px; border-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
+                                "color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family: 'DM Sans'; font-size: 12pt; padding: 15px;";
 
 class SurveyMakerWizard : public QWizard
 {
@@ -29,9 +40,8 @@ public:
     int nextId() const override;
 
 private:
-    QLabel *topLabel;
-    QLineEdit *surveyTitle;
-    QPushButton *getStartedButton;
+    QLabel *topLabel = nullptr;
+    QLineEdit *surveyTitle = nullptr;
 };
 
 class DemographicsPage : public SurveyMakerPage
@@ -95,14 +105,10 @@ public:
 
     void initializePage() override;
     int nextId() const override;
-    void setVisible(bool visible) override;
-
-private slots:
-    void printButtonClicked();
 
 private:
-    QLabel *bottomLabel;
-    QCheckBox *agreeCheckBox;
+    QLabel *bottomLabel = nullptr;
+    QCheckBox *agreeCheckBox = nullptr;
 };
 
 #endif // SURVEYMAKERWIZARD_H
