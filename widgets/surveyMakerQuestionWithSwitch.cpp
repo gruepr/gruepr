@@ -1,14 +1,14 @@
-#include "switchItem.h"
+#include "surveyMakerQuestionWithSwitch.h"
 #include "gruepr_globals.h"
 #include <QPainter>
 
-SwitchItem::SwitchItem(QWidget *parent, QString textLabel, bool startingValue)
+SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, QString textLabel, bool startingValue)
     : QFrame{parent}
     , _enabled(true)
     , _extraWidgetsIndex(0)
 {
     switchButton = new SwitchButton(startingValue);
-    connect(switchButton, &SwitchButton::valueChanged, this, &SwitchItem::valueChange);
+    connect(switchButton, &SwitchButton::valueChanged, this, &SurveyMakerQuestionWithSwitch::valueChange);
 
     label = new QLabel;
     setLabel(textLabel);
@@ -24,19 +24,19 @@ SwitchItem::SwitchItem(QWidget *parent, QString textLabel, bool startingValue)
     layout->addWidget(switchButton, 0, Qt::AlignRight | Qt::AlignVCenter);
 }
 
-SwitchItem::~SwitchItem()
+SurveyMakerQuestionWithSwitch::~SurveyMakerQuestionWithSwitch()
 {
     delete label;
     delete switchButton;
     delete layout;
 }
 
-void SwitchItem::mousePressEvent(QMouseEvent *event)
+void SurveyMakerQuestionWithSwitch::mousePressEvent(QMouseEvent *event)
 {
     switchButton->mousePressEvent(event);
 }
 
-void SwitchItem::paintEvent(QPaintEvent*)
+void SurveyMakerQuestionWithSwitch::paintEvent(QPaintEvent*)
 {
     auto palette = this->palette();
     setAutoFillBackground(true);
@@ -54,7 +54,7 @@ void SwitchItem::paintEvent(QPaintEvent*)
 
 }
 
-void SwitchItem::setEnabled(bool flag)
+void SurveyMakerQuestionWithSwitch::setEnabled(bool flag)
 {
     _enabled = flag;
     switchButton->setEnabled(flag);
@@ -65,27 +65,30 @@ void SwitchItem::setEnabled(bool flag)
     QWidget::setEnabled(flag);
 }
 
-void SwitchItem::setLabel(QString text)
+void SurveyMakerQuestionWithSwitch::setLabel(QString text)
 {
     label->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family:'DM Sans'; font-size:16pt\">" + text + "</span>");
 }
 
-void SwitchItem::valueChange(bool newvalue)
+void SurveyMakerQuestionWithSwitch::valueChange(bool newvalue)
 {
     emit valueChanged(newvalue);
 }
 
-void SwitchItem::setValue(bool value)
+void SurveyMakerQuestionWithSwitch::setValue(bool value)
 {
     switchButton->setValue(value);
 }
 
-bool SwitchItem::value()
+bool SurveyMakerQuestionWithSwitch::value()
 {
     return switchButton->value();
 }
 
-void SwitchItem::addWidget(QWidget *widget)
+void SurveyMakerQuestionWithSwitch::addWidget(QWidget *widget, int row, int column, bool wholeRow, Qt::Alignment horizontalAlignment)
 {
-    layout->addWidget(widget, ++_extraWidgetsIndex, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
+    if(row <= 0) {
+        return;
+    }
+    layout->addWidget(widget, row, column, 1, (wholeRow? -1 : 1), horizontalAlignment | Qt::AlignVCenter);
 }

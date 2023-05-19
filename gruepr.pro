@@ -68,6 +68,7 @@ SOURCES += \
         GA.cpp \
         studentRecord.cpp \
         survey.cpp \
+        surveyMakerWizard.cpp \
         surveymaker.cpp \
         teamRecord.cpp \
         teamingOptions.cpp \
@@ -87,8 +88,9 @@ SOURCES += \
         dialogs/startDialog.cpp \
         dialogs/whichFilesDialog.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
+        widgets/surveyMakerPage.cpp \
+        widgets/surveyMakerQuestionWithSwitch.cpp \
         widgets/switchButton.cpp \
-        widgets/switchItem.cpp \
         widgets/teamsTabItem.cpp \
         widgets/attributeTabItem.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -109,6 +111,7 @@ HEADERS += \
         gruepr_globals.h \
         studentRecord.h \
         survey.h \
+        surveyMakerWizard.h \
         surveymaker.h \
         teamRecord.h \
         teamingOptions.h \
@@ -128,8 +131,9 @@ HEADERS += \
         dialogs/startDialog.h \
         dialogs/whichFilesDialog.h \
         widgets/comboBoxThatPassesScrollwheel.h \
+        widgets/surveyMakerPage.h \
+        widgets/surveyMakerQuestionWithSwitch.h \
         widgets/switchButton.h \
-        widgets/switchItem.h \
         widgets/teamsTabItem.h \
         widgets/attributeTabItem.h \
         widgets/comboBoxWithElidedContents.h \

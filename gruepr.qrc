@@ -63,5 +63,6 @@
         <file>icons_new/formTeams.png</file>
         <file>icons_new/makeASurvey.png</file>
         <file>icons_new/gruepr.icns</file>
+        <file>icons_new/surveyMakerWizardBanner.png</file>
     </qresource>
 </RCC>

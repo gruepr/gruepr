@@ -54,8 +54,8 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
 
     //Connect the simple UI interactions to a simple refresh of survey data
     connect(ui->surveyTitleLineEdit, &QLineEdit::textChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->firstNameSwitchItem, &SwitchItem::valueChanged, this, &SurveyMaker::buildSurvey);
-    connect(ui->lastNameSwitchItem, &SwitchItem::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->firstNameSwitchItem, &SurveyMakerQuestionWithSwitch::valueChanged, this, &SurveyMaker::buildSurvey);
+    connect(ui->lastNameSwitchItem, &SurveyMakerQuestionWithSwitch::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->emailSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->genderSwitch, &SwitchButton::valueChanged, this, &SurveyMaker::buildSurvey);
     connect(ui->genderResponsesComboBox, &QComboBox::currentTextChanged, this, &SurveyMaker::buildSurvey);
