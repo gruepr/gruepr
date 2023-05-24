@@ -64,5 +64,8 @@
         <file>icons_new/makeASurvey.png</file>
         <file>icons_new/gruepr.icns</file>
         <file>icons_new/surveyMakerWizardBanner.png</file>
+        <file>icons_new/surveyMakerWizardTitleBackground.png</file>
+        <file>icons_new/surveyMakerWizardTopLabelBackground.png</file>
+        <file>icons_new/ComboBoxButton.png</file>
     </qresource>
 </RCC>

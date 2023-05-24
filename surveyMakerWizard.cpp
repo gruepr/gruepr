@@ -1,38 +1,53 @@
 #include "surveyMakerWizard.h"
+#include "gruepr_globals.h"
+#include <QComboBox>
 #include <QMessageBox>
 #include <QPrintDialog>
 #include <QPrinter>
 
+const QString stdButtonStyle = "background-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
+                               "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                               "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
+const QString getStartedButtonStyle = "background-color: #" + QString(GRUEPRMEDBLUEHEX) + "; "
+                                      "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                      "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
+const QString nextButtonStyle = "background-color: white; "
+                                "border-style: outset; border-width: 2px; border-radius: 5px; border-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
+                                "color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
+const QString invisButtonStyle = "background-color: rgba(0,0,0,0%); border-style: none; color: rgba(0,0,0,0%); font-size: 1pt; padding: 0px;";
+
+
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     : QWizard(parent)
 {
-    setPage(Page_Intro, new IntroPage);
-    setPage(Page_Demographics, new DemographicsPage);
-    setPage(Page_MultipleChoice, new MultipleChoicePage);
-    setPage(Page_Schedule, new SchedulePage);
-    setPage(Page_CourseInfo, new CourseInfoPage);
-    setPage(Page_PreviewAndExport, new PreviewAndExportPage);
-
-    setStartId(Page_Intro);
+    addPage(new IntroPage);
+    addPage(new DemographicsPage);
+    addPage(new MultipleChoicePage);
+    addPage(new SchedulePage);
+    addPage(new CourseInfoPage);
+    addPage(new PreviewAndExportPage);
 
     setWindowTitle(tr("Make a survey"));
     setWizardStyle(QWizard::ModernStyle);
     setOption(QWizard::NoBackButtonOnStartPage);
-    setOption(QWizard::NoCancelButton);
+    setMinimumWidth(800);
+    setMinimumHeight(600);
+    setDefaultProperty("SurveyMakerQuestionWithSwitch", "value", "valueChanged");
 
     auto palette = this->palette();
     palette.setColor(QPalette::Window, Qt::white);
     palette.setColor(QPalette::Mid, palette.color(QPalette::Base));
     setPalette(palette);
 
-    button(QWizard::CancelButton)->setStyleSheet(stdButtonStyle);
+    button(QWizard::CancelButton)->setStyleSheet(nextButtonStyle);
+    setButtonText(QWizard::CancelButton, "\u00AB  Cancel");
     button(QWizard::BackButton)->setStyleSheet(stdButtonStyle);
     setButtonText(QWizard::BackButton, "\u2B60  Previous Step");
-    button(QWizard::NextButton)->setStyleSheet(getStartedButtonStyle);
-    setButtonText(QWizard::NextButton, "Get Started  \u2B62");
+    button(QWizard::NextButton)->setStyleSheet(invisButtonStyle);
+    setButtonText(QWizard::NextButton, "Next Step  \u2B62");
     button(QWizard::FinishButton)->setStyleSheet(nextButtonStyle);
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::FinishButton << QWizard::Stretch;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::FinishButton;
     setButtonLayout(buttonLayout);
 }
 
@@ -40,109 +55,181 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
 IntroPage::IntroPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    //need to have a title & subtitle in order to show the banner pixmap, so using a minimal background-colored dot for each
-    setTitle("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-size:1pt;\">.</span>");
-    setSubTitle("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-size:1pt;\">.</span>");
-    setPixmap(QWizard::BannerPixmap, QPixmap(":/icons_new/surveyMakerWizardBanner.png"));
+    pageTitle = new QLabel("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">"
+                           "  |  Demographics  |  Multiple Choice  |  Scheduling  |  Course Info  |  Preview & Export</span>", this);
+    pageTitle->setStyleSheet(titleStyle);
+    pageTitle->setAlignment(Qt::AlignCenter);
+    pageTitle->setScaledContents(true);
+    pageTitle->setMinimumHeight(40);
+    pageTitle->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
-    topLabel = new QLabel(tr(""));
-    topLabel->setWordWrap(true);
+    auto *bannerLeft = new QLabel(this);
+    bannerLeft->setStyleSheet("border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png);");
+    bannerLeft->setMinimumSize(0, 120);
+    bannerLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    auto *bannerRight = new QLabel(this);
+    bannerRight->setStyleSheet("border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png);");
+    bannerRight->setMinimumSize(0, 120);
+    bannerRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    banner = new QLabel(this);
+    banner->setStyleSheet("border-image: url(:/icons_new/surveyMakerWizardBanner.png);");
+    banner->setAlignment(Qt::AlignCenter);
+    banner->setScaledContents(true);
+    QPixmap bannerpixmap(":/icons_new/surveyMakerWizardBanner.png");
+    banner->setMinimumSize(bannerpixmap.width()*120/bannerpixmap.height(), 120);
+    banner->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    auto *bannerWidg = new QWidget(this);
+    auto *bannerLayout = new QHBoxLayout(bannerWidg);
+    bannerLayout->setSpacing(0);
+    bannerLayout->setContentsMargins(0, 0, 0, 0);
+    bannerLayout->addWidget(bannerLeft);
+    bannerLayout->addWidget(banner);
+    bannerLayout->addWidget(bannerRight);
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(topLabel);
+    topLabel = new QLabel(this);
+    topLabel->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-size: 12pt; font-family: DM Sans;\">" +
+                      tr("Survey Name") + "</span>");
+    topLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    surveyTitle = new QLineEdit(this);
+    surveyTitle->setPlaceholderText(tr("Enter Text"));
+    surveyTitle->setStyleSheet("color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-size: 14pt; font-family: DM Sans; "
+                               "border-style: outset; border-width: 2px; border-color: #" + QString(GRUEPRDARKBLUEHEX) + "; ");
+    surveyTitle->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    registerField("SurveyTitle", surveyTitle);
+
+    bottomLabel = new QLabel(this);
+    bottomLabel->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-size: 10pt; font-family: DM Sans\">" +
+                         tr("This will be the name of the survey you send to your students!") + "</span>");
+    bottomLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    getStartedButton = new QPushButton("Get Started  \u2B62", this);
+    getStartedButton->setStyleSheet(getStartedButtonStyle);
+    getStartedButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
+    layout = new QGridLayout;
+    int row = 0;
+    layout->addWidget(pageTitle, row++, 0, 1, -1);
+    layout->addWidget(bannerWidg, row++, 0, 1, -1);
+    layout->setRowMinimumHeight(row++, 20);
+    layout->addWidget(topLabel, row++, 1, Qt::AlignLeft | Qt::AlignBottom);
+    layout->setRowMinimumHeight(row++, 10);
+    layout->addWidget(surveyTitle, row++, 1);
+    layout->setRowMinimumHeight(row++, 10);
+    layout->addWidget(bottomLabel, row++, 1, Qt::AlignLeft | Qt::AlignTop);
+    layout->setRowMinimumHeight(row++, 20);
+    layout->addWidget(getStartedButton, row++, 1);
+    layout->setColumnStretch(0, 1);
+    layout->setColumnStretch(1, 3);
+    layout->setColumnStretch(2, 1);
+    layout->setSpacing(0);
     setLayout(layout);
 }
 
-int IntroPage::nextId() const
+void IntroPage::initializePage()
 {
-    return SurveyMakerWizard::Page_Demographics;
+    auto *wiz = wizard();
+    connect(getStartedButton, &QPushButton::clicked, wiz, &QWizard::next);
 }
 
 
 DemographicsPage::DemographicsPage(QWidget *parent)
-    : SurveyMakerPage(parent)
+    : SurveyMakerPage(5, parent)
 {
-    setTitle(tr("Demographic Questions"));
+    pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
+                       "  |  Demographics</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Multiple Choice  |  Scheduling  |  Course Info  |  Preview & Export</span>");
+    topLabel->setText(tr("  Demographic Questions"));
 
-    const int numQuestions = 5;
-    questions = new SurveyMakerQuestionWithSwitch[numQuestions];
-    QStringList questionLabels = {"First name", "Last name", "Email", "Gender", "Race / ethnicity"};
+    QStringList questionLabels = {tr("First name"), tr("Last name"), tr("Email"), tr("Gender"), tr("Race / ethnicity")};
+    QStringList questionBottomLabels = {"", "", "", tr("Dropdown options: they/them, she/hers, he/him, other, prefer not to answer"), ""};
+    auto fn = new QLineEdit(tr("What is your first name / preferred name?"));
+    fn->setReadOnly(true);
+    fn->setStyleSheet(previewLineEditStyle);
+    registerField("FirstName", &questions[0]);
+    auto ln = new QLineEdit(tr("What is your last name?"));
+    ln->setReadOnly(true);
+    ln->setStyleSheet(previewLineEditStyle);
+    auto em = new QLineEdit(tr("What is your email address?"));
+    em->setReadOnly(true);
+    em->setStyleSheet(previewLineEditStyle);
+    auto *gender = new QComboBox;
+    gender->addItem("What are your pronouns?");
+    gender->setStyleSheet(previewComboBoxStyle);
+    auto *genderResponsesLabel = new QLabel(tr("Ask as: "));
+    genderResponsesLabel->setStyleSheet(previewLabelStyle);
+    auto *genderResponsesComboBox = new QComboBox;
+    genderResponsesComboBox->addItems({tr("Pronouns"), tr("Adult Identity"), tr("Child Identity"), tr("Biological Sex")});
+    genderResponsesComboBox->setStyleSheet(previewComboBoxStyle);
+    questions[3].addWidget(genderResponsesLabel, 1, 0, false);
+    questions[3].addWidget(genderResponsesComboBox, 2, 0, false);
+    connect(&questions[3], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesLabel, &QLabel::setEnabled);
+    connect(&questions[3], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesComboBox, &QLabel::setEnabled);
+    auto re = new QLineEdit(tr("How do you identify your race, ethnicity, or cultural heritage?"));
+    re->setReadOnly(true);
+    re->setStyleSheet(previewLineEditStyle);
+    QList<QWidget*> questionPreviewTypes = {fn, ln, em, gender, re};
     for(int i = 0; i < numQuestions; i++) {
         questions[i].setLabel(questionLabels[i]);
-        layout->addWidget(&questions[i], i, 0, 1, 1);
-    }
-}
 
-int DemographicsPage::nextId() const
-{
-    return SurveyMakerWizard::Page_MultipleChoice;
+        questionPreviewTopLabels[i].setText(questionLabels[i]);
+        questionPreviewLayouts[i].addWidget(&questionPreviewTopLabels[i]);
+        questionPreviewLayouts[i].addWidget(questionPreviewTypes[i]);
+        if(!questionBottomLabels[i].isEmpty()) {
+            questionPreviewBottomLabels[i].setText(questionBottomLabels[i]);
+            questionPreviewLayouts[i].addWidget(&questionPreviewBottomLabels[i]);
+        }
+        questionPreviews[i].hide();
+    }
 }
 
 void DemographicsPage::initializePage()
 {
-    auto palette = wizard()->palette();
+    auto *wiz = wizard();
+    auto palette = wiz->palette();
     palette.setColor(QPalette::Window, GRUEPRDARKBLUE);
-    wizard()->setPalette(palette);
-
-    wizard()->button(QWizard::NextButton)->setStyleSheet(nextButtonStyle);
-    wizard()->setButtonText(QWizard::NextButton, "Next Step  \u2B62");
-    wizard()->setOption(QWizard::NoCancelButton, false);
-    QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::FinishButton;
-    wizard()->setButtonLayout(buttonLayout);
+    wiz->setPalette(palette);
+    wiz->button(QWizard::NextButton)->setStyleSheet(nextButtonStyle);
+    wiz->button(QWizard::CancelButton)->setStyleSheet(stdButtonStyle);
 }
 
 void DemographicsPage::cleanupPage()
 {
-    auto palette = wizard()->palette();
+    auto *wiz = wizard();
+    auto palette = wiz->palette();
     palette.setColor(QPalette::Window, Qt::white);
-    wizard()->setPalette(palette);
-
-    wizard()->button(QWizard::NextButton)->setStyleSheet(getStartedButtonStyle);
-    wizard()->setButtonText(QWizard::NextButton, "Get Started  \u2B62");
-    wizard()->setOption(QWizard::NoCancelButton);
-    QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::FinishButton << QWizard::Stretch;
-    wizard()->setButtonLayout(buttonLayout);
+    wiz->setPalette(palette);
+    wiz->button(QWizard::NextButton)->setStyleSheet(invisButtonStyle);
+    wiz->button(QWizard::CancelButton)->setStyleSheet(nextButtonStyle);
 }
 
 
 MultipleChoicePage::MultipleChoicePage(QWidget *parent)
-    : SurveyMakerPage(parent)
+    : SurveyMakerPage(0, parent)
 {
-    setTitle(tr("Multiple Choice Questions"));
+    pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
+                       "  |  Demographics  |  Multiple Choice</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Scheduling  |  Course Info  |  Preview & Export</span>");
+    topLabel->setText(tr("  Multiple Choice Questions"));
 
-}
-
-int MultipleChoicePage::nextId() const
-{
-    return SurveyMakerWizard::Page_Schedule;
 }
 
 
 SchedulePage::SchedulePage(QWidget *parent)
-    : SurveyMakerPage(parent)
+    : SurveyMakerPage(0, parent)
 {
-    setTitle(tr("Schedule Questions"));
+    pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
+                       "  |  Demographics  |  Multiple Choice  |  Scheduling</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Course Info  |  Preview & Export</span>");
+    topLabel->setText(tr("  Schedule Questions"));
 
-}
-
-int SchedulePage::nextId() const
-{
-    return SurveyMakerWizard::Page_CourseInfo;
 }
 
 
 CourseInfoPage::CourseInfoPage(QWidget *parent)
-    : SurveyMakerPage(parent)
+    : SurveyMakerPage(0, parent)
 {
-    setTitle(tr("Course Info Questions"));
+    pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
+                       "  |  Demographics  |  Multiple Choice  |  Scheduling  |  Course Info</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Preview & Export</span>");
+    topLabel->setText(tr("      Course Info Questions"));
 
-}
-
-int CourseInfoPage::nextId() const
-{
-    return SurveyMakerWizard::Page_PreviewAndExport;
 }
 
 void CourseInfoPage::initializePage()
@@ -174,23 +261,8 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     setLayout(layout);
 }
 
-int PreviewAndExportPage::nextId() const
-{
-    return -1;
-}
 
 void PreviewAndExportPage::initializePage()
-{
-    QString licenseText;
-
-    if (wizard()->hasVisitedPage(SurveyMakerWizard::Page_MultipleChoice)) {
-        licenseText = tr("<u>Evaluation License Agreement:</u> "
-                         "You can use this software for 30 days and make one "
-                         "backup, but you are not allowed to distribute it.");
-    } else {
-        licenseText = tr("<u>Upgrade License Agreement:</u> "
-                         "This software is licensed under the terms of your "
-                         "current license.");
-    }
-    bottomLabel->setText(licenseText);
+{    
+    bottomLabel->setText("Title: " + field("SurveyTitle").toString() + "  First Name: " + (field("FirstName").toBool()?"Yes":"No"));
 }

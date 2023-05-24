@@ -56,8 +56,8 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
         setFixedSize(QSize(45, 24));
     }
 
-    _labeloff->setStyleSheet("color: #" + QString(GRUEPRMEDBLUEHEX) + ";");
-    _labelon->setStyleSheet("color: #" + QString(GRUEPRVERYLIGHTBLUEHEX) + ";");
+    _labeloff->setStyleSheet("background-color: #" + QString(GRUEPRVERYLIGHTBLUEHEX) + "; color: #" + GRUEPRMEDBLUEHEX + ";");
+    _labelon->setStyleSheet("background-color: #" + QString(GRUEPRMEDBLUEHEX) + "; color: #" + GRUEPRVERYLIGHTBLUEHEX + ";");
 
     if(_value) {
         _background->resize(width() - 4, 20);

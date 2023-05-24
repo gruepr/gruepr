@@ -9,6 +9,7 @@
 class SurveyMakerQuestionWithSwitch : public QFrame
 {
     Q_OBJECT
+    Q_PROPERTY(bool value READ value WRITE setValue NOTIFY valueChanged)
 
 public:
     explicit SurveyMakerQuestionWithSwitch(QWidget *parent = nullptr, QString textLabel = "", bool startingValue = false);
@@ -36,7 +37,6 @@ private:
     QGridLayout *layout = nullptr;
 
     bool _enabled;
-    int _extraWidgetsIndex;
 };
 
 #endif // SURVEYMAKERQUESTIONWITHSWITCH_H
