@@ -69,7 +69,7 @@ void SurveyMakerQuestionWithSwitch::setValue(bool value)
     switchButton->setValue(value);
 }
 
-bool SurveyMakerQuestionWithSwitch::value()
+bool SurveyMakerQuestionWithSwitch::getValue() const
 {
     return switchButton->value();
 }

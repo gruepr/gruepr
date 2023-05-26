@@ -32,7 +32,6 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setOption(QWizard::NoBackButtonOnStartPage);
     setMinimumWidth(800);
     setMinimumHeight(600);
-    setDefaultProperty("SurveyMakerQuestionWithSwitch", "value", "valueChanged");
 
     auto palette = this->palette();
     palette.setColor(QPalette::Window, Qt::white);
@@ -56,7 +55,7 @@ IntroPage::IntroPage(QWidget *parent)
     : QWizardPage(parent)
 {
     pageTitle = new QLabel("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">"
-                           "  |  Demographics  |  Multiple Choice  |  Scheduling  |  Course Info  |  Preview & Export</span>", this);
+                           " &ensp;|&ensp; Demographics &ensp;|&ensp; Multiple Choice &ensp;|&ensp; Scheduling &ensp;|&ensp; Course Info &ensp;|&ensp; Preview & Export</span>", this);
     pageTitle->setStyleSheet(titleStyle);
     pageTitle->setAlignment(Qt::AlignCenter);
     pageTitle->setScaledContents(true);
@@ -137,7 +136,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     : SurveyMakerPage(5, parent)
 {
     pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
-                       "  |  Demographics</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Multiple Choice  |  Scheduling  |  Course Info  |  Preview & Export</span>");
+                       " &ensp;|&ensp; Demographics</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\"> &ensp;|&ensp; Multiple Choice &ensp;|&ensp; Scheduling &ensp;|&ensp; Course Info &ensp;|&ensp; Preview & Export</span>");
     topLabel->setText(tr("  Demographic Questions"));
 
     QStringList questionLabels = {tr("First name"), tr("Last name"), tr("Email"), tr("Gender"), tr("Race / ethnicity")};
@@ -145,29 +144,31 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     auto fn = new QLineEdit(tr("What is your first name / preferred name?"));
     fn->setReadOnly(true);
     fn->setStyleSheet(previewLineEditStyle);
-    registerField("FirstName", &questions[0]);
     auto ln = new QLineEdit(tr("What is your last name?"));
     ln->setReadOnly(true);
     ln->setStyleSheet(previewLineEditStyle);
     auto em = new QLineEdit(tr("What is your email address?"));
     em->setReadOnly(true);
     em->setStyleSheet(previewLineEditStyle);
-    auto *gender = new QComboBox;
-    gender->addItem("What are your pronouns?");
-    gender->setStyleSheet(previewComboBoxStyle);
-    auto *genderResponsesLabel = new QLabel(tr("Ask as: "));
+    ge = new QComboBox;
+    ge->addItem("What are your pronouns?");
+    ge->setStyleSheet(previewComboBoxStyle);
+    genderResponsesLabel = new QLabel(tr("Ask as: "));
     genderResponsesLabel->setStyleSheet(previewLabelStyle);
-    auto *genderResponsesComboBox = new QComboBox;
-    genderResponsesComboBox->addItems({tr("Pronouns"), tr("Adult Identity"), tr("Child Identity"), tr("Biological Sex")});
+    genderResponsesLabel->setEnabled(false);
+    genderResponsesComboBox = new QComboBox;
+    genderResponsesComboBox->addItems({tr("Biological Sex"), tr("Adult Identity"), tr("Child Identity"), tr("Pronouns")});
     genderResponsesComboBox->setStyleSheet(previewComboBoxStyle);
+    genderResponsesComboBox->setEnabled(false);
+    genderResponsesComboBox->setCurrentIndex(3);
     questions[3].addWidget(genderResponsesLabel, 1, 0, false);
     questions[3].addWidget(genderResponsesComboBox, 2, 0, false);
-    connect(&questions[3], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesLabel, &QLabel::setEnabled);
-    connect(&questions[3], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesComboBox, &QLabel::setEnabled);
+    connect(&questions[3], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
+    connect(genderResponsesComboBox, &QComboBox::currentIndexChanged, this, &DemographicsPage::update);
     auto re = new QLineEdit(tr("How do you identify your race, ethnicity, or cultural heritage?"));
     re->setReadOnly(true);
     re->setStyleSheet(previewLineEditStyle);
-    QList<QWidget*> questionPreviewTypes = {fn, ln, em, gender, re};
+    QList<QWidget*> questionPreviewTypes = {fn, ln, em, ge, re};
     for(int i = 0; i < numQuestions; i++) {
         questions[i].setLabel(questionLabels[i]);
 
@@ -180,6 +181,14 @@ DemographicsPage::DemographicsPage(QWidget *parent)
         }
         questionPreviews[i].hide();
     }
+    registerField("FirstName", &questions[0], "value", "valueChanged");
+    registerField("LastName", &questions[1], "value", "valueChanged");
+    registerField("Email", &questions[2], "value", "valueChanged");
+    registerField("Gender", &questions[3], "value", "valueChanged");
+    registerField("RaceEthnicity", &questions[4], "value", "valueChanged");
+    registerField("genderOptions", genderResponsesComboBox);
+
+    update();
 }
 
 void DemographicsPage::initializePage()
@@ -202,12 +211,40 @@ void DemographicsPage::cleanupPage()
     wiz->button(QWizard::CancelButton)->setStyleSheet(nextButtonStyle);
 }
 
+void DemographicsPage::update()
+{
+    genderResponsesLabel->setEnabled((&questions[3])->getValue());
+    genderResponsesComboBox->setEnabled((&questions[3])->getValue());
+    ge->clear();
+    GenderType genderType = static_cast<GenderType>(genderResponsesComboBox->currentIndex());
+    if(genderType == GenderType::biol)
+    {
+        ge->addItem(GENDERQUESTION);
+        (&questionPreviewBottomLabels[3])->setText(tr("Options: ") + QString(BIOLGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE).join("  |  "));
+    }
+    else if(genderType == GenderType::adult)
+    {
+        ge->addItem(GENDERQUESTION);
+        (&questionPreviewBottomLabels[3])->setText(tr("Options: ") + QString(ADULTGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE).join("  |  "));
+    }
+    else if(genderType == GenderType::child)
+    {
+        ge->addItem(GENDERQUESTION);
+        (&questionPreviewBottomLabels[3])->setText(tr("Options: ") + QString(CHILDGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE).join("  |  "));
+    }
+    else //if(genderType == GenderType::pronoun)
+    {
+        ge->addItem(PRONOUNQUESTION);
+        (&questionPreviewBottomLabels[3])->setText(tr("Options: ") + QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE).join("  |  "));
+    }
+}
+
 
 MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     : SurveyMakerPage(0, parent)
 {
     pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
-                       "  |  Demographics  |  Multiple Choice</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Scheduling  |  Course Info  |  Preview & Export</span>");
+                       " &ensp;|&ensp; Demographics &ensp;|&ensp; Multiple Choice</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\"> &ensp;|&ensp; Scheduling &ensp;|&ensp; Course Info &ensp;|&ensp; Preview & Export</span>");
     topLabel->setText(tr("  Multiple Choice Questions"));
 
 }
@@ -217,7 +254,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     : SurveyMakerPage(0, parent)
 {
     pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
-                       "  |  Demographics  |  Multiple Choice  |  Scheduling</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Course Info  |  Preview & Export</span>");
+                       " &ensp;|&ensp; Demographics &ensp;|&ensp; Multiple Choice &ensp;|&ensp; Scheduling</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\"> &ensp;|&ensp; Course Info &ensp;|&ensp; Preview & Export</span>");
     topLabel->setText(tr("  Schedule Questions"));
 
 }
@@ -227,7 +264,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     : SurveyMakerPage(0, parent)
 {
     pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
-                       "  |  Demographics  |  Multiple Choice  |  Scheduling  |  Course Info</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\">  |  Preview & Export</span>");
+                       " &ensp;|&ensp; Demographics &ensp;|&ensp; Multiple Choice &ensp;|&ensp; Scheduling &ensp;|&ensp; Course Info</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\"> &ensp;|&ensp; Preview & Export</span>");
     topLabel->setText(tr("      Course Info Questions"));
 
 }
@@ -263,6 +300,6 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
 
 
 void PreviewAndExportPage::initializePage()
-{    
-    bottomLabel->setText("Title: " + field("SurveyTitle").toString() + "  First Name: " + (field("FirstName").toBool()?"Yes":"No"));
+{
+    bottomLabel->setText("Title: " + field("SurveyTitle").toString() + "  First Name: " + (field("FirstName").toBool()?"Yes":"No") + "  Gender Options: " + QString::number(field("genderOptions").toInt()));
 }

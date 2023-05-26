@@ -9,7 +9,7 @@
 class SurveyMakerQuestionWithSwitch : public QFrame
 {
     Q_OBJECT
-    Q_PROPERTY(bool value READ value WRITE setValue NOTIFY valueChanged)
+    Q_PROPERTY(bool value READ getValue WRITE setValue NOTIFY valueChanged)
 
 public:
     explicit SurveyMakerQuestionWithSwitch(QWidget *parent = nullptr, QString textLabel = "", bool startingValue = false);
@@ -17,7 +17,7 @@ public:
 
     void setLabel(QString text);
     void setValue(bool value);
-    bool value();
+    bool getValue() const;
 
     void addWidget(QWidget *widget, int row, int column, bool wholeRow, Qt::Alignment alignment = Qt::Alignment());
 

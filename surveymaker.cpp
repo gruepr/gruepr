@@ -181,14 +181,14 @@ void SurveyMaker::buildSurvey()
     survey->questions.clear();
 
     // First name
-    firstname = ui->firstNameSwitchItem->value();
+    firstname = ui->firstNameSwitchItem->getValue();
     if(firstname)
     {
         survey->questions << Question(FIRSTNAMEQUESTION, Question::QuestionType::shorttext);
     }
 
     // Last name
-    lastname = ui->lastNameSwitchItem->value();
+    lastname = ui->lastNameSwitchItem->getValue();
     if(lastname)
     {
         survey->questions << Question(LASTNAMEQUESTION, Question::QuestionType::shorttext);
