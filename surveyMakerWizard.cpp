@@ -139,54 +139,85 @@ DemographicsPage::DemographicsPage(QWidget *parent)
                        " &ensp;|&ensp; Demographics</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\"> &ensp;|&ensp; Multiple Choice &ensp;|&ensp; Scheduling &ensp;|&ensp; Course Info &ensp;|&ensp; Preview & Export</span>");
     topLabel->setText(tr("  Demographic Questions"));
 
-    QStringList questionLabels = {tr("First name"), tr("Last name"), tr("Email"), tr("Gender"), tr("Race / ethnicity")};
-    QStringList questionBottomLabels = {"", "", "", tr("Dropdown options: they/them, she/hers, he/him, other, prefer not to answer"), ""};
-    auto fn = new QLineEdit(tr("What is your first name / preferred name?"));
+    int questionNum = 0;
+
+    questions[questionNum].setLabel(tr("First name"));
+    questionPreviewTopLabels[questionNum].setText(tr("First name"));
+    questionPreviewLayouts[questionNum].addWidget(&questionPreviewTopLabels[questionNum]);
+    fn = new QLineEdit(tr("What is your first name / preferred name?"));
     fn->setReadOnly(true);
     fn->setStyleSheet(previewLineEditStyle);
-    auto ln = new QLineEdit(tr("What is your last name?"));
+    questionPreviewLayouts[questionNum].addWidget(fn);
+    questionPreviewBottomLabels[questionNum].setText("");
+    //questionPreviewLayouts[questionNum].addWidget(&questionPreviewBottomLabels[questionNum]);
+    questionPreviews[questionNum].hide();
+    registerField("FirstName", &questions[questionNum], "value", "valueChanged");
+    questionNum++;
+
+    questions[questionNum].setLabel(tr("Last name"));
+    questionPreviewTopLabels[questionNum].setText(tr("Last name"));
+    questionPreviewLayouts[questionNum].addWidget(&questionPreviewTopLabels[questionNum]);
+    ln = new QLineEdit(tr("What is your last name?"));
     ln->setReadOnly(true);
     ln->setStyleSheet(previewLineEditStyle);
-    auto em = new QLineEdit(tr("What is your email address?"));
+    questionPreviewLayouts[questionNum].addWidget(ln);
+    questionPreviewBottomLabels[questionNum].setText("");
+    //questionPreviewLayouts[questionNum].addWidget(&questionPreviewBottomLabels[questionNum]);
+    questionPreviews[questionNum].hide();
+    registerField("LastName", &questions[questionNum], "value", "valueChanged");
+    questionNum++;
+
+    questions[questionNum].setLabel(tr("Email"));
+    questionPreviewTopLabels[questionNum].setText(tr("Email"));
+    questionPreviewLayouts[questionNum].addWidget(&questionPreviewTopLabels[questionNum]);
+    em = new QLineEdit(tr("What is your email address?"));
     em->setReadOnly(true);
     em->setStyleSheet(previewLineEditStyle);
-    ge = new QComboBox;
-    ge->addItem("What are your pronouns?");
-    ge->setStyleSheet(previewComboBoxStyle);
+    questionPreviewLayouts[questionNum].addWidget(em);
+    questionPreviewBottomLabels[questionNum].setText("");
+    //questionPreviewLayouts[questionNum].addWidget(&questionPreviewBottomLabels[questionNum]);
+    questionPreviews[questionNum].hide();
+    registerField("Email", &questions[questionNum], "value", "valueChanged");
+    questionNum++;
+
+    questions[questionNum].setLabel(tr("Gender"));
+    connect(&questions[questionNum], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
     genderResponsesLabel = new QLabel(tr("Ask as: "));
     genderResponsesLabel->setStyleSheet(previewLabelStyle);
     genderResponsesLabel->setEnabled(false);
+    questions[questionNum].addWidget(genderResponsesLabel, 1, 0, false);
     genderResponsesComboBox = new QComboBox;
     genderResponsesComboBox->addItems({tr("Biological Sex"), tr("Adult Identity"), tr("Child Identity"), tr("Pronouns")});
     genderResponsesComboBox->setStyleSheet(previewComboBoxStyle);
     genderResponsesComboBox->setEnabled(false);
     genderResponsesComboBox->setCurrentIndex(3);
-    questions[3].addWidget(genderResponsesLabel, 1, 0, false);
-    questions[3].addWidget(genderResponsesComboBox, 2, 0, false);
-    connect(&questions[3], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
+    questions[questionNum].addWidget(genderResponsesComboBox, 2, 0, false);
     connect(genderResponsesComboBox, &QComboBox::currentIndexChanged, this, &DemographicsPage::update);
-    auto re = new QLineEdit(tr("How do you identify your race, ethnicity, or cultural heritage?"));
+    questionPreviewTopLabels[questionNum].setText(tr("Gender"));
+    questionPreviewLayouts[questionNum].addWidget(&questionPreviewTopLabels[questionNum]);
+    ge = new QComboBox;
+    ge->addItem("What are your pronouns?");
+    ge->setStyleSheet(previewComboBoxStyle);
+    questionPreviewLayouts[questionNum].addWidget(ge);
+    questionPreviewBottomLabels[questionNum].setText(tr("Dropdown options: they/them, she/hers, he/him, other, prefer not to answer"));
+    questionPreviewLayouts[questionNum].addWidget(&questionPreviewBottomLabels[questionNum]);
+    questionPreviews[questionNum].hide();
+    registerField("Gender", &questions[questionNum], "value", "valueChanged");
+    registerField("genderOptions", genderResponsesComboBox);
+    questionNum++;
+
+    questions[questionNum].setLabel(tr("Race / ethnicity"));
+    questionPreviewTopLabels[questionNum].setText(tr("Race / ethnicity"));
+    questionPreviewLayouts[questionNum].addWidget(&questionPreviewTopLabels[questionNum]);
+    re = new QLineEdit(tr("How do you identify your race, ethnicity, or cultural heritage?"));
     re->setReadOnly(true);
     re->setStyleSheet(previewLineEditStyle);
-    QList<QWidget*> questionPreviewTypes = {fn, ln, em, ge, re};
-    for(int i = 0; i < numQuestions; i++) {
-        questions[i].setLabel(questionLabels[i]);
-
-        questionPreviewTopLabels[i].setText(questionLabels[i]);
-        questionPreviewLayouts[i].addWidget(&questionPreviewTopLabels[i]);
-        questionPreviewLayouts[i].addWidget(questionPreviewTypes[i]);
-        if(!questionBottomLabels[i].isEmpty()) {
-            questionPreviewBottomLabels[i].setText(questionBottomLabels[i]);
-            questionPreviewLayouts[i].addWidget(&questionPreviewBottomLabels[i]);
-        }
-        questionPreviews[i].hide();
-    }
-    registerField("FirstName", &questions[0], "value", "valueChanged");
-    registerField("LastName", &questions[1], "value", "valueChanged");
-    registerField("Email", &questions[2], "value", "valueChanged");
-    registerField("Gender", &questions[3], "value", "valueChanged");
-    registerField("RaceEthnicity", &questions[4], "value", "valueChanged");
-    registerField("genderOptions", genderResponsesComboBox);
+    questionPreviewLayouts[questionNum].addWidget(re);
+    questionPreviewBottomLabels[questionNum].setText("");
+    //questionPreviewLayouts[questionNum].addWidget(&questionPreviewBottomLabels[questionNum]);
+    questionPreviews[questionNum].hide();
+    registerField("RaceEthnicity", &questions[questionNum], "value", "valueChanged");
+    questionNum++;
 
     update();
 }
@@ -251,14 +282,102 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
 
 
 SchedulePage::SchedulePage(QWidget *parent)
-    : SurveyMakerPage(0, parent)
+    : SurveyMakerPage(2, parent)
 {
     pageTitle->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "\">Survey Name"
                        " &ensp;|&ensp; Demographics &ensp;|&ensp; Multiple Choice &ensp;|&ensp; Scheduling</span><span style=\"color: #" + QString(GRUEPRMEDBLUEHEX) + "\"> &ensp;|&ensp; Course Info &ensp;|&ensp; Preview & Export</span>");
     topLabel->setText(tr("  Schedule Questions"));
 
+    questions[0].setLabel(tr("Timezone"));
+    connect(&questions[0], &SurveyMakerQuestionWithSwitch::valueChanged, this, &SchedulePage::update);
+    questionPreviewTopLabels[0].setText(tr("Timezone"));
+    questionPreviewLayouts[0].addWidget(&questionPreviewTopLabels[0]);
+    tz = new QComboBox;
+    tz->addItem("What timezone will you be in for this course?");
+    tz->setStyleSheet(previewComboBoxStyle);
+    questionPreviewLayouts[0].addWidget(tz);
+    questionPreviewBottomLabels[0].setText(tr("Dropdown options: List of global timezones"));
+    questionPreviewLayouts[0].addWidget(&questionPreviewBottomLabels[0]);
+    questionPreviews[0].hide();
+    registerField("Timezone", &questions[0], "value", "valueChanged");
+
+    questions[1].setLabel(tr("Schedule"));
+    connect(&questions[1], &SurveyMakerQuestionWithSwitch::valueChanged, this, &SchedulePage::update);
+    questionPreviewTopLabels[1].setText(tr("Select the times that you are available for group work."));
+    questionPreviewLayouts[1].addWidget(&questionPreviewTopLabels[1]);
+    questionPreviewBottomLabels[1].setText(tr(""));
+    //questionPreviewLayouts[1].addWidget(&questionPreviewBottomLabels[1]);
+    questionPreviews[1].hide();
+
+    int row = 1;
+    baseTimezoneLabel = new QLabel(tr("Select timezone"));
+    baseTimezoneLabel->setStyleSheet(previewLabelStyle);
+    baseTimezoneLabel->hide();
+    questions[1].addWidget(baseTimezoneLabel, row++, 0, false);
+    timeZoneNames = QString(TIMEZONENAMES).split(";");
+    for(auto &timeZoneName : timeZoneNames)
+    {
+        timeZoneName.remove('"');
+    }
+    baseTimezoneComboBox = new ComboBoxWithElidedContents("Pacific: US and Canada, Tijuana [GMT-08:00]", this);
+    baseTimezoneComboBox->setStyleSheet(previewComboBoxStyle);
+    baseTimezoneComboBox->setToolTip(tr("<html>Description of the timezone students should use to interpret the times in the grid.&nbsp;"
+                                        "<b>Be aware how the meaning of the times in the grid changes depending on this setting.</b></html>"));
+    baseTimezoneComboBox->insertItem(TimezoneType::noneOrHome, tr("[no timezone given]"));
+    baseTimezoneComboBox->insertSeparator(TimezoneType::noneOrHome+1);
+    baseTimezoneComboBox->insertItem(TimezoneType::custom, tr("Custom timezone:"));
+    baseTimezoneComboBox->insertSeparator(TimezoneType::custom+1);
+    for(int zone = 0; zone < timeZoneNames.size(); zone++)
+    {
+        const QString &zonename = timeZoneNames.at(zone);
+        baseTimezoneComboBox->insertItem(TimezoneType::set + zone, zonename);
+        baseTimezoneComboBox->setItemData(TimezoneType::set + zone, zonename, Qt::ToolTipRole);
+    }
+    questions[1].addWidget(baseTimezoneComboBox, row++, 0, false);
+    baseTimezoneComboBox->hide();
+    connect(baseTimezoneComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
+    registerField("scheduleTimezone", baseTimezoneComboBox);
+
+    daysLabel = new QLabel(tr("Select Days"));
+    daysLabel->setStyleSheet(previewLabelStyle);
+    daysLabel->setEnabled(false);
+    questions[1].addWidget(daysLabel, row++, 0, false);
+    daysComboBox = new QComboBox;
+    daysComboBox->addItems({tr("Choose an option"), tr("Weekdays"), tr("Weekends"), tr("Custom days/daynames")});
+    daysComboBox->setStyleSheet(previewComboBoxStyle);
+    daysComboBox->setEnabled(false);
+    daysComboBox->setCurrentIndex(0);
+    questions[1].addWidget(daysComboBox, row++, 0, false);
+    connect(daysComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
+    registerField("Schedule", &questions[1], "value", "valueChanged");
+    registerField("days", daysComboBox);
+
+    update();
 }
 
+void SchedulePage::update()
+{
+    daysLabel->setEnabled((&questions[1])->getValue());
+    daysComboBox->setEnabled((&questions[1])->getValue());
+    bool timezoneAndSchedule = questions[0].getValue() && questions[1].getValue();
+    baseTimezoneLabel->setVisible(timezoneAndSchedule);
+    baseTimezoneComboBox->setVisible(timezoneAndSchedule);
+    baseTimezone = baseTimezoneComboBox->currentText();
+    QString previewlabelText = tr("Select the times that you are available for group work.");
+    if(timezoneAndSchedule) {
+        previewlabelText += SCHEDULEQUESTION4;
+        if(baseTimezone.isEmpty())
+        {
+            previewlabelText += SCHEDULEQUESTIONHOME;
+        }
+        else
+        {
+            previewlabelText += baseTimezone;
+        }
+        previewlabelText += SCHEDULEQUESTION5;
+    }
+    questionPreviewTopLabels[1].setText(previewlabelText);
+}
 
 CourseInfoPage::CourseInfoPage(QWidget *parent)
     : SurveyMakerPage(0, parent)

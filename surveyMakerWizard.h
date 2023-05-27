@@ -3,7 +3,10 @@
 
 #include <QWizard>
 #include "widgets/surveyMakerPage.h"
+#include "widgets/comboBoxWithElidedContents.h"
 #include <QCheckBox>
+#include <QComboBox>
+#include <QDate>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -48,9 +51,13 @@ public:
     void cleanupPage() override;
 
 private:
-    QComboBox *ge = nullptr;
+    QLineEdit *fn = nullptr;
+    QLineEdit *ln = nullptr;
+    QLineEdit *em = nullptr;
     QLabel *genderResponsesLabel = nullptr;
     QComboBox *genderResponsesComboBox = nullptr;
+    QComboBox *ge = nullptr;
+    QLineEdit *re = nullptr;
 
     void update();
 };
@@ -73,6 +80,20 @@ public:
     SchedulePage(QWidget *parent = nullptr);
 
 private:
+    QComboBox *tz = nullptr;
+    enum {busy, free} busyOrFree = free;
+    QStringList timeZoneNames;
+    QString baseTimezone = "";
+    QLabel *baseTimezoneLabel = nullptr;
+    ComboBoxWithElidedContents *baseTimezoneComboBox = nullptr;
+    enum TimezoneType {noneOrHome, custom=2, set=4};
+    QStringList defaultDayNames;
+    QStringList dayNames;
+    inline static const QDate sunday = QDate(2017, 1, 1);
+    QLabel *daysLabel = nullptr;
+    QComboBox *daysComboBox = nullptr;
+
+    void update();
 };
 
 class CourseInfoPage : public SurveyMakerPage
@@ -118,7 +139,7 @@ inline static const QString SCHEDULEQUESTION1 = QObject::tr("Check the times tha
 inline static const QString SCHEDULEQUESTION2BUSY = QObject::tr("BUSY and will be UNAVAILABLE");
 inline static const QString SCHEDULEQUESTION2FREE = QObject::tr("FREE and will be AVAILABLE");
 inline static const QString SCHEDULEQUESTION3 = QObject::tr(" for group work.");
-inline static const QString SCHEDULEQUESTION4 = QObject::tr(" These times refer to ");
+inline static const QString SCHEDULEQUESTION4 = QObject::tr("\n*Note: Times refer to ");
 inline static const QString SCHEDULEQUESTIONHOME = QObject::tr("your home");
 inline static const QString SCHEDULEQUESTION5 = QObject::tr(" timezone.");
 inline static const QString SECTIONQUESTION = QObject::tr("In which section are you enrolled?");

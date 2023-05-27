@@ -16,7 +16,7 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                           const QVector<TeamRecord> &incomingTeams, StudentRecord incomingStudents[], QString incomingTabName, QWidget *parent) : QWidget(parent)
+                           const QVector<TeamRecord> &incomingTeams, StudentRecord incomingStudents[], const QString &incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab

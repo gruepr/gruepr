@@ -23,7 +23,7 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                          const QVector<TeamRecord> &incomingTeams, StudentRecord incomingStudents[], QString incomingTabName, QWidget *parent = nullptr);
+                          const QVector<TeamRecord> &incomingTeams, StudentRecord incomingStudents[], const QString &incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
     TeamsTabItem(const TeamsTabItem&) = delete;
     TeamsTabItem operator= (const TeamsTabItem&) = delete;

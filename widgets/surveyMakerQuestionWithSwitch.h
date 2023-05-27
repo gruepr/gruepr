@@ -12,10 +12,10 @@ class SurveyMakerQuestionWithSwitch : public QFrame
     Q_PROPERTY(bool value READ getValue WRITE setValue NOTIFY valueChanged)
 
 public:
-    explicit SurveyMakerQuestionWithSwitch(QWidget *parent = nullptr, QString textLabel = "", bool startingValue = false);
+    explicit SurveyMakerQuestionWithSwitch(QWidget *parent = nullptr, const QString &textLabel = "", bool startingValue = false);
     ~SurveyMakerQuestionWithSwitch() override;
 
-    void setLabel(QString text);
+    void setLabel(const QString &text);
     void setValue(bool value);
     bool getValue() const;
 

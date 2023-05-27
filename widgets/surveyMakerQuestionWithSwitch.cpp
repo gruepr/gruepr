@@ -1,7 +1,7 @@
 #include "surveyMakerQuestionWithSwitch.h"
 #include "gruepr_globals.h"
 
-SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, QString textLabel, bool startingValue)
+SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, const QString &textLabel, bool startingValue)
     : QFrame{parent}
     , _enabled(true)
 {
@@ -54,7 +54,7 @@ void SurveyMakerQuestionWithSwitch::setEnabled(bool flag)
     QWidget::setEnabled(flag);
 }
 
-void SurveyMakerQuestionWithSwitch::setLabel(QString text)
+void SurveyMakerQuestionWithSwitch::setLabel(const QString &text)
 {
     label->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family:'DM Sans'; font-size:16pt\">" + text + "</span>");
 }
