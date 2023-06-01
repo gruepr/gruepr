@@ -9,14 +9,14 @@ SurveyMakerPage::SurveyMakerPage(int numQuestions, QWidget *parent)
     layout->setSpacing(0);
 
     pageTitle = new QLabel(this);
-    pageTitle->setStyleSheet(titleStyle);
+    pageTitle->setStyleSheet(TITLESTYLE);
     pageTitle->setAlignment(Qt::AlignCenter);
     pageTitle->setMinimumHeight(40);
     pageTitle->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     layout->addWidget(pageTitle, row++, 0, 1, -1);
 
     topLabel = new QLabel(this);
-    topLabel->setStyleSheet(topLabelStyle);
+    topLabel->setStyleSheet(TOPLABELSTYLE);
     topLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     topLabel->setMinimumHeight(40);
     topLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
@@ -27,10 +27,11 @@ SurveyMakerPage::SurveyMakerPage(int numQuestions, QWidget *parent)
     preview = new QScrollArea(this);
     preview->setWidget(previewWidget);
     preview->setStyleSheet("QScrollArea{background-color: #ebebeb; border: none}");
-    preview->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Ignored);
+    preview->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    preview->setWidgetResizable(true);
     previewLayout = new QVBoxLayout(previewWidget);
     previewLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
-    previewLayout->setSpacing(10);
+    previewLayout->setSpacing(0);
     layout->addWidget(preview, row, 1, -1, 1);
 
     layout->setColumnStretch(0,1);
@@ -47,8 +48,8 @@ SurveyMakerPage::SurveyMakerPage(int numQuestions, QWidget *parent)
 
         questionPreviews[i].setLayout(&questionPreviewLayouts[i]);
         previewLayout->addWidget(&questionPreviews[i]);
-        questionPreviewTopLabels[i].setStyleSheet(previewLabelStyle);
-        questionPreviewBottomLabels[i].setStyleSheet(previewLabelStyle);
+        questionPreviewTopLabels[i].setStyleSheet(PREVIEWLABELSTYLE);
+        questionPreviewBottomLabels[i].setStyleSheet(PREVIEWLABELSTYLE);
         connect(&questions[i], &SurveyMakerQuestionWithSwitch::valueChanged, &questionPreviews[i], &QWidget::setVisible);
     }
     layout->addItem(new QSpacerItem(0,0), row, 0);

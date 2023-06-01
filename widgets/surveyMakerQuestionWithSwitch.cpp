@@ -14,8 +14,8 @@ SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, co
     setStyleSheet("background-color: #" + QString(GRUEPRVERYLIGHTBLUEHEX) + "; color: #" + GRUEPRDARKBLUEHEX + ";");
 
     layout = new QGridLayout(this);
-    layout->addWidget(label, 0, 0, Qt::AlignLeft | Qt::AlignVCenter);
-    layout->addWidget(switchButton, 0, 1, Qt::AlignRight | Qt::AlignVCenter);
+    layout->addWidget(label, 0, 0, 1, 4, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(switchButton, 0, 4, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
 }
 
 SurveyMakerQuestionWithSwitch::~SurveyMakerQuestionWithSwitch()
@@ -56,7 +56,7 @@ void SurveyMakerQuestionWithSwitch::setEnabled(bool flag)
 
 void SurveyMakerQuestionWithSwitch::setLabel(const QString &text)
 {
-    label->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family:'DM Sans'; font-size:16pt\">" + text + "</span>");
+    label->setText("<span style=\"color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family:'DM Sans'; font-size:12pt\">" + text + "</span>");
 }
 
 void SurveyMakerQuestionWithSwitch::valueChange(bool newvalue)
@@ -74,10 +74,11 @@ bool SurveyMakerQuestionWithSwitch::getValue() const
     return switchButton->value();
 }
 
-void SurveyMakerQuestionWithSwitch::addWidget(QWidget *widget, int row, int column, bool wholeRow, Qt::Alignment horizontalAlignment)
+void SurveyMakerQuestionWithSwitch::addWidget(QWidget *widget, int row, int column, bool expandToRestOfRow, Qt::Alignment horizontalAlignment)
 {
-    if(row <= 0) {
+    if((row <= 0) || (column > 4)) {
         return;
     }
-    layout->addWidget(widget, row, column, 1, (wholeRow? -1 : 1), horizontalAlignment | Qt::AlignVCenter);
+    widget->setAttribute(Qt::WA_NoMousePropagation, true);
+    layout->addWidget(widget, row, column, 1, (expandToRestOfRow? -1 : 1), horizontalAlignment | Qt::AlignVCenter);
 }
