@@ -48,8 +48,8 @@ SurveyMakerPage::SurveyMakerPage(int numQuestions, QWidget *parent)
 
         questionPreviews[i].setLayout(&questionPreviewLayouts[i]);
         previewLayout->addWidget(&questionPreviews[i]);
-        questionPreviewTopLabels[i].setStyleSheet(PREVIEWLABELSTYLE);
-        questionPreviewBottomLabels[i].setStyleSheet(PREVIEWLABELSTYLE);
+        questionPreviewTopLabels[i].setStyleSheet(SURVEYMAKERLABELSTYLE);
+        questionPreviewBottomLabels[i].setStyleSheet(SURVEYMAKERLABELSTYLE);
         connect(&questions[i], &SurveyMakerQuestionWithSwitch::valueChanged, &questionPreviews[i], &QWidget::setVisible);
     }
     layout->addItem(new QSpacerItem(0,0), row, 0);

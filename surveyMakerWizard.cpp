@@ -131,7 +131,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     fn = new QLineEdit(FIRSTNAMEQUESTION);
     fn->setReadOnly(true);
     fn->setCursorPosition(0);
-    fn->setStyleSheet(PREVIEWLINEEDITSTYLE);
+    fn->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
     questionPreviewLayouts[firstname].addWidget(fn);
     questionPreviewBottomLabels[firstname].setText("");
     //questionPreviewLayouts[firstname].addWidget(&questionPreviewBottomLabels[firstname]);
@@ -144,7 +144,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     ln = new QLineEdit(LASTNAMEQUESTION);
     ln->setReadOnly(true);
     ln->setCursorPosition(0);
-    ln->setStyleSheet(PREVIEWLINEEDITSTYLE);
+    ln->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
     questionPreviewLayouts[lastname].addWidget(ln);
     questionPreviewBottomLabels[lastname].setText("");
     //questionPreviewLayouts[lastname].addWidget(&questionPreviewBottomLabels[lastname]);
@@ -157,7 +157,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     em = new QLineEdit(EMAILQUESTION);
     em->setReadOnly(true);
     em->setCursorPosition(0);
-    em->setStyleSheet(PREVIEWLINEEDITSTYLE);
+    em->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
     questionPreviewLayouts[email].addWidget(em);
     questionPreviewBottomLabels[email].setText("");
     //questionPreviewLayouts[email].addWidget(&questionPreviewBottomLabels[email]);
@@ -166,22 +166,26 @@ DemographicsPage::DemographicsPage(QWidget *parent)
 
     questions[gender].setLabel(tr("Gender"));
     connect(&questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
+    auto *genderResponses = new QWidget;
+    auto *genderResponsesLayout = new QHBoxLayout(genderResponses);
     genderResponsesLabel = new QLabel(tr("Ask as: "));
-    genderResponsesLabel->setStyleSheet(PREVIEWLABELSTYLE);
+    genderResponsesLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
     genderResponsesLabel->setEnabled(false);
-    questions[gender].addWidget(genderResponsesLabel, 1, 0, false);
+    genderResponsesLayout->addWidget(genderResponsesLabel);
     genderResponsesComboBox = new QComboBox;
     genderResponsesComboBox->addItems({tr("Biological Sex"), tr("Adult Identity"), tr("Child Identity"), tr("Pronouns")});
-    genderResponsesComboBox->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    genderResponsesComboBox->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     genderResponsesComboBox->setEnabled(false);
     genderResponsesComboBox->setCurrentIndex(3);
-    questions[gender].addWidget(genderResponsesComboBox, 1, 1, false);
+    genderResponsesLayout->addWidget(genderResponsesComboBox);
+    genderResponsesLayout->addStretch(1);
+    questions[gender].addWidget(genderResponses, 1, 0, true);
     connect(genderResponsesComboBox, &QComboBox::currentIndexChanged, this, &DemographicsPage::update);
     questionPreviewTopLabels[gender].setText(tr("Gender"));
     questionPreviewLayouts[gender].addWidget(&questionPreviewTopLabels[gender]);
     ge = new QComboBox;
     ge->addItem(PRONOUNQUESTION);
-    ge->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    ge->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     questionPreviewLayouts[gender].addWidget(ge);
     questionPreviewBottomLabels[gender].setText(tr("Options: ") + QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE).join("  |  "));
     questionPreviewLayouts[gender].addWidget(&questionPreviewBottomLabels[gender]);
@@ -195,7 +199,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     re = new QLineEdit(URMQUESTION);
     re->setReadOnly(true);
     re->setCursorPosition(0);
-    re->setStyleSheet(PREVIEWLINEEDITSTYLE);
+    re->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
     questionPreviewLayouts[urm].addWidget(re);
     questionPreviewBottomLabels[urm].setText("");
     //questionPreviewLayouts[urm].addWidget(&questionPreviewBottomLabels[urm]);
@@ -277,7 +281,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     questionPreviewLayouts[timezone].addWidget(&questionPreviewTopLabels[timezone]);
     tz = new QComboBox;
     tz->addItem(TIMEZONEQUESTION);
-    tz->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    tz->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     questionPreviewLayouts[timezone].addWidget(tz);
     questionPreviewBottomLabels[timezone].setText(tr("Dropdown options: List of global timezones"));
     questionPreviewLayouts[timezone].addWidget(&questionPreviewBottomLabels[timezone]);
@@ -288,6 +292,27 @@ SchedulePage::SchedulePage(QWidget *parent)
     connect(&questions[schedule], &SurveyMakerQuestionWithSwitch::valueChanged, this, &SchedulePage::update);
     questionPreviewTopLabels[schedule].setText(SCHEDULEQUESTION1 + SCHEDULEQUESTION2FREE + SCHEDULEQUESTION3);
     questionPreviewLayouts[schedule].addWidget(&questionPreviewTopLabels[schedule]);
+    sc = new QWidget;
+    scLayout = new QGridLayout(sc);
+    scLayout->setSpacing(1);
+    for(int hr = 0; hr < 24; hr++) {
+        auto *rowLabel = new QLabel(sunday.time().addSecs((hr)*3600).toString("h ap"));
+        rowLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
+        scLayout->addWidget(rowLabel, hr+1, 0);
+    }
+    for(int day = 0; day < 7; day++) {
+        auto *colLabel = new QLabel(sunday.addDays(day).toString("ddd"));
+        colLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
+        scLayout->addWidget(colLabel, 0, day+1);
+    }
+    for(int hr = 1; hr <= 24; hr++) {
+        for(int day = 1; day <= 7; day++) {
+            auto check = new QCheckBox;
+            check->setChecked(true);
+            scLayout->addWidget(check, hr, day);
+        }
+    }
+    questionPreviewLayouts[schedule].addWidget(sc);
     questionPreviewBottomLabels[schedule].setText(tr(""));
     //questionPreviewLayouts[schedule].addWidget(&questionPreviewBottomLabels[schedule]);
     questionPreviews[schedule].hide();
@@ -296,21 +321,25 @@ SchedulePage::SchedulePage(QWidget *parent)
     //subItems inside schedule question
     int row = 1;
 
+    auto *busyOrFree = new QWidget;
+    auto *busyOrFreeLayout = new QHBoxLayout(busyOrFree);
     busyOrFreeLabel = new QLabel(tr("Ask as: "));
-    busyOrFreeLabel->setStyleSheet(PREVIEWLABELSTYLE);
+    busyOrFreeLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
     busyOrFreeLabel->setEnabled(false);
-    questions[schedule].addWidget(busyOrFreeLabel, row, 0, false);
+    busyOrFreeLayout->addWidget(busyOrFreeLabel);
     busyOrFreeComboBox = new QComboBox;
     busyOrFreeComboBox->addItems({tr("Free"), tr("Busy")});
-    busyOrFreeComboBox->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    busyOrFreeComboBox->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     busyOrFreeComboBox->setEnabled(false);
     busyOrFreeComboBox->setCurrentIndex(0);
-    questions[schedule].addWidget(busyOrFreeComboBox, row++, 1, false);
+    busyOrFreeLayout->addWidget(busyOrFreeComboBox);
+    busyOrFreeLayout->addStretch(1);
+    questions[schedule].addWidget(busyOrFree, row++, 0, true);
     connect(busyOrFreeComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
     registerField("scheduleBusyOrFree", busyOrFreeComboBox);
 
     baseTimezoneLabel = new QLabel(tr("Select timezone"));
-    baseTimezoneLabel->setStyleSheet(PREVIEWLABELSTYLE);
+    baseTimezoneLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
     baseTimezoneLabel->hide();
     questions[schedule].addWidget(baseTimezoneLabel, row++, 0, false);
     timeZoneNames = QString(TIMEZONENAMES).split(";");
@@ -319,7 +348,7 @@ SchedulePage::SchedulePage(QWidget *parent)
         timeZoneName.remove('"');
     }
     baseTimezoneComboBox = new ComboBoxWithElidedContents("Pacific: US and Canada, Tijuana [GMT-08:00]", this);
-    baseTimezoneComboBox->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    baseTimezoneComboBox->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     baseTimezoneComboBox->setToolTip(tr("<html>Description of the timezone students should use to interpret the times in the grid.&nbsp;"
                                         "<b>Be aware how the meaning of the times in the grid changes depending on this setting.</b></html>"));
     baseTimezoneComboBox->insertItem(TimezoneType::noneOrHome, tr("[no timezone given]"));
@@ -338,42 +367,46 @@ SchedulePage::SchedulePage(QWidget *parent)
     registerField("scheduleTimezone", baseTimezoneComboBox);
 
     timespanLabel = new QLabel(tr("Timespan:"));
-    timespanLabel->setStyleSheet(PREVIEWLABELSTYLE);
+    timespanLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
     timespanLabel->setEnabled(false);
     questions[schedule].addWidget(timespanLabel, row++, 0, false);
     daysComboBox = new QComboBox;
     daysComboBox->addItems({tr("All days"), tr("Weekdays"), tr("Weekends"), tr("Custom days/daynames")});
-    daysComboBox->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    daysComboBox->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     daysComboBox->setEnabled(false);
     daysComboBox->setCurrentIndex(0);
     questions[schedule].addWidget(daysComboBox, row++, 0, true, Qt::AlignLeft);
     connect(daysComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
     registerField("scheduleDays", daysComboBox);
 
+    auto *fromTo = new QWidget;
+    auto *fromToLayout = new QHBoxLayout(fromTo);
     fromLabel = new QLabel(tr("From"));
-    fromLabel->setStyleSheet(PREVIEWLABELSTYLE);
+    fromLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
     fromLabel->setEnabled(false);
-    questions[schedule].addWidget(fromLabel, row, 0, false, Qt::AlignRight);
+    fromToLayout->addWidget(fromLabel);
     fromComboBox = new QComboBox;
     fromComboBox->addItems({"12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am",
                             "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"});
-    fromComboBox->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    fromComboBox->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     fromComboBox->setEnabled(false);
     fromComboBox->setCurrentIndex(8);
-    questions[schedule].addWidget(fromComboBox, row, 1, false, Qt::AlignLeft);
+    fromToLayout->addWidget(fromComboBox);
     connect(fromComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
     registerField("scheduleFrom", fromComboBox);
     toLabel = new QLabel(tr("to"));
-    toLabel->setStyleSheet(PREVIEWLABELSTYLE);
+    toLabel->setStyleSheet(SURVEYMAKERLABELSTYLE);
     toLabel->setEnabled(false);
-    questions[schedule].addWidget(toLabel, row, 2, false, Qt::AlignRight);
+    fromToLayout->addWidget(toLabel);
     toComboBox = new QComboBox;
     toComboBox->addItems({"12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am",
                           "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"});
-    toComboBox->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    toComboBox->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     toComboBox->setEnabled(false);
     toComboBox->setCurrentIndex(18);
-    questions[schedule].addWidget(toComboBox, row++, 3, true, Qt::AlignLeft);
+    fromToLayout->addWidget(toComboBox);
+    fromToLayout->addStretch(1);
+    questions[schedule].addWidget(fromTo, row++, 0, true);
     connect(toComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
     registerField("scheduleTo", toComboBox);
 
@@ -382,7 +415,17 @@ SchedulePage::SchedulePage(QWidget *parent)
 
 void SchedulePage::update()
 {
-    bool scheduleOn = questions[schedule].getValue(), timezoneOn = questions[timezone].getValue();
+    QList<QWidget *> widgets = sc->findChildren<QWidget *>();
+    for(auto &widget : widgets) {
+        int row, col, rowSpan, colSpan;
+        scLayout->getItemPosition(scLayout->indexOf(widget), &row, &col, &rowSpan, &colSpan);
+        widget->setVisible(((row == 0) || ((row-1) >= fromComboBox->currentIndex() && (row-1) <= toComboBox->currentIndex())) &&
+                           ((col == 0) || (daysComboBox->currentIndex() == 0) || ((daysComboBox->currentIndex() == 1) && (col > 1) && (col < 7))
+                                                                              || ((daysComboBox->currentIndex() == 2) && ((col == 1) || (col == 7)))));
+    }
+
+    bool scheduleOn = questions[schedule].getValue();
+    bool timezoneOn = questions[timezone].getValue();
 
     baseTimezoneLabel->setVisible(timezoneOn);
     baseTimezoneLabel->setEnabled(scheduleOn);
@@ -428,15 +471,52 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     topLabel->setText(tr("      Course Info Questions"));
 
     questions[section].setLabel(tr("Section"));
+    connect(&questions[section], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
+    sectionLineEdits.reserve(10);
+    deleteSectionButtons.reserve(10);
+    sectionNames.reserve(10);
+    sectionLineEdits.append(new QLineEdit);
+    sectionLineEdits.append(new QLineEdit);
+    deleteSectionButtons.append(new QPushButton);
+    deleteSectionButtons.append(new QPushButton);
+    addSectionButton = new QPushButton;
+    sectionLineEdits[0]->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
+    sectionLineEdits[1]->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
+    deleteSectionButtons[0]->setStyleSheet(SURVEYMAKERDELBUTTONSTYLE);
+    deleteSectionButtons[1]->setStyleSheet(SURVEYMAKERDELBUTTONSTYLE);
+    addSectionButton->setStyleSheet(SURVEYMAKERADDBUTTONSTYLE);
+    sectionLineEdits[0]->setPlaceholderText(tr("Section name"));
+    sectionLineEdits[1]->setPlaceholderText(tr("Section name"));
+    deleteSectionButtons[0]->setText("🗑 " + tr("Delete"));
+    deleteSectionButtons[1]->setText("🗑 " + tr("Delete"));
+    addSectionButton->setText(tr("Add section"));
+    addSectionButton->setIcon(QIcon(":/icons_new/addButton.png"));
+    sectionLineEdits[0]->setEnabled(false);
+    sectionLineEdits[1]->setEnabled(false);
+    deleteSectionButtons[0]->setEnabled(false);
+    deleteSectionButtons[1]->setEnabled(false);
+    addSectionButton->setEnabled(false);
+    questions[section].addWidget(sectionLineEdits[0], 1, 0, false);
+    questions[section].addWidget(sectionLineEdits[1], 2, 0, false);
+    questions[section].addWidget(deleteSectionButtons[0], 1, 1, false);
+    questions[section].addWidget(deleteSectionButtons[1], 2, 1, false);
+    questions[section].addWidget(addSectionButton, 3, 0, false, Qt::AlignLeft);
+    connect(sectionLineEdits[0], &QLineEdit::textChanged, this, &CourseInfoPage::update);
+    connect(sectionLineEdits[1], &QLineEdit::textChanged, this, &CourseInfoPage::update);
+    connect(deleteSectionButtons[0], &QPushButton::clicked, this, [this]{deleteASection(0);});
+    connect(deleteSectionButtons[1], &QPushButton::clicked, this, [this]{deleteASection(1);});
+    connect(addSectionButton, &QPushButton::clicked, this, &CourseInfoPage::addASection);
+
     questionPreviewTopLabels[section].setText(tr("Section"));
     questionPreviewLayouts[section].addWidget(&questionPreviewTopLabels[section]);
     sc = new QComboBox;
     sc->addItem(SECTIONQUESTION);
-    sc->setStyleSheet(PREVIEWCOMBOBOXSTYLE);
+    sc->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     questionPreviewLayouts[section].addWidget(sc);
     questionPreviewLayouts[section].addWidget(&questionPreviewBottomLabels[section]);
     questionPreviews[section].hide();
     registerField("Section", &questions[section], "value", "valueChanged");
+    registerField("SectionNames", this, "sectionNames", "sectionNamesChanged");
 
     questions[wantToWorkWith].setLabel(tr("Classmates I want to work with"));
     connect(&questions[wantToWorkWith], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
@@ -445,11 +525,17 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     ww = new QLineEdit(PREF1TEAMMATEQUESTION);
     ww->setReadOnly(true);
     ww->setCursorPosition(0);
-    ww->setStyleSheet(PREVIEWLINEEDITSTYLE);
+    ww->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
+    wwc = new QComboBox;
+    wwc->addItem(tr("Select a student you would like to work with"));
+    wwc->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     questionPreviewLayouts[wantToWorkWith].addWidget(ww);
+    questionPreviewLayouts[wantToWorkWith].addWidget(wwc);
     questionPreviewBottomLabels[wantToWorkWith].setText(tr(""));
-    //questionPreviewLayouts[wantToWorkWith].addWidget(&questionPreviewBottomLabels[wantToWorkWith]);
+    questionPreviewLayouts[wantToWorkWith].addWidget(&questionPreviewBottomLabels[wantToWorkWith]);
+    wwc->hide();
     questionPreviews[wantToWorkWith].hide();
+    questionPreviewBottomLabels[wantToWorkWith].hide();
     registerField("PrefTeammate", &questions[wantToWorkWith], "value", "valueChanged");
 
     layout->setRowMinimumHeight(6, 0);
@@ -461,10 +547,16 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     wa = new QLineEdit(PREF1NONTEAMMATEQUESTION);
     wa->setReadOnly(true);
     wa->setCursorPosition(0);
-    wa->setStyleSheet(PREVIEWLINEEDITSTYLE);
+    wa->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
+    wac = new QComboBox;
+    wac->addItem(tr("Select a student you would like to avoid working with"));
+    wac->setStyleSheet(SURVEYMAKERCOMBOBOXSTYLE);
     questionPreviewLayouts[wantToAvoid].addWidget(wa);
+    questionPreviewLayouts[wantToAvoid].addWidget(wac);
     questionPreviewBottomLabels[wantToAvoid].setText(tr(""));
-    //questionPreviewLayouts[wantToAvoid].addWidget(&questionPreviewBottomLabels[wantToAvoid]);
+    questionPreviewLayouts[wantToAvoid].addWidget(&questionPreviewBottomLabels[wantToAvoid]);
+    wac->hide();
+    questionPreviewBottomLabels[wantToWorkWith].hide();
     questionPreviews[wantToAvoid].hide();
     registerField("PrefNonTeammate", &questions[wantToAvoid], "value", "valueChanged");
 
@@ -472,8 +564,20 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
 
     questions[selectFromList].setLabel(tr("Select from list of classmates"));
     connect(&questions[selectFromList], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
+    uploadExplainer = new QLabel(tr("You can upload a list of classmates so that students select names rather than entering as a free response question"));
+    uploadExplainer->setWordWrap(true);
+    uploadExplainer->setStyleSheet(SURVEYMAKERLABELSTYLE);
+    uploadExplainer->setEnabled(false);
+    uploadButton = new QPushButton;
+    uploadButton->setStyleSheet(SURVEYMAKERADDBUTTONSTYLE);
+    uploadButton->setText(tr("Upload class roster"));
+    uploadButton->setIcon(QIcon(":/icons_new/addButton.png"));
+    uploadButton->setEnabled(false);
+    connect(uploadButton, &QPushButton::clicked, this, &CourseInfoPage::uploadRoster);
+    questions[selectFromList].addWidget(uploadExplainer, 1, 0, true);
+    questions[selectFromList].addWidget(uploadButton, 2, 0, false, Qt::AlignLeft);
     questionPreviews[selectFromList].hide();
-    registerField("ClassmateListed", &questions[selectFromList], "value", "valueChanged");
+    registerField("StudentNames", this, "studentNames", "studentNamesChanged");
 
     update();
 }
@@ -488,32 +592,142 @@ void CourseInfoPage::cleanupPage()
     wizard()->setButtonText(QWizard::NextButton, "Next Step  \u2B62");
 }
 
+void CourseInfoPage::setSectionNames(const QStringList &newSectionNames)
+{
+    sectionNames = newSectionNames;
+}
+
+QStringList CourseInfoPage::getSectionNames() const
+{
+    return sectionNames;
+}
+
+void CourseInfoPage::setStudentNames(const QStringList &newStudentNames)
+{
+    studentNames = newStudentNames;
+}
+
+QStringList CourseInfoPage::getStudentNames() const
+{
+    return studentNames;
+}
+
 void CourseInfoPage::update()
 {
+    int lastFilledSection = sectionLineEdits.size()-1;
+    sectionNames.clear();
+    int i = 0;
+    for(auto &sectionLineEdit : sectionLineEdits) {
+        if(!(sectionLineEdit->text().isEmpty())) {
+            sectionNames.append(sectionLineEdit->text());
+        }
+        sectionLineEdit->setEnabled(questions[section].getValue());
+        deleteSectionButtons[i++]->setEnabled((questions[section].getValue()) && (lastFilledSection > 1));
+    }
+    addSectionButton->setEnabled(questions[section].getValue());
+    questionPreviewBottomLabels[section].setText(tr("Options: ") + sectionNames.join("  |  "));
+    emit sectionNamesChanged(sectionNames);
+
+    uploadExplainer->setEnabled(questions[selectFromList].getValue());
+    uploadButton->setEnabled(questions[selectFromList].getValue());
+
     questionPreviewTopLabels[wantToAvoid].setHidden(questions[wantToWorkWith].getValue() && questions[wantToAvoid].getValue());
+    if(!questions[selectFromList].getValue() || studentNames.isEmpty()) {
+        ww->show();
+        wa->show();
+        wwc->hide();
+        wac->hide();
+        questionPreviewBottomLabels[wantToWorkWith].hide();
+        questionPreviewBottomLabels[wantToAvoid].hide();
+    }
+    else {
+        ww->hide();
+        wa->hide();
+        wwc->show();
+        wac->show();
+        questionPreviewBottomLabels[wantToWorkWith].show();
+        questionPreviewBottomLabels[wantToAvoid].show();
+        questionPreviewBottomLabels[wantToWorkWith].setHidden(questions[wantToWorkWith].getValue() && questions[wantToAvoid].getValue());
+        questionPreviewBottomLabels[wantToWorkWith].setText(tr("Options: ") + studentNames.join("  |  "));
+        questionPreviewBottomLabels[wantToAvoid].setText(tr("Options: ") + studentNames.join("  |  "));
+    }
+}
+
+void CourseInfoPage::addASection()
+{
+    static int numSectionsEntered = 2;  // used to set the row in the grid layout where the new lineedit goes (since rows can be added but never removed)
+    numSectionsEntered++;
+    int nextSectionNum = sectionLineEdits.size();   // used to set the location in the QLists of lineedits and pushbuttons
+    sectionLineEdits.append(new QLineEdit);
+    deleteSectionButtons.append(new QPushButton);
+    sectionLineEdits[nextSectionNum]->setStyleSheet(SURVEYMAKERLINEEDITSTYLE);
+    deleteSectionButtons[nextSectionNum]->setStyleSheet(SURVEYMAKERDELBUTTONSTYLE);
+    sectionLineEdits[nextSectionNum]->setPlaceholderText(tr("Section name"));
+    deleteSectionButtons[nextSectionNum]->setText("🗑 " + tr("Delete"));
+    sectionLineEdits[nextSectionNum]->setEnabled(questions[section].getValue());
+    questions[section].moveWidget(addSectionButton, numSectionsEntered + 1, 0, false, Qt::AlignLeft);
+    questions[section].addWidget(sectionLineEdits[nextSectionNum], numSectionsEntered, 0, false);
+    questions[section].addWidget(deleteSectionButtons[nextSectionNum], numSectionsEntered, 1, false);
+    connect(sectionLineEdits[nextSectionNum], &QLineEdit::textChanged, this, &CourseInfoPage::update);
+    connect(deleteSectionButtons[nextSectionNum], &QPushButton::clicked, this, [this, nextSectionNum]{deleteASection(nextSectionNum);});
+
+    update();
+}
+
+void CourseInfoPage::deleteASection(int sectionNum)
+{
+    sectionLineEdits[sectionNum]->setParent(nullptr);
+    deleteSectionButtons[sectionNum]->setParent(nullptr);
+    delete sectionLineEdits[sectionNum];
+    delete deleteSectionButtons[sectionNum];
+    sectionLineEdits.removeAt(sectionNum);
+    deleteSectionButtons.removeAt(sectionNum);
+    for(int i = 0; i < sectionLineEdits.size(); i++) {
+        deleteSectionButtons[i]->disconnect();
+        connect(deleteSectionButtons[i], &QPushButton::clicked, this, [this, i]{deleteASection(i);});
+    }
+
+    update();
+}
+
+void CourseInfoPage::uploadRoster()
+{
+    ////////////////////////get csv file, parse into names
+    studentNames = {"Joshua Hertz", "Jasmine Lellock", "Cora Hertz", "Charlie Hertz"};
+
+    emit studentNamesChanged(studentNames);
+
+    update();
 }
 
 
 PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(tr("Complete Your Registration"));
+    setTitle(tr("Survey Preview:"));
 
     bottomLabel = new QLabel;
     bottomLabel->setWordWrap(true);
 
-    agreeCheckBox = new QCheckBox(tr("I agree to the terms of the license"));
-
-    registerField("conclusion.agree*", agreeCheckBox);
-
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(bottomLabel);
-    layout->addWidget(agreeCheckBox);
     setLayout(layout);
 }
 
 
 void PreviewAndExportPage::initializePage()
 {
-    bottomLabel->setText("Title: " + field("SurveyTitle").toString() + "  First Name: " + (field("FirstName").toBool()?"Yes":"No") + "  Gender Options: " + QString::number(field("genderOptions").toInt()));
+    bottomLabel->setText("Title: " + field("SurveyTitle").toString() + "\n"
+                         "First Name: " + (field("FirstName").toBool()?"Yes":"No") + "\n"
+                         "Last Name: " + (field("LastName").toBool()?"Yes":"No") + "\n"
+                         "Email: " + (field("Email").toBool()?"Yes":"No") + "\n"
+                         "Gender: " + (field("Gender").toBool()?"Yes":"No") + ", " + QString::number(field("genderOptions").toInt()) + "\n"
+                         "URM: " + (field("RaceEthnicity").toBool()?"Yes":"No") + "\n"
+                         "Timezone: " + (field("Timezone").toBool()?"Yes":"No") + "\n"
+                         "Schedule: " + (field("Schedule").toBool()?"Yes":"No") + ", " + (field("scheduleBusyOrFree").toBool()?"Busy":"Free") + ", " + (field("scheduleTimezone").toBool()?"w/TZ":"noTZ") + ", " + QString::number(field("scheduleDays").toInt()) + ", " + QString::number(field("scheduleFrom").toInt()) + ", " + QString::number(field("scheduleTo").toInt()) + "\n"
+                         "Section: " + (field("Section").toBool()?"Yes":"No") + ": " + (field("SectionNames").toStringList().join(", ")) + "\n"
+                         "PrefTeammate: " + (field("PrefTeammate").toBool()?"Yes":"No") + "\n"
+                         "PrefNonTeammate: " + (field("PrefNonTeammate").toBool()?"Yes":"No") + "\n"
+                         "    Select from: " + (field("StudentNames").toStringList().join(", "))
+                         );
 }

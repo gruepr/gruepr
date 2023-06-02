@@ -14,8 +14,9 @@ SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, co
     setStyleSheet("background-color: #" + QString(GRUEPRVERYLIGHTBLUEHEX) + "; color: #" + GRUEPRDARKBLUEHEX + ";");
 
     layout = new QGridLayout(this);
-    layout->addWidget(label, 0, 0, 1, 4, Qt::AlignLeft | Qt::AlignVCenter);
-    layout->addWidget(switchButton, 0, 4, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+    layout->addWidget(label, 0, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(switchButton, 0, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+    layout->setColumnStretch(0, 1);
 }
 
 SurveyMakerQuestionWithSwitch::~SurveyMakerQuestionWithSwitch()
@@ -76,9 +77,18 @@ bool SurveyMakerQuestionWithSwitch::getValue() const
 
 void SurveyMakerQuestionWithSwitch::addWidget(QWidget *widget, int row, int column, bool expandToRestOfRow, Qt::Alignment horizontalAlignment)
 {
-    if((row <= 0) || (column > 4)) {
+    if((row <= 0) || (column > 1)) {
         return;
     }
     widget->setAttribute(Qt::WA_NoMousePropagation, true);
     layout->addWidget(widget, row, column, 1, (expandToRestOfRow? -1 : 1), horizontalAlignment | Qt::AlignVCenter);
+}
+
+void SurveyMakerQuestionWithSwitch::moveWidget(QWidget *widget, int newRow, int newColumn, bool expandToRestOfRow, Qt::Alignment horizontalAlignment)
+{
+    if((newRow <= 0) || (newColumn > 1)) {
+        return;
+    }
+    layout->removeWidget(widget);
+    layout->addWidget(widget, newRow, newColumn, 1, (expandToRestOfRow? -1 : 1), horizontalAlignment | Qt::AlignVCenter);
 }

@@ -19,7 +19,8 @@ public:
     void setValue(bool value);
     bool getValue() const;
 
-    void addWidget(QWidget *widget, int row, int column, bool expandToRestOfRow, Qt::Alignment alignment = Qt::Alignment());
+    void addWidget(QWidget *widget, int row, int column, bool expandToRestOfRow, Qt::Alignment horizontalAlignment = Qt::Alignment());
+    void moveWidget(QWidget *widget, int newRow, int newColumn, bool expandToRestOfRow, Qt::Alignment horizontalAlignment = Qt::Alignment());
 
     void mousePressEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent* event) override;

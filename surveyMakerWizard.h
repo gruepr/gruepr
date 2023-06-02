@@ -86,6 +86,8 @@ private:
     enum {timezone, schedule}; // questions in order
 
     QComboBox *tz = nullptr;
+    QWidget *sc = nullptr;
+    QGridLayout *scLayout = nullptr;
     enum {busy, free} busyOrFree = free;
     QLabel *busyOrFreeLabel = nullptr;
     QComboBox *busyOrFreeComboBox = nullptr;
@@ -96,7 +98,7 @@ private:
     enum TimezoneType {noneOrHome, custom=2, set=4};
     QStringList defaultDayNames;
     QStringList dayNames;
-    inline static const QDate sunday = QDate(2017, 1, 1);
+    inline static const QDateTime sunday = QDateTime(QDate(2017, 1, 1), QTime(0, 0));
     QLabel *timespanLabel = nullptr;
     QComboBox *daysComboBox = nullptr;
     QLabel *fromLabel = nullptr;
@@ -110,6 +112,8 @@ private:
 class CourseInfoPage : public SurveyMakerPage
 {
     Q_OBJECT
+    Q_PROPERTY(QStringList sectionNames READ getSectionNames WRITE setSectionNames NOTIFY sectionNamesChanged)
+    Q_PROPERTY(QStringList studentNames READ getStudentNames WRITE setStudentNames NOTIFY studentNamesChanged)
 
 public:
     CourseInfoPage(QWidget *parent = nullptr);
@@ -117,15 +121,34 @@ public:
     void initializePage() override;
     void cleanupPage() override;
 
+    void setSectionNames(const QStringList &newSectionNames);
+    QStringList getSectionNames() const;
+    void setStudentNames(const QStringList &newStudentNames);
+    QStringList getStudentNames() const;
+
+signals:
+    void sectionNamesChanged(QStringList newSectionNames);
+    void studentNamesChanged(QStringList newStudentNames);
+
 private:
     enum {section, wantToWorkWith, wantToAvoid, selectFromList}; // questions in order
     QComboBox *sc = nullptr;
+    QList<QLineEdit *> sectionLineEdits;
+    QList<QPushButton *> deleteSectionButtons;
+    QPushButton *addSectionButton = nullptr;
+    QStringList sectionNames;
+    QStringList studentNames;
     QLineEdit *ww = nullptr;
     QComboBox *wwc = nullptr;
     QLineEdit *wa = nullptr;
-    QComboBox *wwa = nullptr;
+    QComboBox *wac = nullptr;
+    QLabel *uploadExplainer = nullptr;
+    QPushButton *uploadButton = nullptr;
 
     void update();
+    void deleteASection(int sectionNum);
+    void addASection();
+    void uploadRoster();
 };
 
 class PreviewAndExportPage : public QWizardPage
@@ -175,7 +198,7 @@ inline static const QString SCHEDULEQUESTIONHOME = QObject::tr("your home");
 inline static const QString SCHEDULEQUESTION5 = QObject::tr(" timezone.");
 inline static const QString SECTIONQUESTION = QObject::tr("In which section are you enrolled?");
 inline static const QString PREF1TEAMMATEQUESTION = QObject::tr("List classmates you want to work with. Write their first and last name only.");
-inline static const QString PREF1NONTEAMMATEQUESTION = QObject::tr("List classmates you do not want to work with. Write their first and last name only.");
+inline static const QString PREF1NONTEAMMATEQUESTION = QObject::tr("List classmates you want to avoid working with. Write their first and last name only.");
 inline static const QString PREFMULTQUESTION1 = QObject::tr("Please list the name(s) of up to ");
 inline static const QString PREFMULTQUESTION2YES = QObject::tr(" people who you would like to have on your team. Write their first and last name, and put a comma between multiple names.");
 inline static const QString PREFMULTQUESTION2NO = QObject::tr(" people who you would like to NOT have on your team. Write their first and last name, and put a comma between multiple names.");
