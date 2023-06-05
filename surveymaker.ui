@@ -1222,7 +1222,7 @@
   <customwidget>
    <class>SurveyMakerQuestionWithSwitch</class>
    <extends>QFrame</extends>
-   <header>widgets/surveyMakerQuestionWithSwitch.h</header>
+   <header>widgets/surveyMakerQuestion.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

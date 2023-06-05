@@ -2,15 +2,16 @@
 #define SURVEYMAKERWIZARD_H
 
 #include <QWizard>
-#include <QMessageBox>
-#include "widgets/surveyMakerPage.h"
+#include <QWizardPage>
 #include "widgets/comboBoxWithElidedContents.h"
+#include "widgets/surveyMakerQuestion.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDate>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 
 
 class SurveyMakerWizard : public QWizard
@@ -19,6 +20,38 @@ class SurveyMakerWizard : public QWizard
 
 public:
     SurveyMakerWizard(QWidget *parent = nullptr);
+
+    enum Page{intro, demographics, multichoice, schedule, courseinfo, previewexport};
+    static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Multiple Choice"),
+                                                 QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Preview & Export")};
+};
+
+
+class SurveyMakerPage : public QWizardPage
+{
+    Q_OBJECT
+public:
+    SurveyMakerPage(SurveyMakerWizard::Page page, int numQuestions, QWidget *parent = nullptr);
+    ~SurveyMakerPage();
+
+protected:
+    QVBoxLayout *questionLayout = nullptr;
+    SurveyMakerQuestionWithSwitch *questions = nullptr;
+    QVBoxLayout *previewLayout = nullptr;
+    QWidget *questionPreviews = nullptr;
+    QVBoxLayout *questionPreviewLayouts = nullptr;
+    QLabel *questionPreviewTopLabels = nullptr;
+    QLabel *questionPreviewBottomLabels = nullptr;
+
+private:
+    int numQuestions;
+    QGridLayout *layout = nullptr;
+    QLabel *pageTitle = nullptr;
+    QLabel *topLabel = nullptr;
+    QWidget *questionWidget = nullptr;
+    QScrollArea *questionArea = nullptr;
+    QWidget *previewWidget = nullptr;
+    QScrollArea *previewArea = nullptr;
 };
 
 
@@ -40,6 +73,7 @@ private:
     QLabel *bottomLabel = nullptr;
     QPushButton *getStartedButton = nullptr;
 };
+
 
 class DemographicsPage : public SurveyMakerPage
 {
@@ -65,15 +99,39 @@ private:
     void update();
 };
 
+
 class MultipleChoicePage : public SurveyMakerPage
 {
     Q_OBJECT
+    Q_PROPERTY(QList<int> questionList READ getQuestionList WRITE setQuestionList NOTIFY questionListChanged)
 
 public:
     MultipleChoicePage(QWidget *parent = nullptr);
 
+    void setQuestionList(const QList<int> &newQuestionList);
+    QList<int> getQuestionList() const;
+
+signals:
+    void questionListChanged(QList<int> &newQuestionList);
+
 private:
+    QFrame *sampleQuestionsFrame = nullptr;
+    QHBoxLayout *sampleQuestionsLayout = nullptr;
+    QLabel *sampleQuestionsIcon = nullptr;
+    QLabel *sampleQuestionsLabel = nullptr;
+    QPushButton *sampleQuestionsButton = nullptr;
+    QDialog *sampleQuestionsDialog = nullptr;
+    QList<SurveyMakerMultichoiceQuestion *> multichoiceQuestions;
+    QList<QComboBox *> qu;
+    QFrame *addQuestionFrame = nullptr;
+    QHBoxLayout *addQuestionLayout = nullptr;
+    QPushButton *addQuestionButton = nullptr;
+    QList<int> questionList;
+
+    void addQuestion();
+    void deleteAQuestion(int questionNum);
 };
+
 
 class SchedulePage : public SurveyMakerPage
 {
@@ -108,6 +166,7 @@ private:
 
     void update();
 };
+
 
 class CourseInfoPage : public SurveyMakerPage
 {
@@ -151,6 +210,7 @@ private:
     void uploadRoster();
 };
 
+
 class PreviewAndExportPage : public QWizardPage
 {
     Q_OBJECT
@@ -164,45 +224,6 @@ private:
     QLabel *bottomLabel = nullptr;
     QCheckBox *agreeCheckBox = nullptr;
 };
-
-
-inline static const QString STDBUTTONSTYLE = "background-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
-                                             "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                                             "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
-inline static const QString GETSTARTEDBUTTONSTYLE = "background-color: #" + QString(GRUEPRMEDBLUEHEX) + "; "
-                                                    "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                                                    "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
-inline static const QString NEXTBUTTONSTYLE = "background-color: white; "
-                                              "border-style: outset; border-width: 2px; border-radius: 5px; border-color: #" + QString(GRUEPRDARKBLUEHEX) + "; "
-                                              "color: #" + QString(GRUEPRDARKBLUEHEX) + "; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
-inline static const QString INVISBUTTONSTYLE = "background-color: rgba(0,0,0,0%); border-style: none; color: rgba(0,0,0,0%); font-size: 1pt; padding: 0px;";
-
-inline static const QString QUESTIONPREVIEWHEAD = "<p>&nbsp;&nbsp;&nbsp;&bull;&nbsp;";
-inline static const QString QUESTIONPREVIEWTAIL = "<br></p>";
-inline static const QString QUESTIONOPTIONSHEAD = "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>" + QObject::tr("options") + ": <b>{</b><i>";
-inline static const QString QUESTIONOPTIONSTAIL = "</i><b>}</b></small>";
-inline static const QString FIRSTNAMEQUESTION = QObject::tr("What is your first (or chosen) name?");
-inline static const QString LASTNAMEQUESTION = QObject::tr("What is your last name?");
-inline static const QString EMAILQUESTION = QObject::tr("What is your email address?");
-inline static const QString GENDERQUESTION = QObject::tr("With which gender do you identify most closely?");
-inline static const QString PRONOUNQUESTION = QObject::tr("What are your pronouns?");
-inline static const QString URMQUESTION = QObject::tr("How do you identify your race, ethnicity, or cultural heritage?");
-inline static const QString TIMEZONEQUESTION = QObject::tr("What time zone will you be based in during this class?");
-enum {Sun, Mon, Tue, Wed, Thu, Fri, Sat};
-inline static const QString SCHEDULEQUESTION1 = QObject::tr("Select the times that you are ");
-inline static const QString SCHEDULEQUESTION2BUSY = QObject::tr("BUSY and will be UNAVAILABLE");
-inline static const QString SCHEDULEQUESTION2FREE = QObject::tr("FREE and will be AVAILABLE");
-inline static const QString SCHEDULEQUESTION3 = QObject::tr(" for group work.");
-inline static const QString SCHEDULEQUESTION4 = QObject::tr("\n*Note: Times refer to ");
-inline static const QString SCHEDULEQUESTIONHOME = QObject::tr("your home");
-inline static const QString SCHEDULEQUESTION5 = QObject::tr(" timezone.");
-inline static const QString SECTIONQUESTION = QObject::tr("In which section are you enrolled?");
-inline static const QString PREF1TEAMMATEQUESTION = QObject::tr("List classmates you want to work with. Write their first and last name only.");
-inline static const QString PREF1NONTEAMMATEQUESTION = QObject::tr("List classmates you want to avoid working with. Write their first and last name only.");
-inline static const QString PREFMULTQUESTION1 = QObject::tr("Please list the name(s) of up to ");
-inline static const QString PREFMULTQUESTION2YES = QObject::tr(" people who you would like to have on your team. Write their first and last name, and put a comma between multiple names.");
-inline static const QString PREFMULTQUESTION2NO = QObject::tr(" people who you would like to NOT have on your team. Write their first and last name, and put a comma between multiple names.");
-inline static const QString ADDLQUESTION = QObject::tr("Any additional things we should know about you before we form the teams?");
 
 
 #endif // SURVEYMAKERWIZARD_H

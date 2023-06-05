@@ -93,8 +93,7 @@ SOURCES += \
         widgets/pushButtonWithMouseEnter.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
-        widgets/surveyMakerPage.cpp \
-        widgets/surveyMakerQuestionWithSwitch.cpp \
+        widgets/surveyMakerQuestion.cpp \
         widgets/switchButton.cpp \
         widgets/teamsTabItem.cpp \
         widgets/teamTreeWidget.cpp
@@ -136,8 +135,7 @@ HEADERS += \
         widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
-        widgets/surveyMakerPage.h \
-        widgets/surveyMakerQuestionWithSwitch.h \
+        widgets/surveyMakerQuestion.h \
         widgets/switchButton.h \
         widgets/teamsTabItem.h \
         widgets/teamTreeWidget.h

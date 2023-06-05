@@ -1,8 +1,10 @@
 #include "gruepr_globals.h"
 #include "surveyMakerWizard.h"
+#include <QEvent>
 #include <QMessageBox>
-#include <QWebEngineView>
 #include <QtNetwork>
+#include <QWebEngineView>
+#include <QWidget>
 
 bool internetIsGood()
 {
@@ -37,4 +39,21 @@ void testFunction() {
     win->exec();
     delete view;
     delete win;
+}
+
+
+MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent)
+{
+}
+
+bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e)
+{
+    const QWidget* widget = static_cast<QWidget*>(o);
+    if (e->type() == QEvent::Wheel && widget && !widget->hasFocus())
+    {
+        e->ignore();
+        return true;
+    }
+
+    return QObject::eventFilter(o, e);
 }

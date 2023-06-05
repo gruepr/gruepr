@@ -729,7 +729,7 @@ void SurveyMaker::createGoogleForm(SurveyMaker *surveyMaker)
         busyBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Reset);
         auto *copyButton = busyBox->button(QMessageBox::Reset);
         copyButton->setText(tr("Copy URL to clipboard"));
-        copyButton->setStyleSheet("QToolTip { color: #000000; background-color: #" + QString(BOLDGREENHEX) + "; border: 0px; }");
+        copyButton->setStyleSheet("QToolTip { color: #000000; background-color: #" BOLDGREENHEX "; border: 0px; }");
         copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the busyBox when clicked
         connect(copyButton, &QPushButton::clicked, busyBox, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
                                                                                    clipboard->setText(form.responderURL.toEncoded());

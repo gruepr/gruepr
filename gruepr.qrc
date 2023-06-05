@@ -68,5 +68,8 @@
         <file>icons_new/surveyMakerWizardTopLabelBackground.png</file>
         <file>icons_new/ComboBoxButton.png</file>
         <file>icons_new/addButton.png</file>
+        <file>icons_new/Checkmark.png</file>
+        <file>icons_new/trashButton.png</file>
+        <file>icons_new/lightbulb.png</file>
     </qresource>
 </RCC>

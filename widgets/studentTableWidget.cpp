@@ -70,8 +70,8 @@ void StudentTableWidget::cellLeft(const int row)
     const int numCols = columnCount();
     if(cellWidget(row, numCols-1)->property("duplicate").toBool())
     {
-        cellWidget(row, numCols-1)->setStyleSheet(QString("QPushButton {background-color: #") + HIGHLIGHTYELLOWHEX + "; border: none;}");
-        cellWidget(row, numCols-2)->setStyleSheet(QString("QPushButton {background-color: #") + HIGHLIGHTYELLOWHEX + "; border: none;}");
+        cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: #" HIGHLIGHTYELLOWHEX "; border: none;}");
+        cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: #" HIGHLIGHTYELLOWHEX "; border: none;}");
     }
     else
     {
@@ -107,8 +107,8 @@ void StudentTableWidget::cellEntered(const int row)
         {
             if(cellWidget(prevRow, numCols-1)->property("duplicate").toBool())
             {
-                cellWidget(prevRow, numCols-1)->setStyleSheet(QString("QPushButton {background-color: #") + HIGHLIGHTYELLOWHEX + "; border: none;}");
-                cellWidget(prevRow, numCols-2)->setStyleSheet(QString("QPushButton {background-color: #") + HIGHLIGHTYELLOWHEX + "; border: none;}");
+                cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: #" HIGHLIGHTYELLOWHEX "; border: none;}");
+                cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: #" HIGHLIGHTYELLOWHEX "; border: none;}");
             }
             else
             {
