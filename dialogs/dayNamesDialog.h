@@ -12,7 +12,7 @@ class dayNamesDialog : public QDialog
     Q_OBJECT
 
 public:
-    dayNamesDialog(QCheckBox *dayselectors[], QLineEdit *daynames[], QWidget *parent = nullptr);
+    dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit *> daynames, QWidget *parent = nullptr);
 
 private:
     QGridLayout *theGrid;

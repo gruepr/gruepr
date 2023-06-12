@@ -55,15 +55,21 @@ inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: DM Sans; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: DM Sans;"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
-inline static const char STDBUTTONSTYLE[] = "background-color: #" GRUEPRDARKBLUEHEX "; "
-                                            "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                                            "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
+inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: #" GRUEPRDARKBLUEHEX "; "
+                                                         "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                         "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}";
+inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: #" GRUEPRDARKBLUEHEX "; "
+                                                           "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                           "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                              "QPushButton:disabled {background-color: lightGray; "
+                                                                    "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                                    "color: black; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 inline static const char GETSTARTEDBUTTONSTYLE[] = "background-color: #" GRUEPRMEDBLUEHEX "; "
                                                    "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
-                                                   "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
+                                                   "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;";
 inline static const char NEXTBUTTONSTYLE[] = "background-color: white; "
-                                              "border-style: outset; border-width: 2px; border-radius: 5px; border-color: #" GRUEPRDARKBLUEHEX "; "
-                                              "color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 14pt; padding: 15px;";
+                                              "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                              "color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;";
 inline static const char INVISBUTTONSTYLE[] = "background-color: rgba(0, 0, 0, 0); border-style: none; color: rgba(0,0,0,0); font-size: 1pt; padding: 0px;";
 inline static const char DELBUTTONSTYLE[] = "QPushButton {background: rgba(0, 0, 0, 0); color: #" GRUEPRDARKBLUEHEX "; "
                                                           "font-family: 'DM Sans'; font-size: 10pt; border: none;}"
@@ -76,11 +82,11 @@ inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: rgba(0, 0,
 inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: #" GRUEPRDARKBLUEHEX "; "
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold;"
                                                              "border-style: outset; border-width: 1px; border-radius: 5px; padding: 10px;}";
-inline static const char SURVEYMAKERLABELSTYLE[] = "QLabel {color: #" GRUEPRDARKBLUEHEX "; font-size: 10pt; font-family: DM Sans;}"
+inline static const char LABELSTYLE[] = "QLabel {color: #" GRUEPRDARKBLUEHEX "; font-size: 10pt; font-family: DM Sans;}"
                                                     "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: DM Sans;}";
-inline static const char SURVEYMAKERLINEEDITSTYLE[] = "QLineEdit {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
+inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
                                                        "QLineEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char SURVEYMAKERCOMBOBOXSTYLE[] = "QComboBox {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
+inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
                                                        "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
                                                        "QComboBox::drop-down {border-width: 0px;}"
                                                        "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); border-width: 0px;}";
@@ -88,7 +94,7 @@ inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: re
                                                  "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox::drop-down {border-width: 0px;}"
                                                  "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); border-width: 0px;}";
-inline static const char SURVEYMAKERCHECKBOXSTYLE[] = "QCheckBox {background-color: rgba(0, 0, 0, 0);}"
+inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: rgba(0, 0, 0, 0);}"
                                                        "QCheckBox::indicator {background-color: #" GRUEPRDARKBLUEHEX "; color: #" GRUEPRDARKBLUEHEX "; "
                                                                               "width: 12px; height: 12px; border: 3px solid #" GRUEPRDARKBLUEHEX ";}"
                                                       "QCheckBox::indicator:checked {background-color: #" GRUEPRDARKBLUEHEX "; color: #" GRUEPRDARKBLUEHEX "; "

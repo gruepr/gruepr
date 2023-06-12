@@ -32,7 +32,9 @@ private:
     QLabel *upgradeLabel = nullptr;
     enum class GrueprVersion{unknown, old, current, beta};
     GrueprVersion getLatestVersionFromGithub();
+
     void openRegisterDialog();
+    void openSurveyMaker();
 
     const int BASEWINDOWWIDTH = 800;
     const int BASEWINDOWHEIGHT = 456;

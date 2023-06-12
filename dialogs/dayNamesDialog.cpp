@@ -5,7 +5,7 @@
 // A dialog to select / name days for the schedule in the survey
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-dayNamesDialog::dayNamesDialog(QCheckBox *dayselectors[], QLineEdit *daynames[], QWidget *parent)
+dayNamesDialog::dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit *> daynames, QWidget *parent)
     :QDialog (parent)
 {
     //Set up window with a grid layout

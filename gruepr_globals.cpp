@@ -1,5 +1,4 @@
 #include "gruepr_globals.h"
-#include "surveyMakerWizard.h"
 #include <QEvent>
 #include <QMessageBox>
 #include <QtNetwork>
@@ -26,11 +25,6 @@ bool internetIsGood()
 }
 
 void testFunction() {
-    auto *surveyMakerWizard = new SurveyMakerWizard;
-    surveyMakerWizard->exec();
-    delete surveyMakerWizard;
-    return;
-
     auto *win = new QDialog;
     auto *view = new QWebEngineView(win);
     view->load(QUrl("http://gruepr.com/"));
@@ -42,10 +36,7 @@ void testFunction() {
 }
 
 
-MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent)
-{
-}
-
+MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent) { }
 bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e)
 {
     const QWidget* widget = static_cast<QWidget*>(o);

@@ -66,7 +66,7 @@ startDialog::startDialog(QWidget *parent)
     survMakeButton->setFont(*labelFont);
     survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
     survMakeButton->setStyleSheet(BUTTONSTYLE);
-    connect(survMakeButton, &QToolButton::clicked, this, [&](){done(Result::makeSurvey);});
+    connect(survMakeButton, &QToolButton::clicked, this, &startDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
 
     theGrid->setColumnMinimumWidth(col++, MIDDLESPACERWIDTH);
@@ -77,7 +77,7 @@ startDialog::startDialog(QWidget *parent)
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(*labelFont);
-    grueprButton->setText(tr("Upload your survey results\nand have the grueps appear\nright before your eyes."));
+    grueprButton->setText(tr("Upload your survey results\nand form your grueps."));
     grueprButton->setStyleSheet(BUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, [&](){done(Result::makeGroups);});
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
@@ -93,8 +93,7 @@ startDialog::startDialog(QWidget *parent)
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
-//    connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
-    connect(registerLabel, &QLabel::linkActivated, this, &testFunction);
+    connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
     // check to see if this copy of gruepr has been registered
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
@@ -129,6 +128,15 @@ startDialog::startDialog(QWidget *parent)
 startDialog::~startDialog() {
     delete labelFont;
     delete mainBoxFont;
+}
+
+
+void startDialog::openSurveyMaker() {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    auto *surveyMakerWizard = new SurveyMakerWizard;
+    QApplication::restoreOverrideCursor();
+    surveyMakerWizard->exec();
+    delete surveyMakerWizard;
 }
 
 

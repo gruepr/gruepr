@@ -18,7 +18,6 @@ class SurveyMakerQuestionWithSwitch : public QFrame
 
 public:
     explicit SurveyMakerQuestionWithSwitch(QWidget *parent = nullptr, const QString &textLabel = "", bool startingValue = false);
-    ~SurveyMakerQuestionWithSwitch() override;
 
     void setLabel(const QString &text);
     void setValue(bool value);
@@ -58,7 +57,6 @@ class SurveyMakerMultichoiceQuestion : public QFrame
 
 public:
     explicit SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent = nullptr);
-    ~SurveyMakerMultichoiceQuestion() override;
 
     void setNumber(const int questionNum);
 
@@ -92,6 +90,34 @@ private:
     QLabel *responsesLabel = nullptr;
     ComboBoxWithElidedContents *responsesComboBox = nullptr;
     QCheckBox *multiAllowed = nullptr;
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class SurveyMakerPreviewSection : public QFrame
+{
+    Q_OBJECT
+
+public:
+    explicit SurveyMakerPreviewSection(const int pageNum, const QString &titleText, const int numQuestions, QWidget *parent = nullptr);
+    QList<QSpacerItem *> preQuestionSpacer;
+    QList<QLabel *> questionLabel;
+    QList<QLineEdit *> questionLineEdit;
+    QList<QComboBox *> questionComboBox;
+    QList<QLabel *> questionBottomLabel;
+
+    void addWidget(QWidget *widget);
+
+signals:
+    void editRequested(const int pageNum);
+
+private:
+    int row = 0;
+    QGridLayout *layout = nullptr;
+    QLabel *title = nullptr;
+    QPushButton *editButton = nullptr;
 };
 
 #endif // SURVEYMAKERQUESTION_H

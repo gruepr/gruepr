@@ -63,7 +63,6 @@
         <file>icons_new/formTeams.png</file>
         <file>icons_new/makeASurvey.png</file>
         <file>icons_new/gruepr.icns</file>
-        <file>icons_new/surveyMakerWizardBanner.png</file>
         <file>icons_new/surveyMakerWizardTitleBackground.png</file>
         <file>icons_new/surveyMakerWizardTopLabelBackground.png</file>
         <file>icons_new/ComboBoxButton.png</file>
@@ -71,5 +70,7 @@
         <file>icons_new/Checkmark.png</file>
         <file>icons_new/trashButton.png</file>
         <file>icons_new/lightbulb.png</file>
+        <file>icons_new/BannerLeft.png</file>
+        <file>icons_new/BannerRight.png</file>
     </qresource>
 </RCC>

@@ -114,7 +114,7 @@ SurveyMaker::SurveyMaker(QWidget *parent) :
         connect(dayLineEdits[day], &QLineEdit::editingFinished, this, [this, day] {if(dayNames.at(day).isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
         connect(dayCheckBoxes[day], &QCheckBox::toggled, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames.at(day));});
     }
-    daysWindow = new dayNamesDialog(dayCheckBoxes, dayLineEdits, this);
+    //daysWindow = new dayNamesDialog(dayCheckBoxes, dayLineEdits, this);
 
     //Make sure we can read placeholder text in "custom timezone" box
     QString placeholder = tr("Custom timezone");
