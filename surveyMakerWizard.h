@@ -3,16 +3,21 @@
 
 #include <QWizard>
 #include <QWizardPage>
+#include "gruepr_globals.h"
+#include "survey.h"
 #include "dialogs/dayNamesDialog.h"
 #include "widgets/comboBoxWithElidedContents.h"
+#include "widgets/labelThatForwardsMouseClicks.h"
 #include "widgets/surveyMakerQuestion.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDate>
+#include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSpinBox>
 
 
 class SurveyMakerWizard : public QWizard
@@ -21,14 +26,27 @@ class SurveyMakerWizard : public QWizard
 
 public:
     SurveyMakerWizard(QWidget *parent = nullptr);
+    ~SurveyMakerWizard();
 
-    enum Page{intro, demographics, multichoice, schedule, courseinfo, previewexport};
+    enum Page{introtitle, demographics, multichoice, schedule, courseinfo, previewexport};
+    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 2, 3, 0};
     static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Multiple Choice"),
                                                  QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Preview & Export")};
-    inline static const QDateTime sunday = QDateTime(QDate(2017, 1, 1), QTime(0, 0));
 
-    static QRegularExpressionValidator noInvalidPunctuation;
-    static void badExpression(QWidget *textWidget, QString &currText, QWidget *parent = nullptr);
+    static inline const QDateTime sunday = QDateTime(QDate(2017, 1, 1), QTime(0, 0));
+    static inline const QStringList defaultDayNames = {SurveyMakerWizard::sunday.addDays(0).toString("dddd"), SurveyMakerWizard::sunday.addDays(1).toString("dddd"),
+                                                       SurveyMakerWizard::sunday.addDays(2).toString("dddd"), SurveyMakerWizard::sunday.addDays(3).toString("dddd"),
+                                                       SurveyMakerWizard::sunday.addDays(4).toString("dddd"), SurveyMakerWizard::sunday.addDays(5).toString("dddd"),
+                                                       SurveyMakerWizard::sunday.addDays(6).toString("dddd")};
+
+    //RegEx for punctuation not allowed within a URL, and a function to handle problem cases
+    static inline const QRegularExpressionValidator noInvalidPunctuation= QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"));
+    static void invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent = nullptr);
+
+    QFileInfo saveFileLocation;
+
+public slots:
+    void loadSurvey(int customButton);
 };
 
 
@@ -36,7 +54,7 @@ class SurveyMakerPage : public QWizardPage
 {
     Q_OBJECT
 public:
-    SurveyMakerPage(SurveyMakerWizard::Page page, int numQuestions, QWidget *parent = nullptr);
+    SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent = nullptr);
 
 protected:
     QVBoxLayout *questionLayout = nullptr;
@@ -117,11 +135,12 @@ class MultipleChoicePage : public SurveyMakerPage
 public:
     MultipleChoicePage(QWidget *parent = nullptr);
 
+    void initializePage() override;
     void cleanupPage() override;
 
     void setNumQuestions(const int newNumQuestions);
     int getNumQuestions() const;
-    void setQuestionTexts(const QStringList &newQuestionTexts);
+    void setQuestionTexts(const QList<QString> &newQuestionTexts);
     QList<QString> getQuestionTexts() const;
     void setQuestionResponses(const QList<QList<QString>> &newQuestionResponses);
     QList<QList<QString>> getQuestionResponses() const;
@@ -161,6 +180,7 @@ class SchedulePage : public SurveyMakerPage
 {
     Q_OBJECT
     Q_PROPERTY(QStringList dayNames READ getDayNames WRITE setDayNames NOTIFY dayNamesChanged)
+    Q_PROPERTY(QString baseTimezone READ getBaseTimezone WRITE setBaseTimezone NOTIFY baseTimezoneChanged)
     Q_PROPERTY(QString scheduleQuestion READ getScheduleQuestion WRITE setScheduleQuestion NOTIFY scheduleQuestionChanged)
 
 public:
@@ -172,10 +192,17 @@ public:
     QStringList getDayNames() const;
     void setScheduleQuestion(const QString &newScheduleQuestion);
     QString getScheduleQuestion() const;
+    void setBaseTimezone(const QString &newBaseTimezone);
+    QString getBaseTimezone() const;
+
+    enum scheduleType {busy, free};
+
+    static QString generateScheduleQuestion(bool scheduleAsBusy, bool timezoneOn, const QString &baseTimezone);
 
 signals:
     void dayNamesChanged(const QStringList &newDayNames);
     void scheduleQuestionChanged(const QString &newScheduleQuestion);
+    void baseTimezoneChanged(const QString &newBaseTimezone);
 
 private slots:
     void daysComboBox_activated(int index);
@@ -189,7 +216,6 @@ private:
     QWidget *sc = nullptr;
     QGridLayout *scLayout = nullptr;
     QString scheduleQuestion;
-    enum {busy, free} busyOrFree = free;
     QLabel *busyOrFreeLabel = nullptr;
     QComboBox *busyOrFreeComboBox = nullptr;
     QStringList timeZoneNames;
@@ -197,7 +223,6 @@ private:
     QLabel *baseTimezoneLabel = nullptr;
     QLineEdit *customBaseTimezone = nullptr;
     ComboBoxWithElidedContents *baseTimezoneComboBox = nullptr;
-    QStringList defaultDayNames;
     QStringList dayNames;
     dayNamesDialog *daysWindow = nullptr;
     QList<QLineEdit *> dayLineEdits;
@@ -231,24 +256,32 @@ public:
     void setStudentNames(const QStringList &newStudentNames);
     QStringList getStudentNames() const;
 
+    static QString generateTeammateQuestion(bool wantToWorkWith, bool typingNames, int numClassmates);
+
 signals:
     void sectionNamesChanged(const QStringList &newSectionNames);
     void studentNamesChanged(const QStringList &newStudentNames);
 
 private:
-    enum {section, wantToWorkWith, wantToAvoid, selectFromList}; // questions in order
+    enum {section, wantToWorkWith, wantToAvoid}; // questions in order
     QComboBox *sc = nullptr;
     QList<QLineEdit *> sectionLineEdits;
     QList<QPushButton *> deleteSectionButtons;
     QPushButton *addSectionButton = nullptr;
     QStringList sectionNames;
-    QStringList studentNames;
+    int numSectionsEntered = 0;
     QLineEdit *ww = nullptr;
     QComboBox *wwc = nullptr;
     QLineEdit *wa = nullptr;
     QComboBox *wac = nullptr;
+    QLabel *numPrefTeammatesExplainer = nullptr;
+    QSpinBox *numPrefTeammatesSpinBox = nullptr;
+    int numPrefTeammates = 1;
+    LabelThatForwardsMouseClicks *selectFromRosterLabel = nullptr;
+    SwitchButton *selectFromRosterSwitch = nullptr;
     QLabel *uploadExplainer = nullptr;
     QPushButton *uploadButton = nullptr;
+    QStringList studentNames;
 
     void update();
     void deleteASection(int sectionNum);
@@ -267,14 +300,16 @@ public:
     void initializePage() override;
     void cleanupPage() override;
 
-    bool saveSurvey();
-    bool exportSurvey();
+private slots:
+    void exportSurvey();
+    void saveSurvey();
 
 private:
     QList<SurveyMakerPreviewSection *> section;
     QList<QSpacerItem *> preSectionSpacer;
     QWidget *schedGrid = nullptr;
     QGridLayout *schedGridLayout = nullptr;
+    Survey *survey = nullptr;
 };
 
 

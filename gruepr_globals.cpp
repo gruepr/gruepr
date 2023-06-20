@@ -5,8 +5,7 @@
 #include <QWebEngineView>
 #include <QWidget>
 
-bool internetIsGood()
-{
+bool internetIsGood() {
     //make sure we can connect to google
     auto *manager = new QNetworkAccessManager();
     QEventLoop loop;
@@ -16,8 +15,7 @@ bool internetIsGood()
     bool weGotProblems = (networkReply->bytesAvailable() == 0);
     delete networkReply;
     delete manager;
-    if(weGotProblems)
-    {
+    if(weGotProblems) {
         QMessageBox::critical(nullptr, QObject::tr("Error!"), QObject::tr("There does not seem to be an internet connection.\n"
                                                                           "Check your network connection and try again."));
     }
@@ -37,11 +35,9 @@ void testFunction() {
 
 
 MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent) { }
-bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e)
-{
+bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e) {
     const QWidget* widget = static_cast<QWidget*>(o);
-    if (e->type() == QEvent::Wheel && widget && !widget->hasFocus())
-    {
+    if (e->type() == QEvent::Wheel && widget && !widget->hasFocus()) {
         e->ignore();
         return true;
     }

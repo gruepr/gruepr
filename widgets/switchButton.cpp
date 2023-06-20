@@ -8,7 +8,7 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     , _duration(100)
     , _enabled(true)
 {
-    _bordercolor = GRUEPRMEDBLUE;
+    _bordercolor = OPENWATER;
 
     _tol = 0;
     _background = new SwitchBackground(this);
@@ -56,8 +56,8 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
         setFixedSize(QSize(45, 24));
     }
 
-    _labeloff->setStyleSheet("background-color: #" GRUEPRVERYLIGHTBLUEHEX "; color: #" GRUEPRMEDBLUEHEX ";");
-    _labelon->setStyleSheet("background-color: #" GRUEPRMEDBLUEHEX "; color: #" GRUEPRVERYLIGHTBLUEHEX ";");
+    _labeloff->setStyleSheet("background-color: #" BUBBLYHEX "; color: #" OPENWATERHEX ";");
+    _labelon->setStyleSheet("background-color: #" OPENWATERHEX "; color: #" BUBBLYHEX ";");
 
     if(_value) {
         _background->resize(width() - 4, 20);
@@ -97,18 +97,18 @@ void SwitchButton::paintEvent(QPaintEvent*)
     if (_enabled) {
         painter->setBrush(_bordercolor);
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
-        painter->setBrush(GRUEPRVERYLIGHTBLUE);
+        painter->setBrush(BUBBLY);
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
-        _labeloff->setStyleSheet(_labeloff->styleSheet().replace("bebebe", GRUEPRMEDBLUEHEX));
-        _labelon->setStyleSheet(_labelon->styleSheet().replace("e6e6e6", GRUEPRVERYLIGHTBLUEHEX));
+        _labeloff->setStyleSheet("background-color: #" BUBBLYHEX "; color: #" OPENWATERHEX ";");
+        _labelon->setStyleSheet("background-color: #" OPENWATERHEX "; color: #" BUBBLYHEX ";");
     }
     else {
         painter->setBrush(QColor(190, 190, 190));
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
         painter->setBrush(QColor(QColor(230, 230, 230)));
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
-        _labeloff->setStyleSheet(_labeloff->styleSheet().replace(GRUEPRMEDBLUEHEX, "bebebe"));
-        _labelon->setStyleSheet(_labelon->styleSheet().replace(GRUEPRVERYLIGHTBLUEHEX, "e6e6e6"));
+        _labeloff->setStyleSheet("background-color: #e6e6e6; color: darkgrey;");
+        _labelon->setStyleSheet("background-color: #bebebe; color: #e6e6e6;");
     }
     painter->end();
 }
@@ -217,7 +217,7 @@ SwitchButton::SwitchBackground::SwitchBackground(QWidget* parent)
 {
     setFixedHeight(20);
 
-    _bluebrush = GRUEPRMEDBLUE;
+    _bluebrush = OPENWATER;
     _graybrush = QColor(190, 190, 190);
 
     _enabled = true;
@@ -253,8 +253,8 @@ SwitchButton::SwitchCircle::SwitchCircle(QWidget* parent)
 {
     setFixedSize(20, 20);
 
-    _bluebrush = GRUEPRMEDBLUE;
-    _whitebrush = GRUEPRVERYLIGHTBLUE;
+    _bluebrush = OPENWATER;
+    _whitebrush = BUBBLY;
     _graybrush = QColor(230, 230, 230);
 
     _enabled = true;

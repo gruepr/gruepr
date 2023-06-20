@@ -15,14 +15,16 @@ registerDialog::registerDialog(QWidget *parent)
     setWindowTitle(tr("Register your copy of gruepr"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     theBox = new QVBoxLayout(this);
+    setStyleSheet("background-color: white");
 
     explanation = new QLabel(this);
     explanation->setStyleSheet(LABELSTYLE);
-    explanation->setText(tr("\nThank you for registering your copy of gruepr.\n"
-                            "Doing so enables me to best support\nthe community of educators that uses it.\n"
+    explanation->setText(tr("Thank you for registering your copy of gruepr. "
+                            "Doing so enables me to best support the community of educators that uses it. "
                             "This information will never be sold or shared.\n"
                             "\t-Josh\n"
                             "\t info@gruepr.com\n"));
+    explanation->setWordWrap(true);
     theBox->addWidget(explanation);
 
     name = new QLineEdit(this);
@@ -44,12 +46,13 @@ registerDialog::registerDialog(QWidget *parent)
     QRegularExpression emailAddressFormat(EMAILADDRESSREGEX, QRegularExpression::CaseInsensitiveOption);
     email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
     connect(email, &QLineEdit::textChanged, this, [this]()
-                                             {QString stylecolor = (email->hasAcceptableInput())? "black" : "red";
-                                              email->setStyleSheet("QLineEdit {color: " + stylecolor + ";}"); });
+                                             {QString stylesheet = (email->hasAcceptableInput())? LINEEDITSTYLE : LINEEDITERRORSTYLE;
+                                              email->setStyleSheet(stylesheet); });
 
     //a spacer then ok/cancel buttons
     theBox->addSpacing(DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    buttonBox->setStyleSheet("background-color: #" BUBBLYHEX ";");
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLE);

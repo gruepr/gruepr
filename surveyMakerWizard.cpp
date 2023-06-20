@@ -1,18 +1,20 @@
 #include "surveyMakerWizard.h"
 #include "gruepr_globals.h"
-#include <QGroupBox>
 #include <QApplication>
+#include <QFile>
+#include <QFileDialog>
+#include <QGroupBox>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <QRadioButton>
+#include <QSettings>
 
-//finish previewpage: upload and save functionality
-//add load functionality to intro page
+//implement export functionality
 //make multichoice sample questions dialog
-//make multichoice custom response options dialog
+//finish load functionaloity: preload student names into ui
 //make upload roster ui
-
-//Create RegEx for punctuation not allowed within a URL
-QRegularExpressionValidator SurveyMakerWizard::noInvalidPunctuation = QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"));
+//crash when loading test.gru then springproj.gru--doesn't crash when disabling loading of multichoice questions
 
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     : QWizard(parent)
@@ -22,12 +24,16 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setMinimumWidth(800);
     setMinimumHeight(600);
 
+    QSettings savedSettings;
+    restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
+    saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
+
     auto palette = this->palette();
     palette.setColor(QPalette::Window, Qt::white);
     palette.setColor(QPalette::Mid, palette.color(QPalette::Base));
     setPalette(palette);
 
-    setPage(Page::intro, new IntroPage);
+    setPage(Page::introtitle, new IntroPage);
     setPage(Page::demographics, new DemographicsPage);
     setPage(Page::multichoice, new MultipleChoicePage);
     setPage(Page::schedule, new SchedulePage);
@@ -35,53 +41,252 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setPage(Page::previewexport, new PreviewAndExportPage);
 
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::FinishButton;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::BackButton << QWizard::NextButton;
     setButtonLayout(buttonLayout);
 
-    button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" GRUEPRDARKBLUEHEX "; "));
-    setButtonText(QWizard::CancelButton, "\u00AB  Cancel");
+    button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
+    setButtonText(QWizard::CancelButton, "\u00AB  " + tr("Home"));
+    button(QWizard::CustomButton1)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
+    setButtonText(QWizard::CustomButton1, tr("Load Previous Survey"));
+    connect(this, &QWizard::customButtonClicked, this, &SurveyMakerWizard::loadSurvey);
     button(QWizard::BackButton)->setStyleSheet(STDBUTTONSTYLE);
-    setButtonText(QWizard::BackButton, "\u2B60  Previous Step");
+    setButtonText(QWizard::BackButton, "\u2B60  " + tr("Previous Step"));
     setOption(QWizard::NoBackButtonOnStartPage);
     button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
-    setButtonText(QWizard::NextButton, "Next Step  \u2B62");
-    button(QWizard::FinishButton)->setStyleSheet(NEXTBUTTONSTYLE);
+    setButtonText(QWizard::NextButton, tr("Next Step") + "  \u2B62");
 }
 
-void SurveyMakerWizard::badExpression(QWidget *textWidget, QString &currText, QWidget *parent)
+SurveyMakerWizard::~SurveyMakerWizard()
 {
-    auto *lineEdit = qobject_cast<QLineEdit*>(textWidget);
+    QSettings savedSettings;
+    savedSettings.setValue("surveyMakerWindowGeometry", saveGeometry());
+    savedSettings.setValue("surveyMakerSaveFileLocation", saveFileLocation.canonicalFilePath());
+}
+
+void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent)
+{
+    auto *lineEdit = qobject_cast<QLineEdit *>(textWidget);
     if(lineEdit != nullptr)
     {
         lineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
     }
-    /*else
+
+    auto *textEdit = qobject_cast<QTextEdit *>(textWidget);
+    if(textEdit != nullptr)
     {
-        auto *textEdit = qobject_cast<QTextEdit*>(textWidget);
         if(textEdit != nullptr)
         {
-            textEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
+            textEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/').remove('\n').remove('\r'));
         }
-    }*/
+    }
+
     QApplication::beep();
     QMessageBox::warning(parent, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
-                                                      "    ,  &  <  > / \n"
-                                                      "Other punctuation is allowed."));
+                                                        "    ,  &  <  > / {enter} \n"
+                                                        "Other punctuation is allowed."));
+}
+
+void SurveyMakerWizard::loadSurvey(int customButton)
+{
+    //make sure we got here with custombutton1
+    if(customButton != QWizard::CustomButton1)
+    {
+        return;
+    }
+
+    //read all options from a text file
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    if( !(fileName.isEmpty()) )
+    {
+        QFile loadFile(fileName);
+        if(loadFile.open(QIODevice::ReadOnly))
+        {
+            saveFileLocation.setFile(QFileInfo(fileName).canonicalPath());
+            QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
+            QJsonObject loadObject = loadDoc.object();
+
+            if(loadObject.contains("Title") && loadObject["Title"].isString())
+            {
+                setField("SurveyTitle", loadObject["Title"].toString());
+            }
+            if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool())
+            {
+                setField("FirstName", loadObject["FirstName"].toBool());
+            }
+            if(loadObject.contains("LastName") && loadObject["LastName"].isBool())
+            {
+                setField("LastName", loadObject["LastName"].toBool());
+            }
+            if(loadObject.contains("Email") && loadObject["Email"].isBool())
+            {
+                setField("Email", loadObject["Email"].toBool());
+            }
+            if(loadObject.contains("Gender") && loadObject["Gender"].isBool())
+            {
+                setField("Gender", loadObject["Gender"].toBool());
+            }
+            if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble())
+            {
+                setField("genderOptions", loadObject["GenderType"].toInt());
+            }
+            if(loadObject.contains("URM") && loadObject["URM"].isBool())
+            {
+                setField("RaceEthnicity", loadObject["URM"].toBool());
+            }
+
+            if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble())
+            {
+                int numMultiChoiceQuestions = loadObject["numAttributes"].toInt();
+                setField("multiChoiceNumQuestions", numMultiChoiceQuestions);   // need to set the number before setting the texts, responses, or multis
+                QList<QString> multiChoiceQuestionTexts;
+                QList<QList<QString>> multiChoiceQuestionResponses;
+                QList<bool> multiChoiceQuestionMultis;
+                auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
+                for(int question = 0; question < numMultiChoiceQuestions; question++)
+                {
+                    multiChoiceQuestionTexts << "";
+                    if(loadObject.contains("Attribute" + QString::number(question+1)+"Question") &&
+                        loadObject["Attribute" + QString::number(question+1)+"Question"].isString())
+                    {
+                        multiChoiceQuestionTexts.last() = loadObject["Attribute" + QString::number(question+1)+"Question"].toString();
+                    }
+
+                    multiChoiceQuestionResponses << QStringList({""});
+                    if(loadObject.contains("Attribute" + QString::number(question+1)+"Response") &&
+                        loadObject["Attribute" + QString::number(question+1)+"Response"].isDouble())
+                    {
+                        auto responseIndex = loadObject["Attribute" + QString::number(question+1)+"Response"].toInt() - 1;  // "-1" for historical reasons :(
+                        if((responseIndex >= 0) && (responseIndex < responseOptions.size()-1))
+                        {
+                            multiChoiceQuestionResponses.last() = responseOptions[responseIndex].split(" / ");
+                        }
+                        else if(loadObject.contains("Attribute" + QString::number(question+1)+"Options") &&
+                             loadObject["Attribute" + QString::number(question+1)+"Options"].isString())
+                        {
+                            multiChoiceQuestionResponses.last() = loadObject["Attribute" + QString::number(question+1)+"Options"].toString().split(" / ");
+                        }
+                    }
+                    multiChoiceQuestionMultis << false;
+                    if(loadObject.contains("Attribute" + QString::number(question+1)+"AllowMultiResponse") &&
+                        loadObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"].isBool())
+                    {
+                        multiChoiceQuestionMultis.last() = loadObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"].toBool();
+                    }
+                }
+                setField("multiChoiceQuestionTexts", multiChoiceQuestionTexts);
+                setField("multiChoiceQuestionResponses", QVariant::fromValue<QList<QList<QString>>>(multiChoiceQuestionResponses));
+                setField("multiChoiceQuestionMultis", QVariant::fromValue<QList<bool>>(multiChoiceQuestionMultis));
+            }
+
+            if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool())
+            {
+                setField("Timezone", loadObject["Timezone"].toBool());
+            }
+            if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
+            {
+                setField("Schedule", loadObject["Schedule"].toBool());
+            }
+            if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
+            {
+                setField("scheduleBusyOrFree", loadObject["ScheduleAsBusy"].toBool()? SchedulePage::busy : SchedulePage::free);
+            }
+            QStringList scheduleDayNames;
+            for(int day = 0; day < MAX_DAYS; day++)
+            {
+                QString dayString1 = "scheduleDay" + QString::number(day+1);
+                QString dayString2 = dayString1 + "Name";
+                if(loadObject.contains(dayString2) && loadObject[dayString2].isString())
+                {
+                    scheduleDayNames << loadObject[dayString2].toString();
+                    //older style was to include day name AND a bool that could turn off the day
+                    if(loadObject.contains(dayString1) && loadObject[dayString1].isBool())
+                    {
+                        if(!loadObject[dayString1].toBool())
+                        {
+                            scheduleDayNames.last() = "";
+                        }
+                    }
+                }
+                else
+                {
+                    scheduleDayNames << "";
+                    if(loadObject.contains(dayString1) && loadObject[dayString1].isBool())
+                    {
+                        if(loadObject[dayString1].toBool())
+                        {
+                            scheduleDayNames.last() = defaultDayNames.at(day);
+                        }
+                    }
+                }
+            }
+            setField("scheduleDayNames", scheduleDayNames);
+            if(loadObject.contains("scheduleStartHour") && loadObject["scheduleStartHour"].isDouble())
+            {
+                setField("scheduleFrom", loadObject["scheduleStartHour"].toInt());
+            }
+            if(loadObject.contains("scheduleEndHour") && loadObject["scheduleEndHour"].isDouble())
+            {
+                setField("scheduleTo", loadObject["scheduleEndHour"].toInt());
+            }
+            if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString())
+            {
+                setField("baseTimezone", loadObject["baseTimezone"].toString());
+            }
+            if(loadObject.contains("scheduleQuestion") && loadObject["scheduleQuestion"].isString())
+            {
+                setField("ScheduleQuestion", loadObject["scheduleQuestion"].toString());
+            }
+            else
+            {
+                setField("ScheduleQuestion", SchedulePage::generateScheduleQuestion(field("scheduleBusyOrFree").toInt() == SchedulePage::busy,
+                                                                                    field("Timezone").toBool(),
+                                                                                    field("baseTimezone").toString()));
+            }
+
+            if(loadObject.contains("Section") && loadObject["Section"].isBool())
+            {
+                setField("Section", loadObject["Section"].toBool());
+            }
+            if(loadObject.contains("SectionNames") && loadObject["SectionNames"].isString())
+            {
+                setField("SectionNames", loadObject["SectionNames"].toString().split(','));
+            }
+
+            if(loadObject.contains("PreferredTeammates") && loadObject["PreferredTeammates"].isBool())
+            {
+                setField("PrefTeammate", loadObject["PreferredTeammates"].toBool());
+            }
+            if(loadObject.contains("PreferredNonTeammates") && loadObject["PreferredNonTeammates"].isBool())
+            {
+                setField("PrefNonTeammate", loadObject["PreferredNonTeammates"].toBool());
+            }
+            if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble())
+            {
+                setField("numPrefTeammates", loadObject["numPrefTeammates"].toInt());
+            }
+
+            loadFile.close();
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("File Error"), tr("This file cannot be read."));
+        }
+    }
 }
 
 
-SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, int numQuestions, QWidget *parent)
+SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
     : QWizardPage(parent),
-    numQuestions(numQuestions)
+    numQuestions(SurveyMakerWizard::numOfQuestionsInPage[page])
 {
-    QString title = "<span style=\"color: #" GRUEPRDARKBLUEHEX "\">";
+    QString title = "<span style=\"color: #" DEEPWATERHEX "\">";
     for(int i = 0; i < SurveyMakerWizard::pageNames.count(); i++) {
         if(i > 0) {
             title += " &emsp;/&emsp; ";
         }
         title += SurveyMakerWizard::pageNames[i];
         if(i == page) {
-            title += "</span><span style=\"color: #" GRUEPRMEDBLUEHEX "\">";
+            title += "</span><span style=\"color: #" OPENWATERHEX "\">";
         }
     }
     title += "</span>";
@@ -137,23 +342,25 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, int numQuestions,
         layout->setColumnStretch(0,1);
         layout->setColumnStretch(1,1);
 
-        for(int i = 0; i < numQuestions; i++) {
-            questions << new SurveyMakerQuestionWithSwitch;
-            questionPreviews << new QWidget;
-            questionPreviewLayouts << new QVBoxLayout;
-            questionPreviewTopLabels << new QLabel;
-            questionPreviewBottomLabels << new QLabel;
+        if(page != SurveyMakerWizard::Page::multichoice) {
+            for(int i = 0; i < numQuestions; i++) {
+                questions << new SurveyMakerQuestionWithSwitch;
+                questionPreviews << new QWidget;
+                questionPreviewLayouts << new QVBoxLayout;
+                questionPreviewTopLabels << new QLabel;
+                questionPreviewBottomLabels << new QLabel;
 
-            questionLayout->addSpacing(10);
-            questionLayout->addWidget(questions.last());
+                questionLayout->addSpacing(10);
+                questionLayout->addWidget(questions.last());
 
-            questionPreviews.last()->setLayout(questionPreviewLayouts.last());
-            previewLayout->addWidget(questionPreviews.last());
-            questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
-            questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
-            questionPreviewTopLabels.last()->setStyleSheet(LABELSTYLE);
-            questionPreviewBottomLabels.last()->setStyleSheet(LABELSTYLE);
-            connect(questions.last(), &SurveyMakerQuestionWithSwitch::valueChanged, questionPreviews.last(), &QWidget::setVisible);
+                questionPreviews.last()->setLayout(questionPreviewLayouts.last());
+                previewLayout->addWidget(questionPreviews.last());
+                questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
+                questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
+                questionPreviewTopLabels.last()->setStyleSheet(LABELSTYLE);
+                questionPreviewBottomLabels.last()->setStyleSheet(LABELSTYLE);
+                connect(questions.last(), &SurveyMakerQuestionWithSwitch::valueChanged, questionPreviews.last(), &QWidget::setVisible);
+            }
         }
         questionLayout->addStretch(1);
         previewLayout->addStretch(1);
@@ -170,14 +377,14 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, int numQuestions,
 IntroPage::IntroPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    QString title = "<span style=\"color: #" GRUEPRDARKBLUEHEX "\">";
+    QString title = "<span style=\"color: #" DEEPWATERHEX "\">";
     for(int i = 0, j = SurveyMakerWizard::pageNames.count(); i < j; i++) {
         if(i > 0) {
             title += " &emsp;/&emsp; ";
         }
         title += SurveyMakerWizard::pageNames[i];
         if(i == 0) {
-            title += "</span><span style=\"color: #" GRUEPRMEDBLUEHEX "\">";
+            title += "</span><span style=\"color: #" OPENWATERHEX "\">";
         }
     }
     pageTitle = new QLabel(title, this);
@@ -188,13 +395,13 @@ IntroPage::IntroPage(QWidget *parent)
     pageTitle->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
     bannerLeft = new QLabel;
-    bannerLeft->setStyleSheet("QLabel {background-color: #" GRUEPRDARKBLUEHEX ";}");
+    bannerLeft->setStyleSheet("QLabel {background-color: #" DEEPWATERHEX ";}");
     QPixmap leftPixmap(":/icons_new/BannerLeft.png");
     bannerLeft->setPixmap(leftPixmap.scaledToHeight(120, Qt::SmoothTransformation));
     bannerLeft->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     bannerLeft->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     bannerRight = new QLabel;
-    bannerRight->setStyleSheet("QLabel {background-color: #" GRUEPRDARKBLUEHEX ";}");
+    bannerRight->setStyleSheet("QLabel {background-color: #" DEEPWATERHEX ";}");
     QPixmap rightPixmap(":/icons_new/BannerRight.png");
     bannerRight->setPixmap(rightPixmap.scaledToHeight(120, Qt::SmoothTransformation));
     bannerRight->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -210,7 +417,7 @@ IntroPage::IntroPage(QWidget *parent)
     banner->setAlignment(Qt::AlignCenter);
     banner->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     banner->setWordWrap(true);
-    banner->setStyleSheet("QLabel {background-color: #" GRUEPRDARKBLUEHEX "; color: white;}");
+    banner->setStyleSheet("QLabel {background-color: #" DEEPWATERHEX "; color: white;}");
     auto *bannerLayout = new QHBoxLayout;
     bannerLayout->setSpacing(0);
     bannerLayout->setContentsMargins(0, 0, 0, 0);
@@ -219,19 +426,19 @@ IntroPage::IntroPage(QWidget *parent)
     bannerLayout->addWidget(bannerRight);
 
     topLabel = new QLabel(this);
-    topLabel->setText("<span style=\"color: #" GRUEPRDARKBLUEHEX "; font-size: 12pt; font-family: DM Sans;\">" +
+    topLabel->setText("<span style=\"color: #" DEEPWATERHEX "; font-size: 12pt; font-family: DM Sans;\">" +
                       tr("Survey Name") + "</span>");
     topLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     surveyTitle = new QLineEdit(this);
     surveyTitle->setPlaceholderText(tr("Enter Text"));
-    surveyTitle->setStyleSheet("color: #" GRUEPRDARKBLUEHEX "; font-size: 14pt; font-family: DM Sans; "
-                               "border-style: outset; border-width: 2px; border-color: #" GRUEPRDARKBLUEHEX "; ");
+    surveyTitle->setStyleSheet("color: #" DEEPWATERHEX "; font-size: 14pt; font-family: DM Sans; "
+                               "border-style: outset; border-width: 2px; border-color: #" DEEPWATERHEX "; ");
     surveyTitle->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     registerField("SurveyTitle", surveyTitle);
 
     bottomLabel = new QLabel(this);
-    bottomLabel->setText("<span style=\"color: #" GRUEPRDARKBLUEHEX "; font-size: 10pt; font-family: DM Sans\">" +
+    bottomLabel->setText("<span style=\"color: #" DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans\">" +
                          tr("This will be the name of the survey you send to your students!") + "</span>");
     bottomLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
@@ -262,13 +469,12 @@ IntroPage::IntroPage(QWidget *parent)
 
 void IntroPage::initializePage()
 {
-    auto *wiz = wizard();
-    connect(getStartedButton, &QPushButton::clicked, wiz, &QWizard::next);
+    connect(getStartedButton, &QPushButton::clicked, wizard(), &QWizard::next);
 }
 
 
 DemographicsPage::DemographicsPage(QWidget *parent)
-    : SurveyMakerPage(SurveyMakerWizard::Page::demographics, 5, parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::demographics, parent)
 {
     questions[firstname]->setLabel(tr("First name"));
     questionPreviewTopLabels[firstname]->setText(tr("First name"));
@@ -307,7 +513,6 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     registerField("Email", questions[email], "value", "valueChanged");
 
     questions[gender]->setLabel(tr("Gender"));
-    connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
     auto *genderResponses = new QWidget;
     auto *genderResponsesLayout = new QHBoxLayout(genderResponses);
     genderResponsesLabel = new QLabel(tr("Ask as: "));
@@ -327,6 +532,9 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     connect(genderResponsesComboBox, &QComboBox::currentIndexChanged, this, &DemographicsPage::update);
     questionPreviewTopLabels[gender]->setText(tr("Gender"));
     questionPreviewLayouts[gender]->addWidget(questionPreviewTopLabels[gender]);
+    connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
+    connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesLabel, &QLabel::setEnabled);
+    connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesComboBox, &QComboBox::setEnabled);
     ge = new QComboBox;
     ge->addItem(PRONOUNQUESTION);
     ge->setStyleSheet(COMBOBOXSTYLE);
@@ -356,10 +564,13 @@ void DemographicsPage::initializePage()
 {
     auto *wiz = wizard();
     auto palette = wiz->palette();
-    palette.setColor(QPalette::Window, GRUEPRDARKBLUE);
+    palette.setColor(QPalette::Window, DEEPWATER);
     wiz->setPalette(palette);
     wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
     wiz->button(QWizard::CancelButton)->setStyleSheet(STDBUTTONSTYLE);
+    QList<QWizard::WizardButton> buttonLayout;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    wiz->setButtonLayout(buttonLayout);
 }
 
 void DemographicsPage::cleanupPage()
@@ -369,14 +580,14 @@ void DemographicsPage::cleanupPage()
     palette.setColor(QPalette::Window, Qt::white);
     wiz->setPalette(palette);
     wiz->button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
-    wiz->button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" GRUEPRDARKBLUEHEX "; "));
-    wiz->button(QWizard::CustomButton1)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" GRUEPRDARKBLUEHEX "; "));
+    wiz->button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
+    QList<QWizard::WizardButton> buttonLayout;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::BackButton << QWizard::NextButton;
+    wiz->setButtonLayout(buttonLayout);
 }
 
 void DemographicsPage::update()
 {
-    genderResponsesLabel->setEnabled(questions[gender]->getValue());
-    genderResponsesComboBox->setEnabled(questions[gender]->getValue());
     ge->clear();
     GenderType genderType = static_cast<GenderType>(genderResponsesComboBox->currentIndex());
     if(genderType == GenderType::biol)
@@ -403,11 +614,11 @@ void DemographicsPage::update()
 
 
 MultipleChoicePage::MultipleChoicePage(QWidget *parent)
-    : SurveyMakerPage(SurveyMakerWizard::Page::multichoice, 0, parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::multichoice, parent)
 {
     auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     sampleQuestionsFrame = new QFrame(this);
-    sampleQuestionsFrame->setStyleSheet("background-color: " + (QColor::fromString("#"+QString(GRUEPRYELLOWHEX)).lighter(133).name()) + "; color: #" GRUEPRDARKBLUEHEX ";");
+    sampleQuestionsFrame->setStyleSheet("background-color: " + (QColor::fromString("#"+QString(STARFISHHEX)).lighter(133).name()) + "; color: #" DEEPWATERHEX ";");
     sampleQuestionsIcon = new QLabel;
     sampleQuestionsIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
     sampleQuestionsLabel = new QLabel(tr("Unsure of what to ask? Take a look at some example questions!"));
@@ -475,7 +686,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     }
 
     addQuestionButtonFrame = new QFrame(this);
-    addQuestionButtonFrame->setStyleSheet("background-color: #" GRUEPRVERYLIGHTBLUEHEX "; color: #" GRUEPRDARKBLUEHEX ";");
+    addQuestionButtonFrame->setStyleSheet("background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";");
     addQuestionButtonLayout = new QHBoxLayout(addQuestionButtonFrame);
     addQuestionButton = new QPushButton;
     addQuestionButton->setStyleSheet(ADDBUTTONSTYLE);
@@ -491,13 +702,22 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     addQuestion();
 }
 
+void MultipleChoicePage::initializePage()
+{
+}
+
 void MultipleChoicePage::cleanupPage()
 {
 }
 
 void MultipleChoicePage::setNumQuestions(const int newNumQuestions)
 {
-    numQuestions = newNumQuestions;
+    while(numQuestions > 0) {
+        deleteAQuestion(0);
+    }
+    while(numQuestions < newNumQuestions) {
+        addQuestion();
+    }
     emit numQuestionsChanged(numQuestions);
 }
 
@@ -508,6 +728,14 @@ int MultipleChoicePage::getNumQuestions() const
 
 void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts)
 {
+    int i = 0;
+    for(const auto &newQuestionText : newQuestionTexts) {
+        if(i >= numQuestions) {
+            addQuestion();
+        }
+        multichoiceQuestions[i]->setQuestion(newQuestionText);
+        i++;
+    }
     questionTexts = newQuestionTexts;
     emit questionTextsChanged(questionTexts);
 }
@@ -519,6 +747,14 @@ QList<QString> MultipleChoicePage::getQuestionTexts() const
 
 void MultipleChoicePage::setQuestionResponses(const QList<QList<QString>> &newQuestionResponses)
 {
+    int i = 0;
+    for(const auto &newQuestionResponse : newQuestionResponses) {
+        if(i >= numQuestions) {
+            addQuestion();
+        }
+        multichoiceQuestions[i]->setResponses(newQuestionResponse);
+        i++;
+    }
     questionResponses = newQuestionResponses;
     emit questionResponsesChanged(questionResponses);
 }
@@ -530,6 +766,14 @@ QList<QList<QString>> MultipleChoicePage::getQuestionResponses() const
 
 void MultipleChoicePage::setQuestionMultis(const QList<bool> &newQuestionMultis)
 {
+    int i = 0;
+    for(const auto &newQuestionMulti : newQuestionMultis) {
+        if(i >= numQuestions) {
+            addQuestion();
+        }
+        multichoiceQuestions[i]->setMulti(newQuestionMulti);
+        i++;
+    }
     questionMultis = newQuestionMultis;
     emit questionMultisChanged(questionMultis);
 }
@@ -581,7 +825,7 @@ void MultipleChoicePage::deleteAQuestion(int questionNum)
 
 
 SchedulePage::SchedulePage(QWidget *parent)
-    : SurveyMakerPage(SurveyMakerWizard::Page::schedule, 2, parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::schedule, parent)
 {
     questions[timezone]->setLabel(tr("Timezone"));
     connect(questions[timezone], &SurveyMakerQuestionWithSwitch::valueChanged, this, &SchedulePage::update);
@@ -591,14 +835,14 @@ SchedulePage::SchedulePage(QWidget *parent)
     tz->addItem(TIMEZONEQUESTION);
     tz->setStyleSheet(COMBOBOXSTYLE);
     questionPreviewLayouts[timezone]->addWidget(tz);
-    questionPreviewBottomLabels[timezone]->setText(tr("Dropdown options: List of global timezones"));
+    questionPreviewBottomLabels[timezone]->setText(tr("Options: List of global timezones"));
     questionPreviewLayouts[timezone]->addWidget(questionPreviewBottomLabels[timezone]);
     questionPreviews[timezone]->hide();
     registerField("Timezone", questions[timezone], "value", "valueChanged");
 
     questions[schedule]->setLabel(tr("Schedule"));
     connect(questions[schedule], &SurveyMakerQuestionWithSwitch::valueChanged, this, &SchedulePage::update);
-    questionPreviewTopLabels[schedule]->setText(QString(SCHEDULEQUESTION1) + SCHEDULEQUESTION2FREE + SCHEDULEQUESTION3);
+    questionPreviewTopLabels[schedule]->setText(generateScheduleQuestion(false, false, ""));
     questionPreviewLayouts[schedule]->addWidget(questionPreviewTopLabels[schedule]);
     sc = new QWidget;
     scLayout = new QGridLayout(sc);
@@ -641,7 +885,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     busyOrFreeComboBox = new QComboBox;
     busyOrFreeComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     busyOrFreeComboBox->installEventFilter(new MouseWheelBlocker(busyOrFreeComboBox));
-    busyOrFreeComboBox->addItems({tr("Free"), tr("Busy")});
+    busyOrFreeComboBox->insertItem(busy, tr("Busy"));
+    busyOrFreeComboBox->insertItem(free, tr("Free"));
     busyOrFreeComboBox->setStyleSheet(COMBOBOXSTYLE);
     busyOrFreeComboBox->setEnabled(false);
     busyOrFreeComboBox->setCurrentIndex(0);
@@ -683,7 +928,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     customBaseTimezone->setPlaceholderText(tr("Custom timezone"));
     questions[schedule]->addWidget(customBaseTimezone, row++, 0, true);
     customBaseTimezone->hide();
-    connect(customBaseTimezone, &QLineEdit::textEdited, this, &SchedulePage::update);
+    connect(customBaseTimezone, &QLineEdit::textChanged, this, &SchedulePage::update);
+    registerField("baseTimezone", this, "baseTimezone", "baseTimezoneChanged");
     registerField("ScheduleQuestion", this, "scheduleQuestion", "scheduleQuestionChanged");
 
     timespanLabel = new QLabel(tr("Timespan:"));
@@ -700,15 +946,13 @@ SchedulePage::SchedulePage(QWidget *parent)
     questions[schedule]->addWidget(daysComboBox, row++, 0, true, Qt::AlignLeft);
     connect(daysComboBox, &QComboBox::activated, this, &SchedulePage::daysComboBox_activated);
 
-    //load in local (default) day names, and connect subwindow ui to slots
-    defaultDayNames.reserve(MAX_DAYS);
+    //connect subwindow ui to slots
     dayNames.reserve(MAX_DAYS);
     dayCheckBoxes.reserve(MAX_DAYS);
     dayLineEdits.reserve(MAX_DAYS);
     for(int day = 0; day < MAX_DAYS; day++)
     {
-        defaultDayNames << SurveyMakerWizard::sunday.addDays(day).toString("dddd");
-        dayNames << defaultDayNames.at(day);
+        dayNames << SurveyMakerWizard::defaultDayNames.at(day);
         dayCheckBoxes << new QCheckBox;
         dayLineEdits <<  new QLineEdit;
         dayCheckBoxes.last()->setStyleSheet(CHECKBOXSTYLE);
@@ -716,9 +960,12 @@ SchedulePage::SchedulePage(QWidget *parent)
         dayLineEdits.last()->setStyleSheet(LINEEDITSTYLE);
         dayLineEdits.last()->setText(dayNames.at(day));
         dayLineEdits.last()->setPlaceholderText(tr("Day ") + QString::number(day + 1) + tr(" name"));
-        connect(dayLineEdits.last(), &QLineEdit::textChanged, this, [this, day](const QString &text) {day_LineEdit_textChanged(text, dayLineEdits[day], dayNames[day]);});
-        connect(dayLineEdits.last(), &QLineEdit::editingFinished, this, [this, day] {if(dayNames.at(day).isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
-        connect(dayCheckBoxes.last(), &QCheckBox::toggled, this, [this, day](bool checked) {day_CheckBox_toggled(checked, dayLineEdits[day], defaultDayNames.at(day));});
+        connect(dayLineEdits.last(), &QLineEdit::textChanged, this, [this, day](const QString &text)
+                                        {day_LineEdit_textChanged(text, dayLineEdits[day], dayNames[day]);});
+        connect(dayLineEdits.last(), &QLineEdit::editingFinished, this, [this, day]
+                                        {if(dayNames.at(day).isEmpty()){dayCheckBoxes[day]->setChecked(false);};});
+        connect(dayCheckBoxes.last(), &QCheckBox::toggled, this, [this, day](bool checked)
+                                        {day_CheckBox_toggled(checked, dayLineEdits[day], SurveyMakerWizard::defaultDayNames.at(day));});
     }
     daysWindow = new dayNamesDialog(dayCheckBoxes, dayLineEdits, this);
     registerField("scheduleDayNames", this, "dayNames", "dayNamesChanged");
@@ -769,6 +1016,14 @@ void SchedulePage::cleanupPage()
 void SchedulePage::setDayNames(const QStringList &newDayNames)
 {
     dayNames = newDayNames;
+    while(dayNames.size() < MAX_DAYS) {
+        dayNames << "";
+    }
+    for(int i = 0; i < MAX_DAYS; i++) {
+        dayLineEdits[i]->setText(dayNames[i]);
+        dayCheckBoxes[i]->setChecked(!dayNames[i].isEmpty());
+    }
+    emit dayNamesChanged(dayNames);
 }
 
 QStringList SchedulePage::getDayNames() const
@@ -779,11 +1034,36 @@ QStringList SchedulePage::getDayNames() const
 void SchedulePage::setScheduleQuestion(const QString &newScheduleQuestion)
 {
     scheduleQuestion = newScheduleQuestion;
+    questionPreviewTopLabels[schedule]->setText(scheduleQuestion);
+    emit scheduleQuestionChanged(scheduleQuestion);
 }
 
 QString SchedulePage::getScheduleQuestion() const
 {
     return scheduleQuestion;
+}
+
+void SchedulePage::setBaseTimezone(const QString &newBaseTimezone)
+{
+    int index = baseTimezoneComboBox->findText(newBaseTimezone, Qt::MatchFixedString);
+    if(index != -1) {
+        baseTimezoneComboBox->setCurrentIndex(index);
+    }
+    else {
+        baseTimezoneComboBox->setCurrentIndex(1);
+        customBaseTimezone->show();
+        customBaseTimezone->setEnabled(baseTimezoneComboBox->isEnabled());
+        customBaseTimezone->setText(newBaseTimezone);
+    }
+    QString newScheduleQuestion = generateScheduleQuestion(busyOrFreeComboBox->currentIndex() == busy, questions[timezone]->getValue(), newBaseTimezone);
+    setScheduleQuestion(newScheduleQuestion);
+    baseTimezone = newBaseTimezone;
+    emit baseTimezoneChanged(newBaseTimezone);
+}
+
+QString SchedulePage::getBaseTimezone() const
+{
+    return baseTimezone;
 }
 
 void SchedulePage::daysComboBox_activated(int index)
@@ -868,7 +1148,7 @@ void SchedulePage::day_LineEdit_textChanged(const QString &text, QLineEdit *dayL
     int currPos = 0;
     if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable)
     {
-        SurveyMakerWizard::badExpression(dayLineEdit, currText, this);
+        SurveyMakerWizard::invalidExpression(dayLineEdit, currText, this);
     }
     dayname = currText.trimmed();
     update();
@@ -920,18 +1200,8 @@ void SchedulePage::update()
         baseTimezone = baseTimezoneComboBox->currentText();
         break;
     }
-    QString previewlabelText = SCHEDULEQUESTION1;
-    previewlabelText += ((busyOrFreeComboBox->currentIndex() == 0)? SCHEDULEQUESTION2FREE : SCHEDULEQUESTION2BUSY);
-    previewlabelText += SCHEDULEQUESTION3;
-    if(timezoneOn && scheduleOn) {
-        previewlabelText += SCHEDULEQUESTION4 + baseTimezone;
-        if(baseTimezoneComboBox->currentIndex() != 1)
-        {
-            previewlabelText += SCHEDULEQUESTION5;
-        }
-    }
-    questionPreviewTopLabels[schedule]->setText(previewlabelText);
-    scheduleQuestion = previewlabelText;
+    scheduleQuestion = generateScheduleQuestion(busyOrFreeComboBox->currentIndex() == busy, timezoneOn, baseTimezone);
+    questionPreviewTopLabels[schedule]->setText(scheduleQuestion);
 
     busyOrFreeLabel->setEnabled(scheduleOn);
     busyOrFreeComboBox->setEnabled(scheduleOn);
@@ -943,47 +1213,33 @@ void SchedulePage::update()
     toComboBox->setEnabled(scheduleOn);
 }
 
+QString SchedulePage::generateScheduleQuestion(bool scheduleAsBusy, bool timezoneOn, const QString &baseTimezone)
+{
+    QString questionText = SCHEDULEQUESTION1;
+    questionText += (scheduleAsBusy? SCHEDULEQUESTION2BUSY : SCHEDULEQUESTION2FREE);
+    questionText += SCHEDULEQUESTION3;
+    if(timezoneOn) {
+        questionText += SCHEDULEQUESTION4 + baseTimezone;
+    }
+    return questionText;
+}
+
+
 CourseInfoPage::CourseInfoPage(QWidget *parent)
-    : SurveyMakerPage(SurveyMakerWizard::Page::courseinfo, 4, parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::courseinfo, parent)
 {
     questions[section]->setLabel(tr("Section"));
     connect(questions[section], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
+    addSectionButton = new QPushButton;
+    addSectionButton->setStyleSheet(ADDBUTTONSTYLE);
+    addSectionButton->setText(tr("Add section"));
+    addSectionButton->setIcon(QIcon(":/icons_new/addButton.png"));
+    addSectionButton->setEnabled(false);
+    questions[section]->addWidget(addSectionButton, 1, 0, false, Qt::AlignLeft);
+    connect(addSectionButton, &QPushButton::clicked, this, &CourseInfoPage::addASection);
     sectionLineEdits.reserve(10);
     deleteSectionButtons.reserve(10);
     sectionNames.reserve(10);
-    sectionLineEdits.append(new QLineEdit);
-    sectionLineEdits.append(new QLineEdit);
-    deleteSectionButtons.append(new QPushButton);
-    deleteSectionButtons.append(new QPushButton);
-    addSectionButton = new QPushButton;
-    sectionLineEdits[0]->setStyleSheet(LINEEDITSTYLE);
-    sectionLineEdits[1]->setStyleSheet(LINEEDITSTYLE);
-    deleteSectionButtons[0]->setStyleSheet(DELBUTTONSTYLE);
-    deleteSectionButtons[1]->setStyleSheet(DELBUTTONSTYLE);
-    addSectionButton->setStyleSheet(ADDBUTTONSTYLE);
-    sectionLineEdits[0]->setPlaceholderText(tr("Section name"));
-    sectionLineEdits[1]->setPlaceholderText(tr("Section name"));
-    deleteSectionButtons[0]->setText(tr("Delete"));
-    deleteSectionButtons[1]->setText(tr("Delete"));
-    deleteSectionButtons[0]->setIcon(QIcon(":/icons_new/trashButton.png"));
-    deleteSectionButtons[1]->setIcon(QIcon(":/icons_new/trashButton.png"));
-    addSectionButton->setText(tr("Add section"));
-    addSectionButton->setIcon(QIcon(":/icons_new/addButton.png"));
-    sectionLineEdits[0]->setEnabled(false);
-    sectionLineEdits[1]->setEnabled(false);
-    deleteSectionButtons[0]->setEnabled(false);
-    deleteSectionButtons[1]->setEnabled(false);
-    addSectionButton->setEnabled(false);
-    questions[section]->addWidget(sectionLineEdits[0], 1, 0, false);
-    questions[section]->addWidget(sectionLineEdits[1], 2, 0, false);
-    questions[section]->addWidget(deleteSectionButtons[0], 1, 1, false);
-    questions[section]->addWidget(deleteSectionButtons[1], 2, 1, false);
-    questions[section]->addWidget(addSectionButton, 3, 0, false, Qt::AlignLeft);
-    connect(sectionLineEdits[0], &QLineEdit::textChanged, this, &CourseInfoPage::update);
-    connect(sectionLineEdits[1], &QLineEdit::textChanged, this, &CourseInfoPage::update);
-    connect(deleteSectionButtons[0], &QPushButton::clicked, this, [this]{deleteASection(0);});
-    connect(deleteSectionButtons[1], &QPushButton::clicked, this, [this]{deleteASection(1);});
-    connect(addSectionButton, &QPushButton::clicked, this, &CourseInfoPage::addASection);
 
     questionPreviewTopLabels[section]->setText(tr("Section"));
     questionPreviewLayouts[section]->addWidget(questionPreviewTopLabels[section]);
@@ -1000,11 +1256,10 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     connect(questions[wantToWorkWith], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
     questionPreviewTopLabels[wantToWorkWith]->setText(tr("Classmates"));
     questionPreviewLayouts[wantToWorkWith]->addWidget(questionPreviewTopLabels[wantToWorkWith]);
-    ww = new QLineEdit(PREF1TEAMMATEQUESTION);
+    ww = new QLineEdit;
     ww->setCursorPosition(0);
     ww->setStyleSheet(LINEEDITSTYLE);
     wwc = new QComboBox;
-    wwc->addItem(tr("Select a classmate you would like to work with"));
     wwc->setStyleSheet(COMBOBOXSTYLE);
     questionPreviewLayouts[wantToWorkWith]->addWidget(ww);
     questionPreviewLayouts[wantToWorkWith]->addWidget(wwc);
@@ -1019,13 +1274,24 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
 
     questions[wantToAvoid]->setLabel(tr("Classmates I want to avoid"));
     connect(questions[wantToAvoid], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
+    numPrefTeammatesExplainer = new QLabel(tr("Number of classmates a student can indicate:"));
+    numPrefTeammatesExplainer->setWordWrap(true);
+    numPrefTeammatesExplainer->setStyleSheet(LABELSTYLE);
+    numPrefTeammatesSpinBox = new QSpinBox;
+    numPrefTeammatesSpinBox->setStyleSheet(SPINBOXSTYLE);
+    numPrefTeammatesSpinBox->setValue(1);
+    numPrefTeammatesSpinBox->setMinimum(1);
+    numPrefTeammatesSpinBox->setMaximum(10);
+    registerField("numPrefTeammates", numPrefTeammatesSpinBox);
+    connect(numPrefTeammatesSpinBox, &QSpinBox::valueChanged, this, &CourseInfoPage::update);
+    questions[wantToAvoid]->addWidget(numPrefTeammatesExplainer, 1, 0, true);
+    questions[wantToAvoid]->addWidget(numPrefTeammatesSpinBox, 2, 0, false, Qt::AlignLeft);
     questionPreviewTopLabels[wantToAvoid]->setText(tr("Classmates"));
     questionPreviewLayouts[wantToAvoid]->addWidget(questionPreviewTopLabels[wantToAvoid]);
-    wa = new QLineEdit(PREF1NONTEAMMATEQUESTION);
+    wa = new QLineEdit;
     wa->setCursorPosition(0);
     wa->setStyleSheet(LINEEDITSTYLE);
     wac = new QComboBox;
-    wac->addItem(tr("Select a classmate you would like to avoid working with"));
     wac->setStyleSheet(COMBOBOXSTYLE);
     questionPreviewLayouts[wantToAvoid]->addWidget(wa);
     questionPreviewLayouts[wantToAvoid]->addWidget(wac);
@@ -1036,11 +1302,14 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     questionPreviews[wantToAvoid]->hide();
     registerField("PrefNonTeammate", questions[wantToAvoid], "value", "valueChanged");
 
-    questionLayout->removeItem(questionLayout->itemAt(5));
-
-    questions[selectFromList]->setLabel(tr("Select from list of classmates"));
-    connect(questions[selectFromList], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
-    uploadExplainer = new QLabel(tr("You can upload a list of classmates so that students select names rather than typing as a free response question"));
+    selectFromRosterLabel = new LabelThatForwardsMouseClicks;
+    selectFromRosterLabel->setText("<span style=\"color: #" DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + tr("Select from a class roster") + "</span>");
+    selectFromRosterSwitch = new SwitchButton(false);
+    connect(selectFromRosterSwitch, &SwitchButton::valueChanged, this, &CourseInfoPage::update);
+    connect(selectFromRosterLabel, &LabelThatForwardsMouseClicks::mousePressed, selectFromRosterSwitch, &SwitchButton::mousePressEvent);
+    questions[wantToAvoid]->addWidget(selectFromRosterLabel, 3, 0, false);
+    questions[wantToAvoid]->addWidget(selectFromRosterSwitch, 3, 1, false, Qt::AlignRight);
+    uploadExplainer = new QLabel(tr("You can upload a class roster so that students select names rather than typing as a free response question"));
     uploadExplainer->setWordWrap(true);
     uploadExplainer->setStyleSheet(LABELSTYLE);
     uploadButton = new QPushButton;
@@ -1049,12 +1318,13 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     uploadButton->setIcon(QIcon(":/icons_new/addButton.png"));
     uploadButton->setEnabled(false);
     connect(uploadButton, &QPushButton::clicked, this, &CourseInfoPage::uploadRoster);
-    questions[selectFromList]->addWidget(uploadExplainer, 1, 0, true);
-    questions[selectFromList]->addWidget(uploadButton, 2, 0, false, Qt::AlignLeft);
-    questionPreviews[selectFromList]->hide();
+    questions[wantToAvoid]->addWidget(uploadExplainer, 4, 0, true);
+    questions[wantToAvoid]->addWidget(uploadButton, 5, 0, false, Qt::AlignLeft);
+
     registerField("StudentNames", this, "studentNames", "studentNamesChanged");
 
-    update();
+    addASection();
+    addASection();
 }
 
 void CourseInfoPage::initializePage()
@@ -1067,7 +1337,14 @@ void CourseInfoPage::cleanupPage()
 
 void CourseInfoPage::setSectionNames(const QStringList &newSectionNames)
 {
-    sectionNames = newSectionNames;
+    for(int i = 0; i < sectionLineEdits.size(); i++) {
+        deleteASection(i);
+    }
+    for(const auto &newSectionName : newSectionNames) {
+        addASection();
+        sectionLineEdits.last()->setText(newSectionName);
+    }
+    emit sectionNamesChanged(sectionNames);
 }
 
 QStringList CourseInfoPage::getSectionNames() const
@@ -1078,6 +1355,7 @@ QStringList CourseInfoPage::getSectionNames() const
 void CourseInfoPage::setStudentNames(const QStringList &newStudentNames)
 {
     studentNames = newStudentNames;
+    emit studentNamesChanged(studentNames);
 }
 
 QStringList CourseInfoPage::getStudentNames() const
@@ -1087,24 +1365,34 @@ QStringList CourseInfoPage::getStudentNames() const
 
 void CourseInfoPage::update()
 {
-    int lastFilledSection = sectionLineEdits.size()-1;
+    int numVisibleSections = 0;
     sectionNames.clear();
-    int i = 0;
     for(auto &sectionLineEdit : sectionLineEdits) {
         if(!(sectionLineEdit->text().isEmpty())) {
             sectionNames.append(sectionLineEdit->text());
         }
+        if(sectionLineEdit->isVisible()) {
+            numVisibleSections++;
+        }
         sectionLineEdit->setEnabled(questions[section]->getValue());
-        deleteSectionButtons[i++]->setEnabled((questions[section]->getValue()) && (lastFilledSection > 1));
+    }
+    for(auto &deleteSectionButton : deleteSectionButtons) {
+        deleteSectionButton->setEnabled(questions[section]->getValue() && (numVisibleSections > 2));
     }
     addSectionButton->setEnabled(questions[section]->getValue());
     questionPreviewBottomLabels[section]->setText(tr("Options: ") + sectionNames.join("  |  "));
-    emit sectionNamesChanged(sectionNames);
 
-    uploadButton->setEnabled(questions[selectFromList]->isEnabled() && questions[selectFromList]->getValue());
+    bool oneOfPrefQuestions = (questions[wantToWorkWith]->getValue() || questions[wantToAvoid]->getValue());
+    selectFromRosterLabel->setEnabled(oneOfPrefQuestions);
+    selectFromRosterLabel->setText(selectFromRosterLabel->text().replace(DEEPWATERHEX, (oneOfPrefQuestions? DEEPWATERHEX : "bebebe")));
+    selectFromRosterSwitch->setEnabled(oneOfPrefQuestions);
+    numPrefTeammatesExplainer->setEnabled(oneOfPrefQuestions);
+    numPrefTeammatesSpinBox->setEnabled(oneOfPrefQuestions);
+    uploadExplainer->setEnabled(oneOfPrefQuestions);
+    uploadButton->setEnabled(selectFromRosterSwitch->isEnabled() && selectFromRosterSwitch->value());
 
-    questionPreviewTopLabels[wantToAvoid]->setHidden(questions[wantToWorkWith]->getValue() && questions[wantToAvoid]->getValue());
-    if(!questions[selectFromList]->getValue() || studentNames.isEmpty()) {
+    questionPreviewTopLabels[wantToAvoid]->setHidden(questions[wantToWorkWith]->getValue() && questions[wantToAvoid]->getValue());  //don't need two labels if both questions on
+    if(!selectFromRosterSwitch->value() || studentNames.isEmpty()) {
         ww->show();
         wa->show();
         wwc->hide();
@@ -1123,43 +1411,62 @@ void CourseInfoPage::update()
         questionPreviewBottomLabels[wantToWorkWith]->setText(tr("Options: ") + studentNames.join("  |  "));
         questionPreviewBottomLabels[wantToAvoid]->setText(tr("Options: ") + studentNames.join("  |  "));
     }
+
+    numPrefTeammates = numPrefTeammatesSpinBox->value();
+    ww->setText(generateTeammateQuestion(true, true, numPrefTeammates));
+    ww->setCursorPosition(0);
+    wwc->clear();
+    wwc->addItem(generateTeammateQuestion(true, false, numPrefTeammates));
+    wa->setText(generateTeammateQuestion(false, true, numPrefTeammates));
+    wa->setCursorPosition(0);
+    wac->clear();
+    wac->addItem(generateTeammateQuestion(false, false, numPrefTeammates));
 }
+
+QString CourseInfoPage::generateTeammateQuestion(bool wantToWorkWith, bool typingNames, int numClassmates)
+{
+    QString question;
+    question += typingNames ? PREFTEAMMATEQUESTION1TYPE : PREFTEAMMATEQUESTION1SELECT;
+
+    question += numClassmates == 1 ? PREFTEAMMATEQUESTION2AMATE : PREFTEAMMATEQUESTION2MULTIA + QString::number(numClassmates) + PREFTEAMMATEQUESTION2MULTIB;
+
+    question += wantToWorkWith ? PREFTEAMMATEQUESTION3YES : PREFTEAMMATEQUESTION3NO;
+
+    if(typingNames) {
+        question += numClassmates == 1 ? PREFTEAMMATEQUESTION4TYPEONE : PREFTEAMMATEQUESTION4TYPEMULTI;
+    }
+
+    return question;
+}
+
 
 void CourseInfoPage::addASection()
 {
-    static int numSectionsEntered = 2;  // used to set the row in the grid layout where the new lineedit goes (since rows can be added but never removed)
-    numSectionsEntered++;
-    int nextSectionNum = sectionLineEdits.size();   // used to set the location in the QLists of lineedits and pushbuttons
     sectionLineEdits.append(new QLineEdit);
     deleteSectionButtons.append(new QPushButton);
-    sectionLineEdits[nextSectionNum]->setStyleSheet(LINEEDITSTYLE);
-    deleteSectionButtons[nextSectionNum]->setStyleSheet(DELBUTTONSTYLE);
-    sectionLineEdits[nextSectionNum]->setPlaceholderText(tr("Section name"));
-    deleteSectionButtons[nextSectionNum]->setText(tr("Delete"));
-    deleteSectionButtons[nextSectionNum]->setIcon(QIcon(":/icons_new/trashButton.png"));
-    sectionLineEdits[nextSectionNum]->setEnabled(questions[section]->getValue());
-    questions[section]->moveWidget(addSectionButton, numSectionsEntered + 1, 0, false, Qt::AlignLeft);
-    questions[section]->addWidget(sectionLineEdits[nextSectionNum], numSectionsEntered, 0, false);
-    questions[section]->addWidget(deleteSectionButtons[nextSectionNum], numSectionsEntered, 1, false);
-    connect(sectionLineEdits[nextSectionNum], &QLineEdit::textChanged, this, &CourseInfoPage::update);
-    connect(deleteSectionButtons[nextSectionNum], &QPushButton::clicked, this, [this, nextSectionNum]{deleteASection(nextSectionNum);});
-    sectionLineEdits[nextSectionNum]->setFocus();
+    sectionLineEdits.last()->setStyleSheet(LINEEDITSTYLE);
+    deleteSectionButtons.last()->setStyleSheet(DELBUTTONSTYLE);
+    sectionLineEdits.last()->setPlaceholderText(tr("Section name"));
+    deleteSectionButtons.last()->setText(tr("Delete"));
+    deleteSectionButtons.last()->setIcon(QIcon(":/icons_new/trashButton.png"));
+    questions[section]->moveWidget(addSectionButton, numSectionsEntered + 2, 0, false, Qt::AlignLeft);
+    questions[section]->addWidget(sectionLineEdits.last(), numSectionsEntered + 1, 0, false);
+    sectionLineEdits.last()->show();
+    questions[section]->addWidget(deleteSectionButtons.last(), numSectionsEntered + 1, 1, false);
+    deleteSectionButtons.last()->show();
+    connect(sectionLineEdits.last(), &QLineEdit::textChanged, this, &CourseInfoPage::update);
+    connect(deleteSectionButtons.last(), &QPushButton::clicked, this, [this, numSectionsEntered = numSectionsEntered]{deleteASection(numSectionsEntered);});
+    numSectionsEntered++;
+    sectionLineEdits.last()->setFocus();
 
     update();
 }
 
 void CourseInfoPage::deleteASection(int sectionNum)
 {
-    sectionLineEdits[sectionNum]->setParent(nullptr);
-    deleteSectionButtons[sectionNum]->setParent(nullptr);
-    delete sectionLineEdits[sectionNum];
-    delete deleteSectionButtons[sectionNum];
-    sectionLineEdits.removeAt(sectionNum);
-    deleteSectionButtons.removeAt(sectionNum);
-    for(int i = 0; i < sectionLineEdits.size(); i++) {
-        deleteSectionButtons[i]->disconnect();
-        connect(deleteSectionButtons[i], &QPushButton::clicked, this, [this, i]{deleteASection(i);});
-    }
+    sectionLineEdits[sectionNum]->hide();
+    sectionLineEdits[sectionNum]->setText("");
+    deleteSectionButtons[sectionNum]->hide();
 
     update();
 }
@@ -1169,26 +1476,25 @@ void CourseInfoPage::uploadRoster()
     ////////////////////////get csv file, parse into names
     studentNames = {"Joshua Hertz", "Jasmine Lellock", "Cora Hertz", "Charlie Hertz"};
 
-    emit studentNamesChanged(studentNames);
+    setStudentNames(studentNames);
 
     update();
 }
 
 
 PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
-    : SurveyMakerPage(SurveyMakerWizard::Page::previewexport, NULL, parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::previewexport, parent)
 {
-    QList<int> questionNums({1, 5, MAX_ATTRIBUTES, 2, 3});
     for(int sectionNum = 0; sectionNum < 5; sectionNum++) {
         preSectionSpacer << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         questionLayout->addItem(preSectionSpacer.last());
-        section << new SurveyMakerPreviewSection(sectionNum, SurveyMakerWizard::pageNames[sectionNum], questionNums[sectionNum], this);
+        section << new SurveyMakerPreviewSection(sectionNum, SurveyMakerWizard::pageNames[sectionNum], SurveyMakerWizard::numOfQuestionsInPage[sectionNum], this);
         questionLayout->addWidget(section.last());
         connect(section.last(), &SurveyMakerPreviewSection::editRequested, this, [this](int pageNum){while(pageNum < 5){wizard()->back(); pageNum++;}});
     }
 
     auto *saveExportFrame = new QFrame;
-    saveExportFrame->setStyleSheet("background-color: #" GRUEPRDARKBLUEHEX "; color: white; font-family:'DM Sans'; font-size:12pt;");
+    saveExportFrame->setStyleSheet("background-color: #" DEEPWATERHEX "; color: white; font-family:'DM Sans'; font-size:12pt;");
     auto *saveExportlayout = new QVBoxLayout(saveExportFrame);
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");
@@ -1220,29 +1526,22 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
 
     questionLayout->addStretch(1);
 
-    section[0]->questionLineEdit[0]->show();
+    section[SurveyMakerWizard::demographics]->questionLabel[0]->setText(tr("First Name"));
+    section[SurveyMakerWizard::demographics]->questionLineEdit[0]->setText(FIRSTNAMEQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLabel[1]->setText(tr("Last Name"));
+    section[SurveyMakerWizard::demographics]->questionLineEdit[1]->setText(LASTNAMEQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLabel[2]->setText(tr("Email"));
+    section[SurveyMakerWizard::demographics]->questionLineEdit[2]->setText(EMAILQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLabel[3]->setText(tr("Gender"));
+    section[SurveyMakerWizard::demographics]->questionLabel[4]->setText(tr("Race / ethnicity"));
+    section[SurveyMakerWizard::demographics]->questionLineEdit[4]->setText(URMQUESTION);
 
-    section[1]->questionLabel[0]->setText(tr("First Name"));
-    section[1]->questionLineEdit[0]->setText(FIRSTNAMEQUESTION);
-    section[1]->questionLabel[1]->setText(tr("Last Name"));
-    section[1]->questionLineEdit[1]->setText(LASTNAMEQUESTION);
-    section[1]->questionLabel[2]->setText(tr("Email"));
-    section[1]->questionLineEdit[2]->setText(EMAILQUESTION);
-    section[1]->questionLabel[3]->setText(tr("Gender"));
-    section[1]->questionLabel[4]->setText(tr("Race / ethnicity"));
-    section[1]->questionLineEdit[4]->setText(URMQUESTION);
-
-    section[3]->questionLabel[0]->setText(tr("Timezone"));
-    section[3]->questionComboBox[0]->addItem(TIMEZONEQUESTION);
-    section[3]->questionComboBox[0]->insertSeparator(1);
+    section[SurveyMakerWizard::schedule]->questionLabel[0]->setText(tr("Timezone"));
+    section[SurveyMakerWizard::schedule]->questionComboBox[0]->addItem(TIMEZONEQUESTION);
+    section[SurveyMakerWizard::schedule]->questionComboBox[0]->insertSeparator(1);
     auto timeZoneNames = QString(TIMEZONENAMES).split(";");
-    for(auto &timeZoneName : timeZoneNames)
-    {
-        timeZoneName.remove('"');
-    }
-    section[3]->questionComboBox[0]->addItems(timeZoneNames);
-    section[3]->questionBottomLabel[0]->setText(tr("Dropdown options: List of global timezones"));
-    section[3]->questionLabel[1]->setText(tr("Schedule"));
+    section[SurveyMakerWizard::schedule]->questionComboBox[0]->addItems(timeZoneNames);
+    section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(tr("Schedule"));
     schedGrid = new QWidget;
     schedGridLayout = new QGridLayout(schedGrid);
     for(int hr = 0; hr < 24; hr++) {
@@ -1266,74 +1565,78 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     }
     schedGridLayout->setSpacing(5);
     schedGridLayout->setRowStretch(24, 1);
-    section[3]->addWidget(schedGrid);
+    section[SurveyMakerWizard::schedule]->addWidget(schedGrid);
 
-    section[4]->questionLabel[0]->setText(tr("Section"));
-    section[4]->questionLabel[1]->setText(PREF1TEAMMATEQUESTION);
-    section[4]->questionLabel[2]->setText(PREF1NONTEAMMATEQUESTION);
+    section[SurveyMakerWizard::courseinfo]->questionLabel[0]->setText(tr("Section"));
 }
 
 void PreviewAndExportPage::initializePage()
 {
+    survey = new Survey;
+
     auto *wiz = wizard();
     auto palette = wiz->palette();
-    palette.setColor(QPalette::Window, GRUEPRDARKBLUE);
+    palette.setColor(QPalette::Window, DEEPWATER);
     wiz->setPalette(palette);
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::FinishButton;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton;
     wiz->setButtonLayout(buttonLayout);
     wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
     wiz->button(QWizard::CancelButton)->setStyleSheet(STDBUTTONSTYLE);
 
     //Survey title
+    const QString title = field("SurveyTitle").toString().trimmed();
     preSectionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    section[0]->questionLineEdit[0]->setText(field("SurveyTitle").toString());
+    section[SurveyMakerWizard::introtitle]->setTitle(title);
+    survey->title = title;
 
     //Demographics
-    auto firstname = field("FirstName").toBool();
-    auto lastname = field("LastName").toBool();
-    auto email = field("Email").toBool();
-    auto gender = field("Gender").toBool();
-    auto urm = field("RaceEthnicity").toBool();
+    const bool firstname = field("FirstName").toBool();
+    const bool lastname = field("LastName").toBool();
+    const bool email = field("Email").toBool();
+    const bool gender = field("Gender").toBool();
+    const bool urm = field("RaceEthnicity").toBool();
 
     if(firstname) {
-        section[1]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[0]->show();
-        section[1]->questionLineEdit[0]->show();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[0]->show();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[0]->show();
+        survey->questions << Question(FIRSTNAMEQUESTION, Question::QuestionType::shorttext);
     }
     else {
-        section[1]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[0]->hide();
-        section[1]->questionLineEdit[0]->hide();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[0]->hide();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[0]->hide();
     }
 
     if(lastname) {
-        section[1]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[1]->show();
-        section[1]->questionLineEdit[1]->show();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[1]->show();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[1]->show();
+        survey->questions << Question(LASTNAMEQUESTION, Question::QuestionType::shorttext);
     }
     else {
-        section[1]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[1]->hide();
-        section[1]->questionLineEdit[1]->hide();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[1]->hide();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[1]->hide();
     }
 
     if(email) {
-        section[1]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[2]->show();
-        section[1]->questionLineEdit[2]->show();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[2]->show();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[2]->show();
+        survey->questions << Question(EMAILQUESTION, Question::QuestionType::shorttext);
     }
     else {
-        section[1]->preQuestionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[2]->hide();
-        section[1]->questionLineEdit[2]->hide();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[2]->hide();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[2]->hide();
     }
 
     if(gender) {
-        section[1]->preQuestionSpacer[3]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[3]->show();
-        section[1]->questionComboBox[3]->show();
-        section[1]->questionBottomLabel[3]->show();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[3]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[3]->show();
+        section[SurveyMakerWizard::demographics]->questionComboBox[3]->show();
         QString text;
         QStringList options;
         switch(static_cast<GenderType>(field("genderOptions").toInt())) {
@@ -1354,110 +1657,134 @@ void PreviewAndExportPage::initializePage()
             options = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
             break;
         }
-        section[1]->questionComboBox[3]->clear();
-        section[1]->questionComboBox[3]->addItem(text);
-        section[1]->questionComboBox[3]->insertSeparator(1);
-        section[1]->questionComboBox[3]->addItems(options);
-        section[1]->questionBottomLabel[3]->setText(tr("Dropdown options: ") + options.join(", "));
+        section[SurveyMakerWizard::demographics]->questionComboBox[3]->clear();
+        section[SurveyMakerWizard::demographics]->questionComboBox[3]->addItem(text);
+        section[SurveyMakerWizard::demographics]->questionComboBox[3]->insertSeparator(1);
+        section[SurveyMakerWizard::demographics]->questionComboBox[3]->addItems(options);
+        survey->questions << Question(text, Question::QuestionType::dropdown, options);
     }
     else {
-        section[1]->preQuestionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[3]->hide();
-        section[1]->questionComboBox[3]->hide();
-        section[1]->questionBottomLabel[3]->hide();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[3]->hide();
+        section[SurveyMakerWizard::demographics]->questionComboBox[3]->hide();
     }
 
     if(urm) {
-        section[1]->preQuestionSpacer[4]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[4]->show();
-        section[1]->questionLineEdit[4]->show();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[4]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[4]->show();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[4]->show();
+        survey->questions << Question(URMQUESTION, Question::QuestionType::shorttext);
     }
     else {
-        section[1]->preQuestionSpacer[4]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->questionLabel[4]->hide();
-        section[1]->questionLineEdit[4]->hide();
+        section[SurveyMakerWizard::demographics]->preQuestionSpacer[4]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::demographics]->questionLabel[4]->hide();
+        section[SurveyMakerWizard::demographics]->questionLineEdit[4]->hide();
     }
 
     if(firstname || lastname || email || gender || urm) {
         preSectionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->show();
+        section[SurveyMakerWizard::demographics]->show();
     }
     else {
         preSectionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[1]->hide();
+        section[SurveyMakerWizard::demographics]->hide();
     }
 
     //Multiple Choice
-    auto multiChoiceNumQuestions = field("multiChoiceNumQuestions").toInt();
-    auto multiQuestionTexts = field("multiChoiceQuestionTexts").toList();
-    auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
-    auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
+    const int multiChoiceNumQuestions = field("multiChoiceNumQuestions").toInt();
+    const QStringList multiQuestionTexts = field("multiChoiceQuestionTexts").toStringList();
+    const auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
+    const auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
+
     int actualNumMultiQuestions = 0;
     for(int questionNum = 0; questionNum < multiChoiceNumQuestions; questionNum++) {
-        if(!multiQuestionTexts[questionNum].toString().isEmpty()) {
+        if(!multiQuestionTexts[questionNum].isEmpty()) {
             actualNumMultiQuestions++;
-            section[2]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-            section[2]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum].toString());
-            section[2]->questionLabel[questionNum]->show();
-            section[2]->questionComboBox[questionNum]->clear();
-            section[2]->questionComboBox[questionNum]->addItems(multiQuestionResponses[questionNum].toStringList());
-            section[2]->questionComboBox[questionNum]->show();
-            QString botLabel = tr("Dropdown options: ") + multiQuestionResponses[questionNum].toStringList().join(", ");
+            section[SurveyMakerWizard::multichoice]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum]);
+            section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->show();
+            auto responses = multiQuestionResponses[questionNum].toStringList();
             if((multiQuestionMultis[questionNum]).toBool()) {
-                botLabel += "\n   {Multiple selections allowed}";
+                QLayoutItem *child;
+                while((child = section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
+                    delete child->widget(); // delete the widget
+                    delete child;   // delete the layout item
+                }
+                for(const auto &response : responses) {
+                    auto *option = new QCheckBox(response);
+                    option->setStyleSheet(CHECKBOXSTYLE);
+                    section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
+                }
+                section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->show();
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->hide();
+                survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::checkbox, responses);
             }
-            section[2]->questionBottomLabel[questionNum]->setText(botLabel);
-            section[2]->questionBottomLabel[questionNum]->show();
+            else {
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->clear();
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->addItems(responses);
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->show();
+                section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->hide();
+                survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::dropdown, responses);
+            }
         }
         else {
-            section[2]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-            section[2]->questionLabel[questionNum]->hide();
-            section[2]->questionComboBox[questionNum]->hide();
-            section[2]->questionBottomLabel[questionNum]->hide();
+            section[SurveyMakerWizard::multichoice]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->hide();
+            section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->hide();
+            section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->hide();
         }
     }
     for(int i = actualNumMultiQuestions; i < MAX_ATTRIBUTES; i++) {
-        section[2]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[2]->questionLabel[i]->hide();
-        section[2]->questionComboBox[i]->hide();
-        section[2]->questionBottomLabel[i]->hide();
+        section[SurveyMakerWizard::multichoice]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::multichoice]->questionLabel[i]->hide();
+        section[SurveyMakerWizard::multichoice]->questionComboBox[i]->hide();
+        section[SurveyMakerWizard::multichoice]->questionGroupBox[i]->hide();
     }
 
     if(actualNumMultiQuestions > 0) {
         preSectionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[2]->show();
+        section[SurveyMakerWizard::multichoice]->show();
     }
     else {
         preSectionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[2]->hide();
+        section[SurveyMakerWizard::multichoice]->hide();
     }
 
     //Schedule
-    auto timezone = field("Timezone").toBool();
-    auto schedule = field("Schedule").toBool();
-    //auto scheduleAsBusy = field("scheduleBusyOrFree").toBool();
-    auto scheduleQuestion = field("ScheduleQuestion").toString();
-    auto scheduleDays = field("scheduleDayNames").toStringList();
-    auto scheduleFrom = field("scheduleFrom").toInt();
-    auto scheduleTo = field("scheduleTo").toInt();
+    const bool timezone = field("Timezone").toBool();
+    const bool schedule = field("Schedule").toBool();
+    //const bool scheduleAsBusy = field("scheduleBusyOrFree").toBool();
+    const QString scheduleQuestion = field("ScheduleQuestion").toString();
+    const QStringList scheduleDays = field("scheduleDayNames").toStringList();
+    const int scheduleFrom = field("scheduleFrom").toInt();
+    const int scheduleTo = field("scheduleTo").toInt();
 
     if(timezone) {
-        section[3]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[3]->questionLabel[0]->show();
-        section[3]->questionComboBox[0]->show();
-        section[3]->questionBottomLabel[0]->show();
+        section[SurveyMakerWizard::schedule]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::schedule]->questionLabel[0]->show();
+        section[SurveyMakerWizard::schedule]->questionComboBox[0]->show();
+        survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, QString(TIMEZONENAMES).split(";"));
     }
     else {
-        section[3]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[3]->questionLabel[0]->hide();
-        section[3]->questionComboBox[0]->hide();
-        section[3]->questionBottomLabel[0]->hide();
+        section[SurveyMakerWizard::schedule]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::schedule]->questionLabel[0]->hide();
+        section[SurveyMakerWizard::schedule]->questionComboBox[0]->hide();
     }
 
     if(schedule) {
-        section[3]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[3]->questionLabel[1]->setText(scheduleQuestion);
-        section[3]->questionLabel[1]->show();
+        section[SurveyMakerWizard::schedule]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(scheduleQuestion);
+        section[SurveyMakerWizard::schedule]->questionLabel[1]->show();
+        survey->questions << Question(scheduleQuestion, Question::QuestionType::schedule);
+        for(int day = 0; day < MAX_DAYS; day++)
+        {
+            if(!scheduleDays.at(day).isEmpty())
+            {
+                survey->schedDayNames << scheduleDays.at(day);
+            }
+        }
+        survey->schedStartTime = scheduleFrom;
+        survey->schedEndTime = scheduleTo;
         QList<QWidget *> widgets = schedGrid->findChildren<QWidget *>();
         for(auto &widget : widgets) {
             int row, col, rowSpan, colSpan;
@@ -1473,109 +1800,192 @@ void PreviewAndExportPage::initializePage()
         }
     }
     else {
-        section[3]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[3]->questionLabel[1]->hide();
+        section[SurveyMakerWizard::schedule]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::schedule]->questionLabel[1]->hide();
     }
 
     if(timezone || schedule) {
         preSectionSpacer[3]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[3]->show();
+        section[SurveyMakerWizard::schedule]->show();
     }
     else {
         preSectionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[3]->hide();
+        section[SurveyMakerWizard::schedule]->hide();
     }
 
     //Course Info
-    auto courseSections = field("Section").toBool();
-    auto courseSectionsNames = field("SectionNames").toStringList();
-    auto prefTeammate = field("PrefTeammate").toBool();
-    auto prefNonTeammate = field("PrefNonTeammate").toBool();
-    auto studentNames = field("StudentNames").toStringList();
+    const bool courseSections = field("Section").toBool();
+    const QStringList courseSectionsNames = field("SectionNames").toStringList();
+    const bool prefTeammate = field("PrefTeammate").toBool();
+    const bool prefNonTeammate = field("PrefNonTeammate").toBool();
+    const int numPrefTeammates = field("numPrefTeammates").toInt();
+    const QStringList studentNames = field("StudentNames").toStringList();
 
     if(courseSections) {
-        section[4]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->questionLabel[0]->show();
-        section[4]->questionComboBox[0]->show();
-        section[4]->questionBottomLabel[0]->show();
-        section[4]->questionComboBox[0]->clear();
-        section[4]->questionComboBox[0]->addItem(SECTIONQUESTION);
-        section[4]->questionComboBox[0]->insertSeparator(1);
-        section[4]->questionComboBox[0]->addItems(courseSectionsNames);
-        section[4]->questionBottomLabel[0]->setText(tr("Dropdown options: ") + courseSectionsNames.join(", "));
+        section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[0]->show();
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->show();
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->clear();
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->addItem(SECTIONQUESTION);
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->insertSeparator(1);
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->addItems(courseSectionsNames);
+        survey->questions << Question(SECTIONQUESTION, Question::QuestionType::radiobutton, courseSectionsNames);
     }
     else {
-        section[4]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->questionLabel[0]->hide();
-        section[4]->questionComboBox[0]->hide();
-        section[4]->questionBottomLabel[0]->hide();
+        section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[0]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->hide();
     }
 
     if(prefTeammate) {
-        section[4]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->questionLabel[1]->show();
+        section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[1]->show();
+        QString questionText = CourseInfoPage::generateTeammateQuestion(true, studentNames.isEmpty(), numPrefTeammates);
         if(studentNames.isEmpty()) {
-            section[4]->questionLineEdit[1]->show();
-            section[4]->questionComboBox[1]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->show();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->setText(questionText);
+            survey->questions << Question(questionText, (numPrefTeammates == 1? Question::QuestionType::shorttext : Question::QuestionType::longtext));
         }
         else {
-            section[4]->questionLineEdit[1]->hide();
-            section[4]->questionComboBox[1]->show();
+            section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->show();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->clear();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->addItem(questionText);
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->insertSeparator(1);
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->addItems(studentNames);
+            survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
         }
     }
     else {
-        section[4]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->questionLabel[1]->hide();
-        section[4]->questionLineEdit[1]->hide();
-        section[4]->questionComboBox[1]->hide();
+        section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[1]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->hide();
     }
 
     if(prefNonTeammate) {
-        section[4]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->questionLabel[2]->show();
+        section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[2]->show();
+        QString questionText = CourseInfoPage::generateTeammateQuestion(false, studentNames.isEmpty(), numPrefTeammates);
         if(studentNames.isEmpty()) {
-            section[4]->questionLineEdit[2]->show();
-            section[4]->questionComboBox[2]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->show();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->setText(questionText);
+            survey->questions << Question(questionText, (numPrefTeammates == 1? Question::QuestionType::shorttext : Question::QuestionType::longtext));
         }
         else {
-            section[4]->questionLineEdit[2]->hide();
-            section[4]->questionComboBox[2]->show();
+            section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->show();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->clear();
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->addItem(questionText);
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->insertSeparator(1);
+            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->addItems(studentNames);
+            survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
         }
     }
     else {
-        section[4]->preQuestionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->questionLabel[2]->hide();
-        section[4]->questionLineEdit[2]->hide();
-        section[4]->questionComboBox[2]->hide();
+        section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[2]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->hide();
     }
 
     if(courseSections || prefTeammate || prefNonTeammate) {
         preSectionSpacer[4]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->show();
+        section[SurveyMakerWizard::courseinfo]->show();
     }
     else {
         preSectionSpacer[4]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[4]->hide();
+        section[SurveyMakerWizard::courseinfo]->hide();
     }
 }
 
 void PreviewAndExportPage::cleanupPage()
 {
+    delete survey;
+
     // going back to previous page, so allow user to immediately return to this preview
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::CustomButton1;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::CustomButton2;
     wizard()->setButtonLayout(buttonLayout);
-    setButtonText(QWizard::CustomButton1, "Return to Preview");
-    wizard()->button(QWizard::CustomButton1)->setStyleSheet(NEXTBUTTONSTYLE);
-    connect(wizard(), &QWizard::customButtonClicked, this, [this]{wizard()->setCurrentId(SurveyMakerWizard::Page::previewexport);});
+    setButtonText(QWizard::CustomButton2, "Return to Preview");
+    wizard()->button(QWizard::CustomButton2)->setStyleSheet(NEXTBUTTONSTYLE);
+    connect(wizard(), &QWizard::customButtonClicked, this, [this](int customButton)
+            {if(customButton == QWizard::CustomButton2) {while(wizard()->currentId() != SurveyMakerWizard::Page::previewexport) {wizard()->next();}}});
 }
 
-bool PreviewAndExportPage::saveSurvey()
+void PreviewAndExportPage::saveSurvey()
 {
-    return true;
+    QFileInfo saveFileLocation = (qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
+    //save all options to a text file
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    if( !(fileName.isEmpty()) )
+    {
+        QFile saveFile(fileName);
+        if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            saveFileLocation.setFile(QFileInfo(fileName).canonicalPath());
+            QJsonObject saveObject;
+            saveObject["Title"] = field("SurveyTitle").toString();
+
+            saveObject["FirstName"] = field("FirstName").toBool();
+            saveObject["LastName"] = field("LastName").toBool();
+            saveObject["Email"] = field("Email").toBool();
+            saveObject["Gender"] = field("Gender").toBool();
+            saveObject["GenderType"] = field("genderOptions").toInt();
+            saveObject["URM"] = field("RaceEthnicity").toBool();
+
+            const int numMultiChoiceQuestions = field("multiChoiceNumQuestions").toInt();
+            saveObject["numAttributes"] = numMultiChoiceQuestions;
+            QList<QString> multiQuestionTexts = field("multiChoiceQuestionTexts").toStringList();
+            auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
+            auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
+            auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
+            for(int question = 0; question < numMultiChoiceQuestions; question++)
+            {
+                saveObject["Attribute" + QString::number(question+1)+"Question"] = multiQuestionTexts[question];
+                const int responseOptionNum = responseOptions.indexOf(multiQuestionResponses[question].toStringList().join(" / "));
+                saveObject["Attribute" + QString::number(question+1)+"Response"] = responseOptionNum + 1;
+                saveObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"] = multiQuestionMultis[question].toBool();
+                if(responseOptionNum == -1) // custom options being used
+                {
+                    saveObject["Attribute" + QString::number(question+1)+"Options"] = multiQuestionResponses[question].toStringList().join(" / ");
+                }
+            }
+            saveObject["Schedule"] = field("Schedule").toBool();
+            saveObject["ScheduleAsBusy"] = (field("scheduleBusyOrFree").toInt() == SchedulePage::busy);
+            saveObject["Timezone"] = field("Timezone").toBool();
+            saveObject["baseTimezone"] = field("baseTimezone").toString();
+            saveObject["scheduleQuestion"] = field("ScheduleQuestion").toString();
+            QList<QString> dayNames = field("scheduleDayNames").toStringList();
+            for(int day = 0; day < MAX_DAYS; day++)
+            {
+                QString dayString1 = "scheduleDay" + QString::number(day+1);
+                QString dayString2 = dayString1 + "Name";
+                saveObject[dayString1] = !dayNames[day].isEmpty();
+                saveObject[dayString2] = dayNames[day];
+            }
+            saveObject["scheduleStartHour"] = field("scheduleFrom").toInt();
+            saveObject["scheduleEndHour"] = field("scheduleTo").toInt();
+            saveObject["Section"] = field("Section").toBool();
+            saveObject["SectionNames"] = field("SectionNames").toStringList().join(',');
+            saveObject["PreferredTeammates"] = field("PrefTeammate").toBool();
+            saveObject["PreferredNonTeammates"] = field("PrefNonTeammate").toBool();
+            saveObject["numPrefTeammates"] = field("numPrefTeammates").toInt();
+
+            QJsonDocument saveDoc(saveObject);
+            saveFile.write(saveDoc.toJson());
+            saveFile.close();
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
+        }
+    }
 }
 
-bool PreviewAndExportPage::exportSurvey()
+void PreviewAndExportPage::exportSurvey()
 {
-    return true;
+
 }

@@ -6,9 +6,11 @@
 #include <QCheckBox>
 #include <QFrame>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QPlainTextEdit>
 #include <QVBoxLayout>
 
 class SurveyMakerQuestionWithSwitch : public QFrame
@@ -76,17 +78,18 @@ signals:
 
 private slots:
     void deleteRequest();
-    void questionChange(const QString &newQuestion);
-    void responsesChange(const QString &newResponses);
+    void responsesComboBoxActivated(int index);
+    void questionChange();
     void multiChange(const bool newMulti);
 
 private:
     int questionNum;
+    int numOfResponseOptions;
     QGridLayout *layout = nullptr;
     QLabel *label = nullptr;
     QPushButton *deleteButton = nullptr;
     QLabel *questionLabel = nullptr;
-    QLineEdit *questionLineEdit = nullptr;
+    QPlainTextEdit *questionPlainTextEdit = nullptr;
     QLabel *responsesLabel = nullptr;
     ComboBoxWithElidedContents *responsesComboBox = nullptr;
     QCheckBox *multiAllowed = nullptr;
@@ -106,9 +109,11 @@ public:
     QList<QLabel *> questionLabel;
     QList<QLineEdit *> questionLineEdit;
     QList<QComboBox *> questionComboBox;
-    QList<QLabel *> questionBottomLabel;
+    QList<QGroupBox *> questionGroupBox;
+    QList<QVBoxLayout *> questionGroupLayout;
 
     void addWidget(QWidget *widget);
+    void setTitle(const QString &newTitle);
 
 signals:
     void editRequested(const int pageNum);

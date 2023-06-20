@@ -90,6 +90,7 @@ SOURCES += \
         widgets/attributeTabItem.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/labelThatForwardsMouseClicks.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
@@ -132,6 +133,7 @@ HEADERS += \
         widgets/attributeTabItem.h \
         widgets/comboBoxThatPassesScrollwheel.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/labelThatForwardsMouseClicks.h \
         widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \

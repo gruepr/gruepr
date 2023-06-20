@@ -72,5 +72,6 @@
         <file>icons_new/lightbulb.png</file>
         <file>icons_new/BannerLeft.png</file>
         <file>icons_new/BannerRight.png</file>
+        <file>icons_new/SpinBoxButton.png</file>
     </qresource>
 </RCC>

@@ -2,6 +2,7 @@
 #define CUSTOMRESPONSEOPTIONSDIALOG_H
 
 #include "listTableDialog.h"
+#include <QCheckBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
@@ -12,7 +13,6 @@ class customResponseOptionsDialog : public listTableDialog
 
 public:
     customResponseOptionsDialog(const QStringList &currentCustomOptions, QWidget *parent = nullptr);
-    ~customResponseOptionsDialog();
     customResponseOptionsDialog(const customResponseOptionsDialog&) = delete;
     customResponseOptionsDialog operator= (const customResponseOptionsDialog&) = delete;
     customResponseOptionsDialog(customResponseOptionsDialog&&) = delete;
@@ -22,19 +22,19 @@ public:
     int numOptions;
 
 private slots:
-    void refreshDisplay(int numOptionsBoxValue);
-    void optionChanged();
+    void refreshDisplay();
     void clearAll();
 
 private:
     inline bool allFilled();
+    inline bool stripPrecedingOrderNumbers(QStringList &options);
 
-    QLabel numOptionsLabel;
-    QSpinBox numOptionsBox;
-    QLineEdit *optionLineEdit;
-    QLabel numberingReminderLabel;
-
-    QRegularExpressionValidator *noInvalidPunctuation;
+    QHBoxLayout *numOptionsLayout = nullptr;
+    QLabel *numOptionsLabel = nullptr;
+    QSpinBox *numOptionsBox = nullptr;
+    QList<QLabel *> optionLabels;
+    QList<QLineEdit *> optionLineEdits;
+    QCheckBox *orderedResponsesCheckbox = nullptr;
 
     inline const static int MAXRESPONSEOPTIONS = 100;
 };

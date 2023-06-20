@@ -35,17 +35,15 @@ inline static const int PRINTOUT_FONTSIZE = 9;
 #endif
 
 // define colors used throughout gruepr
-#define TRANSPARENT "rgba(0, 0, 0, 0)"
-inline static const QColor STARFISH = QColor(0xff, 0xd7, 0x71);
-#define STARFISHHEX "ffd771"
-inline static const QColor DEEPWATER = QColor(0x05, 0x34, 0x37);
-#define DEEPWATERHEX "053437"
-inline static const QColor OPENWATER = QColor(0x13, 0xa9, 0xb2);
-#define OPENWATERHEX "13a9b2"
-inline static const QColor AQUA = QColor(0x41, 0xd2, 0xca);
-#define AQUAHEX "41d2ca"
-inline static const QColor BUBBLY = QColor(0xdc, 0xf2, 0xf4);
-#define BUBBLYHEX "dcf2f4"
+#define GRUEPRYELLOWHEX "ffd771"
+inline static const QColor GRUEPRDARKBLUE = QColor(0x05, 0x34, 0x37);
+#define GRUEPRDARKBLUEHEX "053437"
+inline static const QColor GRUEPRMEDBLUE = QColor(0x07, 0x87, 0x8e);
+#define GRUEPRMEDBLUEHEX "07878e"
+inline static const QColor GRUEPRLIGHTBLUE = QColor(0x41, 0xd2, 0xca);
+#define GRUEPRLIGHTBLUEHEX "41d2ca"
+inline static const QColor GRUEPRVERYLIGHTBLUE = QColor(0xe7, 0xf6, 0xf7);
+#define GRUEPRVERYLIGHTBLUEHEX "e7f6f7"
 inline static const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
 inline static const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
 inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
@@ -57,60 +55,57 @@ inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: DM Sans; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: DM Sans;"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
-inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: #" DEEPWATERHEX "; "
-                                                         "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
+inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: #" GRUEPRDARKBLUEHEX "; "
+                                                         "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
                                                          "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}";
-inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: #" DEEPWATERHEX "; "
-                                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
+inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: #" GRUEPRDARKBLUEHEX "; "
+                                                           "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
                                                            "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                               "QPushButton:disabled {background-color: lightGray; "
-                                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
-                                                                    "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
-inline static const char GETSTARTEDBUTTONSTYLE[] = "background-color: #" OPENWATERHEX "; "
-                                                   "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                                    "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                                    "color: black; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
+inline static const char GETSTARTEDBUTTONSTYLE[] = "background-color: #" GRUEPRMEDBLUEHEX "; "
+                                                   "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
                                                    "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;";
 inline static const char NEXTBUTTONSTYLE[] = "QPushButton {background-color: white; "
-                                                          "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
-                                                          "color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}"
+                                                          "border-style: outset; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                          "color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}"
                                              "QPushButton:disabled {background-color: lightGray; "
-                                                                   "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
-                                                                   "color: darkGray; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}";
-inline static const char INVISBUTTONSTYLE[] = "background-color: " TRANSPARENT "; border-style: none; color: rgba(0,0,0,0); font-size: 1pt; padding: 0px;";
-inline static const char DELBUTTONSTYLE[] = "QPushButton {background: " TRANSPARENT "; color: #" DEEPWATERHEX "; "
+                                                                   "border-style: outset; border-width: 2px; border-radius: 5px; border-color: darkGray; "
+                                                                   "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
+inline static const char INVISBUTTONSTYLE[] = "background-color: rgba(0, 0, 0, 0); border-style: none; color: rgba(0,0,0,0); font-size: 1pt; padding: 0px;";
+inline static const char DELBUTTONSTYLE[] = "QPushButton {background: rgba(0, 0, 0, 0); color: #" GRUEPRDARKBLUEHEX "; "
                                                           "font-family: 'DM Sans'; font-size: 10pt; border: none;}"
-                                             "QPushButton:disabled {background: " TRANSPARENT "; color: lightGray; "
+                                             "QPushButton:disabled {background: rgba(0, 0, 0, 0); color: lightGray; "
                                                                    "font-family: 'DM Sans'; font-size: 10pt; border: none;}";
-inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: " TRANSPARENT "; color: #" OPENWATERHEX "; "
+inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: rgba(0, 0, 0, 0); color: #" GRUEPRMEDBLUEHEX "; "
                                                          "font-family: 'DM Sans'; font-size: 12pt; text-align: left; border: none;}"
-                                             "QPushButton:disabled {background: " TRANSPARENT "; color: lightGray; "
+                                             "QPushButton:disabled {background: rgba(0, 0, 0, 0); color: lightGray; "
                                                                    "font-family: 'DM Sans'; font-size: 12pt; border: none;}";
-inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: #" DEEPWATERHEX "; "
+inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: #" GRUEPRDARKBLUEHEX "; "
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold;"
-                                                             "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
-inline static const char LABELSTYLE[] = "QLabel {color: #" DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans;}"
-                                          "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: DM Sans;}";
-inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                             "QLineEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char PLAINTEXTEDITSTYLE[] = "QPlainTextEdit {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                                 "QPlainTextEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char LINEEDITERRORSTYLE[] = "QLineEdit {background-color: white; color: red; font-family: 'DM Sans'; font-size: 12pt;}"
-                                                 "QLineEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                             "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
-                                             "QComboBox::drop-down {border 0px;}"
-                                             "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}";
-inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                           "QSpinBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
-                                           "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
-                                           "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}";
+                                                             "border-style: outset; border-width: 1px; border-radius: 5px; padding: 10px;}";
+inline static const char LABELSTYLE[] = "QLabel {color: #" GRUEPRDARKBLUEHEX "; font-size: 10pt; font-family: DM Sans;}"
+                                                    "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: DM Sans;}";
+inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
+                                                       "QLineEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
+inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
+                                                       "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
+                                                       "QComboBox::drop-down {border-width: 0px;}"
+                                                       "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); border-width: 0px;}";
+inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: #" GRUEPRDARKBLUEHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
+                                          "QSpinBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
+                                          "QSpinBox::drop-down {border-width: 0px;}"
+                                          "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); border-width: 0px;}";
 inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox::drop-down {border-width: 0px;}"
                                                  "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); border-width: 0px;}";
-inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
-                                             "QCheckBox::indicator {background-color: white; "
-                                                                   "width: 12px; height: 12px; border: 2px solid #" DEEPWATERHEX ";}"
-                                             "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";
+inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: rgba(0, 0, 0, 0); font-family: 'DM Sans'; font-size: 12pt;}"
+                                             "QCheckBox::indicator {background-color: #" GRUEPRDARKBLUEHEX "; color: #" GRUEPRMEDBLUEHEX "; "
+                                                                   "width: 12px; height: 12px; border: 3px solid #" GRUEPRDARKBLUEHEX ";}"
+                                             "QCheckBox::indicator:checked {background-color: #" GRUEPRDARKBLUEHEX "; color: #" GRUEPRDARKBLUEHEX "; "
+                                                                   "image: url(:/icons_new/Checkmark.png);}";
 
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;
@@ -166,17 +161,15 @@ inline static const char SCHEDULEQUESTION2BUSY[] = "BUSY and will be UNAVAILABLE
 inline static const char SCHEDULEQUESTION2FREE[] = "FREE and will be AVAILABLE";
 inline static const char SCHEDULEQUESTION3[] = " for group work.";
 inline static const char SCHEDULEQUESTION4[] = "\n*Note: Times refer to ";
-inline static const char SCHEDULEQUESTIONHOME[] = "your home timezone.";
+inline static const char SCHEDULEQUESTIONHOME[] = "your home";
+inline static const char SCHEDULEQUESTION5[] = " timezone.";
 inline static const char SECTIONQUESTION[] = "In which section are you enrolled?";
-inline static const char PREFTEAMMATEQUESTION1TYPE[] = "Type";
-inline static const char PREFTEAMMATEQUESTION1SELECT[] = "Select";
-inline static const char PREFTEAMMATEQUESTION2AMATE[] = " the name of a classmate ";
-inline static const char PREFTEAMMATEQUESTION2MULTIA[] = " the name(s) of up to ";
-inline static const char PREFTEAMMATEQUESTION2MULTIB[] = " classmates ";
-inline static const char PREFTEAMMATEQUESTION3YES[] = "you want to work with.";
-inline static const char PREFTEAMMATEQUESTION3NO[] = "you want to avoid working with.";
-inline static const char PREFTEAMMATEQUESTION4TYPEONE[] = " Write their first and last name.";
-inline static const char PREFTEAMMATEQUESTION4TYPEMULTI[] = " Write their first and last name, and put a comma between multiple names.";
+inline static const char PREF1TEAMMATEQUESTION[] = "List classmates you want to work with.";
+inline static const char PREF1NONTEAMMATEQUESTION[] = "List classmates you want to avoid working with.";
+inline static const char PREFMULTQUESTION1[] = "Please list the name(s) of up to ";
+inline static const char PREFMULTQUESTION2YES[] = " people who you would like to have on your team. Write their first and last name, and put a comma between multiple names.";
+inline static const char PREFMULTQUESTION2NO[] = " people who you would like to NOT have on your team. Write their first and last name, and put a comma between multiple names.";
+inline static const char ADDLQUESTION[] = "Any additional things we should know about you before we form the teams?";
 
 //map of the "meaning" of strings that might be used in the survey to refer to hours of the day
 inline static const char TIME_NAMES[] {"1:00,1am,1 am,1:00am,1:00 am,2:00,2am,2 am,2:00am,2:00 am,3:00,3am,3 am,3:00am,3:00 am,4:00,4am,4 am,4:00am,4:00 am,"
@@ -394,7 +387,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
                                  "<p>gruepr incorporates:"
                                  "<ul><li>Code libraries from <a href = http://qt.io>Qt, v 6.5</a>, released under the GNU Lesser General Public License version 3</li>"
                                  "<li>Icons from <a href = https://icons8.com>Icons8</a>, released under Creative Commons license \"Attribution-NoDerivs 3.0 Unported\","
-                                 "<li>UX/UI designed by <a href = https://scout.camd.northeastern.edu/>Scout</a></li>"
+                                 " and from <a href = https://scout.camd.northeastern.edu/>Scout</a> as original creations for the gruepr project</li>"
                                  "<li>The following fonts: "
                                  "<span style=\"font-family:'Oxygen Mono';\">"
                                  "Oxygen Mono</span> &copy; 2012 Vernon Adams (vern@newtypography.co.uk); "

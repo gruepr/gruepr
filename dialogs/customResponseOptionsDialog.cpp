@@ -1,5 +1,6 @@
 #include "customResponseOptionsDialog.h"
 #include "gruepr_globals.h"
+#include "surveyMakerWizard.h"
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QPushButton>
@@ -9,85 +10,90 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &currentCustomOptions, QWidget *parent)
-    :listTableDialog(tr("Enter custom response options"), true, true, parent)
+    :listTableDialog(tr("Enter custom response options"), true, true, parent),
+    options(currentCustomOptions)
 {
-    optionLineEdit = new QLineEdit[MAXRESPONSEOPTIONS];
-
     setMinimumSize(XS_DLG_SIZE, XS_DLG_SIZE);
 
-    noInvalidPunctuation = new QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"), this);
+    bool comingInOrdered = stripPrecedingOrderNumbers(options);
 
-    //Rows 1&2 - the number of teams selector and a spacer
-    numOptionsLabel.setText(tr("Number of response options: "));
-    theGrid->addWidget(&numOptionsLabel, 0, 0, 1, 1, Qt::AlignRight);
-    numOptionsBox.setRange(2, MAXRESPONSEOPTIONS);
+    //Rows 1&2 - the number of options selector and a checkbox for ordered responses
+    numOptionsLayout = new QHBoxLayout;
+    numOptionsLabel = new QLabel(tr("Number of response options: "));
+    numOptionsLabel->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
+    numOptionsLayout->addWidget(numOptionsLabel, 0, Qt::AlignRight);
+    numOptionsBox = new QSpinBox;
+    numOptionsBox->setStyleSheet(SPINBOXSTYLE);
+    numOptionsBox->setRange(2, MAXRESPONSEOPTIONS);
     numOptions = (currentCustomOptions.isEmpty() ? 4 : int(currentCustomOptions.size()));
-    numOptionsBox.setValue(numOptions);
-    connect(&numOptionsBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &customResponseOptionsDialog::refreshDisplay);
-    theGrid->addWidget(&numOptionsBox, 0, 1, 1, -1, Qt::AlignLeft);
-    addSpacerRow(1);
+    numOptionsBox->setValue(numOptions);
+    connect(numOptionsBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &customResponseOptionsDialog::refreshDisplay);
+    numOptionsLayout->addWidget(numOptionsBox, 0, Qt::AlignLeft);
+    theGrid->addLayout(numOptionsLayout, 0, 1, 1, 1);
+    orderedResponsesCheckbox = new QCheckBox("Options have a natural order, as with a Likert-scale response.");
+    orderedResponsesCheckbox->setStyleSheet(CHECKBOXSTYLE);
+    orderedResponsesCheckbox->setChecked(comingInOrdered);
+    connect(orderedResponsesCheckbox, &QCheckBox::clicked, this, &customResponseOptionsDialog::refreshDisplay);
+    theGrid->addWidget(orderedResponsesCheckbox, 1, 1, 1, 1);
 
     //Row 3 - table of the option choices
     theTable->setRowCount(MAXRESPONSEOPTIONS);
+    optionLabels.reserve(MAXRESPONSEOPTIONS);
+    optionLineEdits.reserve(MAXRESPONSEOPTIONS);
     int widthCol0 = 0;
-    options.reserve(MAXRESPONSEOPTIONS);
     for(int i = 0; i < MAXRESPONSEOPTIONS; i++)
     {
-        auto *label = new QLabel(tr("Option ") + QString::number(i+1) + " ");
-        theTable->setCellWidget(i, 0, label);
-        widthCol0 = std::max(widthCol0, label->width());
-        theTable->setCellWidget(i, 1, &optionLineEdit[i]);
-        connect(&optionLineEdit[i], &QLineEdit::textEdited, this, &customResponseOptionsDialog::optionChanged);
-        optionLineEdit[i].setText(i < currentCustomOptions.size() ? currentCustomOptions.at(i) : "");
-        options << optionLineEdit[i].text();
+        optionLabels << new QLabel(tr("Option ") + QString::number(i+1) + " ");
+        optionLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
+        theTable->setCellWidget(i, 0, optionLabels.last());
+        optionLineEdits << new QLineEdit;
+        optionLineEdits.last()->setStyleSheet(LINEEDITSTYLE);
+        widthCol0 = std::max(widthCol0, optionLabels.last()->width());
+        theTable->setCellWidget(i, 1, optionLineEdits.last());
+        connect(optionLineEdits.last(), &QLineEdit::textEdited, this, &customResponseOptionsDialog::refreshDisplay);
+        optionLineEdits.last()->setText(i < options.size() ? options.at(i) : "");
     }
     theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
     theTable->adjustSize();
 
-    //Rows 4&5 - a spacer and a reminder to include numbering if the options are in a natural order
-    addSpacerRow(3);
-    numberingReminderLabel.setText(tr("If the options have a natural order, as with a Likert-scale response,\n"
-                                      "include a corresponding number at the beginning of each reponse\n"
-                                      "(e.g., \"1. Yes  /  2. Maybe  /  3. No\")"));
-    theGrid->addWidget(&numberingReminderLabel, 4, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
-
     //Add Clear All to the buttons on bottom
     auto *clearAllButton = new QPushButton(tr("Clear All"));
     connect(clearAllButton, &QPushButton::clicked, this, &customResponseOptionsDialog::clearAll);
-    theGrid->addWidget(clearAllButton, BUTTONBOXROWINGRID, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    addButton(clearAllButton);
 
-    refreshDisplay(numOptionsBox.value());
+    refreshDisplay();
     adjustSize();
 }
 
 
-customResponseOptionsDialog::~customResponseOptionsDialog()
+void customResponseOptionsDialog::refreshDisplay()
 {
-    //delete dynamically allocated arrays created in class constructor
-    delete [] optionLineEdit;
-    delete noInvalidPunctuation;
-}
-
-
-void customResponseOptionsDialog::refreshDisplay(int numOptionsBoxValue)
-{
-    numOptions = numOptionsBoxValue;
+    numOptions = numOptionsBox->value();
 
     options.clear();
-    options.reserve(numOptions);
 
     //show a label and a combobox for as many options as chosen in the numTeams selection
-    for(int i = 0; i < MAXRESPONSEOPTIONS; i++)
+    int i = 0;
+    for(const auto &optionLineEdit : optionLineEdits)
     {
         if(i < numOptions)
         {
-            options << optionLineEdit[i].text().trimmed();
+            QString currText = optionLineEdits[i]->text();
+            int currPos = 0;
+            if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable)
+            {
+                SurveyMakerWizard::invalidExpression(optionLineEdits[i], currText, this);
+            }
+
+            options << (orderedResponsesCheckbox->isChecked() ? (QString::number(i+1) + ". ") : "") + optionLineEdit->text().trimmed();
+            optionLabels[i]->setText(tr("Option ") + (orderedResponsesCheckbox->isChecked() ? QString::number(i+1) : QString(char((i%26)+65)).repeated((i/26)+1)));
             theTable->showRow(i);
         }
         else
         {
             theTable->hideRow(i);
         }
+        i++;
     }
 
     // auto-adjust the height to accomodate change in number of rows in table
@@ -100,38 +106,13 @@ void customResponseOptionsDialog::refreshDisplay(int numOptionsBoxValue)
 }
 
 
-void customResponseOptionsDialog::optionChanged()
-{
-    options.clear();
-    options.reserve(numOptions);
-    for(int i = 0; i < numOptions; i++)
-    {
-        QString currText = optionLineEdit[i].text();
-        int currPos = 0;
-        if(noInvalidPunctuation->validate(currText, currPos) != QValidator::Acceptable)
-        {
-            QMessageBox::warning(this, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
-                                                              "    ,  &  <  > / \n"
-                                                              "Other punctuation is allowed."));
-
-            optionLineEdit[i].setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
-        }
-
-        options << currText.trimmed();
-    }
-
-    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(allFilled());
-}
-
-
 void customResponseOptionsDialog::clearAll()
 {
     options.clear();
-    options.reserve(numOptions);
     for(int i = 0; i < numOptions; i++)
     {
-        optionLineEdit[i].clear();
-        options << optionLineEdit[i].text();
+        optionLineEdits[i]->clear();
+        options << optionLineEdits[i]->text();
     }
 
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -140,5 +121,23 @@ void customResponseOptionsDialog::clearAll()
 
 bool customResponseOptionsDialog::allFilled()
 {
-    return std::all_of(optionLineEdit, optionLineEdit + numOptions, [](const QLineEdit &lineEdit){return !lineEdit.text().isEmpty();});
+    return std::all_of(optionLineEdits.constBegin(), optionLineEdits.constBegin() + numOptions, [](const QLineEdit* lineEdit){return !lineEdit->text().isEmpty();});
+}
+
+bool customResponseOptionsDialog::stripPrecedingOrderNumbers(QStringList &options)
+{
+    bool allStartedWithOrderNumbers = true;
+    int i = 0;
+    for(const auto &option : options) {
+        allStartedWithOrderNumbers = allStartedWithOrderNumbers && option.startsWith(QString::number(i+1) + ". ");
+        i++;
+    }
+
+    if(allStartedWithOrderNumbers) {
+        for(auto &option : options) {
+            option = option.sliced((QString::number(i+1) + ". ").size());
+        }
+    }
+
+    return allStartedWithOrderNumbers;
 }
