@@ -90,6 +90,7 @@ private:
     QPushButton *deleteButton = nullptr;
     QLabel *questionLabel = nullptr;
     QPlainTextEdit *questionPlainTextEdit = nullptr;
+    void resizeQuestionPlainTextEdit();
     QLabel *responsesLabel = nullptr;
     ComboBoxWithElidedContents *responsesComboBox = nullptr;
     QCheckBox *multiAllowed = nullptr;

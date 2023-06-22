@@ -85,29 +85,41 @@ inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: " TRANSPAR
                                              "QPushButton:disabled {background: " TRANSPARENT "; color: lightGray; "
                                                                    "font-family: 'DM Sans'; font-size: 12pt; border: none;}";
 inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: #" DEEPWATERHEX "; "
-                                                             "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold;"
+                                                             "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold; "
                                                              "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
 inline static const char LABELSTYLE[] = "QLabel {color: #" DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans;}"
                                           "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: DM Sans;}";
-inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                             "QLineEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char PLAINTEXTEDITSTYLE[] = "QPlainTextEdit {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                                 "QPlainTextEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char LINEEDITERRORSTYLE[] = "QLineEdit {background-color: white; color: red; font-family: 'DM Sans'; font-size: 12pt;}"
-                                                 "QLineEdit:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}";
-inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                             "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
-                                             "QComboBox::drop-down {border 0px;}"
+inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: #" DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                                                       "font-family: 'DM Sans'; font-size: 12pt;}"
+                                             "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                                  "font-family: 'DM Sans'; font-size: 12pt;}";
+inline static const char PLAINTEXTEDITSTYLE[] = "QPlainTextEdit {background-color: white; color: #" DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                                                                 "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                 "QPlainTextEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                                           "font-family: 'DM Sans'; font-size: 12pt;}";
+inline static const char LINEEDITERRORSTYLE[] = "QLineEdit {background-color: white; color: red; border-style: solid; border-color: black; border-width: 1px; "
+                                                            "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                 "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: black; border-width: 1px; "
+                                                                      "font-family: 'DM Sans'; font-size: 12pt;}";
+inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: #" DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                                                       "font-family: 'DM Sans'; font-size: 12pt;}"
+                                             "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                                  "font-family: 'DM Sans'; font-size: 12pt;}"
+                                             "QComboBox::drop-down {border-width: 0px;}"
                                              "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}";
-inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: #" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                           "QSpinBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
+inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: #" DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                                                     "font-family: 'DM Sans'; font-size: 12pt;}"
+                                           "QSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                               "font-family: 'DM Sans'; font-size: 12pt;}"
                                            "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
                                            "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}";
-inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; font-family: 'DM Sans'; font-size: 12pt;}"
-                                                 "QComboBox:disabled {background-color: lightGray; color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}"
+inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; border-style: solid; border-color: black; border-width: 1px;"
+                                                            "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                 "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                                      "font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox::drop-down {border-width: 0px;}"
-                                                 "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); border-width: 0px;}";
-inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
+                                                 "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}";
+inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; border-style: solid; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::indicator {background-color: white; "
                                                                    "width: 12px; height: 12px; border: 2px solid #" DEEPWATERHEX ";}"
                                              "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";

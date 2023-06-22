@@ -41,7 +41,7 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
 /*      The commented code below creates a (non-native) file open dialog,
  *      with the idea that the auto-determined field meanings would pop up on the side.
  *      The user could then decide with a checkbox if those meanings needed to be changed.
- *      It mostly works, but: looks ugly due to non-native file dialog, and they checkbox
+ *      It mostly works, but: looks ugly due to non-native file dialog, and the checkbox
  *      functionality is un-implemented.
 
         auto *win = new QDialog;
@@ -292,6 +292,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);
 
     auto *explanation = new QLabel(window);
+    explanation->setStyleSheet(LABELSTYLE);
     explanation->setText(tr("<html>The following fields were found in the first row of the file. "
                          "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT +
                          tr("\" for any field(s) that should be ignored.<hr></html>"));
@@ -299,6 +300,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
     window->theGrid->addWidget(explanation, 0, 0, 1, -1);
 
     auto *hasHeaderRowCheckbox = new QCheckBox(window);
+    hasHeaderRowCheckbox->setStyleSheet(CHECKBOXSTYLE);
     hasHeaderRowCheckbox->setText(tr("This file has a header row"));
     hasHeaderRowCheckbox->setChecked(true);
     window->theGrid->addWidget(hasHeaderRowCheckbox, 1, 0, 1, -1);
@@ -311,16 +313,18 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView{font: bold large}");
+    window->theTable->horizontalHeader()->setStyleSheet(QString(LABELSTYLE).replace("font-family: DM Sans;", "font-family: DM Sans; font-weight: bold;"));
     window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++)
     {
         auto *label = new QLabel("\n" + headerValues.at(row) + "\n");
+        label->setStyleSheet(LABELSTYLE);
         label->setWordWrap(true);
         window->theTable->setCellWidget(row, 0, label);
 
-        auto *selector = new QComboBox();
+        auto *selector = new QComboBox;
+        selector->setStyleSheet(COMBOBOXSTYLE);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(window);       // as it's too easy to mistake scrolling through the rows with changing the value
         for(const auto &meaning : qAsConst(possibleFieldMeanings))

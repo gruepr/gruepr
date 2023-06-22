@@ -39,6 +39,8 @@ public:
                                                        SurveyMakerWizard::sunday.addDays(4).toString("dddd"), SurveyMakerWizard::sunday.addDays(5).toString("dddd"),
                                                        SurveyMakerWizard::sunday.addDays(6).toString("dddd")};
 
+    static QStringList timezoneNames;
+
     //RegEx for punctuation not allowed within a URL, and a function to handle problem cases
     static inline const QRegularExpressionValidator noInvalidPunctuation= QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"));
     static void invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent = nullptr);
@@ -162,7 +164,7 @@ private:
     QDialog *sampleQuestionsDialog = nullptr;
     QList<SurveyMakerMultichoiceQuestion *> multichoiceQuestions;
     QList<QSpacerItem *> spacers;
-    QList<QComboBox *> qu;
+    QList<QFrame *> previewSeparators;
     QFrame *addQuestionButtonFrame = nullptr;
     QHBoxLayout *addQuestionButtonLayout = nullptr;
     QPushButton *addQuestionButton = nullptr;
@@ -218,7 +220,6 @@ private:
     QString scheduleQuestion;
     QLabel *busyOrFreeLabel = nullptr;
     QComboBox *busyOrFreeComboBox = nullptr;
-    QStringList timeZoneNames;
     QString baseTimezone = "";
     QLabel *baseTimezoneLabel = nullptr;
     QLineEdit *customBaseTimezone = nullptr;
@@ -286,7 +287,7 @@ private:
     void update();
     void deleteASection(int sectionNum);
     void addASection();
-    void uploadRoster();
+    bool uploadRoster();
 };
 
 

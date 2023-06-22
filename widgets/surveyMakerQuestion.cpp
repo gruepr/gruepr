@@ -106,14 +106,9 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     questionPlainTextEdit = new QPlainTextEdit;
     questionPlainTextEdit->setStyleSheet(PLAINTEXTEDITSTYLE);
     questionPlainTextEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    questionPlainTextEdit->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the textedit
-    questionPlainTextEdit->installEventFilter(new MouseWheelBlocker(questionPlainTextEdit));
+    questionPlainTextEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    resizeQuestionPlainTextEdit();
     questionPlainTextEdit->setPlaceholderText(tr("Type your question..."));
-    auto *doc = questionPlainTextEdit->document();
-    QFontMetrics font(doc->defaultFont());
-    auto margins = questionPlainTextEdit->contentsMargins();
-    int nHeight = font.lineSpacing() * 2 + (doc->documentMargin() + questionPlainTextEdit->frameWidth()) * 2 + margins.top() + margins.bottom() + 6;
-    questionPlainTextEdit->setFixedHeight(nHeight);
     responsesLabel = new QLabel(tr("Response type"));
     responsesLabel->setStyleSheet(LABELSTYLE);
     responsesComboBox = new ComboBoxWithElidedContents("1. Very high / 2. Above average / 3. Average");
@@ -172,6 +167,7 @@ void SurveyMakerMultichoiceQuestion::deleteRequest()
 
 void SurveyMakerMultichoiceQuestion::questionChange()
 {
+    resizeQuestionPlainTextEdit();
     emit questionChanged(questionPlainTextEdit->toPlainText());
 }
 
@@ -285,6 +281,17 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
     emit responsesAsStringChanged(tr("Options") + ": " + (newResponses == QStringList({""})? "---" : newResponses.join(" / ")) + (getMulti()? "\n   {Multiple responses allowed}" : ""));
 }
 
+void SurveyMakerMultichoiceQuestion::resizeQuestionPlainTextEdit()
+{
+    // make the edit box at least 2 rows of text tall but as big as needed to show all text
+    const auto *const doc = questionPlainTextEdit->document();
+    const QFontMetrics font(doc->defaultFont());
+    const auto margins = questionPlainTextEdit->contentsMargins();
+    const int height = (font.lineSpacing() * std::max(2.0, doc->size().height())) +
+                       (doc->documentMargin() + questionPlainTextEdit->frameWidth()) * 2 + margins.top() + margins.bottom();
+    questionPlainTextEdit->setFixedHeight(height);
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -317,7 +324,6 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         questionLabel.last()->hide();
 
         questionLineEdit << new QLineEdit;
-        questionLineEdit.last()->setReadOnly(true);
         questionLineEdit.last()->setStyleSheet(LINEEDITSTYLE);
         layout->addWidget(questionLineEdit.last(), row++, 0, 1, -1);
         questionLineEdit.last()->hide();

@@ -1,5 +1,6 @@
 #include "surveyMakerWizard.h"
 #include "gruepr_globals.h"
+#include "csvfile.h"
 #include <QApplication>
 #include <QFile>
 #include <QFileDialog>
@@ -12,9 +13,7 @@
 
 //implement export functionality
 //make multichoice sample questions dialog
-//finish load functionaloity: preload student names into ui
-//make upload roster ui
-//crash when loading test.gru then springproj.gru--doesn't crash when disabling loading of multichoice questions
+//change appearance of in-progress previews to match end
 
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     : QWizard(parent)
@@ -62,6 +61,8 @@ SurveyMakerWizard::~SurveyMakerWizard()
     savedSettings.setValue("surveyMakerWindowGeometry", saveGeometry());
     savedSettings.setValue("surveyMakerSaveFileLocation", saveFileLocation.canonicalFilePath());
 }
+
+QStringList SurveyMakerWizard::timezoneNames = []{QStringList names = QString(TIMEZONENAMES).split(";"); for(auto &name : names){name = name.remove('"').trimmed();} return names;}();
 
 void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent)
 {
@@ -158,12 +159,15 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                         auto responseIndex = loadObject["Attribute" + QString::number(question+1)+"Response"].toInt() - 1;  // "-1" for historical reasons :(
                         if((responseIndex >= 0) && (responseIndex < responseOptions.size()-1))
                         {
-                            multiChoiceQuestionResponses.last() = responseOptions[responseIndex].split(" / ");
+                            multiChoiceQuestionResponses.last() = responseOptions[responseIndex].split('/');
                         }
                         else if(loadObject.contains("Attribute" + QString::number(question+1)+"Options") &&
                              loadObject["Attribute" + QString::number(question+1)+"Options"].isString())
                         {
-                            multiChoiceQuestionResponses.last() = loadObject["Attribute" + QString::number(question+1)+"Options"].toString().split(" / ");
+                            multiChoiceQuestionResponses.last() = loadObject["Attribute" + QString::number(question+1)+"Options"].toString().split('/');
+                        }
+                        for(auto &response : multiChoiceQuestionResponses.last()) {
+                            response = response.trimmed();
                         }
                     }
                     multiChoiceQuestionMultis << false;
@@ -263,6 +267,10 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble())
             {
                 setField("numPrefTeammates", loadObject["numPrefTeammates"].toInt());
+            }
+            if(loadObject.contains("StudentNames") && loadObject["StudentNames"].isString())
+            {
+                setField("StudentNames", loadObject["StudentNames"].toString().split(','));
             }
 
             loadFile.close();
@@ -524,6 +532,8 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     genderResponsesComboBox->installEventFilter(new MouseWheelBlocker(genderResponsesComboBox));
     genderResponsesComboBox->addItems({tr("Biological Sex"), tr("Adult Identity"), tr("Child Identity"), tr("Pronouns")});
     genderResponsesComboBox->setStyleSheet(COMBOBOXSTYLE);
+    genderResponsesComboBox->setMinimumContentsLength(QString(tr("Biological Sex")).size());
+    genderResponsesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     genderResponsesComboBox->setEnabled(false);
     genderResponsesComboBox->setCurrentIndex(3);
     genderResponsesLayout->addWidget(genderResponsesComboBox);
@@ -657,18 +667,20 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
         questionPreviewLayouts << new QVBoxLayout;
         questionPreviews.last()->setLayout(questionPreviewLayouts.last());
-        QString fillInQuestion = tr("Question") + " " + QString::number(i + 1);
+        QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
         questionPreviewTopLabels << new QLabel(fillInQuestion);
-        questionPreviewTopLabels.last()->setStyleSheet(LABELSTYLE);
+        questionPreviewTopLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("font-size: 10pt;", "font-size: 12pt;"));
+        questionPreviewTopLabels.last()->setWordWrap(true);
         questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
-        qu << new QComboBox;
-        qu.last()->setStyleSheet(COMBOBOXSTYLE);
-        qu.last()->setEditable(true);
-        qu.last()->setCurrentText("[" + fillInQuestion + "]");
-        questionPreviewLayouts.last()->addWidget(qu.last());
         questionPreviewBottomLabels << new QLabel(tr("Options") + ": ---");
         questionPreviewBottomLabels.last()->setStyleSheet(LABELSTYLE);
+        questionPreviewBottomLabels.last()->setWordWrap(true);
         questionPreviewLayouts.last()->addWidget(questionPreviewBottomLabels.last());
+        previewSeparators << new QFrame;
+        previewSeparators.last()->setStyleSheet("border: 2px solid; border-color: #" DEEPWATERHEX);
+        previewSeparators.last()->setFrameShape(QFrame::HLine);
+        previewSeparators.last()->setFrameShadow(QFrame::Plain);
+        questionPreviewLayouts.last()->addWidget(previewSeparators.last());
         previewLayout->insertWidget(i, questionPreviews.last());
         questionPreviews.last()->hide();
 
@@ -677,7 +689,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionTexts << "";
         connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText)
                                                                                                      {questionTexts[i] = newText;
-                                                                                                      qu[i]->setCurrentText(newText.isEmpty()? "[" + fillInQuestion + "]" : newText);});
+                                                                                                      questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : newText);});
         questionResponses << QStringList({""});
         connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){questionResponses[i] = newResponses;});
         questionMultis << false;
@@ -736,7 +748,9 @@ void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts
         multichoiceQuestions[i]->setQuestion(newQuestionText);
         i++;
     }
-    questionTexts = newQuestionTexts;
+    for( ; i < MAX_ATTRIBUTES-1; i++) {
+        multichoiceQuestions[i]->setQuestion("");
+    }
     emit questionTextsChanged(questionTexts);
 }
 
@@ -755,7 +769,9 @@ void MultipleChoicePage::setQuestionResponses(const QList<QList<QString>> &newQu
         multichoiceQuestions[i]->setResponses(newQuestionResponse);
         i++;
     }
-    questionResponses = newQuestionResponses;
+    for( ; i < MAX_ATTRIBUTES-1; i++) {
+        multichoiceQuestions[i]->setResponses(QStringList({""}));
+    }
     emit questionResponsesChanged(questionResponses);
 }
 
@@ -774,7 +790,9 @@ void MultipleChoicePage::setQuestionMultis(const QList<bool> &newQuestionMultis)
         multichoiceQuestions[i]->setMulti(newQuestionMulti);
         i++;
     }
-    questionMultis = newQuestionMultis;
+    for( ; i < MAX_ATTRIBUTES-1; i++) {
+        multichoiceQuestions[i]->setMulti(false);
+    }
     emit questionMultisChanged(questionMultis);
 }
 
@@ -888,6 +906,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     busyOrFreeComboBox->insertItem(busy, tr("Busy"));
     busyOrFreeComboBox->insertItem(free, tr("Free"));
     busyOrFreeComboBox->setStyleSheet(COMBOBOXSTYLE);
+    busyOrFreeComboBox->setMinimumContentsLength(std::max(QString(tr("Busy")).size(), QString(tr("Free")).size()));
+    busyOrFreeComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     busyOrFreeComboBox->setEnabled(false);
     busyOrFreeComboBox->setCurrentIndex(0);
     busyOrFreeLayout->addWidget(busyOrFreeComboBox);
@@ -900,11 +920,6 @@ SchedulePage::SchedulePage(QWidget *parent)
     baseTimezoneLabel->setStyleSheet(LABELSTYLE);
     baseTimezoneLabel->hide();
     questions[schedule]->addWidget(baseTimezoneLabel, row++, 0, false);
-    timeZoneNames = QString(TIMEZONENAMES).split(";");
-    for(auto &timeZoneName : timeZoneNames)
-    {
-        timeZoneName.remove('"');
-    }
     baseTimezoneComboBox = new ComboBoxWithElidedContents("Pacific: US and Canada, Tijuana [GMT-08:00]", this);
     baseTimezoneComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     baseTimezoneComboBox->installEventFilter(new MouseWheelBlocker(baseTimezoneComboBox));
@@ -914,11 +929,11 @@ SchedulePage::SchedulePage(QWidget *parent)
     baseTimezoneComboBox->addItem(tr("[student's home timezone]"));
     baseTimezoneComboBox->addItem(tr("Custom timezone:"));
     baseTimezoneComboBox->insertSeparator(2);
-    for(int zone = 0; zone < timeZoneNames.size(); zone++)
+    int itemNum = 3;
+    for(const auto &zonename : SurveyMakerWizard::timezoneNames)
     {
-        const QString &zonename = timeZoneNames.at(zone);
         baseTimezoneComboBox->addItem(zonename);
-        baseTimezoneComboBox->setItemData(3 + zone, zonename, Qt::ToolTipRole);
+        baseTimezoneComboBox->setItemData(itemNum++, zonename, Qt::ToolTipRole);
     }
     questions[schedule]->addWidget(baseTimezoneComboBox, row++, 0, true);
     baseTimezoneComboBox->hide();
@@ -941,6 +956,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     daysComboBox->installEventFilter(new MouseWheelBlocker(daysComboBox));
     daysComboBox->addItems({tr("All days"), tr("Weekdays"), tr("Weekends"), tr("Custom days/daynames")});
     daysComboBox->setStyleSheet(COMBOBOXSTYLE);
+    daysComboBox->setMinimumContentsLength(QString(tr("Custom days/daynames")).size());
+    daysComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     daysComboBox->setEnabled(false);
     daysComboBox->setCurrentIndex(0);
     questions[schedule]->addWidget(daysComboBox, row++, 0, true, Qt::AlignLeft);
@@ -980,6 +997,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     fromComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     fromComboBox->installEventFilter(new MouseWheelBlocker(fromComboBox));
     fromComboBox->setStyleSheet(COMBOBOXSTYLE);
+    fromComboBox->setMinimumContentsLength(5);
+    fromComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     fromComboBox->setEnabled(false);
     fromToLayout->addWidget(fromComboBox, 0, Qt::AlignCenter);
     toLabel = new QLabel(tr("to"));
@@ -990,6 +1009,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     toComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     toComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
     toComboBox->setStyleSheet(COMBOBOXSTYLE);
+    toComboBox->setMinimumContentsLength(5);
+    toComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     toComboBox->setEnabled(false);
     for(int hr = 0; hr < 24; hr++) {
         QString time = SurveyMakerWizard::sunday.time().addSecs(hr * 3600).toString("h A");
@@ -1355,6 +1376,7 @@ QStringList CourseInfoPage::getSectionNames() const
 void CourseInfoPage::setStudentNames(const QStringList &newStudentNames)
 {
     studentNames = newStudentNames;
+    selectFromRosterSwitch->setValue(!studentNames.isEmpty());
     emit studentNamesChanged(studentNames);
 }
 
@@ -1383,8 +1405,12 @@ void CourseInfoPage::update()
     questionPreviewBottomLabels[section]->setText(tr("Options: ") + sectionNames.join("  |  "));
 
     bool oneOfPrefQuestions = (questions[wantToWorkWith]->getValue() || questions[wantToAvoid]->getValue());
-    selectFromRosterLabel->setEnabled(oneOfPrefQuestions);
-    selectFromRosterLabel->setText(selectFromRosterLabel->text().replace(DEEPWATERHEX, (oneOfPrefQuestions? DEEPWATERHEX : "bebebe")));
+    if (oneOfPrefQuestions) {
+        selectFromRosterLabel->setText(selectFromRosterLabel->text().replace("bebebe", DEEPWATERHEX));
+    }
+    else {
+        selectFromRosterLabel->setText(selectFromRosterLabel->text().replace(DEEPWATERHEX, "bebebe"));
+    }
     selectFromRosterSwitch->setEnabled(oneOfPrefQuestions);
     numPrefTeammatesExplainer->setEnabled(oneOfPrefQuestions);
     numPrefTeammatesSpinBox->setEnabled(oneOfPrefQuestions);
@@ -1471,14 +1497,70 @@ void CourseInfoPage::deleteASection(int sectionNum)
     update();
 }
 
-void CourseInfoPage::uploadRoster()
+bool CourseInfoPage::uploadRoster()
 {
-    ////////////////////////get csv file, parse into names
-    studentNames = {"Joshua Hertz", "Jasmine Lellock", "Cora Hertz", "Charlie Hertz"};
+    // Open the roster file
+    CsvFile rosterFile;
+    QString saveFilePath = (qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation.canonicalPath();
+    if(!rosterFile.open(this, CsvFile::read, tr("Open Student Roster File"), saveFilePath, tr("Roster File"))) {
+        return false;
+    }
+
+    // Read the header row
+    if(!rosterFile.readHeader()) {
+        // header row could not be read as valid data
+        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        return false;
+    }
+
+    // Ask user what the columns mean
+    // Preloading the selector boxes with "unused" except first time "first name", "last name", and "name" are found
+    QVector<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                    {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
+                                                    {"Full Name (First Last)", "(name)", 1},
+                                                    {"Full Name (Last, First)", "(name)", 1}};;
+    if(rosterFile.chooseFieldMeaningsDialog(rosterFieldOptions, this)->exec() == QDialog::Rejected) {
+        return false;
+    }
+
+    // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
+    int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
+    int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
+    int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
+    int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
+
+    studentNames.clear();
+
+    // Process each row until there's an empty one. Load names one-by-one
+    if(rosterFile.hasHeaderRow) {
+        rosterFile.readDataRow();
+    }
+    else {
+        rosterFile.readDataRow(true);
+    }
+
+    do {
+        if(firstLastNameField != -1) {
+            studentNames << rosterFile.fieldValues.at(firstLastNameField).trimmed();
+        }
+        else if(lastFirstNameField != -1) {
+            QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
+            studentNames << lastandfirstname.at(1).trimmed() + " " + lastandfirstname.at(0).trimmed();
+        }
+        else if(firstNameField != -1 && lastNameField != -1) {
+            studentNames << rosterFile.fieldValues.at(firstNameField).trimmed() + " " + rosterFile.fieldValues.at(lastNameField).trimmed();
+        }
+        else {
+            QMessageBox::critical(this, tr("File error."), tr("This roster does not contain student names."), QMessageBox::Ok);
+            return false;
+        }
+    } while(rosterFile.readDataRow());
+
+    rosterFile.close();
 
     setStudentNames(studentNames);
-
     update();
+    return true;
 }
 
 
@@ -1526,21 +1608,18 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
 
     questionLayout->addStretch(1);
 
-    section[SurveyMakerWizard::demographics]->questionLabel[0]->setText(tr("First Name"));
-    section[SurveyMakerWizard::demographics]->questionLineEdit[0]->setText(FIRSTNAMEQUESTION);
-    section[SurveyMakerWizard::demographics]->questionLabel[1]->setText(tr("Last Name"));
-    section[SurveyMakerWizard::demographics]->questionLineEdit[1]->setText(LASTNAMEQUESTION);
-    section[SurveyMakerWizard::demographics]->questionLabel[2]->setText(tr("Email"));
-    section[SurveyMakerWizard::demographics]->questionLineEdit[2]->setText(EMAILQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLabel[0]->setText(FIRSTNAMEQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLineEdit[0]->setPlaceholderText(tr("First Name"));
+    section[SurveyMakerWizard::demographics]->questionLabel[1]->setText(LASTNAMEQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLineEdit[1]->setPlaceholderText(tr("Last Name"));
+    section[SurveyMakerWizard::demographics]->questionLabel[2]->setText(EMAILQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLineEdit[2]->setPlaceholderText(tr("Email"));
     section[SurveyMakerWizard::demographics]->questionLabel[3]->setText(tr("Gender"));
-    section[SurveyMakerWizard::demographics]->questionLabel[4]->setText(tr("Race / ethnicity"));
-    section[SurveyMakerWizard::demographics]->questionLineEdit[4]->setText(URMQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLabel[4]->setText(URMQUESTION);
+    section[SurveyMakerWizard::demographics]->questionLineEdit[4]->setPlaceholderText(tr("Race / ethnicity"));
 
-    section[SurveyMakerWizard::schedule]->questionLabel[0]->setText(tr("Timezone"));
-    section[SurveyMakerWizard::schedule]->questionComboBox[0]->addItem(TIMEZONEQUESTION);
-    section[SurveyMakerWizard::schedule]->questionComboBox[0]->insertSeparator(1);
-    auto timeZoneNames = QString(TIMEZONENAMES).split(";");
-    section[SurveyMakerWizard::schedule]->questionComboBox[0]->addItems(timeZoneNames);
+    section[SurveyMakerWizard::schedule]->questionLabel[0]->setText(TIMEZONEQUESTION);
+    section[SurveyMakerWizard::schedule]->questionComboBox[0]->addItems(SurveyMakerWizard::timezoneNames);
     section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(tr("Schedule"));
     schedGrid = new QWidget;
     schedGridLayout = new QGridLayout(schedGrid);
@@ -1567,7 +1646,9 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     schedGridLayout->setRowStretch(24, 1);
     section[SurveyMakerWizard::schedule]->addWidget(schedGrid);
 
-    section[SurveyMakerWizard::courseinfo]->questionLabel[0]->setText(tr("Section"));
+    section[SurveyMakerWizard::courseinfo]->questionLabel[0]->setText(SECTIONQUESTION);
+    section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->setPlaceholderText(tr("Classmates I want to work with"));
+    section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->setPlaceholderText(tr("Classmates I want to avoid working with"));
 }
 
 void PreviewAndExportPage::initializePage()
@@ -1657,9 +1738,8 @@ void PreviewAndExportPage::initializePage()
             options = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
             break;
         }
+        section[SurveyMakerWizard::demographics]->questionLabel[3]->setText(text);
         section[SurveyMakerWizard::demographics]->questionComboBox[3]->clear();
-        section[SurveyMakerWizard::demographics]->questionComboBox[3]->addItem(text);
-        section[SurveyMakerWizard::demographics]->questionComboBox[3]->insertSeparator(1);
         section[SurveyMakerWizard::demographics]->questionComboBox[3]->addItems(options);
         survey->questions << Question(text, Question::QuestionType::dropdown, options);
     }
@@ -1763,7 +1843,7 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::schedule]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::schedule]->questionLabel[0]->show();
         section[SurveyMakerWizard::schedule]->questionComboBox[0]->show();
-        survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, QString(TIMEZONENAMES).split(";"));
+        survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, SurveyMakerWizard::timezoneNames);
     }
     else {
         section[SurveyMakerWizard::schedule]->preQuestionSpacer[0]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -1826,8 +1906,6 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::courseinfo]->questionLabel[0]->show();
         section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->show();
         section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->clear();
-        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->addItem(SECTIONQUESTION);
-        section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->insertSeparator(1);
         section[SurveyMakerWizard::courseinfo]->questionComboBox[0]->addItems(courseSectionsNames);
         survey->questions << Question(SECTIONQUESTION, Question::QuestionType::radiobutton, courseSectionsNames);
     }
@@ -1839,20 +1917,18 @@ void PreviewAndExportPage::initializePage()
 
     if(prefTeammate) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[SurveyMakerWizard::courseinfo]->questionLabel[1]->show();
         QString questionText = CourseInfoPage::generateTeammateQuestion(true, studentNames.isEmpty(), numPrefTeammates);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[1]->setText(questionText);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[1]->show();
         if(studentNames.isEmpty()) {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->show();
             section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->hide();
-            section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->setText(questionText);
             survey->questions << Question(questionText, (numPrefTeammates == 1? Question::QuestionType::shorttext : Question::QuestionType::longtext));
         }
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
             section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->show();
             section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->clear();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->addItem(questionText);
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->insertSeparator(1);
             section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->addItems(studentNames);
             survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
         }
@@ -1866,20 +1942,18 @@ void PreviewAndExportPage::initializePage()
 
     if(prefNonTeammate) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        section[SurveyMakerWizard::courseinfo]->questionLabel[2]->show();
         QString questionText = CourseInfoPage::generateTeammateQuestion(false, studentNames.isEmpty(), numPrefTeammates);
+        section[SurveyMakerWizard::courseinfo]->questionLabel[2]->show();
+        section[SurveyMakerWizard::courseinfo]->questionLabel[2]->setText(questionText);
         if(studentNames.isEmpty()) {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->show();
             section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->hide();
-            section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->setText(questionText);
             survey->questions << Question(questionText, (numPrefTeammates == 1? Question::QuestionType::shorttext : Question::QuestionType::longtext));
         }
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
             section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->show();
             section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->clear();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->addItem(questionText);
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->insertSeparator(1);
             section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->addItems(studentNames);
             survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
         }
@@ -1973,6 +2047,7 @@ void PreviewAndExportPage::saveSurvey()
             saveObject["PreferredTeammates"] = field("PrefTeammate").toBool();
             saveObject["PreferredNonTeammates"] = field("PrefNonTeammate").toBool();
             saveObject["numPrefTeammates"] = field("numPrefTeammates").toInt();
+            saveObject["StudentNames"] = field("StudentNames").toStringList().join(',');
 
             QJsonDocument saveDoc(saveObject);
             saveFile.write(saveDoc.toJson());
