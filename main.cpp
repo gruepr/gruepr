@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     QFont splashFont("DM Sans");
     splashFont.setPixelSize(messageSize);
     splash->setFont(splashFont);
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\n\nwww.gruepr.com", Qt::AlignCenter, DEEPWATER);
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\n\nwww.gruepr.com", Qt::AlignCenter, QColor::fromString("#" DEEPWATERHEX));
     splash->show();
 
     // Create application choice (gruepr or surveymaker) window; remove splashscreen when choice window opens

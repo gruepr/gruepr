@@ -61,6 +61,7 @@ public:
     explicit SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent = nullptr);
 
     void setNumber(const int questionNum);
+    QWidget *previewWidget = nullptr;
 
     void setQuestion(const QString &newQuestion);
     QString getQuestion() const;
@@ -73,7 +74,6 @@ signals:
     void deleteRequested();
     void questionChanged(const QString &newQuestion);
     void responsesChanged(const QStringList &newResponses);
-    void responsesAsStringChanged(const QString &newResponses);
     void multiChanged(const bool newMulti);
 
 private slots:
@@ -94,6 +94,8 @@ private:
     QLabel *responsesLabel = nullptr;
     ComboBoxWithElidedContents *responsesComboBox = nullptr;
     QCheckBox *multiAllowed = nullptr;
+    QVBoxLayout *previewLayout = nullptr;
+    void updatePreviewWidget();
 };
 
 

@@ -3432,7 +3432,7 @@ void gruepr::refreshStudentDisplay()
             timestamp->setToolTip(student[index].tooltip);
             if(duplicate)
             {
-                timestamp->setBackground(QBrush(HIGHLIGHTYELLOW));
+                timestamp->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
             }
             ui->studentTable->setItem(numStudents, 0, timestamp);
 
@@ -3440,7 +3440,7 @@ void gruepr::refreshStudentDisplay()
             firstName->setToolTip(student[index].tooltip);
             if(duplicate)
             {
-                firstName->setBackground(QBrush(HIGHLIGHTYELLOW));
+                firstName->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
             }
             ui->studentTable->setItem(numStudents, 1, firstName);
 
@@ -3448,7 +3448,7 @@ void gruepr::refreshStudentDisplay()
             lastName->setToolTip(student[index].tooltip);
             if(duplicate)
             {
-                lastName->setBackground(QBrush(HIGHLIGHTYELLOW));
+                lastName->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
             }
             ui->studentTable->setItem(numStudents, 2, lastName);
 
@@ -3459,7 +3459,7 @@ void gruepr::refreshStudentDisplay()
                 section->setToolTip(student[index].tooltip);
                 if(duplicate)
                 {
-                    section->setBackground(QBrush(HIGHLIGHTYELLOW));
+                    section->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
                 }
                 ui->studentTable->setItem(numStudents, column, section);
                 column++;

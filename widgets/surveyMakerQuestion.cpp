@@ -1,6 +1,8 @@
 #include "surveyMakerQuestion.h"
 #include "gruepr_globals.h"
 #include "dialogs/customResponseOptionsDialog.h"
+#include <QCheckBox>
+#include <QRadioButton>
 
 SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, const QString &textLabel, bool startingValue)
     : QFrame{parent}
@@ -12,8 +14,16 @@ SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, co
     label = new QLabel;
     setLabel(textLabel);
 
-    setStyleSheet("background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";");
+    setStyleSheet(QString() + "QFrame{background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";}" + SCROLLBARSTYLE);
 
+    /*
+    palette.setColor(QPalette::Disabled, QPalette::Base, Qt::lightGray);
+    palette.setColor(QPalette::Disabled, QPalette::Window, Qt::lightGray);
+    palette.setColor(QPalette::Disabled, QPalette::WindowText, Qt::darkGray);
+    palette.setColor(QPalette::Disabled, QPalette::Text, Qt::darkGray);
+    palette.setColor(QPalette::Disabled, QPalette::Button, Qt::lightGray);
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, Qt::darkGray);
+*/
     layout = new QGridLayout(this);
     layout->addWidget(label, 0, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
     layout->addWidget(switchButton, 0, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
@@ -29,11 +39,11 @@ void SurveyMakerQuestionWithSwitch::paintEvent(QPaintEvent*)
 {
     setAutoFillBackground(true);
     if (_enabled) {
-        setStyleSheet("background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";");
+        setStyleSheet(QString() + "QFrame{background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";}" + SCROLLBARSTYLE);
         label->setText(label->text().replace("bebebe", DEEPWATERHEX));
     }
     else {
-        setStyleSheet("background-color: #e6e6e6; color: #bebebe;");
+        setStyleSheet(QString() + "QFrame{background-color: #e6e6e6; color: #bebebe;}" + SCROLLBARSTYLE);
         label->setText(label->text().replace(DEEPWATERHEX, "bebebe"));
     }
 }
@@ -113,7 +123,6 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     responsesLabel->setStyleSheet(LABELSTYLE);
     responsesComboBox = new ComboBoxWithElidedContents("1. Very high / 2. Above average / 3. Average");
     responsesComboBox->setEditable(false);
-    responsesComboBox->setStyleSheet(COMBOBOXSTYLE);
     responsesComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     responsesComboBox->installEventFilter(new MouseWheelBlocker(responsesComboBox));
     responsesComboBox->addItem(tr("Choose an option..."), QStringList({""}));
@@ -131,14 +140,13 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     responsesComboBox->setItemData(item + 1, QStringList({""}));    // reset the "Custom options..." item data and tooltip
     responsesComboBox->setItemData(item + 1, "", Qt::ToolTipRole);
     multiAllowed = new QCheckBox(tr("Allow students to select multiple options"));
-    multiAllowed->setStyleSheet(CHECKBOXSTYLE);
 
     connect(deleteButton, &QPushButton::clicked, this, &SurveyMakerMultichoiceQuestion::deleteRequest);
     connect(questionPlainTextEdit, &QPlainTextEdit::textChanged, this, &SurveyMakerMultichoiceQuestion::questionChange);
     connect(responsesComboBox, &QComboBox::activated, this, &SurveyMakerMultichoiceQuestion::responsesComboBoxActivated);
     connect(multiAllowed, &QCheckBox::toggled, this, &SurveyMakerMultichoiceQuestion::multiChange);
 
-    setStyleSheet("background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";");
+    setStyleSheet(QString() + "QFrame{background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";}" + SCROLLBARSTYLE);
 
     layout = new QGridLayout(this);
     int row = 0;
@@ -152,6 +160,11 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     layout->addWidget(responsesComboBox, row++, 0, 1, -1, Qt::AlignVCenter);
     layout->addWidget(multiAllowed, row++, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
     layout->setColumnStretch(0, 1);
+
+    previewWidget = new QWidget(this);
+    previewWidget->setStyleSheet(QString() + "QWidget{border-style:none;}" + SCROLLBARSTYLE);
+    previewLayout = new QVBoxLayout;
+    previewWidget->setLayout(previewLayout);
 }
 
 void SurveyMakerMultichoiceQuestion::setNumber(const int questionNum)
@@ -187,7 +200,8 @@ void SurveyMakerMultichoiceQuestion::multiChange(const bool newMulti)
 
     QStringList newResponses = responsesComboBox->currentData().toStringList();
     emit responsesChanged(newResponses);
-    emit responsesAsStringChanged(tr("Options") + ": " + (newResponses == QStringList({""})? "---" : newResponses.join(" / ")) + (getMulti()? "\n   {Multiple responses allowed}" : ""));
+
+    updatePreviewWidget();
 }
 
 void SurveyMakerMultichoiceQuestion::setResponses(const QStringList &newResponses)
@@ -212,12 +226,13 @@ void SurveyMakerMultichoiceQuestion::setResponses(const QStringList &newResponse
     }
 
     emit responsesChanged(newResponses);
-    emit responsesAsStringChanged(tr("Options") + ": " + (newResponses == QStringList({""})? "---" : newResponses.join(" / ")) + (getMulti()? "\n   {Multiple responses allowed}" : ""));
+
+    updatePreviewWidget();
 }
 
 QStringList SurveyMakerMultichoiceQuestion::getResponses() const
 {
-    return responsesComboBox->currentText().split(" / ");
+    return responsesComboBox->currentData().toStringList();
 }
 
 void SurveyMakerMultichoiceQuestion::setMulti(const bool newMulti)
@@ -278,7 +293,8 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
 
     QStringList newResponses = responsesComboBox->currentData().toStringList();
     emit responsesChanged(newResponses);
-    emit responsesAsStringChanged(tr("Options") + ": " + (newResponses == QStringList({""})? "---" : newResponses.join(" / ")) + (getMulti()? "\n   {Multiple responses allowed}" : ""));
+
+    updatePreviewWidget();
 }
 
 void SurveyMakerMultichoiceQuestion::resizeQuestionPlainTextEdit()
@@ -292,6 +308,62 @@ void SurveyMakerMultichoiceQuestion::resizeQuestionPlainTextEdit()
     questionPlainTextEdit->setFixedHeight(height);
 }
 
+void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
+{
+    previewWidget->setUpdatesEnabled(false);
+    QLayoutItem *child;
+    while ((child = previewLayout->takeAt(0)) != nullptr) {
+        delete child->widget(); // delete the widget
+        delete child;   // delete the layout item
+    }
+
+    if(responsesComboBox->currentIndex() != 0) {
+        if(multiAllowed->isChecked()) {
+            //multiallowed, so preview is list of checkboxes
+            auto *topLabel = new QLabel(tr("Select one or more:"));
+            topLabel->setStyleSheet(LABELSTYLE);
+            topLabel->setWordWrap(true);
+            previewLayout->addWidget(topLabel);
+            QStringList responses = responsesComboBox->currentData().toStringList();
+            QList<QCheckBox*> re;
+            re.reserve(responses.size());
+            for(const auto &response : responses) {
+                re << new QCheckBox(response);
+                previewLayout->addWidget(re.last());
+            }
+        }
+        else if(responsesComboBox->currentData().toStringList().size() <= 9) {
+            //select one and <=15 options, so radiobuttons
+            auto *topLabel = new QLabel(tr("Select one:"));
+            topLabel->setStyleSheet(LABELSTYLE);
+            topLabel->setWordWrap(true);
+            previewLayout->addWidget(topLabel);
+            QStringList responses = responsesComboBox->currentData().toStringList();
+            QList<QRadioButton*> re;
+            re.reserve(responses.size());
+            for(const auto &response : responses) {
+                re << new QRadioButton(response);
+                previewLayout->addWidget(re.last());
+            }
+        }
+        else {
+            //select one and >15 options, so dropdown with explainer label
+            auto list = responsesComboBox->currentData().toStringList();
+            auto *re = new QComboBox;
+            re->setStyleSheet(COMBOBOXSTYLE);
+            re->addItems(list);
+            previewLayout->addWidget(re);
+            auto *bottomLabel = new QLabel(tr("Options") + ": " + list.join(" / "));
+            bottomLabel->setStyleSheet(LABELSTYLE);
+            bottomLabel->setWordWrap(true);
+            previewLayout->addWidget(bottomLabel);
+
+        }
+    }
+    previewWidget->setUpdatesEnabled(true);
+    previewWidget->update();
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -299,7 +371,7 @@ void SurveyMakerMultichoiceQuestion::resizeQuestionPlainTextEdit()
 SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QString &titleText, const int numQuestions, QWidget *parent)
     : QFrame{parent}
 {
-    setStyleSheet("background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";");
+    setStyleSheet(QString() + "QFrame{background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";}" + SCROLLBARSTYLE);
 
     layout = new QGridLayout(this);
 
@@ -329,7 +401,6 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         questionLineEdit.last()->hide();
 
         questionComboBox << new QComboBox;
-        questionComboBox.last()->setStyleSheet(COMBOBOXSTYLE);
         questionComboBox.last()->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
         questionComboBox.last()->installEventFilter(new MouseWheelBlocker(questionComboBox.last()));
         layout->addWidget(questionComboBox.last(), row++, 0, 1, -1);
@@ -339,7 +410,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         questionGroupLayout << new QVBoxLayout;
         questionGroupBox.last()->setLayout(questionGroupLayout.last());
         questionGroupBox.last()->setFlat(true);
-        questionGroupBox.last()->setStyleSheet("border: none;");
+        questionGroupBox.last()->setStyleSheet("QGroupBox{border: none;}");
         layout->addWidget(questionGroupBox.last(), row++, 0, 1, -1);
         questionGroupBox.last()->hide();
     }

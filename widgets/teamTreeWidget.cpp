@@ -638,11 +638,11 @@ void TeamTreeWidgetItem::setBackgroundColor(float teamScore)
     QBrush teamColor;
     if(teamScore < 0)
     {
-        teamColor = LIGHTPINK;
+        teamColor = QColor::fromString("#" LIGHTPINKHEX);
     }
     else
     {
-        teamColor = LIGHTBLUE;
+        teamColor = QColor::fromString("#" LIGHTBLUEHEX);
     }
 
     for(int col = 0; col < numColumns; col++)

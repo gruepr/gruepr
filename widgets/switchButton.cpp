@@ -8,7 +8,7 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     , _duration(100)
     , _enabled(true)
 {
-    _bordercolor = OPENWATER;
+    _bordercolor = QColor::fromString("#" OPENWATERHEX);
 
     _tol = 0;
     _background = new SwitchBackground(this);
@@ -97,7 +97,7 @@ void SwitchButton::paintEvent(QPaintEvent*)
     if (_enabled) {
         painter->setBrush(_bordercolor);
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
-        painter->setBrush(BUBBLY);
+        painter->setBrush(QColor::fromString("#" BUBBLYHEX));
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
         _labeloff->setStyleSheet("background-color: #" BUBBLYHEX "; color: #" OPENWATERHEX ";");
         _labelon->setStyleSheet("background-color: #" OPENWATERHEX "; color: #" BUBBLYHEX ";");
@@ -217,7 +217,7 @@ SwitchButton::SwitchBackground::SwitchBackground(QWidget* parent)
 {
     setFixedHeight(20);
 
-    _bluebrush = OPENWATER;
+    _bluebrush = QColor::fromString("#" OPENWATERHEX);
     _graybrush = QColor(190, 190, 190);
 
     _enabled = true;
@@ -253,8 +253,8 @@ SwitchButton::SwitchCircle::SwitchCircle(QWidget* parent)
 {
     setFixedSize(20, 20);
 
-    _bluebrush = OPENWATER;
-    _whitebrush = BUBBLY;
+    _bluebrush = QColor::fromString("#" OPENWATERHEX);
+    _whitebrush = QColor::fromString("#" BUBBLYHEX);
     _graybrush = QColor(230, 230, 230);
 
     _enabled = true;

@@ -36,22 +36,17 @@ inline static const int PRINTOUT_FONTSIZE = 9;
 
 // define colors used throughout gruepr
 #define TRANSPARENT "rgba(0, 0, 0, 0)"
-inline static const QColor STARFISH = QColor(0xff, 0xd7, 0x71);
 #define STARFISHHEX "ffd771"
-inline static const QColor DEEPWATER = QColor(0x05, 0x34, 0x37);
 #define DEEPWATERHEX "053437"
-inline static const QColor OPENWATER = QColor(0x13, 0xa9, 0xb2);
 #define OPENWATERHEX "13a9b2"
-inline static const QColor AQUA = QColor(0x41, 0xd2, 0xca);
 #define AQUAHEX "41d2ca"
-inline static const QColor BUBBLY = QColor(0xdc, 0xf2, 0xf4);
 #define BUBBLYHEX "dcf2f4"
-inline static const QColor LIGHTPINK = QColor(0xfb, 0xcf, 0xce);
-inline static const QColor LIGHTBLUE = QColor(0xce, 0xea, 0xfb);
-inline static const QColor HIGHLIGHTYELLOW = QColor(0xff, 0xff, 0x3b);
 #define HIGHLIGHTYELLOWHEX "ffff3b"
-#define BOLDPINKHEX "f283a5"
 #define BOLDGREENHEX "83f2a5"
+#define BOLDPINKHEX "f283a5"
+#define LIGHTPINKHEX "fbcfce"
+#define LIGHTBLUEHEX "ceeafb"
+
 
 // define stylesheets used throughout gruepr
 inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: DM Sans; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
@@ -119,10 +114,20 @@ inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: re
                                                                       "font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox::drop-down {border-width: 0px;}"
                                                  "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}";
-inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; border-style: solid; font-family: 'DM Sans'; font-size: 10pt;}"
-                                             "QCheckBox::indicator {background-color: white; "
-                                                                   "width: 12px; height: 12px; border: 2px solid #" DEEPWATERHEX ";}"
+inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
+                                             "QCheckBox::indicator {background-color: white; width: 12px; height: 12px; border: 2px solid #" DEEPWATERHEX ";}"
                                              "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";
+inline static const char RADIOBUTTONSTYLE[] = "QRadioButton {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
+                                                "QRadioButton::indicator {background-color: " TRANSPARENT "; width: 12px; height: 12px;}"
+                                                "QRadioButton::indicator::unchecked{background-color: white; width: 11px; height: 11px;"
+                                                                                    "border-color: #" DEEPWATERHEX "; border: 2px solid; border-radius: 8px;};"
+                                                "QRadioButton::indicator::checked{background-color: white; width: 11px; height: 11px;"
+                                                                                    "border-color: #" DEEPWATERHEX "; border: 2px solid; border-radius: 8px;"
+                                                                                    "image: url(:/icons_new/Dot.png);};";
+inline static const char SCROLLBARSTYLE[] = "QScrollBar:vertical {border-style: none; background-color: " TRANSPARENT "; width: 10px; margin: 0 0 0 0;}"
+                                              "QScrollBar::handle:vertical {background-color: #" DEEPWATERHEX "; border-radius: 4px;}"
+                                              "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {height: 0px;}"
+                                              "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {height: 0px;}";
 
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;

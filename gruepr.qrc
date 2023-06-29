@@ -73,5 +73,6 @@
         <file>icons_new/BannerLeft.png</file>
         <file>icons_new/BannerRight.png</file>
         <file>icons_new/SpinBoxButton.png</file>
+        <file>icons_new/Dot.png</file>
     </qresource>
 </RCC>
