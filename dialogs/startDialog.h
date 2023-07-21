@@ -38,9 +38,9 @@ private:
 
     const int BASEWINDOWWIDTH = 800;
     const int BASEWINDOWHEIGHT = 456;
-    const QString BUTTONSTYLE = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: #" DEEPWATERHEX ";"
-                                              "color: #" DEEPWATERHEX "; background-color: white;} "
-                                "QToolButton:hover {border-color: #" OPENWATERHEX "; background-color: #" BUBBLYHEX "}";
+    const QString BUTTONSTYLE = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX ";"
+                                              "color: " DEEPWATERHEX "; background-color: white;} "
+                                "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
 };
 
 #endif // STARTDIALOG_H

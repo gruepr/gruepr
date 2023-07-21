@@ -38,9 +38,11 @@
 // DONE:
 // - moved codebase to Qt 6.5
 // - moved Windows compiler to msvc
+// - updated surveymaker to all new UI design!
 //
 // INPROG:
-// - updating to all new UI design!
+// - update greupr to all new UI design!
+// - add about, bugreport, homepage, help to startdialog
 //
 // TO DO:
 // - scale the sizes of everything in the startdialog depending on screen size(?)
@@ -48,13 +50,13 @@
 // - allow selection of which google drive account to use, remembering different refresh tokens for each
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - create timeout function to nicely handle canvas and google connections
+// - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
 // - modernize use of pointers throughout to C++17 style; check for memory leaks
 // - enable in Google Forms various options -- must wait on new API functionality from Google
 //     - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
 //     - Question options: req'd question, answer validity checks
-// - make the "Create Teams" button more emphasized/obvious
 // - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 // - create an LMS class and then subclass Canvas, Google
 // - auto-shorten URL for Google Form (using Google's firebase API?)
@@ -67,7 +69,6 @@
 
 #include "gruepr_globals.h"
 #include "gruepr.h"
-#include "surveymaker.h"
 #include "dialogs/startDialog.h"
 #include <QApplication>
 #include <QScreen>
@@ -93,12 +94,12 @@ int main(int argc, char *argv[])
 
     // Show splash screen
     QPixmap splashPic(":/icons_new/splash_new.png");
-    auto *splash = new QSplashScreen(splashPic.scaled(screenWidth/2, screenHeight/2, Qt::KeepAspectRatio));
+    auto *splash = new QSplashScreen(splashPic.scaled(screenWidth/2, screenHeight/2, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     const int messageSize = (25 * splash->height()) / splashPic.height();
     QFont splashFont("DM Sans");
     splashFont.setPixelSize(messageSize);
     splash->setFont(splashFont);
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\n\nwww.gruepr.com", Qt::AlignCenter, QColor::fromString("#" DEEPWATERHEX));
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\n\nwww.gruepr.com", Qt::AlignCenter, QColor::fromString(DEEPWATERHEX));
     splash->show();
 
     // Create application choice (gruepr or surveymaker) window; remove splashscreen when choice window opens
@@ -113,13 +114,6 @@ int main(int argc, char *argv[])
     if(result == startDialog::Result::makeGroups)
     {
         gruepr w;
-        w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
-        w.show();
-        result = QApplication::exec();
-    }
-    else if(result == startDialog::Result::makeSurvey)
-    {
-        SurveyMaker w;
         w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
         w.show();
         result = QApplication::exec();

@@ -270,7 +270,7 @@ void gruepr::downloadSurveyFromGoogle()
             auto *okButton = loginDialog->button(QMessageBox::Ok);
             auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
             int height = okButton->height();
-            QPixmap loginpic(":/icons/google_signin_button.png");
+            QPixmap loginpic(":/icons_new/google_signin_button.png");
             loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             okButton->setText("");
             okButton->setIconSize(loginpic.rect().size());
@@ -3432,7 +3432,7 @@ void gruepr::refreshStudentDisplay()
             timestamp->setToolTip(student[index].tooltip);
             if(duplicate)
             {
-                timestamp->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
+                timestamp->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
             }
             ui->studentTable->setItem(numStudents, 0, timestamp);
 
@@ -3440,7 +3440,7 @@ void gruepr::refreshStudentDisplay()
             firstName->setToolTip(student[index].tooltip);
             if(duplicate)
             {
-                firstName->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
+                firstName->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
             }
             ui->studentTable->setItem(numStudents, 1, firstName);
 
@@ -3448,7 +3448,7 @@ void gruepr::refreshStudentDisplay()
             lastName->setToolTip(student[index].tooltip);
             if(duplicate)
             {
-                lastName->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
+                lastName->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
             }
             ui->studentTable->setItem(numStudents, 2, lastName);
 
@@ -3459,7 +3459,7 @@ void gruepr::refreshStudentDisplay()
                 section->setToolTip(student[index].tooltip);
                 if(duplicate)
                 {
-                    section->setBackground(QBrush(QColor::fromString("#" HIGHLIGHTYELLOWHEX)));
+                    section->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
                 }
                 ui->studentTable->setItem(numStudents, column, section);
                 column++;
@@ -3471,7 +3471,7 @@ void gruepr::refreshStudentDisplay()
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
-                editButton->setStyleSheet("QPushButton {background-color: #" HIGHLIGHTYELLOWHEX "; border: none;}");
+                editButton->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
             }
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
@@ -3495,7 +3495,7 @@ void gruepr::refreshStudentDisplay()
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
-                removerButton->setStyleSheet("QPushButton {background-color: #" HIGHLIGHTYELLOWHEX "; border: none;}");
+                removerButton->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
             }
             connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, index, removerButton] {
                                                                                 removerButton->disconnect();

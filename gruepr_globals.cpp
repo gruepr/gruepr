@@ -2,7 +2,7 @@
 #include <QEvent>
 #include <QMessageBox>
 #include <QtNetwork>
-#include <QWebEngineView>
+//#include <QWebEngineView>
 #include <QWidget>
 
 bool internetIsGood() {
@@ -22,6 +22,7 @@ bool internetIsGood() {
     return !weGotProblems;
 }
 
+/*
 void testFunction() {
     auto *win = new QDialog;
     auto *view = new QWebEngineView(win);
@@ -32,7 +33,7 @@ void testFunction() {
     delete view;
     delete win;
 }
-
+*/
 
 MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent) { }
 bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e) {

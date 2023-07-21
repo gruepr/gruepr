@@ -61,7 +61,7 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const o
                                       nextVals[QBoxSet::UpperExtreme]);
     if(set != nullptr)
     {
-        set->setBrush(QBrush(QColor(unpenalizedGenomePresent? LIGHTBLUEHEX : LIGHTPINKHEX)));
+        set->setBrush(QBrush(QColor::fromString(unpenalizedGenomePresent? LIGHTBLUEHEX : LIGHTPINKHEX)));
         dataSeries->append(set);
     }
 

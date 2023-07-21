@@ -52,7 +52,7 @@ registerDialog::registerDialog(QWidget *parent)
     //a spacer then ok/cancel buttons
     theBox->addSpacing(DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    buttonBox->setStyleSheet("background-color: #" BUBBLYHEX ";");
+    buttonBox->setStyleSheet("background-color: " BUBBLYHEX ";");
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLE);

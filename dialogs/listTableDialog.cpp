@@ -35,8 +35,8 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     theTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     theTable->setShowGrid(false);
     theTable->setAlternatingRowColors(true);
-    theTable->setStyleSheet("QTableView{background-color: white; alternate-background-color: #" BUBBLYHEX "; border-color: #" DEEPWATERHEX ";}"
-                            "QTableView::item{border-top: 1px solid #" DEEPWATERHEX "; border-bottom: 1px solid #" DEEPWATERHEX "; padding: 3px;}");
+    theTable->setStyleSheet("QTableView{background-color: white; alternate-background-color: " BUBBLYHEX "; border-color: " DEEPWATERHEX ";}"
+                            "QTableView::item{border-top: 1px solid " DEEPWATERHEX "; border-bottom: 1px solid " DEEPWATERHEX "; padding: 3px;}");
     theTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     theTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     theTable->verticalHeader()->hide();

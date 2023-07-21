@@ -682,7 +682,7 @@ QMessageBox* CanvasHandler::busy(QWidget *parent) {
     busyDialog->setIconPixmap(icon.scaled(CANVASICONSIZE));
     busyDialog->setText(tr("Communicating with Canvas..."));
     busyDialog->setStandardButtons(QMessageBox::NoButton);
-    busyDialog->setModal(false);
+    busyDialog->setModal(true);
     busyDialog->show();
     return busyDialog;
 }

@@ -50,7 +50,7 @@ startDialog::startDialog(QWidget *parent)
 
     topLabel = new QLabel(tr("What would you like to do?"), this);
     topLabel->setFont(*mainBoxFont);
-    topLabel->setStyleSheet("QLabel { color: #" DEEPWATERHEX "; }");
+    topLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
     theGrid->addWidget(topLabel, row++, col, 1, -1, Qt::AlignCenter);
 
     theGrid->setRowMinimumHeight(row++, MIDDLESPACERHEIGHT);
@@ -88,7 +88,7 @@ startDialog::startDialog(QWidget *parent)
 
     // Create status labels to show when registered and/or latest version installed
     registerLabel = new QLabel(this);
-    registerLabel->setStyleSheet("QLabel { color: #" DEEPWATERHEX "; }");
+    registerLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
     registerLabel->setFont(*labelFont);
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
@@ -102,7 +102,7 @@ startDialog::startDialog(QWidget *parent)
     QString registerMessage = (registered? (tr("<a href = \"webTest\">Thank you for being a registered user.</a>")) : (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
     registerLabel->setText(registerMessage);
     upgradeLabel = new QLabel(this);
-    upgradeLabel->setStyleSheet("QLabel { color: #" DEEPWATERHEX "; }");
+    upgradeLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
     upgradeLabel->setFont(*labelFont);
     upgradeLabel->setTextFormat(Qt::RichText);
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);

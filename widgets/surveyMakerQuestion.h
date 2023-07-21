@@ -60,6 +60,8 @@ class SurveyMakerMultichoiceQuestion : public QFrame
 public:
     explicit SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent = nullptr);
 
+    void resizeEvent(QResizeEvent *event) override;
+
     void setNumber(const int questionNum);
     QWidget *previewWidget = nullptr;
 

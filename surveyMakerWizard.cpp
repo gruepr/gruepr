@@ -1,6 +1,7 @@
 #include "surveyMakerWizard.h"
 #include "gruepr_globals.h"
 #include "csvfile.h"
+#include "widgets/labelWithInstantTooltip.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QFile>
@@ -9,15 +10,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QPainter>
 #include <QRadioButton>
 #include <QSettings>
 #include <QToolTip>
-
-//make multichoice sample questions dialog
-//change appearance of preferred teammate / non-teammate in page and in final preview
-//reduce distance to "select one"
-//complete styling, especially of radiobuttons
-//add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
 
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     : QWizard(parent)
@@ -46,12 +42,16 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setPage(Page::previewexport, new PreviewAndExportPage);
 
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::BackButton << QWizard::NextButton;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    if(previewPageVisited)
+    {
+        buttonLayout << QWizard::CustomButton2;
+    }
     setButtonLayout(buttonLayout);
 
-    button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
+    button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     setButtonText(QWizard::CancelButton, "\u00AB  " + tr("Home"));
-    button(QWizard::CustomButton1)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
+    button(QWizard::CustomButton1)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     setButtonText(QWizard::CustomButton1, tr("Load Previous Survey"));
     connect(this, &QWizard::customButtonClicked, this, &SurveyMakerWizard::loadSurvey);
     button(QWizard::BackButton)->setStyleSheet(STDBUTTONSTYLE);
@@ -59,8 +59,10 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setOption(QWizard::NoBackButtonOnStartPage);
     button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
     setButtonText(QWizard::NextButton, tr("Next Step") + "  \u2B62");
-    button(QWizard::FinishButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
-    setButtonText(QWizard::FinishButton, tr("Finish") + "  \u00BB");
+    button(QWizard::CustomButton2)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
+    setButtonText(QWizard::CustomButton2, tr("Return to Preview") + "  \u2B72");
+    button(QWizard::FinishButton)->setStyleSheet(NEXTBUTTONSTYLE);
+    setButtonText(QWizard::FinishButton, tr("Close") + "  \u00BB");
 }
 
 SurveyMakerWizard::~SurveyMakerWizard() {
@@ -287,6 +289,10 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
 
             loadFile.close();
+
+            while(currentId() != SurveyMakerWizard::Page::previewexport) {
+                next();
+            }
         }
         else
         {
@@ -303,14 +309,14 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
     : QWizardPage(parent),
     numQuestions(SurveyMakerWizard::numOfQuestionsInPage[page])
 {
-    QString title = "<span style=\"color: #" DEEPWATERHEX "\">";
+    QString title = "<span style=\"color: " DEEPWATERHEX "\">";
     for(int i = 0; i < SurveyMakerWizard::pageNames.count(); i++) {
         if(i > 0) {
             title += " &emsp;/&emsp; ";
         }
         title += SurveyMakerWizard::pageNames[i];
         if(i == page) {
-            title += "</span><span style=\"color: #" OPENWATERHEX "\">";
+            title += "</span><span style=\"color: " OPENWATERHEX "\">";
         }
     }
     title += "</span>";
@@ -378,11 +384,14 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
                 questionLayout->addWidget(questions.last());
 
                 questionPreviews.last()->setLayout(questionPreviewLayouts.last());
+                questionPreviewLayouts.last()->setSpacing(0);
                 previewLayout->addWidget(questionPreviews.last());
                 questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
                 questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
                 questionPreviewTopLabels.last()->setStyleSheet(LABELSTYLE);
+                questionPreviewTopLabels.last()->setWordWrap(true);
                 questionPreviewBottomLabels.last()->setStyleSheet(LABELSTYLE);
+                questionPreviewBottomLabels.last()->setWordWrap(true);
                 connect(questions.last(), &SurveyMakerQuestionWithSwitch::valueChanged, questionPreviews.last(), &QWidget::setVisible);
             }
         }
@@ -404,14 +413,14 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
 IntroPage::IntroPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    QString title = "<span style=\"color: #" DEEPWATERHEX "\">";
+    QString title = "<span style=\"color: " DEEPWATERHEX "\">";
     for(int i = 0, j = SurveyMakerWizard::pageNames.count(); i < j; i++) {
         if(i > 0) {
             title += " &emsp;/&emsp; ";
         }
         title += SurveyMakerWizard::pageNames[i];
         if(i == 0) {
-            title += "</span><span style=\"color: #" OPENWATERHEX "\">";
+            title += "</span><span style=\"color: " OPENWATERHEX "\">";
         }
     }
     pageTitle = new QLabel(title, this);
@@ -422,13 +431,13 @@ IntroPage::IntroPage(QWidget *parent)
     pageTitle->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
     bannerLeft = new QLabel;
-    bannerLeft->setStyleSheet("QLabel {background-color: #" DEEPWATERHEX ";}");
+    bannerLeft->setStyleSheet("QLabel {background-color: " DEEPWATERHEX ";}");
     QPixmap leftPixmap(":/icons_new/BannerLeft.png");
     bannerLeft->setPixmap(leftPixmap.scaledToHeight(120, Qt::SmoothTransformation));
     bannerLeft->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     bannerLeft->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     bannerRight = new QLabel;
-    bannerRight->setStyleSheet("QLabel {background-color: #" DEEPWATERHEX ";}");
+    bannerRight->setStyleSheet("QLabel {background-color: " DEEPWATERHEX ";}");
     QPixmap rightPixmap(":/icons_new/BannerRight.png");
     bannerRight->setPixmap(rightPixmap.scaledToHeight(120, Qt::SmoothTransformation));
     bannerRight->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -444,7 +453,7 @@ IntroPage::IntroPage(QWidget *parent)
     banner->setAlignment(Qt::AlignCenter);
     banner->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     banner->setWordWrap(true);
-    banner->setStyleSheet("QLabel {background-color: #" DEEPWATERHEX "; color: white;}");
+    banner->setStyleSheet("QLabel {background-color: " DEEPWATERHEX "; color: white;}");
     auto *bannerLayout = new QHBoxLayout;
     bannerLayout->setSpacing(0);
     bannerLayout->setContentsMargins(0, 0, 0, 0);
@@ -453,19 +462,19 @@ IntroPage::IntroPage(QWidget *parent)
     bannerLayout->addWidget(bannerRight);
 
     topLabel = new QLabel(this);
-    topLabel->setText("<span style=\"color: #" DEEPWATERHEX "; font-size: 12pt; font-family: DM Sans;\">" +
+    topLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-size: 12pt; font-family: DM Sans;\">" +
                       tr("Survey Name") + "</span>");
     topLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     surveyTitle = new QLineEdit(this);
     surveyTitle->setPlaceholderText(tr("Enter Text"));
-    surveyTitle->setStyleSheet("color: #" DEEPWATERHEX "; font-size: 14pt; font-family: DM Sans; "
-                               "border-style: outset; border-width: 2px; border-color: #" DEEPWATERHEX "; ");
+    surveyTitle->setStyleSheet("color: " DEEPWATERHEX "; font-size: 14pt; font-family: DM Sans; "
+                               "border-style: outset; border-width: 2px; border-color: " DEEPWATERHEX "; ");
     surveyTitle->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     registerField("SurveyTitle", surveyTitle);
 
     bottomLabel = new QLabel(this);
-    bottomLabel->setText("<span style=\"color: #" DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans\">" +
+    bottomLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans\">" +
                          tr("This will be the name of the survey you send to your students!") + "</span>");
     bottomLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
@@ -572,8 +581,10 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     auto *options = new QGroupBox("");
     options->setStyleSheet("border-style:none;");
     QVBoxLayout *vbox = new QVBoxLayout;
+    vbox->setSpacing(0);
+    vbox->setContentsMargins(20, 0, 0, 0);
     options->setLayout(vbox);
-    auto *topLabel = new QLabel(tr("Select one:"));
+    auto *topLabel = new QLabel(SELECTONE);
     topLabel->setStyleSheet(LABELSTYLE);
     topLabel->setWordWrap(true);
     vbox->addWidget(topLabel);
@@ -582,6 +593,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
         ge << new QRadioButton(genderOption);
         vbox->addWidget(ge.last());
     }
+    ge.first()->setChecked(true);
     questionPreviewLayouts[gender]->addWidget(options);
     questionPreviewBottomLabels[gender]->hide();
     questionPreviewLayouts[gender]->addWidget(questionPreviewBottomLabels[gender]);
@@ -607,27 +619,37 @@ DemographicsPage::DemographicsPage(QWidget *parent)
 
 void DemographicsPage::initializePage()
 {
-    auto *wiz = wizard();
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     auto palette = wiz->palette();
-    palette.setColor(QPalette::Window, QColor::fromString("#" DEEPWATERHEX));
+    palette.setColor(QPalette::Window, QColor::fromString(DEEPWATERHEX));
     wiz->setPalette(palette);
-    wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
     wiz->button(QWizard::CancelButton)->setStyleSheet(STDBUTTONSTYLE);
+    wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
+    wiz->button(QWizard::CustomButton2)->setStyleSheet(NEXTBUTTONSTYLE);
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    if(wiz->previewPageVisited)
+    {
+        buttonLayout << QWizard::CustomButton2;
+    }
     wiz->setButtonLayout(buttonLayout);
 }
 
 void DemographicsPage::cleanupPage()
 {
-    auto *wiz = wizard();
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     auto palette = wiz->palette();
     palette.setColor(QPalette::Window, Qt::white);
     wiz->setPalette(palette);
+    wiz->button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     wiz->button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
-    wiz->button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: #" DEEPWATERHEX "; "));
+    wiz->button(QWizard::CustomButton2)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::BackButton << QWizard::NextButton;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
+    if(wiz->previewPageVisited)
+    {
+        buttonLayout << QWizard::CustomButton2;
+    }
     wiz->setButtonLayout(buttonLayout);
 }
 
@@ -635,26 +657,28 @@ void DemographicsPage::update()
 {
     GenderType genderType = static_cast<GenderType>(genderResponsesComboBox->currentIndex());
     QStringList genderOptions;
+    QString questionText;
     if(genderType == GenderType::biol)
     {
-        questionPreviewTopLabels[gender]->setText(GENDERQUESTION);
+        questionText = GENDERQUESTION;
         genderOptions = QString(BIOLGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
     else if(genderType == GenderType::adult)
     {
-        questionPreviewTopLabels[gender]->setText(GENDERQUESTION);
+        questionText = GENDERQUESTION;
         genderOptions = QString(ADULTGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
     else if(genderType == GenderType::child)
     {
-        questionPreviewTopLabels[gender]->setText(GENDERQUESTION);
+        questionText = GENDERQUESTION;
         genderOptions = QString(CHILDGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
     else //if(genderType == GenderType::pronoun)
     {
-        questionPreviewTopLabels[gender]->setText(PRONOUNQUESTION);
+        questionText = PRONOUNQUESTION;
         genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
+    questionPreviewTopLabels[gender]->setText(questionText);
     int i = 0;
     for(const auto &genderOption : genderOptions) {
         ge[i++]->setText(genderOption);
@@ -670,7 +694,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
 {
     auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     sampleQuestionsFrame = new QFrame(this);
-    sampleQuestionsFrame->setStyleSheet("background-color: " + (QColor::fromString("#"+QString(STARFISHHEX)).lighter(133).name()) + "; color: #" DEEPWATERHEX ";");
+    sampleQuestionsFrame->setStyleSheet("background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX ";");
     sampleQuestionsIcon = new QLabel;
     sampleQuestionsIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
     sampleQuestionsLabel = new QLabel(tr("Unsure of what to ask? Take a look at some example questions!"));
@@ -679,7 +703,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     sampleQuestionsLayout = new QHBoxLayout(sampleQuestionsFrame);
     sampleQuestionsButton = new QPushButton(tr("View Examples"));
     sampleQuestionsButton->setStyleSheet(EXAMPLEBUTTONSTYLE);
-    sampleQuestionsDialog = new QDialog(this);
+    sampleQuestionsDialog = new SampleQuestionsDialog(this);
     connect(sampleQuestionsButton, &QPushButton::clicked, sampleQuestionsDialog, &QDialog::show);
     sampleQuestionsLayout->addWidget(sampleQuestionsIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
     sampleQuestionsLayout->addWidget(sampleQuestionsLabel, 1, Qt::AlignVCenter);
@@ -716,7 +740,9 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
         questionPreviewLayouts.last()->addWidget(multichoiceQuestions.last()->previewWidget);
         previewSeparators << new QFrame;
-        previewSeparators.last()->setStyleSheet("border: 2px solid; border-color: #" DEEPWATERHEX);
+        previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
+        previewSeparators.last()->setLineWidth(1);
+        previewSeparators.last()->setMidLineWidth(1);
         previewSeparators.last()->setFrameShape(QFrame::HLine);
         previewSeparators.last()->setFrameShadow(QFrame::Plain);
         questionPreviewLayouts.last()->addWidget(previewSeparators.last());
@@ -736,7 +762,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     }
 
     addQuestionButtonFrame = new QFrame(this);
-    addQuestionButtonFrame->setStyleSheet("background-color: #" BUBBLYHEX "; color: #" DEEPWATERHEX ";");
+    addQuestionButtonFrame->setStyleSheet("background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";");
     addQuestionButtonLayout = new QHBoxLayout(addQuestionButtonFrame);
     addQuestionButton = new QPushButton;
     addQuestionButton->setStyleSheet(ADDBUTTONSTYLE);
@@ -891,6 +917,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     questionPreviewTopLabels[timezone]->setText(TIMEZONEQUESTION);
     questionPreviewLayouts[timezone]->addWidget(questionPreviewTopLabels[timezone]);
     tz = new QComboBox;
+    tz->setStyleSheet(COMBOBOXSTYLE);
     tz->addItem(tr("Select timezone"));
     questionPreviewLayouts[timezone]->addWidget(tz);
     questionPreviewBottomLabels[timezone]->setText(tr("Options: List of global timezones"));
@@ -905,12 +932,12 @@ SchedulePage::SchedulePage(QWidget *parent)
     sc = new QWidget;
     scLayout = new QGridLayout(sc);
     for(int hr = 0; hr < 24; hr++) {
-        auto *rowLabel = new QLabel(SurveyMakerWizard::sunday.time().addSecs(hr * 3600).toString("h A"));
+        auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A"));
         rowLabel->setStyleSheet(LABELSTYLE);
         scLayout->addWidget(rowLabel, hr+1, 0);
     }
     for(int day = 0; day < 7; day++) {
-        auto *colLabel = new QLabel(SurveyMakerWizard::sunday.addDays(day).toString("ddd"));
+        auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
         colLabel->setStyleSheet(LABELSTYLE);
         scLayout->addWidget(colLabel, 0, day+1);
     }
@@ -1046,7 +1073,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     toComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     toComboBox->setEnabled(false);
     for(int hr = 0; hr < 24; hr++) {
-        QString time = SurveyMakerWizard::sunday.time().addSecs(hr * 3600).toString("h A");
+        QString time = SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A");
         fromComboBox->addItem(time);
         toComboBox->addItem(time);
     }
@@ -1295,15 +1322,17 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     addSectionButton->setEnabled(false);
     questions[section]->addWidget(addSectionButton, 1, 0, false, Qt::AlignLeft);
     connect(addSectionButton, &QPushButton::clicked, this, &CourseInfoPage::addASection);
-    sectionLineEdits.reserve(10);
-    deleteSectionButtons.reserve(10);
-    sectionNames.reserve(10);
+    sectionLineEdits.reserve(MAX_SECTIONSEXPECTED);
+    deleteSectionButtons.reserve(MAX_SECTIONSEXPECTED);
+    sectionNames.reserve(MAX_SECTIONSEXPECTED);
 
     questionPreviewTopLabels[section]->setText(SECTIONQUESTION);
     questionPreviewLayouts[section]->addWidget(questionPreviewTopLabels[section]);
     auto *sectionsPreviewBox = new QGroupBox("");
     sectionsPreviewBox->setStyleSheet("border-style:none;");
     sectionsPreviewLayout = new QVBoxLayout;
+    sectionsPreviewLayout->setSpacing(0);
+    sectionsPreviewLayout->setContentsMargins(20, 0, 0, 0);
     sectionsPreviewBox->setLayout(sectionsPreviewLayout);
     questionPreviewLayouts[section]->addWidget(sectionsPreviewBox);
     questionPreviewBottomLabels[section]->hide();
@@ -1315,15 +1344,19 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     connect(questions[wantToWorkWith], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
     questionPreviewTopLabels[wantToWorkWith]->setText(tr("Classmates"));
     questionPreviewLayouts[wantToWorkWith]->addWidget(questionPreviewTopLabels[wantToWorkWith]);
-    ww = new QLineEdit;
-    ww->setCursorPosition(0);
-    ww->setStyleSheet(LINEEDITSTYLE);
-    wwc = new QComboBox;
+    ww = new QPlainTextEdit;
+    ww->setStyleSheet(PLAINTEXTEDITSTYLE);
+    ww->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ww->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    wwc.reserve(MAX_PREFTEAMMATES);
+    wwc << new QComboBox;
+    wwc.last()->setStyleSheet(COMBOBOXSTYLE);
     questionPreviewLayouts[wantToWorkWith]->addWidget(ww);
-    questionPreviewLayouts[wantToWorkWith]->addWidget(wwc);
-    questionPreviewBottomLabels[wantToWorkWith]->setText(tr(""));
+    questionPreviewLayouts[wantToWorkWith]->addWidget(wwc.last());
+    questionPreviewBottomLabels[wantToWorkWith]->clear();
+    questionPreviewBottomLabels[wantToWorkWith]->setWordWrap(true);
     questionPreviewLayouts[wantToWorkWith]->addWidget(questionPreviewBottomLabels[wantToWorkWith]);
-    wwc->hide();
+    wwc.last()->hide();
     questionPreviews[wantToWorkWith]->hide();
     questionPreviewBottomLabels[wantToWorkWith]->hide();
     registerField("PrefTeammate", questions[wantToWorkWith], "value", "valueChanged");
@@ -1332,34 +1365,39 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
 
     questions[wantToAvoid]->setLabel(tr("Classmates I want to avoid"));
     connect(questions[wantToAvoid], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
+    questionPreviewTopLabels[wantToAvoid]->setText(tr("Classmates"));
+    questionPreviewLayouts[wantToAvoid]->addWidget(questionPreviewTopLabels[wantToAvoid]);
+    wa = new QPlainTextEdit;
+    wa->setStyleSheet(PLAINTEXTEDITSTYLE);
+    wa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    wa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    wac.reserve(MAX_PREFTEAMMATES);
+    wac << new QComboBox;
+    wac.last()->setStyleSheet(COMBOBOXSTYLE);
+    questionPreviewLayouts[wantToAvoid]->addWidget(wa);
+    questionPreviewLayouts[wantToAvoid]->addWidget(wac.last());
+    questionPreviewBottomLabels[wantToAvoid]->clear();
+    questionPreviewBottomLabels[wantToAvoid]->setWordWrap(true);
+    questionPreviewLayouts[wantToAvoid]->addWidget(questionPreviewBottomLabels[wantToAvoid]);
+    wac.last()->hide();
+    questionPreviewBottomLabels[wantToWorkWith]->hide();
+    questionPreviews[wantToAvoid]->hide();
+    registerField("PrefNonTeammate", questions[wantToAvoid], "value", "valueChanged");
+
     numPrefTeammatesExplainer = new QLabel(tr("Number of classmates a student can indicate:"));
     numPrefTeammatesExplainer->setWordWrap(true);
     numPrefTeammatesExplainer->setStyleSheet(LABELSTYLE);
     numPrefTeammatesSpinBox = new QSpinBox;
     numPrefTeammatesSpinBox->setValue(1);
     numPrefTeammatesSpinBox->setMinimum(1);
-    numPrefTeammatesSpinBox->setMaximum(10);
-    registerField("numPrefTeammates", numPrefTeammatesSpinBox);
+    numPrefTeammatesSpinBox->setMaximum(MAX_PREFTEAMMATES);
     connect(numPrefTeammatesSpinBox, &QSpinBox::valueChanged, this, &CourseInfoPage::update);
     questions[wantToAvoid]->addWidget(numPrefTeammatesExplainer, 1, 0, true);
     questions[wantToAvoid]->addWidget(numPrefTeammatesSpinBox, 2, 0, false, Qt::AlignLeft);
-    questionPreviewTopLabels[wantToAvoid]->setText(tr("Classmates"));
-    questionPreviewLayouts[wantToAvoid]->addWidget(questionPreviewTopLabels[wantToAvoid]);
-    wa = new QLineEdit;
-    wa->setCursorPosition(0);
-    wa->setStyleSheet(LINEEDITSTYLE);
-    wac = new QComboBox;
-    questionPreviewLayouts[wantToAvoid]->addWidget(wa);
-    questionPreviewLayouts[wantToAvoid]->addWidget(wac);
-    questionPreviewBottomLabels[wantToAvoid]->setText(tr(""));
-    questionPreviewLayouts[wantToAvoid]->addWidget(questionPreviewBottomLabels[wantToAvoid]);
-    wac->hide();
-    questionPreviewBottomLabels[wantToWorkWith]->hide();
-    questionPreviews[wantToAvoid]->hide();
-    registerField("PrefNonTeammate", questions[wantToAvoid], "value", "valueChanged");
+    registerField("numPrefTeammates", numPrefTeammatesSpinBox);
 
     selectFromRosterLabel = new LabelThatForwardsMouseClicks;
-    selectFromRosterLabel->setText("<span style=\"color: #" DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + tr("Select from a class roster") + "</span>");
+    selectFromRosterLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + tr("Select from a class roster") + "</span>");
     selectFromRosterSwitch = new SwitchButton(false);
     connect(selectFromRosterSwitch, &SwitchButton::valueChanged, this, &CourseInfoPage::update);
     connect(selectFromRosterLabel, &LabelThatForwardsMouseClicks::mousePressed, selectFromRosterSwitch, &SwitchButton::mousePressEvent);
@@ -1379,7 +1417,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
 
     registerField("StudentNames", this, "studentNames", "studentNamesChanged");
 
-    addASection();
+    addASection(true);
     addASection();
 }
 
@@ -1391,16 +1429,25 @@ void CourseInfoPage::cleanupPage()
 {
 }
 
+void CourseInfoPage::resizeEvent(QResizeEvent *event)
+{
+    resizeQuestionPlainTextEdit(ww);
+    resizeQuestionPlainTextEdit(wa);
+    QWidget::resizeEvent(event);
+}
+
 void CourseInfoPage::setSectionNames(const QStringList &newSectionNames)
 {
     for(int i = 0; i < sectionLineEdits.size(); i++) {
-        deleteASection(i);
+        deleteASection(i, true);
     }
     for(const auto &newSectionName : newSectionNames) {
-        addASection();
+        addASection(true);
         sectionLineEdits.last()->setText(newSectionName);
     }
     emit sectionNamesChanged(sectionNames);
+
+    update();
 }
 
 QStringList CourseInfoPage::getSectionNames() const
@@ -1422,6 +1469,7 @@ QStringList CourseInfoPage::getStudentNames() const
 
 void CourseInfoPage::update()
 {
+    qDebug() << visibleSectionLineEdits;
     sectionNames.clear();
 
     QLayoutItem *child;
@@ -1435,31 +1483,32 @@ void CourseInfoPage::update()
     topLabel->setWordWrap(true);
     sectionsPreviewLayout->addWidget(topLabel);
     sc.clear();
-    for(int i = 0; i < numVisibleSections; i++) {
+    for(const int visibleSectionLineEdit : visibleSectionLineEdits) {
+        qDebug() << visibleSectionLineEdit;
         sc << new QRadioButton;
         sectionsPreviewLayout->addWidget(sc.last());
-    }
-
-    int i = 0;
-    for(auto &sectionLineEdit : sectionLineEdits) {
-        sectionLineEdit->setEnabled(questions[section]->getValue());
-
-        if(!(sectionLineEdit->text().isEmpty())) {
-            sectionNames.append(sectionLineEdit->text());
-            sc[i++]->setText(sectionLineEdit->text());
+        const QString sectName = sectionLineEdits[visibleSectionLineEdit]->text();
+        if(!sectName.isEmpty()) {
+            sc.last()->setText(sectName);
+            sectionNames << sectName;
         }
     }
+    sc.first()->setChecked(true);
+
+    for(auto &sectionLineEdit : sectionLineEdits) {
+        sectionLineEdit->setEnabled(questions[section]->getValue());
+    }
     for(auto &deleteSectionButton : deleteSectionButtons) {
-        deleteSectionButton->setEnabled(questions[section]->getValue() && (numVisibleSections > 2));
+        deleteSectionButton->setEnabled(questions[section]->getValue() && (visibleSectionLineEdits.size() > 2));
     }
     addSectionButton->setEnabled(questions[section]->getValue());
 
     bool oneOfPrefQuestions = (questions[wantToWorkWith]->getValue() || questions[wantToAvoid]->getValue());
     if (oneOfPrefQuestions) {
-        selectFromRosterLabel->setText(selectFromRosterLabel->text().replace("bebebe", DEEPWATERHEX));
+        selectFromRosterLabel->setText(selectFromRosterLabel->text().replace("#bebebe", DEEPWATERHEX));
     }
     else {
-        selectFromRosterLabel->setText(selectFromRosterLabel->text().replace(DEEPWATERHEX, "bebebe"));
+        selectFromRosterLabel->setText(selectFromRosterLabel->text().replace(DEEPWATERHEX, "#bebebe"));
     }
     selectFromRosterSwitch->setEnabled(oneOfPrefQuestions);
     numPrefTeammatesExplainer->setEnabled(oneOfPrefQuestions);
@@ -1467,36 +1516,73 @@ void CourseInfoPage::update()
     uploadExplainer->setEnabled(oneOfPrefQuestions);
     uploadButton->setEnabled(selectFromRosterSwitch->isEnabled() && selectFromRosterSwitch->value());
 
+    numPrefTeammates = numPrefTeammatesSpinBox->value();
     questionPreviewTopLabels[wantToAvoid]->setHidden(questions[wantToWorkWith]->getValue() && questions[wantToAvoid]->getValue());  //don't need two labels if both questions on
-    if(!selectFromRosterSwitch->value() || studentNames.isEmpty()) {
+    if(!selectFromRosterSwitch->value()) {
+        setStudentNames({});
+    }
+    if(studentNames.isEmpty()) {
         ww->show();
+        ww->setPlainText(generateTeammateQuestion(true, true, numPrefTeammates));
+        resizeQuestionPlainTextEdit(ww);
         wa->show();
-        wwc->hide();
-        wac->hide();
+        wa->setPlainText(generateTeammateQuestion(false, true, numPrefTeammates));
+        resizeQuestionPlainTextEdit(wa);
+        for(auto &combobox : wwc) {
+            combobox->hide();
+        }
+        for(auto &combobox : wac) {
+            combobox->hide();
+        }
         questionPreviewBottomLabels[wantToWorkWith]->hide();
         questionPreviewBottomLabels[wantToAvoid]->hide();
     }
     else {
         ww->hide();
         wa->hide();
-        wwc->show();
-        wac->show();
+        while(wwc.size() < numPrefTeammates) {
+            wwc << new QComboBox;
+            wwc.last()->setStyleSheet(COMBOBOXSTYLE);
+            questionPreviewLayouts[wantToWorkWith]->insertWidget(questionPreviewLayouts[wantToWorkWith]->count()-1, wwc.last());
+        }
+        while(wwc.size() > numPrefTeammates) {
+            delete wwc.last();
+            wwc.removeLast();
+        }
+        for(auto &combobox : wwc) {
+            combobox->show();
+            combobox->clear();
+            combobox->addItem(generateTeammateQuestion(true, false, numPrefTeammates));
+        }
+
+        while(wac.size() < numPrefTeammates) {
+            wac << new QComboBox;
+            wac.last()->setStyleSheet(COMBOBOXSTYLE);
+            questionPreviewLayouts[wantToAvoid]->insertWidget(questionPreviewLayouts[wantToAvoid]->count()-1, wac.last());
+        }
+        while(wac.size() > numPrefTeammates) {
+            delete wac.last();
+            wac.removeLast();
+        }
+        for(auto &combobox : wac) {
+            combobox->show();
+            combobox->clear();
+            combobox->addItem(generateTeammateQuestion(false, false, numPrefTeammates));
+        }
+
+        QString studentNamesLabelText = tr("Options: ");
+        if(studentNames.size() > 10) {
+            studentNamesLabelText += studentNames.first(10).join("  |  ") + " |  {" + QString::number(studentNames.size()-10) + tr(" more ...}");
+        }
+        else {
+            studentNamesLabelText += studentNames.join("  |  ");
+        }
+        questionPreviewBottomLabels[wantToWorkWith]->setText(studentNamesLabelText);
         questionPreviewBottomLabels[wantToWorkWith]->show();
+        questionPreviewBottomLabels[wantToAvoid]->setText(studentNamesLabelText);
         questionPreviewBottomLabels[wantToAvoid]->show();
         questionPreviewBottomLabels[wantToWorkWith]->setHidden(questions[wantToWorkWith]->getValue() && questions[wantToAvoid]->getValue());
-        questionPreviewBottomLabels[wantToWorkWith]->setText(tr("Options: ") + studentNames.join("  |  "));
-        questionPreviewBottomLabels[wantToAvoid]->setText(tr("Options: ") + studentNames.join("  |  "));
     }
-
-    numPrefTeammates = numPrefTeammatesSpinBox->value();
-    ww->setPlaceholderText(generateTeammateQuestion(true, true, numPrefTeammates));
-    ww->setCursorPosition(0);
-    wwc->clear();
-    wwc->addItem(generateTeammateQuestion(true, false, numPrefTeammates));
-    wa->setPlaceholderText(generateTeammateQuestion(false, true, numPrefTeammates));
-    wa->setCursorPosition(0);
-    wac->clear();
-    wac->addItem(generateTeammateQuestion(false, false, numPrefTeammates));
 }
 
 QString CourseInfoPage::generateTeammateQuestion(bool wantToWorkWith, bool typingNames, int numClassmates)
@@ -1515,14 +1601,25 @@ QString CourseInfoPage::generateTeammateQuestion(bool wantToWorkWith, bool typin
     return question;
 }
 
-void CourseInfoPage::addASection()
+void CourseInfoPage::resizeQuestionPlainTextEdit(QPlainTextEdit *const questionPlainTextEdit)
 {
-    sectionLineEdits.append(new QLineEdit);
-    deleteSectionButtons.append(new QPushButton);
+    // make the edit box as tall as needed to show all text
+    const auto *const doc = questionPlainTextEdit->document();
+    const QFontMetrics font(doc->defaultFont());
+    const auto margins = questionPlainTextEdit->contentsMargins();
+    const int height = (font.lineSpacing() * std::max(1.0, doc->size().height())) +
+                       (doc->documentMargin() + questionPlainTextEdit->frameWidth()) * 2 + margins.top() + margins.bottom();
+    questionPlainTextEdit->setFixedHeight(height);
+}
+
+void CourseInfoPage::addASection(bool pauseVisualUpdate)
+{
+    sectionLineEdits << new QLineEdit;
+    deleteSectionButtons << new QPushButton;
     sectionLineEdits.last()->setStyleSheet(LINEEDITSTYLE);
     deleteSectionButtons.last()->setStyleSheet(DELBUTTONSTYLE);
     sectionLineEdits.last()->setPlaceholderText(tr("Section name"));
-    deleteSectionButtons.last()->setText(tr("Delete"));
+    deleteSectionButtons.last()->setText(tr(" Delete"));
     deleteSectionButtons.last()->setIcon(QIcon(":/icons_new/trashButton.png"));
     questions[section]->moveWidget(addSectionButton, numSectionsEntered + 2, 0, false, Qt::AlignLeft);
     questions[section]->addWidget(sectionLineEdits.last(), numSectionsEntered + 1, 0, false);
@@ -1531,31 +1628,34 @@ void CourseInfoPage::addASection()
     deleteSectionButtons.last()->show();
     connect(sectionLineEdits.last(), &QLineEdit::textChanged, this, &CourseInfoPage::update);
     connect(deleteSectionButtons.last(), &QPushButton::clicked, this, [this, numSectionsEntered = numSectionsEntered]{deleteASection(numSectionsEntered);});
+    visibleSectionLineEdits << numSectionsEntered;
     numSectionsEntered++;
     sectionLineEdits.last()->setFocus();
 
-    numVisibleSections++;
-
-    update();
+    if(!pauseVisualUpdate) {
+        update();
+    }
 }
 
-void CourseInfoPage::deleteASection(int sectionNum)
+void CourseInfoPage::deleteASection(int sectionNum, bool pauseVisualUpdate)
 {
     sectionLineEdits[sectionNum]->hide();
-    sectionLineEdits[sectionNum]->setText("");
+    sectionLineEdits[sectionNum]->clear();
     deleteSectionButtons[sectionNum]->hide();
 
-    numVisibleSections--;
+    visibleSectionLineEdits.removeAll(sectionNum);
 
-    update();
+    if(!pauseVisualUpdate) {
+        update();
+    }
 }
 
 bool CourseInfoPage::uploadRoster()
 {
     // Open the roster file
     CsvFile rosterFile;
-    QString saveFilePath = (qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation.canonicalPath();
-    if(!rosterFile.open(this, CsvFile::read, tr("Open Student Roster File"), saveFilePath, tr("Roster File"))) {
+    QFileInfo *saveFilePath = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
+    if(!rosterFile.open(this, CsvFile::read, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
         return false;
     }
 
@@ -1623,20 +1723,44 @@ bool CourseInfoPage::uploadRoster()
 PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::previewexport, parent)
 {
-    for(int sectionNum = 0; sectionNum < 5; sectionNum++) {
+    int lastPageIndex = qobject_cast<SurveyMakerWizard *>(wizard())->numPages - 1;
+    for(int sectionNum = 0; sectionNum < lastPageIndex; sectionNum++) {
         preSectionSpacer << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         questionLayout->addItem(preSectionSpacer.last());
         section << new SurveyMakerPreviewSection(sectionNum, SurveyMakerWizard::pageNames[sectionNum], SurveyMakerWizard::numOfQuestionsInPage[sectionNum], this);
         questionLayout->addWidget(section.last());
-        connect(section.last(), &SurveyMakerPreviewSection::editRequested, this, [this](int pageNum){while(pageNum < 5){wizard()->back(); pageNum++;}});
+        connect(section.last(), &SurveyMakerPreviewSection::editRequested, this, [this, lastPageIndex](int pageNum){while(pageNum < lastPageIndex){wizard()->back(); pageNum++;}});
     }
 
     auto *saveExportFrame = new QFrame;
-    saveExportFrame->setStyleSheet("background-color: #" DEEPWATERHEX "; color: white; font-family:'DM Sans'; font-size:12pt;");
-    auto *saveExportlayout = new QVBoxLayout(saveExportFrame);
+    saveExportFrame->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; font-family:'DM Sans'; font-size:12pt;");
+    auto *saveExportlayout = new QGridLayout(saveExportFrame);
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");
     destination->setStyleSheet("border-style:none;");
+    auto helpIcon = new LabelWithInstantTooltip;
+    QPixmap whiteLightbulb = QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPainter painter(&whiteLightbulb);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.fillRect(whiteLightbulb.rect(), QColor("white"));
+    painter.end();
+    helpIcon->setPixmap(whiteLightbulb);
+    auto helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"));
+    helpLabel->setStyleSheet(QString(LABELSTYLE).replace(DEEPWATERHEX, "white").replace("10pt;", "12pt;"));
+    helpLabel->setWordWrap(true);
+    auto helpLayout = new QHBoxLayout;
+    helpLayout->addWidget(helpIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    helpLayout->addWidget(helpLabel, 1, Qt::AlignVCenter);
+    QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>Google Form in Your Google Drive:</u> Send your students the link, and gruepr can download the results.<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>Survey in Your Canvas Course:</u> Publish it in the Canvas page your class already uses, and gruepr can download the results.<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>Text Files on Your Computer:</u> Use your own survey instrument.<br>"
+                               " One file lists your survey questions, and another is preformatted for you to open in Excel, Numbers, or Sheets,"
+                               " to fill in your students' responses, and then to open in gruepr.<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>gruepr Survey File on Your Computer:</u> Save your work for reuse, modification, or sharing with colleagues."
+                          "</span></html>");
+    helpIcon->setToolTipText(helpText);
+    helpLabel->setToolTipText(helpText);
     destinationGoogle = new QRadioButton(tr("Google Form"));
     destinationCanvas = new QRadioButton(tr("Canvas Survey"));
     destinationTextFiles = new QRadioButton(tr("Text Files"));
@@ -1652,9 +1776,12 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     exportButton->setStyleSheet(NEXTBUTTONSTYLE);
     exportButton->setText(tr("Export Survey"));
     connect(exportButton, &QPushButton::clicked, this, &PreviewAndExportPage::exportSurvey);
-    saveExportlayout->addWidget(saveExporttitle);
-    saveExportlayout->addWidget(destination);
-    saveExportlayout->addWidget(exportButton);
+    int row = 0;
+    saveExportlayout->addWidget(saveExporttitle, row, 0, 1, 1, Qt::AlignLeft);
+    saveExportlayout->addLayout(helpLayout, row++, 1, 1, 1, Qt::AlignRight);
+    saveExportlayout->setColumnStretch(0, 1);
+    saveExportlayout->addWidget(destination, row++, 0, 1, -1);
+    saveExportlayout->addWidget(exportButton, row++, 0, 1, -1);
     preSectionSpacer << new QSpacerItem(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
     questionLayout->addItem(preSectionSpacer.last());
     questionLayout->addWidget(saveExportFrame);
@@ -1677,12 +1804,12 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     schedGrid = new QWidget;
     schedGridLayout = new QGridLayout(schedGrid);
     for(int hr = 0; hr < 24; hr++) {
-        auto *rowLabel = new QLabel(SurveyMakerWizard::sunday.time().addSecs(hr * 3600).toString("h A"));
+        auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A"));
         rowLabel->setStyleSheet(LABELSTYLE);
         schedGridLayout->addWidget(rowLabel, hr+1, 0);
     }
     for(int day = 0; day < 7; day++) {
-        auto *colLabel = new QLabel(SurveyMakerWizard::sunday.addDays(day).toString("ddd"));
+        auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
         colLabel->setStyleSheet(LABELSTYLE);
         schedGridLayout->addWidget(colLabel, 0, day+1);
         schedGridLayout->setColumnStretch(day, 1);
@@ -1712,11 +1839,8 @@ PreviewAndExportPage::~PreviewAndExportPage()
 void PreviewAndExportPage::initializePage()
 {
     survey = new Survey;
-
-    auto *wiz = wizard();
-    auto palette = wiz->palette();
-    palette.setColor(QPalette::Window, QColor::fromString("#" DEEPWATERHEX));
-    wiz->setPalette(palette);
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
+    wiz->previewPageVisited = true;
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::Stretch << QWizard::BackButton << QWizard::FinishButton;
     wiz->setButtonLayout(buttonLayout);
@@ -1977,7 +2101,9 @@ void PreviewAndExportPage::initializePage()
     const bool prefTeammate = field("PrefTeammate").toBool();
     const bool prefNonTeammate = field("PrefNonTeammate").toBool();
     const int numPrefTeammates = field("numPrefTeammates").toInt();
-    const QStringList studentNames = field("StudentNames").toStringList();
+    QStringList studentNames = field("StudentNames").toStringList();
+    const bool typingStudentNames = studentNames.isEmpty();
+    studentNames.prepend("");
 
     if(courseSections) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2002,52 +2128,76 @@ void PreviewAndExportPage::initializePage()
 
     if(prefTeammate) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        QString questionText = CourseInfoPage::generateTeammateQuestion(true, studentNames.isEmpty(), numPrefTeammates);
+        QString questionText = CourseInfoPage::generateTeammateQuestion(true, typingStudentNames, numPrefTeammates);
         section[SurveyMakerWizard::courseinfo]->questionLabel[1]->setText(questionText);
         section[SurveyMakerWizard::courseinfo]->questionLabel[1]->show();
-        if(studentNames.isEmpty()) {
+        if(typingStudentNames) {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->show();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionGroupBox[1]->hide();
             survey->questions << Question(questionText, (numPrefTeammates == 1? Question::QuestionType::shorttext : Question::QuestionType::longtext));
         }
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->show();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->clear();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->addItems(studentNames);
-            survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
+            QLayoutItem *child;
+            while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[1]->takeAt(0)) != nullptr) {
+                delete child->widget(); // delete the widget
+                delete child;   // delete the layout item
+            }
+            for(int i = 0; i < numPrefTeammates; i++) {
+                auto *selector = new QComboBox;
+                selector->setStyleSheet(COMBOBOXSTYLE);
+                selector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+                selector->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
+                selector->installEventFilter(new MouseWheelBlocker(selector));
+                selector->addItems(studentNames);
+                section[SurveyMakerWizard::courseinfo]->questionGroupLayout[1]->addWidget(selector, 0, Qt::AlignLeft);
+                survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);                
+            }
+            section[SurveyMakerWizard::courseinfo]->questionGroupBox[1]->show();
         }
     }
     else {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::courseinfo]->questionLabel[1]->hide();
         section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
-        section[SurveyMakerWizard::courseinfo]->questionComboBox[1]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionGroupBox[1]->hide();
     }
 
     if(prefNonTeammate) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        QString questionText = CourseInfoPage::generateTeammateQuestion(false, studentNames.isEmpty(), numPrefTeammates);
+        QString questionText = CourseInfoPage::generateTeammateQuestion(false, typingStudentNames, numPrefTeammates);
         section[SurveyMakerWizard::courseinfo]->questionLabel[2]->show();
         section[SurveyMakerWizard::courseinfo]->questionLabel[2]->setText(questionText);
-        if(studentNames.isEmpty()) {
+        if(typingStudentNames) {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->show();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionGroupBox[2]->hide();
             survey->questions << Question(questionText, (numPrefTeammates == 1? Question::QuestionType::shorttext : Question::QuestionType::longtext));
         }
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->show();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->clear();
-            section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->addItems(studentNames);
-            survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
+            QLayoutItem *child;
+            while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[2]->takeAt(0)) != nullptr) {
+                delete child->widget(); // delete the widget
+                delete child;   // delete the layout item
+            }
+            for(int i = 0; i < numPrefTeammates; i++) {
+                auto *selector = new QComboBox;
+                selector->setStyleSheet(COMBOBOXSTYLE);
+                selector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+                selector->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
+                selector->installEventFilter(new MouseWheelBlocker(selector));
+                selector->addItems(studentNames);
+                section[SurveyMakerWizard::courseinfo]->questionGroupLayout[2]->addWidget(selector, 0, Qt::AlignLeft);
+                survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
+            }
+            section[SurveyMakerWizard::courseinfo]->questionGroupBox[2]->show();
         }
     }
     else {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::courseinfo]->questionLabel[2]->hide();
         section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
-        section[SurveyMakerWizard::courseinfo]->questionComboBox[2]->hide();
+        section[SurveyMakerWizard::courseinfo]->questionGroupBox[2]->hide();
     }
 
     if(courseSections || prefTeammate || prefNonTeammate) {
@@ -2065,12 +2215,11 @@ void PreviewAndExportPage::cleanupPage()
     delete survey;
 
     // going back to previous page, so allow user to immediately return to this preview
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::CustomButton2;
-    wizard()->setButtonLayout(buttonLayout);
-    setButtonText(QWizard::CustomButton2, "Return to Preview");
-    wizard()->button(QWizard::CustomButton2)->setStyleSheet(NEXTBUTTONSTYLE);
-    connect(wizard(), &QWizard::customButtonClicked, this, [this](int customButton)
+    wiz->setButtonLayout(buttonLayout);
+    connect(wiz, &QWizard::customButtonClicked, this, [this](int customButton)
             {if(customButton == QWizard::CustomButton2) {while(wizard()->currentId() != SurveyMakerWizard::Page::previewexport) {wizard()->next();}}});
 }
 
@@ -2282,7 +2431,7 @@ void PreviewAndExportPage::exportSurvey()
                 auto *okButton = loginDialog->button(QMessageBox::Ok);
                 auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
                 int height = okButton->height();
-                QPixmap loginpic(":/icons/google_signin_button.png");
+                QPixmap loginpic(":/icons_new/google_signin_button.png");
                 loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
                 okButton->setText("");
                 okButton->setIconSize(loginpic.rect().size());
@@ -2317,7 +2466,6 @@ void PreviewAndExportPage::exportSurvey()
         //upload the survey as a form
         auto *busyBox = google->busy();
         auto form = google->createSurvey(survey);
-        busyBox->hide();
 
         QPixmap icon;
         if(form.name.isEmpty()) {
@@ -2343,21 +2491,21 @@ void PreviewAndExportPage::exportSurvey()
             QApplication::restoreOverrideCursor();
             QString textheight = QString::number(busyBox->fontMetrics().boundingRect('G').height() * 2);
             busyBox->setText(tr("Success! Survey created.<br><br>"
-                                "If you'd like to preview or edit the survey, find it in your") + "<a href='https://drive.google.com'>Google Drive</a>"
-                                "<img height=\"" + textheight + "\" width=\"" + textheight + "\" src=\":/icons/external-link.png\">.<br>" +
+                                "If you'd like to preview or edit the survey, find it in your") + " <a href='https://drive.google.com'>Google Drive</a> "
+                                "<img height=\"" + textheight + "\" width=\"" + textheight + "\" src=\":/icons_new/external-link.png\">.<br>" +
                               tr("If you wish, you can modify:<br>"
-                                   "&nbsp;&nbsp;» the survey title<br>"
-                                   "&nbsp;&nbsp;» the instructions shown at the top of the survey<br>"
-                                   "&nbsp;&nbsp;» the \"description text\" shown with any of the questions<br>"
+                                 "<ul>"
+                                   "<li>the survey title</li>"
+                                   "<li>the instructions shown at the top of the survey</li>"
+                                   "<li>the \"description text\" shown with any of the questions</li></ul>"
                                 "<br>Changing the wording of a question or the order of the questions in any other way is not recommended.<br><br>"
                                 "Students should fill out the survey by going to the following URL:<br><strong>") +
                                 form.responderURL.toEncoded() +
                              tr("</strong><br>You can copy this URL to your clipboard with the button below."));
             icon.load(":/icons/ok.png");
-            busyBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Reset);
-            auto *copyButton = busyBox->button(QMessageBox::Reset);
-            copyButton->setText(tr("Copy URL to clipboard"));
-            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip { color: #000000; background-color: #" BOLDGREENHEX "; border: 0px; }");
+            busyBox->addButton(QMessageBox::Ok);
+            auto *copyButton = busyBox->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
+            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip {color: black; font-size: 10pt; font-family: DM Sans; background-color: " BOLDGREENHEX "; border: 0px;}");
             copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the busyBox when clicked
             connect(copyButton, &QPushButton::clicked, busyBox, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
                                                                                        clipboard->setText(form.responderURL.toEncoded());
@@ -2442,7 +2590,6 @@ void PreviewAndExportPage::exportSurvey()
         //upload the survey as a quiz
         busyBox = canvas->busy();
         bool success = canvas->createSurvey(coursesComboBox->currentText(), survey);
-        busyBox->hide();
 
         QPixmap icon;
         if(success) {
@@ -2452,8 +2599,9 @@ void PreviewAndExportPage::exportSurvey()
             busyBox->setText(tr("Success! Survey created.<br><br>"
                                 "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site.<br>"
                                 "If you wish, you can modify:<br>"
-                                "&nbsp;&nbsp;» the survey title<br>"
-                                "&nbsp;&nbsp;» the Quiz Instructions shown at the start of the survey<br>"
+                                "<ul>"
+                                "<li>the survey title</li>"
+                                "<li>the Quiz Instructions shown at the start of the survey</li></ul>"
                                 "<br>Changing the wording of a question or the order of the questions is not recommended.<br><br>"
                                 "<strong>The survey is currently \"Unpublished\".</strong><br>"
                                 "When you are ready for students to fill out the survey, you must log in to your course Canvas site and \"Publish\" it."));

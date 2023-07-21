@@ -7,7 +7,7 @@
 gruepr_version = 12.0
 copyright_year = 2019-2023
 
-QT       += core gui widgets concurrent network printsupport charts networkauth webenginewidgets
+QT       += core gui widgets concurrent network printsupport charts networkauth
 
 TARGET = gruepr
 TEMPLATE = app
@@ -61,6 +61,7 @@ SOURCES += \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/sampleQuestionsDialog.cpp \
         googlehandler.cpp \
         gruepr_globals.cpp \
         main.cpp \
@@ -69,7 +70,6 @@ SOURCES += \
         studentRecord.cpp \
         survey.cpp \
         surveyMakerWizard.cpp \
-        surveymaker.cpp \
         teamRecord.cpp \
         teamingOptions.cpp \
         dialogs/baseTimeZoneDialog.cpp \
@@ -91,6 +91,7 @@ SOURCES += \
         widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
+        widgets/labelWithInstantTooltip.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
         widgets/sortableTableWidgetItem.cpp \
         widgets/studentTableWidget.cpp \
@@ -105,6 +106,7 @@ HEADERS += \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/sampleQuestionsDialog.h \
         googlehandler.h \
         gruepr.h \
         GA.h \
@@ -112,7 +114,6 @@ HEADERS += \
         studentRecord.h \
         survey.h \
         surveyMakerWizard.h \
-        surveymaker.h \
         teamRecord.h \
         teamingOptions.h \
         dialogs/baseTimeZoneDialog.h \
@@ -134,6 +135,7 @@ HEADERS += \
         widgets/comboBoxThatPassesScrollwheel.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/labelThatForwardsMouseClicks.h \
+        widgets/labelWithInstantTooltip.h \
         widgets/pushButtonWithMouseEnter.h \
         widgets/sortableTableWidgetItem.h \
         widgets/studentTableWidget.h \
@@ -143,8 +145,8 @@ HEADERS += \
         widgets/teamTreeWidget.h
 
 FORMS += \
-      gruepr.ui \
-      surveymaker.ui
+      dialogs/sampleQuestionsDialog.ui \
+      gruepr.ui
 
 RESOURCES += \
           gruepr.qrc

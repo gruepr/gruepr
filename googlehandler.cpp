@@ -99,6 +99,9 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
             kind["shuffle"] = false;
             QJsonArray responseOptions;
             for(const auto &option : question.options) {
+                if((question.type == Question::QuestionType::dropdown) && (option.isEmpty())) { // google doesn't like blank options in a dropdown
+                    continue;
+                }
                 QJsonObject responseOption;
                 responseOption["value"] = option;
                 responseOption["isOther"] = false;
@@ -516,7 +519,7 @@ QMessageBox* GoogleHandler::busy(QWidget *parent) {
     busyDialog->setIconPixmap(icon.scaled(GOOGLEICONSIZE));
     busyDialog->setText(tr("Communicating with Google..."));
     busyDialog->setStandardButtons(QMessageBox::NoButton);
-    busyDialog->setModal(false);
+    busyDialog->setModal(true);
     busyDialog->show();
     return busyDialog;
 }
