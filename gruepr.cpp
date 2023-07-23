@@ -65,9 +65,9 @@ gruepr::gruepr(QWidget *parent) :
     connect(ui->actionExit, &QAction::triggered, this, &gruepr::close);
     //ui->actionSettings->setMenuRole(QAction::PreferencesRole);
     //connect(ui->actionSettings, &QAction::triggered, this, &gruepr::settingsWindow);
-    connect(ui->actionHelp, &QAction::triggered, this, &gruepr::helpWindow);
+    connect(ui->actionHelp, &QAction::triggered, this, [this](){helpWindow(this);});
     ui->actionAbout->setMenuRole(QAction::AboutRole);
-    connect(ui->actionAbout, &QAction::triggered, this, &gruepr::aboutWindow);
+    connect(ui->actionAbout, &QAction::triggered, this, [this](){aboutWindow(this);});
     connect(ui->actiongruepr_Homepage, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(GRUEPRHOMEPAGE));});
     connect(ui->actionBugReport, &QAction::triggered, this, [] {QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
 
@@ -2560,47 +2560,6 @@ void gruepr::editDataDisplayTabName(int tabIndex)
     ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
     ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
     ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
-}
-
-
-void gruepr::settingsWindow()
-{
-}
-
-
-void gruepr::helpWindow()
-{
-    QFile helpFile(":/help.html");
-    if (!helpFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return;
-    }
-    QDialog helpWindow(this);
-    helpWindow.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    helpWindow.setSizeGripEnabled(true);
-    helpWindow.setWindowTitle("Help");
-    QGridLayout theGrid(&helpWindow);
-    QTextBrowser helpContents(&helpWindow);
-    helpContents.setHtml(QString("<h1 style=\"font-family:'Oxygen Mono';\">gruepr " GRUEPR_VERSION_NUMBER "</h1>"
-                         "<p>Copyright &copy; " GRUEPR_COPYRIGHT_YEAR
-                         "<p>Joshua Hertz <a href = mailto:info@gruepr.com>info@gruepr.com</a>"
-                         "<p>Project homepage: <a href = ") + GRUEPRHOMEPAGE + ">" + GRUEPRHOMEPAGE + "</a>");
-    helpContents.append(helpFile.readAll());
-    helpFile.close();
-    helpContents.setOpenExternalLinks(true);
-    helpContents.setFrameShape(QFrame::NoFrame);
-    theGrid.addWidget(&helpContents, 0, 0, -1, -1);
-    helpWindow.resize(LG_DLG_SIZE, LG_DLG_SIZE);
-    helpWindow.exec();
-}
-
-
-void gruepr::aboutWindow()
-{
-    QSettings savedSettings;
-    QString registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString user = registeredUser.isEmpty()? tr("UNREGISTERED") : (tr("registered to ") + registeredUser);
-    QMessageBox::about(this, tr("About gruepr"), ABOUTWINDOWCONTENT + tr("<p><b>This copy of gruepr is ") + user + "</b>.");
 }
 
 

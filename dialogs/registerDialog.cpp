@@ -23,7 +23,7 @@ registerDialog::registerDialog(QWidget *parent)
                             "Doing so enables me to best support the community of educators that uses it. "
                             "This information will never be sold or shared.\n"
                             "\t-Josh\n"
-                            "\t info@gruepr.com\n"));
+                            "\t " GRUEPRHELPEMAIL "\n"));
     explanation->setWordWrap(true);
     theBox->addWidget(explanation);
 

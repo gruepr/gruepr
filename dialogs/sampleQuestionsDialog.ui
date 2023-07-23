@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>642</width>
-    <height>568</height>
+    <width>711</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,13 +30,26 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>8th Grade Spanish Project</string>
+       <string>7th Grade French Conversation Groups</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0,0,1,0,0,0,1,0,0,1">
+       <item>
+        <spacer name="verticalSpacer_28">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>TextLabel</string>
+          <string>Will you continue to take French for your language next year?</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -77,28 +90,21 @@
           <item>
            <widget class="QRadioButton" name="radioButton_13">
             <property name="text">
-             <string>RadioButton</string>
+             <string>1. Yes</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_14">
             <property name="text">
-             <string>RadioButton</string>
+             <string>2. Maybe</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_15">
             <property name="text">
-             <string>RadioButton</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_16">
-            <property name="text">
-             <string>RadioButton</string>
+             <string>3. No</string>
             </property>
            </widget>
           </item>
@@ -131,7 +137,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>TextLabel</string>
+          <string>How often do you refer to our verb conjugation tipsheet when writing your daily journal entry?</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -172,28 +178,35 @@
           <item>
            <widget class="QRadioButton" name="radioButton_5">
             <property name="text">
-             <string>RadioButton</string>
+             <string>1. Very frequently</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_6">
             <property name="text">
-             <string>RadioButton</string>
+             <string>2. Frequently</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_7">
             <property name="text">
-             <string>RadioButton</string>
+             <string>3. Occasionally</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_8">
             <property name="text">
-             <string>RadioButton</string>
+             <string>4. Rarely</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_12">
+            <property name="text">
+             <string>5. Never</string>
             </property>
            </widget>
           </item>
@@ -226,7 +239,105 @@
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>What is your preferred role on a team?</string>
+          <string>Which role would you like to play on your team?</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="styleSheet">
+          <string notr="true">border: none;</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Select one:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_23">
+            <property name="text">
+             <string>Facilitator</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_22">
+            <property name="text">
+             <string>Note taker</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_24">
+            <property name="text">
+             <string>Reporter</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>High School English Project</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <spacer name="verticalSpacer_9">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>How confident are you with our poetry scansion work?</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -267,34 +378,57 @@
           <item>
            <widget class="QRadioButton" name="radioButton_9">
             <property name="text">
-             <string>1. Leader</string>
+             <string>1. Highly confident</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_10">
             <property name="text">
-             <string>2. Mix of leader and follower</string>
+             <string>2. Moderately confident</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="radioButton_11">
             <property name="text">
-             <string>3. Follower</string>
+             <string>3. Somewhat confident</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_16">
+            <property name="text">
+             <string>4. Not confident</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>High School English Project</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <widget class="QFrame" name="frame_4">
+         <property name="frameShape">
+          <enum>QFrame::HLine</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QLabel" name="label_11">
          <property name="text">
@@ -372,7 +506,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_30">
+           <widget class="QCheckBox" name="checkBox_59">
             <property name="text">
              <string>Shakespeare's Sonnet 18</string>
             </property>
@@ -389,7 +523,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QFrame" name="frame_3">
+        <widget class="QFrame" name="frame_7">
          <property name="frameShape">
           <enum>QFrame::HLine</enum>
          </property>
@@ -399,7 +533,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_5">
+        <spacer name="verticalSpacer_11">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -412,9 +546,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="label_23">
          <property name="text">
-          <string>Which role would you like to play on your team?</string>
+          <string>Is it more important to you to be on a team that works hard to get the best result or a team that works efficiently to complete the work quickly?</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -422,14 +556,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_7">
+        <widget class="QGroupBox" name="groupBox_15">
          <property name="styleSheet">
           <string notr="true">border: none;</string>
          </property>
          <property name="flat">
           <bool>true</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
+         <layout class="QVBoxLayout" name="verticalLayout_16">
           <property name="spacing">
            <number>3</number>
           </property>
@@ -446,37 +580,30 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_12">
+           <widget class="QLabel" name="label_24">
             <property name="text">
              <string>Select one:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_23">
+           <widget class="QRadioButton" name="radioButton_27">
             <property name="text">
-             <string>Facilitator</string>
+             <string>1. I want to be on a team that works HARD</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_22">
+           <widget class="QRadioButton" name="radioButton_28">
             <property name="text">
-             <string>Note taker</string>
+             <string>2. I want a balance</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_24">
+           <widget class="QRadioButton" name="radioButton_33">
             <property name="text">
-             <string>Reporter</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_21">
-            <property name="text">
-             <string>Text detective</string>
+             <string>3. I want to be on a team that works EFFICIENTLY</string>
             </property>
            </widget>
           </item>
@@ -484,17 +611,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QFrame" name="frame_4">
-         <property name="frameShape">
-          <enum>QFrame::HLine</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
+        <spacer name="verticalSpacer_14">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -505,78 +622,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>How confident are you with our poetry unit material?</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="styleSheet">
-          <string notr="true">border: none;</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <property name="leftMargin">
-           <number>20</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Select one:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_17">
-            <property name="text">
-             <string>1. Highly confident</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_18">
-            <property name="text">
-             <string>2. Moderately confident</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_19">
-            <property name="text">
-             <string>3. Somewhat confident</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_20">
-            <property name="text">
-             <string>4. Not confident</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
        </item>
       </layout>
      </widget>
@@ -584,7 +629,20 @@
       <attribute name="title">
        <string>Engineering Capstone</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,0,0,0,1,0,0,0,1,0,0,1">
+       <item>
+        <spacer name="verticalSpacer_10">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QLabel" name="label_16">
          <property name="text">
@@ -743,13 +801,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_38">
-            <property name="text">
-             <string>Computer Science</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="checkBox_36">
             <property name="text">
              <string>Electrical Engineering</string>
@@ -770,11 +821,18 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_43">
+            <property name="text">
+             <string>Other</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
-        <widget class="QFrame" name="frame_8">
+        <widget class="QFrame" name="frame_9">
          <property name="frameShape">
           <enum>QFrame::HLine</enum>
          </property>
@@ -784,7 +842,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer">
+        <spacer name="verticalSpacer_12">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -797,9 +855,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label_20">
+        <widget class="QLabel" name="label_21">
          <property name="text">
-          <string>On this project, is it more important to you to work hard to get the best result or to work efficiently to complete the work quickly?</string>
+          <string>What is your preferred role on a team?</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -807,14 +865,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_13">
+        <widget class="QGroupBox" name="groupBox_14">
          <property name="styleSheet">
           <string notr="true">border: none;</string>
          </property>
          <property name="flat">
           <bool>true</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_14">
+         <layout class="QVBoxLayout" name="verticalLayout_15">
           <property name="spacing">
            <number>3</number>
           </property>
@@ -831,35 +889,48 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="label_19">
+           <widget class="QLabel" name="label_22">
             <property name="text">
              <string>Select one:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_40">
+           <widget class="QRadioButton" name="radioButton_43">
             <property name="text">
-             <string>1. I want to work HARD</string>
+             <string>1. Leader</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_41">
+           <widget class="QRadioButton" name="radioButton_44">
             <property name="text">
-             <string>2. I want a balance</string>
+             <string>2. Mix of leader and follower</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_42">
+           <widget class="QRadioButton" name="radioButton_45">
             <property name="text">
-             <string>3. I want to work EFFICIENTLY</string>
+             <string>3. Follower</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_13">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

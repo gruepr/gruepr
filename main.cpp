@@ -42,13 +42,13 @@
 //
 // INPROG:
 // - update greupr to all new UI design!
-// - add about, bugreport, homepage, help to startdialog
 //
 // TO DO:
 // - scale the sizes of everything in the startdialog depending on screen size(?)
 // - BUGFIX: does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
 // - allow selection of which google drive account to use, remembering different refresh tokens for each
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
+// - auto-shorten URL for Google Form (using Google's firebase API?)
 // - create timeout function to nicely handle canvas and google connections
 // - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
 // - more granular scheduling option, down to the 15 minute level at least
@@ -59,7 +59,6 @@
 //     - Question options: req'd question, answer validity checks
 // - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 // - create an LMS class and then subclass Canvas, Google
-// - auto-shorten URL for Google Form (using Google's firebase API?)
 // - in gatherteammates dialog, enable the 'load from teamsTab' action
 //
 // WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
@@ -99,7 +98,7 @@ int main(int argc, char *argv[])
     QFont splashFont("DM Sans");
     splashFont.setPixelSize(messageSize);
     splash->setFont(splashFont);
-    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\n\nwww.gruepr.com", Qt::AlignCenter, QColor::fromString(DEEPWATERHEX));
+    splash->showMessage("version " GRUEPR_VERSION_NUMBER "\n\n" GRUEPRHOMEPAGE, Qt::AlignCenter, QColor::fromString(DEEPWATERHEX));
     splash->show();
 
     // Create application choice (gruepr or surveymaker) window; remove splashscreen when choice window opens

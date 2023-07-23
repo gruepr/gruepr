@@ -1,7 +1,6 @@
 #ifndef STARTDIALOG_H
 #define STARTDIALOG_H
 
-#include "gruepr_globals.h"
 #include <QDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -33,14 +32,13 @@ private:
     enum class GrueprVersion{unknown, old, current, beta};
     GrueprVersion getLatestVersionFromGithub();
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+    QToolButton *helpButton = nullptr;
+#endif
+    QList<QAction *> helpActions;
+
     void openRegisterDialog();
     void openSurveyMaker();
-
-    const int BASEWINDOWWIDTH = 800;
-    const int BASEWINDOWHEIGHT = 456;
-    const QString BUTTONSTYLE = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX ";"
-                                              "color: " DEEPWATERHEX "; background-color: white;} "
-                                "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
 };
 
 #endif // STARTDIALOG_H

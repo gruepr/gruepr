@@ -320,9 +320,12 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
         }
     }
     title += "</span>";
-    QString label = "  " + SurveyMakerWizard::pageNames[page];
+    QString label = "  ";
     if(page != SurveyMakerWizard::Page::previewexport) {
-        label += " " + tr("Questions");
+        label += SurveyMakerWizard::pageNames[page] + " " + tr("Questions");
+    }
+    else {
+        label += "Survey Preview";
     }
 
     layout = new QGridLayout(this);
@@ -1469,7 +1472,6 @@ QStringList CourseInfoPage::getStudentNames() const
 
 void CourseInfoPage::update()
 {
-    qDebug() << visibleSectionLineEdits;
     sectionNames.clear();
 
     QLayoutItem *child;
@@ -1484,7 +1486,6 @@ void CourseInfoPage::update()
     sectionsPreviewLayout->addWidget(topLabel);
     sc.clear();
     for(const int visibleSectionLineEdit : visibleSectionLineEdits) {
-        qDebug() << visibleSectionLineEdit;
         sc << new QRadioButton;
         sectionsPreviewLayout->addWidget(sc.last());
         const QString sectName = sectionLineEdits[visibleSectionLineEdit]->text();
@@ -1803,21 +1804,20 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(tr("Schedule"));
     schedGrid = new QWidget;
     schedGridLayout = new QGridLayout(schedGrid);
-    for(int hr = 0; hr < 24; hr++) {
+    for(int hr = 0; hr < MAX_BLOCKS_PER_DAY; hr++) {
         auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A"));
         rowLabel->setStyleSheet(LABELSTYLE);
         schedGridLayout->addWidget(rowLabel, hr+1, 0);
     }
-    for(int day = 0; day < 7; day++) {
+    for(int day = 0; day < MAX_DAYS; day++) {
         auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
         colLabel->setStyleSheet(LABELSTYLE);
         schedGridLayout->addWidget(colLabel, 0, day+1);
         schedGridLayout->setColumnStretch(day, 1);
     }
-    for(int hr = 1; hr <= 24; hr++) {
-        for(int day = 1; day <= 7; day++) {
+    for(int hr = 1; hr <= MAX_BLOCKS_PER_DAY; hr++) {
+        for(int day = 1; day <= MAX_DAYS; day++) {
             auto check = new QCheckBox;
-            check->setChecked(true);
             schedGridLayout->addWidget(check, hr, day);
         }
     }
@@ -2067,6 +2067,7 @@ void PreviewAndExportPage::initializePage()
         }
         survey->schedStartTime = scheduleFrom;
         survey->schedEndTime = scheduleTo;
+        schedGrid->show();
         QList<QWidget *> widgets = schedGrid->findChildren<QWidget *>();
         for(auto &widget : widgets) {
             int row, col, rowSpan, colSpan;
@@ -2084,6 +2085,7 @@ void PreviewAndExportPage::initializePage()
     else {
         section[SurveyMakerWizard::schedule]->preQuestionSpacer[1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::schedule]->questionLabel[1]->hide();
+        schedGrid->hide();
     }
 
     if(timezone || schedule) {

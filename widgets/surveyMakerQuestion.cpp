@@ -377,12 +377,18 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
     layout = new QGridLayout(this);
 
     title = new QLabel("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:14pt\">" + titleText + "</span>");
+    //center the title for just the Survey Title section
+    if(pageNum == 0) {
+        layout->addWidget(title, row, 0, 1, 1, Qt::AlignCenter | Qt::AlignVCenter);
+    }
+    else {
+        layout->addWidget(title, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    }
+
     editButton = new QPushButton;
     editButton->setStyleSheet(QString(DELBUTTONSTYLE).replace("10pt", "12pt"));
     editButton->setText("🖉 " + tr("Edit") + " " + (pageNum == 0? tr("title") : tr("section")));
     connect(editButton, &QPushButton::clicked, this, [this, pageNum](){emit editRequested(pageNum);});
-
-    layout->addWidget(title, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
     layout->addWidget(editButton, row++, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
 
     layout->setColumnStretch(0, 1);

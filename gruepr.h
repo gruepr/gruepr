@@ -82,9 +82,6 @@ private slots:
     void editDataDisplayTabName(int tabIndex);
     void loadOptionsFile();
     void saveOptionsFile();
-    void settingsWindow();
-    void helpWindow();
-    void aboutWindow();
 
 signals:
     void generationComplete(const QVector<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);

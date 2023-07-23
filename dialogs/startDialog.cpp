@@ -1,8 +1,11 @@
 #include "startDialog.h"
+#include "gruepr_globals.h"
 #include "dialogs/registerDialog.h"
 #include "surveyMakerWizard.h"
 #include <QApplication>
 #include <QCryptographicHash>
+#include <QDesktopServices>
+#include <QMenu>
 #include <QScreen>
 #include <QSettings>
 #include <QStringList>
@@ -23,16 +26,28 @@ startDialog::startDialog(QWidget *parent)
     QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
     int screenWidth = screenGeometry.width();
     int screenHeight = screenGeometry.height();
+
+    const int BASEWINDOWWIDTH = 800;
+    const int BASEWINDOWHEIGHT = 456;
     const int LEFTRIGHTSPACERWIDTH = 74;
     const int MIDDLESPACERWIDTH = 42;
     const int TOPSPACERHEIGHT = 30;
     const int MIDDLESPACERHEIGHT = 36;
     const int BOTTOMSPACERHEIGHT = 46;
     const QSize TOOLBUTTONSIZE(300, 256);
+    const QSize INFOBUTTONSIZE(25, 25);
     const int ICONHEIGHT = 117;
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     const int BIGFONTSIZE = 24;
     const int LITTLEFONTSIZE = 12;
+    const QString BUTTONSTYLE = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX "; "
+                                             "color: " DEEPWATERHEX "; background-color: white;} "
+                                "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
+    const QString INFOBUTTONSTYLE = "QToolButton {border-style: solid; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
+                                                  "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
+                                                  "color: " DEEPWATERHEX "; background-color: white;} "
+                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
+                                    "QToolButton::menu-indicator {subcontrol-origin: border; subcontrol-position: bottom right;}";
 
     mainBoxFont = new QFont("DM Sans", BIGFONTSIZE);
     labelFont = new QFont("DM Sans", LITTLEFONTSIZE);
@@ -99,8 +114,9 @@ startDialog::startDialog(QWidget *parent)
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString UserID = savedSettings.value("registeredUserID", "").toString();
     const bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
-    QString registerMessage = (registered? (tr("<a href = \"webTest\">Thank you for being a registered user.</a>")) : (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
+    QString registerMessage = (registered? (tr("Thank you for being a registered user.")) : (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
     registerLabel->setText(registerMessage);
+    registerLabel->setAlignment(Qt::AlignLeft);
     upgradeLabel = new QLabel(this);
     upgradeLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
     upgradeLabel->setFont(*labelFont);
@@ -109,19 +125,49 @@ startDialog::startDialog(QWidget *parent)
     upgradeLabel->setOpenExternalLinks(true);
     // find out if there is an upgrade available
     GrueprVersion version = getLatestVersionFromGithub();
-    QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER;
+    QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
     if(version == GrueprVersion::old)
     {
-        upgradeMessage += " <a href = \"https://www.gruepr.com/#/Download\">" + tr("Upgrade available!") + "<\a>";
+        upgradeMessage +=  tr("Upgrade available!");
     }
     else if(version == GrueprVersion::beta)
     {
-        upgradeMessage += " <small><a href = \"https://www.gruepr.com/#/Download\">" + tr("(pre-release)") + "<\a></small>";
+        upgradeMessage += tr("(pre-release)");
     }
+    upgradeMessage += "<\a>";
     upgradeLabel->setText(upgradeMessage);
     upgradeLabel->setAlignment(Qt::AlignRight);
-    theGrid->addWidget(registerLabel, row, 1, 1, 2, Qt::AlignLeft);
+    theGrid->addWidget(registerLabel, row, 1, 1, 1, Qt::AlignLeft);
     theGrid->addWidget(upgradeLabel, row, 3, 1, 1, Qt::AlignRight);
+
+    // Add help/about items to the application menu on mac or a dropdown toolbutton in corner of dialog on windows
+    helpActions << new QAction("gruepr homepage");
+    helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(GRUEPRHOMEPAGE));});
+    helpActions << new QAction("Submit a bug report / feature request");
+    helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
+    helpActions << new QAction("About gruepr");
+    helpActions.last()->setMenuRole(QAction::AboutRole);
+    connect(helpActions.last(), &QAction::triggered, this, [this](){aboutWindow(this);});
+    helpActions << new QAction("How gruepr works");
+    helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(helpActions.last(), &QAction::triggered, this, [this](){helpWindow(this);});
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+    helpButton = new QToolButton(this);
+    helpButton->setStyleSheet(INFOBUTTONSTYLE);
+    helpButton->setAutoRaise(false);
+    helpButton->setPopupMode(QToolButton::InstantPopup);
+    helpButton->setIcon(QIcon(":/icons_new/infoButton.png"));
+    helpButton->setIconSize(INFOBUTTONSIZE);
+    theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
+    auto *helpMenu = new QMenu;
+    for(const auto &helpAction : helpActions) {
+        helpAction->setFont(*labelFont);
+        helpMenu->addAction(helpAction);
+    }
+    helpButton->setMenu(helpMenu);
+#endif
 }
 
 
@@ -248,7 +294,7 @@ void startDialog::openRegisterDialog() {
             {
                 registeredUser.clear();
                 icon->setPixmap(QPixmap(":/icons/delete.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
-                message->setText(tr("Error. Please try again later or contact <info@gruepr.com>."));
+                message->setText(tr("Error. Please try again later or contact <" GRUEPRHELPEMAIL ">."));
             }
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();

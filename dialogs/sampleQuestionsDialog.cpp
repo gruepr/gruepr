@@ -9,7 +9,7 @@ SampleQuestionsDialog::SampleQuestionsDialog(QWidget *parent) :
     ui(new Ui::SampleQuestionsDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     ui->tabWidget->tabBar()->setDocumentMode(true);
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString() + TABWIDGETSTYLE + CHECKBOXSTYLE + RADIOBUTTONSTYLE + LABELSTYLE);
