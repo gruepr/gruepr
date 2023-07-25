@@ -76,5 +76,7 @@
         <file>icons_new/external-link.png</file>
         <file>icons_new/google_signin_button.png</file>
         <file>icons_new/infoButton.png</file>
+        <file>icons_new/file.png</file>
+        <file>icons_new/upload_file.png</file>
     </qresource>
 </RCC>

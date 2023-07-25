@@ -1,5 +1,6 @@
 #include "startDialog.h"
 #include "gruepr_globals.h"
+#include "dialogs/getGrueprDataDialog.h"
 #include "dialogs/registerDialog.h"
 #include "surveyMakerWizard.h"
 #include <QApplication>
@@ -16,11 +17,12 @@
 // A dialog to register the software
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-startDialog::startDialog(QWidget *parent)
+StartDialog::StartDialog(QWidget *parent)
     :QDialog (parent)
 {
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
     setWindowTitle("Welcome to gruepr!");
+    setAttribute(Qt::WA_DeleteOnClose);
 
     // Get the screen size
     QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
@@ -54,12 +56,14 @@ startDialog::startDialog(QWidget *parent)
     mainBoxFont = new QFont("DM Sans", BIGFONTSIZE);
     labelFont = new QFont("DM Sans", LITTLEFONTSIZE);
     setFont(*mainBoxFont);
-    QPixmap backgroundPic(":/icons_new/startup_new");
+
+    QPixmap backgroundPic(":/icons_new/startup_new.png");
     setFixedSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
     backgroundPic = backgroundPic.scaled(size(), Qt::KeepAspectRatio);
     QPalette palette;
     palette.setBrush(QPalette::Window, backgroundPic);
     setPalette(palette);
+
     theGrid = new QGridLayout(this);
     int row = 0, col = 0;
 
@@ -83,7 +87,7 @@ startDialog::startDialog(QWidget *parent)
     survMakeButton->setFont(*labelFont);
     survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
     survMakeButton->setStyleSheet(BUTTONSTYLE);
-    connect(survMakeButton, &QToolButton::clicked, this, &startDialog::openSurveyMaker);
+    connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
 
     theGrid->setColumnMinimumWidth(col++, MIDDLESPACERWIDTH);
@@ -96,7 +100,7 @@ startDialog::startDialog(QWidget *parent)
     grueprButton->setFont(*labelFont);
     grueprButton->setText(tr("Upload your survey results\nand form your grueps."));
     grueprButton->setStyleSheet(BUTTONSTYLE);
-    connect(grueprButton, &QToolButton::clicked, this, [&](){done(Result::makeGroups);});
+    connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
 
     theGrid->setColumnMinimumWidth(col, LEFTRIGHTSPACERWIDTH);
@@ -110,7 +114,7 @@ startDialog::startDialog(QWidget *parent)
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
-    connect(registerLabel, &QLabel::linkActivated, this, &startDialog::openRegisterDialog);
+    connect(registerLabel, &QLabel::linkActivated, this, &StartDialog::openRegisterDialog);
     // check to see if this copy of gruepr has been registered
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
@@ -175,22 +179,35 @@ startDialog::startDialog(QWidget *parent)
 }
 
 
-startDialog::~startDialog() {
+StartDialog::~StartDialog() {
     delete labelFont;
     delete mainBoxFont;
 }
 
 
-void startDialog::openSurveyMaker() {
+void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    this->hide();
     auto *surveyMakerWizard = new SurveyMakerWizard;
     QApplication::restoreOverrideCursor();
     surveyMakerWizard->exec();
+    this->show();
     delete surveyMakerWizard;
 }
 
 
-startDialog::GrueprVersion startDialog::getLatestVersionFromGithub() {
+void StartDialog::openGruepr() {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    this->hide();
+    auto *getDataDialog = new GetGrueprDataDialog;
+    QApplication::restoreOverrideCursor();
+    getDataDialog->exec();
+    this->show();
+    delete getDataDialog;
+}
+
+
+StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
     // check github for the latest version available for download
     auto *manager = new QNetworkAccessManager(this);
     auto *request = new QNetworkRequest(QUrl(VERSION_CHECK_URL));
@@ -247,7 +264,7 @@ startDialog::GrueprVersion startDialog::getLatestVersionFromGithub() {
     return GrueprVersion::current;
 }
 
-void startDialog::openRegisterDialog() {
+void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form
     QString registeredUser;
     if(internetIsGood())

@@ -6,17 +6,17 @@
 #include <QLabel>
 #include <QToolButton>
 
-class startDialog : public QDialog
+class StartDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    startDialog(QWidget *parent = nullptr);
-    ~startDialog();
-    startDialog(const startDialog&) = delete;
-    startDialog operator= (const startDialog&) = delete;
-    startDialog(startDialog&&) = delete;
-    startDialog& operator= (startDialog&&) = delete;
+    StartDialog(QWidget *parent = nullptr);
+    ~StartDialog();
+    StartDialog(const StartDialog&) = delete;
+    StartDialog operator= (const StartDialog&) = delete;
+    StartDialog(StartDialog&&) = delete;
+    StartDialog& operator= (StartDialog&&) = delete;
 
     enum Result{makeSurvey = 100, makeGroups};
 
@@ -39,6 +39,7 @@ private:
 
     void openRegisterDialog();
     void openSurveyMaker();
+    void openGruepr();
 };
 
 #endif // STARTDIALOG_H

@@ -67,7 +67,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"
-#include "gruepr.h"
 #include "dialogs/startDialog.h"
 #include <QApplication>
 #include <QScreen>
@@ -94,6 +93,7 @@ int main(int argc, char *argv[])
     // Show splash screen
     QPixmap splashPic(":/icons_new/splash_new.png");
     auto *splash = new QSplashScreen(splashPic.scaled(screenWidth/2, screenHeight/2, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    splash->setAttribute(Qt::WA_DeleteOnClose);
     const int messageSize = (25 * splash->height()) / splashPic.height();
     QFont splashFont("DM Sans");
     splashFont.setPixelSize(messageSize);
@@ -102,26 +102,13 @@ int main(int argc, char *argv[])
     splash->show();
 
     // Create application choice (gruepr or surveymaker) window; remove splashscreen when choice window opens
-    auto *startWindow = new startDialog;
+    auto *startWindow = new StartDialog;
     splash->finish(startWindow);
-    startWindow->exec();
-    int result = startWindow->result();
-    delete splash;
-    delete startWindow;
+    QEventLoop loop;
+    QAction::connect(startWindow, &QDialog::finished, &loop, &QEventLoop::quit);
+    startWindow->show();
+    loop.exec();
 
-    // Run chosen application
-    if(result == startDialog::Result::makeGroups)
-    {
-        gruepr w;
-        w.setWindowTitle("gruepr [*]");         // asterisk is placeholder, shown when there is unsaved work
-        w.show();
-        result = QApplication::exec();
-    }
-    else    // exit
-    {
-        result = 0;
-    }
-
-    return result;
+    return 0;
 }
 

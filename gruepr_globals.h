@@ -61,6 +61,12 @@ inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: " 
                                               "QPushButton:disabled {background-color: lightGray; "
                                                                     "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                     "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
+inline static const char SMALLBUTTONSTYLEINVERTED[] = "QPushButton {background-color: white; "
+                                                                   "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
+                                                                   "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                                      "QPushButton:disabled {background-color: lightGray; "
+                                                                            "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
+                                                                            "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 inline static const char GETSTARTEDBUTTONSTYLE[] = "background-color: " OPENWATERHEX "; "
                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
                                                    "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;";
@@ -111,14 +117,16 @@ inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: re
                                                  "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}";
 inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                      "font-family: 'DM Sans'; font-size: 12pt;}"
-                                           "QSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                                                               "font-family: 'DM Sans'; font-size: 12pt;}"
-                                           "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
-                                           "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}";
+                                            "QSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                                "font-family: 'DM Sans'; font-size: 12pt;}"
+                                            "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
+                                            "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}";
 inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
+                                             "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::indicator {background-color: white; width: 12px; height: 12px; border: 2px solid " DEEPWATERHEX ";}"
                                              "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";
 inline static const char RADIOBUTTONSTYLE[] = "QRadioButton {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
+                                                "QRadioButton::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
                                                 "QRadioButton::indicator {width: 16px; height: 16px;}"
                                                 "QRadioButton::indicator::unchecked {image: url(:/icons_new/uncheckedradio.png);}"
                                                 "QRadioButton::indicator::checked {image: url(:/icons_new/checkedradio.png);}";

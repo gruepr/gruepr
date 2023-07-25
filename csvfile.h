@@ -21,6 +21,7 @@ class CsvFile : public QObject
 
 public:
     enum Delimiter {comma, tab};
+    enum Source {fileOnly, fileOrOnline};
 
     CsvFile(Delimiter dlmtr = comma, QObject *parent = nullptr);
     ~CsvFile();

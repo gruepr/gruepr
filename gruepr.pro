@@ -68,6 +68,7 @@ SOURCES += \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/getGrueprDataDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
         googlehandler.cpp \
         gruepr_globals.cpp \
@@ -113,6 +114,7 @@ HEADERS += \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/getGrueprDataDialog.h \
         dialogs/sampleQuestionsDialog.h \
         googlehandler.h \
         gruepr.h \
@@ -152,6 +154,7 @@ HEADERS += \
         widgets/teamTreeWidget.h
 
 FORMS += \
+      dialogs/getGrueprDataDialog.ui \
       dialogs/sampleQuestionsDialog.ui \
       gruepr.ui
 
