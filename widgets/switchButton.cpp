@@ -15,13 +15,12 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     _labeloff = new QLabel(this);
     _labelon = new QLabel(this);
     _circle = new SwitchCircle(this);
-    __btn_move = new QPropertyAnimation(this);
-    __back_resize = new QPropertyAnimation(this);
 
-    __btn_move->setTargetObject(_circle);
-    __btn_move->setPropertyName("pos");
-    __back_resize->setTargetObject(_background);
-    __back_resize->setPropertyName("size");
+    __btn_move = new QPropertyAnimation(_circle, "pos");
+    __back_resize = new QPropertyAnimation(_background, "size");
+    __animationGroup = new QParallelAnimationGroup;
+    __animationGroup->addAnimation(__btn_move);
+    __animationGroup->addAnimation(__back_resize);
 
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -83,6 +82,7 @@ SwitchButton::~SwitchButton()
     delete _labelon;
     delete __btn_move;
     delete __back_resize;
+    delete __animationGroup;
 }
 
 void SwitchButton::paintEvent(QPaintEvent*)
@@ -119,8 +119,7 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
         return;
     }
 
-    __btn_move->stop();
-    __back_resize->stop();
+    __animationGroup->stop();
 
     __btn_move->setDuration(_duration);
     __back_resize->setDuration(_duration);
@@ -154,8 +153,7 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
     __back_resize->setStartValue(initial_size);
     __back_resize->setEndValue(final_size);
 
-    __btn_move->start();
-    __back_resize->start();
+    __animationGroup->start();
 
     // Assigning new current value
     _value = !_value;

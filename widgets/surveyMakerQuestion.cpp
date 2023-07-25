@@ -387,7 +387,11 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
 
     editButton = new QPushButton;
     editButton->setStyleSheet(QString(DELBUTTONSTYLE).replace("10pt", "12pt"));
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     editButton->setText("🖉 " + tr("Edit") + " " + (pageNum == 0? tr("title") : tr("section")));
+#else
+    editButton->setText("✎ " + tr("Edit") + " " + (pageNum == 0? tr("title") : tr("section")));
+#endif
     connect(editButton, &QPushButton::clicked, this, [this, pageNum](){emit editRequested(pageNum);});
     layout->addWidget(editButton, row++, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
 

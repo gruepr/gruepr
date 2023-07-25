@@ -2,6 +2,7 @@
 #define SWITCHBUTTON_H
 
 #include <QLabel>
+#include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
 #include <QWidget>
 
@@ -59,6 +60,7 @@ private:
 
     QPropertyAnimation* __btn_move;
     QPropertyAnimation* __back_resize;
+    QParallelAnimationGroup *__animationGroup;
 };
 
 class SwitchButton::SwitchBackground : public QWidget

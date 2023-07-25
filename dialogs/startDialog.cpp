@@ -35,7 +35,9 @@ startDialog::startDialog(QWidget *parent)
     const int MIDDLESPACERHEIGHT = 36;
     const int BOTTOMSPACERHEIGHT = 46;
     const QSize TOOLBUTTONSIZE(300, 256);
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     const QSize INFOBUTTONSIZE(25, 25);
+#endif
     const int ICONHEIGHT = 117;
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     const int BIGFONTSIZE = 24;
@@ -167,6 +169,8 @@ startDialog::startDialog(QWidget *parent)
         helpMenu->addAction(helpAction);
     }
     helpButton->setMenu(helpMenu);
+#else
+
 #endif
 }
 
