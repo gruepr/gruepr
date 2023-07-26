@@ -501,7 +501,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
                   teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
         // Re-score the teams and refresh all the info
-        gruepr::getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students.constData());
         teams[studentAteam].createTooltip();
 
@@ -550,7 +550,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students.constData());
         teams[studentAteam].createTooltip();
         teams[studentBteam].refreshTeamInfo(students.constData());
@@ -651,7 +651,7 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
-    gruepr::getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+    gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     teams[oldTeam].refreshTeamInfo(students.constData());
     teams[oldTeam].createTooltip();
     teams[newTeam].refreshTeamInfo(students.constData());

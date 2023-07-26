@@ -413,14 +413,14 @@ inline static const char TEAMNAMELISTS[]   {";"
 bool internetIsGood();
 //void testFunction();
 
-inline static const char GRUEPRDOWNLOADPAGE[] {GRUEPRHOMEPAGE "/#" GRUEPRDOWNLOADSUBPAGE};
+inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};
 
 void aboutWindow(QWidget *parent);
 inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                                "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                                "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
                                                "<p>gruepr is an open source project. The source code is freely available at "
-                                               "the project homepage: <a href=\"" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
+                                               "the project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
                                                "<br><br>gruepr incorporates:"
                                                "<ul style=\"margin-top: 2px; margin-bottom: 0px; margin-left: 15px; margin-right: 0px; -qt-list-indent: 0;\">"
                                                  "<li>UI and UX designs by <a href=\"https://scout.camd.northeastern.edu/\">Scout</a></li>"
@@ -448,7 +448,7 @@ void helpWindow(QWidget *parent);
 inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                               "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
-                                              "<p>Project homepage: <a href=\"" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
+                                              "<p>Project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
                                               "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-500 students into optimized teams. It was originally based on "
                                                  "CATME's team forming routine as described in "
                                                  "<a href=\"http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf\">this paper</a>. "

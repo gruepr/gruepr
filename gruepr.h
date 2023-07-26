@@ -37,7 +37,7 @@ public:
     gruepr(gruepr&&) = delete;
     gruepr& operator= (gruepr&&) = delete;
 
-    static void getTeamScores(const StudentRecord *const _student, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
+    static void updateTeamScores(const StudentRecord *const _student, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
     inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
     inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text

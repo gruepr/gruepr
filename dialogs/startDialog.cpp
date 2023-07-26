@@ -150,7 +150,7 @@ StartDialog::StartDialog(QWidget *parent)
     // Add help/about items to the application menu on mac or a dropdown toolbutton in corner of dialog on windows
     helpActions << new QAction("gruepr homepage");
     helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
-    connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(GRUEPRHOMEPAGE));});
+    connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(QString("https://") + GRUEPRHOMEPAGE));});
     helpActions << new QAction("Submit a bug report / feature request");
     helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
     connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});

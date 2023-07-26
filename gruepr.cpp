@@ -126,8 +126,9 @@ gruepr::~gruepr()
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
-void gruepr::getTeamScores(const StudentRecord *const _students, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
-                           const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions)
+void gruepr::updateTeamScores(const StudentRecord *const _students, const int _numStudents, TeamRecord *const _teams,
+                              const int _numTeams,const TeamingOptions *const _teamingOptions,
+                              const DataOptions *const _dataOptions)
 {
     auto *teamScores = new float[_numTeams];
     auto **attributeScore = new float*[_dataOptions->numAttributes];
@@ -2048,7 +2049,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+    updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     for(auto &team:teams)
     {
         team.refreshTeamInfo(students.constData());
