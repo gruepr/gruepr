@@ -35,62 +35,9 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
     file = nullptr;
     stream = nullptr;
 
-//    bool autoHeaderMeaningsAreGood = true;
     if(operation == read)
     {
-/*      The commented code below creates a (non-native) file open dialog,
- *      with the idea that the auto-determined field meanings would pop up on the side.
- *      The user could then decide with a checkbox if those meanings needed to be changed.
- *      It mostly works, but: looks ugly due to non-native file dialog, and the checkbox
- *      functionality is un-implemented.
 
-        auto *win = new QDialog;
-        auto *layout = new QGridLayout(win);
-        win->setLayout(layout);
-        win->setSizeGripEnabled(true);
-        win->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-        auto *fileDialog = new QFileDialog(win, caption, filepath, filetypeDescriptor + " File (*.csv);;All Files (*)");
-        fileDialog->setFileMode(QFileDialog::ExistingFile);
-        fileDialog->setWindowFlags(Qt::Widget);// | Qt::CustomizeWindowHint);
-        fileDialog->setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
-        //fileDialog->setSizeGripEnabled(false);
-        auto *headerTexts = new QLabel(win);
-        auto *specifyCheckBox = new QCheckBox(win);
-        specifyCheckBox->setText(tr("Change the column meanings from the auto-assigned values shown on right"));
-        specifyCheckBox->setChecked(false);
-        layout->addWidget(fileDialog, 0, 0);
-        layout->addWidget(headerTexts, 0, 1);
-        layout->addWidget(specifyCheckBox, 1, 0);
-        connect(fileDialog, &QFileDialog::currentChanged, fileDialog, [this, headerTexts, win](const QString &path){
-                                                                                        file = new QFile(path);
-                                                                                        file->open(QIODevice::ReadOnly);
-                                                                                        stream = new QTextStream(file);
-                                                                                        if(readHeader() && headerValues.size() >= 4)
-                                                                                        {
-                                                                                            setFieldMeanings();
-                                                                                            headerTexts->setText(tr("Column meanings:\n") + fieldMeanings.join('\n'));
-                                                                                        }
-                                                                                        else
-                                                                                        {
-                                                                                            headerTexts->setText(tr("This is not a valid survey file."));
-                                                                                        }
-                                                                                        delete stream;
-                                                                                        stream = nullptr;
-                                                                                        file->close();
-                                                                                        delete file;
-                                                                                        file = nullptr;
-                                                                                        win->adjustSize();});
-        connect(fileDialog, &QFileDialog::fileSelected, this, [this, win](const QString &fileName){file = new QFile(fileName); win->accept();});
-        connect(fileDialog, &QFileDialog::rejected, win, &QDialog::reject);
-        win->adjustSize();
-        if(win->exec() == QDialog::Accepted)
-        {
-            autoHeaderMeaningsAreGood = !(specifyCheckBox->isChecked());
-            file->open(QIODevice::ReadOnly);
-            stream = new QTextStream(file);
-        }
-        delete win;
-*/
         QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
         if (!fileName.isEmpty())
         {
@@ -141,11 +88,14 @@ QFileInfo CsvFile::fileInfo()
 //////////////////
 // Close CSV file
 //////////////////
-void CsvFile::close()
+void CsvFile::close(bool deleteFile)
 {
     delete stream;
     stream = nullptr;
     file->close();
+    if(deleteFile) {
+        file->remove();
+    }
     delete file;
     file = nullptr;
 }

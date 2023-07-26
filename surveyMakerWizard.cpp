@@ -1734,7 +1734,8 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     }
 
     auto *saveExportFrame = new QFrame;
-    saveExportFrame->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; font-family:'DM Sans'; font-size:12pt;");
+    saveExportFrame->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; font-family:'DM Sans'; font-size:12pt;"
+                                   "QToolTip {background-color: white; color: black;}");
     auto *saveExportlayout = new QGridLayout(saveExportFrame);
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");

@@ -32,10 +32,13 @@ private:
     enum class GrueprVersion{unknown, old, current, beta};
     GrueprVersion getLatestVersionFromGithub();
 
+    QList<QAction *> helpActions;
+    QMenu *helpMenu = nullptr;
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     QToolButton *helpButton = nullptr;
+#else
+    QMenuBar *menuBar = nullptr;
 #endif
-    QList<QAction *> helpActions;
 
     void openRegisterDialog();
     void openSurveyMaker();

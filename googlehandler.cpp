@@ -308,7 +308,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
 
     //prepare a file for the results
     QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
-    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
+    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
     QFile file(filepath.absoluteFilePath());
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     //qDebug() << file.errorString();

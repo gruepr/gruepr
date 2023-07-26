@@ -369,7 +369,7 @@ QString CanvasHandler::downloadQuizResult(const QString &courseName, const QStri
         ids.clear();
         getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports", {}, stringParams, {"id"}, intParams, {"file/filename"}, stringInSubobjectParams);
     } while(filename.first().isEmpty());
-    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation), quizName.simplified().replace(' ','_') + ".csv");
+    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_') + ".csv");
     // sometimes still a delay, so attempt to download every two seconds
     while(!downloadFile(URL, filepath.absoluteFilePath())) {
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);

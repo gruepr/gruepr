@@ -17,10 +17,13 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     _circle = new SwitchCircle(this);
 
     __btn_move = new QPropertyAnimation(_circle, "pos");
+    __btn_move->setDuration(_duration);
     __back_resize = new QPropertyAnimation(_background, "size");
+    __back_resize->setDuration(_duration);
     __animationGroup = new QParallelAnimationGroup;
     __animationGroup->addAnimation(__btn_move);
     __animationGroup->addAnimation(__back_resize);
+    __animationGroup->stop();
 
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -120,9 +123,6 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
     }
 
     __animationGroup->stop();
-
-    __btn_move->setDuration(_duration);
-    __back_resize->setDuration(_duration);
 
     int hback = 20;
     QSize initial_size(hback, hback);

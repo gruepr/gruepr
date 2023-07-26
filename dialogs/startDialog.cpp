@@ -167,14 +167,19 @@ StartDialog::StartDialog(QWidget *parent)
     helpButton->setIcon(QIcon(":/icons_new/infoButton.png"));
     helpButton->setIconSize(INFOBUTTONSIZE);
     theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
-    auto *helpMenu = new QMenu;
+    helpMenu = new QMenu;
     for(const auto &helpAction : helpActions) {
         helpAction->setFont(*labelFont);
         helpMenu->addAction(helpAction);
     }
     helpButton->setMenu(helpMenu);
 #else
-
+    menuBar = new QMenuBar(nullptr);
+    helpMenu = new QMenu;
+    for(const auto &helpAction : helpActions) {
+        helpMenu->addAction(helpAction);
+    }
+    menuBar->addMenu(helpMenu);
 #endif
 }
 
@@ -182,6 +187,7 @@ StartDialog::StartDialog(QWidget *parent)
 StartDialog::~StartDialog() {
     delete labelFont;
     delete mainBoxFont;
+    delete helpMenu;
 }
 
 
@@ -202,6 +208,8 @@ void StartDialog::openGruepr() {
     auto *getDataDialog = new GetGrueprDataDialog;
     QApplication::restoreOverrideCursor();
     getDataDialog->exec();
+    qDebug() << getDataDialog->students.first().firstname << " " << getDataDialog->students.first().lastname;
+    qDebug() << getDataDialog->students.last().firstname << " " << getDataDialog->students.last().lastname;
     this->show();
     delete getDataDialog;
 }

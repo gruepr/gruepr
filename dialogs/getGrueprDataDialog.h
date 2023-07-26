@@ -20,18 +20,30 @@ public:
     explicit GetGrueprDataDialog(QWidget *parent = nullptr);
     ~GetGrueprDataDialog();
 
-    enum Source{fromFile, fromGoogle, fromCanvas};
+    DataOptions *dataOptions = nullptr;
+    QList<StudentRecord> students;
 
 private:
     Ui::GetGrueprDataDialog *ui;
 
-    void getData();
-    void loadSurvey(CsvFile &surveyFile);
+    enum Source{fromFile, fromGoogle, fromCanvas};
+
+    void loadData();
+    CsvFile surveyFile;
+    bool isTempFile;
+    void getFromFile();
+    void getFromGoogle();
+    void getFromCanvas();
+    bool readQuestionsFromHeader();
+    void validateFieldSelectorBoxes(int callingRow = -1);
+    bool readData();
     CanvasHandler *canvas = nullptr;
     GoogleHandler *google = nullptr;
 
-    QList<StudentRecord> students;
-    DataOptions *dataOptions = nullptr;
+    const QString HEADERTEXT = tr("Column Headers");
+    const QString CATEGORYTEXT = tr("Category");
+    const QString ROW1TEXT = tr("First Row of Data");
+    const QString UNUSEDTEXT = tr("Unused");
 };
 
 #endif // GETGRUEPRDATADIALOG_H

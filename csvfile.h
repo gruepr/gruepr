@@ -35,7 +35,7 @@ public:
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     bool openExistingFile(const QString &filepath);
     QFileInfo fileInfo();
-    void close();
+    void close(bool deleteFile = false);
     bool readHeader();
     //void setFieldMeanings();
     QDialog* chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
@@ -47,7 +47,7 @@ public:
 
     QStringList headerValues;
     bool hasHeaderRow = true;
-//    QVector<possFieldMeaning> defaultFieldMeanings;   // used if the open file dialog will display auto-read meanings
+    int numFields = 0;
     QStringList fieldMeanings;
     QStringList fieldValues;
     QStringList fieldsToBeIgnored;
@@ -55,7 +55,6 @@ public:
 private:
     QFile *file = nullptr;
     QTextStream *stream = nullptr;
-    int numFields = 0;
     char delimiter = ',';
     listTableDialog *window = nullptr;
     QStringList getLine(const int minFields = -1);
