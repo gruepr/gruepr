@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMenuBar>
 #include <QToolButton>
 
 class StartDialog : public QDialog

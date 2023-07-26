@@ -1,4 +1,5 @@
 #include "startDialog.h"
+#include "gruepr.h"
 #include "gruepr_globals.h"
 #include "dialogs/getGrueprDataDialog.h"
 #include "dialogs/registerDialog.h"
@@ -188,6 +189,11 @@ StartDialog::~StartDialog() {
     delete labelFont;
     delete mainBoxFont;
     delete helpMenu;
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+    //
+#else
+    delete menuBar;
+#endif
 }
 
 
@@ -208,10 +214,14 @@ void StartDialog::openGruepr() {
     auto *getDataDialog = new GetGrueprDataDialog;
     QApplication::restoreOverrideCursor();
     getDataDialog->exec();
-    qDebug() << getDataDialog->students.first().firstname << " " << getDataDialog->students.first().lastname;
-    qDebug() << getDataDialog->students.last().firstname << " " << getDataDialog->students.last().lastname;
-    this->show();
+    auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this);
     delete getDataDialog;
+    grueprWindow->show();
+    QEventLoop loop;
+    connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
+    loop.exec();
+    this->show();
+    delete grueprWindow;
 }
 
 

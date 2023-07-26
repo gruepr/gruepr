@@ -38,7 +38,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 12pt;}");
     ui->dataSourceLabel->adjustSize();
     QPixmap fileIcon(":/icons_new/file.png");
-    h = ui->dataSourceLabel->height() * 2 / 3;
+    h = ui->dataSourceLabel->height();
     ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
 
     ui->hLine->setStyleSheet("QFrame {color: " OPENWATERHEX ";}"
@@ -66,28 +66,25 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
 GetGrueprDataDialog::~GetGrueprDataDialog()
 {
     delete ui;
-    qDebug() << "deleted ui";
-    surveyFile.close(isTempFile);
-    qDebug() << "closed file";
 }
 
 
 void GetGrueprDataDialog::loadData()
 {
+    bool fileLoaded = false;
     switch(ui->sourceButtonGroup->checkedId()) {
-    case fromFile: {
-        getFromFile();
+    case fromFile:
+        fileLoaded = getFromFile();
+        break;
+    case fromGoogle:
+        fileLoaded = getFromGoogle();
+        break;
+    case fromCanvas:
+        fileLoaded = getFromCanvas();
         break;
     }
-    case fromGoogle: {
-        getFromGoogle();
-        break;
-    }
-    case fromCanvas: {
-        getFromCanvas();
-        break;
-    }
-    default:
+
+    if(!fileLoaded) {
         return;
     }
 
@@ -122,7 +119,7 @@ void GetGrueprDataDialog::loadData()
     connect(this, &QDialog::accepted, this, &GetGrueprDataDialog::readData);
 }
 
-void GetGrueprDataDialog::getFromFile()
+bool GetGrueprDataDialog::getFromFile()
 {
     QSettings savedSettings;
     QFileInfo dataFile;
@@ -130,18 +127,19 @@ void GetGrueprDataDialog::getFromFile()
 
     if(!surveyFile.open(this, CsvFile::read, tr("Open Survey Data File"), dataFile.canonicalPath(), tr("Survey Data")))
     {
-        return;
+        return false;
     }
 
     isTempFile = false;
     ui->dataSourceLabel->setText(tr("Current data source: ") + surveyFile.fileInfo().fileName());
+    return true;
 }
 
-void GetGrueprDataDialog::getFromGoogle()
+bool GetGrueprDataDialog::getFromGoogle()
 {
     if(!internetIsGood())
     {
-        return;
+        return false;
     }
 
     //create googleHandler and/or authenticate as needed
@@ -170,7 +168,7 @@ void GetGrueprDataDialog::getFromGoogle()
             if(loginDialog->exec() == QMessageBox::Cancel)
             {
                 delete loginDialog;
-                return;
+                return false;
             }
 
             //refreshToken failed, so need to start over
@@ -211,7 +209,7 @@ void GetGrueprDataDialog::getFromGoogle()
             if(loginDialog->exec() == QMessageBox::Cancel)
             {
                 delete loginDialog;
-                return;
+                return false;
             }
 
             google->authenticate();
@@ -222,7 +220,7 @@ void GetGrueprDataDialog::getFromGoogle()
             if(loginDialog->exec() == QMessageBox::Cancel)
             {
                 delete loginDialog;
-                return;
+                return false;
             }
         }
         delete loginDialog;
@@ -251,7 +249,7 @@ void GetGrueprDataDialog::getFromGoogle()
     if((googleFormsDialog->exec() == QDialog::Rejected))
     {
         delete googleFormsDialog;
-        return;
+        return false;
     }
     const QString googleFormName = formsComboBox->currentText();
     delete googleFormsDialog;
@@ -270,7 +268,7 @@ void GetGrueprDataDialog::getFromGoogle()
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         google->notBusy(busyBox);
-        return;
+        return false;
     }
     busyBox->setText(tr("Success!"));
     icon.load(":/icons/ok.png");
@@ -282,18 +280,19 @@ void GetGrueprDataDialog::getFromGoogle()
     //open the downloaded file
     if(!surveyFile.openExistingFile(filepath))
     {
-        return;
+        return false;
     }
 
     isTempFile = true;
     ui->dataSourceLabel->setText(tr("Current data source: ") + googleFormName);
+    return true;
 }
 
-void GetGrueprDataDialog::getFromCanvas()
+bool GetGrueprDataDialog::getFromCanvas()
 {
     if(!internetIsGood())
     {
-        return;
+        return false;
     }
 
     //create canvasHandler and/or authenticate as needed
@@ -311,7 +310,7 @@ void GetGrueprDataDialog::getFromCanvas()
         QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
         if(newURLAndToken.isEmpty())
         {
-            return;
+            return false;
         }
 
         savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
@@ -351,7 +350,7 @@ void GetGrueprDataDialog::getFromCanvas()
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected))
     {
         delete canvasCoursesAndQuizzesDialog;
-        return;
+        return false;
     }
     const QString course = coursesAndQuizzesComboBox->currentText();
     canvasCoursesAndQuizzesDialog->hide();
@@ -371,7 +370,7 @@ void GetGrueprDataDialog::getFromCanvas()
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected))
     {
         delete canvasCoursesAndQuizzesDialog;
-        return;
+        return false;
     }
     const QString canvasSurveyName = coursesAndQuizzesComboBox->currentText();
     delete canvasCoursesAndQuizzesDialog;
@@ -390,7 +389,7 @@ void GetGrueprDataDialog::getFromCanvas()
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
-        return;
+        return false;
     }
     busyBox->setText(tr("Success!"));
     icon.load(":/icons/ok.png");
@@ -402,7 +401,7 @@ void GetGrueprDataDialog::getFromCanvas()
     //open the downloaded file
     if(!surveyFile.openExistingFile(filepath))
     {
-        return;
+        return false;
     }
 
     // Only include the timestamp question ("submitted") and then the questions we've asked, which will all begin with (possibly a quotation mark then) an integer then a colon then a space.
@@ -411,6 +410,7 @@ void GetGrueprDataDialog::getFromCanvas()
 
     isTempFile = true;
     ui->dataSourceLabel->setText(tr("Current data source: ") + canvasSurveyName);
+    return true;
 }
 
 bool GetGrueprDataDialog::readQuestionsFromHeader()
@@ -419,14 +419,14 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     {
         // header row could not be read as valid data
         QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
-        surveyFile.close();
+        surveyFile.close(isTempFile);
         return false;
     }
 
     if(surveyFile.headerValues.size() < 2)
     {
         QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
-        surveyFile.close();
+        surveyFile.close(isTempFile);
         return false;
     }
 
@@ -741,7 +741,7 @@ bool GetGrueprDataDialog::readData()
     {
         QMessageBox::critical(this, tr("Insufficient number of students."),
                               tr("There are no survey responses in this file."), QMessageBox::Ok);
-        surveyFile.close();
+        surveyFile.close(isTempFile);
         return false;
     }
 
@@ -1049,6 +1049,6 @@ bool GetGrueprDataDialog::readData()
         student.createTooltip(dataOptions);
     }
 
-    surveyFile.close();
+    surveyFile.close(isTempFile);
     return true;
 }

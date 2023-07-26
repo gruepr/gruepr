@@ -1047,46 +1047,6 @@ Teammates</string>
          <number>2</number>
         </property>
         <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-         <widget class="QPushButton" name="loadSurveyFileButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="toolTip">
-           <string>Open a survey data file.</string>
-          </property>
-          <property name="text">
-           <string>Load Survey File</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/openFile.png</normaloff>:/icons/openFile.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>40</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
          <widget class="QPushButton" name="letsDoItButton">
           <property name="enabled">
            <bool>false</bool>
@@ -1128,19 +1088,6 @@ Teammates</string>
            <bool>false</bool>
           </property>
          </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_8">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>2</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </item>
@@ -1378,7 +1325,7 @@ Teammates</string>
      <x>0</x>
      <y>0</y>
      <width>930</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1388,9 +1335,6 @@ Teammates</string>
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
-    <addaction name="actionLoad_Survey_File"/>
-    <addaction name="actionLoad_Survey_Results_from_Google"/>
-    <addaction name="actionLoad_Survey_Results_from_Canvas"/>
     <addaction name="actionSave_Survey_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Student_Roster"/>
@@ -1399,21 +1343,6 @@ Teammates</string>
     <addaction name="actionLoad_Teaming_Options_File"/>
     <addaction name="actionSave_Teaming_Options_File"/>
     <addaction name="separator"/>
-    <addaction name="actionExit"/>
-   </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <property name="toolTipsVisible">
-     <bool>true</bool>
-    </property>
-    <addaction name="actionHelp"/>
-    <addaction name="separator"/>
-    <addaction name="actionBugReport"/>
-    <addaction name="actiongruepr_Homepage"/>
-    <addaction name="separator"/>
-    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuTeams">
     <property name="title">
@@ -1427,7 +1356,6 @@ Teammates</string>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTeams"/>
-   <addaction name="menuHelp"/>
   </widget>
   <action name="actionHelp">
    <property name="icon">

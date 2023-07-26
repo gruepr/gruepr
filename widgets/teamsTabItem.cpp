@@ -16,7 +16,7 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                           const QVector<TeamRecord> &incomingTeams, StudentRecord incomingStudents[], const QString &incomingTabName, QWidget *parent) : QWidget(parent)
+                           const QVector<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
@@ -501,8 +501,8 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
                   teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
         // Re-score the teams and refresh all the info
-        gruepr::getTeamScores(students, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
-        teams[studentAteam].refreshTeamInfo(students);
+        gruepr::getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        teams[studentAteam].refreshTeamInfo(students.constData());
         teams[studentAteam].createTooltip();
 
         //get the team item in the tree
@@ -550,10 +550,10 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::getTeamScores(students, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
-        teams[studentAteam].refreshTeamInfo(students);
+        gruepr::getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        teams[studentAteam].refreshTeamInfo(students.constData());
         teams[studentAteam].createTooltip();
-        teams[studentBteam].refreshTeamInfo(students);
+        teams[studentBteam].refreshTeamInfo(students.constData());
         teams[studentBteam].createTooltip();
 
         QString firstStudentName = students[teams[studentAteam].studentIndexes[0]].lastname+students[teams[studentAteam].studentIndexes[0]].firstname;
@@ -651,10 +651,10 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
-    gruepr::getTeamScores(students, numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
-    teams[oldTeam].refreshTeamInfo(students);
+    gruepr::getTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+    teams[oldTeam].refreshTeamInfo(students.constData());
     teams[oldTeam].createTooltip();
-    teams[newTeam].refreshTeamInfo(students);
+    teams[newTeam].refreshTeamInfo(students.constData());
     teams[newTeam].createTooltip();
 
     QString firstStudentName = students[teams[oldTeam].studentIndexes[0]].lastname+students[teams[oldTeam].studentIndexes[0]].firstname;

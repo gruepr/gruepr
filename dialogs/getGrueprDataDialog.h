@@ -31,9 +31,9 @@ private:
     void loadData();
     CsvFile surveyFile;
     bool isTempFile;
-    void getFromFile();
-    void getFromGoogle();
-    void getFromCanvas();
+    bool getFromFile();
+    bool getFromGoogle();
+    bool getFromCanvas();
     bool readQuestionsFromHeader();
     void validateFieldSelectorBoxes(int callingRow = -1);
     bool readData();

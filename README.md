@@ -102,8 +102,8 @@ DISCLAIMER:
         freely downloaded from < http://qt.io/download >.
 
         Some icons were originally created by Icons8 < https://icons8.com >. These icons have been made available
-        under the creative commons license: Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0). Other icons are
-        original creations for the gruepr project by Scout < https://scout.camd.northeastern.edu/ >.
+        under the creative commons license: Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0). Other icons and
+        graphics are original creations for the gruepr project by Scout < https://scout.camd.northeastern.edu/ >.
 
         Several embedded font are used: Oxygen Mono, Copyright (C) 2012 Vernon Adams (vern@newtypography.co.uk);
         DM Sans Copyright (C) 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and Paytone One

@@ -25,7 +25,7 @@
 //    Some icons were originally created by Icons8 < https://icons8.com >.
 //    These icons have been made available under the creative commons license:
 //    Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0).
-//    Other icons are original creations for the gruepr project by Scout
+//    Other icons and graphics are original creations for the gruepr project by Scout
 //    < https://scout.camd.northeastern.edu/ >.
 //
 //    Several embedded fonts are used:
