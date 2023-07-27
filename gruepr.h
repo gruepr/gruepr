@@ -39,6 +39,9 @@ public:
 
     static void updateTeamScores(const StudentRecord *const _student, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
+
+    bool restartRequested = false;
+
     inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
     inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
     inline static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
@@ -50,6 +53,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
+    void on_newDataSourceButton_clicked();
     void loadStudentRoster();
     void compareRosterToCanvas();
     void on_sectionSelectionBox_currentIndexChanged(int index);
@@ -70,9 +74,9 @@ private slots:
     void on_meetingLength_currentIndexChanged(int index);
     void on_idealTeamSizeBox_valueChanged(int arg1);
     void on_teamSizeBox_currentIndexChanged(int index);
-    void on_requiredTeammatesButton_clicked();
-    void on_preventedTeammatesButton_clicked();
-    void on_requestedTeammatesButton_clicked();
+    void on_teammatesButton_clicked();
+//    void on_preventedTeammatesButton_clicked();
+//    void on_requestedTeammatesButton_clicked();
     void on_letsDoItButton_clicked();
     void updateOptimizationProgress(const QList<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
@@ -81,6 +85,7 @@ private slots:
     void editDataDisplayTabName(int tabIndex);
     void loadOptionsFile();
     void saveOptionsFile();
+
 
 signals:
     void generationComplete(const QList<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
@@ -91,7 +96,6 @@ private:
         // setup
     Ui::gruepr *ui;
     void loadUI();
-    QLabel *statusBarLabel;
     void loadDefaultSettings();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;

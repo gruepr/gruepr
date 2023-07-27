@@ -2,7 +2,6 @@
 #define GRUEPR_GLOBALS
 
 #include "GA.h"
-#include <Qt>
 #include <QObject>
 
 
@@ -22,17 +21,13 @@ inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a te
 
 inline static const int PRINTOUT_FONTSIZE = 9;
 
-// define the left and right arrow characters for use in the attribute tabs when scrolling is needed
-#ifdef Q_OS_WIN32
-    inline static const wchar_t LEFTARROW = 0x25C4;
-    inline static const wchar_t RIGHTARROW = 0x25BA;
-    inline static const wchar_t LITTLEARROW = 0x2192;
-#endif
-#ifdef Q_OS_MACOS
-    inline static const QChar LEFTARROW = u'\u2B05';
-    inline static const QChar RIGHTARROW = u'\u27A1';
-    inline static const QChar LITTLEARROW = u'\u2192';
-#endif
+// define the unicode characters for left and right arrows and other glyphs
+inline static const char16_t LEFTARROW = u'\u2190';
+inline static const char16_t LEFTDOUBLEARROW = u'\u00AB';
+inline static const char16_t RIGHTARROW = u'\u2192';
+inline static const char16_t RIGHTARROWTOEND = u'\u21E5';
+inline static const char16_t RIGHTDOUBLEARROW = u'\u00BB';
+inline static const char16_t EDITPENCIL = u'\u270E';
 
 // define colors used throughout gruepr
 #define TRANSPARENT "rgba(0, 0, 0, 0)"
@@ -64,6 +59,12 @@ inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: " 
 inline static const char SMALLBUTTONSTYLEINVERTED[] = "QPushButton {background-color: white; "
                                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
                                                                    "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                                      "QPushButton:disabled {background-color: lightGray; "
+                                                                            "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
+                                                                            "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
+inline static const char SMALLBUTTONSTYLETRANSPARENT[] = "QPushButton {background-color: " TRANSPARENT "; "
+                                                                      "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
+                                                                      "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                       "QPushButton:disabled {background-color: lightGray; "
                                                                             "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                             "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
@@ -119,8 +120,18 @@ inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; co
                                                      "font-family: 'DM Sans'; font-size: 12pt;}"
                                             "QSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                                 "font-family: 'DM Sans'; font-size: 12pt;}"
-                                            "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
-                                            "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}";
+                                            "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border: none;}"
+                                            "QSpinBox::down-button {background-color: " TRANSPARENT "; border: none;}"
+                                            "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border: none;}"
+                                            "QSpinBox::up-button {background-color: " TRANSPARENT "; border: none;}";
+inline static const char DOUBLESPINBOXSTYLE[] = "QDoubleSpinBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
+                                                                "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                  "QDoubleSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
+                                                                           "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                  "QDoubleSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
+                                                  "QDoubleSpinBox::down-button {background-color: " TRANSPARENT "; border: none;}"
+                                                  "QDoubleSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
+                                                  "QDoubleSpinBox::up-button {background-color: " TRANSPARENT "; border: none;}";
 inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::indicator {background-color: white; width: 12px; height: 12px; border: 2px solid " DEEPWATERHEX ";}"

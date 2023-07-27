@@ -1,7 +1,6 @@
 #include "gruepr.h"
 #include "ui_gruepr.h"
 #include "canvashandler.h"
-#include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
@@ -31,13 +30,31 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons_new/icon.svg"));
-    statusBarLabel = new QLabel("", this);
-    ui->statusBar->addWidget(statusBarLabel);
+    adjustSize();
     qRegisterMetaType<QVector<float> >("QVector<float>");
+
+    ui->dataSourceFrame->setStyleSheet(QString() + "QFrame {background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX "; "
+                                                           "border: none;}"
+                                                   "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
+    ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
+                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}");
+    ui->dataSourceLabel->adjustSize();
+    QPixmap fileIcon(":/icons_new/file.png");
+    int h = ui->dataSourceLabel->height() * 3 / 2;
+    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
+    ui->newDataSourceButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
+                                                        "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}");
+
+    QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
+    for(auto &frame : frames) {
+        frame->setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" +
+                                         LABELSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    }
+    ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
 
     //For the attibute tabs, put the "attribute" label in the corner and freeze the width
     ui->attributesTabWidget->setCornerWidget(new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget), Qt::TopLeftCorner);
-    ui->schedulePostLabel->setText("/" + QString::number(TeamingOptions::MAXWEIGHT));
+    ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
     ui->attributesTabWidget->adjustSize();
     ui->attributesTabWidget->setFixedWidth(ui->attributesTabWidget->width());
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
@@ -50,17 +67,14 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->dataDisplayTabWidget, &QTabWidget::currentChanged, this, &gruepr::dataDisplayTabSwitch);
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
 
-    //Setup the main window menu items
-    connect(ui->actionLoad_Student_Roster, &QAction::triggered, this, &gruepr::loadStudentRoster);
-    connect(ui->actionCompare_Students_to_Canvas_Course, &QAction::triggered, this, &gruepr::compareRosterToCanvas);
-    connect(ui->actionSave_Survey_File, &QAction::triggered, this, &gruepr::on_saveSurveyFilePushButton_clicked);
-    connect(ui->actionLoad_Teaming_Options_File, &QAction::triggered, this, &gruepr::loadOptionsFile);
-    connect(ui->actionSave_Teaming_Options_File, &QAction::triggered, this, &gruepr::saveOptionsFile);
-    connect(ui->actionCreate_Teams, &QAction::triggered, this, &gruepr::on_letsDoItButton_clicked);
-    ui->actionExit->setMenuRole(QAction::QuitRole);
-    connect(ui->actionExit, &QAction::triggered, this, &gruepr::close);
-    //ui->actionSettings->setMenuRole(QAction::PreferencesRole);
-    //connect(ui->actionSettings, &QAction::triggered, this, &gruepr::settingsWindow);
+//    //Setup the main window menu items
+//    connect(ui->actionLoad_Student_Roster, &QAction::triggered, this, &gruepr::loadStudentRoster);
+//    connect(ui->actionCompare_Students_to_Canvas_Course, &QAction::triggered, this, &gruepr::compareRosterToCanvas);
+//    connect(ui->actionSave_Survey_File, &QAction::triggered, this, &gruepr::on_saveSurveyFilePushButton_clicked);
+//    connect(ui->actionLoad_Teaming_Options_File, &QAction::triggered, this, &gruepr::loadOptionsFile);
+//    connect(ui->actionSave_Teaming_Options_File, &QAction::triggered, this, &gruepr::saveOptionsFile);
+//    ui->actionExit->setMenuRole(QAction::QuitRole);
+//    connect(ui->actionExit, &QAction::triggered, this, &gruepr::close);
 
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
     connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
@@ -68,7 +82,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->isolatedNonbinaryCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
     connect(ui->mixedGenderCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
     connect(ui->scheduleWeight, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &gruepr::simpleUIItemUpdate);
-    connect(ui->requestedTeammateNumberBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &gruepr::simpleUIItemUpdate);
+//    connect(ui->requestedTeammateNumberBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &gruepr::simpleUIItemUpdate);
 
     //Set alternate fonts on some UI features
     QFont altFont = this->font();
@@ -77,24 +91,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->addStudentPushButton->setFont(altFont);
     ui->saveSurveyFilePushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
-    ui->teamingOptionsGroupBox->setFont(altFont);
 
-    //Reduce size of the options icons if the screen is small
-#ifdef Q_OS_WIN32
-    if(QGuiApplication::primaryScreen()->availableSize().height() < SMALL_SCREENSIZE_WIN)
-#endif
-#ifdef Q_OS_MACOS
-    if(QGuiApplication::primaryScreen()->availableSize().height() < SMALL_SCREENSIZE_MAC)
-#endif
-    {
-        ui->label_15->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-        ui->label_16->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-        ui->label_18->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-        ui->label_20->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-        ui->label_21->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-        ui->label_22->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-        ui->label_24->setMaximumSize(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE);
-    }
     adjustSize();
 
     teamingOptions = new TeamingOptions;
@@ -177,6 +174,13 @@ void gruepr::updateTeamScores(const StudentRecord *const _students, const int _n
     }
     delete[] attributeScore;
     delete[] teamScores;
+}
+
+
+void gruepr::on_newDataSourceButton_clicked()
+{
+    restartRequested = true;
+    close();
 }
 
 
@@ -748,7 +752,7 @@ void gruepr::loadOptionsFile()
             if(loadObject.contains("numberRequestedTeammatesGiven") && loadObject["numberRequestedTeammatesGiven"].isDouble())
             {
                 teamingOptions->numberRequestedTeammatesGiven = loadObject["numberRequestedTeammatesGiven"].toInt();
-                ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
+//                ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
             }
 
             loadFile.close();
@@ -1150,8 +1154,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
             std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
             ui->sectionSelectionBox->setEnabled(true);
-            ui->label_2->setEnabled(true);
-            ui->label_22->setEnabled(true);
+            ui->sectionLabel->setEnabled(true);
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
             ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
             ui->sectionSelectionBox->insertSeparator(2);
@@ -1170,7 +1173,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
     // Enable save data file option, since data set is now edited
     ui->saveSurveyFilePushButton->setEnabled(true);
-    ui->actionSave_Survey_File->setEnabled(true);
+//    ui->actionSave_Survey_File->setEnabled(true);
 
     // Refresh student table data
     refreshStudentDisplay();
@@ -1350,7 +1353,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     newSurveyFile.close();
 
     ui->saveSurveyFilePushButton->setEnabled(false);
-    ui->actionSave_Survey_File->setEnabled(false);
+//    ui->actionSave_Survey_File->setEnabled(false);
 }
 
 
@@ -1366,7 +1369,7 @@ void gruepr::simpleUIItemUpdate()
 
     teamingOptions->scheduleWeight = float(ui->scheduleWeight->value());
 
-    teamingOptions->numberRequestedTeammatesGiven = ui->requestedTeammateNumberBox->value();
+//    teamingOptions->numberRequestedTeammatesGiven = ui->requestedTeammateNumberBox->value();
 }
 
 
@@ -1556,7 +1559,7 @@ void gruepr::on_meetingLength_currentIndexChanged(int index)
 }
 
 
-void gruepr::on_requiredTeammatesButton_clicked()
+void gruepr::on_teammatesButton_clicked()
 {
     QStringList teamTabNames;
     for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++)
@@ -1581,7 +1584,7 @@ void gruepr::on_requiredTeammatesButton_clicked()
     delete win;
 }
 
-
+/*
 void gruepr::on_preventedTeammatesButton_clicked()
 {
     QStringList teamTabNames;
@@ -1632,11 +1635,11 @@ void gruepr::on_requestedTeammatesButton_clicked()
 
     delete win;
 }
-
+*/
 
 void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 {
-    ui->requestedTeammateNumberBox->setMaximum(arg1);
+//    ui->requestedTeammateNumberBox->setMaximum(arg1);
 
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
     ui->teamSizeBox->setUpdatesEnabled(false);
@@ -2073,9 +2076,9 @@ void gruepr::optimizationComplete()
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
 
-    ui->actionSave_Teams->setEnabled(true);
-    ui->actionPost_Teams_to_Canvas->setEnabled(true);
-    ui->actionPrint_Teams->setEnabled(true);
+//    ui->actionSave_Teams->setEnabled(true);
+//    ui->actionPost_Teams_to_Canvas->setEnabled(true);
+//    ui->actionPrint_Teams->setEnabled(true);
 
     ui->dataDisplayTabWidget->setCurrentWidget(teamTab);
 }
@@ -2090,16 +2093,16 @@ void gruepr::dataDisplayTabSwitch(int newTabIndex)
     }
 
     // update the save and print teams menu items to this new tab
-    ui->actionSave_Teams->disconnect();
-    ui->actionPost_Teams_to_Canvas->disconnect();
-    ui->actionPrint_Teams->disconnect();
-    auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(newTabIndex));
-    ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-    ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-    connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
-    connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
-    connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
+//    ui->actionSave_Teams->disconnect();
+//    ui->actionPost_Teams_to_Canvas->disconnect();
+//    ui->actionPrint_Teams->disconnect();
+//    auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(newTabIndex));
+//    ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
+//    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
+//    ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
+//    connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
+//    connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
+//    connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
 }
 
 
@@ -2111,35 +2114,35 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
         return;
     }
 
-    if(ui->dataDisplayTabWidget->count() == 2)
-    {
-        // we're going to be down to just the student tab, so disable the save and print teams menu items
-        ui->actionSave_Teams->disconnect();
-        ui->actionPost_Teams_to_Canvas->disconnect();
-        ui->actionPrint_Teams->disconnect();
-        ui->actionSave_Teams->setText(tr("Save Teams..."));
-        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
-        ui->actionPrint_Teams->setText(tr("Print Teams..."));
-        ui->actionSave_Teams->setEnabled(false);
-        ui->actionPost_Teams_to_Canvas->setEnabled(false);
-        ui->actionPrint_Teams->setEnabled(false);
-    }
-    else if(ui->dataDisplayTabWidget->currentIndex() == 0 && ui->actionSave_Teams->text().contains(ui->dataDisplayTabWidget->tabText(closingTabIndex)))
-    {
-        // we're viewing the student tab and the tab we're closing is the one currently pointed to by the save and print teams menu items
-        // redirect these menu items to point to the next tab down (or next one up if next one down is the students tab
-        ui->actionSave_Teams->disconnect();
-        ui->actionPost_Teams_to_Canvas->disconnect();
-        ui->actionPrint_Teams->disconnect();
-        int nextLogicalIndex = ((closingTabIndex == 1) ? (2) : (closingTabIndex - 1));
-        auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(nextLogicalIndex));
-        ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-        ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-        connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
-        connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
-        connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
-    }
+//    if(ui->dataDisplayTabWidget->count() == 2)
+//    {
+//        // we're going to be down to just the student tab, so disable the save and print teams menu items
+//        ui->actionSave_Teams->disconnect();
+//        ui->actionPost_Teams_to_Canvas->disconnect();
+//        ui->actionPrint_Teams->disconnect();
+//        ui->actionSave_Teams->setText(tr("Save Teams..."));
+//        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
+//        ui->actionPrint_Teams->setText(tr("Print Teams..."));
+//        ui->actionSave_Teams->setEnabled(false);
+//        ui->actionPost_Teams_to_Canvas->setEnabled(false);
+//        ui->actionPrint_Teams->setEnabled(false);
+//    }
+//    else if(ui->dataDisplayTabWidget->currentIndex() == 0 && ui->actionSave_Teams->text().contains(ui->dataDisplayTabWidget->tabText(closingTabIndex)))
+//    {
+//        // we're viewing the student tab and the tab we're closing is the one currently pointed to by the save and print teams menu items
+//        // redirect these menu items to point to the next tab down (or next one up if next one down is the students tab
+//        ui->actionSave_Teams->disconnect();
+//        ui->actionPost_Teams_to_Canvas->disconnect();
+//        ui->actionPrint_Teams->disconnect();
+//        int nextLogicalIndex = ((closingTabIndex == 1) ? (2) : (closingTabIndex - 1));
+//        auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(nextLogicalIndex));
+//        ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
+//        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
+//        ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
+//        connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
+//        connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
+//        connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
+//    }
 
     auto *tab = ui->dataDisplayTabWidget->widget(closingTabIndex);
     ui->dataDisplayTabWidget->removeTab(closingTabIndex);
@@ -2179,9 +2182,9 @@ void gruepr::editDataDisplayTabName(int tabIndex)
     win->deleteLater();
 
     // update the text in the save and print teams menu items to this new tab name
-    ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
-    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
-    ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
+//    ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
+//    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
+//    ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
 }
 
 
@@ -2197,10 +2200,6 @@ void gruepr::loadDefaultSettings()
 
     //Restore last data file folder location
     dataOptions->dataFile.setFile(savedSettings.value("dataFileLocation", "").toString());
-
-    //Enable download from Google only if we know of some that exist
-    ui->actionLoad_Survey_Results_from_Google->setEnabled(savedSettings.beginReadArray("GoogleForm") > 0);
-    savedSettings.endArray();
 
     //Restore teaming options
     ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
@@ -2242,7 +2241,7 @@ void gruepr::loadDefaultSettings()
     }
     savedSettings.endArray();
     teamingOptions->numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
-    ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
+//    ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
 }
 
 
@@ -2256,59 +2255,43 @@ void gruepr::loadUI()
     ui->desiredMeetingTimes->setEnabled(false);
     ui->meetingLength->setEnabled(false);
     ui->scheduleWeight->setEnabled(false);
-    ui->label_16->setEnabled(false);
     ui->label_0->setEnabled(false);
-    ui->schedulePreLabel->setEnabled(false);
-    ui->schedulePostLabel->setEnabled(false);
     ui->label_7->setEnabled(false);
-    ui->label_8->setEnabled(false);
-    ui->label_9->setEnabled(false);
-    ui->requiredTeammatesButton->setEnabled(false);
-    ui->label_18->setEnabled(false);
-    ui->preventedTeammatesButton->setEnabled(false);
-    ui->requestedTeammatesButton->setEnabled(false);
-    ui->label_11->setEnabled(false);
-    ui->requestedTeammateNumberBox->setEnabled(false);
+    ui->teammatesButton->setEnabled(false);
+    ui->teammatesLabel->setEnabled(false);
     ui->sectionSelectionBox->clear();
     ui->sectionSelectionBox->setEnabled(false);
-    ui->label_2->setEnabled(false);
-    ui->label_22->setEnabled(false);
+    ui->sectionLabel->setEnabled(false);
     ui->attributesTabWidget->setEnabled(false);
-    ui->label_21->setEnabled(false);
     ui->studentTable->clear();
     ui->studentTable->setRowCount(0);
     ui->studentTable->setColumnCount(0);
     ui->studentTable->setEnabled(false);
     ui->addStudentPushButton->setEnabled(false);
     ui->saveSurveyFilePushButton->setEnabled(false);
-    ui->actionSave_Survey_File->setEnabled(false);
+//    ui->actionSave_Survey_File->setEnabled(false);
     ui->dataDisplayTabWidget->setCurrentIndex(0);
     ui->isolatedWomenCheckBox->setEnabled(false);
     ui->isolatedMenCheckBox->setEnabled(false);
     ui->isolatedNonbinaryCheckBox->setEnabled(false);
     ui->mixedGenderCheckBox->setEnabled(false);
-    ui->label_15->setEnabled(false);
     ui->isolatedURMCheckBox->setEnabled(false);
     ui->URMResponsesButton->setEnabled(false);
-    ui->label_24->setEnabled(false);
     ui->teamSizeBox->clear();
     ui->teamSizeBox->setEnabled(false);
-    ui->label_20->setEnabled(false);
-    ui->label_10->setEnabled(false);
     ui->idealTeamSizeBox->setEnabled(false);
     ui->letsDoItButton->setEnabled(false);
-    ui->actionCreate_Teams->setEnabled(false);
-    ui->actionLoad_Student_Roster->setEnabled(false);
-    ui->actionCompare_Students_to_Canvas_Course->setEnabled(false);
-    ui->actionSave_Teams->setEnabled(false);
-    ui->actionSave_Teams->disconnect();
-    ui->actionSave_Teams->setText(tr("Save Teams..."));
-    ui->actionPost_Teams_to_Canvas->setEnabled(false);
-    ui->actionPost_Teams_to_Canvas->disconnect();
-    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
-    ui->actionPrint_Teams->setEnabled(false);
-    ui->actionPrint_Teams->disconnect();
-    ui->actionPrint_Teams->setText(tr("Print Teams..."));
+//    ui->actionLoad_Student_Roster->setEnabled(false);
+//    ui->actionCompare_Students_to_Canvas_Course->setEnabled(false);
+//    ui->actionSave_Teams->setEnabled(false);
+//    ui->actionSave_Teams->disconnect();
+//    ui->actionSave_Teams->setText(tr("Save Teams..."));
+//    ui->actionPost_Teams_to_Canvas->setEnabled(false);
+//    ui->actionPost_Teams_to_Canvas->disconnect();
+//    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
+//    ui->actionPrint_Teams->setEnabled(false);
+//    ui->actionPrint_Teams->disconnect();
+//    ui->actionPrint_Teams->setText(tr("Print Teams..."));
     // remove any teams tabs (since we delete each one, move from last down to first; don't delete index 0 which is the student tab)
     for(int tabIndex = ui->dataDisplayTabWidget->count() - 1; tabIndex > 0; tabIndex--)
     {
@@ -2317,17 +2300,13 @@ void gruepr::loadUI()
     }
 
     // next replace
-    statusBarLabel->setText("File: " + dataOptions->dataFile.fileName());
-    ui->actionLoad_Student_Roster->setEnabled(true);
-    ui->actionCompare_Students_to_Canvas_Course->setEnabled(true);
+    ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
+//    ui->actionLoad_Student_Roster->setEnabled(true);
+//    ui->actionCompare_Students_to_Canvas_Course->setEnabled(true);
     ui->studentTable->setEnabled(true);
     ui->addStudentPushButton->setEnabled(true);
-    ui->requiredTeammatesButton->setEnabled(true);
-    ui->label_18->setEnabled(true);
-    ui->preventedTeammatesButton->setEnabled(true);
-    ui->requestedTeammatesButton->setEnabled(true);
-    ui->label_11->setEnabled(true);
-    ui->requestedTeammateNumberBox->setEnabled(true);
+    ui->teammatesButton->setEnabled(true);
+    ui->teammatesLabel->setEnabled(true);
 
     ui->sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded)
@@ -2335,8 +2314,7 @@ void gruepr::loadUI()
         if(dataOptions->sectionNames.size() > 1)
         {
             ui->sectionSelectionBox->setEnabled(true);
-            ui->label_2->setEnabled(true);
-            ui->label_22->setEnabled(true);
+            ui->sectionLabel->setEnabled(true);
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
             ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
             ui->sectionSelectionBox->insertSeparator(2);
@@ -2384,7 +2362,6 @@ void gruepr::loadUI()
             connect(attributeTab[attribute].requiredButton, &QPushButton::clicked, this, &gruepr::requiredResponsesButton_clicked);
             connect(attributeTab[attribute].incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
         }
-        ui->label_21->setEnabled(true);
         ui->attributesTabWidget->setEnabled(true);
         ui->attributesTabWidget->setCurrentIndex(0);
     }
@@ -2402,14 +2379,12 @@ void gruepr::loadUI()
         ui->isolatedMenCheckBox->setEnabled(true);
         ui->isolatedNonbinaryCheckBox->setEnabled(true);
         ui->mixedGenderCheckBox->setEnabled(true);
-        ui->label_15->setEnabled(true);
     }
 
     if(dataOptions->URMIncluded)
     {
         ui->isolatedURMCheckBox->setEnabled(true);
         ui->URMResponsesButton->setEnabled(true);
-        ui->label_24->setEnabled(true);
     }
 
     if(!dataOptions->dayNames.isEmpty())
@@ -2418,27 +2393,19 @@ void gruepr::loadUI()
         ui->desiredMeetingTimes->setEnabled(true);
         ui->meetingLength->setEnabled(true);
         ui->scheduleWeight->setEnabled(true);
-        ui->label_16->setEnabled(true);
         ui->label_0->setEnabled(true);
-        ui->schedulePreLabel->setEnabled(true);
-        ui->schedulePostLabel->setEnabled(true);
         ui->label_7->setEnabled(true);
-        ui->label_8->setEnabled(true);
-        ui->label_9->setEnabled(true);
         ui->minMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1)));
         ui->desiredMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1)));
     }
 
     ui->idealTeamSizeBox->setEnabled(true);
     ui->teamSizeBox->setEnabled(true);
-    ui->label_20->setEnabled(true);
-    ui->label_10->setEnabled(true);
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 
-    ui->actionLoad_Teaming_Options_File->setEnabled(true);
-    ui->actionSave_Teaming_Options_File->setEnabled(true);
+//    ui->actionLoad_Teaming_Options_File->setEnabled(true);
+//    ui->actionSave_Teaming_Options_File->setEnabled(true);
     ui->letsDoItButton->setEnabled(true);
-    ui->actionCreate_Teams->setEnabled(true);
 }
 
 
@@ -2658,10 +2625,10 @@ void gruepr::refreshStudentDisplay()
     }
     ui->studentTable->setRowCount(numStudents);
 
-    QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))? "All sections" : " Section: " + teamingOptions->sectionName);
-    statusBarLabel->setText(statusBarLabel->text().split(LITTLEARROW)[0].trimmed() +
-                                                        "  " + LITTLEARROW + " " + sectiontext +
-                                                        "  " + LITTLEARROW + " " + QString::number(numStudents) + " students");
+    QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))?
+                          "All sections" : " Section: " + teamingOptions->sectionName);
+    ui->dataSourceLabel->setText(ui->dataSourceLabel->text().split(RIGHTDOUBLEARROW)[0].trimmed() + "  " + RIGHTDOUBLEARROW +
+                                  " " + sectiontext + "  " + RIGHTDOUBLEARROW + " " + QString::number(numStudents) + " students");
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();
@@ -3522,6 +3489,12 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
 //////////////////
 void gruepr::closeEvent(QCloseEvent *event)
 {
+    if(restartRequested) {
+        event->accept();
+        emit closed();
+        return;
+    }
+
     ui->attributesTabWidget->tabBar()->disconnect();
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
@@ -3596,7 +3569,7 @@ void gruepr::closeEvent(QCloseEvent *event)
                 savedSettings.endArray();
             }
             savedSettings.endArray();
-            savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
+//            savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
         }
 
         event->accept();

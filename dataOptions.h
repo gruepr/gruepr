@@ -54,6 +54,7 @@ public:
     std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
     QFileInfo dataFile;
+    QString dataSource;
     QStringList dayNames;
     QStringList timeNames;
 };

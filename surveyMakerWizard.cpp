@@ -50,19 +50,19 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setButtonLayout(buttonLayout);
 
     button(QWizard::CancelButton)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
-    setButtonText(QWizard::CancelButton, "\u00AB  " + tr("Home"));
+    setButtonText(QWizard::CancelButton, QString(LEFTDOUBLEARROW) + "  " + tr("Home"));
     button(QWizard::CustomButton1)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     setButtonText(QWizard::CustomButton1, tr("Load Previous Survey"));
     connect(this, &QWizard::customButtonClicked, this, &SurveyMakerWizard::loadSurvey);
     button(QWizard::BackButton)->setStyleSheet(STDBUTTONSTYLE);
-    setButtonText(QWizard::BackButton, "\u2190  " + tr("Previous Step"));
+    setButtonText(QWizard::BackButton, QString(LEFTARROW) + "  " + tr("Previous Step"));
     setOption(QWizard::NoBackButtonOnStartPage);
     button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
-    setButtonText(QWizard::NextButton, tr("Next Step") + "  \u2192");
+    setButtonText(QWizard::NextButton, tr("Next Step") + "  " + RIGHTARROW);
     button(QWizard::CustomButton2)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
-    setButtonText(QWizard::CustomButton2, tr("Return to Preview") + "  \u21E5");
+    setButtonText(QWizard::CustomButton2, tr("Return to Preview") + "  " + RIGHTARROWTOEND);
     button(QWizard::FinishButton)->setStyleSheet(NEXTBUTTONSTYLE);
-    setButtonText(QWizard::FinishButton, tr("Close") + "  \u00BB");
+    setButtonText(QWizard::FinishButton, tr("Close") + "  " + RIGHTDOUBLEARROW);
 }
 
 SurveyMakerWizard::~SurveyMakerWizard() {
@@ -481,7 +481,7 @@ IntroPage::IntroPage(QWidget *parent)
                          tr("This will be the name of the survey you send to your students!") + "</span>");
     bottomLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-    getStartedButton = new QPushButton("Get Started  \u2192", this);
+    getStartedButton = new QPushButton("Get Started  " + QString(RIGHTARROW), this);
     getStartedButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
     getStartedButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>930</width>
-    <height>715</height>
+    <width>1099</width>
+    <height>659</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,317 +26,209 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="topLayout" rowstretch="1,0" columnstretch="2,0">
+     <layout class="QGridLayout" name="topLayout" rowstretch="1,0,1" columnstretch="1,2">
+      <property name="horizontalSpacing">
+       <number>9</number>
+      </property>
+      <item row="0" column="0" alignment="Qt::AlignTop">
+       <widget class="QFrame" name="dataSourceFrame">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+          <widget class="QLabel" name="dataSourceIcon"/>
+         </item>
+         <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+          <widget class="QLabel" name="dataSourceLabel">
+           <property name="text">
+            <string>Data Source</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+          <widget class="QPushButton" name="newDataSourceButton">
+           <property name="text">
+            <string>←  Back</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
       <item row="1" column="0">
-       <widget class="QGroupBox" name="teamingOptionsGroupBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>10</horstretch>
-          <verstretch>10</verstretch>
-         </sizepolicy>
+       <widget class="QScrollArea" name="teamingOptionsScrollArea">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
         </property>
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
-        <property name="title">
-         <string>Teaming Options</string>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAsNeeded</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustToContents</enum>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
         </property>
-        <layout class="QGridLayout" name="gridLayout_6" rowstretch="0,0,0,0,0,0,0,0,100,0,0,0,0,0,0,0" columnstretch="0,100,0">
-         <property name="leftMargin">
-          <number>2</number>
+        <widget class="QWidget" name="teamingOptionsScrollAreaWidget">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>343</width>
+           <height>636</height>
+          </rect>
          </property>
-         <property name="topMargin">
-          <number>10</number>
-         </property>
-         <property name="rightMargin">
-          <number>2</number>
-         </property>
-         <property name="bottomMargin">
-          <number>2</number>
-         </property>
-         <property name="verticalSpacing">
-          <number>2</number>
-         </property>
-         <item row="8" column="0" colspan="3">
-          <widget class="Line" name="line_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" colspan="2">
-          <layout class="QHBoxLayout" name="sectionLayout">
-           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-            <widget class="QLabel" name="label_2">
-             <property name="enabled">
-              <bool>false</bool>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QFrame" name="sectionFrame">
+            <layout class="QVBoxLayout" name="sectionLayout">
+             <property name="spacing">
+              <number>2</number>
              </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>13</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Section:</string>
-             </property>
-            </widget>
-           </item>
-           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-            <widget class="QComboBox" name="sectionSelectionBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>1</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Choose which section of students found in the data</string>
-             </property>
-             <property name="sizeAdjustPolicy">
-              <enum>QComboBox::AdjustToContents</enum>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="9" column="0" rowspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="label_21">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/attributes.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0" rowspan="2" colspan="3">
-          <widget class="Line" name="line_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="label_18">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/friends.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="label_15">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/gender.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="label_22">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/classroom.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
-          <widget class="Line" name="line_6">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_20">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/ruler.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="label_16">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/schedule.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="1" colspan="2">
-          <layout class="QVBoxLayout" name="scheduleLayout">
-           <property name="spacing">
-            <number>4</number>
-           </property>
-           <item>
-            <layout class="QGridLayout" name="meetingTimesLayout">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetMinimumSize</enum>
-             </property>
-             <property name="horizontalSpacing">
-              <number>8</number>
-             </property>
-             <property name="verticalSpacing">
-              <number>4</number>
-             </property>
-             <item row="0" column="1">
-              <widget class="QSpinBox" name="minMeetingTimes">
+             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="sectionLabel">
                <property name="enabled">
                 <bool>false</bool>
                </property>
-               <property name="minimumSize">
+               <property name="text">
+                <string>Section</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="sectionSelectionBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>Choose which section of students found in the data</string>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToContents</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="teamSizeFrame">
+            <layout class="QGridLayout" name="teamSizeLayout" columnstretch="0,1">
+             <property name="verticalSpacing">
+              <number>2</number>
+             </property>
+             <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="teamSizeLabel">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Team size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="teamSizeBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>Choose how many students are on each team.</string>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToContents</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QSpinBox" name="idealTeamSizeBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
                 <size>
-                 <width>0</width>
+                 <width>16777215</width>
                  <height>18</height>
                 </size>
                </property>
                <property name="toolTip">
-                <string>gruepr will try to prevent forming teams with fewer than this many available meeting times.</string>
+                <string>Set the ideal number of students on each team.</string>
+               </property>
+               <property name="minimum">
+                <number>2</number>
                </property>
                <property name="value">
                 <number>4</number>
                </property>
               </widget>
              </item>
-             <item row="0" column="3">
-              <widget class="QSpinBox" name="desiredMeetingTimes">
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="genderFrame">
+            <layout class="QVBoxLayout" name="genderLayout">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="genderLabel">
                <property name="enabled">
                 <bool>false</bool>
                </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>18</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>gruepr will try to create teams that have this many available meeting times.</string>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="value">
-                <number>8</number>
+               <property name="text">
+                <string>Identity options</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_8">
+             <item>
+              <widget class="QCheckBox" name="isolatedWomenCheckBox">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -346,19 +238,111 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>13</height>
-                </size>
+               <property name="toolTip">
+                <string>If selected, gruepr will try to prevent forming teams that have exactly one woman.</string>
                </property>
                <property name="text">
-                <string>Minimum</string>
+                <string>Prevent Isolated Women</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0" rowspan="2">
-              <widget class="QLabel" name="label_7">
+             <item>
+              <widget class="QCheckBox" name="isolatedMenCheckBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>If selected, gruepr will try to prevent forming teams that have exactly one man.</string>
+               </property>
+               <property name="text">
+                <string>Prevent Isolated Men</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="isolatedNonbinaryCheckBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>If selected, gruepr will try to prevent forming teams that have exactly one nonbinary student.</string>
+               </property>
+               <property name="text">
+                <string>Prevent Isolated Nonbinary Students</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="mixedGenderCheckBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>If selected, gruepr will try to prevent forming teams that are either all women or all men.</string>
+               </property>
+               <property name="text">
+                <string>Require Mixed Gender Teams</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="URMFrame">
+            <layout class="QVBoxLayout" name="URMLayout">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="URMLabel">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Identity options</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="isolatedURMCheckBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;If selected, gruepr will try to prevent forming teams that have exactly one student from an underrepresented minority group.&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Prevent Isolated URM students</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="URMResponsesButton">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -368,570 +352,242 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>35</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Number of Weekly
-Meeting Times:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="4" rowspan="2">
-              <spacer name="horizontalSpacer_10">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>33</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="1" column="3">
-              <widget class="QLabel" name="label_9">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>13</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Desired</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2" rowspan="2">
-              <spacer name="horizontalSpacer_11">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="meetingLengthLayout">
-             <item>
-              <widget class="QLabel" name="label_0">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>13</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Minimum Meeting Length:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="meetingLength">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>18</height>
-                </size>
-               </property>
                <property name="toolTip">
-                <string>Overlaps in schedule must be at least this big to be considered an available meeting time.</string>
+                <string>&lt;html&gt;Select which racial/ethnic/cultural identites should be considered underrepresented.&lt;/html&gt;</string>
                </property>
-               <item>
-                <property name="text">
-                 <string>1 hour</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>2 hours</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>3 hours</string>
-                </property>
-               </item>
+               <property name="text">
+                <string>Select Underepresented Identities</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="attributesFrame">
+            <layout class="QVBoxLayout" name="attributesLayout">
+             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="attributesLabel">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Multiple choice questions</string>
+               </property>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_5">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+              <widget class="QTabWidget" name="attributesTabWidget">
+               <property name="enabled">
+                <bool>false</bool>
                </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>18</height>
-                </size>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>10</verstretch>
+                </sizepolicy>
                </property>
-              </spacer>
+               <property name="usesScrollButtons">
+                <bool>false</bool>
+               </property>
+               <widget class="attributeTabItem" name="attribute_fillin">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>10</verstretch>
+                 </sizepolicy>
+                </property>
+                <attribute name="title">
+                 <string>1</string>
+                </attribute>
+               </widget>
+              </widget>
              </item>
             </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="scheduleWeightLayout">
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="scheduleFrame">
+            <layout class="QVBoxLayout" name="scheduleLayout">
              <property name="spacing">
               <number>2</number>
              </property>
              <item>
-              <widget class="QLabel" name="schedulePreLabel">
-               <property name="enabled">
-                <bool>false</bool>
+              <layout class="QGridLayout" name="meetingTimesLayout">
+               <property name="sizeConstraint">
+                <enum>QLayout::SetMinimumSize</enum>
                </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
+               <property name="horizontalSpacing">
+                <number>6</number>
                </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>13</height>
-                </size>
+               <property name="verticalSpacing">
+                <number>2</number>
                </property>
-               <property name="text">
-                <string>Weight:</string>
-               </property>
-              </widget>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="desiredMeetingTimes">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>gruepr will try to create teams that have this many available meeting times.</string>
+                 </property>
+                 <property name="prefix">
+                  <string>Desired: </string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="value">
+                  <number>8</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QSpinBox" name="minMeetingTimes">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>gruepr will try to prevent forming teams with fewer than this many available meeting times.</string>
+                 </property>
+                 <property name="prefix">
+                  <string>Minimum: </string>
+                 </property>
+                 <property name="value">
+                  <number>4</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+                <widget class="QLabel" name="label_7">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Number of weekly meeting times:</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="scheduleWeight">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>18</height>
-                </size>
-               </property>
-               <property name="buttonSymbols">
-                <enum>QAbstractSpinBox::NoButtons</enum>
-               </property>
-               <property name="decimals">
-                <number>1</number>
-               </property>
-               <property name="value">
-                <double>4.000000000000000</double>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="meetingLengthLayout">
+               <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+                <widget class="QLabel" name="label_0">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Minimum meeting length:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="meetingLength">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>Overlaps in schedule must be at least this big to be considered an available meeting time.</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>1 hour</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2 hours</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>3 hours</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>0</width>
+                   <height>18</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QLabel" name="schedulePostLabel">
-               <property name="enabled">
-                <bool>false</bool>
+              <layout class="QHBoxLayout" name="scheduleWeightLayout">
+               <property name="spacing">
+                <number>0</number>
                </property>
-               <property name="text">
-                <string>/</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>18</height>
-                </size>
-               </property>
-              </spacer>
+               <item>
+                <widget class="QDoubleSpinBox" name="scheduleWeight">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="prefix">
+                  <string>Weight: </string>
+                 </property>
+                 <property name="suffix">
+                  <string notr="true">  /  10</string>
+                 </property>
+                 <property name="decimals">
+                  <number>1</number>
+                 </property>
+                 <property name="value">
+                  <double>4.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>0</width>
+                   <height>18</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
              </item>
             </layout>
-           </item>
-          </layout>
-         </item>
-         <item row="14" column="0" colspan="3">
-          <widget class="Line" name="line_4">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1" colspan="2">
-          <layout class="QGridLayout" name="teamSizeLayout" rowstretch="0,0" columnstretch="0,2">
-           <property name="verticalSpacing">
-            <number>4</number>
-           </property>
-           <item row="0" column="1" alignment="Qt::AlignLeft">
-            <widget class="QSpinBox" name="idealTeamSizeBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Set the ideal number of students on each team.</string>
-             </property>
-             <property name="minimum">
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="teammatesFrame">
+            <layout class="QVBoxLayout" name="teammatesLayout" stretch="0,0">
+             <property name="spacing">
               <number>2</number>
              </property>
-             <property name="value">
-              <number>4</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0" alignment="Qt::AlignLeft">
-            <widget class="QLabel" name="label_10">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>13</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Ideal Team Size:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-            <widget class="QComboBox" name="teamSizeBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Choose how many students are on each team.</string>
-             </property>
-             <property name="sizeAdjustPolicy">
-              <enum>QComboBox::AdjustToContents</enum>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="5" column="0" colspan="3">
-          <widget class="Line" name="line_1">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1" rowspan="2" colspan="2">
-          <layout class="QHBoxLayout" name="URMLayout">
-           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-            <widget class="QCheckBox" name="isolatedURMCheckBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;If selected, gruepr will try to prevent forming teams that have exactly one student from an underrepresented minority group.&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Prevent Isolated URM students</string>
-             </property>
-            </widget>
-           </item>
-           <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-            <widget class="QPushButton" name="URMResponsesButton">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;Select which racial/ethnic/cultural identites should be considered underrepresented.&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Set
-Underepresented
-Identities</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-         <item row="4" column="1" colspan="2">
-          <layout class="QVBoxLayout" name="genderLayout">
-           <property name="spacing">
-            <number>2</number>
-           </property>
-           <item>
-            <widget class="QCheckBox" name="isolatedWomenCheckBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>If selected, gruepr will try to prevent forming teams that have exactly one woman.</string>
-             </property>
-             <property name="text">
-              <string>Prevent Isolated Women</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="isolatedMenCheckBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>If selected, gruepr will try to prevent forming teams that have exactly one man.</string>
-             </property>
-             <property name="text">
-              <string>Prevent Isolated Men</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="isolatedNonbinaryCheckBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>If selected, gruepr will try to prevent forming teams that have exactly one nonbinary student.</string>
-             </property>
-             <property name="text">
-              <string>Prevent Isolated Nonbinary Students</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="mixedGenderCheckBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>If selected, gruepr will try to prevent forming teams that are either all women or all men.</string>
-             </property>
-             <property name="text">
-              <string>Prevent Single Gender Teams</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="3" column="0" colspan="3">
-          <widget class="Line" name="line">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="1" colspan="2">
-          <layout class="QHBoxLayout" name="teammatesLayout" stretch="0,0,0,1">
-           <property name="spacing">
-            <number>2</number>
-           </property>
-           <item>
-            <widget class="QPushButton" name="requiredTeammatesButton">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Create sets of students that must be placed on the same team.</string>
-             </property>
-             <property name="text">
-              <string>Required
-Teammates</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="preventedTeammatesButton">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Create sets of students that must be placed on different teams.</string>
-             </property>
-             <property name="text">
-              <string>Prevented
-Teammates</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QGridLayout" name="requestedTeammateLayout">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="horizontalSpacing">
-              <number>0</number>
-             </property>
-             <property name="verticalSpacing">
-              <number>6</number>
-             </property>
-             <item row="1" column="0" alignment="Qt::AlignVCenter">
-              <widget class="QLabel" name="label_11">
+             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="teammatesLabel">
                <property name="enabled">
                 <bool>false</bool>
                </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>13</height>
-                </size>
-               </property>
                <property name="text">
-                <string># Given:</string>
+                <string>Required and prevented teammates</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0" colspan="2">
-              <widget class="QPushButton" name="requestedTeammatesButton">
+             <item>
+              <widget class="QPushButton" name="teammatesButton">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -942,156 +598,64 @@ Teammates</string>
                 </sizepolicy>
                </property>
                <property name="toolTip">
-                <string>&lt;html&gt;Indicate requested teammates. Each student may have an arbitrarily long list of requested teammates, and gruepr will try to give each student a number (specfied below) of teammates from their list.&lt;/html&gt;</string>
+                <string>Create sets of students that must be placed on the same team.</string>
                </property>
                <property name="text">
-                <string>Requested
-Teammates</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="requestedTeammateNumberBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;Choose how many of the requested teammates will be given. For example, a value of 2 means each student will get at least 2 teammates from their list of requests.&lt;/html&gt;</string>
-               </property>
-               <property name="minimum">
-                <number>1</number>
+                <string>Select Teammates</string>
                </property>
               </widget>
              </item>
             </layout>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_7">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>10</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-         <item row="6" column="0" rowspan="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="label_24">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>50</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="gruepr.qrc">:/icons/allkinds.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1" colspan="2" alignment="Qt::AlignVCenter">
-          <widget class="QTabWidget" name="attributesTabWidget">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>10</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="usesScrollButtons">
-            <bool>false</bool>
-           </property>
-           <widget class="attributeTabItem" name="attribute_fillin">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>10</verstretch>
-             </sizepolicy>
-            </property>
-            <attribute name="title">
-             <string>1</string>
-            </attribute>
            </widget>
-          </widget>
-         </item>
-        </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
-      <item row="0" column="0">
-       <layout class="QHBoxLayout" name="TopButtonsLayout">
-        <property name="spacing">
-         <number>2</number>
+      <item row="2" column="0" alignment="Qt::AlignBottom">
+       <widget class="QPushButton" name="letsDoItButton">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
-        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-         <widget class="QPushButton" name="letsDoItButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-           </font>
-          </property>
-          <property name="toolTip">
-           <string>Find an optimal set of teams.</string>
-          </property>
-          <property name="text">
-           <string>Create Teams</string>
-          </property>
-          <property name="icon">
-           <iconset resource="gruepr.qrc">
-            <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>42</width>
-            <height>42</height>
-           </size>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Find an optimal set of teams.</string>
+        </property>
+        <property name="text">
+         <string>Create Teams</string>
+        </property>
+        <property name="icon">
+         <iconset resource="gruepr.qrc">
+          <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>42</width>
+          <height>42</height>
+         </size>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
-      <item row="0" column="1" rowspan="2">
+      <item row="0" column="1" rowspan="3">
        <widget class="QTabWidget" name="dataDisplayTabWidget">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1110,9 +674,6 @@ Teammates</string>
           <pointsize>12</pointsize>
          </font>
         </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
         <property name="usesScrollButtons">
          <bool>false</bool>
         </property>
@@ -1127,6 +688,18 @@ Teammates</string>
           <string>  Students  </string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_6">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="StudentTableWidget" name="studentTable">
             <property name="enabled">
@@ -1175,6 +748,12 @@ Teammates</string>
 	QTableView::item{
 		selection-background-color: #ceeafb;
 		selection-color: black;}</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
             </property>
             <property name="sizeAdjustPolicy">
              <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -1260,7 +839,7 @@ Teammates</string>
                <string>&lt;html&gt;Add a student to the current dataset.&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Add a Student</string>
+               <string>Add Missing Student</string>
               </property>
               <property name="icon">
                <iconset resource="gruepr.qrc">
@@ -1317,45 +896,6 @@ Teammates</string>
      </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>930</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <property name="toolTipsVisible">
-     <bool>true</bool>
-    </property>
-    <addaction name="actionSave_Survey_File"/>
-    <addaction name="separator"/>
-    <addaction name="actionLoad_Student_Roster"/>
-    <addaction name="actionCompare_Students_to_Canvas_Course"/>
-    <addaction name="separator"/>
-    <addaction name="actionLoad_Teaming_Options_File"/>
-    <addaction name="actionSave_Teaming_Options_File"/>
-    <addaction name="separator"/>
-   </widget>
-   <widget class="QMenu" name="menuTeams">
-    <property name="title">
-     <string>Teams</string>
-    </property>
-    <addaction name="actionCreate_Teams"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_Teams"/>
-    <addaction name="actionPrint_Teams"/>
-    <addaction name="actionPost_Teams_to_Canvas"/>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuTeams"/>
   </widget>
   <action name="actionHelp">
    <property name="icon">

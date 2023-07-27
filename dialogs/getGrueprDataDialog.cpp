@@ -71,6 +71,9 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
 
 void GetGrueprDataDialog::loadData()
 {
+    delete dataOptions;
+    dataOptions = new DataOptions;
+
     bool fileLoaded = false;
     switch(ui->sourceButtonGroup->checkedId()) {
     case fromFile:
@@ -88,7 +91,6 @@ void GetGrueprDataDialog::loadData()
         return;
     }
 
-    dataOptions = new DataOptions;
     dataOptions->dataFile = surveyFile.fileInfo();
 
     if(!readQuestionsFromHeader()) {
@@ -106,14 +108,16 @@ void GetGrueprDataDialog::loadData()
     ui->dataSourceFrame->setEnabled(true);
     ui->dataSourceIcon->setEnabled(true);
     ui->dataSourceLabel->setEnabled(true);
+    ui->dataSourceLabel->setText(tr("Current data source: ") + dataOptions->dataSource);
     ui->hLine->setEnabled(true);
     ui->fieldsExplainer->setEnabled(true);
     ui->headerRowCheckBox->setEnabled(true);
     ui->tableWidget->setEnabled(true);
     ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white;  border: 1px solid black; padding: 5px; "
                                                                              "font-family: DM Sans; font-size: 12pt;}");
-    ui->tableWidget->setStyleSheet(QString() + "QTableView{background-color: white; alternate-background-color: lightGray; border-color: " OPENWATERHEX ";}"
-                                   "QTableView::item{border-top: 1px solid " DEEPWATERHEX "; border-bottom: 1px solid " DEEPWATERHEX "; padding: 3px;}" + SCROLLBARSTYLE);
+    ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border-color: " OPENWATERHEX ";}"
+                                   "QTableView::item{border-top: 1px solid " DEEPWATERHEX "; border-bottom: 1px solid " DEEPWATERHEX "; padding: 3px;}" +
+                                   QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
 
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     connect(this, &QDialog::accepted, this, &GetGrueprDataDialog::readData);
@@ -131,7 +135,7 @@ bool GetGrueprDataDialog::getFromFile()
     }
 
     isTempFile = false;
-    ui->dataSourceLabel->setText(tr("Current data source: ") + surveyFile.fileInfo().fileName());
+    dataOptions->dataSource = surveyFile.fileInfo().fileName();
     return true;
 }
 
@@ -284,7 +288,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     }
 
     isTempFile = true;
-    ui->dataSourceLabel->setText(tr("Current data source: ") + googleFormName);
+    dataOptions->dataSource = googleFormName;
     return true;
 }
 
@@ -409,7 +413,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     surveyFile.fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", ".*" + CanvasHandler::SCHEDULEQUESTIONINTRO2.trimmed() + ".*"};
 
     isTempFile = true;
-    ui->dataSourceLabel->setText(tr("Current data source: ") + canvasSurveyName);
+    dataOptions->dataSource = canvasSurveyName;
     return true;
 }
 

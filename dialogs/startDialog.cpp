@@ -211,17 +211,31 @@ void StartDialog::openSurveyMaker() {
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     this->hide();
-    auto *getDataDialog = new GetGrueprDataDialog;
-    QApplication::restoreOverrideCursor();
-    getDataDialog->exec();
-    auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this);
-    delete getDataDialog;
-    grueprWindow->show();
-    QEventLoop loop;
-    connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
-    loop.exec();
+
+    bool restart = false;
+    do {
+        auto *getDataDialog = new GetGrueprDataDialog;
+        QApplication::restoreOverrideCursor();
+        getDataDialog->exec();
+        if(getDataDialog->result() == QDialog::Accepted) {
+            QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
+            delete getDataDialog;
+            QApplication::restoreOverrideCursor();
+            grueprWindow->show();
+            QEventLoop loop;
+            connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
+            loop.exec();
+            restart = grueprWindow->restartRequested;
+            delete grueprWindow;
+        }
+        else {
+            restart = false;
+            delete getDataDialog;
+        }
+    } while(restart);
+
     this->show();
-    delete grueprWindow;
 }
 
 
