@@ -921,7 +921,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     questionPreviewLayouts[timezone]->addWidget(questionPreviewTopLabels[timezone]);
     tz = new QComboBox;
     tz->setStyleSheet(COMBOBOXSTYLE);
-    tz->addItem(tr("Select timezone"));
+    //tz->addItem(tr("Select timezone"));
+    tz->setPlaceholderText(tr("Select timezone"));
     questionPreviewLayouts[timezone]->addWidget(tz);
     questionPreviewBottomLabels[timezone]->setText(tr("Options: List of global timezones"));
     questionPreviewLayouts[timezone]->addWidget(questionPreviewBottomLabels[timezone]);
@@ -994,7 +995,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     baseTimezoneComboBox->setToolTip(tr("<html>Description of the timezone students should use to interpret the times in the grid.&nbsp;"
                                         "<b>Be aware how the meaning of the times in the grid changes depending on this setting.</b></html>"));
     baseTimezoneComboBox->addItem(tr("[student's home timezone]"));
-    baseTimezoneComboBox->addItem(tr("Custom timezone:"));
+    baseTimezoneComboBox->addItem(tr("Custom timezone"));
     baseTimezoneComboBox->insertSeparator(2);
     int itemNum = 3;
     for(const auto &zonename : SurveyMakerWizard::timezoneNames)
@@ -1802,6 +1803,8 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
 
     section[SurveyMakerWizard::schedule]->questionLabel[0]->setText(TIMEZONEQUESTION);
     section[SurveyMakerWizard::schedule]->questionComboBox[0]->addItems(SurveyMakerWizard::timezoneNames);
+    section[SurveyMakerWizard::schedule]->questionComboBox[0]->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    section[SurveyMakerWizard::schedule]->questionComboBox[0]->setPlaceholderText(QString(SELECTONE).remove(':'));
     section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(tr("Schedule"));
     schedGrid = new QWidget;
     schedGridLayout = new QGridLayout(schedGrid);
@@ -1971,10 +1974,10 @@ void PreviewAndExportPage::initializePage()
         if(!multiQuestionTexts[questionNum].isEmpty()) {
             actualNumMultiQuestions++;
             section[SurveyMakerWizard::multichoice]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-            section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum]);
             section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->show();
             auto responses = multiQuestionResponses[questionNum].toStringList();
             if((multiQuestionMultis[questionNum]).toBool()) {
+                section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum] + "\n" + SELECTMULT);
                 QLayoutItem *child;
                 while((child = section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
                     delete child->widget(); // delete the widget
@@ -1989,6 +1992,7 @@ void PreviewAndExportPage::initializePage()
                 survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::checkbox, responses);
             }
             else if(responses.size() < 10) {
+                section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum] + "\n" + SELECTONE);
                 QLayoutItem *child;
                 while((child = section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->takeAt(0)) != nullptr) {
                     delete child->widget(); // delete the widget
@@ -2003,9 +2007,15 @@ void PreviewAndExportPage::initializePage()
                 survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::radiobutton, responses);
             }
             else {
+                section[SurveyMakerWizard::multichoice]->questionLabel[questionNum]->setText(multiQuestionTexts[questionNum]);
                 section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->clear();
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->addItems(responses);
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setPlaceholderText(QString(SELECTONE).remove(':'));
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setCurrentIndex(-1);
                 section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->show();
+                section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->setMinimumWidth(
+                                                            section[SurveyMakerWizard::multichoice]->questionComboBox[questionNum]->width() * 1.1);
                 section[SurveyMakerWizard::multichoice]->questionGroupBox[questionNum]->hide();
                 survey->questions << Question(multiQuestionTexts[questionNum], Question::QuestionType::dropdown, responses);
             }
@@ -2046,6 +2056,8 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::schedule]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::schedule]->questionLabel[0]->show();
         section[SurveyMakerWizard::schedule]->questionComboBox[0]->show();
+        section[SurveyMakerWizard::schedule]->questionComboBox[0]->setCurrentIndex(-1);
+        section[SurveyMakerWizard::schedule]->questionComboBox[0]->setMinimumWidth(section[SurveyMakerWizard::schedule]->questionComboBox[0]->width() * 1.1);
         survey->questions << Question(TIMEZONEQUESTION, Question::QuestionType::dropdown, SurveyMakerWizard::timezoneNames);
     }
     else {
@@ -2141,6 +2153,7 @@ void PreviewAndExportPage::initializePage()
         }
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[1]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionGroupBox[1]->show();
             QLayoutItem *child;
             while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[1]->takeAt(0)) != nullptr) {
                 delete child->widget(); // delete the widget
@@ -2149,14 +2162,17 @@ void PreviewAndExportPage::initializePage()
             for(int i = 0; i < numPrefTeammates; i++) {
                 auto *selector = new QComboBox;
                 selector->setStyleSheet(COMBOBOXSTYLE);
-                selector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+                selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 selector->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
                 selector->installEventFilter(new MouseWheelBlocker(selector));
                 selector->addItems(studentNames);
+                selector->setPlaceholderText(QString(SELECTONE).replace(":", tr(" classmate")));
+                selector->setCurrentIndex(-1);
                 section[SurveyMakerWizard::courseinfo]->questionGroupLayout[1]->addWidget(selector, 0, Qt::AlignLeft);
+                selector->show();
+                selector->setMinimumWidth(selector->width()*1.1);
                 survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);                
             }
-            section[SurveyMakerWizard::courseinfo]->questionGroupBox[1]->show();
         }
     }
     else {
@@ -2178,6 +2194,7 @@ void PreviewAndExportPage::initializePage()
         }
         else {
             section[SurveyMakerWizard::courseinfo]->questionLineEdit[2]->hide();
+            section[SurveyMakerWizard::courseinfo]->questionGroupBox[2]->show();
             QLayoutItem *child;
             while((child = section[SurveyMakerWizard::courseinfo]->questionGroupLayout[2]->takeAt(0)) != nullptr) {
                 delete child->widget(); // delete the widget
@@ -2186,14 +2203,17 @@ void PreviewAndExportPage::initializePage()
             for(int i = 0; i < numPrefTeammates; i++) {
                 auto *selector = new QComboBox;
                 selector->setStyleSheet(COMBOBOXSTYLE);
-                selector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+                selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 selector->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
                 selector->installEventFilter(new MouseWheelBlocker(selector));
                 selector->addItems(studentNames);
+                selector->setPlaceholderText(QString(SELECTONE).replace(":", tr(" classmate")));
+                selector->setCurrentIndex(-1);
                 section[SurveyMakerWizard::courseinfo]->questionGroupLayout[2]->addWidget(selector, 0, Qt::AlignLeft);
+                selector->show();
+                selector->setMinimumWidth(selector->width()*1.1);
                 survey->questions << Question(questionText, Question::QuestionType::dropdown, studentNames);
             }
-            section[SurveyMakerWizard::courseinfo]->questionGroupBox[2]->show();
         }
     }
     else {

@@ -417,7 +417,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
 
         questionGroupBox << new QGroupBox;
         questionGroupLayout << new QVBoxLayout;
-        questionGroupLayout.last()->setSpacing(1);
+        questionGroupLayout.last()->setSpacing(2);
         questionGroupLayout.last()->setContentsMargins(20, 0, 0, 0);
         questionGroupBox.last()->setLayout(questionGroupLayout.last());
         questionGroupBox.last()->setFlat(true);

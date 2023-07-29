@@ -7,6 +7,16 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
     : QTableWidget(parent)
 {
     horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    setStyleSheet(QString() + "QTableView{gridline-color: gray; font-family: DM Sans;}"
+                  "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                        "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"
+                  "QHeaderView::down-arrow{image: url(:/icons_new/ComboBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                  "QHeaderView::up-arrow{image: url(:/icons/SpinBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: top left;}"
+                  "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                               "background-color: " OPENWATERHEX ";}"
+                  "QTableView::item{selection-background-color: " BUBBLYHEX "; selection-color: black;}" +
+                  SCROLLBARSTYLE);
+
     connect(this, &QTableWidget::entered, this, &StudentTableWidget::itemEntered);
     connect(this, &QTableWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
     connect(this->horizontalHeader(), &QHeaderView::sectionClicked, this, &StudentTableWidget::sortByColumn);

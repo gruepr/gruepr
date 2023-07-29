@@ -913,10 +913,6 @@ void TeamsTabItem::saveTeams()
             {
                 QMessageBox::critical(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
             }
-            else
-            {
-                this->window()->setWindowModified(false);
-            }
         }
     }
     if(result == QDialogButtonBox::Ok && (window->instructorFilepdf->isChecked() || window->studentFilepdf->isChecked()))
@@ -1117,8 +1113,6 @@ void TeamsTabItem::refreshTeamDisplay()
     teamDataTree->setUpdatesEnabled(true);
 
     teamDataTree->setSortingEnabled(true);
-
-    this->window()->setWindowModified(true);
 }
 
 
@@ -1421,7 +1415,6 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
             printer->setPageOrientation(QPageLayout::Landscape);
             textDocument.print(printer);
         }
-        this->window()->setWindowModified(false);
     }
     delete printer;
 }

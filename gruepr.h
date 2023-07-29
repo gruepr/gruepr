@@ -71,7 +71,7 @@ private slots:
     void incompatibleResponsesButton_clicked();
     void on_minMeetingTimes_valueChanged(int arg1);
     void on_desiredMeetingTimes_valueChanged(int arg1);
-    void on_meetingLength_currentIndexChanged(int index);
+    void on_meetingLengthSpinBox_valueChanged(int arg1);
     void on_idealTeamSizeBox_valueChanged(int arg1);
     void on_teamSizeBox_currentIndexChanged(int index);
     void on_teammatesButton_clicked();
@@ -85,6 +85,7 @@ private slots:
     void editDataDisplayTabName(int tabIndex);
     void loadOptionsFile();
     void saveOptionsFile();
+
 
 
 signals:

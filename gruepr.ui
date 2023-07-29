@@ -26,20 +26,32 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="topLayout" rowstretch="1,0,1" columnstretch="1,2">
+     <layout class="QGridLayout" name="topLayout" rowstretch="1,0,1" columnstretch="2,3">
       <property name="horizontalSpacing">
        <number>9</number>
       </property>
       <item row="0" column="0" alignment="Qt::AlignTop">
        <widget class="QFrame" name="dataSourceFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
           <widget class="QLabel" name="dataSourceIcon"/>
          </item>
-         <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+         <item alignment="Qt::AlignVCenter">
           <widget class="QLabel" name="dataSourceLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Ignored">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Data Source</string>
+            <string>Data source: </string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -48,6 +60,12 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
          </item>
          <item alignment="Qt::AlignRight|Qt::AlignVCenter">
           <widget class="QPushButton" name="newDataSourceButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>←  Back</string>
            </property>
@@ -84,11 +102,14 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>343</width>
-           <height>636</height>
+           <width>414</width>
+           <height>603</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <property name="leftMargin">
            <number>0</number>
           </property>
@@ -109,9 +130,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </property>
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="sectionLabel">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="text">
                 <string>Section</string>
                </property>
@@ -119,9 +137,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QComboBox" name="sectionSelectionBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>1</horstretch>
@@ -140,34 +155,28 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </widget>
           </item>
           <item>
+           <spacer name="sectionSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QFrame" name="teamSizeFrame">
-            <layout class="QGridLayout" name="teamSizeLayout" columnstretch="0,1">
+            <layout class="QGridLayout" name="teamSizeLayout" columnstretch="0,0">
              <property name="verticalSpacing">
               <number>2</number>
              </property>
-             <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-              <widget class="QLabel" name="teamSizeLabel">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Team size</string>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="1">
               <widget class="QComboBox" name="teamSizeBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
@@ -180,25 +189,29 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QSpinBox" name="idealTeamSizeBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
+             <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+              <widget class="QLabel" name="teamSizeLabel">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>18</height>
-                </size>
+               <property name="text">
+                <string>Team size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QSpinBox" name="idealTeamSizeBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
                <property name="toolTip">
-                <string>Set the ideal number of students on each team.</string>
+                <string>Set the ideal number of students on each team</string>
                </property>
                <property name="minimum">
                 <number>2</number>
@@ -212,6 +225,19 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </widget>
           </item>
           <item>
+           <spacer name="teamsizeSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QFrame" name="genderFrame">
             <layout class="QVBoxLayout" name="genderLayout">
              <property name="spacing">
@@ -219,9 +245,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </property>
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="genderLabel">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="text">
                 <string>Identity options</string>
                </property>
@@ -229,9 +252,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QCheckBox" name="isolatedWomenCheckBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -248,9 +268,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QCheckBox" name="isolatedMenCheckBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -267,9 +284,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QCheckBox" name="isolatedNonbinaryCheckBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -286,9 +300,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QCheckBox" name="mixedGenderCheckBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -307,6 +318,29 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </widget>
           </item>
           <item>
+           <spacer name="genderSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="Line" name="genderAndURMLine">
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QFrame" name="URMFrame">
             <layout class="QVBoxLayout" name="URMLayout">
              <property name="spacing">
@@ -314,9 +348,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </property>
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="URMLabel">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="text">
                 <string>Identity options</string>
                </property>
@@ -324,9 +355,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QCheckBox" name="isolatedURMCheckBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -343,9 +371,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QPushButton" name="URMResponsesButton">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -364,13 +389,23 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </widget>
           </item>
           <item>
+           <spacer name="URMSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QFrame" name="attributesFrame">
             <layout class="QVBoxLayout" name="attributesLayout">
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="attributesLabel">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="text">
                 <string>Multiple choice questions</string>
                </property>
@@ -378,9 +413,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QTabWidget" name="attributesTabWidget">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -407,6 +439,19 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </widget>
           </item>
           <item>
+           <spacer name="attributeSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QFrame" name="scheduleFrame">
             <layout class="QVBoxLayout" name="scheduleLayout">
              <property name="spacing">
@@ -425,9 +470,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                </property>
                <item row="1" column="1">
                 <widget class="QSpinBox" name="desiredMeetingTimes">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
                  <property name="toolTip">
                   <string>gruepr will try to create teams that have this many available meeting times.</string>
                  </property>
@@ -444,9 +486,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                </item>
                <item row="1" column="0">
                 <widget class="QSpinBox" name="minMeetingTimes">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
                  <property name="toolTip">
                   <string>gruepr will try to prevent forming teams with fewer than this many available meeting times.</string>
                  </property>
@@ -460,11 +499,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                </item>
                <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
                 <widget class="QLabel" name="label_7">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
                  <property name="text">
-                  <string>Number of weekly meeting times:</string>
+                  <string>Number of weekly meeting times</string>
                  </property>
                 </widget>
                </item>
@@ -472,45 +508,20 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <layout class="QHBoxLayout" name="meetingLengthLayout">
-               <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-                <widget class="QLabel" name="label_0">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>Minimum meeting length:</string>
-                 </property>
-                </widget>
-               </item>
                <item>
-                <widget class="QComboBox" name="meetingLength">
-                 <property name="enabled">
-                  <bool>false</bool>
+                <widget class="QSpinBox" name="meetingLengthSpinBox">
+                 <property name="suffix">
+                  <string> hour</string>
                  </property>
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+                 <property name="prefix">
+                  <string>Duration: </string>
                  </property>
-                 <property name="toolTip">
-                  <string>Overlaps in schedule must be at least this big to be considered an available meeting time.</string>
+                 <property name="minimum">
+                  <number>1</number>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>1 hour</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2 hours</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>3 hours</string>
-                  </property>
-                 </item>
+                 <property name="maximum">
+                  <number>3</number>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -535,9 +546,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                </property>
                <item>
                 <widget class="QDoubleSpinBox" name="scheduleWeight">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
                  <property name="prefix">
                   <string>Weight: </string>
                  </property>
@@ -571,6 +579,19 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </widget>
           </item>
           <item>
+           <spacer name="scheduleSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QFrame" name="teammatesFrame">
             <layout class="QVBoxLayout" name="teammatesLayout" stretch="0,0">
              <property name="spacing">
@@ -578,9 +599,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </property>
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="teammatesLabel">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="text">
                 <string>Required and prevented teammates</string>
                </property>
@@ -588,9 +606,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QPushButton" name="teammatesButton">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -614,9 +629,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
       </item>
       <item row="2" column="0" alignment="Qt::AlignBottom">
        <widget class="QPushButton" name="letsDoItButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -677,6 +689,9 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
         <property name="usesScrollButtons">
          <bool>false</bool>
         </property>
+        <property name="documentMode">
+         <bool>true</bool>
+        </property>
         <widget class="QWidget" name="studentsTab">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -702,9 +717,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           </property>
           <item>
            <widget class="StudentTableWidget" name="studentTable">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>1</horstretch>
@@ -717,40 +729,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             <property name="contextMenuPolicy">
              <enum>Qt::NoContextMenu</enum>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QTableView{gridline-color: black;}
-	QHeaderView::section{
-		border-top:0px solid #D8D8D8;
-		border-left:0px solid #D8D8D8;
-		border-right:1px solid black;
-		border-bottom: 1px solid black;
-		background-color:Gainsboro;
-		padding:4px;
-		font-weight:bold;
-		color:black;
-		text-align:center;}
-	QHeaderView::down-arrow{
-		image: url(:/icons/down_arrow.png);
-		width:18px;
-		subcontrol-origin: padding;
-		subcontrol-position:bottom left;}
-	QHeaderView::up-arrow{
-		image: url(:/icons/up_arrow.png);
-		width:18px;
-		subcontrol-origin: padding;
-		subcontrol-position:top left;}
-	QTableCornerButton::section{
-		border-top:0px solid #D8D8D8;
-		border-left:0px solid #D8D8D8;
-		border-right:1px solid black;
-		border-bottom: 1px solid black;
-		background-color:white;}
-	QTableView::item{
-		selection-background-color: #ceeafb;
-		selection-color: black;}</string>
-            </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::NoFrame</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Plain</enum>
@@ -797,12 +777,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             <property name="cornerButtonEnabled">
              <bool>false</bool>
             </property>
-            <attribute name="horizontalHeaderCascadingSectionResizes">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="horizontalHeaderMinimumSectionSize">
-             <number>20</number>
-            </attribute>
            </widget>
           </item>
           <item>
@@ -821,9 +795,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             </property>
             <item>
              <widget class="QPushButton" name="addStudentPushButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -855,9 +826,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             </item>
             <item>
              <widget class="QPushButton" name="saveSurveyFilePushButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>

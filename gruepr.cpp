@@ -697,7 +697,7 @@ void gruepr::loadOptionsFile()
             if(loadObject.contains("meetingBlockSize") && loadObject["meetingBlockSize"].isDouble())
             {
                 teamingOptions->meetingBlockSize = loadObject["meetingBlockSize"].toInt();
-                ui->meetingLength->setCurrentIndex(teamingOptions->meetingBlockSize - 1);
+                ui->meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
             }
             if(loadObject.contains("scheduleWeight") && loadObject["scheduleWeight"].isDouble())
             {
@@ -1153,8 +1153,6 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             sortAlphanumerically.setNumericMode(true);
             sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
             std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
-            ui->sectionSelectionBox->setEnabled(true);
-            ui->sectionLabel->setEnabled(true);
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
             ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
             ui->sectionSelectionBox->insertSeparator(2);
@@ -1170,10 +1168,6 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             ui->sectionSelectionBox->setCurrentText(currentSection);
         }
     }
-
-    // Enable save data file option, since data set is now edited
-    ui->saveSurveyFilePushButton->setEnabled(true);
-//    ui->actionSave_Survey_File->setEnabled(true);
 
     // Refresh student table data
     refreshStudentDisplay();
@@ -1351,9 +1345,6 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     }
 
     newSurveyFile.close();
-
-    ui->saveSurveyFilePushButton->setEnabled(false);
-//    ui->actionSave_Survey_File->setEnabled(false);
 }
 
 
@@ -1548,13 +1539,13 @@ void gruepr::on_desiredMeetingTimes_valueChanged(int arg1)
 }
 
 
-void gruepr::on_meetingLength_currentIndexChanged(int index)
+void gruepr::on_meetingLengthSpinBox_valueChanged(int arg1)
 {
-    teamingOptions->meetingBlockSize = (index + 1);
+    teamingOptions->meetingBlockSize = (arg1);
     if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0))
     {
-        ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
-        ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (index + 1));
+        ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (arg1));
+        ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (arg1));
     }
 }
 
@@ -2076,10 +2067,6 @@ void gruepr::optimizationComplete()
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
 
-//    ui->actionSave_Teams->setEnabled(true);
-//    ui->actionPost_Teams_to_Canvas->setEnabled(true);
-//    ui->actionPrint_Teams->setEnabled(true);
-
     ui->dataDisplayTabWidget->setCurrentWidget(teamTab);
 }
 
@@ -2113,36 +2100,6 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
     {
         return;
     }
-
-//    if(ui->dataDisplayTabWidget->count() == 2)
-//    {
-//        // we're going to be down to just the student tab, so disable the save and print teams menu items
-//        ui->actionSave_Teams->disconnect();
-//        ui->actionPost_Teams_to_Canvas->disconnect();
-//        ui->actionPrint_Teams->disconnect();
-//        ui->actionSave_Teams->setText(tr("Save Teams..."));
-//        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
-//        ui->actionPrint_Teams->setText(tr("Print Teams..."));
-//        ui->actionSave_Teams->setEnabled(false);
-//        ui->actionPost_Teams_to_Canvas->setEnabled(false);
-//        ui->actionPrint_Teams->setEnabled(false);
-//    }
-//    else if(ui->dataDisplayTabWidget->currentIndex() == 0 && ui->actionSave_Teams->text().contains(ui->dataDisplayTabWidget->tabText(closingTabIndex)))
-//    {
-//        // we're viewing the student tab and the tab we're closing is the one currently pointed to by the save and print teams menu items
-//        // redirect these menu items to point to the next tab down (or next one up if next one down is the students tab
-//        ui->actionSave_Teams->disconnect();
-//        ui->actionPost_Teams_to_Canvas->disconnect();
-//        ui->actionPrint_Teams->disconnect();
-//        int nextLogicalIndex = ((closingTabIndex == 1) ? (2) : (closingTabIndex - 1));
-//        auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(nextLogicalIndex));
-//        ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-//        ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-//        ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(nextLogicalIndex) + ")...");
-//        connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
-//        connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
-//        connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
-//    }
 
     auto *tab = ui->dataDisplayTabWidget->widget(closingTabIndex);
     ui->dataDisplayTabWidget->removeTab(closingTabIndex);
@@ -2180,11 +2137,6 @@ void gruepr::editDataDisplayTabName(int tabIndex)
         tab->tabName = newNameEditor->text();
     }
     win->deleteLater();
-
-    // update the text in the save and print teams menu items to this new tab name
-//    ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
-//    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
-//    ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(tabIndex) + ")...");
 }
 
 
@@ -2221,7 +2173,7 @@ void gruepr::loadDefaultSettings()
     teamingOptions->desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
     ui->desiredMeetingTimes->setValue(teamingOptions->desiredTimeBlocksOverlap);
     teamingOptions->meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toInt();
-    ui->meetingLength->setCurrentIndex(teamingOptions->meetingBlockSize-1);
+    ui->meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
     teamingOptions->scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
     ui->scheduleWeight->setValue(double(teamingOptions->scheduleWeight));
     savedSettings.beginReadArray("Attributes");
@@ -2250,107 +2202,72 @@ void gruepr::loadDefaultSettings()
 //////////////////
 void gruepr::loadUI()
 {
-    //first reset everything
-    ui->minMeetingTimes->setEnabled(false);
-    ui->desiredMeetingTimes->setEnabled(false);
-    ui->meetingLength->setEnabled(false);
-    ui->scheduleWeight->setEnabled(false);
-    ui->label_0->setEnabled(false);
-    ui->label_7->setEnabled(false);
-    ui->teammatesButton->setEnabled(false);
-    ui->teammatesLabel->setEnabled(false);
-    ui->sectionSelectionBox->clear();
-    ui->sectionSelectionBox->setEnabled(false);
-    ui->sectionLabel->setEnabled(false);
-    ui->attributesTabWidget->setEnabled(false);
-    ui->studentTable->clear();
-    ui->studentTable->setRowCount(0);
-    ui->studentTable->setColumnCount(0);
-    ui->studentTable->setEnabled(false);
-    ui->addStudentPushButton->setEnabled(false);
-    ui->saveSurveyFilePushButton->setEnabled(false);
-//    ui->actionSave_Survey_File->setEnabled(false);
-    ui->dataDisplayTabWidget->setCurrentIndex(0);
-    ui->isolatedWomenCheckBox->setEnabled(false);
-    ui->isolatedMenCheckBox->setEnabled(false);
-    ui->isolatedNonbinaryCheckBox->setEnabled(false);
-    ui->mixedGenderCheckBox->setEnabled(false);
-    ui->isolatedURMCheckBox->setEnabled(false);
-    ui->URMResponsesButton->setEnabled(false);
-    ui->teamSizeBox->clear();
-    ui->teamSizeBox->setEnabled(false);
-    ui->idealTeamSizeBox->setEnabled(false);
-    ui->letsDoItButton->setEnabled(false);
-//    ui->actionLoad_Student_Roster->setEnabled(false);
-//    ui->actionCompare_Students_to_Canvas_Course->setEnabled(false);
-//    ui->actionSave_Teams->setEnabled(false);
-//    ui->actionSave_Teams->disconnect();
-//    ui->actionSave_Teams->setText(tr("Save Teams..."));
-//    ui->actionPost_Teams_to_Canvas->setEnabled(false);
-//    ui->actionPost_Teams_to_Canvas->disconnect();
-//    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas..."));
-//    ui->actionPrint_Teams->setEnabled(false);
-//    ui->actionPrint_Teams->disconnect();
-//    ui->actionPrint_Teams->setText(tr("Print Teams..."));
-    // remove any teams tabs (since we delete each one, move from last down to first; don't delete index 0 which is the student tab)
-    for(int tabIndex = ui->dataDisplayTabWidget->count() - 1; tabIndex > 0; tabIndex--)
-    {
-        ui->dataDisplayTabWidget->removeTab(tabIndex);
-        ui->dataDisplayTabWidget->widget(tabIndex)->deleteLater();
-    }
-
-    // next replace
     ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
-//    ui->actionLoad_Student_Roster->setEnabled(true);
-//    ui->actionCompare_Students_to_Canvas_Course->setEnabled(true);
-    ui->studentTable->setEnabled(true);
-    ui->addStudentPushButton->setEnabled(true);
-    ui->teammatesButton->setEnabled(true);
-    ui->teammatesLabel->setEnabled(true);
 
     ui->sectionSelectionBox->blockSignals(true);
-    if(dataOptions->sectionIncluded)
-    {
-        if(dataOptions->sectionNames.size() > 1)
-        {
-            ui->sectionSelectionBox->setEnabled(true);
-            ui->sectionLabel->setEnabled(true);
+    if(dataOptions->sectionIncluded) {
+        if(dataOptions->sectionNames.size() > 1) {
             ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
             ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
             ui->sectionSelectionBox->insertSeparator(2);
             ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
+            ui->sectionSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
-        else
-        {
+        else {
             ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+            ui->sectionFrame->hide();
+            ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
     }
-    else
-    {
+    else {
         ui->sectionSelectionBox->addItem(tr("No section data."));
+        ui->sectionFrame->hide();
+        ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
     teamingOptions->sectionName = ui->sectionSelectionBox->currentText();
     ui->sectionSelectionBox->blockSignals(false);
 
     refreshStudentDisplay();
-
     ui->studentTable->resetTable();
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
+    ui->teamsizeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+    if(dataOptions->genderIncluded) {
+        ui->genderSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    }
+    else {
+        ui->genderFrame->hide();
+        ui->genderSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    }
+
+    if(dataOptions->URMIncluded) {
+        ui->URMSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    }
+    else {
+        ui->URMFrame->hide();
+        ui->URMSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    }
+
+    if(dataOptions->genderIncluded && dataOptions->URMIncluded) {
+        ui->genderSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->genderAndURMLine->setStyleSheet("color: " OPENWATERHEX ";");
+        ui->URMLabel->hide();
+    }
+    else {
+        ui->genderAndURMLine->setStyleSheet("color: " TRANSPARENT ";");
+    }
 
     ui->attributesTabWidget->setUpdatesEnabled(false);
     disconnect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
     ui->attributesTabWidget->clear();
     delete[] attributeTab;
     attributeTab = new attributeTabItem[MAX_ATTRIBUTES];
-    if(dataOptions->numAttributes > 0)
-    {
+    if(dataOptions->numAttributes > 0) {
         //(re)set the weight to zero for any attributes with just one value in the data
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-        {
-            if(dataOptions->attributeVals[attribute].size() == 1)
-            {
+        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+            if(dataOptions->attributeVals[attribute].size() == 1) {
                 teamingOptions->attributeWeights[attribute] = 0;
             }
             ui->attributesTabWidget->addTab(&attributeTab[attribute], QString::number(attribute + 1));
@@ -2362,50 +2279,30 @@ void gruepr::loadUI()
             connect(attributeTab[attribute].requiredButton, &QPushButton::clicked, this, &gruepr::requiredResponsesButton_clicked);
             connect(attributeTab[attribute].incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
         }
-        ui->attributesTabWidget->setEnabled(true);
         ui->attributesTabWidget->setCurrentIndex(0);
+        ui->attributeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+        refreshAttributeTabBar(0);
+        connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
     }
-    else
-    {
+    else {
         ui->attributesTabWidget->addTab(&attributeTab[0], "1");
+        ui->attributesFrame->hide();
+        ui->attributeSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
     ui->attributesTabWidget->setUpdatesEnabled(true);
-    refreshAttributeTabBar(0);
-    connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
 
-    if(dataOptions->genderIncluded)
-    {
-        ui->isolatedWomenCheckBox->setEnabled(true);
-        ui->isolatedMenCheckBox->setEnabled(true);
-        ui->isolatedNonbinaryCheckBox->setEnabled(true);
-        ui->mixedGenderCheckBox->setEnabled(true);
+    if(!dataOptions->dayNames.isEmpty()) {
+        ui->minMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
+        ui->desiredMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
+        ui->scheduleSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    }
+    else {
+        ui->scheduleFrame->hide();
+        ui->scheduleSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
-    if(dataOptions->URMIncluded)
-    {
-        ui->isolatedURMCheckBox->setEnabled(true);
-        ui->URMResponsesButton->setEnabled(true);
-    }
-
-    if(!dataOptions->dayNames.isEmpty())
-    {
-        ui->minMeetingTimes->setEnabled(true);
-        ui->desiredMeetingTimes->setEnabled(true);
-        ui->meetingLength->setEnabled(true);
-        ui->scheduleWeight->setEnabled(true);
-        ui->label_0->setEnabled(true);
-        ui->label_7->setEnabled(true);
-        ui->minMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1)));
-        ui->desiredMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLength->currentIndex() + 1)));
-    }
-
-    ui->idealTeamSizeBox->setEnabled(true);
-    ui->teamSizeBox->setEnabled(true);
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
-
-//    ui->actionLoad_Teaming_Options_File->setEnabled(true);
-//    ui->actionSave_Teaming_Options_File->setEnabled(true);
-    ui->letsDoItButton->setEnabled(true);
 }
 
 
@@ -2514,67 +2411,66 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false);
 
-    ui->studentTable->setColumnCount(dataOptions->sectionIncluded? 6 : 5);
+    ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != -1? 1 : 0) + (dataOptions->firstNameField != -1? 1 : 0) +
+                                     (dataOptions->lastNameField != -1? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
     QIcon unsortedIcon(":/icons/updown_arrow.png");
     int column = 0;
-    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("Survey\nSubmission\nTime")));
-    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("First Name")));
-    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("Last Name")));
+    if(dataOptions->timestampField != -1) {
+        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
+    }
+    if(dataOptions->firstNameField != -1) {
+        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  First  \n  Name  ")));
+    }
+    if(dataOptions->lastNameField != -1) {
+        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Last  \n  Name  ")));
+    }
     if(dataOptions->sectionIncluded)
     {
-        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("Section")));
+        ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Section  ")));
     }
-    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(tr("Edit")));
-    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Remove")));
+    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(tr("  Edit  ")));
+    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("  Remove  ")));
 
     ui->studentTable->setRowCount(dataOptions->numStudentsInSystem);
     numStudents = 0;
-    for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+    for(const auto &student : students)
     {
-        if((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1) || (students[index].section == ui->sectionSelectionBox->currentText()))
+        column = 0;
+        if((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1) || (student.section == ui->sectionSelectionBox->currentText()))
         {
-            bool duplicate = students[index].duplicateRecord;
+            ui->studentTable->setVerticalHeaderItem(numStudents, new QTableWidgetItem(QString::number(numStudents + 1)));
 
-            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, QLocale::system().toString(students[index].surveyTimestamp, QLocale::ShortFormat));
-            timestamp->setToolTip(students[index].tooltip);
-            if(duplicate)
-            {
-                timestamp->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
+            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
+            if(dataOptions->timestampField != -1) {
+                ui->studentTable->setItem(numStudents, column++, timestamp);
             }
-            ui->studentTable->setItem(numStudents, 0, timestamp);
-
-            auto *firstName = new QTableWidgetItem(students[index].firstname);
-            firstName->setToolTip(students[index].tooltip);
-            if(duplicate)
-            {
-                firstName->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
+            auto *firstName = new QTableWidgetItem(student.firstname);
+            if(dataOptions->firstNameField != -1) {
+                ui->studentTable->setItem(numStudents, column++, firstName);
             }
-            ui->studentTable->setItem(numStudents, 1, firstName);
-
-            auto *lastName = new QTableWidgetItem(students[index].lastname);
-            lastName->setToolTip(students[index].tooltip);
-            if(duplicate)
-            {
-                lastName->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
+            auto *lastName = new QTableWidgetItem(student.lastname);
+            if(dataOptions->lastNameField != -1) {
+                ui->studentTable->setItem(numStudents, column++, lastName);
             }
-            ui->studentTable->setItem(numStudents, 2, lastName);
-
-            int column = 3;
+            auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::alphanumeric, student.section);
             if(dataOptions->sectionIncluded)
             {
-                auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::alphanumeric, students[index].section);
-                section->setToolTip(students[index].tooltip);
-                if(duplicate)
-                {
-                    section->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
+                ui->studentTable->setItem(numStudents, column++, section);
+            }
+
+            bool duplicate = student.duplicateRecord;
+
+            QList<QTableWidgetItem*> items = {timestamp, firstName, lastName, section};
+            for(auto &item : items) {
+                item->setToolTip(student.tooltip);
+                if(duplicate) {
+                    item->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
                 }
-                ui->studentTable->setItem(numStudents, column, section);
-                column++;
             }
 
             auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons/edit.png"), "", this);
-            editButton->setToolTip("<html>" + tr("Edit") + " " + students[index].firstname + " " + students[index].lastname + tr("'s data.") + "</html>");
-            editButton->setProperty("StudentIndex", index);
+            editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
+            editButton->setProperty("StudentIndex", numStudents);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
@@ -2592,21 +2488,20 @@ void gruepr::refreshStudentDisplay()
                                                                       while(editButton != ui->studentTable->cellWidget(row, ui->studentTable->columnCount()-2))
                                                                            {row++;}
                                                                       ui->studentTable->cellLeft(row);});
-            ui->studentTable->setCellWidget(numStudents, column, editButton);
-            column++;
+            ui->studentTable->setCellWidget(numStudents, column++, editButton);
 
             auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons/delete.png"), "", this);
-            removerButton->setToolTip("<html>" + tr("Remove") + " " + students[index].firstname + " " + students[index].lastname + " " +
-                                                 tr("from the current data set.") + "</html>");
-            removerButton->setProperty("StudentIndex", index);
+            removerButton->setToolTip("<html>" + tr("Remove") + " " + student.firstname + " " + student.lastname + " " +
+                                                 tr("from the list.") + "</html>");
+            removerButton->setProperty("StudentIndex", numStudents);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
                 removerButton->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
             }
-            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, index, removerButton] {
+            connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, numStudents = numStudents, removerButton] {
                                                                                 removerButton->disconnect();
-                                                                                removeAStudent(index, false);});
+                                                                                removeAStudent(numStudents, false);});
             // pass on mouse enter events onto cell in table
             connect(removerButton, &PushButtonWithMouseEnter::mouseEntered, this, [this, removerButton]
                                                                            {int row=0;
@@ -2623,12 +2518,17 @@ void gruepr::refreshStudentDisplay()
             numStudents++;
         }
     }
-    ui->studentTable->setRowCount(numStudents);
 
-    QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))?
-                          "All sections" : " Section: " + teamingOptions->sectionName);
-    ui->dataSourceLabel->setText(ui->dataSourceLabel->text().split(RIGHTDOUBLEARROW)[0].trimmed() + "  " + RIGHTDOUBLEARROW +
-                                  " " + sectiontext + "  " + RIGHTDOUBLEARROW + " " + QString::number(numStudents) + " students");
+    if(dataOptions->sectionIncluded) {
+        QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))?
+                                   "All sections" : " Section: " + teamingOptions->sectionName);
+        ui->dataSourceLabel->setText(ui->dataSourceLabel->text().split(RIGHTDOUBLEARROW)[0].trimmed() + "  " + RIGHTDOUBLEARROW +
+                                     " " + sectiontext + "  " + RIGHTDOUBLEARROW + " " + QString::number(numStudents) + " students");
+    }
+    else {
+        ui->dataSourceLabel->setText(ui->dataSourceLabel->text().split(RIGHTDOUBLEARROW)[0].trimmed() + "  " + RIGHTDOUBLEARROW +
+                                     " " + QString::number(numStudents) + " students");
+    }
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();
