@@ -95,7 +95,7 @@ SOURCES += \
         dialogs/registerDialog.cpp \
         dialogs/startDialog.cpp \
         dialogs/whichFilesDialog.cpp \
-        widgets/attributeTabItem.cpp \
+        widgets/attributeWidget.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
@@ -140,7 +140,7 @@ HEADERS += \
         dialogs/registerDialog.h \
         dialogs/startDialog.h \
         dialogs/whichFilesDialog.h \
-        widgets/attributeTabItem.h \
+        widgets/attributeWidget.h \
         widgets/comboBoxThatPassesScrollwheel.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/labelThatForwardsMouseClicks.h \

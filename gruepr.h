@@ -5,10 +5,6 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QPrinter>
-//#ifdef Q_OS_WIN32
-//  #include <QWinTaskbarButton>
-//  #include <QWinTaskbarProgress>
-//#endif
 #include "boxwhiskerplot.h"
 #include "canvashandler.h"
 #include "csvfile.h"
@@ -19,7 +15,7 @@
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
-#include "widgets/attributeTabItem.h"
+#include "widgets/attributeWidget.h"
 
 
 namespace Ui {class gruepr;}
@@ -63,15 +59,10 @@ private slots:
     void on_addStudentPushButton_clicked();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void on_saveSurveyFilePushButton_clicked();
-    void simpleUIItemUpdate();
-    void on_isolatedURMCheckBox_stateChanged(int arg1);
+    void simpleUIItemUpdate(QObject *sender = nullptr);
     void on_URMResponsesButton_clicked();
-    void refreshAttributeTabBar(int index);
     void requiredResponsesButton_clicked();
     void incompatibleResponsesButton_clicked();
-    void on_minMeetingTimes_valueChanged(int arg1);
-    void on_desiredMeetingTimes_valueChanged(int arg1);
-    void on_meetingLengthSpinBox_valueChanged(int arg1);
     void on_idealTeamSizeBox_valueChanged(int arg1);
     void on_teamSizeBox_currentIndexChanged(int index);
     void on_teammatesButton_clicked();
@@ -96,8 +87,8 @@ signals:
 private:
         // setup
     Ui::gruepr *ui;
-    void loadUI();
     void loadDefaultSettings();
+    void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
@@ -112,7 +103,8 @@ private:
     void refreshStudentDisplay();
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
-    attributeTabItem *attributeTab = nullptr;
+    QList<QPushButton *> attributeSelectorButtons;
+    QList<AttributeWidget *> attributeWidgets;
     GoogleHandler *google = nullptr;
     CanvasHandler *canvas = nullptr;
 
@@ -123,10 +115,6 @@ private:
     QFutureWatcher< QList<int> > futureWatcher;                   // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
-//#ifdef Q_OS_WIN32
-//    QWinTaskbarButton *taskbarButton = nullptr;
-//    QWinTaskbarProgress *taskbarProgress = nullptr;
-//#endif
     static float getGenomeScore(const StudentRecord *const _student, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                 float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);

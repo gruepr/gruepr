@@ -38,7 +38,7 @@ public:
     void close(bool deleteFile = false);
     bool readHeader();
     //void setFieldMeanings();
-    QDialog* chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
+    QDialog* chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
     bool readDataRow(bool resetToStart = false);
     bool writeHeader();
     void writeDataRow();

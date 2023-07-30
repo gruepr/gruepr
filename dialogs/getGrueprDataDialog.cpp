@@ -16,7 +16,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
 
     ui->sourceFrame->setStyleSheet(QString() + "QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
                                    QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
-    ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; font-weight: bold; "
+    ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
     ui->sourceButtonGroup->setId(ui->fromFileRadioButton, fromFile);
     ui->sourceButtonGroup->setId(ui->fromGoogleradioButton, fromGoogle);
@@ -671,6 +671,8 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
 
 bool GetGrueprDataDialog::readData()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
     // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
     dataOptions->timestampField = int(surveyFile.fieldMeanings.indexOf("Timestamp"));
     dataOptions->firstNameField = int(surveyFile.fieldMeanings.indexOf("First Name"));
@@ -1054,5 +1056,6 @@ bool GetGrueprDataDialog::readData()
     }
 
     surveyFile.close(isTempFile);
+    QApplication::restoreOverrideCursor();
     return true;
 }

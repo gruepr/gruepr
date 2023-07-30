@@ -14,11 +14,11 @@ class BoxWhiskerPlot : public QChart
 
 public:
     BoxWhiskerPlot(const QString &title = "", const QString &xAxisTitle = "", const QString &yAxisTitle = "", QWidget *parent = nullptr);
-    void loadNextVals(const QVector<float> &vals, const int *const orderedIndex, const bool unpenalizedGenomePresent);
+    void loadNextVals(const QList<float> &vals, const int *const orderedIndex, const bool unpenalizedGenomePresent);
     inline static const int PLOTFREQUENCY = 5;
 
 private:
-    float median(const QVector<float> &vals, const int *const orderedIndex, const int begin, const int end);
+    float median(const QList<float> &vals, const int *const orderedIndex, const int begin, const int end);
     QBoxPlotSeries *dataSeries;
     QCategoryAxis *axisX;
     QValueAxis *axisY;

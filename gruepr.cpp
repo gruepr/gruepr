@@ -30,21 +30,15 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons_new/icon.svg"));
-    adjustSize();
-    qRegisterMetaType<QVector<float> >("QVector<float>");
+    qRegisterMetaType<QList<float> >("QList<float>");
 
     ui->dataSourceFrame->setStyleSheet(QString() + "QFrame {background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX "; "
                                                            "border: none;}"
                                                    "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
     ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}");
-    ui->dataSourceLabel->adjustSize();
-    QPixmap fileIcon(":/icons_new/file.png");
-    int h = ui->dataSourceLabel->height() * 3 / 2;
-    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
     ui->newDataSourceButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
                                                         "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}");
-
     QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
     for(auto &frame : frames) {
         frame->setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" +
@@ -52,11 +46,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     }
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
 
-    //For the attibute tabs, put the "attribute" label in the corner and freeze the width
-    ui->attributesTabWidget->setCornerWidget(new QLabel(tr("Attribute") + ": ", ui->attributesTabWidget), Qt::TopLeftCorner);
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
-    ui->attributesTabWidget->adjustSize();
-    ui->attributesTabWidget->setFixedWidth(ui->attributesTabWidget->width());
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
 
     //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
@@ -70,19 +60,19 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 //    //Setup the main window menu items
 //    connect(ui->actionLoad_Student_Roster, &QAction::triggered, this, &gruepr::loadStudentRoster);
 //    connect(ui->actionCompare_Students_to_Canvas_Course, &QAction::triggered, this, &gruepr::compareRosterToCanvas);
-//    connect(ui->actionSave_Survey_File, &QAction::triggered, this, &gruepr::on_saveSurveyFilePushButton_clicked);
 //    connect(ui->actionLoad_Teaming_Options_File, &QAction::triggered, this, &gruepr::loadOptionsFile);
 //    connect(ui->actionSave_Teaming_Options_File, &QAction::triggered, this, &gruepr::saveOptionsFile);
-//    ui->actionExit->setMenuRole(QAction::QuitRole);
-//    connect(ui->actionExit, &QAction::triggered, this, &gruepr::close);
 
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
-    connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
-    connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
-    connect(ui->isolatedNonbinaryCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
-    connect(ui->mixedGenderCheckBox, &QCheckBox::stateChanged, this, &gruepr::simpleUIItemUpdate);
-    connect(ui->scheduleWeight, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &gruepr::simpleUIItemUpdate);
-//    connect(ui->requestedTeammateNumberBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &gruepr::simpleUIItemUpdate);
+    connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
+    connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
+    connect(ui->isolatedNonbinaryCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedNonbinaryCheckBox);});
+    connect(ui->mixedGenderCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->mixedGenderCheckBox);});
+    connect(ui->isolatedURMCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedURMCheckBox);});
+    connect(ui->minMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->minMeetingTimes);});
+    connect(ui->desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->desiredMeetingTimes);});
+    connect(ui->meetingLengthSpinBox, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
+    connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
 
     //Set alternate fonts on some UI features
     QFont altFont = this->font();
@@ -91,8 +81,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->addStudentPushButton->setFont(altFont);
     ui->saveSurveyFilePushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
-
-    adjustSize();
 
     teamingOptions = new TeamingOptions;
     this->dataOptions = new DataOptions(std::move(dataOptions));
@@ -113,7 +101,6 @@ gruepr::~gruepr()
     delete canvas;
     delete dataOptions;
     delete teamingOptions;
-    delete[] attributeTab;
     delete ui;
 }
 
@@ -421,7 +408,7 @@ void gruepr::loadStudentRoster()
         }
 
         // create a place to save info for names with mismatched emails
-        QVector <int> studentsWithDiffEmail;
+        QList <int> studentsWithDiffEmail;
         studentsWithDiffEmail.reserve(dataOptions->numStudentsInSystem);
 
         for(auto &name : names)
@@ -723,7 +710,7 @@ void gruepr::loadOptionsFile()
                     }
                 }
                 int requiredResponseNum = 0;
-                QVector<int> setOfRequiredResponses;
+                QList<int> setOfRequiredResponses;
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)) &&
                       loadObject["Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)].isDouble())
                 {
@@ -733,7 +720,7 @@ void gruepr::loadOptionsFile()
                 }
                 teamingOptions->requiredAttributeValues[attribute] = setOfRequiredResponses;
                 int incompatibleResponseNum = 0;
-                QVector< QPair<int,int> > setOfIncompatibleResponses;
+                QList< QPair<int,int> > setOfIncompatibleResponses;
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)) &&
                       loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)].isString())
                 {
@@ -743,9 +730,9 @@ void gruepr::loadOptionsFile()
                     incompatibleResponseNum++;
                 }
                 teamingOptions->incompatibleAttributeValues[attribute] = setOfIncompatibleResponses;
-                if(attribute < dataOptions->numAttributes)
+                if((attribute < dataOptions->numAttributes) && attribute < attributeWidgets.size())
                 {
-                    attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+                    attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
                 }
             }
 
@@ -884,7 +871,7 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(int index)
         }
 
         // put this new tally in the responses textbox of the attribute tab
-        attributeTab[attribute].updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
+        attributeWidgets[attribute]->updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
     }
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
@@ -952,7 +939,7 @@ void gruepr::editAStudent()
             {
                 dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
             }
-            attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+            attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
         }
     }
 
@@ -1012,7 +999,7 @@ void gruepr::removeAStudent(int index, bool delayVisualUpdate)
             {
                 dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
             }
-            attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+            attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
         }
     }
 
@@ -1071,7 +1058,7 @@ void gruepr::on_addStudentPushButton_clicked()
                     {
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
-                    attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
+                    attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
                 }
             }
 
@@ -1348,7 +1335,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
 }
 
 
-void gruepr::simpleUIItemUpdate()
+void gruepr::simpleUIItemUpdate(QObject *sender)
 {
     teamingOptions->isolatedWomenPrevented = (ui->isolatedWomenCheckBox->isChecked());
 
@@ -1358,20 +1345,40 @@ void gruepr::simpleUIItemUpdate()
 
     teamingOptions->singleGenderPrevented = (ui->mixedGenderCheckBox->isChecked());
 
+    teamingOptions->isolatedURMPrevented = (ui->isolatedURMCheckBox->isChecked());
+    ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
+    if(sender == ui->isolatedURMCheckBox) {
+        if(teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
+            // if we are just now preventing isolated URM students, but have not selected yet which responses should be considered URM, let's ask user to enter those in
+            on_URMResponsesButton_clicked();
+        }
+    }
+
+    teamingOptions->minTimeBlocksOverlap = (ui->minMeetingTimes->value());
+    if(sender == ui->minMeetingTimes) {
+        if(ui->desiredMeetingTimes->value() < (ui->minMeetingTimes->value())) {
+            ui->desiredMeetingTimes->setValue(ui->minMeetingTimes->value());
+        }
+    }
+
+    teamingOptions->desiredTimeBlocksOverlap = (ui->desiredMeetingTimes->value());
+    if(sender == ui->desiredMeetingTimes) {
+        if(ui->minMeetingTimes->value() > (ui->desiredMeetingTimes->value())) {
+            ui->minMeetingTimes->setValue(ui->desiredMeetingTimes->value());
+        }
+    }
+
+    teamingOptions->meetingBlockSize = (ui->meetingLengthSpinBox->value());
+    if(sender == ui->meetingLengthSpinBox) {
+        ui->meetingLengthSpinBox->setSuffix(ui->meetingLengthSpinBox->value() > 1? tr("hours") : tr("hour"));
+        if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0)) {
+            ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
+            ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
+        }
+    }
+
     teamingOptions->scheduleWeight = float(ui->scheduleWeight->value());
 
-//    teamingOptions->numberRequestedTeammatesGiven = ui->requestedTeammateNumberBox->value();
-}
-
-
-void gruepr::on_isolatedURMCheckBox_stateChanged(int arg1)
-{
-    teamingOptions->isolatedURMPrevented = (arg1 != 0);
-    if(teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty())
-    {
-        // if we are preventing isolated URM students, but have not selected yet which responses should be considered URM, let's ask user to enter those in
-        on_URMResponsesButton_clicked();
-    }
 }
 
 
@@ -1397,95 +1404,9 @@ void gruepr::on_URMResponsesButton_clicked()
 }
 
 
-void gruepr::refreshAttributeTabBar(int index)
-{
-    auto &tabs = ui->attributesTabWidget;
-
-    if(tabs->count() < 3)
-    {
-        return;
-    }
-
-    // first figure out which tabs are visible
-    int firstVisibleIndex = 0;
-    while(!tabs->isTabVisible(firstVisibleIndex))
-    {
-        firstVisibleIndex++;
-    }
-
-    const int widthOfTabWidget = tabs->size().width() - tabs->cornerWidget(Qt::TopLeftCorner)->width();
-    int lastVisibleIndex = firstVisibleIndex;
-    // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
-    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < dataOptions->numAttributes))
-    {
-        lastVisibleIndex++;
-    }
-    lastVisibleIndex--;
-
-    auto lastTabGeom = tabs->tabBar()->tabRect(lastVisibleIndex);
-    if((firstVisibleIndex != 0) && (index == firstVisibleIndex))
-    {
-        // expanding one or two tabs to left if there are previous tabs to expand the current tab is the first visible
-        tabs->setTabVisible(firstVisibleIndex-1, true);
-        firstVisibleIndex--;
-        if(firstVisibleIndex != 0)
-        {
-            tabs->setTabVisible(firstVisibleIndex-1, true);
-            firstVisibleIndex--;
-        }
-    }
-    else if((firstVisibleIndex != 0) && (lastVisibleIndex == dataOptions->numAttributes - 1) && (lastTabGeom.right() + lastTabGeom.width() < widthOfTabWidget))
-    {
-        // expanding one tab to the left if there are previous tabs to expand and there's simply enough room now due to closing a tab or expanding the window
-        tabs->setTabVisible(firstVisibleIndex-1, true);
-        firstVisibleIndex--;
-    }
-    else if((lastVisibleIndex != dataOptions->numAttributes-1) && (index >= lastVisibleIndex))
-    {
-        // expanding one or two tabs to right if there are subsequent tabs to expand and the current one is the last one visible
-        tabs->setTabVisible(firstVisibleIndex, false);
-        firstVisibleIndex++;
-        lastVisibleIndex++;
-        if(lastVisibleIndex != dataOptions->numAttributes-1)
-        {
-            tabs->setTabVisible(firstVisibleIndex, false);
-            firstVisibleIndex++;
-        }
-    }
-
-    // redetermine the last visible index now for the sake of labeling the tabs
-    lastVisibleIndex = firstVisibleIndex;
-    // count up tabs until we hit one whose right boundary exceeds that of the tabWidget itself (or we hit the last possible index)
-    while((tabs->tabBar()->tabRect(lastVisibleIndex).right() < widthOfTabWidget) && (lastVisibleIndex < dataOptions->numAttributes))
-    {
-        lastVisibleIndex++;
-    }
-    lastVisibleIndex--;
-
-    // reset the label for every tab, with 'scroll triangles' on the ends if needed
-    for(int tab = 0; tab < MAX_ATTRIBUTES; tab++)
-    {
-        QString label;
-        if((tab != 0) && (tab == firstVisibleIndex))
-        {
-            label = QString(LEFTARROW) + " " + QString::number(tab+1);
-        }
-        else if((tab != dataOptions->numAttributes-1) && (tab == lastVisibleIndex))
-        {
-            label = QString::number(tab+1) + " " + QString(RIGHTARROW);
-        }
-        else
-        {
-            label = QString::number(tab+1);
-        }
-        tabs->setTabText(tab, label);
-    }
-}
-
-
 void gruepr::requiredResponsesButton_clicked()
 {
-    int currAttribute = ui->attributesTabWidget->currentIndex();
+    int currAttribute = ui->attributesStackedWidget->currentIndex();
     //Open specialized dialog box to collect attribute values that are required on each team
     auto *win = new gatherAttributeValuesDialog(currAttribute, dataOptions, teamingOptions, gatherAttributeValuesDialog::required, this);
 
@@ -1503,7 +1424,7 @@ void gruepr::requiredResponsesButton_clicked()
 
 void gruepr::incompatibleResponsesButton_clicked()
 {
-    int currAttribute = ui->attributesTabWidget->currentIndex();
+    int currAttribute = ui->attributesStackedWidget->currentIndex();
     //Open specialized dialog box to collect attribute pairings that should prevent students from being on the same team
     auto *win = new gatherAttributeValuesDialog(currAttribute, dataOptions, teamingOptions, gatherAttributeValuesDialog::incompatible, this);
 
@@ -1516,37 +1437,6 @@ void gruepr::incompatibleResponsesButton_clicked()
     }
 
     delete win;
-}
-
-
-void gruepr::on_minMeetingTimes_valueChanged(int arg1)
-{
-    teamingOptions->minTimeBlocksOverlap = arg1;
-    if(ui->desiredMeetingTimes->value() < (arg1))
-    {
-        ui->desiredMeetingTimes->setValue(arg1);
-    }
-}
-
-
-void gruepr::on_desiredMeetingTimes_valueChanged(int arg1)
-{
-    teamingOptions->desiredTimeBlocksOverlap = arg1;
-    if(ui->minMeetingTimes->value() > (arg1))
-    {
-        ui->minMeetingTimes->setValue(arg1);
-    }
-}
-
-
-void gruepr::on_meetingLengthSpinBox_valueChanged(int arg1)
-{
-    teamingOptions->meetingBlockSize = (arg1);
-    if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0))
-    {
-        ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (arg1));
-        ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (arg1));
-    }
 }
 
 
@@ -1964,7 +1854,7 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(const QVector<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
+void gruepr::updateOptimizationProgress(const QList<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
 {
     if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0)
     {
@@ -2203,6 +2093,10 @@ void gruepr::loadDefaultSettings()
 void gruepr::loadUI()
 {
     ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
+    ui->dataSourceLabel->adjustSize();
+    QPixmap fileIcon(":/icons_new/file.png");
+    int h = ui->dataSourceLabel->height() * 3 / 2;
+    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
 
     ui->sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded) {
@@ -2259,38 +2153,46 @@ void gruepr::loadUI()
         ui->genderAndURMLine->setStyleSheet("color: " TRANSPARENT ";");
     }
 
-    ui->attributesTabWidget->setUpdatesEnabled(false);
-    disconnect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
-    ui->attributesTabWidget->clear();
-    delete[] attributeTab;
-    attributeTab = new attributeTabItem[MAX_ATTRIBUTES];
-    if(dataOptions->numAttributes > 0) {
-        //(re)set the weight to zero for any attributes with just one value in the data
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-            if(dataOptions->attributeVals[attribute].size() == 1) {
-                teamingOptions->attributeWeights[attribute] = 0;
-            }
-            ui->attributesTabWidget->addTab(&attributeTab[attribute], QString::number(attribute + 1));
-            attributeTab[attribute].setValues(attribute, dataOptions, teamingOptions);
-            connect(attributeTab[attribute].weight, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                        this, [this](double arg1){teamingOptions->attributeWeights[ui->attributesTabWidget->currentIndex()] = float(arg1);});
-            connect(attributeTab[attribute].homogeneous, &QCheckBox::stateChanged,
-                        this, [this](int arg1){teamingOptions->desireHomogeneous[ui->attributesTabWidget->currentIndex()] = (arg1 != 0);});
-            connect(attributeTab[attribute].requiredButton, &QPushButton::clicked, this, &gruepr::requiredResponsesButton_clicked);
-            connect(attributeTab[attribute].incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
-        }
-        ui->attributesTabWidget->setCurrentIndex(0);
-        ui->attributeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-        refreshAttributeTabBar(0);
-        connect(ui->attributesTabWidget->tabBar(), &QTabBar::currentChanged, this, &gruepr::refreshAttributeTabBar);
-    }
-    else {
-        ui->attributesTabWidget->addTab(&attributeTab[0], "1");
+    if(dataOptions->numAttributes == 0) {
         ui->attributesFrame->hide();
         ui->attributeSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
-    ui->attributesTabWidget->setUpdatesEnabled(true);
+    else {
+        ui->attributesFrame->setUpdatesEnabled(false);
+        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+            attributeWidgets << new AttributeWidget;
+            ui->attributesStackedWidget->addWidget(attributeWidgets.last());
+            attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions);
+            connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
+                        this, [this, attribute](double arg1){teamingOptions->attributeWeights[attribute] = float(arg1);});
+            connect(attributeWidgets.last()->homogeneous, &QCheckBox::stateChanged,
+                        this, [this, attribute](int arg1){teamingOptions->desireHomogeneous[attribute] = (arg1 != 0);});
+            connect(attributeWidgets.last()->requiredButton, &QPushButton::clicked, this, &gruepr::requiredResponsesButton_clicked);
+            connect(attributeWidgets.last()->incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
+
+            if(dataOptions->numAttributes > 1) {
+                attributeSelectorButtons << new QPushButton(tr("Q") + QString::number(attribute + 1));
+                attributeSelectorButtons.last()->setFlat(true);
+                attributeSelectorButtons.last()->setStyleSheet(attribute == 0? SMALLBUTTONSTYLEINVERTED : SMALLBUTTONSTYLE);
+                ui->attributeSelectorGrid->addWidget(attributeSelectorButtons.last(), attribute/5, attribute%5);
+                connect(attributeSelectorButtons.last(), &QPushButton::clicked, this, [this, attribute]
+                                                                                        {ui->attributesStackedWidget->setCurrentIndex(attribute);
+                                                                                          for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
+                                                                                             attributeSelectorButtons[attrib]->setStyleSheet(attrib == attribute?
+                                                                                                                     SMALLBUTTONSTYLEINVERTED : SMALLBUTTONSTYLE);
+                                                                                          }
+                                                                                         });
+            }
+
+            //(re)set the weight to zero for any attributes with just one value in the data
+            if(dataOptions->attributeVals[attribute].size() == 1) {
+                teamingOptions->attributeWeights[attribute] = 0;
+            }
+        }
+        ui->attributesStackedWidget->setCurrentIndex(0);
+        ui->attributeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->attributesFrame->setUpdatesEnabled(true);
+    }
 
     if(!dataOptions->dayNames.isEmpty()) {
         ui->minMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
@@ -2303,6 +2205,8 @@ void gruepr::loadUI()
     }
 
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+
+    adjustSize();
 }
 
 
@@ -2340,7 +2244,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
 
     // Ask user what the columns mean
     // Preloading the selector boxes with "unused" except first time "email", "first name", "last name", and "name" are found
-    QVector<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+    QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
                                                      {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
                                                      {"Email Address", "(e).*(mail)", 1},
                                                      {"Full Name (First Last)", "(name)", 1},
@@ -2539,7 +2443,7 @@ void gruepr::refreshStudentDisplay()
 ////////////////////////////////////////////
 // Create and optimize teams using genetic algorithm
 ////////////////////////////////////////////
-QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
+QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
     std::random_device randDev;
@@ -2613,7 +2517,7 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    QVector<float> scores(GA::POPULATIONSIZE);
+    QList<float> scores(GA::POPULATIONSIZE);
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
@@ -2842,8 +2746,8 @@ QVector<int> gruepr::optimizeTeams(const int *const studentIndexes)
     finalGeneration = generation;
     teamSetScore = bestScores[generation%GA::GENERATIONS_OF_STABILITY];
 
-    //copy best team set into a QVector to return
-    QVector<int> bestTeamSet;
+    //copy best team set into a QList to return
+    QList<int> bestTeamSet;
     bestTeamSet.reserve(numStudents);
     for(int ID = 0; ID < numStudents; ID++)
     {
@@ -3395,7 +3299,6 @@ void gruepr::closeEvent(QCloseEvent *event)
         return;
     }
 
-    ui->attributesTabWidget->tabBar()->disconnect();
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
     savedSettings.setValue("dataFileLocation", dataOptions->dataFile.canonicalFilePath());

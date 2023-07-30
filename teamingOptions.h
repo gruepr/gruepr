@@ -26,9 +26,9 @@ public:
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
     float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight
     bool haveAnyRequiredAttributes[MAX_ATTRIBUTES];
-    QVector<int> requiredAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of required attribute value
+    QList<int> requiredAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of required attribute value
     bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];
-    QVector< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
+    QList< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;
     float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
     int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used

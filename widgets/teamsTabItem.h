@@ -23,7 +23,7 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                          const QVector<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent = nullptr);
+                          const QList<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
     TeamsTabItem(const TeamsTabItem&) = delete;
     TeamsTabItem operator= (const TeamsTabItem&) = delete;
@@ -41,15 +41,15 @@ private slots:
     void teamNamesChanged(int index);
     void randomizeTeamnames();
     void makePrevented();
-    void swapStudents(const QVector<int> &arguments); // arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
-    void moveAStudent(const QVector<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
-    void moveATeam(const QVector<int> &arguments);    // arguments = int teamA, int teamB
+    void swapStudents(const QList<int> &arguments); // arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
+    void moveAStudent(const QList<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
+    void moveATeam(const QList<int> &arguments);    // arguments = int teamA, int teamB
     void undoRedoDragDrop();
 
 private:
     void refreshTeamDisplay();
     void refreshDisplayOrder();
-    QVector<int> getTeamNumbersInDisplayOrder();
+    QList<int> getTeamNumbersInDisplayOrder();
 
     QVBoxLayout *teamDataLayout = nullptr;
 
@@ -59,7 +59,7 @@ private:
 
     QHBoxLayout *dragDropLayout = nullptr;
     QLabel *dragDropExplanation = nullptr;
-    struct UndoRedoItem{void (TeamsTabItem::*action)(const QVector<int> &arguments); QVector<int> arguments; QString ToolTip;};
+    struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments); QList<int> arguments; QString ToolTip;};
     QList<UndoRedoItem> undoItems;
     QList<UndoRedoItem> redoItems;
     QPushButton *undoButton = nullptr;
@@ -74,7 +74,7 @@ private:
     QStringList teamnameCategories;
     QStringList teamnameLists;
     enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_globals.h for how teamname lists are signified
-    QVector<TeamNameType> teamnameTypes;
+    QList<TeamNameType> teamnameTypes;
     QCheckBox *randTeamnamesCheckBox = nullptr;
     QPushButton *sendToPreventedTeammates = nullptr;
 

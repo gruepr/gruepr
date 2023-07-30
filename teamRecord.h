@@ -5,7 +5,7 @@
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include <QString>
-#include <QVector>
+#include <QList>
 #include <set>
 
 // all the info about one team
@@ -31,7 +31,7 @@ public:
     std::set<float> timezoneVals;
     int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
-    QVector<int> studentIndexes;
+    QList<int> studentIndexes;
     QString name;
     QString availabilityChart;
     QString tooltip;

@@ -1670,7 +1670,7 @@ bool CourseInfoPage::uploadRoster()
 
     // Ask user what the columns mean
     // Preloading the selector boxes with "unused" except first time "first name", "last name", and "name" are found
-    QVector<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+    QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
                                                     {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
                                                     {"Full Name (First Last)", "(name)", 1},
                                                     {"Full Name (Last, First)", "(name)", 1}};;

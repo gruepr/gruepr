@@ -35,7 +35,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     datamultiline = new QPlainTextEdit[NUMMULTILINES];
     databox = new ComboBoxThatPassesScrollwheel[NUMCOMBOBOXES];
     attributeTabs = new QTabWidget(this);
-    QVector<int> orderedAttributes, categoricalAttributes, multicategoricalAttributes, multiorderedAttributes, timezoneAttribute;
+    QList<int> orderedAttributes, categoricalAttributes, multicategoricalAttributes, multiorderedAttributes, timezoneAttribute;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)

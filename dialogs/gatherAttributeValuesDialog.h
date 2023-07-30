@@ -33,8 +33,8 @@ public:
     gatherAttributeValuesDialog(gatherAttributeValuesDialog&&) = delete;
     gatherAttributeValuesDialog& operator= (gatherAttributeValuesDialog&&) = delete;
 
-    QVector<int> requiredValues;
-    QVector< QPair<int,int> > incompatibleValues;
+    QList<int> requiredValues;
+    QList< QPair<int,int> > incompatibleValues;
 
 private slots:
     void addValues();
@@ -45,7 +45,7 @@ private:
     void updateExplanation();
     GatherType gatherType;
     DataOptions::AttributeType attributeType;
-    QVector<AttributeValue> attributeValues;
+    QList<AttributeValue> attributeValues;
     int numPossibleValues;
     QGridLayout *theGrid;
     QTextEdit *attributeQuestion;

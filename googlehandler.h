@@ -57,7 +57,7 @@ private:
 
     QOAuth2AuthorizationCodeFlow *google = nullptr;
     QNetworkAccessManager *manager = nullptr;
-    QVector<GoogleForm> formsList;
+    QList<GoogleForm> formsList;
 
     inline static const QSize GOOGLEICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 4000;   //msec

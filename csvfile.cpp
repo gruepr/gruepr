@@ -198,7 +198,7 @@ void CsvFile::writeDataRow()
 //////////////////
 // Open dialog box to let user choose which columns correspond to which fields
 //////////////////
-QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
+QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings, QWidget *parent)
 {
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < numFields; i++)
@@ -319,7 +319,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QVector<possFieldMeaning> &pos
 void CsvFile::validateFieldSelectorBoxes(int callingRow)
 {
     // get list of rows in top-to-bottom order, but if this function is getting called by a selector box, then put its row at the front of the line
-    QVector<int> rows(numFields);
+    QList<int> rows(numFields);
     std::iota(rows.begin(), rows.end(), 0);
     if(callingRow != -1)
     {

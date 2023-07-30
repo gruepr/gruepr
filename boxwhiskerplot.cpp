@@ -40,9 +40,9 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 }
 
 
-void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const orderedIndex, const bool unpenalizedGenomePresent)
+void BoxWhiskerPlot::loadNextVals(const QList<float> &vals, const int *const orderedIndex, const bool unpenalizedGenomePresent)
 {
-    //adds a new distribution to the graph window; QVector vals is not sorted, but the indexes in sorted order is given in orderedIndex
+    //adds a new distribution to the graph window; QList vals is not sorted, but the indexes in sorted order is given in orderedIndex
     const int NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER = 5;
     const int IGNORE_LOWEST_X_PERCENT_DATA = 5;  //drop outliers at low end
 
@@ -91,7 +91,7 @@ void BoxWhiskerPlot::loadNextVals(const QVector<float> &vals, const int *const o
 }
 
 
-float BoxWhiskerPlot::median(const QVector<float> &vals, const int *const orderedIndex, const int begin, const int end)
+float BoxWhiskerPlot::median(const QList<float> &vals, const int *const orderedIndex, const int begin, const int end)
 {
     int count = end - begin;
     if ((count % 2) != 0)

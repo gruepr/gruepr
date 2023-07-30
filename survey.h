@@ -4,7 +4,7 @@
 #include "gruepr_globals.h"
 #include <QString>
 #include <QStringList>
-#include <QVector>
+#include <QList>
 
 
 class Question
@@ -26,7 +26,7 @@ public:
     Survey();
 
     QString title = "";
-    QVector<Question> questions;
+    QList<Question> questions;
     int numAttributes = 0;
     QStringList schedDayNames;
     int schedStartTime = STANDARDSCHEDSTARTTIME;

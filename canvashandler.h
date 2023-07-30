@@ -44,8 +44,8 @@ public:
 
     QStringList getCourses();
     int getStudentCount(const QString &courseName);
-    QVector<StudentRecord> getStudentRoster(const QString &courseName);
-    bool createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QVector<QVector<StudentRecord>> &teams);
+    QList<StudentRecord> getStudentRoster(const QString &courseName);
+    bool createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams);
     bool createSurvey(const QString &courseName, const Survey *const survey);
     QStringList getQuizList(const QString &courseName);
     QString downloadQuizResult(const QString &courseName, const QString &quizName); //returns the filepath of the downloaded file (empty string if error)
@@ -73,9 +73,9 @@ private:
     QString baseURL;
 
     QNetworkAccessManager *manager = nullptr;
-    QVector<CanvasCourse> canvasCourses;
-    QVector<StudentRecord> roster;
-    QVector<CanvasQuiz> quizList;
+    QList<CanvasCourse> canvasCourses;
+    QList<StudentRecord> roster;
+    QList<CanvasQuiz> quizList;
 
     inline static const QSize CANVASICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec

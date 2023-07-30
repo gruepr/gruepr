@@ -85,7 +85,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     theGrid->addWidget(explanation, 1, 0, 1, -1);
 
     //Next rows - the selection of students
-    QVector<StudentRecord> studentsInComboBoxes;
+    QList<StudentRecord> studentsInComboBoxes;
     //Add to combobox a list of all the student names (in this section)
     for(int index = 0; index < numStudentsComingIn; index++)
     {
@@ -442,7 +442,7 @@ bool gatherTeammatesDialog::loadCSVFile()
     // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
     // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
     QStringList basenames;
-    QVector<QStringList> teammates;
+    QList<QStringList> teammates;
     csvFile.readHeader();
     while(csvFile.readDataRow())
     {
@@ -480,7 +480,7 @@ bool gatherTeammatesDialog::loadCSVFile()
         teammates[basestudent].prepend(basenames.at(basestudent));
     }
 
-    QVector<int> IDs;
+    QList<int> IDs;
     for(int basename = 0; basename < basenames.size(); basename++)
     {
         IDs.clear();
@@ -609,7 +609,7 @@ bool gatherTeammatesDialog::loadExistingTeamset()
     /*
     // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
     QStringList basenames;
-    QVector<QStringList> teammates;
+    QList<QStringList> teammates;
 
     // Now we have list of basenames and corresponding lists of teammates by name
     // Need to convert names to IDs and then add each teammate to the basename
@@ -620,7 +620,7 @@ bool gatherTeammatesDialog::loadExistingTeamset()
         teammates[basestudent].prepend(basenames.at(basestudent));
     }
 
-    QVector<int> IDs;
+    QList<int> IDs;
     for(int basename = 0; basename < basenames.size(); basename++)
     {
         IDs.clear();
@@ -713,7 +713,7 @@ bool gatherTeammatesDialog::loadExistingTeamset()
 bool gatherTeammatesDialog::loadStudentPrefs()
 {
     // Need to convert names to IDs and then add all to the preferences
-    QVector<int> IDs;
+    QList<int> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++)
     {
         if((sectionName == "") || (sectionName == student[basestudent].section))
@@ -863,7 +863,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
     // Having read the header row and determined that the file seems correctly formatted, read the remaining rows until there's an empty one
     // Process each row by loading unique team strings into teams and new/matching names into corresponding teammates list
     QStringList teamnames;
-    QVector<QStringList> teammateLists;
+    QList<QStringList> teammateLists;
     spreadsheetFile.readHeader();
     while(spreadsheetFile.readDataRow())
     {
@@ -883,7 +883,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
-    QVector<int> IDs;
+    QList<int> IDs;
     for(const auto &teammateList : qAsConst(teammateLists))
     {
         IDs.clear();
@@ -1016,7 +1016,7 @@ void gatherTeammatesDialog::refreshDisplay()
     currentListOfTeammatesTable->setRowCount(0);
     teammatesSpecified = false;     // assume no teammates specified until we find one
 
-    QVector<StudentRecord*> baseStudents;
+    QList<StudentRecord*> baseStudents;
     for(int index = 0; index < numStudents; index++)
     {
         if((sectionName == "") || (sectionName == student[index].section))

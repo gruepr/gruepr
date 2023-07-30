@@ -289,7 +289,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     //pull out each question and save the question ID and text
     const QJsonArray items = json_doc["items"].toArray();
-    QVector<GoogleFormQuestion> questions;
+    QList<GoogleFormQuestion> questions;
     questions.reserve(items.size());
     for(const auto &item : items) {
         const QJsonObject object = item.toObject();

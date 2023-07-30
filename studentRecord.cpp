@@ -45,7 +45,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                             if(surveyTimestamp.isNull())
                             {
                                 int i = 0;
-                                QVector<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
+                                QList<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
                                 while(i < stdTimestampFormats.size() && surveyTimestamp.isNull())
                                 {
                                     surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));

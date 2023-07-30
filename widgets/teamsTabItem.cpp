@@ -16,7 +16,7 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
-                           const QVector<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
+                           const QList<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
@@ -251,7 +251,7 @@ void TeamsTabItem::teamNamesChanged(int index)
     }
 
     // Get team numbers in the order that they are currently displayed/sorted
-    QVector<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
+    QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
 
     // Set team names to:
     if(index == 0)
@@ -301,7 +301,7 @@ void TeamsTabItem::teamNamesChanged(int index)
         const TeamNameType teamNameType = randTeamnamesCheckBox->isChecked() ? random_sequeled : teamnameTypes.at(index);
         const QStringList teamNames = teamnameLists.at(index).split(',');
 
-        QVector<int> random_order(teamNames.size());
+        QList<int> random_order(teamNames.size());
         if(teamNameType == random_sequeled)
         {
             std::iota(random_order.begin(), random_order.end(), 0);
@@ -442,9 +442,9 @@ void TeamsTabItem::refreshDisplayOrder()
 }
 
 
-QVector<int> TeamsTabItem::getTeamNumbersInDisplayOrder()
+QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder()
 {
-    QVector<int> teamDisplayNums;
+    QList<int> teamDisplayNums;
     teamDisplayNums.reserve(teams.size());
     const int lastCol = teamDataTree->columnCount()-1;
     for(int order = 0; order < teams.size(); order++)
@@ -460,7 +460,7 @@ QVector<int> TeamsTabItem::getTeamNumbersInDisplayOrder()
 }
 
 
-void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
+void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
 {
     int studentAteam = arguments.at(0), studentAID = arguments.at(1), studentBteam = arguments.at(2), studentBID = arguments.at(3);
     if(studentAID == studentBID)
@@ -520,7 +520,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
             delete child;
         }
         int numStudentsOnTeam = teams[studentAteam].size;
-        QVector<TeamTreeWidgetItem*> childItems;
+        QList<TeamTreeWidgetItem*> childItems;
         childItems.reserve(numStudentsOnTeam);
         for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++)
         {
@@ -576,7 +576,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
         }
         int numStudentsOnTeamA = teams[studentAteam].size;
         int numStudentsOnTeamB = teams[studentBteam].size;
-        QVector<TeamTreeWidgetItem*> childItems;
+        QList<TeamTreeWidgetItem*> childItems;
         childItems.reserve(std::max(numStudentsOnTeamA, numStudentsOnTeamB));
         for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++)
         {
@@ -597,7 +597,7 @@ void TeamsTabItem::swapStudents(const QVector<int> &arguments) // QVector<int> a
 }
 
 
-void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> arguments = int oldTeam, int studentID, int newTeam
+void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> arguments = int oldTeam, int studentID, int newTeam
 {
     int oldTeam = arguments.at(0), studentID = arguments.at(1), newTeam = arguments.at(2);
 
@@ -678,7 +678,7 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
     //clear and refresh student items on both teams in table
     int numStudentsOnStudentTeam = teams[oldTeam].size;
     int numStudentsOnNewTeam = teams[newTeam].size;
-    QVector<TeamTreeWidgetItem*> childItems;
+    QList<TeamTreeWidgetItem*> childItems;
     childItems.reserve(std::max(numStudentsOnStudentTeam, numStudentsOnNewTeam));
     for(int studentNum = 0; studentNum < numStudentsOnStudentTeam; studentNum++)
     {
@@ -698,7 +698,7 @@ void TeamsTabItem::moveAStudent(const QVector<int> &arguments) // QVector<int> a
 }
 
 
-void TeamsTabItem::moveATeam(const QVector<int> &arguments)  // QVector<int> arguments = int teamA, int teamB
+void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> arguments = int teamA, int teamB
 {
     int teamA = arguments.at(0), teamB = arguments.at(1);   // teamB = -1 if moving to the last row
 
@@ -987,7 +987,7 @@ void TeamsTabItem::postTeamsToCanvas()
     }
 
     // get team numbers in the order that they are currently displayed/sorted
-    QVector<int> teamDisplayNum;
+    QList<int> teamDisplayNum;
     teamDisplayNum.reserve(teams.size());
     for(int row = 0; row < teams.size(); row++)
     {
@@ -1000,8 +1000,8 @@ void TeamsTabItem::postTeamsToCanvas()
     }
     // assemble each team in display order
     QStringList teamNames;
-    QVector<StudentRecord> teamRoster;
-    QVector<QVector<StudentRecord>> teamRosters;
+    QList<StudentRecord> teamRoster;
+    QList<QList<StudentRecord>> teamRosters;
     for(int teamNum = 0; teamNum < teams.size(); teamNum++)
     {
         int team = teamDisplayNum.at(teamNum);
@@ -1065,9 +1065,9 @@ void TeamsTabItem::printTeams()
 void TeamsTabItem::refreshTeamDisplay()
 {
     //Create TeamTreeWidgetItems for the teams and students
-    QVector<TeamTreeWidgetItem*> parentItems;
+    QList<TeamTreeWidgetItem*> parentItems;
     parentItems.reserve(teams.size());
-    QVector<TeamTreeWidgetItem*> childItems;
+    QList<TeamTreeWidgetItem*> childItems;
     childItems.reserve(numStudents);
 
     //iterate through teams to update the tree of teams and students
@@ -1176,7 +1176,7 @@ void TeamsTabItem::createFileContents()
     studentsFileContents = "";
 
     // get team numbers in the order that they are currently displayed/sorted
-    QVector<int> teamDisplayNum;
+    QList<int> teamDisplayNum;
     teamDisplayNum.reserve(teams.size());
     for(int row = 0; row < teams.size(); row++)
     {
@@ -1440,7 +1440,7 @@ void TeamsTabItem::printOneFile(const QString &file, const QString &delimiter, Q
 
     //paginate the output
     QStringList currentPage;
-    QVector<QStringList> pages;
+    QList<QStringList> pages;
     int y = 0;
     QStringList::const_iterator it = eachTeam.cbegin();
     while (it != eachTeam.cend())

@@ -61,7 +61,7 @@ int CanvasHandler::getStudentCount(const QString &courseName) {
 }
 
 // Retrieves the StudentRoster in the given course
-QVector<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) {
+QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return {};
@@ -96,7 +96,7 @@ QVector<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName
 }
 
 // Creates a teamset
-bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QVector<QVector<StudentRecord>> &teams) {
+bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
     int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return false;

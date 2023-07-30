@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1099</width>
-    <height>659</height>
+    <width>1060</width>
+    <height>738</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,7 +26,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="topLayout" rowstretch="1,0,1" columnstretch="2,3">
+     <layout class="QGridLayout" name="topLayout" rowstretch="1,0,1" columnstretch="3,4">
       <property name="horizontalSpacing">
        <number>9</number>
       </property>
@@ -102,11 +102,11 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>414</width>
-           <height>603</height>
+           <width>442</width>
+           <height>588</height>
           </rect>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0,0,0,0,0,1,0,0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
@@ -371,6 +371,9 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item>
               <widget class="QPushButton" name="URMResponsesButton">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -403,7 +406,13 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           </item>
           <item>
            <widget class="QFrame" name="attributesFrame">
-            <layout class="QVBoxLayout" name="attributesLayout">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QVBoxLayout" name="attributesLayout" stretch="0,0,1">
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="attributesLabel">
                <property name="text">
@@ -412,27 +421,20 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </widget>
              </item>
              <item>
-              <widget class="QTabWidget" name="attributesTabWidget">
+              <layout class="QGridLayout" name="attributeSelectorGrid">
+               <property name="spacing">
+                <number>2</number>
+               </property>
+              </layout>
+             </item>
+             <item>
+              <widget class="QStackedWidget" name="attributesStackedWidget">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>10</verstretch>
                 </sizepolicy>
                </property>
-               <property name="usesScrollButtons">
-                <bool>false</bool>
-               </property>
-               <widget class="attributeTabItem" name="attribute_fillin">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>10</verstretch>
-                 </sizepolicy>
-                </property>
-                <attribute name="title">
-                 <string>1</string>
-                </attribute>
-               </widget>
               </widget>
              </item>
             </layout>
@@ -468,19 +470,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                <property name="verticalSpacing">
                 <number>2</number>
                </property>
-               <item row="1" column="1">
-                <widget class="QSpinBox" name="desiredMeetingTimes">
-                 <property name="toolTip">
-                  <string>gruepr will try to create teams that have this many available meeting times.</string>
-                 </property>
-                 <property name="prefix">
-                  <string>Desired: </string>
-                 </property>
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="value">
-                  <number>8</number>
+               <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Number of weekly meeting times</string>
                  </property>
                 </widget>
                </item>
@@ -497,12 +490,34 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                  </property>
                 </widget>
                </item>
-               <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string>Number of weekly meeting times</string>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="desiredMeetingTimes">
+                 <property name="toolTip">
+                  <string>gruepr will try to create teams that have this many available meeting times.</string>
+                 </property>
+                 <property name="prefix">
+                  <string>Desired: </string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="value">
+                  <number>8</number>
                  </property>
                 </widget>
+               </item>
+               <item row="1" column="2">
+                <spacer name="horizontalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>0</width>
+                   <height>18</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
               </layout>
              </item>
@@ -545,10 +560,14 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                 <number>0</number>
                </property>
                <item>
-                <widget class="QDoubleSpinBox" name="scheduleWeight">
-                 <property name="prefix">
+                <widget class="QLabel" name="scheduleWeightLabel">
+                 <property name="text">
                   <string>Weight: </string>
                  </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDoubleSpinBox" name="scheduleWeight">
                  <property name="suffix">
                   <string notr="true">  /  10</string>
                  </property>
@@ -734,6 +753,9 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             </property>
             <property name="frameShadow">
              <enum>QFrame::Plain</enum>
+            </property>
+            <property name="lineWidth">
+             <number>0</number>
             </property>
             <property name="sizeAdjustPolicy">
              <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -1100,12 +1122,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
    <class>StudentTableWidget</class>
    <extends>QTableWidget</extends>
    <header>widgets/studentTableWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>attributeTabItem</class>
-   <extends>QWidget</extends>
-   <header>widgets/attributeTabItem.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
