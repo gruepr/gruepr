@@ -15,12 +15,12 @@
 #include <QTextStream>
 #include <QtConcurrent>
 
-TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const DataOptions *const incomingDataOptions, CanvasHandler *const incomingCanvas,
+TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
                            const QList<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
 {
-    teamingOptions = new TeamingOptions(*incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
-    addedPreventedTeammates = &incomingTeamingOptions->haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
-    dataOptions = new DataOptions(*incomingDataOptions);
+    teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
+    addedPreventedTeammates = &incomingTeamingOptions.haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
+    dataOptions = new DataOptions(incomingDataOptions);
     canvas = incomingCanvas;
     teams = incomingTeams;
     students = incomingStudents;
@@ -40,10 +40,11 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
     }
     fileAndSectionName += "</html>";
     fileAndSectionLabel = new QLabel(fileAndSectionName, this);
+    fileAndSectionLabel->setWordWrap(true);
     teamDataLayout->addWidget(fileAndSectionLabel);
 
     teamDataTree = new TeamTreeWidget(this);
-    teamDataTree->setStyleSheet("QHeaderView::section{"
+    teamDataTree->setStyleSheet(/*"QHeaderView::section{"
                                 "	border-top:0px solid #D8D8D8;"
                                 "	border-left:0px solid #D8D8D8;"
                                 "	border-right:1px solid black;"
@@ -68,7 +69,16 @@ TeamsTabItem::TeamsTabItem(TeamingOptions *const incomingTeamingOptions, const D
                                 "	background-color: #cccccc;}"
                                 "QTreeWidget::item:hover{"
                                 "	color: black;"
-                                "	background-color: #cccccc;}"
+                                "	background-color: #cccccc;}"*/
+                                QString() + "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                            "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"
+                                            "QHeaderView::down-arrow{image: url(:/icons_new/ComboBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                                            "QHeaderView::up-arrow{image: url(:/icons_new/SpinBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: top left;}"
+                                            "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                            "background-color: " OPENWATERHEX ";}"
+                                            "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}" +
+                                "QTreeWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}" +
+                                SCROLLBARSTYLE +
                                 "QTreeWidget::branch{"
                                 "	background-color: white;}"
                                 "QTreeView::branch:has-siblings:adjoins-item {"
@@ -1071,40 +1081,38 @@ void TeamsTabItem::refreshTeamDisplay()
     childItems.reserve(numStudents);
 
     //iterate through teams to update the tree of teams and students
-    int studentNum = 0;
     for(int teamNum = 0; teamNum < teams.size(); teamNum++)
     {
         const auto &currentTeam = teams[teamNum];
-        parentItems[teamNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::team, teamDataTree->columnCount(), currentTeam.score);
+        parentItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::team, teamDataTree->columnCount(), currentTeam.score);
         QString firstStudentName = students[currentTeam.studentIndexes[0]].lastname+students[currentTeam.studentIndexes[0]].firstname;
         QString firstStudentSection = students[currentTeam.studentIndexes[0]].section;
-        teamDataTree->refreshTeam(parentItems[teamNum], currentTeam, teamNum, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
+        teamDataTree->refreshTeam(parentItems.last(), currentTeam, teamNum, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
 
         //remove all student items in the team
-        for(auto &studentItem : parentItems[teamNum]->takeChildren())
+        for(auto &studentItem : parentItems.last()->takeChildren())
         {
-            parentItems[teamNum]->removeChild(studentItem);
+            parentItems.last()->removeChild(studentItem);
             delete studentItem;
         }
 
         //add new student items
         for(int studentOnTeam = 0, numStudentsOnTeam = currentTeam.size; studentOnTeam < numStudentsOnTeam; studentOnTeam++)
         {
-            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[currentTeam.studentIndexes[studentOnTeam]], dataOptions, teamingOptions);
-            parentItems[teamNum]->addChild(childItems[studentNum]);
-            studentNum++;
+            childItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
+            teamDataTree->refreshStudent(childItems.last(), students[currentTeam.studentIndexes[studentOnTeam]], dataOptions, teamingOptions);
+            parentItems.last()->addChild(childItems.last());
         }
 
-        parentItems[teamNum]->setExpanded(false);
+        parentItems.last()->setExpanded(false);
     }
 
     // Finally, put each team in the table for display
     teamDataTree->setUpdatesEnabled(false);
     teamDataTree->clear();
-    for(int teamNum = 0; teamNum < teams.size(); teamNum++)
+    for(auto &parentItem : parentItems)
     {
-        teamDataTree->addTopLevelItem(parentItems[teamNum]);
+        teamDataTree->addTopLevelItem(parentItem);
     }
     for(int column = 0; column < teamDataTree->columnCount(); column++)
     {

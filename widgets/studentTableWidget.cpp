@@ -11,7 +11,7 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
                   "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
                                         "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"
                   "QHeaderView::down-arrow{image: url(:/icons_new/ComboBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                  "QHeaderView::up-arrow{image: url(:/icons/SpinBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: top left;}"
+                  "QHeaderView::up-arrow{image: url(:/icons_new/SpinBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: top left;}"
                   "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
                                                "background-color: " OPENWATERHEX ";}"
                   "QTableView::item{selection-background-color: " BUBBLYHEX "; selection-color: black;}" +
@@ -128,6 +128,6 @@ void StudentTableWidget::cellEntered(const int row)
         }
     }
     prevID = cellWidget(row, numCols-1)->property("StudentIndex").toInt();
-    cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: #ceeafb; border: none;}");
-    cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: #ceeafb; border: none;}");
+    cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " BUBBLYHEX "; border: none;}");
+    cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " BUBBLYHEX "; border: none;}");
 }

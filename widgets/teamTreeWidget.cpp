@@ -88,42 +88,42 @@ void TeamTreeWidget::expandAll()
 void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     QStringList headerLabels;
-    headerLabels << tr("name") << tr("team\nscore");
+    headerLabels << tr("  name  ") << tr("  team  \n  score  ");
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether)
     {
-        headerLabels << tr("sections");
+        headerLabels << tr("  sections  ");
     }
     else if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately)
     {
-        headerLabels << tr("section");
+        headerLabels << tr("  section  ");
     }
     if(dataOptions->genderIncluded)
     {
         if(dataOptions->genderType == GenderType::pronoun)
         {
-            headerLabels << tr("pronouns");
+            headerLabels << tr("  pronouns  ");
         }
         else
         {
-            headerLabels << tr("gender");
+            headerLabels << tr("  gender  ");
         }
     }
     if(dataOptions->URMIncluded)
     {
-        headerLabels << tr("URM");
+        headerLabels << tr("  URM  ");
     }
     int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++)
     {
-        headerLabels << tr("attribute ") + QString::number(attribute+1);
+        headerLabels << tr("  Q") + QString::number(attribute+1) + "  ";
     }
     if(dataOptions->timezoneIncluded)
     {
-        headerLabels << tr("timezone");
+        headerLabels << tr("  timezone  ");
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        headerLabels << tr("available\nmeeting\nhours");
+        headerLabels << tr("  available  \n  meeting  \n  hours  ");
     }
     headerLabels << tr("display_order");
 
