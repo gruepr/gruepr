@@ -61,8 +61,7 @@ private slots:
     void on_saveSurveyFilePushButton_clicked();
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void on_URMResponsesButton_clicked();
-    void requiredResponsesButton_clicked();
-    void incompatibleResponsesButton_clicked();
+    void responsesRulesButton_clicked();
     void on_idealTeamSizeBox_valueChanged(int arg1);
     void on_teamSizeBox_currentIndexChanged(int index);
     void on_teammatesButton_clicked();
@@ -71,7 +70,6 @@ private slots:
     void on_letsDoItButton_clicked();
     void updateOptimizationProgress(const QList<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
-    void dataDisplayTabSwitch(int newTabIndex);
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
     void loadOptionsFile();

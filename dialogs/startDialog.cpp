@@ -22,7 +22,7 @@ StartDialog::StartDialog(QWidget *parent)
     :QDialog (parent)
 {
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
-    setWindowTitle("Welcome to gruepr!");
+    setWindowTitle("gruepr - Welcome!");
     setAttribute(Qt::WA_DeleteOnClose);
 
     // Get the screen size
@@ -221,8 +221,8 @@ void StartDialog::openGruepr() {
             QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             delete getDataDialog;
-            QApplication::restoreOverrideCursor();
             grueprWindow->show();
+            QApplication::restoreOverrideCursor();
             QEventLoop loop;
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();

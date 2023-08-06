@@ -68,6 +68,7 @@ SOURCES += \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/attributeRulesDialog.cpp \
         dialogs/getGrueprDataDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
         googlehandler.cpp \
@@ -87,7 +88,6 @@ SOURCES += \
         dialogs/dayNamesDialog.cpp \
         dialogs/editOrAddStudentDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
-        dialogs/gatherAttributeValuesDialog.cpp \
         dialogs/gatherTeammatesDialog.cpp \
         dialogs/gatherURMResponsesDialog.cpp \
         dialogs/listTableDialog.cpp \
@@ -114,6 +114,7 @@ HEADERS += \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/attributeRulesDialog.h \
         dialogs/getGrueprDataDialog.h \
         dialogs/sampleQuestionsDialog.h \
         googlehandler.h \
@@ -132,7 +133,6 @@ HEADERS += \
         dialogs/dayNamesDialog.h \
         dialogs/editOrAddStudentDialog.h \
         dialogs/findMatchingNameDialog.h \
-        dialogs/gatherAttributeValuesDialog.h \
         dialogs/gatherTeammatesDialog.h \
         dialogs/gatherURMResponsesDialog.h \
         dialogs/listTableDialog.h \
@@ -154,6 +154,7 @@ HEADERS += \
         widgets/teamTreeWidget.h
 
 FORMS += \
+      dialogs/attributeRulesDialog.ui \
       dialogs/getGrueprDataDialog.ui \
       dialogs/sampleQuestionsDialog.ui \
       gruepr.ui

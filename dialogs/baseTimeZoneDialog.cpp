@@ -12,7 +12,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 {
     //Set up window with a grid layout
     setWindowTitle(tr("Class timezone"));
-    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
     theGrid = new QGridLayout(this);
 
     //explanation and a spacer row
@@ -21,6 +21,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
                             "Which of these should be used as the base timezone for the class? "
                             "The schedules will all be adjusted to correspond to this value.<hr></html>"));
     explanation->setWordWrap(true);
+    explanation->setStyleSheet(LABELSTYLE);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
     theGrid->setRowMinimumHeight(1, DIALOG_SPACER_ROWHEIGHT);
 
@@ -30,6 +31,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 
     QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");
     timezones = new QComboBox(this);
+    timezones->setStyleSheet(COMBOBOXSTYLE);
     for(auto &zonenameText : timeZoneNames)
     {
         QString zonename;
@@ -47,6 +49,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     //a spacer then ok button
     theGrid->setRowMinimumHeight(3, DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
+    buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
     theGrid->addWidget(buttonBox, 4, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
 

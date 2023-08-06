@@ -4,7 +4,7 @@
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
-#include "dialogs/gatherAttributeValuesDialog.h"
+#include "dialogs/attributeRulesDialog.h"
 #include "dialogs/gatherTeammatesDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "widgets/pushButtonWithMouseEnter.h"
@@ -30,6 +30,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->setupUi(this);
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     setWindowIcon(QIcon(":/icons_new/icon.svg"));
+    setWindowTitle(tr("gruepr - Form teams"));
     qRegisterMetaType<QList<float> >("QList<float>");
 
     ui->dataSourceFrame->setStyleSheet(QString() + "QFrame {background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX "; "
@@ -41,20 +42,19 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                         "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}");
     QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
     for(auto &frame : frames) {
-        frame->setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" +
+        frame->setStyleSheet(QString() + "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX "}" +
                                          LABELSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     }
-    ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
-
+    ui->attributesStackedWidget->setStyleSheet(QString() + "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}");
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
+    ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
 
     //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
     ui->dataDisplayTabWidget->setTabsClosable(true);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabCloseRequested, this, &gruepr::dataDisplayTabClose);
-    connect(ui->dataDisplayTabWidget, &QTabWidget::currentChanged, this, &gruepr::dataDisplayTabSwitch);
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
 
 //    //Setup the main window menu items
@@ -739,7 +739,6 @@ void gruepr::loadOptionsFile()
             if(loadObject.contains("numberRequestedTeammatesGiven") && loadObject["numberRequestedTeammatesGiven"].isDouble())
             {
                 teamingOptions->numberRequestedTeammatesGiven = loadObject["numberRequestedTeammatesGiven"].toInt();
-//                ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
             }
 
             loadFile.close();
@@ -942,7 +941,6 @@ void gruepr::editAStudent()
             attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
         }
     }
-
 
     delete win;
 }
@@ -1163,7 +1161,6 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
     // Load new team sizes in selection box
     ui->idealTeamSizeBox->setMaximum(std::max(2,numStudents/2));
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());
-
 }
 
 
@@ -1378,7 +1375,6 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
     }
 
     teamingOptions->scheduleWeight = float(ui->scheduleWeight->value());
-
 }
 
 
@@ -1404,34 +1400,19 @@ void gruepr::on_URMResponsesButton_clicked()
 }
 
 
-void gruepr::requiredResponsesButton_clicked()
+void gruepr::responsesRulesButton_clicked()
 {
-    int currAttribute = ui->attributesStackedWidget->currentIndex();
+    const int currAttribute = ui->attributesStackedWidget->currentIndex();
     //Open specialized dialog box to collect attribute values that are required on each team
-    auto *win = new gatherAttributeValuesDialog(currAttribute, dataOptions, teamingOptions, gatherAttributeValuesDialog::required, this);
+    auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, this);
 
-    //If user clicks OK, replace student database with copy that has had values added
+    //If user clicks OK, replace with new sets of values
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
         teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
         teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
-    }
 
-    delete win;
-}
-
-
-void gruepr::incompatibleResponsesButton_clicked()
-{
-    int currAttribute = ui->attributesStackedWidget->currentIndex();
-    //Open specialized dialog box to collect attribute pairings that should prevent students from being on the same team
-    auto *win = new gatherAttributeValuesDialog(currAttribute, dataOptions, teamingOptions, gatherAttributeValuesDialog::incompatible, this);
-
-    //If user clicks OK, replace student database with copy that has had pairings added
-    int reply = win->exec();
-    if(reply == QDialog::Accepted)
-    {
         teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
         teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
     }
@@ -1795,15 +1776,6 @@ void gruepr::on_letsDoItButton_clicked()
             teams << TeamRecord(dataOptions, teamingOptions->teamSizesDesired[team]);
         }
 
-//#ifdef Q_OS_WIN32
-//        // Set up to show progess on windows taskbar
-//        taskbarButton = new QWinTaskbarButton(this);
-//        taskbarButton->setWindow(windowHandle());
-//        taskbarProgress = taskbarButton->progress();
-//        taskbarProgress->show();
-//        taskbarProgress->setMaximum(0);
-//#endif
-
         // Create progress display plot
         progressChart = new BoxWhiskerPlot("", "Generation", "Scores");
         auto *chartView = new QChartView(progressChart);
@@ -1876,24 +1848,12 @@ void gruepr::updateOptimizationProgress(const QList<float> &allScores, const int
     {
         progressWindow->setText(tr("Optimization in progress."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), false);
     }
-
-//#ifdef Q_OS_WIN32
-//    if(generation >= GA::GENERATIONS_OF_STABILITY)
-//    {
-//        taskbarProgress->setMaximum(100);
-//        taskbarProgress->setValue((scoreStability<100)? static_cast<int>(scoreStability) : 100);
-//    }
-//#endif
 }
 
 
 void gruepr::optimizationComplete()
 {
     // update UI
-//#ifdef Q_OS_WIN32
-//    taskbarProgress->hide();
-//    delete taskbarButton;
-//#endif
     delete progressChart;
     delete progressWindow;
 
@@ -1958,28 +1918,6 @@ void gruepr::optimizationComplete()
     teamingOptions->teamsetNumber++;
 
     ui->dataDisplayTabWidget->setCurrentWidget(teamTab);
-}
-
-
-void gruepr::dataDisplayTabSwitch(int newTabIndex)
-{
-    // don't do anything if they selected the student tab
-    if(newTabIndex < 1)
-    {
-        return;
-    }
-
-    // update the save and print teams menu items to this new tab
-//    ui->actionSave_Teams->disconnect();
-//    ui->actionPost_Teams_to_Canvas->disconnect();
-//    ui->actionPrint_Teams->disconnect();
-//    auto *tab = qobject_cast<TeamsTabItem *>(ui->dataDisplayTabWidget->widget(newTabIndex));
-//    ui->actionSave_Teams->setText(tr("Save Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-//    ui->actionPost_Teams_to_Canvas->setText(tr("Post Teams to Canvas") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-//    ui->actionPrint_Teams->setText(tr("Print Teams") + " (" + ui->dataDisplayTabWidget->tabText(newTabIndex) + ")...");
-//    connect(ui->actionSave_Teams, &QAction::triggered, tab, &TeamsTabItem::saveTeams);
-//    connect(ui->actionPost_Teams_to_Canvas, &QAction::triggered, tab, &TeamsTabItem::postTeamsToCanvas);
-//    connect(ui->actionPrint_Teams, &QAction::triggered, tab, &TeamsTabItem::printTeams);
 }
 
 
@@ -2095,7 +2033,7 @@ void gruepr::loadUI()
     ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
     ui->dataSourceLabel->adjustSize();
     QPixmap fileIcon(":/icons_new/file.png");
-    int h = ui->dataSourceLabel->height() * 3 / 2;
+    int h = ui->dataSourceLabel->height() * 2 / 3;
     ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
 
     ui->sectionSelectionBox->blockSignals(true);
@@ -2146,11 +2084,10 @@ void gruepr::loadUI()
 
     if(dataOptions->genderIncluded && dataOptions->URMIncluded) {
         ui->genderSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        ui->genderAndURMLine->setStyleSheet("color: " OPENWATERHEX ";");
         ui->URMLabel->hide();
-    }
-    else {
-        ui->genderAndURMLine->setStyleSheet("color: " TRANSPARENT ";");
+        ui->URMLabelSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->URMFrame->setStyleSheet(ui->URMFrame->styleSheet().replace("border: 1px solid;",
+                                                                       "border-top: none; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"));
     }
 
     if(dataOptions->numAttributes == 0) {
@@ -2165,23 +2102,45 @@ void gruepr::loadUI()
             attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions);
             connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
                         this, [this, attribute](double arg1){teamingOptions->attributeWeights[attribute] = float(arg1);});
-            connect(attributeWidgets.last()->homogeneous, &QCheckBox::stateChanged,
-                        this, [this, attribute](int arg1){teamingOptions->desireHomogeneous[attribute] = (arg1 != 0);});
-            connect(attributeWidgets.last()->requiredButton, &QPushButton::clicked, this, &gruepr::requiredResponsesButton_clicked);
-            connect(attributeWidgets.last()->incompatsButton, &QPushButton::clicked, this, &gruepr::incompatibleResponsesButton_clicked);
+            connect(attributeWidgets.last()->homogeneous, &SwitchButton::valueChanged,
+                        this, [this, attribute](bool value){teamingOptions->desireHomogeneous[attribute] = value;});
+            connect(attributeWidgets.last()->requiredIncompatsButton, &QPushButton::clicked, this, &gruepr::responsesRulesButton_clicked);
 
             if(dataOptions->numAttributes > 1) {
+                const int rowSize = 5;  // number of buttons in each row
                 attributeSelectorButtons << new QPushButton(tr("Q") + QString::number(attribute + 1));
                 attributeSelectorButtons.last()->setFlat(true);
-                attributeSelectorButtons.last()->setStyleSheet(attribute == 0? SMALLBUTTONSTYLEINVERTED : SMALLBUTTONSTYLE);
-                ui->attributeSelectorGrid->addWidget(attributeSelectorButtons.last(), attribute/5, attribute%5);
+                QString stylesheet = attribute == 0? ATTRIBBUTTONONSTYLE : ATTRIBBUTTONOFFSTYLE;
+                if(attribute == 0) {
+                    stylesheet.replace("border-top-left-radius: 0px;", "border-top-left-radius: 5px;");
+                }
+                if( ((dataOptions->numAttributes < rowSize) && (attribute == (dataOptions->numAttributes - 1))) ||
+                    ((dataOptions->numAttributes >= rowSize) && ((attribute / rowSize) == 0) && ((attribute % rowSize) == (rowSize - 1))) ) {
+                    stylesheet.replace("border-top-right-radius: 0px;", "border-top-right-radius: 5px;");
+                }
+                if(attribute == (dataOptions->numAttributes-1)) {
+                    stylesheet.replace("border-bottom-right-radius: 0px;", "border-bottom-right-radius: 5px;");
+                }
+                if( ((attribute / rowSize) == ((dataOptions->numAttributes - 1) / rowSize)) && ((attribute % rowSize) == 0) ) {
+                    stylesheet.replace("border-bottom-left-radius: 0px;", "border-bottom-left-radius: 5px;");
+                }
+                attributeSelectorButtons.last()->setStyleSheet(stylesheet);
+                ui->attributeSelectorGrid->addWidget(attributeSelectorButtons.last(), attribute/rowSize, attribute%rowSize);
                 connect(attributeSelectorButtons.last(), &QPushButton::clicked, this, [this, attribute]
                                                                                         {ui->attributesStackedWidget->setCurrentIndex(attribute);
                                                                                           for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
-                                                                                             attributeSelectorButtons[attrib]->setStyleSheet(attrib == attribute?
-                                                                                                                     SMALLBUTTONSTYLEINVERTED : SMALLBUTTONSTYLE);
+                                                                                            if( (attribute == attrib) ||
+                                                                                                (attributeSelectorButtons[attrib]->styleSheet()
+                                                                                                                           .contains("background-color: " OPENWATERHEX ";")) ) {
+                                                                                               attributeSelectorButtons[attrib]->setStyleSheet(
+                                                                                                                         attributeSelectorButtons[attrib]->styleSheet()
+                                                                                                                         .replace("white", "black")
+                                                                                                                         .replace(OPENWATERHEX, "white")
+                                                                                                                         .replace("black", OPENWATERHEX));
+                                                                                            }
                                                                                           }
                                                                                          });
+                ui->attributeSelectorGrid->setColumnStretch(rowSize, 1);
             }
 
             //(re)set the weight to zero for any attributes with just one value in the data
@@ -2189,6 +2148,7 @@ void gruepr::loadUI()
                 teamingOptions->attributeWeights[attribute] = 0;
             }
         }
+
         ui->attributesStackedWidget->setCurrentIndex(0);
         ui->attributeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->attributesFrame->setUpdatesEnabled(true);

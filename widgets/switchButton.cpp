@@ -39,9 +39,9 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     if (style == Style::YESNO) {
         _labeloff->setText("No");
         _labelon->setText("Yes");
-        _labeloff->move(33, 5);
+        _labeloff->move(35, 5);
         _labelon->move(12, 5);
-        setFixedSize(QSize(60, 24));
+        setFixedSize(QSize(62, 24));
     }
     else if (style == Style::BOOL) {
         _labeloff->setText("False");

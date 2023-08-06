@@ -18,7 +18,7 @@
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     : QWizard(parent)
 {
-    setWindowTitle(tr("Make a survey"));
+    setWindowTitle(tr("gruepr - Make a survey"));
     setWizardStyle(QWizard::ModernStyle);
     setMinimumWidth(800);
     setMinimumHeight(600);

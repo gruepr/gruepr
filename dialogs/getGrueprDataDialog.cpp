@@ -12,7 +12,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
     ui(new Ui::GetGrueprDataDialog)
 {
     ui->setupUi(this);
-    setWindowTitle(tr("Form teams"));
+    setWindowTitle(tr("gruepr - Form teams"));
 
     ui->sourceFrame->setStyleSheet(QString() + "QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
                                    QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
@@ -129,7 +129,7 @@ bool GetGrueprDataDialog::getFromFile()
     QFileInfo dataFile;
     dataFile.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
 
-    if(!surveyFile.open(this, CsvFile::read, tr("Open Survey Data File"), dataFile.canonicalPath(), tr("Survey Data")))
+    if(!surveyFile.open(this, CsvFile::read, tr("Open Survey Data File"), dataFile.canonicalFilePath(), tr("Survey Data")))
     {
         return false;
     }
