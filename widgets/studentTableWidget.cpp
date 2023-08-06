@@ -7,6 +7,11 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
     : QTableWidget(parent)
 {
     horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    horizontalHeader()->setStyleSheet("QHeaderView {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                                    "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}");
+    verticalHeader()->setStyleSheet("QHeaderView {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                                  "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}");
     setStyleSheet(QString() + "QTableView{gridline-color: gray; font-family: DM Sans;}"
                   "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
                                         "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"

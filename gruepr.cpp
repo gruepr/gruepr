@@ -49,6 +49,14 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
+    ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
+
+    QList<QWidget *> selectors = {ui->sectionSelectionBox, ui->idealTeamSizeBox, ui->teamSizeBox,
+                                  ui->minMeetingTimes, ui->desiredMeetingTimes, ui->meetingLengthSpinBox, ui->scheduleWeight};
+    for(auto &selector : selectors) {
+        selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
+    }
 
     //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
     ui->dataDisplayTabWidget->setTabsClosable(true);
