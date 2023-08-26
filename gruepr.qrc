@@ -79,5 +79,9 @@
         <file>icons_new/file.png</file>
         <file>icons_new/upload_file.png</file>
         <file>icons_new/Create teams.png</file>
+        <file>icons_new/add.png</file>
+        <file>icons_new/edit_document.png</file>
+        <file>icons_new/print.png</file>
+        <file>icons_new/list_file.png</file>
     </qresource>
 </RCC>

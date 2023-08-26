@@ -395,6 +395,10 @@ bool GetGrueprDataDialog::getFromCanvas()
         canvas->notBusy(busyBox);
         return false;
     }
+
+    //get the roster for later comparison
+    roster = canvas->getStudentRoster(course);
+
     busyBox->setText(tr("Success!"));
     icon.load(":/icons/ok.png");
     busyBox->setIconPixmap(icon.scaled(iconSize));
@@ -470,6 +474,11 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
                 surveyFile.fieldMeanings[i] = "**IGNORE**";
                 ignore = true;
             }
+            // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
+            if((ui->sourceButtonGroup->checkedId() == fromCanvas) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)){
+                surveyFile.fieldMeanings[i] = "**LMSID**";
+                ignore = true;
+            }
         }
 
         if(!ignore && surveyFile.fieldMeanings.at(i).isEmpty())
@@ -515,10 +524,10 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
         auto *model = qobject_cast<QStandardItemModel *>(selector->model());
         model->item(0)->setForeground(Qt::darkRed);
         selector->insertSeparator(1);
-        if(surveyFile.fieldMeanings.at(row) == "**IGNORE**")
+        if((surveyFile.fieldMeanings.at(row) == "**IGNORE**") || (surveyFile.fieldMeanings.at(row) == "**LMSID**"))
         {
-            selector->setCurrentText(UNUSEDTEXT);
-            surveyFile.fieldMeanings[row] = UNUSEDTEXT;
+            selector->addItem(surveyFile.fieldMeanings.at(row));
+            selector->setCurrentText(surveyFile.fieldMeanings.at(row));
             ui->tableWidget->hideRow(row);
         }
         else
@@ -562,6 +571,9 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
     {
         // get the selected fieldMeaning
         const auto *box = qobject_cast<QComboBox *>(ui->tableWidget->cellWidget(row, 1));
+        if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
+            continue;
+        }
         QString selection = box->currentText();
 
         // set it in the CsvFile's data
@@ -609,6 +621,9 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
     for(auto row = rows.rbegin(); row != rows.rend(); ++row)
     {
         auto *box = qobject_cast<QComboBox *>(ui->tableWidget->cellWidget(*row, 1));
+        if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
+            continue;
+        }
         box->blockSignals(true);
         auto *model = qobject_cast<QStandardItemModel *>(box->model());
         for(auto &takenValue : takenValues)
@@ -675,6 +690,7 @@ bool GetGrueprDataDialog::readData()
 
     // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
     dataOptions->timestampField = int(surveyFile.fieldMeanings.indexOf("Timestamp"));
+    dataOptions->LMSIDField = int(surveyFile.fieldMeanings.indexOf("**LMSID**"));
     dataOptions->firstNameField = int(surveyFile.fieldMeanings.indexOf("First Name"));
     dataOptions->lastNameField = int(surveyFile.fieldMeanings.indexOf("Last Name"));
     dataOptions->emailField = int(surveyFile.fieldMeanings.indexOf("Email Address"));
@@ -813,15 +829,14 @@ bool GetGrueprDataDialog::readData()
     {
         students << StudentRecord();
         students.last().parseRecordFromStringList(surveyFile.fieldValues, dataOptions);
-        students.last().ID = dataOptions->latestStudentID;
-        dataOptions->latestStudentID++;
+        students.last().ID = students.size();
 
         // see if this record is a duplicate; assume it isn't and then check
         students.last().duplicateRecord = false;
         for(int index = 0; index < numStudents; index++)
         {
-            if((students.last().firstname + students.last().lastname == students[index].firstname + students[index].lastname) ||
-                ((students.last().email == students[index].email) && !students.last().email.isEmpty()))
+            if(((students.last().firstname + students.last().lastname).compare(students[index].firstname + students[index].lastname, Qt::CaseInsensitive) == 0) ||
+                ((students.last().email.compare(students[index].email, Qt::CaseInsensitive) == 0) && !students.last().email.isEmpty()))
             {
                 students.last().duplicateRecord = true;
                 students[index].duplicateRecord = true;
@@ -854,12 +869,37 @@ bool GetGrueprDataDialog::readData()
         numStudents++;
     }
     while(surveyFile.readDataRow() && numStudents < MAX_STUDENTS);
+
+    // if there's a (separately-sourced) roster of students, compare against the list of submissions and add the info of any non-submitters now
+    // for now, only works with Canvas, since using LMSID as the match
+    if(ui->sourceButtonGroup->checkedId() == fromCanvas) {
+        for(const auto &student : roster)
+        {
+            int index = 0;
+            int LMSid = student.LMSID;
+            while((index < numStudents) && (LMSid != students[index].LMSID))
+            {
+                index++;
+            }
+
+            if(index == numStudents && numStudents < MAX_STUDENTS)
+            {
+                // Match not found -- student did not submit a survey -- so add a record with their name
+                students << StudentRecord();
+                students.last().firstname = student.firstname;
+                students.last().lastname = student.lastname;
+                students.last().LMSID = student.LMSID;
+                numStudents++;
+            }
+        }
+    }
+
     dataOptions->numStudentsInSystem = numStudents;
 
     if(numStudents == MAX_STUDENTS)
     {
         QMessageBox::warning(this, tr("Reached maximum number of students."),
-                             tr("The maximum number of students have been read from the file."
+                             tr("The maximum number of students have been read."
                                 " This version of gruepr does not allow more than ") + QString::number(MAX_STUDENTS) + ".", QMessageBox::Ok);
     }
 

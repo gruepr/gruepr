@@ -39,6 +39,7 @@
 // - moved codebase to Qt 6.5
 // - moved Windows compiler to msvc
 // - updated surveymaker to all new UI design!
+// - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // INPROG:
 // - update greupr to all new UI design!

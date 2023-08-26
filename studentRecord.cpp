@@ -32,24 +32,28 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Google Form
             if(surveyTimestamp.isNull())
             {
-                surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT3);
+                surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), Qt::ISODate); // format with direct download from Canvas
                 if(surveyTimestamp.isNull())
                 {
-                    surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT4);
+                    surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT3);
                     if(surveyTimestamp.isNull())
                     {
-                        surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::ShortFormat);
+                        surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT4);
                         if(surveyTimestamp.isNull())
                         {
-                            surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::LongFormat);
+                            surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::ShortFormat);
                             if(surveyTimestamp.isNull())
                             {
-                                int i = 0;
-                                QList<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
-                                while(i < stdTimestampFormats.size() && surveyTimestamp.isNull())
+                                surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::LongFormat);
+                                if(surveyTimestamp.isNull())
                                 {
-                                    surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
-                                    i++;
+                                    int i = 0;
+                                    QList<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
+                                    while(i < stdTimestampFormats.size() && surveyTimestamp.isNull())
+                                    {
+                                        surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
+                                        i++;
+                                    }
                                 }
                             }
                         }
@@ -61,6 +65,13 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(surveyTimestamp.isNull())
     {
         surveyTimestamp = QDateTime::currentDateTime();
+    }
+
+    // LMSID
+    fieldnum = dataOptions->LMSIDField;
+    if(fieldnum != -1)
+    {
+        LMSID = fields.at(fieldnum).toUtf8().trimmed().toInt();
     }
 
     // First name

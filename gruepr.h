@@ -50,13 +50,12 @@ protected:
 
 private slots:
     void on_newDataSourceButton_clicked();
-    void loadStudentRoster();
-    void compareRosterToCanvas();
     void on_sectionSelectionBox_currentIndexChanged(int index);
     void editAStudent();
     void removeAStudent(const QString &name, bool delayVisualUpdate);
     void removeAStudent(int index, bool delayVisualUpdate);
     void on_addStudentPushButton_clicked();
+    void on_compareRosterPushButton_clicked();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void on_saveSurveyFilePushButton_clicked();
     void simpleUIItemUpdate(QObject *sender = nullptr);
@@ -74,8 +73,6 @@ private slots:
     void editDataDisplayTabName(int tabIndex);
     void loadOptionsFile();
     void saveOptionsFile();
-
-
 
 signals:
     void generationComplete(const QList<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
@@ -95,7 +92,7 @@ private:
     inline QString writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB);
 
         // reading survey data
-    int numStudents = MAX_STUDENTS;
+    int numActiveStudents = MAX_STUDENTS;
     QList<StudentRecord> students;
     bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; checks survey names and emails against roster
     void refreshStudentDisplay();

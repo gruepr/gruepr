@@ -17,8 +17,8 @@ public:
     static bool parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &hours, float &minutes, float &offsetFromGMT);
     static bool parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &offsetFromGMT);
 
-    int latestStudentID = 0;                        // the ID value of the most recent student added to the current working list
     int timestampField = -1;
+    int LMSIDField = -1;
     int emailField = -1;
     int firstNameField = -1;
     int lastNameField = -1;

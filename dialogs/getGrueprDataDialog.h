@@ -28,6 +28,8 @@ private:
 
     enum Source{fromFile, fromGoogle, fromCanvas};
 
+    QList<StudentRecord> roster;    // holds roster of students from alternative source (in order to add names of non-submitters)
+
     void loadData();
     CsvFile surveyFile;
     bool isTempFile;

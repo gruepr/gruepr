@@ -57,8 +57,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-67</y>
-           <width>481</width>
+           <y>0</y>
+           <width>443</width>
            <height>632</height>
           </rect>
          </property>
@@ -747,6 +747,9 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
         <property name="documentMode">
          <bool>true</bool>
         </property>
+        <property name="tabBarAutoHide">
+         <bool>true</bool>
+        </property>
         <widget class="QWidget" name="studentsTab">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -872,7 +875,38 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </property>
               <property name="icon">
                <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/add.png</normaloff>:/icons/add.png</iconset>
+                <normaloff>:/icons_new/add.png</normaloff>:/icons_new/add.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="compareRosterPushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;Add a student to the current dataset.&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Compare to Roster</string>
+              </property>
+              <property name="icon">
+               <iconset resource="gruepr.qrc">
+                <normaloff>:/icons_new/list_file.png</normaloff>:/icons_new/list_file.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -903,7 +937,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </property>
               <property name="icon">
                <iconset resource="gruepr.qrc">
-                <normaloff>:/icons/saveFile.png</normaloff>:/icons/saveFile.png</iconset>
+                <normaloff>:/icons_new/edit_document.png</normaloff>:/icons_new/edit_document.png</iconset>
               </property>
               <property name="iconSize">
                <size>
