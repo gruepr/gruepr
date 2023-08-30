@@ -20,7 +20,7 @@ class TeamTreeWidgetItem : public QTreeWidgetItem
 public:
     enum TreeItemType{team, student};
     TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
-    void setBackgroundColor(float teamScore);
+    void setScoreColor(float teamScore);
     bool operator<(const QTreeWidgetItem &other) const override;
 
 private:

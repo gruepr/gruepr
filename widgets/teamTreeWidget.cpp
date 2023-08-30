@@ -10,7 +10,34 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     :QTreeWidget(parent)
 {
     setHeader(new TeamTreeHeaderView(this));
+    setStyleSheet(QString() +
+                    "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
+                    "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}"
+                    "QTreeWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}"
+                    "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
+                    "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
+                    "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
+                    "	border-image: none; image: url(:/icons_new/smallRightButton.png);}"
+                    "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
+                    "	border-image: none; image: url(:/icons_new/smallDownButton.png);}" +
+                  SCROLLBARSTYLE);
     header()->setSectionResizeMode(QHeaderView::Interactive);
+    header()->setStretchLastSection(false);
+    header()->setStyleSheet("QHeaderView {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                          "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                            "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
+                                                   "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                            "QHeaderView::down-arrow{image: url(:/icons_new/downButton.png); width: 15px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                            "QHeaderView::up-arrow{image: url(:/icons_new/upButton.png); width: 15px; subcontrol-origin: padding; subcontrol-position: top left;}");
+    setMouseTracking(true);
+    setHeaderHidden(false);
+    setDragDropMode(QAbstractItemView::InternalMove);
+    setDropIndicatorShown(false);
+    setAlternatingRowColors(true);
+    setAutoScroll(false);
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
     connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
     connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::collapseItem);
@@ -88,24 +115,24 @@ void TeamTreeWidget::expandAll()
 void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     QStringList headerLabels;
-    headerLabels << tr("  name  ") << tr("  team  \n  score  ");
+    headerLabels << tr("  Team name  ") << tr("  Score  ");
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether)
     {
-        headerLabels << tr("  sections  ");
+        headerLabels << tr("  Sections  ");
     }
     else if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately)
     {
-        headerLabels << tr("  section  ");
+        headerLabels << tr("  Section  ");
     }
     if(dataOptions->genderIncluded)
     {
         if(dataOptions->genderType == GenderType::pronoun)
         {
-            headerLabels << tr("  pronouns  ");
+            headerLabels << tr("  Pronouns  ");
         }
         else
         {
-            headerLabels << tr("  gender  ");
+            headerLabels << tr("  Gender  ");
         }
     }
     if(dataOptions->URMIncluded)
@@ -119,11 +146,11 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     }
     if(dataOptions->timezoneIncluded)
     {
-        headerLabels << tr("  timezone  ");
+        headerLabels << tr("  Timezone  ");
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        headerLabels << tr("  available  \n  meeting  \n  hours  ");
+        headerLabels << tr("  Meeting  \n  hours  ");
     }
     headerLabels << tr("display_order");
 
@@ -137,7 +164,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     auto *headerTextWithIcon = new QTreeWidgetItem;
     for(int i = 0; i < headerLabels.size(); i++)
     {
-        headerTextWithIcon->setIcon(i, QIcon(":/icons/updown_arrow.png"));
+        headerTextWithIcon->setIcon(i, QIcon(":/icons_new/upDownButton.png"));
         headerTextWithIcon->setText(i, headerLabels.at(i));
     }
     setHeaderItem(headerTextWithIcon);
@@ -587,7 +614,7 @@ void TeamTreeWidget::resorting(int column)
     {
         if(i != column)
         {
-            headerItem()->setIcon(i, QIcon(":/icons/updown_arrow.png"));
+            headerItem()->setIcon(i, QIcon(":/icons_new/upDownButton.png"));
         }
         else
         {
@@ -618,51 +645,35 @@ void TeamTreeWidget::leaveEvent(QEvent *event)
 
 TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, float teamScore)
 {
-    if(type == team && columns > 0)
-    {
+    if(type == team && columns > 0) {
         numColumns = columns;
-        QFont teamFont = this->font(0);
-        teamFont.setBold(true);
-        for(int col = 0; col < numColumns; col++)
-        {
-            setFont(col, teamFont);
+        for(int col = 0; col < numColumns; col++) {
             setForeground(col, Qt::black);
         }
-        setBackgroundColor(teamScore);
+        setScoreColor(teamScore);
     }
 }
 
-
-void TeamTreeWidgetItem::setBackgroundColor(float teamScore)
+void TeamTreeWidgetItem::setScoreColor(float teamScore)
 {
-    QBrush teamColor;
-    if(teamScore < 0)
-    {
-        teamColor = QColor::fromString(LIGHTPINKHEX);
+    if(teamScore < 0) {
+        setBackground(1, QColor::fromString(STARFISHHEX));
     }
-    else
-    {
-        teamColor = QColor::fromString(LIGHTBLUEHEX);
-    }
-
-    for(int col = 0; col < numColumns; col++)
-    {
-        setBackground(col, teamColor);
+    else {
+        setBackground(1, background(0));
     }
 }
 
 
 bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
 {
-    if(parent() != nullptr)      // don't sort the students, only the teams
-    {
+    if(parent() != nullptr) {      // don't sort the students, only the teams
         return false;
     }
 
     int sortColumn = treeWidget()->sortColumn();
 
-    if(sortColumn == 0)
-    {
+    if(sortColumn == 0) {
         return (data(sortColumn, TEAMINFO_SORT_ROLE).toString() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toString());
     }
 

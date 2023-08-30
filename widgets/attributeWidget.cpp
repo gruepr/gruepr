@@ -47,15 +47,13 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     homogenLabel = new QLabel(tr("Homogeneous Values"), this);
     homogenLabel->setToolTip(HOMOGENTOOLTIP);
     theGrid->addWidget(homogenLabel, row, column++);
-    homogeneous = new SwitchButton(this, false);
+    homogeneous = new SwitchButton(this, true);
     homogeneous->setToolTip(HOMOGENTOOLTIP);
     theGrid->addWidget(homogeneous, row++, column);
 
     requiredIncompatsButton = new QPushButton(tr("Set Rules"), this);
     requiredIncompatsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
-    theGrid->addWidget(requiredIncompatsButton, row++, 0, 1, -1);
-
-    theGrid->setRowStretch(row, 1);
+    theGrid->addWidget(requiredIncompatsButton, row, 0, 1, -1);
 }
 
 

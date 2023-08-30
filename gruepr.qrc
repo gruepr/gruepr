@@ -1,11 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/friends.png</file>
-        <file>icons/ruler.png</file>
-        <file>icons/schedule.png</file>
-        <file>icons/classroom.png</file>
         <file>icons/attributes.png</file>
-        <file>icons/about.png</file>
         <file>icons/save.png</file>
         <file>icons/party.png</file>
         <file>icons/stop.png</file>
@@ -13,39 +9,24 @@
         <file>icons/add.png</file>
         <file>icons/delete.png</file>
         <file>icons/print.png</file>
-        <file>icons/help.png</file>
         <file>LICENSE.txt</file>
         <file>README.md</file>
         <file>fonts/OxygenMono-Regular.otf</file>
-        <file>icons/gender.png</file>
-        <file>icons/allkinds.png</file>
-        <file>icons/branch-closed.png</file>
-        <file>icons/branch-end.png</file>
-        <file>icons/branch-more.png</file>
-        <file>icons/branch-open.png</file>
         <file>icons/edit.png</file>
         <file>icons/down_arrow.png</file>
         <file>icons/up_arrow.png</file>
         <file>icons/complete.png</file>
         <file>icons/exit.png</file>
         <file>icons/surveymaker.png</file>
-        <file>icons/license.png</file>
-        <file>icons/updown_arrow.png</file>
         <file>icons/blank_arrow.png</file>
         <file>icons/ok.png</file>
         <file>icons/loading.gif</file>
-        <file>icons/website.png</file>
-        <file>icons/saveFile.png</file>
         <file>icons/saveSettings.png</file>
         <file>icons/loadSettings.png</file>
         <file>icons/openFile.png</file>
         <file>icons/swap.png</file>
         <file>icons/move.png</file>
-        <file>icons/loadRoster.png</file>
-        <file>icons/bug.png</file>
         <file>icons/notfriends.png</file>
-        <file>icons/redo.png</file>
-        <file>icons/undo.png</file>
         <file>icons/canvas.png</file>
         <file>icons/google.png</file>
         <file>icons/wait.png</file>
@@ -63,14 +44,14 @@
         <file>icons_new/gruepr.icns</file>
         <file>icons_new/surveyMakerWizardTitleBackground.png</file>
         <file>icons_new/surveyMakerWizardTopLabelBackground.png</file>
-        <file>icons_new/ComboBoxButton.png</file>
+        <file>icons_new/downButton.png</file>
         <file>icons_new/addButton.png</file>
         <file>icons_new/Checkmark.png</file>
         <file>icons_new/trashButton.png</file>
         <file>icons_new/lightbulb.png</file>
         <file>icons_new/BannerLeft.png</file>
         <file>icons_new/BannerRight.png</file>
-        <file>icons_new/SpinBoxButton.png</file>
+        <file>icons_new/upButton.png</file>
         <file>icons_new/checkedradio.png</file>
         <file>icons_new/uncheckedradio.png</file>
         <file>icons_new/external-link.png</file>
@@ -83,5 +64,13 @@
         <file>icons_new/edit_document.png</file>
         <file>icons_new/print.png</file>
         <file>icons_new/list_file.png</file>
+        <file>icons_new/redo.png</file>
+        <file>icons_new/undo.png</file>
+        <file>icons_new/rightButton.png</file>
+        <file>icons_new/upDownButton.png</file>
+        <file>icons_new/branch-end.png</file>
+        <file>icons_new/branch-more.png</file>
+        <file>icons_new/smallDownButton.png</file>
+        <file>icons_new/smallRightButton.png</file>
     </qresource>
 </RCC>

@@ -26,13 +26,12 @@ public:
 private:
     Ui::GetGrueprDataDialog *ui;
 
-    enum Source{fromFile, fromGoogle, fromCanvas};
+    enum Source{fromFile, fromGoogle, fromCanvas} source = fromFile;
 
     QList<StudentRecord> roster;    // holds roster of students from alternative source (in order to add names of non-submitters)
 
     void loadData();
-    CsvFile surveyFile;
-    bool isTempFile;
+    CsvFile *surveyFile = nullptr;
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();

@@ -35,6 +35,7 @@ public:
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     bool openExistingFile(const QString &filepath);
     QFileInfo fileInfo();
+    bool isOpen();
     void close(bool deleteFile = false);
     bool readHeader();
     //void setFieldMeanings();

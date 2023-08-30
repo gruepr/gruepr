@@ -3,7 +3,9 @@
 
 #include "studentRecord.h"
 #include "survey.h"
-#include <QMessageBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QLabel>
 #include <QOAuth2AuthorizationCodeFlow>
 #include <QtNetwork>
 
@@ -39,8 +41,11 @@ public:
     void authenticate(const QString &token);
     bool authenticated = false;
 
-    QMessageBox* busy(QWidget *parent = nullptr);
-    void notBusy(QMessageBox *busyDialog);
+    QDialog* busy(QWidget *parent = nullptr);
+    QLabel* busyBoxIcon = nullptr;
+    QLabel* busyBoxLabel = nullptr;
+    QDialogButtonBox* busyBoxButtons = nullptr;
+    void notBusy(QDialog *busyDialog);
 
     QStringList getCourses();
     int getStudentCount(const QString &courseName);

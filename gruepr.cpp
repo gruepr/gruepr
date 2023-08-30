@@ -58,7 +58,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
     }
 
-    //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing, switching, & double-click
+    //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing & double-click
     ui->dataDisplayTabWidget->setTabsClosable(true);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
@@ -1802,9 +1802,8 @@ void gruepr::loadUI()
 {
     ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
     ui->dataSourceLabel->adjustSize();
-    QPixmap fileIcon(":/icons_new/file.png");
     int h = ui->dataSourceLabel->height() * 2 / 3;
-    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
+    ui->dataSourceIcon->setMaximumSize(h, h);
 
     ui->sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded) {
@@ -2045,7 +2044,7 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != -1? 1 : 0) + (dataOptions->firstNameField != -1? 1 : 0) +
                                      (dataOptions->lastNameField != -1? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
-    QIcon unsortedIcon(":/icons/updown_arrow.png");
+    QIcon unsortedIcon(":/icons_new/upDownButton.png");
     int column = 0;
     if(dataOptions->timestampField != -1) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
@@ -2152,17 +2151,6 @@ void gruepr::refreshStudentDisplay()
         }
     }
     ui->studentTable->setVerticalHeaderLabels(rowNumbers);
-
-    if(dataOptions->sectionIncluded) {
-        QString sectiontext = (((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1))?
-                                   "All sections" : " Section: " + teamingOptions->sectionName);
-        ui->dataSourceLabel->setText(ui->dataSourceLabel->text().split(RIGHTDOUBLEARROW)[0].trimmed() + "  " + RIGHTDOUBLEARROW +
-                                     " " + sectiontext + "  " + RIGHTDOUBLEARROW + " " + QString::number(numActiveStudents) + " students");
-    }
-    else {
-        ui->dataSourceLabel->setText(ui->dataSourceLabel->text().split(RIGHTDOUBLEARROW)[0].trimmed() + "  " + RIGHTDOUBLEARROW +
-                                     " " + QString::number(numActiveStudents) + " students");
-    }
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();

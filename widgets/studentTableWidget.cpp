@@ -9,19 +9,20 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
     horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
-                                                   "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"
+                                                   "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
                                        "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
-                                                             "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"
-                                       "QHeaderView::down-arrow{image: url(:/icons_new/ComboBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                                       "QHeaderView::up-arrow{image: url(:/icons_new/SpinBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: top left;}");
+                                                             "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                                       "QHeaderView::down-arrow{image: url(:/icons_new/downButton.png); width: 15px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                                       "QHeaderView::up-arrow{image: url(:/icons_new/upButton.png); width: 15px; subcontrol-origin: padding; subcontrol-position: top left;}");
     verticalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray; padding: 1px;"
-                                                 "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:center;}"
+                                                 "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}"
                                      "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray; padding: 1px;"
-                                                           "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:center;}");
-    setStyleSheet(QString() + "QTableView{gridline-color: gray; font-family: DM Sans;}"
+                                                           "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
+    setStyleSheet(QString() + "QTableView{gridline-color: gray; font-family: 'DM Sans'; font-size: 12pt;}"
                                "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
                                                             "background-color: " OPENWATERHEX ";}"
-                               "QTableView::item{selection-background-color: " BUBBLYHEX "; selection-color: black;}" +
+                               "QTableWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}"
+                               "QTableWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}" +
                   SCROLLBARSTYLE);
 
     connect(this, &QTableWidget::entered, this, &StudentTableWidget::itemEntered);
@@ -55,7 +56,7 @@ void StudentTableWidget::sortByColumn(int column)
         QTableWidget::sortByColumn(column, horizontalHeader()->sortIndicatorOrder());
         horizontalHeaderItem(column)->setIcon(QIcon(":/icons/blank_arrow.png"));
         if(column != prevSortColumn)
-        {horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons/updown_arrow.png"));}
+        {horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons_new/upDownButton.png"));}
         prevSortColumn = column;
         prevSortOrder = horizontalHeader()->sortIndicatorOrder();
     }

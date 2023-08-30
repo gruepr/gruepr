@@ -16,7 +16,7 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
-                           const QList<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
+                           const QList<TeamRecord> &incomingTeams, const QList<StudentRecord> &incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
     addedPreventedTeammates = &incomingTeamingOptions.haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
@@ -30,118 +30,61 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     setContentsMargins(0,0,0,0);
     teamDataLayout = new QVBoxLayout;
     teamDataLayout->setSpacing(6);
-    teamDataLayout->setStretch(0,100);
+    teamDataLayout->setStretch(0, 1);
     setLayout(teamDataLayout);
 
-    QString fileAndSectionName = "<html><b>" + tr("File") + ":</b> " + dataOptions->dataFile.fileName();
-    if(dataOptions->sectionNames.size() > 1)
-    {
-        fileAndSectionName += ",  <b>" + tr("Section") + ":</b> " + teamingOptions->sectionName;
-    }
-    fileAndSectionName += "</html>";
-    fileAndSectionLabel = new QLabel(fileAndSectionName, this);
-    fileAndSectionLabel->setWordWrap(true);
-    teamDataLayout->addWidget(fileAndSectionLabel);
-
     teamDataTree = new TeamTreeWidget(this);
-    teamDataTree->setStyleSheet(/*"QHeaderView::section{"
-                                "	border-top:0px solid #D8D8D8;"
-                                "	border-left:0px solid #D8D8D8;"
-                                "	border-right:1px solid black;"
-                                "	border-bottom: 1px solid black;"
-                                "	background-color:Gainsboro;"
-                                "	padding:4px;"
-                                "	font-weight:bold;"
-                                "	color:black;"
-                                "	text-align:center;}"
-                                "QHeaderView::down-arrow{"
-                                "	image: url(:/icons/down_arrow.png);"
-                                "	width:18px;"
-                                "	subcontrol-origin:padding;"
-                                "	subcontrol-position:bottom left;}"
-                                "QHeaderView::up-arrow{"
-                                "	image: url(:/icons/up_arrow.png);"
-                                "	width:18px;"
-                                "	subcontrol-origin:padding;"
-                                "	subcontrol-position:top left;}"
-                                "QTreeWidget::item:selected{"
-                                "	color: black;"
-                                "	background-color: #cccccc;}"
-                                "QTreeWidget::item:hover{"
-                                "	color: black;"
-                                "	background-color: #cccccc;}"*/
-                                QString() + "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
-                                            "background-color:" OPENWATERHEX "; font-family: DM Sans; font-weight: bold; color: white; text-align:left;}"
-                                            "QHeaderView::down-arrow{image: url(:/icons_new/ComboBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                                            "QHeaderView::up-arrow{image: url(:/icons_new/SpinBoxButton.png); width: 18px; subcontrol-origin: padding; subcontrol-position: top left;}"
-                                            "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
-                                            "background-color: " OPENWATERHEX ";}"
-                                            "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}" +
-                                "QTreeWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}" +
-                                SCROLLBARSTYLE +
-                                "QTreeWidget::branch{"
-                                "	background-color: white;}"
-                                "QTreeView::branch:has-siblings:adjoins-item {"
-                                "	border-image: url(:/icons/branch-more.png);}"
-                                "QTreeView::branch:!has-children:!has-siblings:adjoins-item {"
-                                "	border-image: url(:/icons/branch-end.png);}"
-                                "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
-                                "	border-image: none; "
-                                "	image: url(:/icons/branch-closed.png);}"
-                                "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
-                                "	border-image: none;"
-                                "	image: url(:/icons/branch-open.png);}");
-    teamDataTree->setMouseTracking(true);
-    teamDataTree->setHeaderHidden(false);
-    teamDataTree->header()->setStretchLastSection(false);
-    teamDataTree->setDragDropMode(QAbstractItemView::InternalMove);
-    teamDataTree->setDropIndicatorShown(false);
-    teamDataTree->setAlternatingRowColors(true);
-    teamDataTree->setAutoScroll(false);
-    teamDataTree->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    teamDataTree->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     teamDataLayout->addWidget(teamDataTree);
 
-    dragDropLayout = new QHBoxLayout;
-    dragDropLayout->setSpacing(6);
-    teamDataLayout->addLayout(dragDropLayout);
+    rowsLayout = new QHBoxLayout;
+    rowsLayout->setSpacing(6);
+    teamDataLayout->addLayout(rowsLayout);
 
-    dragDropExplanation = new QLabel(tr("Use drag-and-drop to adjust the placement of teams and students."), this);
-    dragDropLayout->addWidget(dragDropExplanation);
+    dragDropExplanation = new QLabel(tr("Drag and drop rows to move teams and students"), this);
+    dragDropExplanation->setStyleSheet(LABELSTYLE);
+    rowsLayout->addWidget(dragDropExplanation);
 
-    undoButton = new QPushButton(QIcon(":/icons/undo.png"), "", this);
+    undoButton = new QPushButton(QIcon(":/icons_new/undo.png"), "", this);
+    undoButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     undoButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     undoButton->setEnabled(false);
     undoButton->setToolTip("");
     connect(undoButton, &QPushButton::clicked, this, &TeamsTabItem::undoRedoDragDrop);
-    dragDropLayout->addWidget(undoButton);
-    redoButton = new QPushButton(QIcon(":/icons/redo.png"), "", this);
+    rowsLayout->addWidget(undoButton);
+
+    redoButton = new QPushButton(QIcon(":/icons_new/redo.png"), "", this);
+    redoButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     redoButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     redoButton->setEnabled(false);
     redoButton->setToolTip("");
     connect(redoButton, &QPushButton::clicked, this, &TeamsTabItem::undoRedoDragDrop);
-    dragDropLayout->addWidget(redoButton);
-    dragDropLayout->addStretch();
+    rowsLayout->addWidget(redoButton);
+
+    rowsLayout->addStretch(0);
+
+    expandAllButton = new QPushButton(tr("Expand All Rows"), this);
+    expandAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    expandAllButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(expandAllButton, &QPushButton::clicked, teamDataTree, &TeamTreeWidget::expandAll);
+    rowsLayout->addWidget(expandAllButton);
+
+    collapseAllButton = new QPushButton(tr("Collapse All Rows"), this);
+    collapseAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    collapseAllButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(collapseAllButton, &QPushButton::clicked, teamDataTree, &TeamTreeWidget::collapseAll);
+    rowsLayout->addWidget(collapseAllButton);
+
+    horLine = new QFrame(this);
+    horLine->setStyleSheet("border-color: " DEEPWATERHEX);
+    horLine->setLineWidth(1);
+    horLine->setMidLineWidth(1);
+    horLine->setFrameShape(QFrame::HLine);
+    horLine->setFrameShadow(QFrame::Plain);
+    teamDataLayout->addWidget(horLine);
 
     teamOptionsLayout = new QHBoxLayout;
     teamOptionsLayout->setSpacing(6);
     teamDataLayout->addLayout(teamOptionsLayout);
-
-    expandAllButton = new QPushButton(tr("Expand All"), this);
-    expandAllButton->setToolTip(tr("Show the students in all of the teams"));
-    teamOptionsLayout->addWidget(expandAllButton);
-
-    collapseAllButton = new QPushButton(tr("Collapse All"), this);
-    collapseAllButton->setToolTip(tr("Show only the summarized data for all of the teams"));
-    teamOptionsLayout->addWidget(collapseAllButton);
-
-    vertLine = new QFrame(this);
-    vertLine->setFrameShape(QFrame::VLine);
-    vertLine->setFrameShadow(QFrame::Sunken);
-    teamOptionsLayout->addWidget(vertLine);
-
-    setNamesLabel = new QLabel(tr("Set team names:"), this);
-    teamOptionsLayout->addWidget(setNamesLabel);
 
     teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
     teamnameLists = QString(TEAMNAMELISTS).split(';');
@@ -171,58 +114,50 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
         teamnameCategory.chop(1);
     }
     teamnamesComboBox = new QComboBox(this);
+    teamnamesComboBox->setStyleSheet(COMBOBOXSTYLE);
+    teamnamesComboBox->setPlaceholderText(tr("Set team names"));
     teamnamesComboBox->addItems(teamnameCategories);
     teamnamesComboBox->addItem(tr("Custom names..."));
     teamnamesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    teamnamesComboBox->setCurrentIndex(0);
-    teamnamesComboBox->setToolTip(tr("Change the team names"));
     connect(teamnamesComboBox, QOverload<int>::of(&QComboBox::activated), this, &TeamsTabItem::teamNamesChanged);
     teamOptionsLayout->addWidget(teamnamesComboBox);
 
     randTeamnamesCheckBox = new QCheckBox(tr("Randomize"), this);
+    randTeamnamesCheckBox->setStyleSheet(CHECKBOXSTYLE);
     randTeamnamesCheckBox->setEnabled(false);
     randTeamnamesCheckBox->setChecked(false);
     randTeamnamesCheckBox->setToolTip(tr("Select to randomize the order of the team names"));
     connect(randTeamnamesCheckBox, &QCheckBox::clicked, this, &TeamsTabItem::randomizeTeamnames);
     teamOptionsLayout->addWidget(randTeamnamesCheckBox);
 
-    vertLine = new QFrame(this);
-    vertLine->setFrameShape(QFrame::VLine);
-    vertLine->setFrameShadow(QFrame::Sunken);
-    teamOptionsLayout->addWidget(vertLine);
-
-    sendToPreventedTeammates = new QPushButton(QIcon(":/icons/notfriends.png"), tr("Load as\nprevented\nteammates"), this);
-    sendToPreventedTeammates->setIconSize(SAVEPRINTICONSIZE);
+    sendToPreventedTeammates = new QPushButton(tr("Load as prevented"), this);
+    sendToPreventedTeammates->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     sendToPreventedTeammates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    sendToPreventedTeammates->setFlat(true);
     sendToPreventedTeammates->setToolTip(tr("<html>Send all of these teams to the \"Prevented Teammates\" teaming option so that "
                                             "another set of teams can be created with everyone getting all new teammates</html>"));
     connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makePrevented);
     teamOptionsLayout->addWidget(sendToPreventedTeammates);
 
-    teamOptionsLayout->addStretch();
-    QWidget *widgets[] = {expandAllButton, collapseAllButton, setNamesLabel, randTeamnamesCheckBox, sendToPreventedTeammates};
-    for(auto *const widget : widgets)
-    {
-        widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        widget->setFixedSize(widget->sizeHint());
-    }
-
     savePrintLayout = new QHBoxLayout;
     savePrintLayout->setSpacing(2);
     teamDataLayout->addLayout(savePrintLayout);
-    QFont biggerFont = this->font();
-    biggerFont.setPointSize(BIGGERFONTSIZE);
 
-    saveTeamsButton = new QPushButton(QIcon(":/icons/save.png"), tr("Save"), this);
+    QPixmap whiteSaveFile = QPixmap(":/icons_new/edit_document.png").scaled(SAVEPRINTICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPainter painter(&whiteSaveFile);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.fillRect(whiteSaveFile.rect(), QColor("white"));
+    painter.end();
+    saveTeamsButton = new QPushButton(QIcon(whiteSaveFile), tr("Save"), this);
+    saveTeamsButton->setStyleSheet(SMALLBUTTONSTYLE);
     saveTeamsButton->setIconSize(SAVEPRINTICONSIZE);
-    saveTeamsButton->setFont(biggerFont);
     saveTeamsButton->setToolTip(tr("Save this set of teams as text or pdf"));
     connect(saveTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::saveTeams);
     savePrintLayout->addWidget(saveTeamsButton);
 
-    printTeamsButton = new QPushButton(QIcon(":/icons/print.png"), tr("Print"), this);
+    printTeamsButton = new QPushButton(QIcon(":/icons_new/print.png"), tr("Print"), this);
+    printTeamsButton->setStyleSheet(SMALLBUTTONSTYLE);
     printTeamsButton->setIconSize(SAVEPRINTICONSIZE);
-    printTeamsButton->setFont(biggerFont);
     printTeamsButton->setToolTip(tr("Send this set of teams to the printer"));
     connect(printTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::printTeams);
     savePrintLayout->addWidget(printTeamsButton);
@@ -237,8 +172,6 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     connect(teamDataTree, &TeamTreeWidget::reorderParents, this, &TeamsTabItem::moveATeam);
     connect(teamDataTree, &TeamTreeWidget::moveChild, this, &TeamsTabItem::moveAStudent);
     connect(teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &TeamsTabItem::refreshDisplayOrder);
-    connect(expandAllButton, &QPushButton::clicked, teamDataTree, &TeamTreeWidget::expandAll);
-    connect(collapseAllButton, &QPushButton::clicked, teamDataTree, &TeamTreeWidget::collapseAll);
 }
 
 
@@ -502,7 +435,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     if(studentAteam == studentBteam)
@@ -572,8 +505,8 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         firstStudentName = students[teams[studentBteam].studentIndexes[0]].lastname+students[teams[studentBteam].studentIndexes[0]].firstname;
         firstStudentSection = students[teams[studentBteam].studentIndexes[0]].section;
         teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
-        teamAItem->setBackgroundColor(teams[studentAteam].score);
-        teamBItem->setBackgroundColor(teams[studentBteam].score);
+        teamAItem->setScoreColor(teams[studentAteam].score);
+        teamBItem->setScoreColor(teams[studentBteam].score);
 
         //clear and refresh student items on both teams in table
         for(auto &child : teamAItem->takeChildren())
@@ -636,7 +569,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     //remove student from old team and add to new team
@@ -673,8 +606,8 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     firstStudentName = students[teams[newTeam].studentIndexes[0]].lastname+students[teams[newTeam].studentIndexes[0]].firstname;
     firstStudentSection = students[teams[newTeam].studentIndexes[0]].section;
     teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
-    oldTeamItem->setBackgroundColor(teams[oldTeam].score);
-    newTeamItem->setBackgroundColor(teams[newTeam].score);
+    oldTeamItem->setScoreColor(teams[oldTeam].score);
+    newTeamItem->setScoreColor(teams[newTeam].score);
 
     //clear and refresh student items on both teams in table
     for(auto &child : oldTeamItem->takeChildren())
@@ -749,7 +682,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order, then adjust sort data for teamA and teamB, then resort
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons/updown_arrow.png"));
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
     if(teamARow - teamBRow == 1)    // dragging just one row above ==> just swap the two
     {
@@ -1026,23 +959,23 @@ void TeamsTabItem::postTeamsToCanvas()
     }
 
     busyBox = canvas->busy();
-    QSize iconSize = busyBox->iconPixmap().size();
+    QSize iconSize = canvas->busyBoxIcon->pixmap().size();
     QPixmap icon;
     QEventLoop loop;
     if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters))
     {
-        busyBox->setText(tr("Success!"));
+        canvas->busyBoxLabel->setText(tr("Success!"));
         icon.load(":/icons/ok.png");
-        busyBox->setIconPixmap(icon.scaled(iconSize));
+        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
     }
     else
     {
-        busyBox->setText(tr("Error. Teams not created."));
+        canvas->busyBoxLabel->setText(tr("Error. Teams not created."));
         icon.load(":/icons/delete.png");
-        busyBox->setIconPixmap(icon.scaled(iconSize));
+        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);

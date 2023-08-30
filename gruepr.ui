@@ -58,8 +58,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>443</width>
-           <height>632</height>
+           <width>463</width>
+           <height>638</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -466,6 +466,19 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </layout>
              </item>
              <item>
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
               <widget class="QStackedWidget" name="attributesStackedWidget">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
@@ -838,18 +851,24 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             <property name="cornerButtonEnabled">
              <bool>false</bool>
             </property>
+            <attribute name="horizontalHeaderHighlightSections">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderHighlightSections">
+             <bool>false</bool>
+            </attribute>
            </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="addStudentLayout">
             <property name="leftMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
              <number>2</number>
             </property>
             <property name="rightMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
              <number>2</number>
@@ -879,8 +898,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </property>
               <property name="iconSize">
                <size>
-                <width>30</width>
-                <height>30</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
              </widget>
@@ -910,8 +929,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </property>
               <property name="iconSize">
                <size>
-                <width>30</width>
-                <height>30</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
              </widget>
@@ -941,8 +960,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </property>
               <property name="iconSize">
                <size>
-                <width>30</width>
-                <height>30</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
              </widget>
@@ -997,7 +1016,14 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-          <widget class="QLabel" name="dataSourceIcon"/>
+          <widget class="QLabel" name="dataSourceIcon">
+           <property name="pixmap">
+            <pixmap resource="gruepr.qrc">:/icons_new/file.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item alignment="Qt::AlignVCenter">
           <widget class="QLabel" name="dataSourceLabel">
@@ -1035,66 +1061,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
     </item>
    </layout>
   </widget>
-  <action name="actionHelp">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/help.png</normaloff>:/icons/help.png</iconset>
-   </property>
-   <property name="text">
-    <string>gruepr Help</string>
-   </property>
-   <property name="toolTip">
-    <string>Open help</string>
-   </property>
-  </action>
-  <action name="actionAbout">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/about.png</normaloff>:/icons/about.png</iconset>
-   </property>
-   <property name="text">
-    <string>About gruepr...</string>
-   </property>
-  </action>
-  <action name="actiongruepr_Homepage">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/website.png</normaloff>:/icons/website.png</iconset>
-   </property>
-   <property name="text">
-    <string>gruepr Homepage...</string>
-   </property>
-   <property name="toolTip">
-    <string>Open the gruepr homepage in a browser.</string>
-   </property>
-  </action>
-  <action name="actionLoad_Survey_File">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/openFile.png</normaloff>:/icons/openFile.png</iconset>
-   </property>
-   <property name="text">
-    <string>Load Survey File...</string>
-   </property>
-   <property name="toolTip">
-    <string>Open a survey data file.</string>
-   </property>
-  </action>
-  <action name="actionSave_Survey_File">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/saveFile.png</normaloff>:/icons/saveFile.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Survey File...</string>
-   </property>
-   <property name="toolTip">
-    <string>Save the current dataset to a survey file.</string>
-   </property>
-  </action>
   <action name="actionLoad_Teaming_Options_File">
    <property name="enabled">
     <bool>false</bool>
@@ -1123,144 +1089,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
    </property>
    <property name="toolTip">
     <string>Save the current teaming options to use for the future.</string>
-   </property>
-  </action>
-  <action name="actionSettings">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
-   </property>
-   <property name="text">
-    <string>Settings...</string>
-   </property>
-  </action>
-  <action name="actionSave_Teams">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/save.png</normaloff>:/icons/save.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Teams...</string>
-   </property>
-   <property name="toolTip">
-    <string>Save this set of teams as text or pdf files.</string>
-   </property>
-  </action>
-  <action name="actionPrint_Teams">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/print.png</normaloff>:/icons/print.png</iconset>
-   </property>
-   <property name="text">
-    <string>Print Teams...</string>
-   </property>
-   <property name="toolTip">
-    <string>Print this set of teams.</string>
-   </property>
-  </action>
-  <action name="actionExit">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/exit.png</normaloff>:/icons/exit.png</iconset>
-   </property>
-   <property name="text">
-    <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionCreate_Teams">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/party.png</normaloff>:/icons/party.png</iconset>
-   </property>
-   <property name="text">
-    <string>Create Teams</string>
-   </property>
-  </action>
-  <action name="actionLoad_Student_Roster">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/loadRoster.png</normaloff>:/icons/loadRoster.png</iconset>
-   </property>
-   <property name="text">
-    <string>Compare Students to Roster...</string>
-   </property>
-   <property name="toolTip">
-    <string>Check the names and email addresses listed in the table against a class roster csv file.</string>
-   </property>
-  </action>
-  <action name="actionBugReport">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/bug.png</normaloff>:/icons/bug.png</iconset>
-   </property>
-   <property name="text">
-    <string>Report a Bug or Feature Request...</string>
-   </property>
-  </action>
-  <action name="actionCompare_Students_to_Canvas_Course">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/canvas.png</normaloff>:/icons/canvas.png</iconset>
-   </property>
-   <property name="text">
-    <string>Compare Students to Canvas Course...</string>
-   </property>
-   <property name="toolTip">
-    <string>Check the names listed in the table against a Canvas class roster. Note: this feature is in beta currently.</string>
-   </property>
-  </action>
-  <action name="actionPost_Teams_to_Canvas">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/canvas.png</normaloff>:/icons/canvas.png</iconset>
-   </property>
-   <property name="text">
-    <string>Post Teams to Canvas...</string>
-   </property>
-   <property name="toolTip">
-    <string>Upload this set of teams to a Canvas course. Note: this feature is in beta currently.</string>
-   </property>
-  </action>
-  <action name="actionLoad_Survey_Results_from_Google">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/google.png</normaloff>:/icons/google.png</iconset>
-   </property>
-   <property name="text">
-    <string>Load Survey Results from Google...</string>
-   </property>
-   <property name="toolTip">
-    <string>Download the results of a survey that SurveyMaker created on your Google drive.</string>
-   </property>
-  </action>
-  <action name="actionLoad_Survey_Results_from_Canvas">
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/canvas.png</normaloff>:/icons/canvas.png</iconset>
-   </property>
-   <property name="text">
-    <string>Load Survey Results from Canvas...</string>
-   </property>
-   <property name="toolTip">
-    <string>Download the results of a survey that SurveyMaker created on your course Canvas site. Note: this feature is in beta currently.</string>
    </property>
   </action>
  </widget>

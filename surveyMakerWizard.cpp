@@ -465,19 +465,19 @@ IntroPage::IntroPage(QWidget *parent)
     bannerLayout->addWidget(bannerRight);
 
     topLabel = new QLabel(this);
-    topLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-size: 12pt; font-family: DM Sans;\">" +
+    topLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans';\">" +
                       tr("Survey Name") + "</span>");
     topLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     surveyTitle = new QLineEdit(this);
     surveyTitle->setPlaceholderText(tr("Enter Text"));
-    surveyTitle->setStyleSheet("color: " DEEPWATERHEX "; font-size: 14pt; font-family: DM Sans; "
+    surveyTitle->setStyleSheet("color: " DEEPWATERHEX "; font-size: 14pt; font-family: 'DM Sans'; "
                                "border-style: outset; border-width: 2px; border-color: " DEEPWATERHEX "; ");
     surveyTitle->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     registerField("SurveyTitle", surveyTitle);
 
     bottomLabel = new QLabel(this);
-    bottomLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans\">" +
+    bottomLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'\">" +
                          tr("This will be the name of the survey you send to your students!") + "</span>");
     bottomLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
@@ -2491,12 +2491,27 @@ void PreviewAndExportPage::exportSurvey()
         auto form = google->createSurvey(survey);
 
         QPixmap icon;
-        if(form.name.isEmpty()) {
-            busyBox->setText(tr("Error. The survey was not created."));
+        QSize iconSize = google->busyBoxIcon->size();
+        if(form.name.isEmpty())
+        {
+            google->busyBoxLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons/delete.png");
-            busyBox->setStandardButtons(QMessageBox::Ok);
+            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            google->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
+            busyBox->adjustSize();
+            busyBox->exec();
+            google->notBusy(busyBox);
         }
         else {
+            QEventLoop loop;
+            google->busyBoxLabel->setText(tr("Success!"));
+            icon.load(":/icons/ok.png");
+            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            busyBox->adjustSize();
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            google->notBusy(busyBox);
+
             // append this survey to the saved values
             QSettings settings;
             int currentArraySize = settings.beginReadArray("GoogleForm");
@@ -2509,37 +2524,36 @@ void PreviewAndExportPage::exportSurvey()
             settings.setValue("responderURL", form.responderURL);
             settings.endArray();
 
-            busyBox->setTextFormat(Qt::RichText);
-            busyBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
-            QApplication::restoreOverrideCursor();
-            QString textheight = QString::number(busyBox->fontMetrics().boundingRect('G').height() * 2);
-            busyBox->setText(tr("Success! Survey created.<br><br>"
-                                "If you'd like to preview or edit the survey, find it in your") + " <a href='https://drive.google.com'>Google Drive</a> "
-                                "<img height=\"" + textheight + "\" width=\"" + textheight + "\" src=\":/icons_new/external-link.png\">.<br>" +
-                              tr("If you wish, you can modify:<br>"
-                                 "<ul>"
-                                   "<li>the survey title</li>"
-                                   "<li>the instructions shown at the top of the survey</li>"
-                                   "<li>the \"description text\" shown with any of the questions</li></ul>"
-                                "<br>Changing the wording of a question or the order of the questions in any other way is not recommended.<br><br>"
-                                "Students should fill out the survey by going to the following URL:<br><strong>") +
-                                form.responderURL.toEncoded() +
-                             tr("</strong><br>You can copy this URL to your clipboard with the button below."));
-            icon.load(":/icons/ok.png");
-            busyBox->addButton(QMessageBox::Ok);
-            auto *copyButton = busyBox->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
-            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip {color: black; font-size: 10pt; font-family: DM Sans; background-color: " BOLDGREENHEX "; border: 0px;}");
-            copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the busyBox when clicked
-            connect(copyButton, &QPushButton::clicked, busyBox, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
-                                                                                       clipboard->setText(form.responderURL.toEncoded());
-                                                                                       QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
-                                                                                                          tr("URL copied"), copyButton, QRect(),
-                                                                                                          UI_DISPLAY_DELAYTIME);});
+            auto *successDialog = new QMessageBox(this);
+            successDialog->setStyleSheet(QString() + LABELSTYLE + SMALLBUTTONSTYLE);
+            successDialog->setTextFormat(Qt::RichText);
+            successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
+            QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
+            successDialog->setText(tr("Success! Survey created.<br><br>"
+                                       "If you'd like to preview or edit the survey, find it in your") + " <a href='https://drive.google.com'>Google Drive</a> "
+                                       "<img height=\"" + textheight + "\" width=\"" + textheight + "\" src=\":/icons_new/external-link.png\">. " +
+                                    tr("If you wish, you can modify:"
+                                       "<ul>"
+                                       "<li>the survey title</li>"
+                                       "<li>the instructions shown at the top of the survey</li>"
+                                       "<li>the \"description text\" shown with any of the questions</li>"
+                                       "</ul>"
+                                       "Changing the order of the questions or the wording of a question in any other way is not recommended.<br><br>"
+                                       "Students should fill out the survey by going to the following URL:<br><strong>") +
+                                       form.responderURL.toEncoded() +
+                                       tr("</strong><br>You can copy this URL to your clipboard with the button below."));
+            successDialog->setStandardButtons(QMessageBox::Ok);
+            auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
+            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip {color: black; font-size: 12pt; font-family: 'DM Sans'; background-color: " BOLDGREENHEX "; border: 0px;}");
+            copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
+            connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
+                                                                                             clipboard->setText(form.responderURL.toEncoded());
+                                                                                             QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
+                                                                                                                tr("URL copied"), copyButton, QRect(),
+                                                                                                                UI_DISPLAY_DELAYTIME);});
+            successDialog->exec();
+            successDialog->deleteLater();
         }
-        QSize iconSize = busyBox->iconPixmap().size();
-        busyBox->setIconPixmap(icon.scaled(iconSize));
-        busyBox->exec();
-        google->notBusy(busyBox);
     }
     else if(destinationCanvas->isChecked()) {
         if(!internetIsGood())
@@ -2615,31 +2629,44 @@ void PreviewAndExportPage::exportSurvey()
         bool success = canvas->createSurvey(coursesComboBox->currentText(), survey);
 
         QPixmap icon;
-        if(success) {
-            busyBox->setTextFormat(Qt::RichText);
-            busyBox->setTextInteractionFlags(Qt::TextBrowserInteraction);
-            QApplication::restoreOverrideCursor();
-            busyBox->setText(tr("Success! Survey created.<br><br>"
-                                "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site.<br>"
-                                "If you wish, you can modify:<br>"
-                                "<ul>"
-                                "<li>the survey title</li>"
-                                "<li>the Quiz Instructions shown at the start of the survey</li></ul>"
-                                "<br>Changing the wording of a question or the order of the questions is not recommended.<br><br>"
-                                "<strong>The survey is currently \"Unpublished\".</strong><br>"
-                                "When you are ready for students to fill out the survey, you must log in to your course Canvas site and \"Publish\" it."));
-            icon.load(":/icons/ok.png");
+        QSize iconSize = canvas->busyBoxIcon->size();
+        if(!success) {
+            canvas->busyBoxLabel->setText(tr("Error. The survey was not created."));
+            icon.load(":/icons/delete.png");
+            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            canvas->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
+            busyBox->adjustSize();
+            busyBox->exec();
+            canvas->notBusy(busyBox);
         }
         else {
-            busyBox->setText(tr("Error. The survey was not created."));
-            icon.load(":/icons/delete.png");
-        }
-        QSize iconSize = busyBox->iconPixmap().size();
-        busyBox->setIconPixmap(icon.scaled(iconSize));
-        busyBox->setStandardButtons(QMessageBox::Ok);
-        busyBox->exec();
-        canvas->notBusy(busyBox);
+            QEventLoop loop;
+            canvas->busyBoxLabel->setText(tr("Success!"));
+            icon.load(":/icons/ok.png");
+            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            busyBox->adjustSize();
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            canvas->notBusy(busyBox);
 
+            auto *successDialog = new QMessageBox(this);
+            successDialog->setStyleSheet(QString() + LABELSTYLE + SMALLBUTTONSTYLE);
+            successDialog->setTextFormat(Qt::RichText);
+            successDialog->setText(tr("Success! Survey created.<br><br>"
+                                       "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site. "
+                                       "If you wish, you can modify:"
+                                       "<ul>"
+                                       "<li>the survey title</li>"
+                                       "<li>the Quiz Instructions shown at the start of the survey</li>"
+                                       "</ul>"
+                                       "Changing the order or the wording of the questions is not recommended.<br><br>"
+                                       "<strong>The survey is currently \"Unpublished\".</strong><br>"
+                                       "When you are ready for students to fill out the survey, you must log in to your course Canvas site, \"Publish\" it, and ensure it "
+                                       "is in a Module or other location accessible to the students."));
+            successDialog->setStandardButtons(QMessageBox::Ok);
+            successDialog->exec();
+            successDialog->deleteLater();
+        }
         delete canvasCourses;
     }
 }

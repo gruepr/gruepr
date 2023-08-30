@@ -75,11 +75,23 @@ bool CsvFile::openExistingFile(const QString &filepath)
 }
 
 
+bool CsvFile::isOpen()
+{
+    if(file == nullptr) {
+        return false;
+    }
+    return file->isOpen();
+}
+
+
 //////////////////
 // Retrieve the fileInfo
 //////////////////
 QFileInfo CsvFile::fileInfo()
 {
+    if(file == nullptr) {
+        return {};
+    }
     QFileInfo f{*file};
     return f;
 }
@@ -90,14 +102,16 @@ QFileInfo CsvFile::fileInfo()
 //////////////////
 void CsvFile::close(bool deleteFile)
 {
-    delete stream;
-    stream = nullptr;
-    file->close();
-    if(deleteFile) {
-        file->remove();
+    if(isOpen()) {
+        delete stream;
+        stream = nullptr;
+        file->close();
+        if(deleteFile) {
+            file->remove();
+        }
+        delete file;
+        file = nullptr;
     }
-    delete file;
-    file = nullptr;
 }
 
 
@@ -263,7 +277,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    window->theTable->horizontalHeader()->setStyleSheet(QString(LABELSTYLE).replace("font-family: DM Sans;", "font-family: DM Sans; font-weight: bold;"));
+    window->theTable->horizontalHeader()->setStyleSheet(QString(LABELSTYLE).replace("font-family: 'DM Sans';", "font-family: 'DM Sans'; font-weight: bold;"));
     window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++)

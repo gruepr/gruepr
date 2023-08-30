@@ -23,7 +23,7 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
-                          const QList<TeamRecord> &incomingTeams, QList<StudentRecord> incomingStudents, const QString &incomingTabName, QWidget *parent = nullptr);
+                          const QList<TeamRecord> &incomingTeams, const QList<StudentRecord> &incomingStudents, const QString &incomingTabName, QWidget *parent = nullptr);
     ~TeamsTabItem();
     TeamsTabItem(const TeamsTabItem&) = delete;
     TeamsTabItem operator= (const TeamsTabItem&) = delete;
@@ -53,23 +53,21 @@ private:
 
     QVBoxLayout *teamDataLayout = nullptr;
 
-    QLabel *fileAndSectionLabel = nullptr;
-
     TeamTreeWidget *teamDataTree = nullptr;
 
-    QHBoxLayout *dragDropLayout = nullptr;
+    QHBoxLayout *rowsLayout = nullptr;
     QLabel *dragDropExplanation = nullptr;
     struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments); QList<int> arguments; QString ToolTip;};
     QList<UndoRedoItem> undoItems;
     QList<UndoRedoItem> redoItems;
     QPushButton *undoButton = nullptr;
     QPushButton *redoButton = nullptr;
-
-    QHBoxLayout *teamOptionsLayout = nullptr;
     QPushButton *expandAllButton = nullptr;
     QPushButton *collapseAllButton = nullptr;
-    QFrame *vertLine = nullptr;
-    QLabel *setNamesLabel = nullptr;
+
+    QFrame *horLine = nullptr;
+
+    QHBoxLayout *teamOptionsLayout = nullptr;
     QComboBox *teamnamesComboBox = nullptr;
     QStringList teamnameCategories;
     QStringList teamnameLists;

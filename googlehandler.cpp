@@ -39,7 +39,7 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
     google->setContentType(QAbstractOAuth::ContentType::Json);
-    QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title;
+    QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
     QJsonObject info;
     info["title"] = title;
     info["document_title"] = title;
@@ -75,7 +75,7 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
         location["index"] = questionNum;
         newQuestion["location"] = location;
         QJsonObject item;
-        item["title"] = question.text;
+        item["title"] = question.text.simplified();
         switch(question.type) {
         case Question::QuestionType::shorttext:
         case Question::QuestionType::longtext: {
@@ -103,7 +103,7 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
                     continue;
                 }
                 QJsonObject responseOption;
-                responseOption["value"] = option;
+                responseOption["value"] = option.simplified();
                 responseOption["isOther"] = false;
                 responseOptions << responseOption;
             }
@@ -135,7 +135,7 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
                 QJsonObject questionBody;
                 questionBody["required"] = false;
                 QJsonObject row;
-                row["title"] = dayName;
+                row["title"] = dayName.simplified();
                 questionBody["rowQuestion"] = row;
                 questions << questionBody;
             }
@@ -512,22 +512,34 @@ void GoogleHandler::authenticate() {
     }
 }
 
-QMessageBox* GoogleHandler::busy(QWidget *parent) {
+QDialog* GoogleHandler::busy(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-    auto *busyDialog = new QMessageBox(parent);
-    QPixmap icon(":/icons/google.png");
-    busyDialog->setIconPixmap(icon.scaled(GOOGLEICONSIZE));
-    busyDialog->setText(tr("Communicating with Google..."));
-    busyDialog->setStandardButtons(QMessageBox::NoButton);
+    auto *busyDialog = new QDialog(parent);
+    busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
+    busyBoxIcon = new QLabel(busyDialog);
+    busyBoxIcon->setPixmap(QPixmap(":/icons/google.png").scaled(GOOGLEICONSIZE));
+    busyBoxLabel = new QLabel(busyDialog);
+    busyBoxLabel->setStyleSheet(LABELSTYLE);
+    busyBoxLabel->setText(tr("Communicating with Google..."));
+    busyBoxButtons = new QDialogButtonBox(busyDialog);
+    busyBoxButtons->setStyleSheet(SMALLBUTTONSTYLE);
+    busyBoxButtons->setStandardButtons(QDialogButtonBox::NoButton);
+    connect(busyBoxButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
+    auto *theGrid = new QGridLayout;
+    busyDialog->setLayout(theGrid);
+    theGrid->addWidget(busyBoxIcon, 0, 0);
+    theGrid->addWidget(busyBoxLabel, 0, 1);
+    theGrid->addWidget(busyBoxButtons, 1, 0, 1, -1);
     busyDialog->setModal(true);
     busyDialog->show();
+    busyDialog->adjustSize();
     return busyDialog;
 }
 
-void GoogleHandler::notBusy(QMessageBox *busyDialog) {
+void GoogleHandler::notBusy(QDialog *busyDialog) {
     QApplication::restoreOverrideCursor();
-    busyDialog->close();
-    delete busyDialog;
+    busyDialog->accept();
+    busyDialog->deleteLater();
 }
 
 

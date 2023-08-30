@@ -3,7 +3,9 @@
 
 #include "googlesecrets.h"
 #include "survey.h"
-#include <QMessageBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QLabel>
 #include <QOAuth2AuthorizationCodeFlow>
 #include <QOAuthHttpServerReplyHandler>
 #include <QtNetwork>
@@ -40,8 +42,11 @@ public:
     bool authenticated = false;
     bool refreshTokenExists = false;
 
-    QMessageBox* busy(QWidget *parent = nullptr);
-    void notBusy(QMessageBox *busyDialog);
+    QDialog* busy(QWidget *parent = nullptr);
+    QLabel* busyBoxIcon = nullptr;
+    QLabel* busyBoxLabel = nullptr;
+    QDialogButtonBox* busyBoxButtons = nullptr;
+    void notBusy(QDialog *busyDialog);
 
     GoogleForm createSurvey(const Survey *const survey);
     QStringList getSurveyList();

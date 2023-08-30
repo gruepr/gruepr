@@ -40,14 +40,13 @@ inline static const char16_t BULLET = u'\u2022';
 #define BUBBLYHEX "#dcf2f4"
 #define HIGHLIGHTYELLOWHEX "#ffff3b"
 #define BOLDGREENHEX "#83f2a5"
-#define BOLDPINKHEX "#f283a5"
 #define LIGHTPINKHEX "#fbcfce"
 #define LIGHTBLUEHEX "#ceeafb"
 
 
 // define stylesheets used throughout gruepr
-inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: DM Sans; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
-inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: DM Sans;"
+inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
+inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: 'DM Sans';"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
 inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
                                                          "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
@@ -103,8 +102,8 @@ inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: " TRANSPAR
 inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: " DEEPWATERHEX "; "
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold; "
                                                              "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
-inline static const char LABELSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: DM Sans; border: none;}"
-                                          "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: DM Sans; border: none;}";
+inline static const char LABELSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
+                                          "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                        "font-family: 'DM Sans'; font-size: 12pt;}"
                                              "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
@@ -126,29 +125,29 @@ inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; 
                                              "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                                   "font-family: 'DM Sans'; font-size: 12pt;}"
                                              "QComboBox::drop-down {border-width: 0px;}"
-                                             "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}"
+                                             "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}"
                                              "QComboBox QAbstractItemView {background-color: white; color: black; selection-background-color: " DEEPWATERHEX "; selection-color: white;}";
 inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; border-style: solid; border-color: black; border-width: 1px;"
                                                             "font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                             "font-family: 'DM Sans'; font-size: 12pt;}"
                                                  "QComboBox::drop-down {border-width: 0px;}"
-                                                 "QComboBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 9px; border-width: 0px;}";
+                                                 "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}";
 inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                      "font-family: 'DM Sans'; font-size: 12pt;}"
                                             "QSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                                 "font-family: 'DM Sans'; font-size: 12pt;}"
-                                            "QSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border: none;}"
+                                            "QSpinBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 12px; border: none;}"
                                             "QSpinBox::down-button {background-color: " TRANSPARENT "; border: none;}"
-                                            "QSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border: none;}"
+                                            "QSpinBox::up-arrow {image: url(:/icons_new/upButton.png); width: 14px; height: 12px; border: none;}"
                                             "QSpinBox::up-button {background-color: " TRANSPARENT "; border: none;}";
 inline static const char DOUBLESPINBOXSTYLE[] = "QDoubleSpinBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                                 "font-family: 'DM Sans'; font-size: 12pt;}"
                                                   "QDoubleSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
                                                                            "font-family: 'DM Sans'; font-size: 12pt;}"
-                                                  "QDoubleSpinBox::down-arrow {image: url(:/icons_new/ComboBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
+                                                  "QDoubleSpinBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 12px; border-width: 0px;}"
                                                   "QDoubleSpinBox::down-button {background-color: " TRANSPARENT "; border: none;}"
-                                                  "QDoubleSpinBox::up-arrow {image: url(:/icons_new/SpinBoxButton.png); width: 14px; height: 12px; border-width: 0px;}"
+                                                  "QDoubleSpinBox::up-arrow {image: url(:/icons_new/upButton.png); width: 14px; height: 12px; border-width: 0px;}"
                                                   "QDoubleSpinBox::up-button {background-color: " TRANSPARENT "; border: none;}";
 inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
@@ -457,7 +456,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
                                                "<br><br>gruepr incorporates:"
                                                "<ul style=\"margin-top: 2px; margin-bottom: 0px; margin-left: 15px; margin-right: 0px; -qt-list-indent: 0;\">"
                                                  "<li>UI and UX designs by <a href=\"https://scout.camd.northeastern.edu/\">Scout</a></li>"
-                                                 "<li>Code libraries from <a href=\"http://qt.io\">Qt, v 6.5</a>, released under the GNU Lesser General Public License version 3</li>"
+                                                 "<li>Code libraries from <a href=\"http://qt.io\">Qt, v 6.5</a>, released under the GNU General Public License version 3</li>"
                                                  "<li>Icons from <a href=\"https://icons8.com\">Icons8</a>, released under Creative Commons license "
                                                       "\"Attribution-NoDerivs 3.0 Unported\"</li>"
                                                  "<li>The following fonts, all released under SIL OPEN FONT LICENSE V1.1:"

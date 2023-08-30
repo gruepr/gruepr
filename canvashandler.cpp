@@ -675,20 +675,32 @@ void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
     baseURL = baseAPIURL;
 }
 
-QMessageBox* CanvasHandler::busy(QWidget *parent) {
+QDialog* CanvasHandler::busy(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-    auto *busyDialog = new QMessageBox(parent);
-    QPixmap icon(":/icons/canvas.png");
-    busyDialog->setIconPixmap(icon.scaled(CANVASICONSIZE));
-    busyDialog->setText(tr("Communicating with Canvas..."));
-    busyDialog->setStandardButtons(QMessageBox::NoButton);
+    auto *busyDialog = new QDialog(parent);
+    busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
+    busyBoxIcon = new QLabel(busyDialog);
+    busyBoxIcon->setPixmap(QPixmap(":/icons/canvas.png").scaled(CANVASICONSIZE));
+    busyBoxLabel = new QLabel(busyDialog);
+    busyBoxLabel->setStyleSheet(LABELSTYLE);
+    busyBoxLabel->setText(tr("Communicating with Canvas..."));
+    busyBoxButtons = new QDialogButtonBox(busyDialog);
+    busyBoxButtons->setStyleSheet(SMALLBUTTONSTYLE);
+    busyBoxButtons->setStandardButtons(QDialogButtonBox::NoButton);
+    connect(busyBoxButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
+    auto *theGrid = new QGridLayout;
+    busyDialog->setLayout(theGrid);
+    theGrid->addWidget(busyBoxIcon, 0, 0);
+    theGrid->addWidget(busyBoxLabel, 0, 1);
+    theGrid->addWidget(busyBoxButtons, 1, 0, 1, -1);
     busyDialog->setModal(true);
     busyDialog->show();
+    busyDialog->adjustSize();
     return busyDialog;
 }
 
-void CanvasHandler::notBusy(QMessageBox *busyDialog) {
+void CanvasHandler::notBusy(QDialog *busyDialog) {
     QApplication::restoreOverrideCursor();
-    busyDialog->close();
-    delete busyDialog;
+    busyDialog->accept();
+    busyDialog->deleteLater();
 }
