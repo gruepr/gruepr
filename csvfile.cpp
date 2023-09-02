@@ -277,7 +277,8 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    window->theTable->horizontalHeader()->setStyleSheet(QString(LABELSTYLE).replace("font-family: 'DM Sans';", "font-family: 'DM Sans'; font-weight: bold;"));
+    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white;  border: 1px solid black; padding: 5px; "
+                                                                               "font-family: 'DM Sans'; font-size: 12pt;}");
     window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++)

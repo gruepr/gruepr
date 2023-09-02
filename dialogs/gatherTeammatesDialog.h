@@ -3,7 +3,6 @@
 
 #include "dataOptions.h"
 #include "studentRecord.h"
-#include "teamRecord.h"
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -17,15 +16,14 @@ class gatherTeammatesDialog : public QDialog
 
 public:
     enum typeOfTeammates{required, prevented, requested};
-    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn,
+    gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const QList<StudentRecord> &students, int numStudentsComingIn,
                           const DataOptions *const dataOptions, const QString &sectionname, const QStringList *const currTeamSets, QWidget *parent = nullptr);
-    ~gatherTeammatesDialog();
     gatherTeammatesDialog(const gatherTeammatesDialog&) = delete;
     gatherTeammatesDialog operator= (const gatherTeammatesDialog&) = delete;
     gatherTeammatesDialog(gatherTeammatesDialog&&) = delete;
     gatherTeammatesDialog& operator= (gatherTeammatesDialog&&) = delete;
 
-    StudentRecord *student = nullptr;
+    QList<StudentRecord> students;
     bool teammatesSpecified = false;
 
 private slots:

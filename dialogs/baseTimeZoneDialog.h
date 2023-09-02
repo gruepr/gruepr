@@ -16,10 +16,10 @@ public:
     float baseTimezoneVal = 0;
 
 private:
-    QGridLayout *theGrid;
-    QLabel *explanation;
-    QComboBox *timezones;
-    QDialogButtonBox *buttonBox;
+    QGridLayout *theGrid = nullptr;
+    QLabel *explanation = nullptr;
+    QComboBox *timezones = nullptr;
+    QDialogButtonBox *buttonBox = nullptr;
 };
 
 

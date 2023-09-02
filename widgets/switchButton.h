@@ -70,7 +70,6 @@ class SwitchButton::SwitchBackground : public QWidget
 
 public:
     explicit SwitchBackground(QWidget* parent = nullptr);
-    ~SwitchBackground() override;
 
     //-- QWidget methods
     void paintEvent(QPaintEvent* event) override;
@@ -90,7 +89,6 @@ class SwitchButton::SwitchCircle : public QWidget
 
 public:
     explicit SwitchCircle(QWidget* parent = nullptr);
-    ~SwitchCircle() override;
 
     //-- QWidget methods
     void paintEvent(QPaintEvent* event) override;

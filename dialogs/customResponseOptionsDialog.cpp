@@ -19,10 +19,10 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
 
     //Rows 1&2 - the number of options selector and a checkbox for ordered responses
     numOptionsLayout = new QHBoxLayout;
-    numOptionsLabel = new QLabel(tr("Number of response options: "));
+    numOptionsLabel = new QLabel(tr("Number of response options: "), this);
     numOptionsLabel->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
     numOptionsLayout->addWidget(numOptionsLabel, 0, Qt::AlignRight);
-    numOptionsBox = new QSpinBox;
+    numOptionsBox = new QSpinBox(this);
     numOptionsBox->setStyleSheet(SPINBOXSTYLE);
     numOptionsBox->setRange(2, MAXRESPONSEOPTIONS);
     numOptions = (currentCustomOptions.isEmpty() ? 4 : int(currentCustomOptions.size()));
@@ -57,7 +57,8 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     theTable->adjustSize();
 
     //Add Clear All to the buttons on bottom
-    auto *clearAllButton = new QPushButton(tr("Clear All"));
+    clearAllButton = new QPushButton(tr("Clear All"), this);
+    clearAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     connect(clearAllButton, &QPushButton::clicked, this, &customResponseOptionsDialog::clearAll);
     addButton(clearAllButton);
 
@@ -97,6 +98,9 @@ void customResponseOptionsDialog::refreshDisplay()
     }
 
     // auto-adjust the height to accomodate change in number of rows in table
+    theTable->resizeColumnsToContents();
+    theTable->resizeRowsToContents();
+    theTable->adjustSize();
     int currWindowWidth = size().width();
     adjustSize();
     int newWindowHeight = size().height();

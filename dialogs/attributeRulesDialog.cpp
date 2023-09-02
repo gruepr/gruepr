@@ -10,7 +10,6 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
-    ui->tabWidget->tabBar()->setDocumentMode(true);
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString() + TABWIDGETSTYLE + LABELSTYLE);
     ui->reqScrollArea->setStyleSheet(QString() + "QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX ";}" + SCROLLBARSTYLE);
@@ -26,8 +25,8 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &AttributeRulesDialog::Ok);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
     requiredValues = teamingOptions.requiredAttributeValues[attribute];
+    incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
     attributeType = dataOptions.attributeType[attribute];
     attributeValues.clear();
     auto valueIter = dataOptions.attributeVals[attribute].cbegin();
@@ -66,8 +65,8 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->responseValuesLabel->setText(responses);
     ui->responseValuesLabel_2->setText(responses);
 
-    ui->incompExplanationLabel->setText(tr("For each response, select the other response(s) that should prevent two students from being placed on the same team."));
     ui->reqExplanationLabel->setText(tr("Select the response(s) for which each team must have at least one student."));
+    ui->incompExplanationLabel->setText(tr("For each response, select the other response(s) that should prevent two students from being placed on the same team."));
     incompFrames.reserve(numPossibleValues);
     incompFrameLayouts.reserve(numPossibleValues);
     incompResponseLabels.reserve(numPossibleValues);
@@ -76,6 +75,12 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     incompCheckboxList.reserve(numPossibleValues);
     reqCheckboxes.reserve(numPossibleValues);
     for(const auto &attributeValue : qAsConst(attributeValues)) {
+        reqCheckboxes << new QCheckBox;
+        reqCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt;", "12pt; color: " DEEPWATERHEX ";"));
+        reqCheckboxes.last()->setText(valuePrefix(attributeValue.value));
+        reqCheckboxes.last()->setChecked(requiredValues.contains(attributeValue.value));
+        ui->reqScrollAreaLayout->addWidget(reqCheckboxes.last(), 0, Qt::AlignTop);
+
         incompFrames << new QFrame;
         incompFrames.last()->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX ";}");
         incompFrameLayouts << new QVBoxLayout;
@@ -90,7 +95,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
         else {
             responseLabelText = tr("Response ") + valuePrefix(attributeValue.value) + ": " + attributeValue.response;
         }
-        incompResponseLabels << new QLabel(responseLabelText);
+        incompResponseLabels << new QLabel(responseLabelText, this);
         incompResponseLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
         incompResponseLabels.last()->setWordWrap(true);
         incompFrameLayouts.last()->addWidget(incompResponseLabels.last());
@@ -103,7 +108,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
         incompFrameLayouts.last()->addWidget(incompSepLines.last(), 0, Qt::AlignVCenter);
         incompCheckboxes.clear();
         for(const auto &attributeValue2 : qAsConst(attributeValues)) {
-            incompCheckboxes << new QCheckBox;
+            incompCheckboxes << new QCheckBox(this);
             incompCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt", "12pt"));
             incompCheckboxes.last()->setText(valuePrefix(attributeValue2.value));
             incompCheckboxes.last()->setChecked(incompatibleValues.contains({attributeValue.value, attributeValue2.value}) ||
@@ -111,16 +116,9 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
             incompFrameLayouts.last()->addWidget(incompCheckboxes.last(), Qt::AlignTop);
         }
         incompCheckboxList << incompCheckboxes;
-        ui->incompScrollAreaLayout->addWidget(incompFrames.last(), Qt::AlignTop);
-
-        reqCheckboxes << new QCheckBox;
-        reqCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt;", "12pt; color: " DEEPWATERHEX ";"));
-        reqCheckboxes.last()->setText(valuePrefix(attributeValue.value));
-        reqCheckboxes.last()->setChecked(requiredValues.contains(attributeValue.value));
-        ui->reqScrollAreaLayout->addWidget(reqCheckboxes.last(), Qt::AlignTop);
+        ui->incompScrollAreaLayout->addWidget(incompFrames.last(), 0, Qt::AlignTop);
     }
-
-    ui->reqVerticalLayout->addStretch(1);
+    ui->reqVerticalLayout->addStretch(0);
 }
 
 AttributeRulesDialog::~AttributeRulesDialog()

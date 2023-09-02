@@ -90,7 +90,7 @@ SwitchButton::~SwitchButton()
 
 void SwitchButton::paintEvent(QPaintEvent*)
 {
-    QPainter* painter = new QPainter;
+    auto *painter = new QPainter;
     painter->begin(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -220,12 +220,10 @@ SwitchButton::SwitchBackground::SwitchBackground(QWidget* parent)
 
     _enabled = true;
 }
-SwitchButton::SwitchBackground::~SwitchBackground()
-{
-}
+
 void SwitchButton::SwitchBackground::paintEvent(QPaintEvent*)
 {
-    QPainter* painter = new QPainter;
+    auto *painter = new QPainter;
     painter->begin(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -257,12 +255,10 @@ SwitchButton::SwitchCircle::SwitchCircle(QWidget* parent)
 
     _enabled = true;
 }
-SwitchButton::SwitchCircle::~SwitchCircle()
-{
-}
+
 void SwitchButton::SwitchCircle::paintEvent(QPaintEvent*)
 {
-    QPainter* painter = new QPainter;
+    auto *painter = new QPainter;
     painter->begin(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
 

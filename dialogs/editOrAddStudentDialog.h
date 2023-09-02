@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QStackedWidget>
 
 class editOrAddStudentDialog : public QDialog
 {
@@ -19,7 +20,6 @@ class editOrAddStudentDialog : public QDialog
 
 public:
     editOrAddStudentDialog(StudentRecord &student, const DataOptions *const dataOptions, QWidget *parent = nullptr, bool newStudent = false);
-    ~editOrAddStudentDialog();
     editOrAddStudentDialog(const editOrAddStudentDialog&) = delete;
     editOrAddStudentDialog operator= (const editOrAddStudentDialog&) = delete;
     editOrAddStudentDialog(editOrAddStudentDialog&&) = delete;
@@ -28,16 +28,17 @@ public:
 private:
     void updateRecord(StudentRecord &student, const DataOptions *const dataOptions);
     void adjustSchedule(const StudentRecord &student, const DataOptions *const dataOptions);
-    QGridLayout *theGrid;
-    QLabel *explanation;
-    QLineEdit *datatext;
-    QPlainTextEdit *datamultiline;
-    ComboBoxThatPassesScrollwheel *databox;
-    QTabWidget *attributeTabs;
-    ComboBoxThatPassesScrollwheel *attributeCombobox;
-    QGroupBox *attributeMultibox;
+    QGridLayout *theGrid = nullptr;
+    QList<QLabel*> explanation;
+    QList<QLineEdit*> datatext;
+    QList<QPlainTextEdit*> datamultiline;
+    QList<ComboBoxThatPassesScrollwheel*> databox;
+    QStackedWidget *attributeStack = nullptr;
+    QList<QPushButton*> attributeSelectorButtons;
+    QList<ComboBoxThatPassesScrollwheel*> attributeCombobox;
+    QList<QGroupBox*> attributeMultibox;
     bool tempUnavailability[MAX_DAYS][MAX_BLOCKS_PER_DAY];
-    QDialogButtonBox *buttonBox;
+    QDialogButtonBox *buttonBox = nullptr;
     inline static const int NUMSINGLELINES = 4;       // timestamp, first name, last name, email
     enum {timestamp, firstname, lastname, email};
     inline static const int NUMCOMBOBOXES = 3;        // gender, ethnicity, section

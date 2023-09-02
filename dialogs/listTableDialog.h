@@ -24,7 +24,6 @@ protected:
     QDialogButtonBox *buttonBox = nullptr;
     inline static const int TABLEROWINGRID = 5;
     inline static const int BUTTONBOXROWINGRID = 9;
-    inline static const int HEIGHTOFSPACERROW = 20;
     inline static const float TABLECOLUMN0OVERWIDTH = 1.2f;   // factor to exapnd the first column of the table, as it often seems to be too small
     bool eventFilter(QObject *object, QEvent *event) override;   // an event filter to remove scrollwheel events from widget(s) in the table,
                                                                  // since table is in a scroll area

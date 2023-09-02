@@ -14,9 +14,8 @@ class findMatchingNameDialog : public QDialog
     Q_OBJECT
 
 public:
-    findMatchingNameDialog(int numStudents, const StudentRecord *const student, const QString &searchName, QWidget *parent = nullptr,
+    findMatchingNameDialog(int numStudents, const QList<StudentRecord> &students, const QString &searchName, QWidget *parent = nullptr,
                            const QString &nameOfStudentWhoAsked = "", const bool addStudentOption = false, const QString &searchEmail = "");
-    ~findMatchingNameDialog();
     findMatchingNameDialog(const findMatchingNameDialog&) = delete;
     findMatchingNameDialog operator= (const findMatchingNameDialog&) = delete;
     findMatchingNameDialog(findMatchingNameDialog&&) = delete;

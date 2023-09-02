@@ -58,8 +58,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>463</width>
-           <height>638</height>
+           <width>477</width>
+           <height>650</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -466,14 +466,17 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               </layout>
              </item>
              <item>
-              <spacer name="verticalSpacer">
+              <spacer name="strut">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
                  <width>20</width>
-                 <height>0</height>
+                 <height>6</height>
                 </size>
                </property>
               </spacer>
@@ -493,6 +496,19 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                 <number>0</number>
                </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="stretch">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </widget>
@@ -862,16 +878,13 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <layout class="QHBoxLayout" name="addStudentLayout">
             <property name="leftMargin">
-             <number>0</number>
+             <number>6</number>
             </property>
             <property name="topMargin">
              <number>2</number>
             </property>
             <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>2</number>
+             <number>6</number>
             </property>
             <item>
              <widget class="QPushButton" name="addStudentPushButton">
@@ -895,12 +908,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
               <property name="icon">
                <iconset resource="gruepr.qrc">
                 <normaloff>:/icons_new/add.png</normaloff>:/icons_new/add.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
               </property>
              </widget>
             </item>
@@ -927,12 +934,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                <iconset resource="gruepr.qrc">
                 <normaloff>:/icons_new/list_file.png</normaloff>:/icons_new/list_file.png</iconset>
               </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
              </widget>
             </item>
             <item>
@@ -958,12 +959,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                <iconset resource="gruepr.qrc">
                 <normaloff>:/icons_new/edit_document.png</normaloff>:/icons_new/edit_document.png</iconset>
               </property>
-              <property name="iconSize">
-               <size>
-                <width>24</width>
-                <height>24</height>
-               </size>
-              </property>
              </widget>
             </item>
            </layout>
@@ -985,21 +980,12 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <pointsize>12</pointsize>
          </font>
         </property>
-        <property name="toolTip">
-         <string>Find an optimal set of teams.</string>
-        </property>
         <property name="text">
          <string>Create Teams</string>
         </property>
         <property name="icon">
          <iconset resource="gruepr.qrc">
-          <normaloff>:/icons_new/Create teams.png</normaloff>:/icons_new/Create teams.png</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>24</width>
-          <height>24</height>
-         </size>
+          <normaloff>:/icons_new/createTeams.png</normaloff>:/icons_new/createTeams.png</iconset>
         </property>
         <property name="checked">
          <bool>false</bool>
@@ -1061,36 +1047,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
     </item>
    </layout>
   </widget>
-  <action name="actionLoad_Teaming_Options_File">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/loadSettings.png</normaloff>:/icons/loadSettings.png</iconset>
-   </property>
-   <property name="text">
-    <string>Load Teaming Options File...</string>
-   </property>
-   <property name="toolTip">
-    <string>Load teaming options from a file.</string>
-   </property>
-  </action>
-  <action name="actionSave_Teaming_Options_File">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gruepr.qrc">
-     <normaloff>:/icons/saveSettings.png</normaloff>:/icons/saveSettings.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Teaming Options File...</string>
-   </property>
-   <property name="toolTip">
-    <string>Save the current teaming options to use for the future.</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

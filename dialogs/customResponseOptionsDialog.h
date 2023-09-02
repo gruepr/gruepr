@@ -35,6 +35,7 @@ private:
     QList<QLabel *> optionLabels;
     QList<QLineEdit *> optionLineEdits;
     QCheckBox *orderedResponsesCheckbox = nullptr;
+    QPushButton *clearAllButton = nullptr;
 
     inline const static int MAXRESPONSEOPTIONS = 100;
 };

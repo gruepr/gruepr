@@ -10,7 +10,7 @@
 // A dialog window to select sets of required, prevented, or requested teammates
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const StudentRecord studentrecs[], int numStudentsComingIn,
+gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTeammate, const QList<StudentRecord> &incomingStudents, int numStudentsComingIn,
                                              const DataOptions *const dataOptions, const QString &sectionname, const QStringList *const currTeamSets, QWidget *parent)
     : QDialog(parent)
 {
@@ -18,11 +18,7 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     numStudents = numStudentsComingIn;
     sectionName = sectionname;
     teamSets = currTeamSets;
-    student = new StudentRecord[numStudentsComingIn];
-    for(int index = 0; index < numStudentsComingIn; index++)
-    {
-        student[index] = studentrecs[index];
-    }
+    students = incomingStudents;
     whatType = whatTypeOfTeammate;
 
     //Set up window
@@ -89,9 +85,9 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     //Add to combobox a list of all the student names (in this section)
     for(int index = 0; index < numStudentsComingIn; index++)
     {
-        if((sectionName == "") || (sectionName == student[index].section))
+        if((sectionName == "") || (sectionName == incomingStudents[index].section))
         {
-            studentsInComboBoxes << student[index];
+            studentsInComboBoxes << incomingStudents[index];
         }
     }
     std::sort(studentsInComboBoxes.begin(), studentsInComboBoxes.end(), [](const StudentRecord &i, const StudentRecord &j)
@@ -145,9 +141,9 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     enum actionItems{descriptor, separator, clear, studentPrefs, spreadsheet, saveCSV, loadCSV, existingTeamset};
     actionSelectBox->insertItem(descriptor, tr("Additional actions"));
     actionSelectBox->insertSeparator(separator);
-    actionSelectBox->insertItem(clear, QIcon(":/icons/delete.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
+    actionSelectBox->insertItem(clear, QIcon(":/icons_new/trashButton.png"), tr("Clear all ") + typeText.toLower() + tr(" teammates..."));
     actionSelectBox->setItemData(clear, tr("Remove all currently listed data from the table"), Qt::ToolTipRole);
-    actionSelectBox->insertItem(studentPrefs, QIcon(":/icons/surveymaker.png"), tr("Import students' preferences from the survey"));
+    actionSelectBox->insertItem(studentPrefs, QIcon(":/icons_new/list_file.png"), tr("Import students' preferences from the survey"));
     if(whatType == required || whatType == requested)
     {
         if(requestsInSurvey)
@@ -174,13 +170,13 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
     }
     actionSelectBox->insertItem(spreadsheet, QIcon(":/icons_new/icon.svg"), tr("Load a gruepr spreadsheet file..."));
     actionSelectBox->setItemData(spreadsheet, tr("Add to the table a previous set of gruepr-created teams"), Qt::ToolTipRole);
-    actionSelectBox->insertItem(saveCSV, QIcon(":/icons/save.png"), tr("Save to a CSV file..."));
+    actionSelectBox->insertItem(saveCSV, QIcon(":/icons_new/edit_document.png"), tr("Save to a CSV file..."));
     actionSelectBox->setItemData(saveCSV, tr("Save the table to a csv file for later reuse"), Qt::ToolTipRole);
-    actionSelectBox->insertItem(loadCSV, QIcon(":/icons/openFile.png"), tr("Load from a CSV file..."));
+    actionSelectBox->insertItem(loadCSV, QIcon(":/icons_new/upload_file.png"), tr("Load from a CSV file..."));
     actionSelectBox->setItemData(loadCSV, tr("Add to the table a csv file saved previously"), Qt::ToolTipRole);
     //INPROG: Allow import of existing teamset
     /*
-    actionSelectBox->insertItem(existingTeamset, QIcon(":/icons/party.png"), tr("Load an existing team set..."));
+    actionSelectBox->insertItem(existingTeamset, QIcon(":/icons_new/createTeams.png"), tr("Load an existing team set..."));
     actionSelectBox->setItemData(existingTeamset, tr("Add names from an existing set of teams in gruepr"), Qt::ToolTipRole);
     if(teamSets->isEmpty())
     {
@@ -202,13 +198,6 @@ gatherTeammatesDialog::gatherTeammatesDialog(const typeOfTeammates whatTypeOfTea
 
     adjustSize();
     refreshDisplay();
-}
-
-
-gatherTeammatesDialog::~gatherTeammatesDialog()
-{
-    //delete dynamically allocated arrays created in class constructor
-    delete [] student;
 }
 
 
@@ -238,13 +227,13 @@ void gatherTeammatesDialog::addOneTeammateSet()
         {
             // find the student with ID1
             int index = 0;
-            while((student[index].ID != IDs[ID1]) && (index < numStudents))
+            while((students[index].ID != IDs[ID1]) && (index < numStudents))
             {
                 index++;
             }
             if(index < numStudents)
             {
-                student1 = &student[index];
+                student1 = &students[index];
             }
             else
             {
@@ -257,13 +246,13 @@ void gatherTeammatesDialog::addOneTeammateSet()
                 {
                     // find the student with ID2
                     index = 0;
-                    while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                    while((students[index].ID != IDs[ID2]) && (index < numStudents))
                     {
                         index++;
                     }
                     if(index < numStudents)
                     {
-                        student2 = &student[index];
+                        student2 = &students[index];
                     }
                     else
                     {
@@ -291,13 +280,13 @@ void gatherTeammatesDialog::addOneTeammateSet()
         // find the student with this ID
         StudentRecord *baseStudent = nullptr;
         int index = 0;
-        while((student[index].ID != baseStudentID) && (index < numStudents))
+        while((students[index].ID != baseStudentID) && (index < numStudents))
         {
             index++;
         }
         if(index < numStudents)
         {
-            baseStudent = &student[index];
+            baseStudent = &students[index];
 
             for(int ID1 = 0; ID1 < count; ID1++)
             {
@@ -329,21 +318,21 @@ void gatherTeammatesDialog::clearAllTeammateSets()
 
     for(int index1 = 0; index1 < numStudents; index1++)
     {
-        if((sectionName == "") || (sectionName == student[index1].section))
+        if((sectionName == "") || (sectionName == students[index1].section))
         {
             for(int index2 = 0; index2 < numStudents; index2++)
             {
                 if(whatType == required)
                 {
-                    student[index1].requiredWith[index2] = false;
+                    students[index1].requiredWith[index2] = false;
                 }
                 else if(whatType == prevented)
                 {
-                    student[index1].preventedWith[index2] = false;
+                    students[index1].preventedWith[index2] = false;
                 }
                 else
                 {
-                    student[index1].requestedWith[index2] = false;
+                    students[index1].requestedWith[index2] = false;
                 }
             }
         }
@@ -488,7 +477,7 @@ bool gatherTeammatesDialog::loadCSVFile()
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (searchStudent.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                  (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -496,12 +485,12 @@ bool gatherTeammatesDialog::loadCSVFile()
             if(knownStudent != numStudents)
             {
                 // Exact match found
-                IDs << student[knownStudent].ID;
+                IDs << students[knownStudent].ID;
             }
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, searchStudent, this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, students, searchStudent, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << choiceWindow->currSurveyID;
@@ -513,13 +502,13 @@ bool gatherTeammatesDialog::loadCSVFile()
         // find the baseStudent
         int index = 0;
         StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((student[index].ID != IDs[0]) && (index < numStudents))
+        while((students[index].ID != IDs[0]) && (index < numStudents))
         {
             index++;
         }
         if(index < numStudents)
         {
-            baseStudent = &student[index];
+            baseStudent = &students[index];
         }
         else
         {
@@ -533,13 +522,13 @@ bool gatherTeammatesDialog::loadCSVFile()
             {
                 // find the student with ID2
                 index = 0;
-                while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                while((students[index].ID != IDs[ID2]) && (index < numStudents))
                 {
                     index++;
                 }
                 if(index < numStudents)
                 {
-                    student2 = &student[index];
+                    student2 = &students[index];
                 }
                 else
                 {
@@ -628,7 +617,7 @@ bool gatherTeammatesDialog::loadExistingTeamset()
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (teammates.at(basename).at(searchStudent).compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                  (teammates.at(basename).at(searchStudent).compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -636,7 +625,7 @@ bool gatherTeammatesDialog::loadExistingTeamset()
             if(knownStudent != numStudents)
             {
                 // Exact match found
-                IDs << student[knownStudent].ID;
+                IDs << students[knownStudent].ID;
             }
             else
             {
@@ -653,13 +642,13 @@ bool gatherTeammatesDialog::loadExistingTeamset()
         // find the baseStudent
         int index = 0;
         StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((student[index].ID != IDs[0]) && (index < numStudents))
+        while((students[index].ID != IDs[0]) && (index < numStudents))
         {
             index++;
         }
         if(index < numStudents)
         {
-            baseStudent = &student[index];
+            baseStudent = &students[index];
         }
         else
         {
@@ -673,13 +662,13 @@ bool gatherTeammatesDialog::loadExistingTeamset()
             {
                 // find the student with ID2
                 index = 0;
-                while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                while((students[index].ID != IDs[ID2]) && (index < numStudents))
                 {
                     index++;
                 }
                 if(index < numStudents)
                 {
-                    student2 = &student[index];
+                    student2 = &students[index];
                 }
                 else
                 {
@@ -716,19 +705,19 @@ bool gatherTeammatesDialog::loadStudentPrefs()
     QList<int> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++)
     {
-        if((sectionName == "") || (sectionName == student[basestudent].section))
+        if((sectionName == "") || (sectionName == students[basestudent].section))
         {
             QStringList prefs;
             if(whatType == prevented)
             {
-                prefs = student[basestudent].prefNonTeammates.split('\n');
+                prefs = students[basestudent].prefNonTeammates.split('\n');
             }
             else
             {
-                prefs = student[basestudent].prefTeammates.split('\n');
+                prefs = students[basestudent].prefTeammates.split('\n');
             }
             prefs.removeAll("");
-            prefs.prepend(student[basestudent].firstname + " " + student[basestudent].lastname);
+            prefs.prepend(students[basestudent].firstname + " " + students[basestudent].lastname);
 
             IDs.clear();
             IDs.reserve(prefs.size());
@@ -736,7 +725,7 @@ bool gatherTeammatesDialog::loadStudentPrefs()
             {
                 int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
                 while((knownStudent < numStudents) &&
-                      (prefs.at(searchStudent).compare((student[knownStudent].firstname + " " + student[knownStudent].lastname), Qt::CaseInsensitive) != 0))
+                      (prefs.at(searchStudent).compare((students[knownStudent].firstname + " " + students[knownStudent].lastname), Qt::CaseInsensitive) != 0))
                 {
                     knownStudent++;
                 }
@@ -744,12 +733,12 @@ bool gatherTeammatesDialog::loadStudentPrefs()
                 if(knownStudent != numStudents)
                 {
                     // Exact match found
-                    IDs << student[knownStudent].ID;
+                    IDs << students[knownStudent].ID;
                 }
                 else
                 {
                     // No exact match, so list possible matches sorted by Levenshtein distance
-                    auto *choiceWindow = new findMatchingNameDialog(numStudents, student, prefs.at(searchStudent), this, prefs.at(0));
+                    auto *choiceWindow = new findMatchingNameDialog(numStudents, students, prefs.at(searchStudent), this, prefs.at(0));
                     if(choiceWindow->exec() == QDialog::Accepted)
                     {
                         IDs << choiceWindow->currSurveyID;
@@ -760,13 +749,13 @@ bool gatherTeammatesDialog::loadStudentPrefs()
                 // find the baseStudent
                 int index = 0;
                 StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-                while((student[index].ID != IDs[0]) && (index < numStudents))
+                while((students[index].ID != IDs[0]) && (index < numStudents))
                 {
                     index++;
                 }
                 if(index < numStudents)
                 {
-                    baseStudent = &student[index];
+                    baseStudent = &students[index];
                 }
                 else
                 {
@@ -780,13 +769,13 @@ bool gatherTeammatesDialog::loadStudentPrefs()
                     {
                         // find the student with ID2
                         index = 0;
-                        while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                        while((students[index].ID != IDs[ID2]) && (index < numStudents))
                         {
                             index++;
                         }
                         if(index < numStudents)
                         {
-                            student2 = &student[index];
+                            student2 = &students[index];
                         }
                         else
                         {
@@ -892,7 +881,7 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
         {
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (searchStudent.compare(student[knownStudent].firstname + " " + student[knownStudent].lastname, Qt::CaseInsensitive) != 0))
+                  (searchStudent.compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0))
             {
                 knownStudent++;
             }
@@ -900,12 +889,12 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
             if(knownStudent != numStudents)
             {
                 // Exact match found
-                IDs << student[knownStudent].ID;
+                IDs << students[knownStudent].ID;
             }
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, searchStudent, this);
+                auto *choiceWindow = new findMatchingNameDialog(numStudents, students, searchStudent, this);
                 if(choiceWindow->exec() == QDialog::Accepted)
                 {
                     IDs << choiceWindow->currSurveyID;
@@ -920,13 +909,13 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
         {
             // find the student with ID1
             int index = 0;
-            while((student[index].ID != IDs[ID1]) && (index < numStudents))
+            while((students[index].ID != IDs[ID1]) && (index < numStudents))
             {
                 index++;
             }
             if(index < numStudents)
             {
-                student1 = &student[index];
+                student1 = &students[index];
             }
             else
             {
@@ -939,13 +928,13 @@ bool gatherTeammatesDialog::loadSpreadsheetFile()
                 {
                     // find the student with ID2
                     index = 0;
-                    while((student[index].ID != IDs[ID2]) && (index < numStudents))
+                    while((students[index].ID != IDs[ID2]) && (index < numStudents))
                     {
                         index++;
                     }
                     if(index < numStudents)
                     {
-                        student2 = &student[index];
+                        student2 = &students[index];
                     }
                     else
                     {
@@ -1019,9 +1008,9 @@ void gatherTeammatesDialog::refreshDisplay()
     QList<StudentRecord*> baseStudents;
     for(int index = 0; index < numStudents; index++)
     {
-        if((sectionName == "") || (sectionName == student[index].section))
+        if((sectionName == "") || (sectionName == students[index].section))
         {
-            baseStudents << &student[index];
+            baseStudents << &students[index];
         }
     }
     std::sort(baseStudents.begin(), baseStudents.end(), [](const StudentRecord *const A, const StudentRecord *const B)
@@ -1076,13 +1065,13 @@ void gatherTeammatesDialog::refreshDisplay()
                 // find studentB from their ID
                 StudentRecord *studentB = nullptr;
                 int index = 0;
-                while((student[index].ID != studentBID) && (index < numStudents))
+                while((students[index].ID != studentBID) && (index < numStudents))
                 {
                     index++;
                 }
                 if(index < numStudents)
                 {
-                    studentB = &student[index];
+                    studentB = &students[index];
                 }
                 else
                 {
@@ -1096,7 +1085,7 @@ void gatherTeammatesDialog::refreshDisplay()
                 }
                 auto *box = new QHBoxLayout;
                 auto *label = new QLabel(studentB->lastname + ", " + studentB->firstname);
-                auto *remover = new QPushButton(QIcon(":/icons/delete.png"), "");
+                auto *remover = new QPushButton(QIcon(":/icons_new/trashButton.png"), "");
                 remover->setFlat(true);
                 remover->setIconSize(ICONSIZE);
                 if(whatType == required)

@@ -15,6 +15,8 @@ dayNamesDialog::dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit 
 
     for(int day = 0; day < MAX_DAYS; day++)
     {
+        dayselectors[day]->setStyleSheet(CHECKBOXSTYLE);
+        daynames[day]->setStyleSheet(LINEEDITSTYLE);
         theGrid->addWidget(dayselectors[day], day, 0);
         theGrid->addWidget(daynames[day], day, 1);
     }
@@ -22,6 +24,7 @@ dayNamesDialog::dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit 
     //a spacer then ok button
     theGrid->setRowMinimumHeight(MAX_DAYS, DIALOG_SPACER_ROWHEIGHT);
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
+    buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
     theGrid->addWidget(buttonBox, MAX_DAYS + 1, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
 

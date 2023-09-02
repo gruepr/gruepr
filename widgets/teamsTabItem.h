@@ -40,7 +40,7 @@ public slots:
 private slots:
     void teamNamesChanged(int index);
     void randomizeTeamnames();
-    void makePrevented();
+    void makeNewSetWithAllNewTeammates();
     void swapStudents(const QList<int> &arguments); // arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
     void moveAStudent(const QList<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
     void moveATeam(const QList<int> &arguments);    // arguments = int teamA, int teamB
@@ -96,7 +96,7 @@ private:
     void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
     CanvasHandler *canvas = nullptr;
 
-    const QSize SAVEPRINTICONSIZE = QSize(30, 30);
+    const QSize SAVEPRINTICONSIZE = QSize(STD_ICON_SIZE, STD_ICON_SIZE);
     const int BIGGERFONTSIZE = 12;
     const QFont PRINTFONT = QFont("Oxygen Mono", 10, QFont::Normal);
 

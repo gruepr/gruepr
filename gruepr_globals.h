@@ -27,7 +27,6 @@ inline static const char16_t LEFTDOUBLEARROW = u'\u00AB';
 inline static const char16_t RIGHTARROW = u'\u2192';
 inline static const char16_t RIGHTARROWTOEND = u'\u21E5';
 inline static const char16_t RIGHTDOUBLEARROW = u'\u00BB';
-inline static const char16_t EDITPENCIL = u'\u270E';
 inline static const char16_t LEFTRIGHTARROW = u'\u27F7';
 inline static const char16_t BULLET = u'\u2022';
 
@@ -69,6 +68,10 @@ inline static const char SMALLBUTTONSTYLETRANSPARENT[] = "QPushButton {backgroun
                                                          "QPushButton:disabled {background-color: lightGray; "
                                                                                "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                                "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
+inline static const char SMALLBUTTONSTYLETRANSPARENTFLAT[] = "QPushButton {background-color: " TRANSPARENT "; Text-align: left; "
+                                                                "border-style: none; color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                                             "QPushButton:disabled {background-color: lightGray; Text-align: left; "
+                                                                "border-style: none; color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 inline static const char ATTRIBBUTTONONSTYLE[] = "QPushButton {background-color: " OPENWATERHEX "; "
                                                                "border-style: solid; border-width: 1px; border-color: lightGray; "
                                                                "border-top-left-radius: 0px; border-top-right-radius: 0px; "
@@ -81,7 +84,13 @@ inline static const char ATTRIBBUTTONOFFSTYLE[] = "QPushButton {background-color
                                                                 "border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; "
                                                                 "color: " OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
                                                                 "padding-top: 5px; padding-bottom: 5px; padding-left: 15px; padding-right: 15px;}";
-inline static const char GETSTARTEDBUTTONSTYLE[] = "background-color: " OPENWATERHEX "; "
+inline static const char GETSTARTEDBUTTONSTYLE[] = "QPushButton {background-color: " OPENWATERHEX "; "
+                                                                 "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                                 "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;}"
+                                                   "QPushButton:disabled {background-color: darkGray; "
+                                                                 "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
+                                                                 "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;}";
+inline static const char SAVEPRINTBUTTONSTYLE[] = "background-color: " DEEPWATERHEX "; "
                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
                                                    "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;";
 inline static const char NEXTBUTTONSTYLE[] = "QPushButton {background-color: white; "
@@ -121,30 +130,30 @@ inline static const char LINEEDITERRORSTYLE[] = "QLineEdit {background-color: wh
                                                  "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: black; border-width: 1px; "
                                                                       "font-family: 'DM Sans'; font-size: 12pt;}";
 inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
-                                                       "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                       "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                              "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                                                                  "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                                  "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                              "QComboBox::drop-down {border-width: 0px;}"
                                              "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}"
                                              "QComboBox QAbstractItemView {background-color: white; color: black; selection-background-color: " DEEPWATERHEX "; selection-color: white;}";
 inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; border-style: solid; border-color: black; border-width: 1px;"
-                                                            "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                            "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                  "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                                                            "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                            "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                  "QComboBox::drop-down {border-width: 0px;}"
                                                  "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}";
 inline static const char SPINBOXSTYLE[] = "QSpinBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
-                                                     "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                     "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                             "QSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                                                                "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                                "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                             "QSpinBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 12px; border: none;}"
                                             "QSpinBox::down-button {background-color: " TRANSPARENT "; border: none;}"
                                             "QSpinBox::up-arrow {image: url(:/icons_new/upButton.png); width: 14px; height: 12px; border: none;}"
                                             "QSpinBox::up-button {background-color: " TRANSPARENT "; border: none;}";
 inline static const char DOUBLESPINBOXSTYLE[] = "QDoubleSpinBox {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
-                                                                "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                                "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                   "QDoubleSpinBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
-                                                                           "font-family: 'DM Sans'; font-size: 12pt;}"
+                                                                           "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                   "QDoubleSpinBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 12px; border-width: 0px;}"
                                                   "QDoubleSpinBox::down-button {background-color: " TRANSPARENT "; border: none;}"
                                                   "QDoubleSpinBox::up-arrow {image: url(:/icons_new/upButton.png); width: 14px; height: 12px; border-width: 0px;}"
@@ -177,10 +186,9 @@ inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;
 inline static const int SM_DLG_SIZE = 300;
 inline static const int XS_DLG_SIZE = 200;
-inline static const int SMALL_SCREENSIZE_WIN = 900;
-inline static const int SMALL_SCREENSIZE_MAC = 800;
 inline static const int REDUCED_ICON_SIZE = 30;
 inline static const int MSGBOX_ICON_SIZE = 40;
+inline static const int STD_ICON_SIZE = 24;
 inline static const int UI_DISPLAY_DELAYTIME = 2000;
 
 // data with these roles are stored in columns of the team info display tree,

@@ -16,9 +16,9 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     setStyleSheet("QDialog{background-color: white;}");
 
     theGrid = new QGridLayout(this);
-    theGrid->setSpacing(0);
-    theGrid->setColumnMinimumWidth(0, HEIGHTOFSPACERROW);
-    theGrid->setColumnMinimumWidth(2, HEIGHTOFSPACERROW);
+    theGrid->setSpacing(2);
+    theGrid->setColumnMinimumWidth(0, DIALOG_SPACER_ROWHEIGHT);
+    theGrid->setColumnMinimumWidth(2, DIALOG_SPACER_ROWHEIGHT);
 
     //Spacer in row 1
     addSpacerRow(0);
@@ -34,9 +34,9 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     theTable->setSelectionMode(QAbstractItemView::NoSelection);
     theTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     theTable->setShowGrid(false);
-    theTable->setAlternatingRowColors(true);
-    theTable->setStyleSheet("QTableView{background-color: white; alternate-background-color: " BUBBLYHEX "; border-color: " DEEPWATERHEX ";}"
-                            "QTableView::item{border-top: 1px solid " DEEPWATERHEX "; border-bottom: 1px solid " DEEPWATERHEX "; padding: 3px;}");
+    theTable->setStyleSheet(QString() +
+                            "QTableView{background-color: white; border: none;}"
+                             "QTableView::item{border: none; padding: 3px;}" + SCROLLBARSTYLE);
     theTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     theTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     theTable->verticalHeader()->hide();
@@ -54,7 +54,8 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     addSpacerRow(BUTTONBOXROWINGRID - 1);
     buttonLayout = new QHBoxLayout;
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-    buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     buttonLayout->addWidget(buttonBox, 0, Qt::AlignRight);
     theGrid->addLayout(buttonLayout, BUTTONBOXROWINGRID, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -63,12 +64,11 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
 
 void listTableDialog::addSpacerRow(int row)
 {
-    theGrid->setRowMinimumHeight(row, HEIGHTOFSPACERROW);
+    theGrid->setRowMinimumHeight(row, DIALOG_SPACER_ROWHEIGHT);
 }
 
 void listTableDialog::addButton(QPushButton *newButton)
 {
-    newButton->setStyleSheet(SMALLBUTTONSTYLE);
     buttonLayout->insertWidget(0, newButton, 0, Qt::AlignLeft);
 }
 

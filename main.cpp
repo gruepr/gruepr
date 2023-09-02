@@ -45,6 +45,7 @@
 // - update greupr to all new UI design!
 //
 // TO DO:
+// - crash when canceling custom teamsizes then clicking letsdoit
 // - BUGFIX: does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
 // - allow selection of which google drive account to use, remembering different refresh tokens for each
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows

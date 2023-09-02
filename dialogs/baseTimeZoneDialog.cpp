@@ -17,11 +17,11 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 
     //explanation and a spacer row
     explanation = new QLabel(this);
+    explanation->setStyleSheet(LABELSTYLE);
     explanation->setText(tr("<html>Students were asked to fill out their schedule using their home timezone. "
                             "Which of these should be used as the base timezone for the class? "
                             "The schedules will all be adjusted to correspond to this value.<hr></html>"));
     explanation->setWordWrap(true);
-    explanation->setStyleSheet(LABELSTYLE);
     theGrid->addWidget(explanation, 0, 0, 1, -1);
     theGrid->setRowMinimumHeight(1, DIALOG_SPACER_ROWHEIGHT);
 

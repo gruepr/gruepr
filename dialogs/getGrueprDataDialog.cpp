@@ -73,7 +73,6 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
     delete ui;
 }
 
-
 void GetGrueprDataDialog::loadData()
 {
     surveyFile->close((source == fromGoogle) || (source == fromCanvas));
@@ -160,7 +159,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     if(!google->authenticated)
     {
         auto *loginDialog = new QMessageBox(this);
-        QPixmap icon(":/icons/google.png");
+        QPixmap icon(":/icons_new/google.png");
         loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
         loginDialog->setText("");
 
@@ -210,7 +209,7 @@ bool GetGrueprDataDialog::getFromGoogle()
             okButton->setIconSize(loginpic.rect().size());
             okButton->setIcon(loginpic);
             okButton->adjustSize();
-            QPixmap cancelpic(":/icons/cancel_signin_button.png");
+            QPixmap cancelpic(":/icons_new/cancel_signin_button.png");
             cancelpic = cancelpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             cancelButton->setText("");
             cancelButton->setIconSize(cancelpic.rect().size());
@@ -240,7 +239,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     QStringList formsList = google->getSurveyList();
     auto *googleFormsDialog = new QDialog(this);
     googleFormsDialog->setWindowTitle(tr("Choose Google survey"));
-    googleFormsDialog->setWindowIcon(QIcon(":/icons/google.png"));
+    googleFormsDialog->setWindowIcon(QIcon(":/icons_new/google.png"));
     googleFormsDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("Which survey should be opened?"));
@@ -252,7 +251,8 @@ bool GetGrueprDataDialog::getFromGoogle()
         formsComboBox->addItem(form);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(formsComboBox);
     vLayout->addWidget(buttonBox);
@@ -276,7 +276,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     if(filepath.isEmpty())
     {
         google->busyBoxLabel->setText(tr("Error. Survey not downloaded."));
-        icon.load(":/icons/delete.png");
+        icon.load(":/icons_new/error.png");
         google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
         busyBox->adjustSize();
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
@@ -343,9 +343,9 @@ bool GetGrueprDataDialog::getFromCanvas()
     canvas->notBusy(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
-    canvasCoursesAndQuizzesDialog->setStyleSheet(QString() + LABELSTYLE + COMBOBOXSTYLE + SMALLBUTTONSTYLE);
+    canvasCoursesAndQuizzesDialog->setStyleSheet(QString() + LABELSTYLE + COMBOBOXSTYLE);
     canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas course"));
-    canvasCoursesAndQuizzesDialog->setWindowIcon(QIcon(":/icons/canvas.png"));
+    canvasCoursesAndQuizzesDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     canvasCoursesAndQuizzesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
@@ -357,6 +357,8 @@ bool GetGrueprDataDialog::getFromCanvas()
         coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesAndQuizzesComboBox);
     vLayout->addWidget(buttonBox);
@@ -400,7 +402,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     if(filepath.isEmpty())
     {
         canvas->busyBoxLabel->setText(tr("Error. Survey not received."));
-        icon.load(":/icons/delete.png");
+        icon.load(":/icons_new/error.png");
         canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
         busyBox->adjustSize();
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
@@ -471,7 +473,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
                                                   {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
                                                   {"Gender", "((gender)|(pronouns))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                  {"Schedule", "(check).+(times)", MAX_DAYS}, {"Section", "which section are you enrolled", 1},
+                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS}, {"Section", "which section are you enrolled", 1},
                                                   {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
                                                   {"Multiple Choice", ".*", MAX_ATTRIBUTES}, {"Notes", "", MAX_NOTES_FIELDS}};

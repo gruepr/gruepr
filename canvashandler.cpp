@@ -628,7 +628,7 @@ void CanvasHandler::authenticate(const QString &token) {
 QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, const QString &currentToken, QWidget *parent) {
     auto *getCanvasInfoDialog = new QDialog(parent);
     getCanvasInfoDialog->setWindowTitle(tr("Connect to Canvas"));
-    getCanvasInfoDialog->setWindowIcon(QIcon(":/icons/canvas.png"));
+    getCanvasInfoDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     getCanvasInfoDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("The next step will allow gruepr to interact with your Canvas course. This feature is currently in beta.\n"
@@ -680,7 +680,7 @@ QDialog* CanvasHandler::busy(QWidget *parent) {
     auto *busyDialog = new QDialog(parent);
     busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
     busyBoxIcon = new QLabel(busyDialog);
-    busyBoxIcon->setPixmap(QPixmap(":/icons/canvas.png").scaled(CANVASICONSIZE));
+    busyBoxIcon->setPixmap(QPixmap(":/icons_new/canvas.png").scaled(CANVASICONSIZE));
     busyBoxLabel = new QLabel(busyDialog);
     busyBoxLabel->setStyleSheet(LABELSTYLE);
     busyBoxLabel->setText(tr("Communicating with Canvas..."));

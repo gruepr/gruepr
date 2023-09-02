@@ -50,6 +50,21 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
     ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
+    ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    ui->saveSurveyFilePushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    ui->dataDisplayTabWidget->setStyleSheet("QTabWidget {border: 1px solid black; background-color: lightGray;}"
+                                            "QTabWidget::pane {margin: 10px, 0px, 0px, 0px; border: none;}");
+    ui->dataDisplayTabWidget->tabBar()->setStyleSheet("QTabBar {alignment: center; margin: 10px; padding: 5px; border: none;}"
+                                                       "QTabBar::tab {border: 1px solid " OPENWATERHEX "; border-radius: 5px; padding: 5px; "
+                                                                      "font-family:'DM Sans'; font-size: 12pt;}"
+                                                       "QTabBar::tab::selected {color: white; background: " OPENWATERHEX ";}"
+                                                       "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}");
+    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton, ui->saveSurveyFilePushButton};
+    for(auto &button : buttons) {
+        button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
+    }
+    ui->dataSourceIcon->setFixedSize(STD_ICON_SIZE, STD_ICON_SIZE);
 
     QList<QWidget *> selectors = {ui->sectionSelectionBox, ui->idealTeamSizeBox, ui->teamSizeBox,
                                   ui->minMeetingTimes, ui->desiredMeetingTimes, ui->meetingLengthSpinBox, ui->scheduleWeight};
@@ -58,12 +73,12 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
     }
 
-    //For the teams tabs, make the tabs closable, hide the close button on the students tab, & engage signals for tabs closing & double-click
+    //Make the teams tabs double-clickable and closable (hide the close button on the students tab)
+    connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
     ui->dataDisplayTabWidget->setTabsClosable(true);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, nullptr);
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabCloseRequested, this, &gruepr::dataDisplayTabClose);
-    connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
 
 //    //Setup the main window menu items
 //    connect(ui->actionLoad_Teaming_Options_File, &QAction::triggered, this, &gruepr::loadOptionsFile);
@@ -249,6 +264,8 @@ void gruepr::loadOptionsFile()
                 ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
             }
 
+            QList<int> setOfRequiredResponses;
+            QList< QPair<int,int> > setOfIncompatibleResponses;
             for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++)
             {
                 if(loadObject.contains("Attribute" + QString::number(attribute+1)+"desireHomogeneous") &&
@@ -267,7 +284,7 @@ void gruepr::loadOptionsFile()
                     }
                 }
                 int requiredResponseNum = 0;
-                QList<int> setOfRequiredResponses;
+                setOfRequiredResponses.clear();
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)) &&
                       loadObject["Attribute" + QString::number(attribute+1) + "requiredResponse" + QString::number(requiredResponseNum+1)].isDouble())
                 {
@@ -277,7 +294,7 @@ void gruepr::loadOptionsFile()
                 }
                 teamingOptions->requiredAttributeValues[attribute] = setOfRequiredResponses;
                 int incompatibleResponseNum = 0;
-                QList< QPair<int,int> > setOfIncompatibleResponses;
+                setOfIncompatibleResponses.clear();
                 while(loadObject.contains("Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)) &&
                       loadObject["Attribute" + QString::number(attribute+1) + "incompatibleResponse" + QString::number(incompatibleResponseNum+1)].isString())
                 {
@@ -372,16 +389,16 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(int index)
     {
         teamingOptions->sectionName = desiredSection;
 
-        if(ui->sectionSelectionBox->currentIndex() == 1)
-        {
+        if(!dataOptions->sectionIncluded) {
+            teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
+        }
+        else if(ui->sectionSelectionBox->currentIndex() == 1) {
             teamingOptions->sectionType = TeamingOptions::SectionType::allSeparately;
         }
-        else if((ui->sectionSelectionBox->currentIndex() == 0) && (dataOptions->sectionNames.size() > 1))
-        {
+        else if(ui->sectionSelectionBox->currentIndex() == 0) {
             teamingOptions->sectionType = TeamingOptions::SectionType::allTogether;
         }
-        else
-        {
+        else {
             teamingOptions->sectionType = TeamingOptions::SectionType::oneSection;
         }
     }
@@ -400,13 +417,13 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(int index)
         {
             currentResponseCounts[responseCount.first] = 0;
         }
-        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+        for(const auto &student:students)
         {
-            if((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1) || (students[index].section == ui->sectionSelectionBox->currentText()))
+            if((ui->sectionSelectionBox->currentIndex() == 0) || (ui->sectionSelectionBox->currentIndex() == 1) || (student.section == ui->sectionSelectionBox->currentText()))
             {
-                const QString &currentStudentResponse = students[index].attributeResponse[attribute];
+                const QString &currentStudentResponse = student.attributeResponse[attribute];
 
-                if(!students[index].attributeResponse[attribute].isEmpty())
+                if(!student.attributeResponse[attribute].isEmpty())
                 {
                     if((attributeType == DataOptions::AttributeType::multicategorical) ||
                         (attributeType == DataOptions::AttributeType::multiordered))
@@ -613,12 +630,9 @@ void gruepr::on_addStudentPushButton_clicked()
                     attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
                 }
             }
-
             dataOptions->numStudentsInSystem++;
-
             rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
         }
-
         delete win;
     }
     else
@@ -678,7 +692,7 @@ void gruepr::on_compareRosterPushButton_clicked()
             else
             {
                 // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
-                auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, students.constData(), name, this, "", true, emails.at(names.indexOf(name)));
+                auto *choiceWindow = new findMatchingNameDialog(dataOptions->numStudentsInSystem, students, name, this, "", true, emails.at(names.indexOf(name)));
                 if(choiceWindow->exec() == QDialog::Accepted)   // not ignoring this student
                 {
                     if(choiceWindow->addStudent)    // add as a new student
@@ -686,6 +700,7 @@ void gruepr::on_compareRosterPushButton_clicked()
                         dataHasChanged = true;
 
                         StudentRecord newStudent;
+                        newStudent.surveyTimestamp = {};
                         newStudent.ID = students.size();
                         newStudent.firstname = name.split(" ").first();
                         newStudent.lastname = name.split(" ").mid(1).join(" ");
@@ -748,7 +763,11 @@ void gruepr::on_compareRosterPushButton_clicked()
                                                              tr("Survey: ") + "<b>" + surveyEmail + "</b><br>" +
                                                              tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br>",
                                                          QMessageBox::Ok | QMessageBox::Cancel, this);
+                whichEmailWindow->setStyleSheet(LABELSTYLE);
+                whichEmailWindow->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+                whichEmailWindow->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
                 auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(studentsWithDiffEmail.size() - i) + tr(" students)"));
+                applyToAll->setStyleSheet(CHECKBOXSTYLE);
                 whichEmailWindow->setCheckBox(applyToAll);
                 connect(applyToAll, &QCheckBox::clicked, whichEmailWindow, [&keepAsking] (bool checked) {keepAsking = !checked;});
                 whichEmailWindow->button(QMessageBox::Ok)->setText(tr("Use survey email address"));
@@ -790,7 +809,11 @@ void gruepr::on_compareRosterPushButton_clicked()
                                                                tr("submitted a survey but was not found in the roster file.") + "<br><br>" +
                                                                tr("Should we keep this student or remove them?"),
                                                            QMessageBox::Ok | QMessageBox::Cancel, this);
+                keepOrDeleteWindow->setStyleSheet(LABELSTYLE);
+                keepOrDeleteWindow->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+                keepOrDeleteWindow->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
                 auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"));
+                applyToAll->setStyleSheet(CHECKBOXSTYLE);
                 keepOrDeleteWindow->setCheckBox(applyToAll);
                 connect(applyToAll, &QCheckBox::clicked, keepOrDeleteWindow, [&keepAsking] (bool checked) {keepAsking = !checked;});
                 keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep ") + name);
@@ -1199,7 +1222,7 @@ void gruepr::on_teammatesButton_clicked()
         teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
     }
     //Open specialized dialog box to collect pairings that are required
-    auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::required, students.constData(), dataOptions->numStudentsInSystem,
+    auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::required, students, dataOptions->numStudentsInSystem,
                                           dataOptions, ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName, &teamTabNames, this);
 
     //If user clicks OK, replace student database with copy that has had pairings added
@@ -1208,7 +1231,7 @@ void gruepr::on_teammatesButton_clicked()
     {
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            this->students[index] = win->student[index];
+            this->students[index] = win->students[index];
         }
         teamingOptions->haveAnyRequiredTeammates = win->teammatesSpecified;
     }
@@ -1453,28 +1476,15 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
         if(reply == QDialog::Accepted)
         {
             teamingOptions->numTeamsDesired = win->numTeams;
-            setTeamSizes(win->teamsizes);
+            setTeamSizes(win->teamsizes.constData());
         }
         else
         {
             // Set to index 0 if cancelled
-            bool oldState = ui->teamSizeBox->blockSignals(true);
             ui->teamSizeBox->setCurrentIndex(0);
-            if(ui->teamSizeBox->currentText() == (QString::number(teamingOptions->numTeamsDesired) + tr(" teams of ") +
-                                                  QString::number(ui->idealTeamSizeBox->value()) + tr(" students")))
-            {
-                // Evenly divisible teams, all same size
-                setTeamSizes(ui->idealTeamSizeBox->value());
-            }
-            else
-            {
-                teamingOptions->numTeamsDesired = teamingOptions->smallerTeamsNumTeams;
-                setTeamSizes(teamingOptions->smallerTeamsSizes);
-            }
-            ui->teamSizeBox->blockSignals(oldState);
         }
-
         delete win;
+        return;
     }
     else if(index == 0)
     {
@@ -1801,9 +1811,6 @@ void gruepr::loadDefaultSettings()
 void gruepr::loadUI()
 {
     ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
-    ui->dataSourceLabel->adjustSize();
-    int h = ui->dataSourceLabel->height() * 2 / 3;
-    ui->dataSourceIcon->setMaximumSize(h, h);
 
     ui->sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded) {
@@ -1824,6 +1831,7 @@ void gruepr::loadUI()
         ui->sectionSelectionBox->addItem(tr("No section data."));
         ui->sectionFrame->hide();
         ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
     }
     teamingOptions->sectionName = ui->sectionSelectionBox->currentText();
     ui->sectionSelectionBox->blockSignals(false);
@@ -2059,8 +2067,8 @@ void gruepr::refreshStudentDisplay()
     {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Section  ")));
     }
-    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(tr("  Edit  ")));
-    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("  Remove  ")));
+    ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(tr("Edit")));
+    ui->studentTable->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Remove")));
 
     ui->studentTable->setRowCount(dataOptions->numStudentsInSystem);
     numActiveStudents = 0;
@@ -2100,7 +2108,7 @@ void gruepr::refreshStudentDisplay()
                 }
             }
 
-            auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons/edit.png"), "", this);
+            auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/edit.png"), "", this);
             editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
             editButton->setProperty("StudentIndex", numActiveStudents);
             editButton->setProperty("duplicate", duplicate);
@@ -2122,7 +2130,7 @@ void gruepr::refreshStudentDisplay()
                                                                       ui->studentTable->cellLeft(row);});
             ui->studentTable->setCellWidget(numActiveStudents, column++, editButton);
 
-            auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons/delete.png"), "", this);
+            auto *removerButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/trashButton.png"), "", this);
             removerButton->setToolTip("<html>" + tr("Remove") + " " + student.firstname + " " + student.lastname + " " +
                                                  tr("from the list.") + "</html>");
             removerButton->setProperty("StudentIndex", numActiveStudents);
@@ -2150,6 +2158,7 @@ void gruepr::refreshStudentDisplay()
             numActiveStudents++;
         }
     }
+    ui->studentTable->setRowCount(numActiveStudents);
     ui->studentTable->setVerticalHeaderLabels(rowNumbers);
 
     ui->studentTable->setUpdatesEnabled(true);

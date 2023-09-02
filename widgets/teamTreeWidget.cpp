@@ -386,7 +386,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
     studentItem->setText(column, " ");
     studentItem->setToolTip(column, stu.tooltip);
     column++;
-    if(teamingOptions->sectionType != TeamingOptions::SectionType::oneSection)
+    if((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) || (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately))
     {
         studentItem->setText(column, stu.section);
         studentItem->setToolTip(column, stu.tooltip);

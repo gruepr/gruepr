@@ -346,7 +346,7 @@ void StartDialog::openRegisterDialog() {
             else
             {
                 registeredUser.clear();
-                icon->setPixmap(QPixmap(":/icons/delete.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                icon->setPixmap(QPixmap(":/icons_new/error.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
                 message->setText(tr("Error. Please try again later or contact <" GRUEPRHELPEMAIL ">."));
             }
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);

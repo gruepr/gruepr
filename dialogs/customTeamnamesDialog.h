@@ -9,21 +9,20 @@ class customTeamnamesDialog : public listTableDialog
     Q_OBJECT
 
 public:
-    customTeamnamesDialog(int numTeams = 1, const QStringList &teamNames = {}, QWidget *parent = nullptr);
-    ~customTeamnamesDialog();
+    customTeamnamesDialog(int numTeams = 1, const QStringList &incomingTeamNames = {}, QWidget *parent = nullptr);
     customTeamnamesDialog(const customTeamnamesDialog&) = delete;
     customTeamnamesDialog operator= (const customTeamnamesDialog&) = delete;
     customTeamnamesDialog(customTeamnamesDialog&&) = delete;
     customTeamnamesDialog& operator= (customTeamnamesDialog&&) = delete;
 
-    QLineEdit *teamName;
+    QList<QLineEdit *> teamNames;
 
 private slots:
     void clearAllNames();
 
 private:
     int numTeams;
-    QPushButton *resetNamesButton;
+    QPushButton *resetNamesButton = nullptr;
 };
 
 #endif // CUSTOMTEAMNAMESDIALOG_H

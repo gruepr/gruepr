@@ -583,7 +583,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesComboBox, &QComboBox::setEnabled);
     auto *options = new QGroupBox("");
     options->setStyleSheet("border-style:none;");
-    QVBoxLayout *vbox = new QVBoxLayout;
+    auto *vbox = new QVBoxLayout;
     vbox->setSpacing(0);
     vbox->setContentsMargins(20, 0, 0, 0);
     options->setLayout(vbox);
@@ -618,6 +618,9 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     registerField("RaceEthnicity", questions[urm], "value", "valueChanged");
 
     update();
+
+    questions[firstname]->setValue(true);
+    questions[lastname]->setValue(true);
 }
 
 void DemographicsPage::initializePage()
@@ -658,7 +661,7 @@ void DemographicsPage::cleanupPage()
 
 void DemographicsPage::update()
 {
-    GenderType genderType = static_cast<GenderType>(genderResponsesComboBox->currentIndex());
+    auto genderType = static_cast<GenderType>(genderResponsesComboBox->currentIndex());
     QStringList genderOptions;
     QString questionText;
     if(genderType == GenderType::biol)
@@ -1040,7 +1043,6 @@ SchedulePage::SchedulePage(QWidget *parent)
         dayCheckBoxes << new QCheckBox;
         dayLineEdits <<  new QLineEdit;
         dayCheckBoxes.last()->setChecked(true);
-        dayLineEdits.last()->setStyleSheet(LINEEDITSTYLE);
         dayLineEdits.last()->setText(dayNames.at(day));
         dayLineEdits.last()->setPlaceholderText(tr("Day ") + QString::number(day + 1) + tr(" name"));
         connect(dayLineEdits.last(), &QLineEdit::textChanged, this, [this, day](const QString &text)
@@ -1769,7 +1771,7 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     destinationTextFiles = new QRadioButton(tr("Text Files"));
     destinationGrueprFile = new QRadioButton(tr("gruepr Survey File"));
     destinationGoogle->setChecked(true);
-    QVBoxLayout *vbox = new QVBoxLayout;
+    auto *vbox = new QVBoxLayout;
     vbox->addWidget(destinationGoogle);
     vbox->addWidget(destinationCanvas);
     vbox->addWidget(destinationTextFiles);
@@ -2411,7 +2413,7 @@ void PreviewAndExportPage::exportSurvey()
         if(!google->authenticated)
         {
             auto *loginDialog = new QMessageBox(this);
-            QPixmap icon(":/icons/google.png");
+            QPixmap icon(":/icons_new/google.png");
             loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
             loginDialog->setText("");
 
@@ -2460,7 +2462,7 @@ void PreviewAndExportPage::exportSurvey()
                 okButton->setIconSize(loginpic.rect().size());
                 okButton->setIcon(loginpic);
                 okButton->adjustSize();
-                QPixmap cancelpic(":/icons/cancel_signin_button.png");
+                QPixmap cancelpic(":/icons_new/cancel_signin_button.png");
                 cancelpic = cancelpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
                 cancelButton->setText("");
                 cancelButton->setIconSize(cancelpic.rect().size());
@@ -2495,7 +2497,7 @@ void PreviewAndExportPage::exportSurvey()
         if(form.name.isEmpty())
         {
             google->busyBoxLabel->setText(tr("Error. The survey was not created."));
-            icon.load(":/icons/delete.png");
+            icon.load(":/icons_new/error.png");
             google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
             google->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
             busyBox->adjustSize();
@@ -2598,7 +2600,7 @@ void PreviewAndExportPage::exportSurvey()
 
         auto *canvasCourses = new QDialog(this);
         canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-        canvasCourses->setWindowIcon(QIcon(":/icons/canvas.png"));
+        canvasCourses->setWindowIcon(QIcon(":/icons_new/canvas.png"));
         canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
         auto *vLayout = new QVBoxLayout;
         int i = 1;
@@ -2611,7 +2613,8 @@ void PreviewAndExportPage::exportSurvey()
             coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
         }
         auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-        buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
+        buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+        buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
         vLayout->addWidget(label);
         vLayout->addWidget(coursesComboBox);
         vLayout->addWidget(buttonBox);
@@ -2632,7 +2635,7 @@ void PreviewAndExportPage::exportSurvey()
         QSize iconSize = canvas->busyBoxIcon->size();
         if(!success) {
             canvas->busyBoxLabel->setText(tr("Error. The survey was not created."));
-            icon.load(":/icons/delete.png");
+            icon.load(":/icons_new/error.png");
             canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
             canvas->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
             busyBox->adjustSize();

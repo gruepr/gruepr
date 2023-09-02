@@ -27,8 +27,9 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     numStudents = dataOptions->numStudentsInSystem;
     tabName = incomingTabName;
 
-    setContentsMargins(0,0,0,0);
+    setContentsMargins(0, 0, 0, 0);
     teamDataLayout = new QVBoxLayout;
+    teamDataLayout->setContentsMargins(0, 0, 0, 0);
     teamDataLayout->setSpacing(6);
     teamDataLayout->setStretch(0, 1);
     setLayout(teamDataLayout);
@@ -130,13 +131,12 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     connect(randTeamnamesCheckBox, &QCheckBox::clicked, this, &TeamsTabItem::randomizeTeamnames);
     teamOptionsLayout->addWidget(randTeamnamesCheckBox);
 
-    sendToPreventedTeammates = new QPushButton(tr("Load as prevented"), this);
+    sendToPreventedTeammates = new QPushButton(tr("Create teams with all new teammates"), this);
     sendToPreventedTeammates->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     sendToPreventedTeammates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sendToPreventedTeammates->setFlat(true);
-    sendToPreventedTeammates->setToolTip(tr("<html>Send all of these teams to the \"Prevented Teammates\" teaming option so that "
-                                            "another set of teams can be created with everyone getting all new teammates</html>"));
-    connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makePrevented);
+    sendToPreventedTeammates->setToolTip(tr("<html>Create another set of teams, with all current teammates set as \"Prevented Teammates\"</html>"));
+    connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makeNewSetWithAllNewTeammates);
     teamOptionsLayout->addWidget(sendToPreventedTeammates);
 
     savePrintLayout = new QHBoxLayout;
@@ -149,14 +149,14 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     painter.fillRect(whiteSaveFile.rect(), QColor("white"));
     painter.end();
     saveTeamsButton = new QPushButton(QIcon(whiteSaveFile), tr("Save"), this);
-    saveTeamsButton->setStyleSheet(SMALLBUTTONSTYLE);
+    saveTeamsButton->setStyleSheet(SAVEPRINTBUTTONSTYLE);
     saveTeamsButton->setIconSize(SAVEPRINTICONSIZE);
     saveTeamsButton->setToolTip(tr("Save this set of teams as text or pdf"));
     connect(saveTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::saveTeams);
     savePrintLayout->addWidget(saveTeamsButton);
 
     printTeamsButton = new QPushButton(QIcon(":/icons_new/print.png"), tr("Print"), this);
-    printTeamsButton->setStyleSheet(SMALLBUTTONSTYLE);
+    printTeamsButton->setStyleSheet(SAVEPRINTBUTTONSTYLE);
     printTeamsButton->setIconSize(SAVEPRINTICONSIZE);
     printTeamsButton->setToolTip(tr("Send this set of teams to the printer"));
     connect(printTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::printTeams);
@@ -299,7 +299,7 @@ void TeamsTabItem::teamNamesChanged(int index)
         {
             for(int team = 0; team < teams.size(); team++)
             {
-                teams[teamDisplayNums.at(team)].name = (window->teamName[team].text().isEmpty()? QString::number(team+1) : window->teamName[team].text());
+                    teams[teamDisplayNums.at(team)].name = (window->teamNames[team]->text().isEmpty()? QString::number(team+1) : window->teamNames[team]->text());
             }
             prevIndex = int(teamnameLists.size());
             bool currentValue = teamnamesComboBox->blockSignals(true);
@@ -350,7 +350,7 @@ void TeamsTabItem::randomizeTeamnames()
 }
 
 
-void TeamsTabItem::makePrevented()
+void TeamsTabItem::makeNewSetWithAllNewTeammates()
 {
     for(auto &team : teams)
     {
@@ -906,7 +906,7 @@ void TeamsTabItem::postTeamsToCanvas()
     canvas->notBusy(busyBox);
     auto *canvasCourses = new QDialog;
     canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-    canvasCourses->setWindowIcon(QIcon(":/icons/canvas.png"));
+    canvasCourses->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
@@ -974,7 +974,7 @@ void TeamsTabItem::postTeamsToCanvas()
     else
     {
         canvas->busyBoxLabel->setText(tr("Error. Teams not created."));
-        icon.load(":/icons/delete.png");
+        icon.load(":/icons_new/error.png");
         canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
