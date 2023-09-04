@@ -25,10 +25,10 @@ StartDialog::StartDialog(QWidget *parent)
     setWindowTitle("gruepr - Welcome!");
     setAttribute(Qt::WA_DeleteOnClose);
 
-    // Get the screen size
-    QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
-    int screenWidth = screenGeometry.width();
-    int screenHeight = screenGeometry.height();
+//    // Get the screen size
+//    QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
+//    int screenWidth = screenGeometry.width();
+//    int screenHeight = screenGeometry.height();
 
     const int BASEWINDOWWIDTH = 800;
     const int BASEWINDOWHEIGHT = 456;
@@ -314,7 +314,6 @@ void StartDialog::openRegisterDialog() {
             box->addWidget(icon);
             box->addWidget(message, 0, Qt::AlignLeft);
             (qobject_cast<QBoxLayout *>(registerWin->layout()))->addLayout(box);
-            icon->setPixmap(QPixmap(":/icons/wait.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
             message->setText(tr("Communicating..."));
 
             auto *manager = new QNetworkAccessManager(registerWin);
@@ -339,7 +338,7 @@ void StartDialog::openRegisterDialog() {
                 QSettings savedSettings;
                 savedSettings.setValue("registeredUser", registeredUser);
                 savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
-                icon->setPixmap(QPixmap(":/icons/ok.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                icon->setPixmap(QPixmap(":/icons_new/ok.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
                 message->setText(tr("Success!"));
                 registerLabel->setText(tr("Thank you for being a registered user."));
             }

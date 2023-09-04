@@ -6,6 +6,7 @@
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
+#include "widgets/labelWithInstantTooltip.h"
 #include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
 #include <QComboBox>
@@ -56,7 +57,7 @@ private:
     TeamTreeWidget *teamDataTree = nullptr;
 
     QHBoxLayout *rowsLayout = nullptr;
-    QLabel *dragDropExplanation = nullptr;
+    LabelWithInstantTooltip *dragDropExplanation = nullptr;
     struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments); QList<int> arguments; QString ToolTip;};
     QList<UndoRedoItem> undoItems;
     QList<UndoRedoItem> redoItems;

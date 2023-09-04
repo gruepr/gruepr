@@ -25,19 +25,6 @@ bool internetIsGood() {
     return !weGotProblems;
 }
 
-/*
-void testFunction() {
-    auto *win = new QDialog;
-    auto *view = new QWebEngineView(win);
-    view->load(QUrl(GRUEPRHOMEPAGE));
-    win->setMinimumSize(LG_DLG_SIZE*2, LG_DLG_SIZE);
-    view->resize(win->size());
-    win->exec();
-    delete view;
-    delete win;
-}
-*/
-
 void aboutWindow(QWidget *parent)
 {
     QSettings savedSettings;

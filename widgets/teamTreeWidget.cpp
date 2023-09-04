@@ -539,7 +539,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     }
     else if(dragItemIsStudent && dropItemIsStudent)            // dragging student->student
     {
-        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons/exchange.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/swap.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
                                      + tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + dropItem->text(0) + "</b></div>");
         dragDropEventLabel->setStyleSheet("QLabel {background-color: #d9ffdc; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
         dragDropEventLabel->show();
@@ -555,7 +555,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     }
     else if(dragItemIsStudent && !dropItemIsStudent)           // dragging student->team
     {
-        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
                                      + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + dropItem->text(0) + "</b></div>");
         dragDropEventLabel->setStyleSheet("QLabel {background-color: #d9ffdc; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
         dragDropEventLabel->show();
@@ -563,7 +563,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     }
     else if(!dragItemIsStudent && !dropItemIsStudent)          // dragging team->team
     {
-        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons/swap.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
                                      + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("above") + " <b>" + dropItem->text(0) + "</b></div>");
         dragDropEventLabel->setStyleSheet("QLabel {background-color: #d9ffdc; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
         dragDropEventLabel->show();
@@ -618,7 +618,7 @@ void TeamTreeWidget::resorting(int column)
         }
         else
         {
-            headerItem()->setIcon(column, QIcon(":/icons/blank_arrow.png"));
+            headerItem()->setIcon(column, QIcon(":/icons_new/blank_arrow.png"));
         }
     }
     emit updateTeamOrder();

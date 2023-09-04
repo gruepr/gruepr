@@ -33,9 +33,8 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     //Row 3 - table of the size choices
     theTable->setRowCount(numStudents);
     teamsizeBox.reserve(numStudents);
-    int widthCol0 = 0;
-    for(int i = 0; i < numStudents; i++)
-    {
+    int widthCol0 = 0, rowHeight = 0;
+    for(int i = 0; i < numStudents; i++) {
         auto *label = new QLabel(tr("Team ") + QString::number(i+1) + " ", this);
         label->setStyleSheet(LABELSTYLE);
         theTable->setCellWidget(i, 0, label);
@@ -47,8 +46,12 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
         teamsizeBox.last()->installEventFilter(this);    // remove scrollwheel from affecting the value, as box is in a table inside a scroll area; easy to mistakenly change value
         connect(teamsizeBox.last(), QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::teamsizeChanged);
         theTable->setCellWidget(i, 1, teamsizeBox.last());
+        rowHeight = std::max(rowHeight, std::max(label->height(), teamsizeBox.last()->height()));
     }
-    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
+    for(int i = 0; i < numStudents; i++) {
+        theTable->verticalHeader()->resizeSection(i, rowHeight * TABLEOVERSIZE);
+    }
     theTable->adjustSize();
 
     //Rows 4&5 - a spacer and remaining students label
@@ -69,40 +72,32 @@ void customTeamsizesDialog::refreshDisplay()
     //show a label and a combobox for as many teams as chosen in the numTeams selection, and
     //display how many students remain to be placed on a team, using red font if that number is non-zero
     int studentsOnATeamCount = 0;
-    for(int i = 0; i < numStudents; i++)
-    {
-        if(i < numTeams)
-        {
+    for(int i = 0; i < numStudents; i++) {
+        if(i < numTeams) {
             studentsOnATeamCount += teamsizeBox[i]->value();
             theTable->showRow(i);
         }
-        else
-        {
+        else {
             theTable->hideRow(i);
         }
     }
     remainingStudents->setText(tr("Remaining students: ") + QString::number(numStudents-studentsOnATeamCount));
-    if(numStudents != studentsOnATeamCount)
-    {
+    if(numStudents != studentsOnATeamCount) {
         remainingStudents->setStyleSheet(QString(LABELSTYLE).replace("color: " DEEPWATERHEX ";", "color: red;"));
         buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
-    else
-    {
+    else {
         remainingStudents->setStyleSheet(LABELSTYLE);
         buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     }
 
-    theTable->resizeColumnsToContents();
-    theTable->resizeRowsToContents();
     theTable->adjustSize();
 }
 
 
 void customTeamsizesDialog::teamsizeChanged(int /*unused*/)
 {
-    for(int i = 0; i < numStudents; i++)
-    {
+    for(int i = 0; i < numStudents; i++) {
         teamsizes[i] = teamsizeBox[i]->value();
     }
 

@@ -1,7 +1,8 @@
 #include "progressDialog.h"
 #include "gruepr_globals.h"
-#include <QMovie>
+#include <QDialogButtonBox>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QTimer>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,86 +15,77 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
     //Set up window with a grid layout
     setWindowTitle(currSection.isEmpty() ? tr("Grueping...") : tr("Grueping ") + currSection + "...");
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
-    setSizeGripEnabled(true);
     setModal(true);
-    theGrid = new QGridLayout(this);
+    layout = new QVBoxLayout(this);
 
-    statusText = new QLabel(this);
-    QFont defFont("Oxygen Mono");
-    statusText->setFont(defFont);
-    statusText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    theGrid->addWidget(statusText, 0, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
+    statusText = new QLabel(tr("Status: Optimizing..."), this);
+    statusText->setStyleSheet(QString(LABELSTYLE).replace("font-size: 10pt;", "font-size: 14pt; font-weight: bold;"));
+    layout->addWidget(statusText);
 
-    explanationIcon = new QLabel(this);
-    explanationIcon->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    auto *movie = new QMovie(":/icons/loading.gif", "GIF", this);
-    movie->setParent(explanationIcon);
-    explanationIcon->setMovie(movie);
-    movie->start();
+    explanationText = new QLabel(tr("Generation 0 - Top Score = 0"), this);
+    explanationText->setStyleSheet(LABELSTYLE);
+    layout->addWidget(explanationText);
 
-    explanationText = new QLabel(this);
-    explanationText->setFont(defFont);
-    explanationText->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    progressBar = new QProgressBar(this);
+    progressBar->setStyleSheet(PROGRESSBARSTYLE);
+    progressBar->setTextVisible(false);
+    progressBar->setRange(0, 125);
+    progressBar->setValue(0);
+    layout->addWidget(progressBar);
 
-    auto *explanationBox = new QHBoxLayout;
-    theGrid->addLayout(explanationBox, 1, 0, 1, -1, Qt::AlignLeft | Qt::AlignVCenter);
-    explanationBox->addWidget(explanationIcon, 0, Qt::AlignHCenter | Qt::AlignVCenter);
-    explanationBox->addWidget(explanationText, 0, Qt::AlignLeft | Qt::AlignVCenter);
-    explanationBox->addStretch(1);
+    actionText = new QLabel(tr("Please wait while your grueps are created!"), this);
+    actionText->setStyleSheet(QString(LABELSTYLE).replace("color: " DEEPWATERHEX ";", "color: " OPENWATERHEX ";").replace("font-size: 10pt;", "font-size: 14pt;"));
+    layout->addWidget(actionText);
 
-    theGrid->setRowMinimumHeight(2, DIALOG_SPACER_ROWHEIGHT);
-
-    auto *line = new QFrame(this);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    theGrid->addWidget(line, 3, 0, 1, -1);
+    auto *buttonBox = new QDialogButtonBox(this);
 
     if(chart != nullptr)
     {
-        theGrid->addWidget(chart, 6, 0, 1, -1);
+        layout->addWidget(chart);
         chart->hide();
         graphShown = false;
 
-        showStatsButton = new QPushButton(QIcon(":/icons/down_arrow.png"), "Show progress", this);
-        showStatsButton->setIconSize(SHOWPROGRESSICONSIZE);
-        showStatsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+        showStatsButton = buttonBox->addButton(QDialogButtonBox::Reset);
+        showStatsButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        showStatsButton->setText(tr("Show progress"));
+        showStatsButton->setIcon(QIcon(":/icons_new/downButton.png"));
+        showStatsButton->setLayoutDirection(Qt::RightToLeft);   // icon on right side
         connect(showStatsButton, &QPushButton::clicked, this, [this, chart] {statsButtonPushed(chart);});
-        theGrid->addWidget(showStatsButton, 4, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
-        theGrid->setColumnStretch(1,1);
     }
 
-    onlyStopManually = new QCheckBox("Continue optimizing\nuntil I manually stop it.", this);
-    onlyStopManually->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    theGrid->addWidget(onlyStopManually, 4, 2, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+    onlyStopManually = new QCheckBox("Continue optimizing until end is pressed", this);
+    onlyStopManually->setStyleSheet(CHECKBOXSTYLE);
+    layout->addWidget(onlyStopManually);
 
-    stopHere = new QPushButton(QIcon(":/icons/stop.png"), "Stop\nnow", this);
-    stopHere->setIconSize(STOPNOWICONSIZE);
+    stopHere = buttonBox->addButton(QDialogButtonBox::Ok);
+    stopHere->setStyleSheet(SMALLBUTTONSTYLE);
+    stopHere->setText(tr("End optimization"));
+    QPixmap whiteStop = QPixmap(":/icons_new/close.png").scaled(ICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPainter painter(&whiteStop);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.fillRect(whiteStop.rect(), QColor("white"));
+    painter.end();
+    stopHere->setIcon(whiteStop);
     stopHere->setToolTip(tr("Stop the optimization process immediately and show the best set of teams found so far."));
-    stopHere->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     connect(stopHere, &QPushButton::clicked, this, [this] {emit letsStop();});
-    theGrid->addWidget(stopHere, 4, 3, 1, -1, Qt::AlignRight | Qt::AlignVCenter);
+    layout->addWidget(buttonBox);
 
     countdownToClose = new QTimer(this);
-    setText("");
     adjustSize();
 }
 
 void progressDialog::setText(const QString &text, int generation, float score, bool autostopInProgress)
 {
-    QString explanation = "<html>" + tr("Generation ") + QString::number(generation) + " - "
-                          + tr("Top Score = ") + (score < 0? "<span style=\"font-family:'Arial'\"> - </span>": "") + QString::number(std::abs(score)) +
-                          "<br><span style=\"color:" + (autostopInProgress? "green" : "black") + ";\">" + text;
+    explanationText->setText(tr("Generation ") + QString::number(generation) + " - " + tr("Top Score = ") + QString::number(score));
+    QString action = text;
     if(autostopInProgress && !onlyStopManually->isChecked())
     {
-        explanation += "<br>" + tr("Optimization will stop in ") + QString::number(secsLeftToClose) + tr(" seconds.");
+        action += tr("\nOptimization will end in ") + QString::number(secsLeftToClose) + tr(" seconds.");
+        score = progressBar->maximum() - ((progressBar->maximum() - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
     }
-    explanation += "</span></html>";
-    explanationText->setText(explanation);
-
-    if(autostopInProgress)
-    {
-        explanationIcon->setPixmap(QIcon(":/icons/ok.png").pixmap(OKICONSIZE));
-    }
+    actionText->setText(action);
+    progressBar->setValue(score);
 
     if(autostopInProgress && !onlyStopManually->isChecked())
     {
@@ -130,6 +122,7 @@ void progressDialog::updateCountdown()
     explanationText->setText(explanationText->text().replace(QRegularExpression(tr("stop in ") + "\\d*"), tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
     if(secsLeftToClose == 0)
     {
+        progressBar->setValue(progressBar->maximum());
         stopHere->animateClick();
     }
 }
@@ -154,19 +147,16 @@ void progressDialog::statsButtonPushed(QChartView *chart)
         chart->show();
         height = CHARTHEIGHT;
         width = numHorizontalAxisMarkers * QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("XX  ");
-        icon = QIcon(":/icons/up_arrow.png");
+        icon = QIcon(":/icons_new/upButton.png");
         butText = "Hide progress";
     }
     else
     {
         chart->hide();
-        icon = QIcon(":/icons/down_arrow.png");
+        icon = QIcon(":/icons_new/downButton.png");
         butText = "Show progress";
     }
-    int chartRow, chartCol, x;
-    theGrid->getItemPosition(theGrid->indexOf(chart), &chartRow, &chartCol, &x, &x);
-    theGrid->setRowMinimumHeight(chartRow, height);
-    theGrid->setColumnMinimumWidth(chartCol, width);
+    chart->setMinimumSize(QSize(width, height));
     showStatsButton->setIcon(icon);
     showStatsButton->setText(butText);
     adjustSize();

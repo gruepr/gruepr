@@ -4,8 +4,9 @@
 #include "boxwhiskerplot.h"
 #include <QCheckBox>
 #include <QDialog>
-#include <QGridLayout>
 #include <QLabel>
+#include <QProgressBar>
+#include <QVBoxLayout>
 
 class progressDialog : public QDialog
 {
@@ -32,20 +33,19 @@ signals:
 
 private:
     bool graphShown;
-    QGridLayout *theGrid;
-    QLabel *statusText;
-    QLabel *explanationText;
-    QLabel *explanationIcon;
-    QCheckBox *onlyStopManually;
-    QPushButton *stopHere;
-    QPushButton *showStatsButton;
-    QTimer *countdownToClose;
-    inline static const int SECSINCOUNTDOWNTIMER = 5;
+    QVBoxLayout *layout = nullptr;
+    QLabel *statusText = nullptr;
+    QLabel *explanationText = nullptr;
+    QProgressBar *progressBar = nullptr;
+    QLabel *actionText = nullptr;
+    QCheckBox *onlyStopManually = nullptr;
+    QPushButton *stopHere = nullptr;
+    QPushButton *showStatsButton = nullptr;
+    QTimer *countdownToClose = nullptr;
+    inline static const int SECSINCOUNTDOWNTIMER = 6;
     int secsLeftToClose = SECSINCOUNTDOWNTIMER;
     inline static const int CHARTHEIGHT = 400;
-    inline static const QSize SHOWPROGRESSICONSIZE = QSize(20,20);
-    inline static const QSize STOPNOWICONSIZE = QSize(30,30);
-    inline static const QSize OKICONSIZE = QSize(25,25);
+    inline static const QSize ICONSIZE = QSize(30,30);
 };
 
 #endif // PROGRESSDIALOG_H

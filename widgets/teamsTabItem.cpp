@@ -41,9 +41,19 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     rowsLayout->setSpacing(6);
     teamDataLayout->addLayout(rowsLayout);
 
-    dragDropExplanation = new QLabel(tr("Drag and drop rows to move teams and students"), this);
+    auto helpIcon = new LabelWithInstantTooltip("", this);
+    helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    rowsLayout->addWidget(helpIcon);
+    dragDropExplanation = new LabelWithInstantTooltip(tr("You can adjust the teams"), this);
     dragDropExplanation->setStyleSheet(LABELSTYLE);
     rowsLayout->addWidget(dragDropExplanation);
+    QString helpText = tr("<html><span style=\"color: black;\">Use drag-and-drop to move students and teams:<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>Drag a student onto a team name</u> to move the student onto that team.<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>Drag a student onto a student</u> to swap the locations of the two students.<br>"
+                          "&nbsp;&nbsp;»&nbsp;<u>Drag a team onto a team</u> to reorder the teams.<br>"
+                          "</span></html>");
+    helpIcon->setToolTipText(helpText);
+    dragDropExplanation->setToolTipText(helpText);
 
     undoButton = new QPushButton(QIcon(":/icons_new/undo.png"), "", this);
     undoButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -166,7 +176,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     teamDataTree->resetDisplay(dataOptions, teamingOptions);
     refreshTeamDisplay();
     teamDataTree->sortByColumn(0, Qt::AscendingOrder);
-    teamDataTree->headerItem()->setIcon(0, QIcon(":/icons/blank_arrow.png"));
+    teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
     refreshDisplayOrder();
     connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &TeamsTabItem::swapStudents);
     connect(teamDataTree, &TeamTreeWidget::reorderParents, this, &TeamsTabItem::moveATeam);
@@ -910,14 +920,18 @@ void TeamsTabItem::postTeamsToCanvas()
     canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
-    auto *label = new QLabel(tr("In which course should these teams be created?"));
-    auto *coursesComboBox = new QComboBox;
+    auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCourses);
+    label->setStyleSheet(LABELSTYLE);
+    auto *coursesComboBox = new QComboBox(canvasCourses);
+    coursesComboBox->setStyleSheet(COMBOBOXSTYLE);
     for(const auto &courseName : qAsConst(courseNames))
     {
         coursesComboBox->addItem(courseName);
         coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
@@ -965,7 +979,7 @@ void TeamsTabItem::postTeamsToCanvas()
     if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters))
     {
         canvas->busyBoxLabel->setText(tr("Success!"));
-        icon.load(":/icons/ok.png");
+        icon.load(":/icons_new/ok.png");
         canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();

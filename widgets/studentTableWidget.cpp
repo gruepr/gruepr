@@ -36,7 +36,7 @@ void StudentTableWidget::resetTable()
     QTableWidget::sortByColumn(0, Qt::AscendingOrder);
     horizontalHeader()->setSortIndicatorShown(true);
     horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
-    horizontalHeaderItem(0)->setIcon(QIcon(":/icons/blank_arrow.png"));
+    horizontalHeaderItem(0)->setIcon(QIcon(":/icons_new/blank_arrow.png"));
     prevSortColumn = 0;
     prevSortOrder = Qt::AscendingOrder;
 }
@@ -44,7 +44,7 @@ void StudentTableWidget::resetTable()
 
 void StudentTableWidget::clearSortIndicator()
 {
-    horizontalHeaderItem(horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons/blank_arrow.png"));
+    horizontalHeaderItem(horizontalHeader()->sortIndicatorSection())->setIcon(QIcon(":/icons_new/blank_arrow.png"));
 }
 
 
@@ -54,7 +54,7 @@ void StudentTableWidget::sortByColumn(int column)
     if(column < columnCount()-2)
     {
         QTableWidget::sortByColumn(column, horizontalHeader()->sortIndicatorOrder());
-        horizontalHeaderItem(column)->setIcon(QIcon(":/icons/blank_arrow.png"));
+        horizontalHeaderItem(column)->setIcon(QIcon(":/icons_new/blank_arrow.png"));
         if(column != prevSortColumn)
         {horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons_new/upDownButton.png"));}
         prevSortColumn = column;
@@ -88,8 +88,8 @@ void StudentTableWidget::cellLeft(const int row)
     const int numCols = columnCount();
     if(cellWidget(row, numCols-1)->property("duplicate").toBool())
     {
-        cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
-        cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
+        cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
+        cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
     }
     else
     {
@@ -125,8 +125,8 @@ void StudentTableWidget::cellEntered(const int row)
         {
             if(cellWidget(prevRow, numCols-1)->property("duplicate").toBool())
             {
-                cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
-                cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
+                cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
+                cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
             }
             else
             {

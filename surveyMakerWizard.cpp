@@ -1743,14 +1743,14 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");
     destination->setStyleSheet("border-style:none;");
-    auto helpIcon = new LabelWithInstantTooltip;
+    auto helpIcon = new LabelWithInstantTooltip("", this);
     QPixmap whiteLightbulb = QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QPainter painter(&whiteLightbulb);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
     painter.fillRect(whiteLightbulb.rect(), QColor("white"));
     painter.end();
     helpIcon->setPixmap(whiteLightbulb);
-    auto helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"));
+    auto helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"), this);
     helpLabel->setStyleSheet(QString(LABELSTYLE).replace(DEEPWATERHEX, "white").replace("10pt;", "12pt;"));
     helpLabel->setWordWrap(true);
     auto helpLayout = new QHBoxLayout;
@@ -2507,7 +2507,7 @@ void PreviewAndExportPage::exportSurvey()
         else {
             QEventLoop loop;
             google->busyBoxLabel->setText(tr("Success!"));
-            icon.load(":/icons/ok.png");
+            icon.load(":/icons_new/ok.png");
             google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
             busyBox->adjustSize();
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
@@ -2546,7 +2546,7 @@ void PreviewAndExportPage::exportSurvey()
                                        tr("</strong><br>You can copy this URL to your clipboard with the button below."));
             successDialog->setStandardButtons(QMessageBox::Ok);
             auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
-            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip {color: black; font-size: 12pt; font-family: 'DM Sans'; background-color: " BOLDGREENHEX "; border: 0px;}");
+            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip {color: black; font-size: 12pt; font-family: 'DM Sans'; background-color: green; border: 0px;}");
             copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
             connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
                                                                                              clipboard->setText(form.responderURL.toEncoded());
@@ -2645,7 +2645,7 @@ void PreviewAndExportPage::exportSurvey()
         else {
             QEventLoop loop;
             canvas->busyBoxLabel->setText(tr("Success!"));
-            icon.load(":/icons/ok.png");
+            icon.load(":/icons_new/ok.png");
             canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
             busyBox->adjustSize();
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);

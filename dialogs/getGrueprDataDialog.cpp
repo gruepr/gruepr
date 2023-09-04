@@ -285,7 +285,7 @@ bool GetGrueprDataDialog::getFromGoogle()
         return false;
     }
     google->busyBoxLabel->setText(tr("Success!"));
-    icon.load(":/icons/ok.png");
+    icon.load(":/icons_new/ok.png");
     google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
@@ -415,7 +415,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     roster = canvas->getStudentRoster(course);
 
     canvas->busyBoxLabel->setText(tr("Success!"));
-    icon.load(":/icons/ok.png");
+    icon.load(":/icons_new/ok.png");
     canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
@@ -957,11 +957,13 @@ bool GetGrueprDataDialog::readData()
             // The regex to recognize ordered/numerical is:
             // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
             QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+            QRegularExpression commaOutsideQuotes(R"((,)(?=(?:[^"]|"[^"]*")*$))");
+            qDebug() << responses;
             if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
             {
                 attributeType = DataOptions::AttributeType::timezone;
             }
-            else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return response.contains(',');}))
+            else if(std::any_of(responses.constBegin(), responses.constEnd(), [&commaOutsideQuotes](const QString &response) {return commaOutsideQuotes.match(response).hasMatch();}))
             {
                 attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
             }

@@ -42,19 +42,24 @@
 // - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // INPROG:
+// - finalize progress dialog
+// - preventedTeammates not working?
+// - update gatherTeammate dialog
+// - get rid of line above selector buttons in datadisplaytab
 // - update greupr to all new UI design!
+// - update styling of all QMessageBoxes
 //
 // TO DO:
-// - crash when canceling custom teamsizes then clicking letsdoit
 // - BUGFIX: does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
-// - allow selection of which google drive account to use, remembering different refresh tokens for each
+// - modernize use of pointers throughout to C++17 style; check for memory leaks
+// - remove c-style arrays except in intense optimization
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - auto-shorten URL for Google Form (using Google's firebase API?)
 // - create timeout function to nicely handle canvas and google connections
+// - allow selection of which google drive account to use, remembering different refresh tokens for each
 // - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others
-// - modernize use of pointers throughout to C++17 style; check for memory leaks
 // - enable in Google Forms various options -- must wait on new API functionality from Google
 //     - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
 //     - Question options: req'd question, answer validity checks

@@ -17,9 +17,8 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &in
 
     //Table of team names
     theTable->setRowCount(numTeams);
-    int widthCol0 = 0;
-    for(int team = 0; team < numTeams; team++)
-    {
+    int widthCol0 = 0, rowHeight = 0;
+    for(int team = 0; team < numTeams; team++) {
         auto *label = new QLabel(tr("Team ") + QString::number(team+1) + " ", this);
         label->setStyleSheet(LABELSTYLE);
         theTable->setCellWidget(team, 0, label);
@@ -27,15 +26,16 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &in
         teamNames << new QLineEdit(this);
         teamNames.last()->setStyleSheet(LINEEDITSTYLE);
         teamNames.last()->setPlaceholderText(tr("Team ") + QString::number(team+1));
-        if(team < incomingTeamNames.size())
-        {
+        if(team < incomingTeamNames.size()) {
             teamNames.last()->setText((incomingTeamNames.at(team) == QString::number(team+1))? "" : incomingTeamNames.at(team));
         }
         theTable->setCellWidget(team, 1, teamNames.last());
+        rowHeight = std::max(rowHeight, std::max(label->height(), teamNames.last()->height()));
     }
-    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
-    theTable->resizeColumnsToContents();
-    theTable->resizeRowsToContents();
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
+    for(int i = 0; i < numTeams; i++) {
+        theTable->verticalHeader()->resizeSection(i, rowHeight * TABLEOVERSIZE);
+    }
     theTable->adjustSize();
 
     //A reset table button

@@ -40,9 +40,8 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     theTable->setRowCount(MAXRESPONSEOPTIONS);
     optionLabels.reserve(MAXRESPONSEOPTIONS);
     optionLineEdits.reserve(MAXRESPONSEOPTIONS);
-    int widthCol0 = 0;
-    for(int i = 0; i < MAXRESPONSEOPTIONS; i++)
-    {
+    int widthCol0 = 0, rowHeight = 0;
+    for(int i = 0; i < MAXRESPONSEOPTIONS; i++) {
         optionLabels << new QLabel(tr("Option ") + QString::number(i+1) + " ");
         optionLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
         theTable->setCellWidget(i, 0, optionLabels.last());
@@ -52,8 +51,12 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
         theTable->setCellWidget(i, 1, optionLineEdits.last());
         connect(optionLineEdits.last(), &QLineEdit::textEdited, this, &customResponseOptionsDialog::refreshDisplay);
         optionLineEdits.last()->setText(i < options.size() ? options.at(i) : "");
+        rowHeight = std::max(rowHeight, std::max(optionLabels.last()->height(), optionLineEdits.last()->height()));
     }
-    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
+    for(int i = 0; i < MAXRESPONSEOPTIONS; i++) {
+        theTable->verticalHeader()->resizeSection(i, rowHeight * TABLEOVERSIZE);
+    }
     theTable->adjustSize();
 
     //Add Clear All to the buttons on bottom
@@ -98,9 +101,6 @@ void customResponseOptionsDialog::refreshDisplay()
     }
 
     // auto-adjust the height to accomodate change in number of rows in table
-    theTable->resizeColumnsToContents();
-    theTable->resizeRowsToContents();
-    theTable->adjustSize();
     int currWindowWidth = size().width();
     adjustSize();
     int newWindowHeight = size().height();

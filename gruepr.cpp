@@ -59,7 +59,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                        "QTabBar::tab {border: 1px solid " OPENWATERHEX "; border-radius: 5px; padding: 5px; "
                                                                       "font-family:'DM Sans'; font-size: 12pt;}"
                                                        "QTabBar::tab::selected {color: white; background: " OPENWATERHEX ";}"
-                                                       "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}");
+                                                       "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
+                                                       "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right;}");
     QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton, ui->saveSurveyFilePushButton};
     for(auto &button : buttons) {
         button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
@@ -1621,12 +1622,12 @@ void gruepr::updateOptimizationProgress(const QList<float> &allScores, const int
     }
     else if( (generation >= GA::MIN_GENERATIONS) && (scoreStability > GA::MIN_SCORE_STABILITY) )
     {
-        progressWindow->setText(tr("Score appears to be stable."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
+        progressWindow->setText(tr("Score appears to be stable!"), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
         progressWindow->highlightStopButton();
     }
     else
     {
-        progressWindow->setText(tr("Optimization in progress."), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), false);
+        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), false);
     }
 }
 
@@ -1730,13 +1731,16 @@ void gruepr::editDataDisplayTabName(int tabIndex)
     win->move(QCursor::pos());
     auto *layout = new QVBoxLayout(win);
     auto *newNameEditor = new QLineEdit(win);
+    newNameEditor->setStyleSheet(LINEEDITSTYLE);
     newNameEditor->setText(ui->dataDisplayTabWidget->tabText(tabIndex));
     newNameEditor->setPlaceholderText(ui->dataDisplayTabWidget->tabText(tabIndex));
     layout->addWidget(newNameEditor);
-    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
-    connect(buttons, &QDialogButtonBox::accepted, win, &QDialog::accept);
-    connect(buttons, &QDialogButtonBox::rejected, win, &QDialog::reject);
-    layout->addWidget(buttons);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, win);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    connect(buttonBox, &QDialogButtonBox::accepted, win, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, win, &QDialog::reject);
+    layout->addWidget(buttonBox);
     newNameEditor->selectAll();
     if(win->exec() == QDialog::Accepted && !newNameEditor->text().isEmpty())
     {
@@ -2104,7 +2108,7 @@ void gruepr::refreshStudentDisplay()
             for(auto &item : items) {
                 item->setToolTip(student.tooltip);
                 if(duplicate) {
-                    item->setBackground(QBrush(QColor::fromString(HIGHLIGHTYELLOWHEX)));
+                    item->setBackground(QBrush(QColor::fromString(STARFISHHEX)));
                 }
             }
 
@@ -2114,7 +2118,7 @@ void gruepr::refreshStudentDisplay()
             editButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
-                editButton->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
+                editButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
             }
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
@@ -2137,7 +2141,7 @@ void gruepr::refreshStudentDisplay()
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate)
             {
-                removerButton->setStyleSheet("QPushButton {background-color: " HIGHLIGHTYELLOWHEX "; border: none;}");
+                removerButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
             }
             connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, numStudents = numActiveStudents, removerButton] {
                                                                                 removerButton->disconnect();
@@ -3035,32 +3039,38 @@ void gruepr::closeEvent(QCloseEvent *event)
     if(savedSettings.value("askToSaveDefaultsOnExit", true).toBool())
     {
         QApplication::beep();
-        QMessageBox saveOptionsOnClose(this);
-        saveOptionsOnClose.setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-        QCheckBox neverShowAgain(tr("Don't ask me this again."), &saveOptionsOnClose);
+        auto *saveOptionsOnClose = new QMessageBox(this);
+        saveOptionsOnClose->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
+        saveOptionsOnClose->setStyleSheet(LABELSTYLE);
+        auto *neverShowAgain = new QCheckBox(tr("Don't ask me this again"), saveOptionsOnClose);
+        neverShowAgain->setStyleSheet(CHECKBOXSTYLE);
 
-        saveOptionsOnClose.setIcon(QMessageBox::Question);
-        saveOptionsOnClose.setWindowTitle(tr("Save Options?"));
-        saveOptionsOnClose.setText(tr("Before exiting, should we save the\ncurrent teaming options as defaults?"));
-        saveOptionsOnClose.setCheckBox(&neverShowAgain);
-        saveOptionsOnClose.setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
-        saveOptionsOnClose.addButton(tr("Don't Save"), QMessageBox::DestructiveRole);
-        saveOptionsOnClose.exec();
+        saveOptionsOnClose->setIcon(QMessageBox::Question);
+        saveOptionsOnClose->setWindowTitle(tr("Save Options?"));
+        saveOptionsOnClose->setText(tr("Before exiting, should we save the\ncurrent teaming options as defaults?"));
+        saveOptionsOnClose->setCheckBox(neverShowAgain);
+        saveOptionsOnClose->setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
+        auto *dontSave = saveOptionsOnClose->addButton(tr("Don't Save"), QMessageBox::DestructiveRole);
+        saveOptionsOnClose->button(QMessageBox::Save)->setStyleSheet(SMALLBUTTONSTYLE);
+        saveOptionsOnClose->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        dontSave->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        saveOptionsOnClose->exec();
 
-        if(saveOptionsOnClose.result() == QMessageBox::Save)
+        if(saveOptionsOnClose->result() == QMessageBox::Save)
         {
             saveSettings = true;
         }
-        else if(saveOptionsOnClose.result() == QMessageBox::Cancel)
+        else if(saveOptionsOnClose->result() == QMessageBox::Cancel)
         {
             dontActuallyExit = true;
         }
 
-        if(neverShowAgain.checkState() == Qt::Checked)
+        if(neverShowAgain->checkState() == Qt::Checked)
         {
             savedSettings.setValue("askToSaveDefaultsOnExit", false);
             savedSettings.setValue("saveDefaultsOnExit", saveSettings);
         }
+        saveOptionsOnClose->deleteLater();
     }
 
     if(dontActuallyExit)

@@ -75,7 +75,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     incompCheckboxList.reserve(numPossibleValues);
     reqCheckboxes.reserve(numPossibleValues);
     for(const auto &attributeValue : qAsConst(attributeValues)) {
-        reqCheckboxes << new QCheckBox;
+        reqCheckboxes << new QCheckBox(this);
         reqCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt;", "12pt; color: " DEEPWATERHEX ";"));
         reqCheckboxes.last()->setText(valuePrefix(attributeValue.value));
         reqCheckboxes.last()->setChecked(requiredValues.contains(attributeValue.value));

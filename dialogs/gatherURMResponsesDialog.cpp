@@ -25,9 +25,8 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     // In table, a checkbox and a label for each response values
     const int numResponses = int(URMResponses.size());
     theTable->setRowCount(numResponses);
-    int widthCol0 = 0;
-    for(int response = 0; response < numResponses; response++)
-    {
+    int widthCol0 = 0, rowHeight = 0;
+    for(int response = 0; response < numResponses; response++) {
         const QString &responseText = URMResponses.at(response);
         enableValue << new QCheckBox(this);
         enableValue.last()->setChecked(URMResponsesConsideredUR.contains(responseText));
@@ -39,6 +38,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
         responses.last()->setFlat(true);
         responses.last()->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
         theTable->setCellWidget(response, 1, responses.last());
+        rowHeight = std::max(rowHeight, std::max(enableValue.last()->height(), responses.last()->height()));
         connect(responses.last(), &QPushButton::clicked, enableValue.last(), &QCheckBox::toggle);
         connect(enableValue.last(), &QCheckBox::stateChanged, this, [this, response](int state){
                                                                                  if(state == Qt::Checked) {
@@ -51,9 +51,10 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
                                                                                  }
                                                                                  });
     }
-    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLECOLUMN0OVERWIDTH));
-    theTable->resizeColumnsToContents();
-    theTable->resizeRowsToContents();
+    theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
+    for(int response = 0; response < numResponses; response++) {
+        theTable->verticalHeader()->resizeSection(response, rowHeight * TABLEOVERSIZE);
+    }
     theTable->adjustSize();
 
     adjustSize();

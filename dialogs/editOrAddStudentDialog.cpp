@@ -153,32 +153,15 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             attributeSelectorGrid = new QGridLayout;
             attributeSelectorGrid->setSpacing(0);
             attributeFrameLayout->addLayout(attributeSelectorGrid);
-            attributeFrameLayout->addStrut(DIALOG_SPACER_ROWHEIGHT);
+            attributeFrameLayout->addSpacing(DIALOG_SPACER_ROWHEIGHT);
         }
         attributeStack = new QStackedWidget(this);
         attributeFrameLayout->addWidget(attributeStack);
 
-        QList<int> orderedAttributes, categoricalAttributes, multicategoricalAttributes, multiorderedAttributes, timezoneAttribute;
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) {
-                orderedAttributes << attribute;
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) {
-                categoricalAttributes << attribute;
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
-                multicategoricalAttributes << attribute;
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered) {
-                multiorderedAttributes << attribute;
-            }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone) {
-                timezoneAttribute << attribute;
-            }
-        }
-
         // create the UI for each attribute - either a combobox with single possible values loaded or checkboxes for multiple possible values
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+            DataOptions::AttributeType type = dataOptions->attributeType[attribute];
+
             auto *w = new QWidget;
             auto *layout = new QVBoxLayout;
             w->setLayout(layout);
@@ -229,7 +212,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
             // create a responsses label and load up the prefixes to use in the combobox or checkboxes (unless it's timezone question)
             QStringList prefixes;
-            if(!timezoneAttribute.contains(attribute)) {
+            if(!(type == DataOptions::AttributeType::timezone)) {
                 auto *responsesLabel = new QLabel(this);
                 responsesLabel->setStyleSheet(LABELSTYLE);
                 responsesLabel->setTextFormat(Qt::RichText);
@@ -246,22 +229,19 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 int responseNum = 0;
                 bool first = true;
                 QString responsesText = "<html>";    //hanging indent
-                for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute]))
-                {
+                for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
                     if(!first) {
                         responsesText += "<br>";
                     }
                     first = false;
                     responsesText += "<b>";
-                    if(orderedAttributes.contains(attribute) || multiorderedAttributes.contains(attribute))
-                    {
+                    if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
                         // show response with starting number
                         match = startsWithInteger.match(response);
                         responsesText += match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
                         prefixes << match.captured(1);
                     }
-                    else if(categoricalAttributes.contains(attribute) || multicategoricalAttributes.contains(attribute))
-                    {
+                    else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical)) {
                         // show response with a preceding letter (letter repeated for responses after 26)
                         QString prefix =  (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
                         responsesText += prefix;
@@ -276,7 +256,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             }
 
             // create the combobox or group of checkboxes as relevant
-            if(orderedAttributes.contains(attribute) || categoricalAttributes.contains(attribute)) {
+            if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::categorical)) {
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
                 attributeCombobox << new ComboBoxThatPassesScrollwheel(this);
                 attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
@@ -285,20 +265,18 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeCombobox.last()->insertItem(0, tr("no response/unknown"), -1);
                 attributeCombobox.last()->insertSeparator(1);
                 auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
-                for(const auto &prefix : prefixes) {
-                    attributeCombobox.last()->addItem(prefix, *attributeValIter);
+                int indexOfStudentValue = 0;
+                for(int i = 0; i < prefixes.size(); i++) {
+                    attributeCombobox.last()->insertItem(i+2, prefixes[i], *attributeValIter);
+                    if(!student.attributeResponse[attribute].isEmpty() && (student.attributeVals[attribute].first() == *attributeValIter)) {
+                        indexOfStudentValue = i+2;
+                    }
                     attributeValIter++;
                 }
-
-                if(student.attributeResponse[attribute].isEmpty()) {
-                    attributeCombobox.last()->setCurrentIndex(0);
-                }
-                else {
-                    attributeCombobox.last()->setCurrentText(student.attributeResponse[attribute]);
-                }
+                attributeCombobox.last()->setCurrentIndex(indexOfStudentValue);
                 layout->addWidget(attributeCombobox.last());
             }
-            else if(timezoneAttribute.contains(attribute)) {
+            else if(type == DataOptions::AttributeType::timezone) {
                 attributeQuestionText->setText(tr("Timezone"));
                 attributeCombobox << new ComboBoxThatPassesScrollwheel(this);
                 attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
@@ -314,6 +292,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                     DataOptions::parseTimezoneInfoFromText(zonenameText, zonename, GMTOffset);
                     attributeCombobox.last()->addItem(zonenameText, GMTOffset);
                 }
+
                 if(student.attributeResponse[attribute].isEmpty()) {
                     attributeCombobox.last()->setCurrentIndex(0);
                 }
@@ -326,15 +305,18 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 }
                 layout->addWidget(attributeCombobox.last());
             }
-            else if(multicategoricalAttributes.contains(attribute) || multiorderedAttributes.contains(attribute)) {
+            else if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
                 attributeMultibox << new QGroupBox(this);
                 attributeMultibox.last()->setFlat(true);
                 auto *internalLayout = new QVBoxLayout;
+                auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
                 for(int option = 0, totNumOptions = int(dataOptions->attributeQuestionResponses[attribute].size()); option < totNumOptions; option++) {
                     auto *responseCheckBox = new QCheckBox(prefixes.at(option));
                     responseCheckBox->setStyleSheet(CHECKBOXSTYLE);
-                    responseCheckBox->setChecked(student.attributeVals[attribute].contains(option + 1));
+                    responseCheckBox->setProperty("responseValue", *attributeValIter);
+                    responseCheckBox->setChecked(student.attributeVals[attribute].contains(*attributeValIter));
+                    attributeValIter++;
                     internalLayout->addWidget(responseCheckBox);
                 }
                 attributeMultibox.last()->setLayout(internalLayout);
@@ -425,7 +407,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     connect(buttonBox, &QDialogButtonBox::accepted, this, [this, &student, dataOptions]{updateRecord(student, dataOptions); accept();});
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    setMinimumSize(QSize(SM_DLG_SIZE, LG_DLG_SIZE));
+    setMinimumSize(QSize(LG_DLG_SIZE, LG_DLG_SIZE));
     adjustSize();
 }
 
@@ -454,61 +436,51 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     if(dataOptions->sectionIncluded) {
         student.section = databox[boxfield++]->currentText();
     }
-/*
-    int comboboxNum = 0, multiboxNum = 0;
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-    {
+
+    int multiboxNum = 0, comboboxNum = 0;
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        DataOptions::AttributeType type = dataOptions->attributeType[attribute];
         student.attributeVals[attribute].clear();
-        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
-           (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered))
-        {
+        if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
             QStringList attributeResponse;
-            for(int itemNum = 0; itemNum < attributeMultibox[multiboxNum].layout()->count(); itemNum++)
-            {
+            for(int itemNum = 0, totNumItems = attributeMultibox[multiboxNum]->layout()->count(); itemNum < totNumItems; itemNum++) {
                 // loop through all items in the attributeMultibox: make sure it's a checkbox, then add the response if it's checked
-                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox[multiboxNum].layout()->itemAt(itemNum)->widget());
-                if((optionCheckBox != nullptr) && (optionCheckBox->isChecked()))
-                {
-                    student.attributeVals[attribute] << int(dataOptions->attributeQuestionResponses[attribute].indexOf(optionCheckBox->text()) + 1);
+                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox[multiboxNum]->layout()->itemAt(itemNum)->widget());
+                if((optionCheckBox != nullptr) && (optionCheckBox->isChecked())) {
+                    student.attributeVals[attribute] << optionCheckBox->property("responseValue").toInt();
                     attributeResponse << optionCheckBox->text();
                 }
             }
             student.attributeResponse[attribute] = attributeResponse.join(',');
 
-            if(student.attributeVals[attribute].isEmpty())
-            {
+            if(student.attributeVals[attribute].isEmpty()) {
                 student.attributeVals[attribute] << -1;
                 student.attributeResponse[attribute] = "";
             }
+            multiboxNum++;
         }
-        else
-        {
-            if(attributeCombobox[comboboxNum].currentIndex() == 0)
-            {
-                student.attributeResponse[attribute] = "";
+        else {
+            if(attributeCombobox[comboboxNum]->currentIndex() == 0) {
                 student.attributeVals[attribute] << -1;
-                if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
-                {
+                student.attributeResponse[attribute] = "";
+                if(type == DataOptions::AttributeType::timezone) {
                     student.timezone = 0;
                 }
             }
-            else
-            {
-                student.attributeResponse[attribute] = attributeCombobox[comboboxNum].currentText();
-                if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
-                {
-                    student.timezone = attributeCombobox[comboboxNum].currentData().toFloat();
+            else {
+                student.attributeResponse[attribute] = attributeCombobox[comboboxNum]->currentText();
+                if(type == DataOptions::AttributeType::timezone) {
+                    student.timezone = attributeCombobox[comboboxNum]->currentData().toFloat();
                     student.attributeVals[attribute] << int(student.timezone);
                 }
-                else
-                {
-                    student.attributeVals[attribute] << attributeCombobox[comboboxNum].currentData().toInt();
+                else {
+                    student.attributeVals[attribute] << attributeCombobox[comboboxNum]->currentData().toInt();
                 }
             }
             comboboxNum++;
         }
     }
-*/
+
     if(!dataOptions->dayNames.isEmpty()){
         for(int day = 0; day < MAX_DAYS; day++) {
             for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
@@ -556,6 +528,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
 
     //explanation and a spacer row
     auto *adjustScheduleWindowExplanation = new QLabel(adjustScheduleWindow);
+    adjustScheduleWindowExplanation->setStyleSheet(LABELSTYLE);
     adjustScheduleWindowExplanation->setText("<html>" + student.firstname + " " + student.lastname + tr(" is AVAILABLE to meet at these times: <hr></html>"));
     adjustScheduleWindowExplanation->setWordWrap(true);
     adjustScheduleWindowGrid->addWidget(adjustScheduleWindowExplanation, gridrow++, gridcolumn, 1, -1);
@@ -573,6 +546,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     gridcolumn = 1;
     for(const auto &dayName : dataOptions->dayNames) {
         auto *columnHeader = new QLabel(adjustScheduleWindow);
+        columnHeader->setStyleSheet(LABELSTYLE);
         columnHeader->setText(dayName.toUtf8().left(3));   // using first 3 characters in day name as abbreviation
         adjustScheduleWindowGrid->addWidget(columnHeader, gridrow, gridcolumn++, 1, 1);
     }
@@ -580,10 +554,12 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     for(int time = 0; time < dataOptions->timeNames.size(); time++) {
         gridcolumn = 0;
         auto *rowHeader = new QLabel(adjustScheduleWindow);
+        rowHeader->setStyleSheet(LABELSTYLE);
         rowHeader->setText(dataOptions->timeNames.at(time).toUtf8());
         adjustScheduleWindowGrid->addWidget(rowHeader, gridrow, gridcolumn++, 1, 1);
         for(int day = 0; day < dataOptions->dayNames.size(); day++) {
             checkBox[day][time] = new QCheckBox(adjustScheduleWindow);
+            checkBox[day][time]->setStyleSheet(CHECKBOXSTYLE);
             checkBox[day][time]->setChecked(!windowUnavailability[day][time]);
             adjustScheduleWindowGrid->addWidget(checkBox[day][time], gridrow, gridcolumn++, 1, 1);
             connect(checkBox[day][time], &QCheckBox::clicked, adjustScheduleWindow, [&windowUnavailability, day, time](bool checked){windowUnavailability[day][time] = !checked;});
@@ -595,7 +571,8 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     //if ok button is pushed, copy the window copy of the schedule array back in to the temp array
     gridcolumn = 0;
     adjustScheduleWindowGrid->setRowMinimumHeight(gridrow++, DIALOG_SPACER_ROWHEIGHT);
-    auto *invertAllButton = new QPushButton(QIcon(":/icons/swap.png"), tr("Invert Schedule"), adjustScheduleWindow);
+    auto *invertAllButton = new QPushButton(QIcon(":/icons_new/swap.png"), tr("Invert Schedule"), adjustScheduleWindow);
+    invertAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     connect(invertAllButton, &QPushButton::clicked, adjustScheduleWindow, [&windowUnavailability, &dataOptions, checkBox]()
                                                                            {for(int day = 0; day < dataOptions->dayNames.size(); day++) {
                                                                                 for(int time = 0; time < dataOptions->timeNames.size(); time++) {
@@ -606,6 +583,8 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
                                                                            });
     adjustScheduleWindowGrid->addWidget(invertAllButton, gridrow, gridcolumn++, 1, 1);
     auto *adjustScheduleWindowButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, adjustScheduleWindow);
+    adjustScheduleWindowButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    adjustScheduleWindowButtonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     connect(adjustScheduleWindowButtonBox, &QDialogButtonBox::accepted, adjustScheduleWindow, [this, &windowUnavailability, adjustScheduleWindow]()
                                                                                                {for(int day = 0; day < MAX_DAYS; day++) {
                                                                                                     for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
