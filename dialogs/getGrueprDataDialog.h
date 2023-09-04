@@ -26,7 +26,7 @@ public:
 private:
     Ui::GetGrueprDataDialog *ui;
 
-    enum Source{fromFile, fromGoogle, fromCanvas} source = fromFile;
+    DataOptions::DataSource source = DataOptions::DataSource::fromFile;
 
     QList<StudentRecord> roster;    // holds roster of students from alternative source (in order to add names of non-submitters)
 

@@ -51,7 +51,7 @@ public:
     static QStringList timezoneNames;
 
     //RegEx for punctuation not allowed within a URL, and a function to handle problem cases
-    static inline const QRegularExpressionValidator noInvalidPunctuation= QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"));
+    static inline const QRegularExpressionValidator noInvalidPunctuation = QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"));
     static void invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent = nullptr);
 
     QFileInfo saveFileLocation;

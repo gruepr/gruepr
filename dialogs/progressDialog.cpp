@@ -17,6 +17,7 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
     setModal(true);
     layout = new QVBoxLayout(this);
+    layout->setSpacing(12);
 
     statusText = new QLabel(tr("Status: Optimizing..."), this);
     statusText->setStyleSheet(QString(LABELSTYLE).replace("font-size: 10pt;", "font-size: 14pt; font-weight: bold;"));
@@ -28,6 +29,7 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
 
     progressBar = new QProgressBar(this);
     progressBar->setStyleSheet(PROGRESSBARSTYLE);
+    progressBar->setMaximumHeight(8);
     progressBar->setTextVisible(false);
     progressBar->setRange(0, 125);
     progressBar->setValue(0);

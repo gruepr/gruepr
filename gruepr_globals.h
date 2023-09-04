@@ -170,8 +170,8 @@ inline static const char SCROLLBARSTYLE[] = "QScrollBar:vertical {border-style: 
                                               "QScrollBar::handle:horizontal {background-color: " DEEPWATERHEX "; border-radius: 4px;}"
                                               "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {width: 0px;}"
                                               "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {width: 0px;}";
-inline static const char PROGRESSBARSTYLE[] = "QProgressBar {border: 1px solid lightGray; border-radius: 4px; background-color: " TRANSPARENT "; width: 10px; margin: 2px 2px 2px 2px;}"
-                                               "QProgressBar::chunk {background-color: " DEEPWATERHEX "; width: 10px; border: 1px solid black; border-radius: 4px;}";
+inline static const char PROGRESSBARSTYLE[] = "QProgressBar {border: 1px solid lightGray; border-radius: 4px; background-color: lightGray; width: 10px;}"
+                                               "QProgressBar::chunk {background-color: " OPENWATERHEX ";}";
 inline static const char TABWIDGETSTYLE[] = "QTabWidget::pane {background-color: " TRANSPARENT ";}"
                                               "QTabBar {background-color: white; color: " DEEPWATERHEX "; font: 12pt 'DM Sans';}"
                                               "QTabBar::tab {background-color: white; padding: 10px;}"

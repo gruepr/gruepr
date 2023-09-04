@@ -36,6 +36,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataSourceFrame->setStyleSheet(QString() + "QFrame {background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + ";"
                                                            " color: " DEEPWATERHEX "; border: none;}"
                                                    "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
+    ui->dataSourcePrelabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
+                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}");
     ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}");
     ui->newDataSourceButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
@@ -1814,7 +1816,13 @@ void gruepr::loadDefaultSettings()
 //////////////////
 void gruepr::loadUI()
 {
-    ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSource);
+    ui->dataSourceLabel->setText(dataOptions->dataSourceName);
+    if(dataOptions->dataSource == DataOptions::fromGoogle) {
+        ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/google.png"));
+    }
+    else if(dataOptions->dataSource == DataOptions::fromCanvas) {
+        ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/canvas.png"));
+    }
 
     ui->sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded) {

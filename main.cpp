@@ -42,11 +42,11 @@
 // - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // INPROG:
-// - finalize progress dialog
 // - preventedTeammates not working?
 // - update gatherTeammate dialog
 // - get rid of line above selector buttons in datadisplaytab
 // - update greupr to all new UI design!
+// - update OK symbol appearance in QMessageBoxes that use it
 // - update styling of all QMessageBoxes
 //
 // TO DO:

@@ -38,6 +38,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Survey timestamp"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
+        datatext.last()->setPlaceholderText(tr("Enter text"));
         datatext.last()->setText(student.surveyTimestamp.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)));
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datatext.last(), 0);
@@ -55,6 +56,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("First name"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
+        datatext.last()->setPlaceholderText(tr("Enter text"));
         datatext.last()->setText(student.firstname);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datatext.last(), 0);
@@ -66,6 +68,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Last name"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
+        datatext.last()->setPlaceholderText(tr("Enter text"));
         datatext.last()->setText(student.lastname);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datatext.last(), 0);
@@ -77,6 +80,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Email address"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
+        datatext.last()->setPlaceholderText(tr("Enter text"));
         datatext.last()->setText(student.email);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datatext.last(), 0);
@@ -354,6 +358,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                                       "<br>&nbsp;&nbsp;" + tr("Enter each name on a separate line") + "</i>");
         datamultiline << new QPlainTextEdit(this);
         datamultiline.last()->setStyleSheet(PLAINTEXTEDITSTYLE);
+        datamultiline.last()->setPlaceholderText(tr("Enter text"));
         datamultiline.last()->setPlainText(student.prefTeammates);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
@@ -367,6 +372,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                                       "<br>&nbsp;&nbsp;" + tr("Enter each name on a separate line") + "</i>");
         datamultiline << new QPlainTextEdit(this);
         datamultiline.last()->setStyleSheet(PLAINTEXTEDITSTYLE);
+        datamultiline.last()->setPlaceholderText(tr("Enter text"));
         datamultiline.last()->setPlainText(student.prefNonTeammates);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
@@ -378,6 +384,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Notes"));
         datamultiline << new QPlainTextEdit(this);
         datamultiline.last()->setStyleSheet(PLAINTEXTEDITSTYLE);
+        datamultiline.last()->setPlaceholderText(tr("Enter text"));
         datamultiline.last()->setPlainText(student.notes);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
@@ -390,7 +397,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         const int rowOfTextHeight = fm.lineSpacing() + qRound(datamultiline.last()->document()->documentMargin()) +
                                     datamultiline.last()->frameWidth() * 2 + margin.top() + margin.bottom();
         for(auto &textbox : datamultiline) {
-            textbox->setFixedHeight(rowOfTextHeight + 3);
+            textbox->setFixedHeight((3 * rowOfTextHeight) + 3);
         }
     }
 
