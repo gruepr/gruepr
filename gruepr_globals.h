@@ -57,6 +57,12 @@ inline static const char SMALLBUTTONSTYLEINVERTED[] = "QPushButton {background-c
                                                       "QPushButton:disabled {background-color: lightGray; "
                                                                             "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                             "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
+inline static const char SMALLTOOLBUTTONSTYLEINVERTED[] = "QToolButton {background-color: white; border-style: solid; border-width: 2px; "
+                                                                        "border-radius: 5px; border-color: " DEEPWATERHEX "; "
+                                                                        "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                                          "QToolButton:disabled {background-color: lightGray; border-style: solid; border-width: 2px; "
+                                                                                 "border-radius: 5px; border-color: darkGray; color: darkGray; "
+                                                                                 "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 inline static const char SMALLBUTTONSTYLETRANSPARENT[] = "QPushButton {background-color: " TRANSPARENT "; "
                                                                       "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
                                                                       "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"

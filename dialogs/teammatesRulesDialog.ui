@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TeammatesRulesDialog</class>
+ <widget class="QDialog" name="TeammatesRulesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>886</width>
+    <height>724</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>false</bool>
+     </property>
+     <property name="documentMode">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="requiredTab">
+      <attribute name="title">
+       <string>Required Teammates</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="reqVerticalLayout">
+       <item>
+        <widget class="QToolButton" name="required_loadButton">
+         <property name="text">
+          <string>Load values</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::MenuButtonPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="requiredScrollArea">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="requiredScrollAreaWidget">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>850</width>
+            <height>439</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="reqScrollAreaLayout"/>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="required_addFrame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="required_explanationLabel">
+            <property name="text">
+             <string>Select a set of students that will be required to be on the same team</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="required_studentSelectComboBox">
+            <property name="placeholderText">
+             <string>Select a required teammate:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="required_studentSelectComboBox2">
+            <property name="placeholderText">
+             <string>Select a required teammate:</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="required_addTeammatePushButton">
+            <property name="text">
+             <string>Add Teammate</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gruepr.qrc">
+              <normaloff>:/icons_new/addButton.png</normaloff>:/icons_new/addButton.png</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="required_addSetPushButton">
+            <property name="text">
+             <string>Add this set of required teammates</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="preventedTab">
+      <attribute name="title">
+       <string>Prevented Teammates</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="incompVerticalLayout">
+       <item>
+        <widget class="QToolButton" name="prevented_loadButton">
+         <property name="text">
+          <string>Load values</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::MenuButtonPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="preventedScrollArea">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="preventedScrollAreaWidget">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>850</width>
+            <height>439</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="incompScrollAreaLayout"/>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="prevented_addFrame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QLabel" name="prevented_explanationLabel">
+            <property name="text">
+             <string>Select a set of students that will be prevented from being on the same team</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="prevented_studentSelectComboBox">
+            <property name="placeholderText">
+             <string>Select a prevented teammate:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="prevented_studentSelectComboBox2">
+            <property name="placeholderText">
+             <string>Select a prevented teammate:</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="prevented_addTeammatePushButton">
+            <property name="text">
+             <string>Add Teammate</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gruepr.qrc">
+              <normaloff>:/icons_new/addButton.png</normaloff>:/icons_new/addButton.png</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="prevented_addSetPushButton">
+            <property name="text">
+             <string>Add this set of required teammates</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="requestedTab">
+      <attribute name="title">
+       <string>Requested Teammates</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QToolButton" name="requested_loadButton">
+         <property name="text">
+          <string>Load values</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::MenuButtonPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::NoArrow</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="requestedScrollArea">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="requestedScrollAreaWidget">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>850</width>
+            <height>430</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="reqScrollAreaLayout_2"/>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="requested_addFrame">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="requested_explanationLabel">
+            <property name="text">
+             <string>Select a student and match them to a teammate, then click “Add set” button.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="requested_studentSelectComboBox">
+            <property name="placeholderText">
+             <string>Select the student:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line">
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="requested_teammateSelectComboBox">
+            <property name="placeholderText">
+             <string>Select a requested teammate:</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="requested_addTeammatePushButton">
+            <property name="text">
+             <string>Add Teammate</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gruepr.qrc">
+              <normaloff>:/icons_new/addButton.png</normaloff>:/icons_new/addButton.png</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="requested_addSetPushButton">
+            <property name="text">
+             <string>Add this set of requested teammates</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../gruepr.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>TeammatesRulesDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>TeammatesRulesDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

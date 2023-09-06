@@ -6,6 +6,7 @@
 #include "dialogs/findMatchingNameDialog.h"
 #include "dialogs/attributeRulesDialog.h"
 #include "dialogs/gatherTeammatesDialog.h"
+#include "dialogs/teammatesRulesDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
@@ -1225,18 +1226,20 @@ void gruepr::on_teammatesButton_clicked()
         teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
     }
     //Open specialized dialog box to collect pairings that are required
+/*
     auto *win = new gatherTeammatesDialog(gatherTeammatesDialog::required, students, dataOptions->numStudentsInSystem,
                                           dataOptions, ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName, &teamTabNames, this);
-
+*/
+    auto *win = new TeammatesRulesDialog(this);
     //If user clicks OK, replace student database with copy that has had pairings added
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
         {
-            this->students[index] = win->students[index];
+//            this->students[index] = win->students[index];
         }
-        teamingOptions->haveAnyRequiredTeammates = win->teammatesSpecified;
+//        teamingOptions->haveAnyRequiredTeammates = win->teammatesSpecified;
     }
 
     delete win;

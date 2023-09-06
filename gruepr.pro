@@ -72,6 +72,7 @@ SOURCES += \
         dialogs/attributeRulesDialog.cpp \
         dialogs/getGrueprDataDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
+        dialogs/teammatesRulesDialog.cpp \
         googlehandler.cpp \
         gruepr_globals.cpp \
         main.cpp \
@@ -118,6 +119,7 @@ HEADERS += \
         dialogs/attributeRulesDialog.h \
         dialogs/getGrueprDataDialog.h \
         dialogs/sampleQuestionsDialog.h \
+        dialogs/teammatesRulesDialog.h \
         googlehandler.h \
         gruepr.h \
         GA.h \
@@ -158,6 +160,7 @@ FORMS += \
       dialogs/attributeRulesDialog.ui \
       dialogs/getGrueprDataDialog.ui \
       dialogs/sampleQuestionsDialog.ui \
+      dialogs/teammatesRulesDialog.ui \
       gruepr.ui
 
 RESOURCES += \
