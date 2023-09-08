@@ -14,6 +14,16 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -30,19 +40,6 @@
        <string>Required Teammates</string>
       </attribute>
       <layout class="QVBoxLayout" name="reqVerticalLayout">
-       <item>
-        <widget class="QToolButton" name="required_loadButton">
-         <property name="text">
-          <string>Load values</string>
-         </property>
-         <property name="popupMode">
-          <enum>QToolButton::MenuButtonPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QScrollArea" name="requiredScrollArea">
          <property name="frameShape">
@@ -69,7 +66,42 @@
             <height>439</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="reqScrollAreaLayout"/>
+          <layout class="QVBoxLayout" name="reqScrollAreaLayout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QTableWidget" name="required_tableWidget">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>false</bool>
+             </property>
+             <property name="dragDropOverwriteMode">
+              <bool>false</bool>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::NoSelection</enum>
+             </property>
+             <property name="cornerButtonEnabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -84,6 +116,9 @@
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QLabel" name="required_explanationLabel">
+            <property name="lineWidth">
+             <number>0</number>
+            </property>
             <property name="text">
              <string>Select a set of students that will be required to be on the same team</string>
             </property>
@@ -127,6 +162,19 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QToolButton" name="required_loadButton">
+         <property name="text">
+          <string>Load values</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="preventedTab">
@@ -134,19 +182,6 @@
        <string>Prevented Teammates</string>
       </attribute>
       <layout class="QVBoxLayout" name="incompVerticalLayout">
-       <item>
-        <widget class="QToolButton" name="prevented_loadButton">
-         <property name="text">
-          <string>Load values</string>
-         </property>
-         <property name="popupMode">
-          <enum>QToolButton::MenuButtonPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QScrollArea" name="preventedScrollArea">
          <property name="frameShape">
@@ -176,7 +211,42 @@
             <height>439</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="incompScrollAreaLayout"/>
+          <layout class="QVBoxLayout" name="incompScrollAreaLayout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QTableWidget" name="prevented_tableWidget">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>false</bool>
+             </property>
+             <property name="dragDropOverwriteMode">
+              <bool>false</bool>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::NoSelection</enum>
+             </property>
+             <property name="cornerButtonEnabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -191,6 +261,9 @@
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QLabel" name="prevented_explanationLabel">
+            <property name="lineWidth">
+             <number>0</number>
+            </property>
             <property name="text">
              <string>Select a set of students that will be prevented from being on the same team</string>
             </property>
@@ -234,6 +307,19 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QToolButton" name="prevented_loadButton">
+         <property name="text">
+          <string>Load values</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="requestedTab">
@@ -241,22 +327,6 @@
        <string>Requested Teammates</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QToolButton" name="requested_loadButton">
-         <property name="text">
-          <string>Load values</string>
-         </property>
-         <property name="popupMode">
-          <enum>QToolButton::MenuButtonPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-         <property name="arrowType">
-          <enum>Qt::NoArrow</enum>
-         </property>
-        </widget>
-       </item>
        <item>
         <widget class="QScrollArea" name="requestedScrollArea">
          <property name="frameShape">
@@ -283,7 +353,42 @@
             <height>430</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="reqScrollAreaLayout_2"/>
+          <layout class="QVBoxLayout" name="reqScrollAreaLayout_2">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QTableWidget" name="requested_tableWidget">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>false</bool>
+             </property>
+             <property name="dragDropOverwriteMode">
+              <bool>false</bool>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::NoSelection</enum>
+             </property>
+             <property name="cornerButtonEnabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -301,8 +406,11 @@
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QLabel" name="requested_explanationLabel">
+            <property name="lineWidth">
+             <number>0</number>
+            </property>
             <property name="text">
-             <string>Select a student and match them to a teammate, then click “Add set” button.</string>
+             <string>Select a student and match them to a set of requested teammates</string>
             </property>
            </widget>
           </item>
@@ -354,18 +462,21 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QToolButton" name="requested_loadButton">
+         <property name="text">
+          <string>Load values</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
-     </property>
     </widget>
    </item>
   </layout>

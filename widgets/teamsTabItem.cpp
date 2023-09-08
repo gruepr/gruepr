@@ -44,14 +44,17 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     auto helpIcon = new LabelWithInstantTooltip("", this);
     helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     rowsLayout->addWidget(helpIcon);
-    dragDropExplanation = new LabelWithInstantTooltip(tr("You can adjust the teams"), this);
+    dragDropExplanation = new LabelWithInstantTooltip(tr("Adjust the teams"), this);
     dragDropExplanation->setStyleSheet(LABELSTYLE);
     rowsLayout->addWidget(dragDropExplanation);
-    QString helpText = tr("<html><span style=\"color: black;\">Use drag-and-drop to move students and teams:<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>Drag a student onto a team name</u> to move the student onto that team.<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>Drag a student onto a student</u> to swap the locations of the two students.<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>Drag a team onto a team</u> to reorder the teams.<br>"
-                          "</span></html>");
+    QString helpText = tr("<html><span style=\"color: black;\">Use drag-and-drop to move students and teams:"
+                          "<ul>"
+                          "<li><u>Drag a student onto a team name</u> to move the student onto that team.</li>"
+                          "<li><u>Drag a student onto a student</u> to swap the locations of the two students.</li>"
+                          "<li><u>Drag a team onto a team</u> to manually reorder the teams.</li>"
+                          "</ul>"
+                          "You can also give this team set a name by double clicking the "
+                          "\"Team set \"") + QString::number(teamingOptions->teamsetNumber) + tr(" button at the top.</span></html>");
     helpIcon->setToolTipText(helpText);
     dragDropExplanation->setToolTipText(helpText);
 

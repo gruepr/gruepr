@@ -2,6 +2,9 @@
 #define TEAMMATESRULESDIALOG_H
 
 #include <QDialog>
+#include "dataOptions.h"
+#include "studentRecord.h"
+#include <QComboBox>
 
 namespace Ui {
 class TeammatesRulesDialog;
@@ -12,19 +15,46 @@ class TeammatesRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit TeammatesRulesDialog(QWidget *parent = nullptr);
+    enum class TypeOfTeammates{required, prevented, requested};
+    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions,
+                                  const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr);
     ~TeammatesRulesDialog();
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog(TeammatesRulesDialog&&) = delete;
     TeammatesRulesDialog& operator= (TeammatesRulesDialog&&) = delete;
 
+    QList<StudentRecord> students;
+    bool required_teammatesSpecified = false;
+    bool prevented_teammatesSpecified = false;
+    bool requested_teammatesSpecified = false;
+
+private slots:
+    void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
+    void clearAllValues(TypeOfTeammates typeOfTeammates);
 
 private:
     Ui::TeammatesRulesDialog *ui;
 
-    void Ok();
-    void clearAllValues();
+    bool positiverequestsInSurvey = false;
+    bool negativerequestsInSurvey = false;
+    QString sectionName;
+    QStringList teamSets;
+
+    QList <QComboBox *> possibleRequiredTeammates;
+    QList <QComboBox *> possiblePreventedTeammates;
+    QList <QComboBox *> possibleRequestedTeammates;
+
+    void refreshDisplay(TypeOfTeammates typeOfTeammates);
+
+     // these all return true on success, false on fail
+    bool saveCSVFile(TypeOfTeammates typeOfTeammates);
+    bool loadCSVFile(TypeOfTeammates typeOfTeammates);
+    bool loadStudentPrefs(TypeOfTeammates typeOfTeammates);
+    bool loadSpreadsheetFile(TypeOfTeammates typeOfTeammates);
+    bool loadExistingTeamset(TypeOfTeammates typeOfTeammates);
+
+    const QSize ICONSIZE = QSize(15,15);
 };
 
 #endif // TEAMMATESRULESDIALOG_H
