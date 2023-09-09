@@ -52,5 +52,6 @@
         <file>icons_new/swap.png</file>
         <file>icons_new/move.png</file>
         <file>icons_new/ok.png</file>
+        <file>icons_new/addButton_black.png</file>
     </qresource>
 </RCC>

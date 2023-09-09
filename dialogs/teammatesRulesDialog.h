@@ -30,22 +30,27 @@ public:
     bool requested_teammatesSpecified = false;
 
 private slots:
-    void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
-    void clearAllValues(TypeOfTeammates typeOfTeammates);
+    void clearAllValues();
 
 private:
     Ui::TeammatesRulesDialog *ui;
+    QPushButton *clearAllValuesButton = nullptr;
 
     bool positiverequestsInSurvey = false;
     bool negativerequestsInSurvey = false;
+    const int numStudents;
     QString sectionName;
     QStringList teamSets;
 
     QList <QComboBox *> possibleRequiredTeammates;
     QList <QComboBox *> possiblePreventedTeammates;
     QList <QComboBox *> possibleRequestedTeammates;
+    void addTeammateSelector(TypeOfTeammates typeOfTeammates);
 
     void refreshDisplay(TypeOfTeammates typeOfTeammates);
+
+    void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
+    void clearValues(TypeOfTeammates typeOfTeammates, bool verify = true);
 
      // these all return true on success, false on fail
     bool saveCSVFile(TypeOfTeammates typeOfTeammates);

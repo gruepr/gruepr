@@ -42,8 +42,7 @@
 // - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // INPROG:
-// - preventedTeammates not working?
-// - update gatherTeammate dialog
+// - finish styling of table teammates Rules dialog, add requestedTeammates number selector and use when loading/saving teaming options
 // - get rid of line above selector buttons in datadisplaytab
 // - update greupr to all new UI design!
 // - update OK symbol appearance in QMessageBoxes that use it

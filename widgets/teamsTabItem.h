@@ -24,7 +24,8 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
-                          const QList<TeamRecord> &incomingTeams, const QList<StudentRecord> &incomingStudents, const QString &incomingTabName, QWidget *parent = nullptr);
+                          const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
+                          QPushButton *letsDoItButton, QWidget *parent = nullptr);
     ~TeamsTabItem();
     TeamsTabItem(const TeamsTabItem&) = delete;
     TeamsTabItem operator= (const TeamsTabItem&) = delete;
@@ -82,11 +83,15 @@ private:
     QPushButton *printTeamsButton = nullptr;
 
     TeamingOptions *teamingOptions = nullptr;
-    bool *addedPreventedTeammates = nullptr;
     DataOptions *dataOptions = nullptr;
     QList<TeamRecord> teams;
     QList<StudentRecord> students;
     int numStudents = 1;
+
+    //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
+    TeamingOptions *externalTeamingOptions = nullptr;
+    QList<StudentRecord> *externalStudents = nullptr;
+    QPushButton *externalDoItButton = nullptr;
 
     QString instructorsFileContents;
     QString studentsFileContents;

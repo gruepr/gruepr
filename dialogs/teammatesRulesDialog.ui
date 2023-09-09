@@ -20,7 +20,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Reset|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Reset</set>
      </property>
     </widget>
    </item>
@@ -63,7 +63,7 @@
             <x>0</x>
             <y>0</y>
             <width>850</width>
-            <height>439</height>
+            <height>418</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout">
@@ -108,10 +108,10 @@
        <item>
         <widget class="QFrame" name="required_addFrame">
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::Box</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Plain</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
@@ -145,7 +145,7 @@
             </property>
             <property name="icon">
              <iconset resource="../gruepr.qrc">
-              <normaloff>:/icons_new/addButton.png</normaloff>:/icons_new/addButton.png</iconset>
+              <normaloff>:/icons_new/addButton_black.png</normaloff>:/icons_new/addButton_black.png</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -163,16 +163,67 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="required_loadButton">
-         <property name="text">
-          <string>Load values</string>
+        <widget class="QFrame" name="required_valuesFrame">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
          </property>
-         <property name="popupMode">
-          <enum>QToolButton::InstantPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
+         <layout class="QHBoxLayout" name="requiredValuesLayout">
+          <property name="leftMargin">
+           <number>9</number>
+          </property>
+          <property name="topMargin">
+           <number>9</number>
+          </property>
+          <property name="rightMargin">
+           <number>9</number>
+          </property>
+          <property name="bottomMargin">
+           <number>9</number>
+          </property>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QToolButton" name="required_loadButton">
+            <property name="text">
+             <string>Load values</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="required_saveButton">
+            <property name="text">
+             <string>Save values</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="required_clearButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Clear values</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -208,7 +259,7 @@
             <x>0</x>
             <y>0</y>
             <width>850</width>
-            <height>439</height>
+            <height>418</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="incompScrollAreaLayout">
@@ -290,7 +341,7 @@
             </property>
             <property name="icon">
              <iconset resource="../gruepr.qrc">
-              <normaloff>:/icons_new/addButton.png</normaloff>:/icons_new/addButton.png</iconset>
+              <normaloff>:/icons_new/addButton_black.png</normaloff>:/icons_new/addButton_black.png</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -308,16 +359,67 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="prevented_loadButton">
-         <property name="text">
-          <string>Load values</string>
+        <widget class="QFrame" name="prevented_valuesFrame">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
          </property>
-         <property name="popupMode">
-          <enum>QToolButton::InstantPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
+         <layout class="QHBoxLayout" name="preventedValuesLayout">
+          <property name="leftMargin">
+           <number>9</number>
+          </property>
+          <property name="topMargin">
+           <number>9</number>
+          </property>
+          <property name="rightMargin">
+           <number>9</number>
+          </property>
+          <property name="bottomMargin">
+           <number>9</number>
+          </property>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QToolButton" name="prevented_loadButton">
+            <property name="text">
+             <string>Load values</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="prevented_saveButton">
+            <property name="text">
+             <string>Save values</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="prevented_clearButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Clear values</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -350,7 +452,7 @@
             <x>0</x>
             <y>0</y>
             <width>850</width>
-            <height>430</height>
+            <height>409</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout_2">
@@ -445,7 +547,7 @@
             </property>
             <property name="icon">
              <iconset resource="../gruepr.qrc">
-              <normaloff>:/icons_new/addButton.png</normaloff>:/icons_new/addButton.png</iconset>
+              <normaloff>:/icons_new/addButton_black.png</normaloff>:/icons_new/addButton_black.png</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -463,16 +565,67 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="requested_loadButton">
-         <property name="text">
-          <string>Load values</string>
+        <widget class="QFrame" name="requested_valuesFrame">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
          </property>
-         <property name="popupMode">
-          <enum>QToolButton::InstantPopup</enum>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
+         <layout class="QHBoxLayout" name="requestedValuesLayout">
+          <property name="leftMargin">
+           <number>9</number>
+          </property>
+          <property name="topMargin">
+           <number>9</number>
+          </property>
+          <property name="rightMargin">
+           <number>9</number>
+          </property>
+          <property name="bottomMargin">
+           <number>9</number>
+          </property>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QToolButton" name="requested_loadButton">
+            <property name="text">
+             <string>Load values</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="requested_saveButton">
+            <property name="text">
+             <string>Save values</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft">
+           <widget class="QPushButton" name="requested_clearButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Clear values</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>

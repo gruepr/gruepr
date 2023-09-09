@@ -90,7 +90,6 @@ SOURCES += \
         dialogs/dayNamesDialog.cpp \
         dialogs/editOrAddStudentDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
-        dialogs/gatherTeammatesDialog.cpp \
         dialogs/gatherURMResponsesDialog.cpp \
         dialogs/listTableDialog.cpp \
         dialogs/progressDialog.cpp \
@@ -136,7 +135,6 @@ HEADERS += \
         dialogs/dayNamesDialog.h \
         dialogs/editOrAddStudentDialog.h \
         dialogs/findMatchingNameDialog.h \
-        dialogs/gatherTeammatesDialog.h \
         dialogs/gatherURMResponsesDialog.h \
         dialogs/listTableDialog.h \
         dialogs/progressDialog.h \

@@ -16,16 +16,22 @@
 #include <QtConcurrent>
 
 TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
-                           const QList<TeamRecord> &incomingTeams, const QList<StudentRecord> &incomingStudents, const QString &incomingTabName, QWidget *parent) : QWidget(parent)
+                           const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
+                           QPushButton *letsDoItButton, QWidget *parent)
+    :QWidget(parent)
 {
-    teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made
-    addedPreventedTeammates = &incomingTeamingOptions.haveAnyPreventedTeammates;    // need ability to modify this setting for when prevented teammates are added using button on this tab
+    teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made to use in print/save
     dataOptions = new DataOptions(incomingDataOptions);
     canvas = incomingCanvas;
     teams = incomingTeams;
     students = incomingStudents;
     numStudents = dataOptions->numStudentsInSystem;
     tabName = incomingTabName;
+
+    //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
+    externalTeamingOptions = &incomingTeamingOptions;
+    externalStudents = &incomingStudents;
+    externalDoItButton = letsDoItButton;
 
     setContentsMargins(0, 0, 0, 0);
     teamDataLayout = new QVBoxLayout;
@@ -53,8 +59,8 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
                           "<li><u>Drag a student onto a student</u> to swap the locations of the two students.</li>"
                           "<li><u>Drag a team onto a team</u> to manually reorder the teams.</li>"
                           "</ul>"
-                          "You can also give this team set a name by double clicking the "
-                          "\"Team set \"") + QString::number(teamingOptions->teamsetNumber) + tr(" button at the top.</span></html>");
+                          "You can name this team set by double clicking the "
+                          "\"Team set ") + QString::number(teamingOptions->teamsetNumber) + tr("\" button at the top.</span></html>");
     helpIcon->setToolTipText(helpText);
     dragDropExplanation->setToolTipText(helpText);
 
@@ -148,7 +154,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     sendToPreventedTeammates->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     sendToPreventedTeammates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sendToPreventedTeammates->setFlat(true);
-    sendToPreventedTeammates->setToolTip(tr("<html>Create another set of teams, with all current teammates set as \"Prevented Teammates\"</html>"));
+    sendToPreventedTeammates->setToolTip(tr("<html>Create a new set of teams, adding all of these teammates as \"Prevented Teammates\"</html>"));
     connect(sendToPreventedTeammates, &QPushButton::clicked, this, &TeamsTabItem::makeNewSetWithAllNewTeammates);
     teamOptionsLayout->addWidget(sendToPreventedTeammates);
 
@@ -365,22 +371,18 @@ void TeamsTabItem::randomizeTeamnames()
 
 void TeamsTabItem::makeNewSetWithAllNewTeammates()
 {
-    for(auto &team : teams)
-    {
-        for(const auto index1 : qAsConst(team.studentIndexes))
-        {
-            for(const auto index2 : qAsConst(team.studentIndexes))
-            {
-                if(index1 != index2)
-                {
-                    students[index1].preventedWith[students[index2].ID] = true;
+    for(auto &team : teams) {
+        for(const auto index1 : qAsConst(team.studentIndexes)) {
+            for(const auto index2 : qAsConst(team.studentIndexes)) {
+                if(index1 != index2) {
+                    (*externalStudents)[index1].preventedWith[students[index2].ID] = true;
                 }
             }
         }
     }
-    *addedPreventedTeammates = true;
-    QMessageBox::information(this, tr("Successfully loaded"), tr("These teams have all been loaded into the \"Prevented Teammates\" setting. "
-                                                                 "Pushing \"Create Teams\" will create a new set of teams with everyone getting all new teammates."));
+
+    externalTeamingOptions->haveAnyPreventedTeammates = true;
+    externalDoItButton->animateClick();
 }
 
 

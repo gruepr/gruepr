@@ -5,7 +5,6 @@
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
 #include "dialogs/attributeRulesDialog.h"
-#include "dialogs/gatherTeammatesDialog.h"
 #include "dialogs/teammatesRulesDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "widgets/pushButtonWithMouseEnter.h"
@@ -1646,7 +1645,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(*teamingOptions, *dataOptions, canvas, teams, students, teamSetName, this);
+    auto *teamTab = new TeamsTabItem(*teamingOptions, *dataOptions, canvas, teams, students, teamSetName, ui->letsDoItButton, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
