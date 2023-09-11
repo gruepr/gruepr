@@ -6,7 +6,7 @@
 #include <QMenu>
 #include <QMessageBox>
 
-TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions,
+TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
                                            const QString &sectionname, const QStringList &currTeamSets, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
@@ -32,7 +32,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 
     auto scrollAreas = {ui->requiredScrollArea, ui->preventedScrollArea, ui->requestedScrollArea};
     for(auto &scrollArea : scrollAreas) {
-        scrollArea->setStyleSheet(QString() + "QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
+        scrollArea->setStyleSheet(QString() + "QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: 1px solid black;}" + SCROLLBARSTYLE);
     }
 
     auto scrollAreaWidgets = {ui->requiredScrollAreaWidget, ui->preventedScrollAreaWidget, ui->requestedScrollAreaWidget};
@@ -118,23 +118,25 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     for(auto &tableWidget : tableWidgets) {
         tableWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-        tableWidget->setStyleSheet("QTableView{background-color: " TRANSPARENT "; alternate-background-color: " BUBBLYHEX "; border-color: " OPENWATERHEX "; border: 1px solid black; "
-                                               "font-size: 12pt; font-family: 'DM Sans'; color: black;}"
-                                       "QTableView::item{border-left: 1px solid " AQUAHEX "; border-top: none; border-right: none; border-bottom: none; padding: 3px; "
-                                                         "font-size: 10pt; font-family: 'DM Sans'; color: black;}"
-                                       "QHeaderView::section{border-top: none; border-left: none; "
-                                                            "border-right: 1px solid " AQUAHEX "; border-bottom: 1px solid " AQUAHEX "; "
-                                                            "padding: 4px; font-size: 12pt; font-family: 'DM Sans'; color: black;}" +
-                                       QString(SCROLLBARSTYLE));
+        tableWidget->setStyleSheet("QTableView{gridline-color: lightGray; background-color: " TRANSPARENT "; border: none; font-size: 12pt; font-family: 'DM Sans';}"
+                                        "QTableWidget:item {border-right: 1px solid lightGray; color: black;}" + QString(SCROLLBARSTYLE));
+        tableWidget->horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
+                                                                    "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                                          "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
+                                                                "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}");
+        tableWidget->verticalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: none; border-bottom: none;"
+                                                                  "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}"
+                                        "QHeaderView::section{border-top: none; border-left: none; border-right: none; border-bottom: none;"
+                                                              "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
         //below is stupid way needed to get text in the top-left corner cell
         auto *button = tableWidget->findChild<QAbstractButton *>();
         if (button) {
-            button->setStyleSheet("background-color: lightGray; color: black; border: none;");
+            button->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; border: none;");
             auto *lay = new QVBoxLayout(button);
             lay->setContentsMargins(0, 0, 0, 0);
             auto *label = new QLabel(tr("Student"));
             label->setAlignment(Qt::AlignCenter);
-            label->setStyleSheet("QLabel {font-size: 12pt; font-family: 'DM Sans'; color: black;}");
+            label->setStyleSheet("QLabel {font-size: 12pt; font-family: 'DM Sans'; color: white;}");
             label->setContentsMargins(2, 2, 2, 2);
             lay->addWidget(label);
         }
@@ -142,6 +144,11 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 
     ui->line->setStyleSheet("border-color: " AQUAHEX);
     ui->line->setFixedHeight(1);
+
+    ui->requested_numRequestsExplanation->setStyleSheet(LABELSTYLE);
+    ui->requested_numRequestsSpinBox->setStyleSheet(SPINBOXSTYLE);
+    ui->requested_numRequestsSpinBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
+    connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){numberRequestedTeammatesGiven = newVal;});
 
     clearAllValuesButton = ui->buttonBox->button(QDialogButtonBox::Reset);
     clearAllValuesButton->setText(tr("Clear all rules"));
@@ -227,7 +234,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
         column = 0;
 
         table->setRowCount(row+1);
-        table->setVerticalHeaderItem(row, new QTableWidgetItem(baseStudent->firstname + "\n" + baseStudent->lastname));
+        table->setVerticalHeaderItem(row, new QTableWidgetItem(baseStudent->firstname + "  " + baseStudent->lastname)); // using two spaces so that can split later
 
         if(requestsInSurvey) {
             auto *stuPrefText = new QLabel(this);
@@ -275,7 +282,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
                                                                                 QString::number(column + (requestsInSurvey? 0:1))));
                 }
                 auto *box = new QHBoxLayout;
-                auto *label = new QLabel(studentB->firstname + '\n' + studentB->lastname, this);
+                auto *label = new QLabel(studentB->firstname + "  " + studentB->lastname, this);        // using two spaces so can split later
                 label->setStyleSheet("QLabel {font-size: 10pt; font-family: 'DM Sans'; color: black;}");
                 auto *remover = new QPushButton(QIcon(":/icons_new/trashButton.png"), "", this);
                 remover->setFlat(true);
@@ -451,7 +458,7 @@ void TeammatesRulesDialog::clearAllValues()
     areYouSure->setStyleSheet(LABELSTYLE);
     areYouSure->setIcon(QMessageBox::Warning);
     areYouSure->setWindowTitle("gruepr");
-    areYouSure->setText(tr("This will remove all teammates rules listed in all of the tables. Are you sure you want to continue?\n"));
+    areYouSure->setText(tr("This will remove all teammates rules listed in all of the tables.\nAre you sure you want to continue?"));
     areYouSure->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     areYouSure->setDefaultButton(QMessageBox::No);
     areYouSure->button(QMessageBox::Yes)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -490,7 +497,7 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
         areYouSure->setStyleSheet(LABELSTYLE);
         areYouSure->setIcon(QMessageBox::Warning);
         areYouSure->setWindowTitle("gruepr");
-        areYouSure->setText(tr("This will remove all rules listed in the ") + typeText + tr(" teammates table. Are you sure you want to continue?\n"));
+        areYouSure->setText(tr("This will remove all rules listed in the ") + typeText + tr(" teammates table.\nAre you sure you want to continue?"));
         areYouSure->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         areYouSure->setDefaultButton(QMessageBox::No);
         areYouSure->button(QMessageBox::Yes)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -567,12 +574,12 @@ bool TeammatesRulesDialog::saveCSVFile(TypeOfTeammates typeOfTeammates)
     QStringList firstnameLastname;
     for(int basename = 0; basename < table->rowCount(); basename++) {
         csvFile.fieldValues.clear();
-        firstnameLastname = table->verticalHeaderItem(basename)->text().split('\n');
+        firstnameLastname = table->verticalHeaderItem(basename)->text().split("  ");
         csvFile.fieldValues << firstnameLastname.at(0).trimmed() + " " + firstnameLastname.at(1).trimmed();
         for(int teammate = firstDataCol; teammate <= lastDataCol; teammate++) {
             QWidget *teammateItem(table->cellWidget(basename,teammate));
             if (teammateItem != nullptr) {
-                firstnameLastname = teammateItem->property("studentName").toString().split('\n');
+                firstnameLastname = teammateItem->property("studentName").toString().split("  ");
                 csvFile.fieldValues << firstnameLastname.at(0).trimmed() + " " + firstnameLastname.at(1).trimmed();
             }
         }

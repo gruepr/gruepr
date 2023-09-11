@@ -985,7 +985,7 @@ void TeamsTabItem::postTeamsToCanvas()
     {
         canvas->busyBoxLabel->setText(tr("Success!"));
         icon.load(":/icons_new/ok.png");
-        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
@@ -994,7 +994,7 @@ void TeamsTabItem::postTeamsToCanvas()
     {
         canvas->busyBoxLabel->setText(tr("Error. Teams not created."));
         icon.load(":/icons_new/error.png");
-        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
         canvas->notBusy(busyBox);
@@ -1307,6 +1307,7 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
     auto *msgBox = new QMessageBox(this);
     msgBox->setIcon(QMessageBox::Information);
     msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
+    msgBox->setStyleSheet(LABELSTYLE);
     msgBox->setStandardButtons(QMessageBox::NoButton);
     msgBox->setModal(false);
     msgBox->show();

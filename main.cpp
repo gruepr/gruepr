@@ -36,17 +36,16 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
+// - updated surveymaker to all new UI design!
+// - update greupr to all new UI design!
 // - moved codebase to Qt 6.5
 // - moved Windows compiler to msvc
-// - updated surveymaker to all new UI design!
 // - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // INPROG:
-// - finish styling of table teammates Rules dialog, add requestedTeammates number selector and use when loading/saving teaming options
-// - get rid of line above selector buttons in datadisplaytab
-// - update greupr to all new UI design!
-// - update OK symbol appearance in QMessageBoxes that use it
-// - update styling of all QMessageBoxes
+// - weird behavior of sort icons in student table
+// - test save/load in teammates rules dialog
+// - test loading/saving numRequestedTeammatesGiven
 //
 // TO DO:
 // - BUGFIX: does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
@@ -56,6 +55,7 @@
 // - auto-shorten URL for Google Form (using Google's firebase API?)
 // - create timeout function to nicely handle canvas and google connections
 // - allow selection of which google drive account to use, remembering different refresh tokens for each
+// - update UI for warning and error messageboxes
 // - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
 // - more granular scheduling option, down to the 15 minute level at least
 // - add integration with Blackboard, Qualtrics, others

@@ -67,10 +67,19 @@
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <property name="leftMargin">
             <number>0</number>
            </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
            <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -263,10 +272,19 @@
            </rect>
           </property>
           <layout class="QVBoxLayout" name="incompScrollAreaLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <property name="leftMargin">
             <number>0</number>
            </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
            <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -430,6 +448,49 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <item alignment="Qt::AlignLeft">
+          <widget class="QLabel" name="requested_numRequestsExplanation">
+           <property name="text">
+            <string>From their list of requests, each student will be put on a team with at least:</string>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignLeft">
+          <widget class="QSpinBox" name="requested_numRequestsSpinBox">
+           <property name="suffix">
+            <string> teammate(s)</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>10</number>
+           </property>
+           <property name="value">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QScrollArea" name="requestedScrollArea">
          <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
@@ -452,14 +513,23 @@
             <x>0</x>
             <y>0</y>
             <width>850</width>
-            <height>409</height>
+            <height>376</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <property name="leftMargin">
             <number>0</number>
            </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
            <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>

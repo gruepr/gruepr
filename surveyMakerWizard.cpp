@@ -2413,8 +2413,9 @@ void PreviewAndExportPage::exportSurvey()
         if(!google->authenticated)
         {
             auto *loginDialog = new QMessageBox(this);
+            loginDialog->setStyleSheet(LABELSTYLE);
             QPixmap icon(":/icons_new/google.png");
-            loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
+            loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             loginDialog->setText("");
 
             // if refreshToken is found, try to use it to get accessTokens without re-granting permission
@@ -2498,7 +2499,7 @@ void PreviewAndExportPage::exportSurvey()
         {
             google->busyBoxLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons_new/error.png");
-            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             google->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
             busyBox->adjustSize();
             busyBox->exec();
@@ -2508,7 +2509,7 @@ void PreviewAndExportPage::exportSurvey()
             QEventLoop loop;
             google->busyBoxLabel->setText(tr("Success!"));
             icon.load(":/icons_new/ok.png");
-            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             busyBox->adjustSize();
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
@@ -2636,7 +2637,7 @@ void PreviewAndExportPage::exportSurvey()
         if(!success) {
             canvas->busyBoxLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons_new/error.png");
-            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             canvas->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
             busyBox->adjustSize();
             busyBox->exec();
@@ -2646,7 +2647,7 @@ void PreviewAndExportPage::exportSurvey()
             QEventLoop loop;
             canvas->busyBoxLabel->setText(tr("Success!"));
             icon.load(":/icons_new/ok.png");
-            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             busyBox->adjustSize();
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();

@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "dataOptions.h"
 #include "studentRecord.h"
+#include "teamingOptions.h"
 #include <QComboBox>
 
 namespace Ui {
@@ -16,7 +17,7 @@ class TeammatesRulesDialog : public QDialog
 
 public:
     enum class TypeOfTeammates{required, prevented, requested};
-    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions,
+    explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
                                   const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr);
     ~TeammatesRulesDialog();
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
@@ -28,6 +29,7 @@ public:
     bool required_teammatesSpecified = false;
     bool prevented_teammatesSpecified = false;
     bool requested_teammatesSpecified = false;
+    int numberRequestedTeammatesGiven = 1;
 
 private slots:
     void clearAllValues();

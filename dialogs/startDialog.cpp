@@ -338,14 +338,14 @@ void StartDialog::openRegisterDialog() {
                 QSettings savedSettings;
                 savedSettings.setValue("registeredUser", registeredUser);
                 savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
-                icon->setPixmap(QPixmap(":/icons_new/ok.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                icon->setPixmap(QPixmap(":/icons_new/ok.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 message->setText(tr("Success!"));
                 registerLabel->setText(tr("Thank you for being a registered user."));
             }
             else
             {
                 registeredUser.clear();
-                icon->setPixmap(QPixmap(":/icons_new/error.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE));
+                icon->setPixmap(QPixmap(":/icons_new/error.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 message->setText(tr("Error. Please try again later or contact <" GRUEPRHELPEMAIL ">."));
             }
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);

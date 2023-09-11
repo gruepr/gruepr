@@ -164,8 +164,9 @@ bool GetGrueprDataDialog::getFromGoogle()
     if(!google->authenticated)
     {
         auto *loginDialog = new QMessageBox(this);
+        loginDialog->setStyleSheet(LABELSTYLE);
         QPixmap icon(":/icons_new/google.png");
-        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE));
+        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         loginDialog->setText("");
 
         // if refreshToken is found, try to use it to get accessTokens without re-granting permission
@@ -203,7 +204,6 @@ bool GetGrueprDataDialog::getFromGoogle()
                                                           "This access is needed so that the survey responses can now be downloaded.\n\n"
                                                           "  » All data associated with this survey, including the questions asked and responses received, exist in your Google Drive only. "
                                                           "No data from or about this survey will ever be stored or sent anywhere else."));
-            loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
             loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
             auto *okButton = loginDialog->button(QMessageBox::Ok);
             auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
@@ -282,7 +282,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     {
         google->busyBoxLabel->setText(tr("Error. Survey not downloaded."));
         icon.load(":/icons_new/error.png");
-        google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+        google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         busyBox->adjustSize();
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
@@ -291,7 +291,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     }
     google->busyBoxLabel->setText(tr("Success!"));
     icon.load(":/icons_new/ok.png");
-    google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+    google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
@@ -413,7 +413,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     {
         canvas->busyBoxLabel->setText(tr("Error. Survey not received."));
         icon.load(":/icons_new/error.png");
-        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         busyBox->adjustSize();
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
@@ -426,7 +426,7 @@ bool GetGrueprDataDialog::getFromCanvas()
 
     canvas->busyBoxLabel->setText(tr("Success!"));
     icon.load(":/icons_new/ok.png");
-    canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio));
+    canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
@@ -937,8 +937,8 @@ bool GetGrueprDataDialog::readData()
         if(numNonSubmitters > 0) {
             QMessageBox::warning(this, tr("Not all surveys submitted"),
                                  QString::number(numNonSubmitters) + " " + (numNonSubmitters == 1? tr("student has") : tr("students have")) +
-                                 tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name") : tr("names")) +
-                                 tr(" (but no other information) ") + (numNonSubmitters == 1? tr("has") : tr("have")) + tr(" been added."), QMessageBox::Ok);
+                                 tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name has") : tr("names have")) +
+                                 tr(" been added."), QMessageBox::Ok);
         }
     }
 

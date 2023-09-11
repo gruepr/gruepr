@@ -63,6 +63,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                        "QTabBar::tab::selected {color: white; background: " OPENWATERHEX ";}"
                                                        "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
                                                        "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right; margin: 2px;}");
+    ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
     QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton, ui->saveSurveyFilePushButton};
     for(auto &button : buttons) {
         button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
@@ -1163,7 +1164,7 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
 
     teamingOptions->meetingBlockSize = (ui->meetingLengthSpinBox->value());
     if(sender == ui->meetingLengthSpinBox) {
-        ui->meetingLengthSpinBox->setSuffix(ui->meetingLengthSpinBox->value() > 1? tr("hours") : tr("hour"));
+        ui->meetingLengthSpinBox->setSuffix(ui->meetingLengthSpinBox->value() > 1? tr(" hours") : tr(" hour"));
         if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0)) {
             ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
             ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
@@ -1225,7 +1226,7 @@ void gruepr::on_teammatesButton_clicked()
         teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
     }
 
-    auto *win = new TeammatesRulesDialog(students, *dataOptions,
+    auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
                                          ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName,
                                          teamTabNames, this);
     //If user clicks OK, replace student database with copy that has had pairings added
@@ -1239,6 +1240,7 @@ void gruepr::on_teammatesButton_clicked()
         teamingOptions->haveAnyRequiredTeammates = win->required_teammatesSpecified;
         teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
         teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
+        teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
     }
 
     delete win;
@@ -1757,7 +1759,6 @@ void gruepr::loadDefaultSettings()
     }
     savedSettings.endArray();
     teamingOptions->numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
-//    ui->requestedTeammateNumberBox->setValue(teamingOptions->numberRequestedTeammatesGiven);
 }
 
 

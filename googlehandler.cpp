@@ -517,7 +517,7 @@ QDialog* GoogleHandler::busy(QWidget *parent) {
     auto *busyDialog = new QDialog(parent);
     busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
     busyBoxIcon = new QLabel(busyDialog);
-    busyBoxIcon->setPixmap(QPixmap(":/icons_new/google.png").scaled(GOOGLEICONSIZE));
+    busyBoxIcon->setPixmap(QPixmap(":/icons_new/google.png").scaled(GOOGLEICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     busyBoxLabel = new QLabel(busyDialog);
     busyBoxLabel->setStyleSheet(LABELSTYLE);
     busyBoxLabel->setText(tr("Communicating with Google..."));

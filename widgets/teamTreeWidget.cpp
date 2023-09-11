@@ -23,12 +23,12 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
                   SCROLLBARSTYLE);
     header()->setSectionResizeMode(QHeaderView::Interactive);
     header()->setStretchLastSection(false);
-    header()->setStyleSheet("QHeaderView {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
-                                          "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
-                            "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: 1px solid gray;"
-                                                   "background-color:" OPENWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
-                            "QHeaderView::down-arrow{image: url(:/icons_new/downButton.png); width: 15px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                            "QHeaderView::up-arrow{image: url(:/icons_new/upButton.png); width: 15px; subcontrol-origin: padding; subcontrol-position: top left;}");
+    header()->setStyleSheet("QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
+                                          "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                            "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: none;"
+                                                   "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                            "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                            "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px; subcontrol-origin: padding; subcontrol-position: top left;}");
     setMouseTracking(true);
     setHeaderHidden(false);
     setDragDropMode(QAbstractItemView::InternalMove);
@@ -164,7 +164,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     auto *headerTextWithIcon = new QTreeWidgetItem;
     for(int i = 0; i < headerLabels.size(); i++)
     {
-        headerTextWithIcon->setIcon(i, QIcon(":/icons_new/upDownButton.png"));
+        headerTextWithIcon->setIcon(i, QIcon(":/icons_new/upDownButton_white.png"));
         headerTextWithIcon->setText(i, headerLabels.at(i));
     }
     setHeaderItem(headerTextWithIcon);
@@ -614,7 +614,7 @@ void TeamTreeWidget::resorting(int column)
     {
         if(i != column)
         {
-            headerItem()->setIcon(i, QIcon(":/icons_new/upDownButton.png"));
+            headerItem()->setIcon(i, QIcon(":/icons_new/upDownButton_white.png"));
         }
         else
         {
