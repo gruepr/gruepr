@@ -36,21 +36,21 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - updated surveymaker to all new UI design!
-// - update greupr to all new UI design!
-// - moved codebase to Qt 6.5
-// - moved Windows compiler to msvc
-// - added auto-comparison of Canvas survey to class roster and adding missing students
+// - MAJOR UPDATE:
+//    - updated surveymaker to all new UI design!
+//    - update greupr to all new UI design!
+//    - moved codebase to Qt 6.5
+//    - moved Windows compiler to msvc
+//    - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // INPROG:
-// - weird behavior of sort icons in student table
 // - test save/load in teammates rules dialog
-// - test loading/saving numRequestedTeammatesGiven
 //
 // TO DO:
 // - BUGFIX: does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
+// - add loading/saving teaming options
 // - modernize use of pointers throughout to C++17 style; check for memory leaks
-// - remove c-style arrays except in intense optimization
+// - remove c-style arrays and update to range-based for-loops except in intense optimization
 // - enable PKCE with the Google (and Canvas?) OAuth2 flows
 // - auto-shorten URL for Google Form (using Google's firebase API?)
 // - create timeout function to nicely handle canvas and google connections

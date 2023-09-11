@@ -450,7 +450,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton.png"));
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     if(studentAteam == studentBteam)
@@ -584,7 +584,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton.png"));
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     //remove student from old team and add to new team
@@ -697,7 +697,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order, then adjust sort data for teamA and teamB, then resort
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton.png"));
+    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
     if(teamARow - teamBRow == 1)    // dragging just one row above ==> just swap the two
     {

@@ -1249,7 +1249,9 @@ void gruepr::on_teammatesButton_clicked()
 
 void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
 {
-//    ui->requestedTeammateNumberBox->setMaximum(arg1);
+    if(teamingOptions->numberRequestedTeammatesGiven > arg1) {
+        teamingOptions->numberRequestedTeammatesGiven = arg1;
+    }
 
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
     ui->teamSizeBox->setUpdatesEnabled(false);
@@ -2015,7 +2017,7 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != -1? 1 : 0) + (dataOptions->firstNameField != -1? 1 : 0) +
                                      (dataOptions->lastNameField != -1? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
-    QIcon unsortedIcon(":/icons_new/upDownButton.png");
+    QIcon unsortedIcon(":/icons_new/upDownButton_white.png");
     int column = 0;
     if(dataOptions->timestampField != -1) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
@@ -3068,7 +3070,7 @@ void gruepr::closeEvent(QCloseEvent *event)
                 savedSettings.endArray();
             }
             savedSettings.endArray();
-//            savedSettings.setValue("requestedTeammateNumber", ui->requestedTeammateNumberBox->value());
+            savedSettings.setValue("requestedTeammateNumber", teamingOptions->numberRequestedTeammatesGiven);
         }
 
         event->accept();
