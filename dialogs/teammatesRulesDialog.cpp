@@ -149,6 +149,17 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->requested_numRequestsSpinBox->setStyleSheet(SPINBOXSTYLE);
     ui->requested_numRequestsSpinBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
     connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){numberRequestedTeammatesGiven = newVal;});
+    connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){if(newVal > 1) {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammates"));}
+                                                                                                else {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate"));}});
+    ui->requested_lightbulb->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui->requested_whatsThisLabel->setStyleSheet(LABELSTYLE);
+    QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when students have a list of "
+                          "preferred teammates and you want to ensure that they will be with certain number from that list. For example, "
+                          "you might allow students to make up to five requests, and use the \"requested teammates\" so that everyone gets "
+                          "placed with at least two from their list."
+                          "</span></html>");
+    ui->requested_lightbulb->setToolTipText(helpText);
+    ui->requested_whatsThisLabel->setToolTipText(helpText);
 
     clearAllValuesButton = ui->buttonBox->button(QDialogButtonBox::Reset);
     clearAllValuesButton->setText(tr("Clear all rules"));

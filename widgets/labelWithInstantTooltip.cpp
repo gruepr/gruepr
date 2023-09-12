@@ -7,6 +7,12 @@ LabelWithInstantTooltip::LabelWithInstantTooltip(const QString &labelText, QWidg
 {
 }
 
+LabelWithInstantTooltip::LabelWithInstantTooltip(QWidget *parent)
+    :QLabel(parent)
+{
+}
+
+
 void LabelWithInstantTooltip::enterEvent(QEnterEvent *event)
 {
     QToolTip::showText(QCursor::pos(), toolTipText, this, this->rect(), 60000);

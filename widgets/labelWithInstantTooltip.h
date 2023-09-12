@@ -8,6 +8,7 @@ class LabelWithInstantTooltip : public QLabel
     Q_OBJECT
 public:
     LabelWithInstantTooltip(const QString &labelText = "", QWidget *parent = nullptr);
+    LabelWithInstantTooltip(QWidget *parent = nullptr);
 
     void setToolTipText(const QString &text);
 

@@ -462,7 +462,7 @@
          <item alignment="Qt::AlignLeft">
           <widget class="QSpinBox" name="requested_numRequestsSpinBox">
            <property name="suffix">
-            <string> teammate(s)</string>
+            <string> teammate</string>
            </property>
            <property name="minimum">
             <number>1</number>
@@ -487,6 +487,20 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="LabelWithInstantTooltip" name="requested_lightbulb">
+           <property name="pixmap">
+            <pixmap resource="../gruepr.qrc">:/icons_new/lightbulb.png</pixmap>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="LabelWithInstantTooltip" name="requested_whatsThisLabel">
+           <property name="text">
+            <string>What is a &quot;requested teammate&quot;?</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -513,7 +527,7 @@
             <x>0</x>
             <y>0</y>
             <width>850</width>
-            <height>376</height>
+            <height>342</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout_2">
@@ -704,6 +718,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LabelWithInstantTooltip</class>
+   <extends>QLabel</extends>
+   <header>widgets/labelWithInstantTooltip.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../gruepr.qrc"/>
  </resources>

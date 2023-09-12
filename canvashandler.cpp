@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QOAuthHttpServerReplyHandler>
 #include <QVBoxLayout>
 
@@ -653,6 +654,8 @@ QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, cons
     canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
     canvasToken->setStyleSheet(LINEEDITSTYLE);
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
     vLayout->addWidget(label);
