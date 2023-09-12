@@ -869,7 +869,7 @@ void TeamsTabItem::saveTeams()
             }
             if(problemSaving)
             {
-                QMessageBox::critical(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
+                errorMessage(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
             }
         }
     }
@@ -1305,7 +1305,7 @@ void TeamsTabItem::printFiles(bool printInstructorsFile, bool printStudentsFile,
     // message box explains what's happening
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *msgBox = new QMessageBox(this);
-    msgBox->setIcon(QMessageBox::Information);
+    msgBox->setIcon(QMessageBox::NoIcon);
     msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
     msgBox->setStyleSheet(LABELSTYLE);
     msgBox->setStandardButtons(QMessageBox::NoButton);

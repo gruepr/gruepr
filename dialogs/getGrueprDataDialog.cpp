@@ -457,14 +457,14 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     if(!surveyFile->readHeader())
     {
         // header row could not be read as valid data
-        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
         return false;
     }
 
     if(surveyFile->headerValues.size() < 2)
     {
-        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
         return false;
     }
@@ -792,8 +792,8 @@ bool GetGrueprDataDialog::readData()
     // read one line of data; if no data after header row then file is invalid
     if(!surveyFile->readDataRow())
     {
-        QMessageBox::critical(this, tr("Insufficient number of students."),
-                              tr("There are no survey responses in this file."), QMessageBox::Ok);
+        errorMessage(this, tr("Insufficient number of students."),
+                           tr("There are no survey responses in this file."));
         surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
         return false;
     }
@@ -935,10 +935,10 @@ bool GetGrueprDataDialog::readData()
         }
 
         if(numNonSubmitters > 0) {
-            QMessageBox::warning(this, tr("Not all surveys submitted"),
-                                 QString::number(numNonSubmitters) + " " + (numNonSubmitters == 1? tr("student has") : tr("students have")) +
-                                 tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name has") : tr("names have")) +
-                                 tr(" been added."), QMessageBox::Ok);
+            errorMessage(this, tr("Not all surveys submitted"),
+                               QString::number(numNonSubmitters) + " " + (numNonSubmitters == 1? tr("student has") : tr("students have")) +
+                               tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name has") : tr("names have")) +
+                               tr(" been added to the roster."));
         }
     }
 
@@ -946,9 +946,9 @@ bool GetGrueprDataDialog::readData()
 
     if(numStudents == MAX_STUDENTS)
     {
-        QMessageBox::warning(this, tr("Reached maximum number of students."),
-                             tr("The maximum number of students have been read."
-                                " This version of gruepr does not allow more than ") + QString::number(MAX_STUDENTS) + ".", QMessageBox::Ok);
+        errorMessage(this, tr("Reached maximum number of students."),
+                           tr("The maximum number of students have been read."
+                              " This version of gruepr does not allow more than ") + QString::number(MAX_STUDENTS) + ".");
     }
 
     // Set the attribute question options and numerical values for each student

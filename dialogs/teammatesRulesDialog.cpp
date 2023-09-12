@@ -464,18 +464,9 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
 
 void TeammatesRulesDialog::clearAllValues()
 {
-    auto *areYouSure = new QMessageBox(this);
-    areYouSure->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-    areYouSure->setStyleSheet(LABELSTYLE);
-    areYouSure->setIcon(QMessageBox::Warning);
-    areYouSure->setWindowTitle("gruepr");
-    areYouSure->setText(tr("This will remove all teammates rules listed in all of the tables.\nAre you sure you want to continue?"));
-    areYouSure->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    areYouSure->setDefaultButton(QMessageBox::No);
-    areYouSure->button(QMessageBox::Yes)->setStyleSheet(SMALLBUTTONSTYLE);
-    areYouSure->button(QMessageBox::No)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    int resp = areYouSure->exec();
-    areYouSure->deleteLater();
+    int resp = warningMessage(this, "gruepr",
+                              tr("This will remove all teammates rules listed in all of the tables.\nAre you sure you want to continue?"),
+                              tr("Yes"), tr("No"));
     if(resp == QMessageBox::No) {
         return;
     }
@@ -503,18 +494,9 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
     }
 
     if(verify) {
-        auto *areYouSure = new QMessageBox(this);
-        areYouSure->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-        areYouSure->setStyleSheet(LABELSTYLE);
-        areYouSure->setIcon(QMessageBox::Warning);
-        areYouSure->setWindowTitle("gruepr");
-        areYouSure->setText(tr("This will remove all rules listed in the ") + typeText + tr(" teammates table.\nAre you sure you want to continue?"));
-        areYouSure->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        areYouSure->setDefaultButton(QMessageBox::No);
-        areYouSure->button(QMessageBox::Yes)->setStyleSheet(SMALLBUTTONSTYLE);
-        areYouSure->button(QMessageBox::No)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        int resp = areYouSure->exec();
-        areYouSure->deleteLater();
+        int resp = warningMessage(this, "gruepr",
+                                  tr("This will remove all rules listed in the ") + typeText + tr(" teammates table.\nAre you sure you want to continue?"),
+                                  tr("Yes"), tr("No"));
         if(resp == QMessageBox::No) {
             return;
         }
@@ -577,7 +559,7 @@ bool TeammatesRulesDialog::saveCSVFile(TypeOfTeammates typeOfTeammates)
         csvFile.headerValues << tr("name") + QString::number(i);
     }
     if(!csvFile.writeHeader()) {
-        QMessageBox::critical(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
+        errorMessage(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
         return false;
     }
 
@@ -638,7 +620,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
         }
     }
     if(!formattedCorrectly) {
-        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         csvFile.close();
         return false;
     }
@@ -662,8 +644,8 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
             }
         }
         else {
-            QMessageBox::critical(this, tr("File error."), tr("This file has an error in its format:\n"
-                                                              "The same name appears more than once in the first column."), QMessageBox::Ok);
+            errorMessage(this, tr("File error."), tr("This file has an error in its format:\n"
+                                                     "The same name appears more than once in the first column."));
             csvFile.close();
             return false;
         }
@@ -865,7 +847,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
         }
     }
     if(!formattedCorrectly) {
-        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         spreadsheetFile.close();
         return false;
     }

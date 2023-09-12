@@ -454,7 +454,11 @@ inline static const char TEAMNAMELISTS[]   {";"
                                  "Preeminent,Ultimate"};
 
 bool internetIsGood();
-//void testFunction();
+
+// includes only OK button, and blocks until clicked
+void errorMessage(QWidget *parent, const QString &windowTitle = "", const QString &message = "");
+// includes OK & Cancel; returns which was clicked
+int warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText);
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};
 

@@ -55,9 +55,6 @@
 // - in teammatesRules dialog, enable the 'load from teamsTab' action
 // - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //
-//   UI IMPROVEMENT:
-// - update warning and error messageboxes
-//
 //   C++ MODERNIZATION:
 // - modernize use of pointers throughout to C++17 style; check for memory leaks
 // - remove c-style arrays and update to range-based for-loops except in intense optimization

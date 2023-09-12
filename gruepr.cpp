@@ -323,7 +323,7 @@ void gruepr::loadOptionsFile()
         }
         else
         {
-            QMessageBox::critical(this, tr("File Error"), tr("This file cannot be read."));
+            errorMessage(this, tr("File Error"), tr("This file cannot be read."));
         }
     }
 }
@@ -374,7 +374,7 @@ void gruepr::saveOptionsFile()
         }
         else
         {
-            QMessageBox::critical(this, tr("No Files Saved"), tr("This settings file was not saved.\nThere was an issue writing the file to disk."));
+            errorMessage(this, tr("No Files Saved"), tr("This settings file was not saved.\nThere was an issue writing the file to disk."));
         }
     }
 }
@@ -641,9 +641,9 @@ void gruepr::on_addStudentPushButton_clicked()
     }
     else
     {
-        QMessageBox::warning(this, tr("Cannot add student."),
-                             tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") +
-                             QString::number(MAX_STUDENTS) + ".", QMessageBox::Ok);
+        errorMessage(this, tr("Cannot add student."),
+                           tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") +
+                           QString::number(MAX_STUDENTS) + ".");
     }
 }
 
@@ -767,6 +767,8 @@ void gruepr::on_compareRosterPushButton_clicked()
                                                              tr("Survey: ") + "<b>" + surveyEmail + "</b><br>" +
                                                              tr("Roster: ") + "<b>" +  emails.at(names.indexOf(surveyName))  + "</b><br>",
                                                          QMessageBox::Ok | QMessageBox::Cancel, this);
+                whichEmailWindow->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
+                                                                                    Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 whichEmailWindow->setStyleSheet(LABELSTYLE);
                 whichEmailWindow->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
                 whichEmailWindow->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -813,6 +815,8 @@ void gruepr::on_compareRosterPushButton_clicked()
                                                                tr("submitted a survey but was not found in the roster file.") + "<br><br>" +
                                                                tr("Should we keep this student or remove them?"),
                                                            QMessageBox::Ok | QMessageBox::Cancel, this);
+                keepOrDeleteWindow->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
+                                                                                      Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 keepOrDeleteWindow->setStyleSheet(LABELSTYLE);
                 keepOrDeleteWindow->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
                 keepOrDeleteWindow->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -1018,7 +1022,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     }
     if(!newSurveyFile.writeHeader())
     {
-        QMessageBox::critical(this, tr("No File Saved"), tr("No file was saved.\nThere was an issue writing the file."));
+        errorMessage(this, tr("No File Saved"), tr("No file was saved.\nThere was an issue writing the file."));
         return;
     }
 
@@ -1463,16 +1467,16 @@ void gruepr::on_letsDoItButton_clicked()
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty())
     {
-        int buttonClicked = QMessageBox::warning(this, tr("gruepr"),
-                                                 tr("You have selected to prevented isolated URM students,\n"
-                                                    "however none of the race/ethnicity response values\n"
-                                                    "have been selected to be considered as underrepresented.\n\n"
-                                                    "Click OK to continue with no students considered URM,\n"
-                                                    "or click Cancel to go back and select URM responses."),
-                                                 QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
+        int buttonClicked = warningMessage(this, tr("gruepr"),
+                                           tr("You have selected to prevented isolated URM students,\n"
+                                              "however none of the race/ethnicity response values\n"
+                                              "have been selected to be considered as underrepresented.\n\n"
+                                              "Click Continue to form teams with no students considered URM,\n"
+                                              "or click Open Selection Window to select the URM responses."),
+                                              tr("Continue"), tr("Open Selection Window"));
         if(buttonClicked == QMessageBox::Cancel)
         {
-            ui->URMResponsesButton->setFocus();
+            ui->URMResponsesButton->animateClick();
             return;
         }
     }
@@ -1938,7 +1942,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
     if(!rosterFile.readHeader())
     {
         // header row could not be read as valid data
-        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         return false;
     }
 
@@ -1989,7 +1993,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
         }
         else
         {
-            QMessageBox::critical(this, tr("File error."), tr("This roster does not contain student names."), QMessageBox::Ok);
+            errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
             return false;
         }
 
@@ -3006,7 +3010,8 @@ void gruepr::closeEvent(QCloseEvent *event)
         auto *neverShowAgain = new QCheckBox(tr("Don't ask me this again"), saveOptionsOnClose);
         neverShowAgain->setStyleSheet(CHECKBOXSTYLE);
 
-        saveOptionsOnClose->setIcon(QMessageBox::Question);
+        saveOptionsOnClose->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
+                                                                              Qt::KeepAspectRatio, Qt::SmoothTransformation));
         saveOptionsOnClose->setWindowTitle(tr("Save Options?"));
         saveOptionsOnClose->setText(tr("Before exiting, should we save the\ncurrent teaming options as defaults?"));
         saveOptionsOnClose->setCheckBox(neverShowAgain);

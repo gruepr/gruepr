@@ -97,9 +97,9 @@ void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText
     }
 
     QApplication::beep();
-    QMessageBox::warning(parent, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
-                                                        "    ,  &  <  > / {enter} \n"
-                                                        "Other punctuation is allowed."));
+    errorMessage(parent, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
+                                                "    ,  &  <  > / {enter} \n"
+                                                "Other punctuation is allowed."));
 }
 
 void SurveyMakerWizard::loadSurvey(int customButton)
@@ -296,7 +296,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
         }
         else
         {
-            QMessageBox::critical(this, tr("File Error"), tr("This file cannot be read."));
+            errorMessage(this, tr("File Error"), tr("This file cannot be read."));
         }
     }
 }
@@ -1666,7 +1666,7 @@ bool CourseInfoPage::uploadRoster()
     // Read the header row
     if(!rosterFile.readHeader()) {
         // header row could not be read as valid data
-        QMessageBox::critical(this, tr("File error."), tr("This file is empty or there is an error in its format."), QMessageBox::Ok);
+        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         return false;
     }
 
@@ -1708,7 +1708,7 @@ bool CourseInfoPage::uploadRoster()
             studentNames << rosterFile.fieldValues.at(firstNameField).trimmed() + " " + rosterFile.fieldValues.at(lastNameField).trimmed();
         }
         else {
-            QMessageBox::critical(this, tr("File error."), tr("This roster does not contain student names."), QMessageBox::Ok);
+            errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
             return false;
         }
     } while(rosterFile.readDataRow());
@@ -2315,7 +2315,7 @@ void PreviewAndExportPage::exportSurvey()
             }
             else
             {
-                QMessageBox::critical(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
+                errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
             }
         }
     }
@@ -2328,7 +2328,7 @@ void PreviewAndExportPage::exportSurvey()
         createSurvey.setText(tr("The next step will save two files to your computer:\n\n"
                                 "  » A text file that lists the questions you should include in your survey.\n\n"
                                 "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
-            createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
         if(createSurvey.exec() == QMessageBox::Cancel)
         {
             return;
@@ -2338,14 +2338,14 @@ void PreviewAndExportPage::exportSurvey()
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
         if(fileName.isEmpty())
         {
-            QMessageBox::critical(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+            errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
         }
         //create the files
         QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
         if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            QMessageBox::critical(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+            errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
         }
         saveFileLocation->setFile(QFileInfo(fileName).canonicalPath());

@@ -56,5 +56,6 @@
         <file>icons_new/downButton_white.png</file>
         <file>icons_new/upButton_white.png</file>
         <file>icons_new/upDownButton_white.png</file>
+        <file>icons_new/question.png</file>
     </qresource>
 </RCC>
