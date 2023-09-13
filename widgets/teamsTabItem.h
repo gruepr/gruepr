@@ -23,7 +23,7 @@ class TeamsTabItem : public QWidget
 Q_OBJECT
 
 public:
-    explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
+    explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions,
                           const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
                           QPushButton *letsDoItButton, QWidget *parent = nullptr);
     ~TeamsTabItem();
@@ -81,6 +81,7 @@ private:
     QHBoxLayout *savePrintLayout = nullptr;
     QPushButton *saveTeamsButton = nullptr;
     QPushButton *printTeamsButton = nullptr;
+    QPushButton *postTeamsButton = nullptr;
 
     TeamingOptions *teamingOptions = nullptr;
     DataOptions *dataOptions = nullptr;

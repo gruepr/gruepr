@@ -671,7 +671,13 @@ QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, cons
     {
         return {};
     }
-    return {canvasURL->text(), canvasToken->text()};
+    QString url = canvasURL->text();
+    if(!url.startsWith("https://") && !url.startsWith("http://"))
+    {
+        url.prepend("https://");
+    }
+    QString token = canvasToken->text().trimmed();
+    return {url, token};
 }
 
 void CanvasHandler::setBaseURL(const QString &baseAPIURL) {

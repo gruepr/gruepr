@@ -6,11 +6,9 @@
 #include <QMainWindow>
 #include <QPrinter>
 #include "boxwhiskerplot.h"
-#include "canvashandler.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
-#include "googlehandler.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
@@ -64,8 +62,6 @@ private slots:
     void on_idealTeamSizeBox_valueChanged(int arg1);
     void on_teamSizeBox_currentIndexChanged(int index);
     void on_teammatesButton_clicked();
-//    void on_preventedTeammatesButton_clicked();
-//    void on_requestedTeammatesButton_clicked();
     void on_letsDoItButton_clicked();
     void updateOptimizationProgress(const QList<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
@@ -100,8 +96,6 @@ private:
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     QList<QPushButton *> attributeSelectorButtons;
     QList<AttributeWidget *> attributeWidgets;
-    GoogleHandler *google = nullptr;
-    CanvasHandler *canvas = nullptr;
 
         // team set optimization
     int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams

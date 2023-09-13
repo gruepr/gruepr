@@ -1,6 +1,5 @@
 #include "gruepr.h"
 #include "ui_gruepr.h"
-#include "canvashandler.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
@@ -124,8 +123,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
 gruepr::~gruepr()
 {
-    delete google;
-    delete canvas;
     delete dataOptions;
     delete teamingOptions;
     delete ui;
@@ -1653,7 +1650,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(*teamingOptions, *dataOptions, canvas, teams, students, teamSetName, ui->letsDoItButton, this);
+    auto *teamTab = new TeamsTabItem(*teamingOptions, *dataOptions, teams, students, teamSetName, ui->letsDoItButton, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;

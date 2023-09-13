@@ -1,5 +1,4 @@
 #include "teamsTabItem.h"
-#include "canvashandler.h"
 #include "dialogs/customTeamnamesDialog.h"
 #include "dialogs/whichFilesDialog.h"
 #include "gruepr.h"
@@ -15,14 +14,13 @@
 #include <QTextStream>
 #include <QtConcurrent>
 
-TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions, CanvasHandler *const incomingCanvas,
+TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions,
                            const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
                            QPushButton *letsDoItButton, QWidget *parent)
     :QWidget(parent)
 {
     teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made to use in print/save
     dataOptions = new DataOptions(incomingDataOptions);
-    canvas = incomingCanvas;
     teams = incomingTeams;
     students = incomingStudents;
     numStudents = dataOptions->numStudentsInSystem;
@@ -180,6 +178,13 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     printTeamsButton->setToolTip(tr("Send this set of teams to the printer"));
     connect(printTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::printTeams);
     savePrintLayout->addWidget(printTeamsButton);
+
+    postTeamsButton = new QPushButton(QIcon(":/icons_new/canvas.png"), tr("Post"), this);
+    postTeamsButton->setStyleSheet(SAVEPRINTBUTTONSTYLE);
+    postTeamsButton->setIconSize(SAVEPRINTICONSIZE);
+    postTeamsButton->setToolTip(tr("Post this set of teams to Canvas as a new group set"));
+    connect(postTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::postTeamsToCanvas);
+    savePrintLayout->addWidget(postTeamsButton);
 
     teamDataTree->collapseAll();
     teamDataTree->resetDisplay(dataOptions, teamingOptions);
