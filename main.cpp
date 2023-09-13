@@ -43,7 +43,6 @@
 //    - moved Windows compiler to msvc
 //    - added auto-comparison of Canvas survey to class roster and adding missing students
 //
-//
 // TO DO:
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed

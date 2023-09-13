@@ -733,12 +733,26 @@ bool GetGrueprDataDialog::readData()
     dataOptions->sectionIncluded = (dataOptions->sectionField != -1);
     dataOptions->timezoneField = int(surveyFile->fieldMeanings.indexOf("Timezone"));
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != -1);
-    dataOptions->prefTeammatesField = int(surveyFile->fieldMeanings.indexOf("Preferred Teammates"));
-    dataOptions->prefTeammatesIncluded = (dataOptions->prefTeammatesField != -1);
-    dataOptions->prefNonTeammatesField = int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates"));
-    dataOptions->prefNonTeammatesIncluded = (dataOptions->prefNonTeammatesField != -1);
-    // notes fields
+    // pref teammates fields
     int lastFoundIndex = 0;
+    dataOptions->numPrefTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
+    dataOptions->prefTeammatesIncluded = (dataOptions->numPrefTeammateQuestions > 0);
+    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++)
+    {
+        dataOptions->prefTeammatesField[prefQ] = int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex));
+        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex)));
+    }
+    // pref non-teammates fields
+    lastFoundIndex = 0;
+    dataOptions->numPrefNonTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Non-teammates"));
+    dataOptions->prefNonTeammatesIncluded = (dataOptions->numPrefNonTeammateQuestions > 0);
+    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++)
+    {
+        dataOptions->prefNonTeammatesField[prefQ] = int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex));
+        lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex)));
+    }
+    // notes fields
+    lastFoundIndex = 0;
     dataOptions->numNotes = int(surveyFile->fieldMeanings.count("Notes"));
     for(int note = 0; note < dataOptions->numNotes; note++)
     {

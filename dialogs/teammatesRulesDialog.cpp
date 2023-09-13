@@ -1,5 +1,5 @@
 #include "teammatesRulesDialog.h"
-#include "ui_TeammatesRulesDialog.h"
+#include "ui_teammatesRulesDialog.h"
 #include "csvfile.h"
 #include "gruepr_globals.h"
 #include "dialogs/findMatchingNameDialog.h"

@@ -43,9 +43,11 @@ public:
     int lateHourAsked = MAX_BLOCKS_PER_DAY;         // latest hour asked in survey
     enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? Are multiple values allowed?
     bool prefTeammatesIncluded = false;             // did students get to include preferred teammates?
-    int prefTeammatesField = -1;                    // which field in surveyFile has the preferred teammates info? -1 if not included in survey
+    int numPrefTeammateQuestions = 0;
+    int prefTeammatesField[MAX_PREFTEAMMATES];      // which field(s) in surveyFile has the preferred teammates info? -1 if not included in survey
     bool prefNonTeammatesIncluded = false;          // did students get to include preferred non-teammates?
-    int prefNonTeammatesField = -1;                 // which field in surveyFile has the preferred non-teammates info? -1 if not included in survey
+    int numPrefNonTeammateQuestions = 0;
+    int prefNonTeammatesField[MAX_PREFTEAMMATES];   // which field(s) in surveyFile has the preferred non-teammates info? -1 if not included in survey
     int numStudentsInSystem = 0;                    // total number of students in the file
     QStringList sectionNames;                       // all of the section names
     QStringList attributeQuestionText;              // the actual attribute questions asked of the students

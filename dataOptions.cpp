@@ -16,6 +16,16 @@ DataOptions::DataOptions()
         field = -1;
     }
 
+    for(int &field : prefTeammatesField)
+    {
+        field = -1;
+    }
+
+    for(int &field : prefNonTeammatesField)
+    {
+        field = -1;
+    }
+
     for(int &field : scheduleField)
     {
         field = -1;

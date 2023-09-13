@@ -265,32 +265,47 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // preferred teammates
-    if(dataOptions->prefTeammatesIncluded)
+    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++)
     {
-        fieldnum = dataOptions->prefTeammatesField;
-        prefTeammates = fields.at(fieldnum).toLatin1();
-        prefTeammates.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
-        prefTeammates = prefTeammates.trimmed();
+        fieldnum = dataOptions->prefTeammatesField[prefQ];
+        QString nextTeammate = fields.at(fieldnum).toLatin1();
+        nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
+        nextTeammate = nextTeammate.trimmed();
+        if(!prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+            prefTeammates += "\n" + nextTeammate;
+        }
+        else if(prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+            prefTeammates += nextTeammate;
+        }
     }
 
     // preferred non-teammates
-    if(dataOptions->prefNonTeammatesIncluded)
+    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++)
     {
-        fieldnum = dataOptions->prefNonTeammatesField;
-        prefNonTeammates = fields.at(fieldnum).toLatin1();
-        prefNonTeammates.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
-        prefNonTeammates = prefNonTeammates.trimmed();
+        fieldnum = dataOptions->prefNonTeammatesField[prefQ];
+        QString nextTeammate = fields.at(fieldnum).toLatin1();
+        nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
+        nextTeammate = nextTeammate.trimmed();
+        if(!prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+            prefNonTeammates += "\n" + nextTeammate;
+        }
+        else if(prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+            prefNonTeammates += nextTeammate;
+        }
     }
 
     // notes
     for(int note = 0; note < dataOptions->numNotes; note++)
     {
+        // join each one with a newline after
         fieldnum = dataOptions->notesField[note];
-        if(note > 0)
-        {
-            notes += "\n";
+        QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
+        if(!notes.isEmpty() && !nextNote.isEmpty()) {
+            notes += "\n" + nextNote;
         }
-        notes += fields.at(fieldnum).toLatin1().trimmed();     // join each one with a newline after
+        else if(notes.isEmpty() && !nextNote.isEmpty()) {
+            notes += nextNote;
+        }
     }
 }
 
