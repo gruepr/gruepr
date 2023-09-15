@@ -2,8 +2,10 @@
 #define SWITCHBUTTON_H
 
 #include <QLabel>
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
 #include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
+#endif
 #include <QWidget>
 
 class SwitchButton : public QWidget
@@ -25,8 +27,8 @@ public:
     ~SwitchButton() override;
 
     //-- QWidget methods
-    void mousePressEvent(QMouseEvent *) override;
-    void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent* event = nullptr) override;
+    void paintEvent(QPaintEvent* event = nullptr) override;
     void setEnabled(bool);
 
     //-- Setters
@@ -51,16 +53,18 @@ private:
     int    _tol;
 
     // This order for definition is important (these widgets overlap)
-    SwitchBackground* _background;
-    QLabel*           _labeloff;
-    QLabel*           _labelon;
-    SwitchCircle*     _circle;
+    SwitchBackground* _background = nullptr;
+    QLabel*           _labeloff = nullptr;
+    QLabel*           _labelon = nullptr;
+    SwitchCircle*     _circle = nullptr;
 
     bool _enabled;
 
-    QPropertyAnimation* __btn_move;
-    QPropertyAnimation* __back_resize;
-    QParallelAnimationGroup *__animationGroup;
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+    QPropertyAnimation* __btn_move = nullptr;
+    QPropertyAnimation* __back_resize = nullptr;
+    QParallelAnimationGroup *__animationGroup = nullptr;
+#endif
 };
 
 class SwitchButton::SwitchBackground : public QWidget
@@ -72,7 +76,7 @@ public:
     explicit SwitchBackground(QWidget* parent = nullptr);
 
     //-- QWidget methods
-    void paintEvent(QPaintEvent* event) override;
+    void paintEvent(QPaintEvent* event = nullptr) override;
     void setEnabled(bool);
 
 private:
@@ -91,7 +95,7 @@ public:
     explicit SwitchCircle(QWidget* parent = nullptr);
 
     //-- QWidget methods
-    void paintEvent(QPaintEvent* event) override;
+    void paintEvent(QPaintEvent* event = nullptr) override;
     void setEnabled(bool);
 
 private:

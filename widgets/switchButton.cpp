@@ -16,6 +16,7 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     _labelon = new QLabel(this);
     _circle = new SwitchCircle(this);
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     __btn_move = new QPropertyAnimation(_circle, "pos");
     __btn_move->setDuration(_duration);
     __back_resize = new QPropertyAnimation(_background, "size");
@@ -24,6 +25,7 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     __animationGroup->addAnimation(__btn_move);
     __animationGroup->addAnimation(__back_resize);
     __animationGroup->stop();
+#endif
 
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -83,9 +85,11 @@ SwitchButton::~SwitchButton()
     delete _background;
     delete _labeloff;
     delete _labelon;
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     delete __btn_move;
     delete __back_resize;
     delete __animationGroup;
+#endif
 }
 
 void SwitchButton::paintEvent(QPaintEvent*)
@@ -122,7 +126,9 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
         return;
     }
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     __animationGroup->stop();
+#endif
 
     int hback = 20;
     QSize initial_size(hback, hback);
@@ -147,6 +153,7 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
         _labeloff->hide();
     }
 
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     __btn_move->setStartValue(QPoint(xi, y));
     __btn_move->setEndValue(QPoint(xf, y));
 
@@ -154,6 +161,10 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
     __back_resize->setEndValue(final_size);
 
     __animationGroup->start();
+#else
+    _circle->move(QPoint(xf, y));
+    _background->resize(final_size);
+#endif
 
     // Assigning new current value
     _value = !_value;
