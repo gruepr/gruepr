@@ -46,10 +46,11 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     teamDataLayout->addLayout(rowsLayout);
 
     auto helpIcon = new LabelWithInstantTooltip("", this);
+    helpIcon->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
     helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     rowsLayout->addWidget(helpIcon);
     dragDropExplanation = new LabelWithInstantTooltip(tr("Adjust the teams"), this);
-    dragDropExplanation->setStyleSheet(LABELSTYLE);
+    dragDropExplanation->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
     rowsLayout->addWidget(dragDropExplanation);
     QString helpText = tr("<html><span style=\"color: black;\">Use drag-and-drop to move students and teams:"
                           "<ul>"

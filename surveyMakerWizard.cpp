@@ -1737,8 +1737,8 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     }
 
     auto *saveExportFrame = new QFrame;
-    saveExportFrame->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; font-family:'DM Sans'; font-size:12pt;"
-                                   "QToolTip {background-color: white; color: black;}");
+    saveExportFrame->setStyleSheet(QString("background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;") +
+                                   BIGTOOLTIPSTYLE);
     auto *saveExportlayout = new QGridLayout(saveExportFrame);
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");
@@ -2547,7 +2547,7 @@ void PreviewAndExportPage::exportSurvey()
                                        tr("</strong><br>You can copy this URL to your clipboard with the button below."));
             successDialog->setStandardButtons(QMessageBox::Ok);
             auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
-            copyButton->setStyleSheet(copyButton->styleSheet() + "QToolTip {color: black; font-size: 12pt; font-family: 'DM Sans'; background-color: green; border: 0px;}");
+            copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace( "background-color: white;", "background-color: green;"));
             copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
             connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
                                                                                              clipboard->setText(form.responderURL.toEncoded());

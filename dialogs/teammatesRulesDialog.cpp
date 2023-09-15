@@ -152,7 +152,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){if(newVal > 1) {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammates"));}
                                                                                                 else {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate"));}});
     ui->requested_lightbulb->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    ui->requested_whatsThisLabel->setStyleSheet(LABELSTYLE);
+    ui->requested_lightbulb->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
+    ui->requested_whatsThisLabel->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
     QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when students have a list of "
                           "preferred teammates and you want to ensure that they will be with certain number from that list. For example, "
                           "you might allow students to make up to five requests, and use the \"requested teammates\" so that everyone gets "
