@@ -943,7 +943,8 @@ bool GetGrueprDataDialog::readData()
                     {
                         time = false;
                     }
-                }                students.last().ambiguousSchedule = true;
+                }
+                students.last().ambiguousSchedule = true;
                 numStudents++;
             }
         }

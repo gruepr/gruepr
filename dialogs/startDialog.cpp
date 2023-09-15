@@ -220,8 +220,8 @@ void StartDialog::openGruepr() {
         if(getDataDialog->result() == QDialog::Accepted) {
             QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
-            delete getDataDialog;
             grueprWindow->show();
+            getDataDialog->deleteLater();
             QApplication::restoreOverrideCursor();
             QEventLoop loop;
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
