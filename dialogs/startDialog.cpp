@@ -156,10 +156,10 @@ StartDialog::StartDialog(QWidget *parent)
     connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
     helpActions << new QAction("About gruepr");
     helpActions.last()->setMenuRole(QAction::AboutRole);
-    connect(helpActions.last(), &QAction::triggered, this, [this](){aboutWindow(this);});
+    connect(helpActions.last(), &QAction::triggered, this, [this](){grueprGlobal::aboutWindow(this);});
     helpActions << new QAction("How gruepr works");
     helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
-    connect(helpActions.last(), &QAction::triggered, this, [this](){helpWindow(this);});
+    connect(helpActions.last(), &QAction::triggered, this, [this](){grueprGlobal::helpWindow(this);});
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
     helpButton = new QToolButton(this);
     helpButton->setStyleSheet(INFOBUTTONSTYLE);
@@ -299,7 +299,7 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
 void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form
     QString registeredUser;
-    if(internetIsGood())
+    if(grueprGlobal::internetIsGood())
     {
         //we can connect, so gather name, institution, and email address for submission
         auto *registerWin = new registerDialog;

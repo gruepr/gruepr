@@ -21,36 +21,28 @@ StudentRecord::StudentRecord()
 ////////////////////////////////////////////
 void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions* const dataOptions)
 {
+    int numFields = fields.size();
     // Timestamp
     int fieldnum = dataOptions->timestampField;
-    if(fieldnum != -1)
-    {
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
         const QString &timestampText = fields.at(fieldnum);
         surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
-        if(surveyTimestamp.isNull())
-        {
+        if(surveyTimestamp.isNull()) {
             surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT2); // alt format with direct download from Google Form
-            if(surveyTimestamp.isNull())
-            {
+            if(surveyTimestamp.isNull()) {
                 surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), Qt::ISODate); // format with direct download from Canvas
-                if(surveyTimestamp.isNull())
-                {
+                if(surveyTimestamp.isNull()) {
                     surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT3);
-                    if(surveyTimestamp.isNull())
-                    {
+                    if(surveyTimestamp.isNull()) {
                         surveyTimestamp = QDateTime::fromString(timestampText, TIMESTAMP_FORMAT4);
-                        if(surveyTimestamp.isNull())
-                        {
+                        if(surveyTimestamp.isNull()) {
                             surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::ShortFormat);
-                            if(surveyTimestamp.isNull())
-                            {
+                            if(surveyTimestamp.isNull()) {
                                 surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::LongFormat);
-                                if(surveyTimestamp.isNull())
-                                {
+                                if(surveyTimestamp.isNull()) {
                                     int i = 0;
                                     QList<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
-                                    while(i < stdTimestampFormats.size() && surveyTimestamp.isNull())
-                                    {
+                                    while(i < stdTimestampFormats.size() && surveyTimestamp.isNull()) {
                                         surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
                                         i++;
                                     }
@@ -62,38 +54,37 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
             }
         }
     }
-    if(surveyTimestamp.isNull())
-    {
+    if(surveyTimestamp.isNull()) {
         surveyTimestamp = QDateTime::currentDateTime();
     }
 
     // LMSID
     fieldnum = dataOptions->LMSIDField;
-    if(fieldnum != -1)
-    {
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
         LMSID = fields.at(fieldnum).toUtf8().trimmed().toInt();
     }
 
     // First name
     fieldnum = dataOptions->firstNameField;
-    if(fieldnum != -1)
-    {
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
         firstname = fields.at(fieldnum).toLatin1().trimmed();
-        firstname[0] = firstname[0].toUpper();
+        if(!firstname.isEmpty()) {
+            firstname[0] = firstname[0].toUpper();
+        }
     }
 
     // Last name
     fieldnum = dataOptions->lastNameField;
-    if(fieldnum != -1)
-    {
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
         lastname = fields.at(fieldnum).toLatin1().trimmed();
-        lastname[0] = lastname[0].toUpper();
+        if(!lastname.isEmpty()) {
+            lastname[0] = lastname[0].toUpper();
+        }
     }
 
     // Email
     fieldnum = dataOptions->emailField;
-    if(fieldnum != -1)
-    {
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
         email = fields.at(fieldnum).toLatin1().trimmed();
     }
 
@@ -101,55 +92,64 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions->genderIncluded)
     {
         fieldnum = dataOptions->genderField;
-        QString field = fields.at(fieldnum).toUtf8();
-        if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) || field.contains(QObject::tr("woman"), Qt::CaseInsensitive)  || field.contains(QObject::tr("girl"), Qt::CaseInsensitive)
-                 || field.contains(QObject::tr("she"), Qt::CaseInsensitive))
-        {
-            gender = Gender::woman;
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString field = fields.at(fieldnum).toUtf8();
+            if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) ||
+                field.contains(QObject::tr("woman"), Qt::CaseInsensitive) ||
+                field.contains(QObject::tr("girl"), Qt::CaseInsensitive) ||
+                field.contains(QObject::tr("she"), Qt::CaseInsensitive)) {
+                gender = Gender::woman;
+            }
+            else if((field.contains(QObject::tr("non"), Qt::CaseInsensitive) && field.contains(QObject::tr("binary"), Qt::CaseInsensitive)) ||
+                     field.contains(QObject::tr("queer"), Qt::CaseInsensitive) ||
+                     field.contains(QObject::tr("trans"), Qt::CaseInsensitive) ||
+                     field.contains(QObject::tr("they"), Qt::CaseInsensitive)) {
+                gender = Gender::nonbinary;
+            }
+            else if(field.contains(QObject::tr("male"), Qt::CaseInsensitive) ||
+                     field.contains(QObject::tr("man"), Qt::CaseInsensitive) ||
+                     field.contains(QObject::tr("boy"), Qt::CaseInsensitive) ||
+                     field.contains(QObject::tr("he"), Qt::CaseInsensitive)) {
+                gender = Gender::man;
+            }
+            else {
+                gender = Gender::unknown;
+            }
         }
-        else if((field.contains(QObject::tr("non"), Qt::CaseInsensitive) && field.contains(QObject::tr("binary"), Qt::CaseInsensitive)) ||
-                 field.contains(QObject::tr("queer"), Qt::CaseInsensitive) || field.contains(QObject::tr("trans"), Qt::CaseInsensitive)  || field.contains(QObject::tr("they"), Qt::CaseInsensitive))
-        {
-            gender = Gender::nonbinary;
-        }
-        else if(field.contains(QObject::tr("male"), Qt::CaseInsensitive) || field.contains(QObject::tr("man"), Qt::CaseInsensitive) || field.contains(QObject::tr("boy"), Qt::CaseInsensitive)
-                 || field.contains(QObject::tr("he"), Qt::CaseInsensitive))
-        {
-            gender = Gender::man;
-        }
-        else
-        {
+        else {
             gender = Gender::unknown;
         }
     }
-    else
-    {
+    else {
         gender = Gender::unknown;
     }
 
     // racial/ethnic heritage
-    if(dataOptions->URMIncluded)
-    {
+    if(dataOptions->URMIncluded) {
         fieldnum = dataOptions->URMField;
-        QString field = fields.at(fieldnum).toLatin1().toLower().simplified();
-        if(field == "")
-        {
-            field = QObject::tr("--");
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString field = fields.at(fieldnum).toLatin1().toLower().simplified();
+            if(field == "") {
+                field = QObject::tr("--");
+            }
+            URMResponse = field;
         }
-        URMResponse = field;
+        else {
+            URM = false;
+        }
     }
-    else
-    {
+    else {
         URM = false;
     }
 
     // attributes
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-    {
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         fieldnum = dataOptions->attributeField[attribute];
-        QString field = fields.at(fieldnum).toLatin1();
-        field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
-        attributeResponse[attribute] = field;
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString field = fields.at(fieldnum).toLatin1();
+            field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
+            attributeResponse[attribute] = field;
+        }
     }
 
     // schedule days
@@ -157,92 +157,75 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     const int numTimes = int(dataOptions->timeNames.size());
     int timezoneOffset = 0;
     fieldnum = dataOptions->timezoneField;
-    if(fieldnum != -1)
-    {
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
         QString timezoneText = fields.at(fieldnum).toUtf8(), timezoneName;
-        if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone))
-        {
-            if(dataOptions->homeTimezoneUsed)
-            {
+        if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone)) {
+            if(dataOptions->homeTimezoneUsed) {
                 timezoneOffset = std::lround(dataOptions->baseTimezone - timezone);
             }
         }
     }
-    for(int day = 0; day < numDays; day++)
-    {
+    for(int day = 0; day < numDays; day++) {
         fieldnum = dataOptions->scheduleField[day];
-        QString field = fields.at(fieldnum).toUtf8();
-        QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
-        for(int time = 0; time < numTimes; time++)
-        {
-            // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
-            if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > MAX_BLOCKS_PER_DAY)))
-            {
-                continue;
-            }
-
-            timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
-
-            // determine which spot in the unavailability chart to put this date/time
-            int actualday = day;
-            int actualtime = time + timezoneOffset;
-            // if this one wraps around the day, then adjust to the correct day/time
-            if(actualtime < 0)
-            {
-                actualtime += MAX_BLOCKS_PER_DAY;
-                actualday--;
-                if(actualday < 0)
-                {
-                    if(numDays < MAX_DAYS)  // less than all 7 days, so not clear where to shift this time--just ignore
-                    {
-                        continue;
-                    }
-                    actualday += MAX_DAYS;
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString field = fields.at(fieldnum).toUtf8();
+            QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
+            for(int time = 0; time < numTimes; time++) {
+                // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
+                if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > MAX_BLOCKS_PER_DAY))) {
+                    continue;
                 }
-            }
-            if(actualtime >= MAX_BLOCKS_PER_DAY)
-            {
-                actualtime -= MAX_BLOCKS_PER_DAY;
-                actualday++;
-                if(actualday >= numDays)
-                {
-                    if(numDays < MAX_DAYS)  // less than all 7 days, so not clear where to shift this time--just ignore
-                    {
-                        continue;
-                    }
-                    actualday -= MAX_DAYS;
-                }
-            }
-            bool &unavailabilitySpot = unavailable[actualday][actualtime];
 
-            if(dataOptions->scheduleDataIsFreetime)
-            {
-                unavailabilitySpot = !timename.match(field).hasMatch();
-            }
-            else
-            {
-                // since we asked when they're unavailable, ignore any times that we didn't actually ask about
-                if((time >= dataOptions->earlyHourAsked) && (time <= dataOptions->lateHourAsked))
-                {
-                    unavailabilitySpot = timename.match(field).hasMatch();
+                timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
+
+                // determine which spot in the unavailability chart to put this date/time
+                int actualday = day;
+                int actualtime = time + timezoneOffset;
+                // if this one wraps around the day, then adjust to the correct day/time
+                if(actualtime < 0) {
+                    actualtime += MAX_BLOCKS_PER_DAY;
+                    actualday--;
+                    if(actualday < 0) {
+                        if(numDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
+                            continue;
+                        }
+                        actualday += MAX_DAYS;
+                    }
+                }
+                if(actualtime >= MAX_BLOCKS_PER_DAY) {
+                    actualtime -= MAX_BLOCKS_PER_DAY;
+                    actualday++;
+                    if(actualday >= numDays) {
+                        if(numDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
+                            continue;
+                        }
+                        actualday -= MAX_DAYS;
+                    }
+                }
+                bool &unavailabilitySpot = unavailable[actualday][actualtime];
+
+                if(dataOptions->scheduleDataIsFreetime) {
+                    unavailabilitySpot = !timename.match(field).hasMatch();
+                }
+                else {
+                    // since we asked when they're unavailable, ignore any times that we didn't actually ask about
+                    if((time >= dataOptions->earlyHourAsked) && (time <= dataOptions->lateHourAsked)) {
+                        unavailabilitySpot = timename.match(field).hasMatch();
+                    }
                 }
             }
         }
     }
-    if(!dataOptions->dayNames.isEmpty())
-    {
+    if(!dataOptions->dayNames.isEmpty()) {
         availabilityChart = QObject::tr("Availability:");
         availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
-        for(int day = 0; day < numDays; day++)
-        {
+        for(int day = 0; day < numDays; day++) {
             availabilityChart += "<th>" + dataOptions->dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         availabilityChart += "</tr>";
-        for(int time = 0; time < numTimes; time++)
-        {
+        for(int time = 0; time < numTimes; time++) {
             availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time).toUtf8() + "</th>";
-            for(int day = 0; day < numDays; day++)
-            {
+            for(int day = 0; day < numDays; day++) {
                 availabilityChart += QString(unavailable[day][time]?
                             "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
             }
@@ -253,58 +236,61 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     ambiguousSchedule = (availabilityChart.count("√") == 0 || int(availabilityChart.count("√")) == (numDays * numTimes));
 
     // section
-    if(dataOptions->sectionIncluded)
-    {
+    if(dataOptions->sectionIncluded) {
         QString sectionText = QObject::tr("section");
         fieldnum = dataOptions->sectionField;
-        section = fields.at(fieldnum).toUtf8().trimmed();
-        if(section.startsWith(sectionText, Qt::CaseInsensitive))
-        {
-            section = section.right(section.size() - sectionText.size()).trimmed();    //removing as redundant the word "section" if at the start of the section name
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            section = fields.at(fieldnum).toUtf8().trimmed();
+            if(section.startsWith(sectionText, Qt::CaseInsensitive)) {
+                section = section.right(section.size() - sectionText.size()).trimmed();    //removing as redundant the word "section" if at the start of the section name
+            }
         }
     }
 
     // preferred teammates
-    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++)
-    {
+    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++) {
         fieldnum = dataOptions->prefTeammatesField[prefQ];
-        QString nextTeammate = fields.at(fieldnum).toLatin1();
-        nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
-        nextTeammate = nextTeammate.trimmed();
-        if(!prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
-            prefTeammates += "\n" + nextTeammate;
-        }
-        else if(prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
-            prefTeammates += nextTeammate;
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString nextTeammate = fields.at(fieldnum).toLatin1();
+            nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
+            nextTeammate = nextTeammate.trimmed();
+            if(!prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+                prefTeammates += "\n" + nextTeammate;
+            }
+            else if(prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+                prefTeammates += nextTeammate;
+            }
         }
     }
 
     // preferred non-teammates
-    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++)
-    {
+    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++) {
         fieldnum = dataOptions->prefNonTeammatesField[prefQ];
-        QString nextTeammate = fields.at(fieldnum).toLatin1();
-        nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
-        nextTeammate = nextTeammate.trimmed();
-        if(!prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
-            prefNonTeammates += "\n" + nextTeammate;
-        }
-        else if(prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
-            prefNonTeammates += nextTeammate;
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString nextTeammate = fields.at(fieldnum).toLatin1();
+            nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
+            nextTeammate = nextTeammate.trimmed();
+            if(!prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+                prefNonTeammates += "\n" + nextTeammate;
+            }
+            else if(prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
+                prefNonTeammates += nextTeammate;
+            }
         }
     }
 
     // notes
-    for(int note = 0; note < dataOptions->numNotes; note++)
-    {
+    for(int note = 0; note < dataOptions->numNotes; note++) {
         // join each one with a newline after
         fieldnum = dataOptions->notesField[note];
-        QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
-        if(!notes.isEmpty() && !nextNote.isEmpty()) {
-            notes += "\n" + nextNote;
-        }
-        else if(notes.isEmpty() && !nextNote.isEmpty()) {
-            notes += nextNote;
+        if((fieldnum >= 0) && (fieldnum < numFields)) {
+            QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
+            if(!notes.isEmpty() && !nextNote.isEmpty()) {
+                notes += "\n" + nextNote;
+            }
+            else if(notes.isEmpty() && !nextNote.isEmpty()) {
+                notes += nextNote;
+            }
         }
     }
 }

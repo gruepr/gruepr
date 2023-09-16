@@ -1,14 +1,14 @@
 #include "gruepr_globals.h"
-#include <QAbstractButton>
 #include <QGridLayout>
 #include <QEvent>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QTextBrowser>
 #include <QtNetwork>
 #include <QWidget>
 
-bool internetIsGood() {
+bool grueprGlobal::internetIsGood() {
     //make sure we can connect to google
     auto *manager = new QNetworkAccessManager();
     QEventLoop loop;
@@ -19,13 +19,13 @@ bool internetIsGood() {
     delete networkReply;
     delete manager;
     if(weGotProblems) {
-        errorMessage(nullptr, QObject::tr("Error!"), QObject::tr("There does not seem to be an internet connection.\n"
-                                                                 "Check your network connection and try again."));
+        grueprGlobal::errorMessage(nullptr, QObject::tr("Error!"), QObject::tr("There does not seem to be an internet connection.\n"
+                                                                         "Check your network connection and try again."));
     }
     return !weGotProblems;
 }
 
-void errorMessage(QWidget *parent, const QString &windowTitle, const QString &message)
+void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, const QString &message)
 {
     auto *win = new QMessageBox(parent);
     win->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
@@ -39,7 +39,7 @@ void errorMessage(QWidget *parent, const QString &windowTitle, const QString &me
     win->deleteLater();
 }
 
-int warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText)
+bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText)
 {
     auto *win = new QMessageBox(parent);
     win->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
@@ -47,17 +47,19 @@ int warningMessage(QWidget *parent, const QString &windowTitle, const QString &m
     win->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     win->setWindowTitle(windowTitle);
     win->setText(message);
-    win->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    win->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
-    win->button(QMessageBox::Ok)->setText(OKtext);
-    win->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    win->button(QMessageBox::Cancel)->setText(cancelText);
-    int result = win->exec();
+    auto *okButton = new QPushButton(OKtext, win);
+    okButton->setStyleSheet(SMALLBUTTONSTYLE);
+    auto *cancelButton = new QPushButton(cancelText, win);
+    cancelButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    win->addButton(okButton, QMessageBox::AcceptRole);
+    win->addButton(cancelButton, QMessageBox::RejectRole);
+    win->exec();
+    bool result = (win->clickedButton() == okButton);
     win->deleteLater();
     return result;
 }
 
-void aboutWindow(QWidget *parent)
+void grueprGlobal::aboutWindow(QWidget *parent)
 {
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
@@ -65,7 +67,7 @@ void aboutWindow(QWidget *parent)
     QMessageBox::about(parent, QObject::tr("About gruepr"), ABOUTWINDOWCONTENT + QObject::tr("<p><b>This copy of gruepr is ") + user + "</b>.");
 }
 
-void helpWindow(QWidget *parent)
+void grueprGlobal::helpWindow(QWidget *parent)
 {
     QDialog helpWindow(parent);
     helpWindow.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);

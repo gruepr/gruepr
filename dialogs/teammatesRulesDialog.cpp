@@ -150,14 +150,14 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->requested_numRequestsSpinBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
     connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){numberRequestedTeammatesGiven = newVal;});
     connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){if(newVal > 1) {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammates"));}
-                                                                                                else {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate"));}});
+                                                                                                else {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate "));}});
     ui->requested_lightbulb->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     ui->requested_lightbulb->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
     ui->requested_whatsThisLabel->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
-    QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when students have a list of "
-                          "preferred teammates and you want to ensure that they will be with certain number from that list. For example, "
-                          "you might allow students to make up to five requests, and use the \"requested teammates\" so that everyone gets "
-                          "placed with at least two from their list."
+    QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
+                          "students will be with placed on a team with a certain number of teammates from a list. "
+                          "For example, you might allow students to make up to five requests, and use this feature so that everyone gets "
+                          "placed with at least one from their list."
                           "</span></html>");
     ui->requested_lightbulb->setToolTipText(helpText);
     ui->requested_whatsThisLabel->setToolTipText(helpText);
@@ -465,10 +465,11 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
 
 void TeammatesRulesDialog::clearAllValues()
 {
-    int resp = warningMessage(this, "gruepr",
-                              tr("This will remove all teammates rules listed in all of the tables.\nAre you sure you want to continue?"),
-                              tr("Yes"), tr("No"));
-    if(resp == QMessageBox::No) {
+    bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+                                                       tr("This will remove all teammates rules listed in all of the tables.\n"
+                                                          "Are you sure you want to continue?"),
+                                                       tr("Yes"), tr("No"));
+    if(!okClear) {
         return;
     }
 
@@ -495,10 +496,11 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
     }
 
     if(verify) {
-        int resp = warningMessage(this, "gruepr",
-                                  tr("This will remove all rules listed in the ") + typeText + tr(" teammates table.\nAre you sure you want to continue?"),
-                                  tr("Yes"), tr("No"));
-        if(resp == QMessageBox::No) {
+        bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+                                                          tr("This will remove all rules listed in the ") + typeText + tr(" teammates table.\n"
+                                                          "Are you sure you want to continue?"),
+                                                          tr("Yes"), tr("No"));
+        if(!okClear) {
             return;
         }
     }
@@ -560,7 +562,7 @@ bool TeammatesRulesDialog::saveCSVFile(TypeOfTeammates typeOfTeammates)
         csvFile.headerValues << tr("name") + QString::number(i);
     }
     if(!csvFile.writeHeader()) {
-        errorMessage(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
+        grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
         return false;
     }
 
@@ -621,7 +623,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
         }
     }
     if(!formattedCorrectly) {
-        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         csvFile.close();
         return false;
     }
@@ -645,8 +647,8 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
             }
         }
         else {
-            errorMessage(this, tr("File error."), tr("This file has an error in its format:\n"
-                                                     "The same name appears more than once in the first column."));
+            grueprGlobal::errorMessage(this, tr("File error."), tr("This file has an error in its format:\n"
+                                                             "The same name appears more than once in the first column."));
             csvFile.close();
             return false;
         }
@@ -848,7 +850,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
         }
     }
     if(!formattedCorrectly) {
-        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         spreadsheetFile.close();
         return false;
     }

@@ -62,8 +62,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>850</width>
-            <height>418</height>
+            <width>822</width>
+            <height>350</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout">
@@ -267,8 +267,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>850</width>
-            <height>418</height>
+            <width>822</width>
+            <height>350</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="incompScrollAreaLayout">
@@ -462,7 +462,7 @@
          <item alignment="Qt::AlignLeft">
           <widget class="QSpinBox" name="requested_numRequestsSpinBox">
            <property name="suffix">
-            <string> teammate</string>
+            <string> teammate </string>
            </property>
            <property name="minimum">
             <number>1</number>
@@ -526,8 +526,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>850</width>
-            <height>342</height>
+            <width>822</width>
+            <height>264</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout_2">

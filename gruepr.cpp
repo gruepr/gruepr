@@ -320,7 +320,7 @@ void gruepr::loadOptionsFile()
         }
         else
         {
-            errorMessage(this, tr("File Error"), tr("This file cannot be read."));
+            grueprGlobal::errorMessage(this, tr("File Error"), tr("This file cannot be read."));
         }
     }
 }
@@ -371,7 +371,7 @@ void gruepr::saveOptionsFile()
         }
         else
         {
-            errorMessage(this, tr("No Files Saved"), tr("This settings file was not saved.\nThere was an issue writing the file to disk."));
+            grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This settings file was not saved.\nThere was an issue writing the file to disk."));
         }
     }
 }
@@ -638,9 +638,9 @@ void gruepr::on_addStudentPushButton_clicked()
     }
     else
     {
-        errorMessage(this, tr("Cannot add student."),
-                           tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") +
-                           QString::number(MAX_STUDENTS) + ".");
+        grueprGlobal::errorMessage(this, tr("Cannot add student."),
+                                   tr("Sorry, we cannot add another student.\nThis version of gruepr does not allow more than ") +
+                                   QString::number(MAX_STUDENTS) + ".");
     }
 }
 
@@ -1019,7 +1019,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
     }
     if(!newSurveyFile.writeHeader())
     {
-        errorMessage(this, tr("No File Saved"), tr("No file was saved.\nThere was an issue writing the file."));
+        grueprGlobal::errorMessage(this, tr("No File Saved"), tr("No file was saved.\nThere was an issue writing the file."));
         return;
     }
 
@@ -1464,14 +1464,14 @@ void gruepr::on_letsDoItButton_clicked()
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty())
     {
-        int buttonClicked = warningMessage(this, tr("gruepr"),
-                                           tr("You have selected to prevented isolated URM students,\n"
-                                              "however none of the race/ethnicity response values\n"
-                                              "have been selected to be considered as underrepresented.\n\n"
-                                              "Click Continue to form teams with no students considered URM,\n"
-                                              "or click Open Selection Window to select the URM responses."),
-                                              tr("Continue"), tr("Open Selection Window"));
-        if(buttonClicked == QMessageBox::Cancel)
+        bool okContinue = grueprGlobal::warningMessage(this, tr("gruepr"),
+                                                        tr("You have selected to prevented isolated URM students, "
+                                                           "however none of the race/ethnicity response values "
+                                                           "have been selected to be considered as underrepresented.\n\n"
+                                                           "Click Continue to form teams with no students considered URM, "
+                                                           "or click Open Selection Window to select the URM responses."),
+                                                        tr("Continue"), tr("Open Selection Window"));
+        if(!okContinue)
         {
             ui->URMResponsesButton->animateClick();
             return;
@@ -1939,7 +1939,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
     if(!rosterFile.readHeader())
     {
         // header row could not be read as valid data
-        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         return false;
     }
 
@@ -1990,7 +1990,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
         }
         else
         {
-            errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
+            grueprGlobal::errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
             return false;
         }
 

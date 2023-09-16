@@ -97,9 +97,9 @@ void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText
     }
 
     QApplication::beep();
-    errorMessage(parent, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
-                                                "    ,  &  <  > / {enter} \n"
-                                                "Other punctuation is allowed."));
+    grueprGlobal::errorMessage(parent, tr("Format error"), tr("Sorry, the following punctuation is not allowed:\n"
+                                                        "    ,  &  <  > / {enter} \n"
+                                                        "Other punctuation is allowed."));
 }
 
 void SurveyMakerWizard::loadSurvey(int customButton)
@@ -296,7 +296,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
         }
         else
         {
-            errorMessage(this, tr("File Error"), tr("This file cannot be read."));
+            grueprGlobal::errorMessage(this, tr("File Error"), tr("This file cannot be read."));
         }
     }
 }
@@ -1666,7 +1666,7 @@ bool CourseInfoPage::uploadRoster()
     // Read the header row
     if(!rosterFile.readHeader()) {
         // header row could not be read as valid data
-        errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
         return false;
     }
 
@@ -1708,7 +1708,7 @@ bool CourseInfoPage::uploadRoster()
             studentNames << rosterFile.fieldValues.at(firstNameField).trimmed() + " " + rosterFile.fieldValues.at(lastNameField).trimmed();
         }
         else {
-            errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
+            grueprGlobal::errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
             return false;
         }
     } while(rosterFile.readDataRow());
@@ -1737,13 +1737,13 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     }
 
     auto *saveExportFrame = new QFrame;
-    saveExportFrame->setStyleSheet(QString("background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;") +
-                                   BIGTOOLTIPSTYLE);
+    saveExportFrame->setStyleSheet(QString("background-color: " DEEPWATERHEX "; color: white; font-family: 'DM Sans'; font-size: 12pt;"));
     auto *saveExportlayout = new QGridLayout(saveExportFrame);
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");
     destination->setStyleSheet("border-style:none;");
     auto helpIcon = new LabelWithInstantTooltip("", this);
+    helpIcon->setStyleSheet(BIGTOOLTIPSTYLE);
     QPixmap whiteLightbulb = QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QPainter painter(&whiteLightbulb);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
@@ -1751,18 +1751,20 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     painter.end();
     helpIcon->setPixmap(whiteLightbulb);
     auto helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"), this);
-    helpLabel->setStyleSheet(QString(LABELSTYLE).replace(DEEPWATERHEX, "white").replace("10pt;", "12pt;"));
+    helpLabel->setStyleSheet(QString(LABELSTYLE).replace(DEEPWATERHEX, "white").replace("10pt;", "12pt;") + BIGTOOLTIPSTYLE);
     helpLabel->setWordWrap(true);
     auto helpLayout = new QHBoxLayout;
     helpLayout->addWidget(helpIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
     helpLayout->addWidget(helpLabel, 1, Qt::AlignVCenter);
-    QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>Google Form in Your Google Drive:</u> Send your students the link, and gruepr can download the results.<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>Survey in Your Canvas Course:</u> Publish it in the Canvas page your class already uses, and gruepr can download the results.<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>Text Files on Your Computer:</u> Use your own survey instrument.<br>"
-                               " One file lists your survey questions, and another is preformatted for you to open in Excel, Numbers, or Sheets,"
-                               " to fill in your students' responses, and then to open in gruepr.<br>"
-                          "&nbsp;&nbsp;»&nbsp;<u>gruepr Survey File on Your Computer:</u> Save your work for reuse, modification, or sharing with colleagues."
+    QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:"
+                          "<ul>"
+                          "<li><u>Google Form in Your Google Drive</u> Send your students the link, and gruepr can download the results.</li>"
+                          "<li><u>Survey in Your Canvas Course</u> Publish it in the Canvas page your class already uses, and gruepr can download the results.</li>"
+                          "<li><u>Text Files on Your Computer</u>  Use your own survey instrument. "
+                          " One file lists your survey questions, and another is preformatted for you to (1) open in Excel, Numbers, or Sheets,"
+                          " (2) fill in your students' responses, and then (3) open in gruepr.</li>"
+                          "<li><u>gruepr Survey File on Your Computer</u> Save your work for reuse, modification, or sharing with colleagues.</li>"
+                          "</ul>"
                           "</span></html>");
     helpIcon->setToolTipText(helpText);
     helpLabel->setToolTipText(helpText);
@@ -2315,7 +2317,7 @@ void PreviewAndExportPage::exportSurvey()
             }
             else
             {
-                errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
+                grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
             }
         }
     }
@@ -2338,14 +2340,14 @@ void PreviewAndExportPage::exportSurvey()
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
         if(fileName.isEmpty())
         {
-            errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+            grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
         }
         //create the files
         QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
         if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+            grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
         }
         saveFileLocation->setFile(QFileInfo(fileName).canonicalPath());
@@ -2400,7 +2402,7 @@ void PreviewAndExportPage::exportSurvey()
         saveFile2.close();
     }
     else if(destinationGoogle->isChecked()) {
-        if(!internetIsGood())
+        if(!grueprGlobal::internetIsGood())
         {
             return;
         }
@@ -2559,7 +2561,7 @@ void PreviewAndExportPage::exportSurvey()
         }
     }
     else if(destinationCanvas->isChecked()) {
-        if(!internetIsGood())
+        if(!grueprGlobal::internetIsGood())
         {
             return;
         }

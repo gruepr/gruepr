@@ -454,16 +454,20 @@ inline static const char TEAMNAMELISTS[]   {";"
                                  "Superlative,Prime,Pick of the litter,Best of the bunch,Head of the line,Superior,Tip-top,Peak,First class,Flawless,"
                                  "Preeminent,Ultimate"};
 
-bool internetIsGood();
+namespace grueprGlobal {
+    bool internetIsGood();
 
-// includes only OK button, and blocks until clicked
-void errorMessage(QWidget *parent, const QString &windowTitle = "", const QString &message = "");
-// includes OK & Cancel; returns which was clicked
-int warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText);
+    // includes only OK button, and blocks until clicked
+    void errorMessage(QWidget *parent, const QString &windowTitle = "", const QString &message = "");
+    // includes OK & Cancel; returns true if OK was clicked, false if cancel was clicked
+    bool warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText);
+
+    void aboutWindow(QWidget *parent);
+    void helpWindow(QWidget *parent);
+}
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};
 
-void aboutWindow(QWidget *parent);
 inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                                "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                                "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
@@ -492,7 +496,6 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
                                                "<a href = https://www.gnu.org/licenses/gpl.html>GNU General Public License</a> "
                                                "as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."};
 
-void helpWindow(QWidget *parent);
 inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                               "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"

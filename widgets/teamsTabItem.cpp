@@ -875,7 +875,7 @@ void TeamsTabItem::saveTeams()
             }
             if(problemSaving)
             {
-                errorMessage(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
+                grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
             }
         }
     }
@@ -890,7 +890,7 @@ void TeamsTabItem::saveTeams()
 
 void TeamsTabItem::postTeamsToCanvas()
 {
-    if(!internetIsGood())
+    if(!grueprGlobal::internetIsGood())
     {
         return;
     }
