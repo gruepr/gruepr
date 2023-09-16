@@ -58,8 +58,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>477</width>
-           <height>650</height>
+           <width>464</width>
+           <height>683</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -241,7 +241,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            <widget class="QFrame" name="genderFrame">
             <layout class="QVBoxLayout" name="genderLayout">
              <property name="spacing">
-              <number>2</number>
+              <number>6</number>
              </property>
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="genderLabel">
@@ -353,7 +353,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            <widget class="QFrame" name="URMFrame">
             <layout class="QVBoxLayout" name="URMLayout">
              <property name="spacing">
-              <number>2</number>
+              <number>6</number>
              </property>
              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
               <widget class="QLabel" name="URMLabel">

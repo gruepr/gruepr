@@ -91,9 +91,9 @@ inline static const char GETSTARTEDBUTTONSTYLE[] = "QPushButton {background-colo
                                                    "QPushButton:disabled {background-color: darkGray; "
                                                                  "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                  "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;}";
-inline static const char SAVEPRINTBUTTONSTYLE[] = "background-color: " DEEPWATERHEX "; "
-                                                   "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
-                                                   "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;";
+inline static const char SAVEPRINTBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
+                                                                "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
+                                                                "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 12px;}";
 inline static const char NEXTBUTTONSTYLE[] = "QPushButton {background-color: white; "
                                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
                                                           "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}"
