@@ -168,11 +168,11 @@ inline static const char RADIOBUTTONSTYLE[] = "QRadioButton {background-color: "
                                                 "QRadioButton::indicator {width: 16px; height: 16px;}"
                                                 "QRadioButton::indicator::unchecked {image: url(:/icons_new/uncheckedradio.png);}"
                                                 "QRadioButton::indicator::checked {image: url(:/icons_new/checkedradio.png);}";
-inline static const char SCROLLBARSTYLE[] = "QScrollBar:vertical {border-style: none; background-color: " TRANSPARENT "; width: 15px; margin: 0 0 5px 5px;}"
+inline static const char SCROLLBARSTYLE[] = "QScrollBar:vertical {border-style: none; background-color: " TRANSPARENT "; width: 15px; margin: 5px 3px 5px 3px;}"
                                               "QScrollBar::handle:vertical {background-color: " DEEPWATERHEX "; border-radius: 4px;}"
                                               "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {height: 0px;}"
                                               "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {height: 0px;}"
-                                            "QScrollBar:horizontal {border-style: none; background-color: " TRANSPARENT "; height: 15px; margin: 5px 5px 0 0;}"
+                                            "QScrollBar:horizontal {border-style: none; background-color: " TRANSPARENT "; height: 15px; margin: 3px 5px 3px 5px;}"
                                               "QScrollBar::handle:horizontal {background-color: " DEEPWATERHEX "; border-radius: 4px;}"
                                               "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {width: 0px;}"
                                               "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {width: 0px;}";

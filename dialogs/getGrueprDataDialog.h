@@ -41,7 +41,7 @@ private:
     CanvasHandler *canvas = nullptr;
     GoogleHandler *google = nullptr;
 
-    const QString HEADERTEXT = tr("Column Headers");
+    const QString HEADERTEXT = tr("Question text");
     const QString CATEGORYTEXT = tr("Category");
     const QString ROW1TEXT = tr("First Row of Data");
     const QString UNUSEDTEXT = tr("Unused");

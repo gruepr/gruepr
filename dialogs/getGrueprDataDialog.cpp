@@ -53,11 +53,14 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
                                                                         {ui->tableWidget->setHorizontalHeaderLabels({ROW1TEXT, CATEGORYTEXT});}});
     ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: darkGray; border: 1px solid black; padding: 5px; "
+    ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
+                                                                             "border-top: none; border-bottom: none; border-left: none; "
+                                                                             "border-right: 1px solid darkGray; "
                                                                              "font-family: 'DM Sans'; font-size: 12pt;}");
     ui->tableWidget->setHorizontalHeaderLabels({HEADERTEXT, CATEGORYTEXT});
     ui->tableWidget->horizontalHeaderItem(0)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     ui->tableWidget->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setText(tr("Confirm"));
@@ -119,10 +122,12 @@ void GetGrueprDataDialog::loadData()
     ui->fieldsExplainer->setEnabled(true);
     ui->headerRowCheckBox->setEnabled(true);
     ui->tableWidget->setEnabled(true);
-    ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white;  border: 1px solid black; padding: 5px; "
+    ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; padding: 5px; "
+                                                                             "border-top: none; border-bottom: none; border-left: none; "
+                                                                             "border-right: 1px solid white; "
                                                                              "font-family: 'DM Sans'; font-size: 12pt;}");
-    ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border-color: " OPENWATERHEX ";}"
-                                   "QTableView::item{border-top: 1px solid " DEEPWATERHEX "; border-bottom: 1px solid " DEEPWATERHEX "; padding: 3px;}" +
+    ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}"
+                                   "QTableView::item{border-top: none; border-bottom: none; border-left: none; border-right: 1px solid darkGray; padding: 3px;}" +
                                    QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
 
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
