@@ -198,7 +198,7 @@ StartDialog::~StartDialog() {
 
 
 void StartDialog::openSurveyMaker() {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     this->hide();
     auto *surveyMakerWizard = new SurveyMakerWizard;
     QApplication::restoreOverrideCursor();
@@ -209,7 +209,7 @@ void StartDialog::openSurveyMaker() {
 
 
 void StartDialog::openGruepr() {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     this->hide();
 
     bool restart = false;
@@ -218,11 +218,11 @@ void StartDialog::openGruepr() {
         QApplication::restoreOverrideCursor();
         getDataDialog->exec();
         if(getDataDialog->result() == QDialog::Accepted) {
-            QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+            QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             grueprWindow->show();
-            getDataDialog->deleteLater();
             QApplication::restoreOverrideCursor();
+            getDataDialog->deleteLater();
             QEventLoop loop;
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
@@ -231,7 +231,7 @@ void StartDialog::openGruepr() {
         }
         else {
             restart = false;
-            delete getDataDialog;
+            getDataDialog->deleteLater();
         }
     } while(restart);
 
@@ -256,7 +256,7 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
     }
     else
     {
-        QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
+        static QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
         QRegularExpressionMatch match = versionNum.match(reply->readAll());
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
         upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available for download"));

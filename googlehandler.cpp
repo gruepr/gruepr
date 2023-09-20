@@ -307,7 +307,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     }
 
     //prepare a file for the results
-    QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
+    static QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
     QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
     QFile file(filepath.absoluteFilePath());
     file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -417,7 +417,7 @@ void GoogleHandler::getFileList(const QString &initialURL, const QStringList &st
             }
         }
         //next 3 lines work with do/while in case more than one page of results exist. Currently based off Canvas pagination; would need to be updated to work here
-        QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
+        static QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
         QRegularExpressionMatch nextURLMatch = nextURL.match(replyHeader);
         url = nextURLMatch.captured(1);
     }

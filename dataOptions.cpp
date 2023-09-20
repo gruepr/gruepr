@@ -35,7 +35,7 @@ DataOptions::DataOptions()
 
 bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &hours, float &minutes, float &offsetFromGMT)
 {
-    QRegularExpression timeZoneFinder(TIMEZONEREGEX);
+    static QRegularExpression timeZoneFinder(TIMEZONEREGEX);
     QRegularExpressionMatch timezoneCapture = timeZoneFinder.match(fullText);
     if(timezoneCapture.hasMatch())
     {

@@ -43,7 +43,7 @@ registerDialog::registerDialog(QWidget *parent)
     theBox->addWidget(email);
     //force an email address-like input
     //(one or more letters, digits, or special symbols, then '@', then one or more letters, digits, or special symbols, then '.', then 2, 3 or 4 letters)
-    QRegularExpression emailAddressFormat(EMAILADDRESSREGEX, QRegularExpression::CaseInsensitiveOption);
+    static QRegularExpression emailAddressFormat(EMAILADDRESSREGEX, QRegularExpression::CaseInsensitiveOption);
     email->setValidator(new QRegularExpressionValidator(emailAddressFormat, this));
     connect(email, &QLineEdit::textChanged, this, [this]()
                                              {QString stylesheet = (email->hasAcceptableInput())? LINEEDITSTYLE : LINEEDITERRORSTYLE;

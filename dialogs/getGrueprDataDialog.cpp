@@ -475,7 +475,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     }
 
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
-    auto lastKnownMeaningfulField = QRegularExpression("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
+    static QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
                                                        "(.*(like to have on your team).*)|(.*(want to work with).*)|"
                                                        ".*(which section are you enrolled).*|(.*(check).+(times).*)", QRegularExpression::CaseInsensitiveOption);
     int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
@@ -785,17 +785,19 @@ bool GetGrueprDataDialog::readData()
     {
         dataOptions->scheduleField[scheduleQuestion] = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
         QString scheduleQuestionText = surveyFile->headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
-        if(scheduleQuestionText.contains(QRegularExpression(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption)))
+        static QRegularExpression freeOrAvailable(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption);
+        if(scheduleQuestionText.contains(freeOrAvailable))
         {
             // if >=1 field has this language, all interpreted as free time
             dataOptions->scheduleDataIsFreetime = true;
         }
-        if(scheduleQuestionText.contains(QRegularExpression(".+\\b(your home)\\b.+", QRegularExpression::CaseInsensitiveOption)))
+        static QRegularExpression homeTimezone(".+\\b(your home)\\b.+", QRegularExpression::CaseInsensitiveOption);
+        if(scheduleQuestionText.contains(homeTimezone))
         {
             // if >=1 field has this language, all interpreted as referring to each student's home timezone
             dataOptions->homeTimezoneUsed = true;
         }
-        QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name is in brackets at end of field (where Google Forms puts column titles in matrix questions)
+        static QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name is in brackets at end of field (where Google Forms puts column titles in matrix questions)
         QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
         if(dayName.hasMatch())
         {
@@ -998,7 +1000,7 @@ bool GetGrueprDataDialog::readData()
             // otherwise, if any response is missing an integer at the start, then it is categorical
             // The regex to recognize ordered/numerical is:
             // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
-            QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+            static QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
             if(dataOptions->attributeField[attribute] == dataOptions->timezoneField)
             {
                 attributeType = DataOptions::AttributeType::timezone;
@@ -1007,7 +1009,7 @@ bool GetGrueprDataDialog::readData()
             {
                 attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
             }
-            else if(std::all_of(responses.constBegin(), responses.constEnd(), [&startsWithInteger](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
+            else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
             {
                 attributeType = DataOptions::AttributeType::ordered;
             }
@@ -1033,7 +1035,7 @@ bool GetGrueprDataDialog::readData()
                 }
                 responses.removeAll(QString(""));
                 // now that we've split them up, let's see if actually multiordered instead of multicategorical
-                if(std::all_of(responses.constBegin(), responses.constEnd(), [&startsWithInteger](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
+                if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return startsWithInteger.match(response).hasMatch();}))
                 {
                     attributeType = DataOptions::AttributeType::multiordered;
                 }

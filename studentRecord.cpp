@@ -169,7 +169,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         fieldnum = dataOptions->scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString field = fields.at(fieldnum).toUtf8();
-            QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
+            static QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
             for(int time = 0; time < numTimes; time++) {
                 // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
                 if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > MAX_BLOCKS_PER_DAY))) {
@@ -252,7 +252,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         fieldnum = dataOptions->prefTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum).toLatin1();
-            nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
+            static QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
+            nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
             nextTeammate = nextTeammate.trimmed();
             if(!prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
                 prefTeammates += "\n" + nextTeammate;
@@ -268,7 +269,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         fieldnum = dataOptions->prefNonTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum).toLatin1();
-            nextTeammate.replace(QRegularExpression(R"(\s*([,;&]|(?:\sand\s))\s*)"), "\n");     // replace every [, ; & and] with new line
+            static QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
+            nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
             nextTeammate = nextTeammate.trimmed();
             if(!prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
                 prefNonTeammates += "\n" + nextTeammate;

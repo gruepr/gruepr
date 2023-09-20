@@ -487,7 +487,7 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
                 *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
             }
         }
-        QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
+        static QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
         QRegularExpressionMatch nextURLMatch = nextURL.match(replyHeader);
         url = nextURLMatch.captured(1);
     }

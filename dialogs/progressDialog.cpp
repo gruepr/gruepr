@@ -121,7 +121,8 @@ void progressDialog::updateCountdown()
     }
 
     secsLeftToClose--;
-    explanationText->setText(explanationText->text().replace(QRegularExpression(tr("stop in ") + "\\d*"), tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
+    static QRegularExpression stopTime(tr("stop in ") + "\\d*");
+    explanationText->setText(explanationText->text().replace(stopTime, tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
     if(secsLeftToClose == 0)
     {
         progressBar->setValue(progressBar->maximum());
