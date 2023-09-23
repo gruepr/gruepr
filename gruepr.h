@@ -5,7 +5,6 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QPrinter>
-#include "boxwhiskerplot.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
@@ -14,6 +13,7 @@
 #include "teamRecord.h"
 #include "teamingOptions.h"
 #include "widgets/attributeWidget.h"
+#include "widgets/boxwhiskerplot.h"
 
 
 namespace Ui {class gruepr;}

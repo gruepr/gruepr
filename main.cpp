@@ -36,16 +36,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-// - MAJOR UPDATE:
-//    - updated surveymaker to all new UI design!
-//    - update greupr to all new UI design!
-//    - moved codebase to Qt 6.5
-//    - moved Windows compiler to msvc
-//    - added auto-comparison of Canvas survey to class roster and adding missing students
 //
 // TO DO:
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
+// - drag-and-drop issues in teams tab
 //
 //   NEW FEATURES:
 // - add loading/saving teaming options

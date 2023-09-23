@@ -1,7 +1,7 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
-#include "boxwhiskerplot.h"
+#include "widgets/boxwhiskerplot.h"
 #include <QCheckBox>
 #include <QDialog>
 #include <QLabel>

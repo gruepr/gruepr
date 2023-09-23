@@ -198,7 +198,7 @@ StartDialog::~StartDialog() {
 
 
 void StartDialog::openSurveyMaker() {
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     this->hide();
     auto *surveyMakerWizard = new SurveyMakerWizard;
     QApplication::restoreOverrideCursor();
@@ -209,7 +209,7 @@ void StartDialog::openSurveyMaker() {
 
 
 void StartDialog::openGruepr() {
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     this->hide();
 
     bool restart = false;
@@ -218,7 +218,7 @@ void StartDialog::openGruepr() {
         QApplication::restoreOverrideCursor();
         getDataDialog->exec();
         if(getDataDialog->result() == QDialog::Accepted) {
-            QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+            QApplication::setOverrideCursor(Qt::WaitCursor);
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             grueprWindow->show();
             QApplication::restoreOverrideCursor();
@@ -227,7 +227,7 @@ void StartDialog::openGruepr() {
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
             restart = grueprWindow->restartRequested;
-            delete grueprWindow;
+            grueprWindow->deleteLater();
         }
         else {
             restart = false;

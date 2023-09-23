@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 12.0
+gruepr_version = 12.1
 copyright_year = 2019-2023
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
@@ -65,7 +65,6 @@ macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
         Levenshtein.cpp \
-        boxwhiskerplot.cpp \
         canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
@@ -97,6 +96,7 @@ SOURCES += \
         dialogs/startDialog.cpp \
         dialogs/whichFilesDialog.cpp \
         widgets/attributeWidget.cpp \
+        widgets/boxwhiskerplot.cpp \
         widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
@@ -111,7 +111,6 @@ SOURCES += \
 
 HEADERS += \
         Levenshtein.h \
-        boxwhiskerplot.h \
         canvashandler.h \
         csvfile.h \
         dataOptions.h \
@@ -142,6 +141,7 @@ HEADERS += \
         dialogs/startDialog.h \
         dialogs/whichFilesDialog.h \
         widgets/attributeWidget.h \
+        widgets/boxwhiskerplot.h \
         widgets/comboBoxThatPassesScrollwheel.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/labelThatForwardsMouseClicks.h \
