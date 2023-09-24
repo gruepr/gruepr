@@ -1575,6 +1575,7 @@ void CourseInfoPage::update()
         }
 
         QString studentNamesLabelText = tr("Options: ");
+        // Show the first 10
         if(studentNames.size() > 10) {
             studentNamesLabelText += studentNames.first(10).join("  |  ") + " |  {" + QString::number(studentNames.size()-10) + tr(" more ...}");
         }
@@ -1689,27 +1690,37 @@ bool CourseInfoPage::uploadRoster()
     studentNames.clear();
 
     // Process each row until there's an empty one. Load names one-by-one
+    // Also, skip the header row, if there is one
     if(rosterFile.hasHeaderRow) {
         rosterFile.readDataRow();
     }
     else {
         rosterFile.readDataRow(true);
     }
-
     do {
+        QString name;
         if(firstLastNameField != -1) {
-            studentNames << rosterFile.fieldValues.at(firstLastNameField).trimmed();
+            name = rosterFile.fieldValues.at(firstLastNameField).simplified();
         }
         else if(lastFirstNameField != -1) {
             QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
-            studentNames << lastandfirstname.at(1).trimmed() + " " + lastandfirstname.at(0).trimmed();
+            name = lastandfirstname.at(1).trimmed() + " " + lastandfirstname.at(0).simplified();
         }
         else if(firstNameField != -1 && lastNameField != -1) {
-            studentNames << rosterFile.fieldValues.at(firstNameField).trimmed() + " " + rosterFile.fieldValues.at(lastNameField).trimmed();
+            name = rosterFile.fieldValues.at(firstNameField).simplified() + " " + rosterFile.fieldValues.at(lastNameField).simplified();
+        }
+        else if(firstNameField != -1) {
+            name = rosterFile.fieldValues.at(firstNameField).simplified();
+        }
+        else if(lastNameField != -1) {
+            name = rosterFile.fieldValues.at(lastNameField).simplified();
         }
         else {
             grueprGlobal::errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
             return false;
+        }
+        if(!name.isEmpty() && name != " ") {
+            studentNames << name;
         }
     } while(rosterFile.readDataRow());
 

@@ -99,7 +99,7 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
             kind["shuffle"] = false;
             QJsonArray responseOptions;
             for(const auto &option : question.options) {
-                if((question.type == Question::QuestionType::dropdown) && (option.isEmpty())) { // google doesn't like blank options in a dropdown
+                if((question.type == Question::QuestionType::dropdown) && (option.simplified().isEmpty())) { // google doesn't like blank options in a dropdown
                     continue;
                 }
                 QJsonObject responseOption;
