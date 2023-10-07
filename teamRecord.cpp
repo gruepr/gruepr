@@ -1,9 +1,54 @@
 #include "teamRecord.h"
+#include <QJsonArray>
 
 TeamRecord::TeamRecord(const DataOptions *const incomingDataOptions, int teamSize)
 {
     dataOptions = incomingDataOptions;
     size = teamSize;
+}
+
+TeamRecord::TeamRecord(const QJsonObject &jsonTeamRecord)
+{
+    LMSID = jsonTeamRecord["LMSID"].toInt();
+    score = jsonTeamRecord["score"].toDouble();
+    size = jsonTeamRecord["size"].toInt();
+    numSections = jsonTeamRecord["numSections"].toInt();
+    numWomen = jsonTeamRecord["numWomen"].toInt();
+    numMen = jsonTeamRecord["numMen"].toInt();
+    numNonbinary = jsonTeamRecord["numNonbinary"].toInt();
+    numUnknown = jsonTeamRecord["numUnknown"].toInt();
+    numURM = jsonTeamRecord["numURM"].toInt();
+    numStudentsWithAmbiguousSchedules = jsonTeamRecord["numStudentsWithAmbiguousSchedules"].toInt();
+    name = jsonTeamRecord["name"].toString();
+    availabilityChart = jsonTeamRecord["availabilityChart"].toString();
+    tooltip = jsonTeamRecord["tooltip"].toString();
+    dataOptions = new DataOptions(jsonTeamRecord["dataoptions"].toObject());
+
+    QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
+    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+        QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
+        for (const auto &val : attributeValsArraySubArray) {
+            attributeVals[i].insert(val.toInt());
+        }
+    }
+
+    QJsonArray timezoneValsArray = jsonTeamRecord["timezoneVals"].toArray();
+    for (const auto &val : timezoneValsArray) {
+        timezoneVals.insert(val.toDouble());
+    }
+
+    QJsonArray numStudentsAvailableArray = jsonTeamRecord["numStudentsAvailable"].toArray();
+    for(int i = 0; i < MAX_DAYS; i++) {
+        QJsonArray numStudentsAvailableArraySubArray = numStudentsAvailableArray[i].toArray();
+        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
+            numStudentsAvailable[i][j] = numStudentsAvailableArraySubArray[j].toInt();
+        }
+    }
+
+    QJsonArray studentIndexesArray = jsonTeamRecord["studentIndexes"].toArray();
+    for (const auto &val : studentIndexesArray) {
+        studentIndexes << val.toInt();
+    }
 }
 
 
@@ -266,4 +311,52 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
             timezoneVals.insert(stu.timezone);
         }
     }
+}
+
+QJsonObject TeamRecord::toJson() const
+{
+    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, studentIndexesArray;
+    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+        QJsonArray attributeValsArraySubArray;
+        for (const auto &val : attributeVals[i]) {
+            attributeValsArraySubArray.append(val);
+        }
+        attributeValsArray.append(attributeValsArraySubArray);
+    }
+    for(const auto &timezoneVal : timezoneVals) {
+        timezoneValsArray.append(timezoneVal);
+    }
+    for(int i = 0; i < MAX_DAYS; i++) {
+        QJsonArray numStudentsAvailableArraySubArray;
+        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
+            numStudentsAvailableArraySubArray.append(numStudentsAvailable[i][j]);
+        }
+        numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);
+    }
+    for(const auto &studentIndex : studentIndexes) {
+        studentIndexesArray.append(studentIndex);
+    }
+
+    QJsonObject content {
+        {"LMSID", LMSID},
+        {"score", score},
+        {"size", size},
+        {"numSections", numSections},
+        {"numWomen", numWomen},
+        {"numMen", numMen},
+        {"numNonbinary", numNonbinary},
+        {"numUnknown", numUnknown},
+        {"numURM", numURM},
+        {"attributeVals", attributeValsArray},
+        {"timezoneVals", timezoneValsArray},
+        {"numStudentsAvailable", numStudentsAvailableArray},
+        {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
+        {"studentIndexes", studentIndexesArray},
+        {"name", name},
+        {"availabilityChart", availabilityChart},
+        {"tooltip", tooltip},
+        {"dataOptions", dataOptions->toJson()}
+    };
+
+    return content;
 }

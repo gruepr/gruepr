@@ -2,6 +2,7 @@
 #define TEAMINGOPTIONS_H
 
 #include "gruepr_globals.h"
+#include <QJsonObject>
 #include <QObject>
 #include <QStringList>
 
@@ -11,7 +12,10 @@ class TeamingOptions
 {
 public:
     TeamingOptions();
+    explicit TeamingOptions(const QJsonObject &jsonTeamingOptions);
     void reset();
+
+    QJsonObject toJson() const;
 
     bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
     bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man

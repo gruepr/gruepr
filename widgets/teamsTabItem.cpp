@@ -26,6 +26,33 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     numStudents = dataOptions->numStudentsInSystem;
     tabName = incomingTabName;
 
+    init(incomingTeamingOptions, incomingStudents, letsDoItButton);
+}
+
+
+TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, QWidget *parent)
+    :QWidget(parent)
+{
+    teamingOptions = new TeamingOptions(jsonTeamsTab["teamingOptions"].toObject());
+    dataOptions = new DataOptions(jsonTeamsTab["dataOptions"].toObject());
+    numStudents = jsonTeamsTab["numStudents"].toInt();
+    QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
+    students.reserve(studentsArray.size());
+    for(const auto &student : studentsArray) {
+        students << StudentRecord(student.toObject());
+    }
+    QJsonArray teamsArray = jsonTeamsTab["teams"].toArray();
+    teams.reserve(teamsArray.size());
+    for(const auto &team : teamsArray) {
+        teams << TeamRecord(team.toObject());
+    }
+    tabName = jsonTeamsTab["tabName"].toString();
+
+    init(incomingTeamingOptions, incomingStudents, letsDoItButton);
+}
+
+void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton)
+{
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     externalTeamingOptions = &incomingTeamingOptions;
     externalStudents = &incomingStudents;
@@ -199,12 +226,34 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     connect(teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &TeamsTabItem::refreshDisplayOrder);
 }
 
-
 TeamsTabItem::~TeamsTabItem()
 {
     // delete dynamically allocated objects
     delete teamingOptions;
     delete dataOptions;
+}
+
+
+QJsonObject TeamsTabItem::toJson() const
+{
+    QJsonArray teamsArray, studentsArray;
+    for(const auto &team : teams) {
+        teamsArray.append(team.toJson());
+    }
+    for(const auto &student : students) {
+        studentsArray.append(student.toJson());
+    }
+
+    QJsonObject content {
+        {"teamingOptions", teamingOptions->toJson()},
+        {"dataOptions", dataOptions->toJson()},
+        {"teams", teamsArray},
+        {"students", studentsArray},
+        {"numStudents", numStudents},
+        {"tabName", tabName}
+    };
+
+    return content;
 }
 
 
@@ -1089,7 +1138,7 @@ void TeamsTabItem::createFileContents()
 {
     spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
 
-    instructorsFileContents = tr("File: ") + dataOptions->dataFile.filePath() + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
+    instructorsFileContents = tr("Source: ") + dataOptions->dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
     instructorsFileContents += tr("Teaming Options") + ":";
     if(dataOptions->genderIncluded)
     {

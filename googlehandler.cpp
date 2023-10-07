@@ -113,18 +113,16 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
             item["questionItem"] = questionItem;
             break;}
         case Question::QuestionType::schedule: {
-            item["description"] = "You may need to scroll to see all columns (" +
-                                  QString::number((survey->schedStartTime <= 12) ? survey->schedStartTime : (survey->schedStartTime - 12)) + ":00" + (survey->schedStartTime < 12 ? "am" : "pm") + " to " +
-                                  QString::number((survey->schedEndTime <= 12) ? survey->schedEndTime : (survey->schedEndTime - 12)) + ":00" + (survey->schedEndTime < 12 ? "am" : "pm") + ").";
+            item["description"] = "You may need to scroll to see all columns (" + survey->schedTimeNames.first() + " to " + survey->schedTimeNames.last() + ").";
             QJsonObject questionGroupItem;
             QJsonObject grid;
             grid["shuffleQuestions"] = false;
             QJsonObject choiceQuestion;
             choiceQuestion["type"] = "CHECKBOX";
             QJsonArray times;
-            for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
+            for(const auto &timeName : survey->schedTimeNames) {
                 QJsonObject time;
-                time["value"] = QString::number((i <= 12) ? i : (i - 12)) + ":00" + (i < 12 ? "am" : "pm");
+                time["value"] = timeName;
                 time["isOther"] = false;
                 times << time;
             }

@@ -67,8 +67,6 @@ private slots:
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
-    void loadOptionsFile();
-    void saveOptionsFile();
 
 signals:
     void generationComplete(const QList<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
@@ -80,6 +78,7 @@ private:
     Ui::gruepr *ui;
     void loadDefaultSettings();
     void loadUI();
+    void saveState();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;

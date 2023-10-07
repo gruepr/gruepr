@@ -5,8 +5,30 @@
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTextBrowser>
+#include <QTime>
 #include <QtNetwork>
 #include <QWidget>
+
+float grueprGlobal::timeStringToHours(const QString &timeStr) {
+
+    if(timeStr.compare(QObject::tr("noon"), Qt::CaseInsensitive) == 0) {
+        return 12;
+    }
+    if(timeStr.compare(QObject::tr("midnight"), Qt::CaseInsensitive) == 0) {
+        return 0;
+    }
+
+    static const QStringList formats = QString(TIMEFORMATS).split(';');
+    for (const auto &format : formats) {
+        QTime time = QTime::fromString(timeStr, format);
+        if (time.isValid()) {
+            return time.hour() + (time.minute() / 60.0) + (time.second()/3600.0);
+        }
+    }
+
+    // Return -1.0 to indicate an invalid time string
+    return -1.0;
+}
 
 bool grueprGlobal::internetIsGood() {
     //make sure we can connect to google
@@ -25,8 +47,7 @@ bool grueprGlobal::internetIsGood() {
     return !weGotProblems;
 }
 
-void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, const QString &message)
-{
+void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, const QString &message) {
     auto *win = new QMessageBox(parent);
     win->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
     win->setStyleSheet(LABELSTYLE);
@@ -39,8 +60,7 @@ void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, con
     win->deleteLater();
 }
 
-bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText)
-{
+bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText) {
     auto *win = new QMessageBox(parent);
     win->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
     win->setStyleSheet(LABELSTYLE);
@@ -59,16 +79,14 @@ bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, c
     return result;
 }
 
-void grueprGlobal::aboutWindow(QWidget *parent)
-{
+void grueprGlobal::aboutWindow(QWidget *parent) {
     QSettings savedSettings;
     QString registeredUser = savedSettings.value("registeredUser", "").toString();
     QString user = registeredUser.isEmpty()? QObject::tr("UNREGISTERED") : (QObject::tr("registered to ") + registeredUser);
     QMessageBox::about(parent, QObject::tr("About gruepr"), ABOUTWINDOWCONTENT + QObject::tr("<p><b>This copy of gruepr is ") + user + "</b>.");
 }
 
-void grueprGlobal::helpWindow(QWidget *parent)
-{
+void grueprGlobal::helpWindow(QWidget *parent) {
     QDialog helpWindow(parent);
     helpWindow.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     helpWindow.setSizeGripEnabled(true);

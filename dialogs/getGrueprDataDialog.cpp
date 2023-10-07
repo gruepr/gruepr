@@ -5,6 +5,7 @@
 #include <QComboBox>
 #include <QMessageBox>
 #include <QPainter>
+#include <QProgressDialog>
 #include <QSettings>
 #include <QStandardItemModel>
 
@@ -15,13 +16,31 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(tr("gruepr - Form teams"));
 
+    QSettings savedSettings;
+    int numPrevWorks = savedSettings.beginReadArray("prevWorks");
+    ui->fromPrevWorkRadioButton->setVisible(numPrevWorks > 0);
+    for (int prevWork = 0; prevWork < numPrevWorks; ++prevWork) {
+        savedSettings.setArrayIndex(prevWork);
+        const QString displayName = savedSettings.value("prevWorkName", "").toString() +
+                                    " [Last opened: " + savedSettings.value("prevWorkDate", "").toString() + "]";
+        const QString fileName = savedSettings.value("prevWorkFile", "").toString();
+        if(!displayName.isEmpty() && !fileName.isEmpty()) {
+            ui->prevWorkComboBox->addItem(displayName, fileName);
+        }
+    }
+    savedSettings.endArray();
+
     ui->sourceFrame->setStyleSheet(QString() + "QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
                                    QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
+    ui->prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
+    ui->prevWorkComboBox->hide();
+    connect(ui->fromPrevWorkRadioButton, &QRadioButton::toggled, ui->prevWorkComboBox, &QComboBox::setVisible);
     ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
     ui->sourceButtonGroup->setId(ui->fromFileRadioButton, DataOptions::fromFile);
     ui->sourceButtonGroup->setId(ui->fromGoogleradioButton, DataOptions::fromGoogle);
     ui->sourceButtonGroup->setId(ui->fromCanvasradioButton, DataOptions::fromCanvas);
+    ui->sourceButtonGroup->setId(ui->fromPrevWorkRadioButton, DataOptions::fromPrevWork);
     ui->loadDataPushButton->adjustSize();
     QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
     QPainter painter(&whiteUploadIcon);
@@ -82,18 +101,23 @@ void GetGrueprDataDialog::loadData()
     ui->tableWidget->clearContents();
     ui->tableWidget->setRowCount(0);
     delete dataOptions;
-    dataOptions = new DataOptions;
 
     bool fileLoaded = false;
     switch(ui->sourceButtonGroup->checkedId()) {
     case DataOptions::fromFile:
+        dataOptions = new DataOptions;
         fileLoaded = getFromFile();
         break;
     case DataOptions::fromGoogle:
+        dataOptions = new DataOptions;
         fileLoaded = getFromGoogle();
         break;
     case DataOptions::fromCanvas:
+        dataOptions = new DataOptions;
         fileLoaded = getFromCanvas();
+        break;
+    case DataOptions::fromPrevWork:
+        fileLoaded = getFromPrevWork();
         break;
     }
 
@@ -101,7 +125,13 @@ void GetGrueprDataDialog::loadData()
         return;
     }
 
-    dataOptions->dataFile = surveyFile->fileInfo();
+    if(source == DataOptions::fromPrevWork) {
+        ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->animateClick();
+        return;
+    }
+
+    dataOptions->saveStateFileName = QCoreApplication::applicationDirPath() + "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
 
     if(!readQuestionsFromHeader()) {
         return;
@@ -137,14 +167,15 @@ void GetGrueprDataDialog::loadData()
 bool GetGrueprDataDialog::getFromFile()
 {
     QSettings savedSettings;
-    QFileInfo dataFile;
-    dataFile.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
+    QFileInfo dataFileLocation;
+    dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
-    if(!surveyFile->open(this, CsvFile::read, tr("Open Survey Data File"), dataFile.canonicalFilePath(), tr("Survey Data")))
+    if(!surveyFile->open(this, CsvFile::read, tr("Open Survey Data File"), dataFileLocation.canonicalFilePath(), tr("Survey Data")))
     {
         return false;
     }
 
+    savedSettings.setValue("saveFileLocation", surveyFile->fileInfo().canonicalFilePath());
     source = DataOptions::fromFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
@@ -457,6 +488,28 @@ bool GetGrueprDataDialog::getFromCanvas()
     return true;
 }
 
+bool GetGrueprDataDialog::getFromPrevWork()
+{
+    QFile savedFile(ui->prevWorkComboBox->currentData().toString(), this);
+    if(!savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
+        return false;
+    }
+    QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
+    savedFile.close();
+
+    QJsonObject content = doc.object();
+    QJsonArray studentjsons = content["students"].toArray();
+    students.reserve(studentjsons.size());
+    for(const auto &studentjson : studentjsons) {
+        students.emplace_back(studentjson.toObject());
+    }
+    dataOptions = new DataOptions(content["dataoptions"].toObject());
+    source = DataOptions::fromPrevWork;
+    dataOptions->dataSource = source;
+
+    return true;
+}
+
 bool GetGrueprDataDialog::readQuestionsFromHeader()
 {
     if(!surveyFile->readHeader())
@@ -722,7 +775,10 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
 
 bool GetGrueprDataDialog::readData()
 {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
+                                                      this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    loadingProgressDialog->setWindowModality(Qt::WindowModal);
+    loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
 
     // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
     dataOptions->timestampField = int(surveyFile->fieldMeanings.indexOf("Timestamp"));
@@ -809,6 +865,7 @@ bool GetGrueprDataDialog::readData()
         }
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex)));
     }
+    loadingProgressDialog->setValue(1);
 
     // read one line of data; if no data after header row then file is invalid
     if(!surveyFile->readDataRow())
@@ -835,29 +892,41 @@ bool GetGrueprDataDialog::readData()
         while(surveyFile->readDataRow());
         allTimeNames.removeDuplicates();
         allTimeNames.removeOne("");
-        //sort allTimeNames smartly, using mapped string -> hour of day integer; any timeName not found is put at the beginning of the list
-        QStringList timeNamesStrings = QString(TIME_NAMES).split(",");
-        std::sort(allTimeNames.begin(), allTimeNames.end(), [&timeNamesStrings] (const QString &a, const QString &b)
-                  {return TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(a)))] < TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(b)))];});
+
+        //sort allTimeNames smartly, using string -> hour of day float; any timeName not found is put at the beginning of the list
+        std::sort(allTimeNames.begin(), allTimeNames.end(), [] (const QString &a, const QString &b)
+                                            {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
         dataOptions->timeNames = allTimeNames;
+
         //pad the timeNames to include all 24 hours if we will be time-shifting student responses based on their home timezones later
         if(dataOptions->homeTimezoneUsed)
         {
-            dataOptions->earlyHourAsked = TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(dataOptions->timeNames.constFirst())))];
-            dataOptions->lateHourAsked = TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(dataOptions->timeNames.constLast())))];
-            const int offsetToTimeNamesUsed = std::min(NUMOFTIMENAMESPERHOUR, std::max(0,
-                                                                                 int(timeNamesStrings.indexOf(dataOptions->timeNames.constFirst())) -
-                                                                                 static_cast<int>(std::distance(TIME_MEANINGS,
-                                                                                 std::find(std::cbegin(TIME_MEANINGS), std::cend(TIME_MEANINGS), dataOptions->earlyHourAsked)))));
-            for(int hour = 0; hour < MAX_BLOCKS_PER_DAY; hour++)
+            dataOptions->earlyTimeAsked = std::max(0.0f, grueprGlobal::timeStringToHours(dataOptions->timeNames.constFirst()));
+            dataOptions->lateTimeAsked = std::max(0.0f, grueprGlobal::timeStringToHours(dataOptions->timeNames.constLast()));
+            QStringList formats = QString(TIMEFORMATS).split(';');
+
+            auto timeName = dataOptions->timeNames.constBegin();
+            QString timeFormat;
+            QTime time;
+            do {
+                for(const auto &format : formats) {
+                    time = QTime::fromString(*timeName, format);
+                    if(time.isValid()) {
+                        timeFormat = format;
+                        break;
+                    }
+                }
+                timeName++;
+            }
+            while(!time.isValid() && timeName != dataOptions->timeNames.constEnd());
+
+            for(int hour = 0; hour < 24; hour++)
             {
-                if((dataOptions->timeNames.size() > hour) && (TIME_MEANINGS[std::max(0,int(timeNamesStrings.indexOf(dataOptions->timeNames[hour])))] == hour))
-                {
+                if((dataOptions->timeNames.size() > hour) && (int(grueprGlobal::timeStringToHours(dataOptions->timeNames[hour])) == hour)) {
                     continue;
                 }
-                const int *val = std::find(std::begin(TIME_MEANINGS), std::end(TIME_MEANINGS), hour);
-                const int index = int(std::distance(TIME_MEANINGS, val) + offsetToTimeNamesUsed);
-                dataOptions->timeNames.insert(hour, timeNamesStrings.at(index));
+                time.setHMS(hour, 0, 0);
+                dataOptions->timeNames.insert(hour, time.toString(timeFormat));
             }
 
             // Ask what should be used as the base timezone to which schedules will all be adjusted
@@ -867,6 +936,7 @@ bool GetGrueprDataDialog::readData()
             window->deleteLater();
         }
     }
+    loadingProgressDialog->setValue(2);
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
     surveyFile->readDataRow(true);    // put cursor back to beginning and read first row
@@ -919,6 +989,7 @@ bool GetGrueprDataDialog::readData()
         }
 
         numStudents++;
+        loadingProgressDialog->setValue(2 + numStudents);
     }
     while(surveyFile->readDataRow() && numStudents < MAX_STUDENTS);
 
@@ -1135,7 +1206,9 @@ bool GetGrueprDataDialog::readData()
                 }
             }
         }
+        loadingProgressDialog->setValue(2 + numStudents + attribute);
     }
+    loadingProgressDialog->setValue(2 + numStudents + MAX_ATTRIBUTES);
 
     // gather all unique URM and section question responses and sort
     for(auto &student : students) {
@@ -1160,12 +1233,16 @@ bool GetGrueprDataDialog::readData()
     }
     std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
 
+    loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 3 + MAX_ATTRIBUTES);
+
     // set all of the students' tooltips
     for(auto &student : students) {
         student.createTooltip(dataOptions);
     }
 
+    loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + MAX_ATTRIBUTES);
     surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
-    QApplication::restoreOverrideCursor();
+    loadingProgressDialog->setValue(loadingProgressDialog->maximum());
+    loadingProgressDialog->deleteLater();
     return true;
 }

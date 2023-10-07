@@ -26,7 +26,7 @@ public:
 private:
     Ui::GetGrueprDataDialog *ui;
 
-    DataOptions::DataSource source = DataOptions::DataSource::fromFile;
+    DataOptions::DataSource source = DataOptions::fromFile;
 
     QList<StudentRecord> roster;    // holds roster of students from alternative source (in order to add names of non-submitters)
 
@@ -35,12 +35,12 @@ private:
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();
+    bool getFromPrevWork();
     bool readQuestionsFromHeader();
     void validateFieldSelectorBoxes(int callingRow = -1);
     bool readData();
     CanvasHandler *canvas = nullptr;
     GoogleHandler *google = nullptr;
-
     const QString HEADERTEXT = tr("Question text");
     const QString CATEGORYTEXT = tr("Category");
     const QString ROW1TEXT = tr("First Row of Data");

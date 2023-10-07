@@ -12,6 +12,7 @@
 #include <QComboBox>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QJsonObject>
 #include <QLabel>
 #include <QPrinter>
 #include <QPushButton>
@@ -26,11 +27,15 @@ public:
     explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions,
                           const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
                           QPushButton *letsDoItButton, QWidget *parent = nullptr);
+    explicit TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, QWidget *parent = nullptr);
+    void init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton);    // handle the constructor work after loading data
     ~TeamsTabItem();
     TeamsTabItem(const TeamsTabItem&) = delete;
     TeamsTabItem operator= (const TeamsTabItem&) = delete;
     TeamsTabItem(TeamsTabItem&&) = delete;
     TeamsTabItem& operator= (TeamsTabItem&&) = delete;
+
+    QJsonObject toJson() const;
 
     QString tabName;
 

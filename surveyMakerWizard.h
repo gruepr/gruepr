@@ -194,6 +194,8 @@ class SchedulePage : public SurveyMakerPage
     Q_PROPERTY(QStringList dayNames READ getDayNames WRITE setDayNames NOTIFY dayNamesChanged)
     Q_PROPERTY(QString baseTimezone READ getBaseTimezone WRITE setBaseTimezone NOTIFY baseTimezoneChanged)
     Q_PROPERTY(QString scheduleQuestion READ getScheduleQuestion WRITE setScheduleQuestion NOTIFY scheduleQuestionChanged)
+    Q_PROPERTY(float scheduleFrom READ getScheduleFrom WRITE setScheduleFrom NOTIFY scheduleFromChanged)
+    Q_PROPERTY(float scheduleTo READ getScheduleTo WRITE setScheduleTo NOTIFY scheduleToChanged)
 
 public:
     SchedulePage(QWidget *parent = nullptr);
@@ -202,19 +204,37 @@ public:
 
     void setDayNames(const QStringList &newDayNames);
     QStringList getDayNames() const;
-    void setScheduleQuestion(const QString &newScheduleQuestion);
-    QString getScheduleQuestion() const;
     void setBaseTimezone(const QString &newBaseTimezone);
     QString getBaseTimezone() const;
+    void setScheduleQuestion(const QString &newScheduleQuestion);
+    QString getScheduleQuestion() const;
+    void setScheduleFrom(const float newScheduleFrom);
+    float getScheduleFrom() const;
+    void setScheduleTo(const float newScheduleTo);
+    float getScheduleTo() const;
 
     enum scheduleType {busy, free};
+
+    static inline const QList<QPair<QString, int>> resolutionValues = {{QObject::tr("2 hr"), 120/MIN_SCHEDULE_RESOLUTION},
+                                                                       {QObject::tr("1 hr"), 60/MIN_SCHEDULE_RESOLUTION},
+                                                                       {QObject::tr("30 min"), 30/MIN_SCHEDULE_RESOLUTION},
+                                                                       {QObject::tr("15 min"), 15/MIN_SCHEDULE_RESOLUTION}};  // int value is # of time blocks
+    static inline const QList<QPair<QString, QString>> timeFormats = [](){QStringList formats = QString(TIMEFORMATS).split(';');
+                                                                          QStringList examples = QString(TIMEFORMATEXAMPLES).split(';');
+                                                                          QList<QPair<QString, QString>> x;
+                                                                          for(int i = 0; i < formats.size(); i++) {
+                                                                              x << qMakePair(formats.at(i), examples.at(i));
+                                                                          }
+                                                                          return(x);}();
 
     static QString generateScheduleQuestion(bool scheduleAsBusy, bool timezoneOn, const QString &baseTimezone);
 
 signals:
     void dayNamesChanged(const QStringList &newDayNames);
-    void scheduleQuestionChanged(const QString &newScheduleQuestion);
     void baseTimezoneChanged(const QString &newBaseTimezone);
+    void scheduleQuestionChanged(const QString &newScheduleQuestion);
+    void scheduleFromChanged(const float newScheduleFrom);
+    void scheduleToChanged(const float newScheduleTo);
 
 private slots:
     void daysComboBox_activated(int index);
@@ -245,6 +265,15 @@ private:
     QComboBox *fromComboBox = nullptr;
     QLabel *toLabel = nullptr;
     QComboBox *toComboBox = nullptr;
+    QLabel *resolutionLabel = nullptr;
+    QComboBox *resolutionComboBox = nullptr;
+    QLabel *formatLabel = nullptr;
+    QComboBox *formatComboBox = nullptr;
+    const int DEFAULTTIMEFORMAT = 7;
+    const int DEFAULTSCHEDSTARTTIME = 10;  //10 am
+    const int DEFAULTSCHEDENDTIME = 17;  //5 pm
+    const int DEFAULTSCHEDRESOLUTION = 60;  //1 hr
+
 
     void update();
 };

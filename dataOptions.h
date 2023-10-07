@@ -3,6 +3,7 @@
 
 #include "gruepr_globals.h"
 #include <QFileInfo>
+#include <QJsonObject>
 #include <QStringList>
 #include <map>
 #include <set>
@@ -13,6 +14,9 @@ class DataOptions
 {
 public:
     DataOptions();
+    explicit DataOptions(const QJsonObject &jsonDataOptions);
+
+    QJsonObject toJson() const;
 
     static bool parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &hours, float &minutes, float &offsetFromGMT);
     static bool parseTimezoneInfoFromText(const QString &fullText, QString &timezoneName, float &offsetFromGMT);
@@ -39,8 +43,8 @@ public:
     int timezoneField = -1;                         // which field has the timezone info?
     bool homeTimezoneUsed = false;                  // whether the students' schedules refer to their own timezone
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
-    int earlyHourAsked = 0;                         // earliest hour asked in survey
-    int lateHourAsked = MAX_BLOCKS_PER_DAY;         // latest hour asked in survey
+    float earlyTimeAsked = 0;                       // earliest time asked in survey (in hours since midnight)
+    float lateTimeAsked = 24;                       // latest time asked in survey (in hours since midnight)
     enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? Are multiple values allowed?
     bool prefTeammatesIncluded = false;             // did students get to include preferred teammates?
     int numPrefTeammateQuestions = 0;
@@ -55,11 +59,12 @@ public:
     std::map<QString, int> attributeQuestionResponseCounts[MAX_ATTRIBUTES];  // a count of how many students gave each response
     std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
-    QFileInfo dataFile;
+    //QFileInfo dataFile;
     QString dataSourceName;
-    enum DataSource{fromFile, fromGoogle, fromCanvas} dataSource;
+    enum DataSource{fromFile, fromGoogle, fromCanvas, fromPrevWork} dataSource;
     QStringList dayNames;
     QStringList timeNames;
+    QString saveStateFileName;
 };
 
 #endif // DATAOPTIONS_H

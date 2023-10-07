@@ -25,7 +25,7 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
 
     QSettings savedSettings;
     restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
-    saveFileLocation.setFile(savedSettings.value("surveyMakerSaveFileLocation", "").toString());
+    saveFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
     setStyleSheet(QString() + COMBOBOXSTYLE + SPINBOXSTYLE + CHECKBOXSTYLE + RADIOBUTTONSTYLE + SCROLLBARSTYLE);
 
@@ -68,7 +68,7 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
 SurveyMakerWizard::~SurveyMakerWizard() {
     QSettings savedSettings;
     savedSettings.setValue("surveyMakerWindowGeometry", saveGeometry());
-    savedSettings.setValue("surveyMakerSaveFileLocation", saveFileLocation.canonicalFilePath());
+    savedSettings.setValue("saveFileLocation", saveFileLocation.canonicalFilePath());
 }
 
 QStringList SurveyMakerWizard::timezoneNames = [] {
@@ -246,6 +246,14 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             if(loadObject.contains("scheduleEndHour") && loadObject["scheduleEndHour"].isDouble())
             {
                 setField("scheduleTo", loadObject["scheduleEndHour"].toInt());
+            }
+            if(loadObject.contains("scheduleResolution") && loadObject["scheduleResolution"].isDouble())
+            {
+                setField("scheduleResolution", loadObject["scheduleResolution"].toInt());
+            }
+            if(loadObject.contains("scheduleTimeFormat") && loadObject["scheduleTimeFormat"].isDouble())
+            {
+                setField("scheduleTimeFormat", loadObject["scheduleTimeFormat"].toInt());
             }
             if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString())
             {
@@ -938,21 +946,22 @@ SchedulePage::SchedulePage(QWidget *parent)
     questionPreviewLayouts[schedule]->addWidget(questionPreviewTopLabels[schedule]);
     sc = new QWidget;
     scLayout = new QGridLayout(sc);
-    for(int hr = 0; hr < 24; hr++) {
-        auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A"));
+    for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
+        auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(time*MIN_SCHEDULE_RESOLUTION*60)
+                                                        .toString(timeFormats.at(DEFAULTTIMEFORMAT).first));
         rowLabel->setStyleSheet(LABELSTYLE);
-        scLayout->addWidget(rowLabel, hr+1, 0);
+        scLayout->addWidget(rowLabel, time+1, 0);
     }
     for(int day = 0; day < 7; day++) {
         auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
         colLabel->setStyleSheet(LABELSTYLE);
         scLayout->addWidget(colLabel, 0, day+1);
     }
-    for(int hr = 1; hr <= 24; hr++) {
+    for(int time = 1; time <= MAX_BLOCKS_PER_DAY; time++) {
         for(int day = 1; day <= 7; day++) {
             auto check = new QCheckBox;
             check->setChecked(true);
-            scLayout->addWidget(check, hr, day);
+            scLayout->addWidget(check, time, day);
         }
     }
     scLayout->setSpacing(5);
@@ -1018,19 +1027,23 @@ SchedulePage::SchedulePage(QWidget *parent)
     registerField("baseTimezone", this, "baseTimezone", "baseTimezoneChanged");
     registerField("ScheduleQuestion", this, "scheduleQuestion", "scheduleQuestionChanged");
 
+    auto *timespan = new QWidget;
+    auto *timespanLayout = new QVBoxLayout(timespan);
+    timespanLayout->setSpacing(2);
     timespanLabel = new QLabel(tr("Timespan:"));
     timespanLabel->setStyleSheet(LABELSTYLE);
     timespanLabel->setEnabled(false);
-    questions[schedule]->addWidget(timespanLabel, row++, 0, false);
+    timespanLayout->addWidget(timespanLabel);
     daysComboBox = new QComboBox;
     daysComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     daysComboBox->installEventFilter(new MouseWheelBlocker(daysComboBox));
     daysComboBox->addItems({tr("All days"), tr("Weekdays"), tr("Weekends"), tr("Custom days/daynames")});
     daysComboBox->setMinimumContentsLength(QString(tr("Custom days/daynames")).size());
     daysComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    daysComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     daysComboBox->setEnabled(false);
     daysComboBox->setCurrentIndex(0);
-    questions[schedule]->addWidget(daysComboBox, row++, 0, true, Qt::AlignLeft);
+    timespanLayout->addWidget(daysComboBox);
     connect(daysComboBox, &QComboBox::activated, this, &SchedulePage::daysComboBox_activated);
 
     //connect subwindow ui to slots
@@ -1060,38 +1073,93 @@ SchedulePage::SchedulePage(QWidget *parent)
     fromLabel = new QLabel(tr("From"));
     fromLabel->setStyleSheet(LABELSTYLE);
     fromLabel->setEnabled(false);
-    fromToLayout->addWidget(fromLabel, 0, Qt::AlignCenter);
+    fromToLayout->addWidget(fromLabel);
     fromComboBox = new QComboBox;
     fromComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     fromComboBox->installEventFilter(new MouseWheelBlocker(fromComboBox));
     fromComboBox->setMinimumContentsLength(5);
     fromComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    fromComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     fromComboBox->setEnabled(false);
-    fromToLayout->addWidget(fromComboBox, 0, Qt::AlignCenter);
+    fromToLayout->addWidget(fromComboBox, 1);
     toLabel = new QLabel(tr("to"));
     toLabel->setStyleSheet(LABELSTYLE);
     toLabel->setEnabled(false);
-    fromToLayout->addWidget(toLabel, 0, Qt::AlignCenter);
+    fromToLayout->addWidget(toLabel);
     toComboBox = new QComboBox;
     toComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     toComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
     toComboBox->setMinimumContentsLength(5);
     toComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    toComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     toComboBox->setEnabled(false);
-    for(int hr = 0; hr < 24; hr++) {
-        QString time = SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A");
-        fromComboBox->addItem(time);
-        toComboBox->addItem(time);
+    int startindex = 0, endindex = 0;
+    for(int time = 0; time < (24 * 60 / MIN_SCHEDULE_RESOLUTION); time++) {
+        float hoursSinceMidnight = time * MIN_SCHEDULE_RESOLUTION / 60.0f;
+        QString timeName = SurveyMakerWizard::sundayMidnight.time().addSecs(hoursSinceMidnight * 3600).toString("h:mm A");
+        fromComboBox->addItem(timeName, hoursSinceMidnight);
+        toComboBox->addItem(timeName, hoursSinceMidnight);
+        if(hoursSinceMidnight == DEFAULTSCHEDSTARTTIME) {
+            startindex = time;
+        }
+        if(hoursSinceMidnight == DEFAULTSCHEDENDTIME) {
+            endindex = time;
+        }
     }
-    fromComboBox->setCurrentIndex(STANDARDSCHEDSTARTTIME);
-    toComboBox->setCurrentIndex(STANDARDSCHEDENDTIME);
-    fromToLayout->addWidget(toComboBox, 0, Qt::AlignCenter);
-    fromToLayout->addStretch(1);
-    questions[schedule]->addWidget(fromTo, row++, 0, true);
+    fromComboBox->setCurrentIndex(startindex);
+    toComboBox->setCurrentIndex(endindex);
+    fromToLayout->addWidget(toComboBox, 1);
+    timespanLayout->addWidget(fromTo);
     connect(fromComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
-    registerField("scheduleFrom", fromComboBox);
+    registerField("scheduleFrom", this, "scheduleFrom", "scheduleFromChanged");
     connect(toComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
-    registerField("scheduleTo", toComboBox);
+    registerField("scheduleTo", this, "scheduleTo", "scheduleToChanged");
+
+    auto *resolution = new QWidget;
+    auto *resolutionLayout = new QHBoxLayout(resolution);
+    resolutionLabel = new QLabel(tr("every"));
+    resolutionLabel->setStyleSheet(LABELSTYLE);
+    resolutionLabel->setEnabled(false);
+    resolutionLayout->addWidget(resolutionLabel);
+    resolutionComboBox = new QComboBox;
+    resolutionComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
+    resolutionComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
+    resolutionComboBox->setMinimumContentsLength(11);
+    resolutionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    resolutionComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+    resolutionComboBox->setEnabled(false);
+    for(const auto &[name, value] : resolutionValues) {
+        resolutionComboBox->addItem(name, value);
+    }
+    resolutionComboBox->setCurrentIndex(1);
+    resolutionLayout->addWidget(resolutionComboBox, 1);
+    timespanLayout->addWidget(resolution);
+    connect(resolutionComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
+    registerField("scheduleResolution", resolutionComboBox);
+
+    auto *format = new QWidget;
+    auto *formatLayout = new QHBoxLayout(format);
+    formatLabel = new QLabel(tr("Time format:"));
+    formatLabel->setStyleSheet(LABELSTYLE);
+    formatLabel->setEnabled(false);
+    formatLayout->addWidget(formatLabel);
+    formatComboBox = new QComboBox;
+    formatComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
+    formatComboBox->installEventFilter(new MouseWheelBlocker(toComboBox));
+    formatComboBox->setMinimumContentsLength(5);
+    formatComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    formatComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+    formatComboBox->setEnabled(false);
+    for(const auto &[format, example] : timeFormats) {
+        formatComboBox->addItem(example, format);
+    }
+    formatComboBox->setCurrentIndex(7);
+    formatLayout->addWidget(formatComboBox, 1);
+    timespanLayout->addWidget(format);
+    connect(formatComboBox, &QComboBox::currentIndexChanged, this, &SchedulePage::update);
+    registerField("scheduleTimeFormat", formatComboBox);
+
+    questions[schedule]->addWidget(timespan, row, 0, true);
 
     update();
 }
@@ -1118,18 +1186,6 @@ QStringList SchedulePage::getDayNames() const
     return dayNames;
 }
 
-void SchedulePage::setScheduleQuestion(const QString &newScheduleQuestion)
-{
-    scheduleQuestion = newScheduleQuestion;
-    questionPreviewTopLabels[schedule]->setText(scheduleQuestion);
-    emit scheduleQuestionChanged(scheduleQuestion);
-}
-
-QString SchedulePage::getScheduleQuestion() const
-{
-    return scheduleQuestion;
-}
-
 void SchedulePage::setBaseTimezone(const QString &newBaseTimezone)
 {
     int index = baseTimezoneComboBox->findText(newBaseTimezone, Qt::MatchFixedString);
@@ -1152,6 +1208,58 @@ void SchedulePage::setBaseTimezone(const QString &newBaseTimezone)
 QString SchedulePage::getBaseTimezone() const
 {
     return baseTimezone;
+}
+
+void SchedulePage::setScheduleQuestion(const QString &newScheduleQuestion)
+{
+    scheduleQuestion = newScheduleQuestion;
+    questionPreviewTopLabels[schedule]->setText(scheduleQuestion);
+    emit scheduleQuestionChanged(scheduleQuestion);
+}
+
+QString SchedulePage::getScheduleQuestion() const
+{
+    return scheduleQuestion;
+}
+
+void SchedulePage::setScheduleFrom(const float newScheduleFrom)
+{
+    // set from combobox to index with data that matches new value
+    int index = fromComboBox->findData(newScheduleFrom);
+    if(index == -1) {
+        // no exact match; find closest
+        do {
+            index++;
+        }
+        while(fromComboBox->itemData(index).toFloat() < newScheduleFrom);
+    }
+    fromComboBox->setCurrentIndex(index);
+    emit scheduleFromChanged(newScheduleFrom);
+}
+
+float SchedulePage::getScheduleFrom() const
+{
+    return fromComboBox->currentData().toFloat();
+}
+
+void SchedulePage::setScheduleTo(const float newScheduleTo)
+{
+    // set to combobox to index with data that matches new value
+    int index = toComboBox->findData(newScheduleTo);
+    if(index == -1) {
+        // no exact match; find closest
+        do {
+            index++;
+        }
+        while(toComboBox->itemData(index).toFloat() < newScheduleTo);
+    }
+    toComboBox->setCurrentIndex(index);
+    emit scheduleToChanged(newScheduleTo);
+}
+
+float SchedulePage::getScheduleTo() const
+{
+    return toComboBox->currentData().toFloat();
 }
 
 void SchedulePage::daysComboBox_activated(int index)
@@ -1246,15 +1354,24 @@ void SchedulePage::update()
 {
     //update the schedule grid
     QList<QWidget *> widgets = sc->findChildren<QWidget *>();
+    const int numRowsToShow = std::max(0.0f, 1 + ((toComboBox->currentData().toFloat() - fromComboBox->currentData().toFloat()) *
+                                                   60 / (MIN_SCHEDULE_RESOLUTION * resolutionComboBox->currentData().toInt())));
     for(auto &widget : widgets) {
         int row, col, rowSpan, colSpan;
         scLayout->getItemPosition(scLayout->indexOf(widget), &row, &col, &rowSpan, &colSpan);
-        widget->setVisible(((row == 0) || ((row-1) >= fromComboBox->currentIndex() && (row-1) <= toComboBox->currentIndex())) &&
-                           ((col == 0) || dayCheckBoxes[col-1]->isChecked()));
+        widget->setVisible(((row-1) < numRowsToShow) && ((col == 0) || dayCheckBoxes[col-1]->isChecked()));
         if((row == 0) && (col > 0)) {
             auto *dayLabel = qobject_cast<QLabel *>(widget);
             if(dayLabel != nullptr) {
                 dayLabel->setText((dayNames[col-1]).left(3));
+            }
+        }
+        if((col == 0) && (row > 0)) {
+            auto *timeLabel = qobject_cast<QLabel *>(widget);
+            if(timeLabel != nullptr) {
+                timeLabel->setText(SurveyMakerWizard::sundayMidnight.time()
+                                       .addSecs(60 * ((60 * fromComboBox->currentData().toFloat()) + ((row-1) * MIN_SCHEDULE_RESOLUTION * resolutionComboBox->currentData().toInt())))
+                                       .toString(formatComboBox->currentData().toString()));
             }
         }
     }
@@ -1299,6 +1416,10 @@ void SchedulePage::update()
     fromComboBox->setEnabled(scheduleOn);
     toLabel->setEnabled(scheduleOn);
     toComboBox->setEnabled(scheduleOn);
+    resolutionLabel->setEnabled(scheduleOn);
+    resolutionComboBox->setEnabled(scheduleOn);
+    formatLabel->setEnabled(scheduleOn);
+    formatComboBox->setEnabled(scheduleOn);
 }
 
 QString SchedulePage::generateScheduleQuestion(bool scheduleAsBusy, bool timezoneOn, const QString &baseTimezone)
@@ -1823,10 +1944,10 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(tr("Schedule"));
     schedGrid = new QWidget;
     schedGridLayout = new QGridLayout(schedGrid);
-    for(int hr = 0; hr < MAX_BLOCKS_PER_DAY; hr++) {
-        auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(hr * 3600).toString("h A"));
+    for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
+        auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(time * MIN_SCHEDULE_RESOLUTION * 60).toString("h:mm A"));
         rowLabel->setStyleSheet(LABELSTYLE);
-        schedGridLayout->addWidget(rowLabel, hr+1, 0);
+        schedGridLayout->addWidget(rowLabel, time+1, 0);
     }
     for(int day = 0; day < MAX_DAYS; day++) {
         auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
@@ -1834,10 +1955,10 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
         schedGridLayout->addWidget(colLabel, 0, day+1);
         schedGridLayout->setColumnStretch(day, 1);
     }
-    for(int hr = 1; hr <= MAX_BLOCKS_PER_DAY; hr++) {
+    for(int time = 1; time <= MAX_BLOCKS_PER_DAY; time++) {
         for(int day = 1; day <= MAX_DAYS; day++) {
             auto check = new QCheckBox;
-            schedGridLayout->addWidget(check, hr, day);
+            schedGridLayout->addWidget(check, time, day);
         }
     }
     schedGridLayout->setSpacing(5);
@@ -2064,8 +2185,10 @@ void PreviewAndExportPage::initializePage()
     //const bool scheduleAsBusy = field("scheduleBusyOrFree").toBool();
     const QString scheduleQuestion = field("ScheduleQuestion").toString();
     const QStringList scheduleDays = field("scheduleDayNames").toStringList();
-    const int scheduleFrom = field("scheduleFrom").toInt();
-    const int scheduleTo = field("scheduleTo").toInt();
+    const float scheduleFrom = field("scheduleFrom").toFloat();
+    const float scheduleTo = field("scheduleTo").toFloat();
+    const int scheduleResolution = SchedulePage::resolutionValues.at(field("scheduleResolution").toInt()).second;
+    const QString scheduleTimeFormat = SchedulePage::timeFormats.at(field("scheduleTimeFormat").toInt()).first;
 
     if(timezone) {
         section[SurveyMakerWizard::schedule]->preQuestionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2093,19 +2216,29 @@ void PreviewAndExportPage::initializePage()
                 survey->schedDayNames << scheduleDays.at(day);
             }
         }
-        survey->schedStartTime = scheduleFrom;
-        survey->schedEndTime = scheduleTo;
         schedGrid->show();
         QList<QWidget *> widgets = schedGrid->findChildren<QWidget *>();
+
+        const int numRowsToShow = std::max(0.0f, 1 + ((scheduleTo - scheduleFrom) * 60 / (MIN_SCHEDULE_RESOLUTION * scheduleResolution)));
         for(auto &widget : widgets) {
             int row, col, rowSpan, colSpan;
             schedGridLayout->getItemPosition(schedGridLayout->indexOf(widget), &row, &col, &rowSpan, &colSpan);
-            widget->setVisible(((row == 0) || ((row-1) >= scheduleFrom && (row-1) <= scheduleTo)) &&
-                               ((col == 0) || (!scheduleDays[col-1].isEmpty())));
+            widget->setVisible(((row-1) < numRowsToShow) && ((col == 0) || !scheduleDays[col-1].isEmpty()));
             if((row == 0) && (col > 0)) {
                 auto *dayLabel = qobject_cast<QLabel *>(widget);
                 if(dayLabel != nullptr) {
                     dayLabel->setText(scheduleDays[col-1]);
+                }
+            }
+            if((col == 0) && (row > 0)) {
+                auto *timeLabel = qobject_cast<QLabel *>(widget);
+                if(timeLabel != nullptr) {
+                    timeLabel->setText(SurveyMakerWizard::sundayMidnight.time()
+                                           .addSecs(60 * ((60 * scheduleFrom) + ((row-1) * MIN_SCHEDULE_RESOLUTION * scheduleResolution)))
+                                           .toString(scheduleTimeFormat));
+                }
+                if((row-1) < numRowsToShow) {
+                    survey->schedTimeNames << timeLabel->text();
                 }
             }
         }
@@ -2315,6 +2448,8 @@ void PreviewAndExportPage::exportSurvey()
                 }
                 saveObject["scheduleStartHour"] = field("scheduleFrom").toInt();
                 saveObject["scheduleEndHour"] = field("scheduleTo").toInt();
+                saveObject["scheduleResolution"] = field("scheduleResolution").toInt();
+                saveObject["scheduleTimeFormat"] = field("scheduleTimeFormat").toInt();
                 saveObject["Section"] = field("Section").toBool();
                 saveObject["SectionNames"] = field("SectionNames").toStringList().join(',');
                 saveObject["PreferredTeammates"] = field("PrefTeammate").toBool();
@@ -2377,9 +2512,9 @@ void PreviewAndExportPage::exportSurvey()
             if(question.type == Question::QuestionType::schedule)
             {
                 textFileContents += "\n                 ";
-                for(int time = survey->schedStartTime; time <= survey->schedEndTime; time++)
+                for(const auto &timeName : survey->schedTimeNames)
                 {
-                    textFileContents += QTime(time, 0).toString("hA") + "    ";
+                    textFileContents += timeName + "    ";
                 }
                 textFileContents += "\n";
                 for(const auto &dayName : qAsConst(survey->schedDayNames))

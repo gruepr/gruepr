@@ -8,6 +8,7 @@
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QMenu>
+#include <QProgressDialog>
 #include <QScreen>
 #include <QSettings>
 #include <QStringList>
@@ -210,32 +211,31 @@ void StartDialog::openSurveyMaker() {
 
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    this->hide();
 
     bool restart = false;
     do {
-        auto *getDataDialog = new GetGrueprDataDialog;
+        auto *getDataDialog = new GetGrueprDataDialog(this);
         QApplication::restoreOverrideCursor();
         getDataDialog->exec();
         if(getDataDialog->result() == QDialog::Accepted) {
             QApplication::setOverrideCursor(Qt::WaitCursor);
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
+            this->hide();
             grueprWindow->show();
             QApplication::restoreOverrideCursor();
-            getDataDialog->deleteLater();
+            delete getDataDialog;
             QEventLoop loop;
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
             restart = grueprWindow->restartRequested;
             grueprWindow->deleteLater();
+            this->show();
         }
         else {
             restart = false;
-            getDataDialog->deleteLater();
+            delete getDataDialog;
         }
     } while(restart);
-
-    this->show();
 }
 
 

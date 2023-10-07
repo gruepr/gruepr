@@ -1,7 +1,6 @@
 #ifndef SURVEY_H
 #define SURVEY_H
 
-#include "gruepr_globals.h"
 #include <QString>
 #include <QStringList>
 #include <QList>
@@ -29,8 +28,7 @@ public:
     QList<Question> questions;
     int numAttributes = 0;
     QStringList schedDayNames;
-    int schedStartTime = STANDARDSCHEDSTARTTIME;
-    int schedEndTime = STANDARDSCHEDENDTIME;
+    QStringList schedTimeNames;
 };
 
 #endif // SURVEY_H

@@ -8,7 +8,7 @@
 #include <QTableWidget>
 #include <QTextStream>
 
-struct possFieldMeaning      // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that might have this meaning
+struct possFieldMeaning      // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that are allowed to have this meaning
 {
     QString nameShownToUser;
     QString regExSearchString;
@@ -49,6 +49,7 @@ public:
     QStringList headerValues;
     bool hasHeaderRow = true;
     int numFields = 0;
+    int estimatedNumberRows = 0;    // estimated because only based on number of newlines (doesn't account for blank lines or other unused rows)
     QStringList fieldMeanings;
     QStringList fieldValues;
     QStringList fieldsToBeIgnored;

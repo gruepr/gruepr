@@ -14,9 +14,12 @@ class TeamRecord
 {
 public:
     explicit TeamRecord(const DataOptions *const incomingDataOptions, int teamSize);
+    explicit TeamRecord(const QJsonObject &jsonTeamRecord);
 
     void createTooltip();
     void refreshTeamInfo(const StudentRecord* const student);
+
+    QJsonObject toJson() const;
 
     int LMSID = -1;         // ID number for this team according to the learning management system
     float score = 0;

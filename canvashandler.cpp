@@ -227,9 +227,8 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 query.addQueryItem("question[question_type]", "multiple_answers_question");
                 query.addQueryItem("question[question_text]", question.text + " <strong><u>[" + survey->schedDayNames.first() + "]</u></strong>");
                 int optionNum = 0;
-                for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
-                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]",
-                                                 QString::number((i <= 12) ? i : (i - 12)) + ":00" + (i < 12 ? "am" : "pm"));
+                for(const auto &schedTimeName : survey->schedTimeNames) {
+                    query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]", schedTimeName);
                     query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_weight]", "100");
                     optionNum++;
                 }
@@ -258,9 +257,8 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                     query.addQueryItem("question[question_type]", "multiple_answers_question");
                     query.addQueryItem("question[question_text]", question.text + " <strong><u>[" + dayName + "]</u></strong>");
                     int optionNum = 0;
-                    for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
-                        query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]",
-                                           QString::number((i <= 12) ? i : (i - 12)) + ":00" + (i < 12 ? "am" : "pm"));
+                    for(const auto &schedTimeName : survey->schedTimeNames) {
+                        query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_text]", schedTimeName);
                         query.addQueryItem("question[answers][" + QString::number(optionNum) + "][answer_weight]", "100");
                         optionNum++;
                     }
@@ -274,13 +272,13 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             QString rowText = "<tr style=\"height: 10px;\">";
             QString questionText = "<p>Please tell us about your weekly schedule. Use your best guess or estimate if necessary.</p>"
                                    "<p>In each box, please indicate whether you are BUSY (unavailable) or are FREE (available) for group work.</p>"
-                                   "<table style=\"border-collapse: collapse; width: " + QString::number(80 * (2 + survey->schedEndTime - survey->schedStartTime)) + "px; "
+                                   "<table style=\"border-collapse: collapse; width: " + QString::number(80 * (2 + survey->schedTimeNames.size())) + "px; "
                                                                              "height: " + QString::number(10 * (1 + survey->schedDayNames.size())) + "px;\" border=\"1\">"
                                    "<tbody>" +
                                    rowText +
                                    cellText + "</td>";
-            for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
-                questionText += cellText + QString::number(i) + ":00" + (i < 12 ? " am" : " pm") + "</span></td>";
+            for(const auto &schedTimeName : survey->schedTimeNames) {
+                questionText += cellText + schedTimeName + "</span></td>";
             }
             questionText += "</tr>";
             int responseBox = 101;
@@ -288,7 +286,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             for(const auto &dayName : survey->schedDayNames) {
                 questionText += rowText +
                                 cellText + dayName + "</td>";
-                for(int i = survey->schedStartTime; i <= survey->schedEndTime; i++) {
+                for(const auto &schedTimeName : survey->schedTimeNames) {
                     questionText += cellText + "[" + QString::number(responseBox) + "]</td>";
                     query.addQueryItem("question[answers][" + QString::number(responseNum) + "][blank_id]", QString::number(responseBox));
                     query.addQueryItem("question[answers][" + QString::number(responseNum) + "][answer_text]", tr("BUSY"));

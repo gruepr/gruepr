@@ -1,4 +1,5 @@
 #include "studentRecord.h"
+#include <QJsonArray>
 #include <QLocale>
 #include <QRegularExpression>
 
@@ -11,6 +12,52 @@ StudentRecord::StudentRecord()
         for(auto &time : day)
         {
             time = true;
+        }
+    }
+}
+
+StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
+{
+    ID = jsonStudentRecord["ID"].toInt();
+    LMSID = jsonStudentRecord["LMSID"].toInt();
+    duplicateRecord = jsonStudentRecord["LMSID"].toBool();
+    gender = static_cast<Gender>(jsonStudentRecord["gender"].toInt());
+    URM = jsonStudentRecord["URM"].toBool();
+    timezone = jsonStudentRecord["timezone"].toDouble();
+    ambiguousSchedule = jsonStudentRecord["ambiguousSchedule"].toBool();
+    surveyTimestamp = QDateTime::fromString(jsonStudentRecord["surveyTimestamp"].toString(), Qt::ISODate);
+    firstname = jsonStudentRecord["firstname"].toString();
+    lastname = jsonStudentRecord["lastname"].toString();
+    email = jsonStudentRecord["email"].toString();
+    section = jsonStudentRecord["section"].toString();
+    prefTeammates = jsonStudentRecord["prefTeammates"].toString();
+    prefNonTeammates = jsonStudentRecord["prefNonTeammates"].toString();
+    notes = jsonStudentRecord["notes"].toString();
+    URMResponse = jsonStudentRecord["URMResponse"].toString();
+    availabilityChart = jsonStudentRecord["availabilityChart"].toString();
+    tooltip = jsonStudentRecord["tooltip"].toString();
+    QJsonArray unavailableArray = jsonStudentRecord["unavailable"].toArray();;
+    for(int i = 0; i < MAX_DAYS; i++) {
+        QJsonArray unavailableArraySubArray = unavailableArray[i].toArray();
+        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
+            unavailable[i][j] = unavailableArraySubArray[j].toBool();
+        }
+    }
+    QJsonArray preventedWithArray = jsonStudentRecord["preventedWith"].toArray();
+    QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
+    QJsonArray requestedWithArray = jsonStudentRecord["requestedWith"].toArray();
+    for(int i = 0; i < MAX_IDS; i++) {
+        preventedWith[i] = preventedWithArray[i].toBool();
+        requiredWith[i] = requiredWithArray[i].toBool();
+        requestedWith[i] = requestedWithArray[i].toBool();
+    }
+    QJsonArray attributeValsArray = jsonStudentRecord["attributeVals"].toArray();
+    QJsonArray attributeResponseArray = jsonStudentRecord["attributeResponse"].toArray();
+    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+        attributeResponse[i] = attributeResponseArray[i].toString();
+        QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
+        for (const auto &val : attributeValsArraySubArray) {
+            attributeVals[i] << val.toInt();
         }
     }
 }
@@ -155,13 +202,13 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // schedule days
     const int numDays = int(dataOptions->dayNames.size());
     const int numTimes = int(dataOptions->timeNames.size());
-    int timezoneOffset = 0;
+    float timezoneOffset = 0;
     fieldnum = dataOptions->timezoneField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         QString timezoneText = fields.at(fieldnum).toUtf8(), timezoneName;
         if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone)) {
             if(dataOptions->homeTimezoneUsed) {
-                timezoneOffset = std::lround(dataOptions->baseTimezone - timezone);
+                timezoneOffset = dataOptions->baseTimezone - timezone;
             }
         }
     }
@@ -169,21 +216,22 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         fieldnum = dataOptions->scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString field = fields.at(fieldnum).toUtf8();
-            static QRegularExpression timename("", QRegularExpression::CaseInsensitiveOption);
-            for(int time = 0; time < numTimes; time++) {
+            static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
+            for(const auto &timeName : dataOptions->timeNames) {
+                float time = grueprGlobal::timeStringToHours(timeName);
                 // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
-                if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > MAX_BLOCKS_PER_DAY))) {
+                if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > 24))) {
                     continue;
                 }
 
-                timename.setPattern("\\b"+dataOptions->timeNames.at(time).toUtf8()+"\\b");
+                timenameRegEx.setPattern("\\b"+timeName+"\\b");
 
                 // determine which spot in the unavailability chart to put this date/time
                 int actualday = day;
-                int actualtime = time + timezoneOffset;
+                float actualtime = time + timezoneOffset;
                 // if this one wraps around the day, then adjust to the correct day/time
                 if(actualtime < 0) {
-                    actualtime += MAX_BLOCKS_PER_DAY;
+                    actualtime += 24;
                     actualday--;
                     if(actualday < 0) {
                         if(numDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
@@ -192,8 +240,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                         actualday += MAX_DAYS;
                     }
                 }
-                if(actualtime >= MAX_BLOCKS_PER_DAY) {
-                    actualtime -= MAX_BLOCKS_PER_DAY;
+                if(actualtime >= 24) {
+                    actualtime -= 24;
                     actualday++;
                     if(actualday >= numDays) {
                         if(numDays < MAX_DAYS) {  // less than all 7 days, so not clear where to shift this time--just ignore
@@ -202,15 +250,20 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                         actualday -= MAX_DAYS;
                     }
                 }
-                bool &unavailabilitySpot = unavailable[actualday][actualtime];
+                int timeindex = 0;
+                while(actualtime > grueprGlobal::timeStringToHours(dataOptions->timeNames.at(timeindex)) && timeindex < numTimes) {
+                    timeindex++;
+                }
+
+                bool &unavailabilitySpot = unavailable[actualday][timeindex];
 
                 if(dataOptions->scheduleDataIsFreetime) {
-                    unavailabilitySpot = !timename.match(field).hasMatch();
+                    unavailabilitySpot = !timenameRegEx.match(field).hasMatch();
                 }
                 else {
                     // since we asked when they're unavailable, ignore any times that we didn't actually ask about
-                    if((time >= dataOptions->earlyHourAsked) && (time <= dataOptions->lateHourAsked)) {
-                        unavailabilitySpot = timename.match(field).hasMatch();
+                    if((time >= dataOptions->earlyTimeAsked) && (time <= dataOptions->lateTimeAsked)) {
+                        unavailabilitySpot = timenameRegEx.match(field).hasMatch();
                     }
                 }
             }
@@ -306,7 +359,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
     QString toolTip = "<html>";
     if(duplicateRecord)
     {
-        toolTip += "<table><tr><td bgcolor=#ffff3b><b>" + QObject::tr("There appears to be multiple survey submissions from this student!") + "</b></td></tr></table><br>";
+        toolTip += "<table><tr><td bgcolor=" STARFISHHEX "><b>" + QObject::tr("There appears to be multiple survey submissions from this student!") + "</b></td></tr></table><br>";
     }
     toolTip += firstname + " " + lastname;
     if(dataOptions->emailField != -1)
@@ -445,4 +498,58 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
     toolTip += "</html>";
 
     tooltip = toolTip;
+}
+
+QJsonObject StudentRecord::toJson() const
+{
+    QJsonArray unavailableArray, preventedWithArray, requiredWithArray, requestedWithArray, attributeValsArray, attributeResponseArray;
+    for(int i = 0; i < MAX_DAYS; i++) {
+        QJsonArray unavailableArraySubArray;
+        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
+            unavailableArraySubArray.append(unavailable[i][j]);
+        }
+        unavailableArray.append(unavailableArraySubArray);
+    }
+    for(int i = 0; i < MAX_IDS; i++) {
+        preventedWithArray.append(preventedWith[i]);
+        requiredWithArray.append(requiredWith[i]);
+        requestedWithArray.append(requestedWith[i]);
+    }
+    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+        attributeResponseArray.append(attributeResponse[i]);
+        QJsonArray attributeValsArraySubArray;
+        for (const auto &val : attributeVals[i]) {
+            attributeValsArraySubArray.append(val);
+        }
+        attributeValsArray.append(attributeValsArraySubArray);
+    }
+
+    QJsonObject content {
+        {"ID", ID},
+        {"LMSID", LMSID},
+        {"duplicateRecord", duplicateRecord},
+        {"gender", static_cast<int>(gender)},
+        {"URM", URM},
+        {"unavailable", unavailableArray},
+        {"timezone", timezone},
+        {"ambiguousSchedule", ambiguousSchedule},
+        {"preventedWith", preventedWithArray},
+        {"requiredWith", requiredWithArray},
+        {"requestedWith", requestedWithArray},
+        {"attributeVals", attributeValsArray},
+        {"surveyTimestamp", surveyTimestamp.toString(Qt::ISODate)},
+        {"firstname", firstname},
+        {"lastname", lastname},
+        {"email", email},
+        {"section", section},
+        {"prefTeammates", prefTeammates},
+        {"prefNonTeammates", prefNonTeammates},
+        {"notes", notes},
+        {"attributeResponse", attributeResponseArray},
+        {"URMResponse", URMResponse},
+        {"availabilityChart", availabilityChart},
+        {"tooltip", tooltip}
+    };
+
+    return content;
 }

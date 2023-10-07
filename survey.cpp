@@ -1,6 +1,4 @@
 #include "survey.h"
-#include <algorithm>
-
 
 Question::Question(const QString &questionText, const QuestionType questionType, const QStringList &responseOptions)
 {
@@ -14,4 +12,5 @@ Survey::Survey()
 {
     questions.clear();
     schedDayNames.clear();
+    schedTimeNames.clear();
 }

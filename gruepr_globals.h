@@ -9,8 +9,10 @@ inline static const int MAX_STUDENTS = GA::MAX_RECORDS;               // each st
 inline static const int MAX_IDS = 2 * MAX_STUDENTS;                   // since students can be removed and added yet IDs always increase, need more IDs than possible students
 inline static const int MAX_TEAMS = MAX_STUDENTS/2;
 
-inline static const int MAX_DAYS = 7;                                 // resolution of scheduling is 1 hr, and scope is weekly
-inline static const int MAX_BLOCKS_PER_DAY = 24;
+inline static const int MAX_DAYS = 7;                                 // scope of scheduling is weekly
+inline static const int MIN_SCHEDULE_RESOLUTION = 15;                 // resolution of scheduling is 15 min.
+inline static const int MAX_BLOCKS_PER_DAY = 24*60/MIN_SCHEDULE_RESOLUTION;       // number of time blocks in each day
+
 inline static const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes in a survey
 inline static const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
 inline static const int MAX_PREFTEAMMATES = 10;
@@ -176,7 +178,8 @@ inline static const char SCROLLBARSTYLE[] = "QScrollBar:vertical {border-style: 
                                               "QScrollBar::handle:horizontal {background-color: " DEEPWATERHEX "; border-radius: 4px;}"
                                               "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {width: 0px;}"
                                               "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {width: 0px;}";
-inline static const char PROGRESSBARSTYLE[] = "QProgressBar {border: 1px solid lightGray; border-radius: 4px; background-color: lightGray; width: 10px;}"
+inline static const char PROGRESSBARSTYLE[] = "QProgressBar {border: 1px solid lightGray; border-radius: 4px; background-color: lightGray; width: 10px; "
+                                                            "text-align: center; font-family: 'DM Sans';}"
                                                "QProgressBar::chunk {background-color: " OPENWATERHEX ";}";
 inline static const char TABWIDGETSTYLE[] = "QTabWidget::pane {background-color: " TRANSPARENT ";}"
                                               "QTabBar {background-color: white; color: " DEEPWATERHEX "; font: 12pt 'DM Sans';}"
@@ -253,20 +256,35 @@ inline static const char PREFTEAMMATEQUESTION4TYPEMULTI[] = " Please write their
 inline static const char SELECTONE[] = "Select one:";
 inline static const char SELECTMULT[] = "Select all that apply:";
 
-//map of the "meaning" of strings that might be used in the survey to refer to hours of the day
-inline static const char TIME_NAMES[] {"1:00,1am,1 am,1:00am,1:00 am,2:00,2am,2 am,2:00am,2:00 am,3:00,3am,3 am,3:00am,3:00 am,4:00,4am,4 am,4:00am,4:00 am,"
-                         "5:00,5am,5 am,5:00am,5:00 am,6:00,6am,6 am,6:00am,6:00 am,7:00,7am,7 am,7:00am,7:00 am,8:00,8am,8 am,8:00am,8:00 am,"
-                         "9:00,9am,9 am,9:00am,9:00 am,10:00,10am,10 am,10:00am,10:00 am,11:00,11am,11 am,11:00am,11:00 am,12:00,12pm,12 pm,12:00pm,12:00 pm,"
-                         "13:00,1pm,1 pm,1:00pm,1:00 pm,14:00,2pm,2 pm,2:00pm,2:00 pm,15:00,3pm,3 pm,3:00pm,3:00 pm,16:00,4pm,4 pm,4:00pm,4:00 pm,"
-                         "17:00,5pm,5 pm,5:00pm,5:00 pm,18:00,6pm,6 pm,6:00pm,6:00 pm,19:00,7pm,7 pm,7:00pm,7:00 pm,20:00,8pm,8 pm,8:00pm,8:00 pm,"
-                         "21:00,9pm,9 pm,9:00pm,9:00 pm,22:00,10pm,10 pm,10:00pm,10:00 pm,23:00,11pm,11 pm,11:00pm,11:00 pm,0:00,12am,12 am,12:00am,12:00 am,noon,midnight"};
-inline static const int TIME_MEANINGS[] {1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,
-                           5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,
-                           9,9,9,9,9,10,10,10,10,10,11,11,11,11,11,12,12,12,12,12,
-                           13,13,13,13,13,14,14,14,14,14,15,15,15,15,15,16,16,16,16,16,
-                           17,17,17,17,17,18,18,18,18,18,19,19,19,19,19,20,20,20,20,20,
-                           21,21,21,21,21,22,22,22,22,22,23,23,23,23,23,0,0,0,0,0,12,0};
-inline static const int NUMOFTIMENAMESPERHOUR = 5;
+//possible formats of strings used in the survey to refer to times of the day
+inline static const char TIMEFORMATS[] {"H:mm;"
+                                        "Hmm;"
+                                        "H:mm:ss;"
+                                        "HH:mm;"
+                                        "HHmm;"
+                                        "HH:mm:ss;"
+                                        "h:mmap;"
+                                        "h:mm ap;"
+                                        "hap;"
+                                        "h ap;"
+                                        "h:mm:ssap;"
+                                        "h:mm:ss ap"};
+inline static const char TIMEFORMATEXAMPLES[] {"8:00;"
+                                               "800;"
+                                               "8:00:00;"
+                                               "08:00;"
+                                               "0800;"
+                                               "08:00:00;"
+                                               "8:00am;"
+                                               "8:00 am;"
+                                               "8am;"
+                                               "8 am;"
+                                               "8:00:00am;"
+                                               "8:00:00 am"};
+
+namespace grueprGlobal {
+    float timeStringToHours(const QString &timeStr);
+}
 
 inline static const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}):?(\d{2}).*)"}; // capture (1) intro text,
                                                                                                  // skip "[" if present, then either "GMT" or "UTC", then any whitespace if present
@@ -274,8 +292,6 @@ inline static const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}
                                                                                                  // skip ":" if present,
                                                                                                  // capture (3) 2 digits
                                                                                                  // skip rest
-inline static const int STANDARDSCHEDSTARTTIME = 10;  //10 am
-inline static const int STANDARDSCHEDENDTIME = 17;  //5 pm
 
 inline static const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
 inline static const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};

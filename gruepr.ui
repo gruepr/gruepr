@@ -58,8 +58,8 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>464</width>
-           <height>683</height>
+           <width>477</width>
+           <height>682</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -1052,7 +1052,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
             </sizepolicy>
            </property>
            <property name="text">
-            <string>←  Back</string>
+            <string>←  Restart</string>
            </property>
           </widget>
          </item>

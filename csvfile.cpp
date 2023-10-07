@@ -44,6 +44,8 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
             file = new QFile(fileName);
             file->open(QIODevice::ReadOnly);
             stream = new QTextStream(file);
+            estimatedNumberRows = stream->readAll().count('\n');
+            stream->seek(0);
         }
     }
     else
@@ -69,6 +71,8 @@ bool CsvFile::openExistingFile(const QString &filepath)
         file = new QFile(filepath);
         file->open(QIODevice::ReadOnly);
         stream = new QTextStream(file);
+        estimatedNumberRows = stream->readAll().count('\n');
+        stream->seek(0);
     }
 
     return (stream != nullptr);

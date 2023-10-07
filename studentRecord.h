@@ -6,13 +6,18 @@
 #include "dataOptions.h"
 #include "gruepr_globals.h"
 #include <QDateTime>
+#include <QJsonObject>
 
 class StudentRecord
 {
 public:
     StudentRecord();
+    explicit StudentRecord(const QJsonObject &jsonStudentRecord);
+
     void parseRecordFromStringList(const QStringList &fields, const DataOptions* const dataOptions);
     void createTooltip(const DataOptions* const dataOptions);
+
+    QJsonObject toJson() const;
 
     int ID = -1;                                        // ID is assigned in order of appearance in the data file
     int LMSID = -1;                                     // student ID number according to the learning management system
@@ -25,7 +30,7 @@ public:
     bool preventedWith[MAX_IDS] = {false};              // true if this student is prevented from working with the student with this ID value
     bool requiredWith[MAX_IDS] = {false};       		// true if this student is required to work with the student with this ID value
     bool requestedWith[MAX_IDS] = {false};      		// true if this student desires to work with the student with this ID value
-    QList<int> attributeVals[MAX_ATTRIBUTES];         // rating for each attribute (when set, each rating is numerical value from 1 -> attributeLevels[attribute])
+    QList<int> attributeVals[MAX_ATTRIBUTES];           // rating for each attribute (when set, each rating is numerical value from 1 -> attributeLevels[attribute])
     QDateTime surveyTimestamp;                          // date/time that the survey was submitted -- see TIMESTAMP_FORMAT definition for intepretation of timestamp in survey file
     QString firstname;
     QString lastname;
