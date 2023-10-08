@@ -132,6 +132,10 @@ void GetGrueprDataDialog::loadData()
     }
 
     dataOptions->saveStateFileName = QCoreApplication::applicationDirPath() + "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
+    QDir dir(QFileInfo(dataOptions->saveStateFileName).absoluteDir());
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
 
     if(!readQuestionsFromHeader()) {
         return;
