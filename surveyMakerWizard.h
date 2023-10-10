@@ -361,6 +361,7 @@ private:
     QRadioButton *destinationCanvas = nullptr;
     QRadioButton *destinationTextFiles = nullptr;
     QRadioButton *destinationGrueprFile = nullptr;
+    bool surveyHasBeenExported = false;
 };
 
 

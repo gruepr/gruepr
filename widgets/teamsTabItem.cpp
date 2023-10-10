@@ -29,7 +29,6 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOpt
     init(incomingTeamingOptions, incomingStudents, letsDoItButton);
 }
 
-
 TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, QWidget *parent)
     :QWidget(parent)
 {

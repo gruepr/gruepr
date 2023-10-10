@@ -38,20 +38,19 @@
 // DONE:
 //   NEW FEATURES:
 // - more granular scheduling option, down to the 15 minute level at least: use survey->schedTimeNames in googlehandler and canvashandler
+// - better UI on when close button is hit in surveymaker, confirming close if survey has not been exported
 //
 //   BUGFIXES:
 // - now handles (by skipping) blank names in the student roster csv file used in surveymaker
 //
 // IN PROG:
-//   BUGFIXES:
-// - drag-and-drop issues in teams tab
-//
 //   NEW FEATURES:
 // - add auto-saving class (teamingoptions, student database, all teamstabs) to gruepr teamingOptions & teamtooltips not saving with teamtab in json?
 //
 // TO DO:
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
+// - drag-and-drop issues in teams tab?
 //
 //   NEW FEATURES:
 // - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.

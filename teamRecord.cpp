@@ -22,7 +22,7 @@ TeamRecord::TeamRecord(const QJsonObject &jsonTeamRecord)
     name = jsonTeamRecord["name"].toString();
     availabilityChart = jsonTeamRecord["availabilityChart"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
-    dataOptions = new DataOptions(jsonTeamRecord["dataoptions"].toObject());
+    dataOptions = new DataOptions(jsonTeamRecord["dataOptions"].toObject());
 
     QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {

@@ -83,17 +83,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataDisplayTabWidget->tabBar()->setTabButton(0, QTabBar::LeftSide, nullptr);
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabCloseRequested, this, &gruepr::dataDisplayTabClose);
 
-    //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
-    connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
-    connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
-    connect(ui->isolatedNonbinaryCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedNonbinaryCheckBox);});
-    connect(ui->mixedGenderCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->mixedGenderCheckBox);});
-    connect(ui->isolatedURMCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedURMCheckBox);});
-    connect(ui->minMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->minMeetingTimes);});
-    connect(ui->desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->desiredMeetingTimes);});
-    connect(ui->meetingLengthSpinBox, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
-    connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
-
     //Set alternate fonts on some UI features
     QFont altFont = this->font();
     altFont.setPointSize(altFont.pointSize() + 4);
@@ -132,13 +121,24 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         loadDefaultSettings();
     }
 
+    adjustSize();
+    loadUI();
+
+    //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
+    connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
+    connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
+    connect(ui->isolatedNonbinaryCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedNonbinaryCheckBox);});
+    connect(ui->mixedGenderCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->mixedGenderCheckBox);});
+    connect(ui->isolatedURMCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedURMCheckBox);});
+    connect(ui->minMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->minMeetingTimes);});
+    connect(ui->desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->desiredMeetingTimes);});
+    connect(ui->meetingLengthSpinBox, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
+    connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
+
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
-    // load all of the default values
-    adjustSize();
-    loadUI();
     saveState();
 }
 
@@ -1562,27 +1562,15 @@ void gruepr::loadDefaultSettings()
 
     //Restore teaming options
     ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());        // load new team sizes in teamingOptions and in ui selection box
     teamingOptions->isolatedWomenPrevented = savedSettings.value("isolatedWomenPrevented", false).toBool();
-    ui->isolatedWomenCheckBox->setChecked(teamingOptions->isolatedWomenPrevented);
     teamingOptions->isolatedMenPrevented = savedSettings.value("isolatedMenPrevented", false).toBool();
-    ui->isolatedMenCheckBox->setChecked(teamingOptions->isolatedMenPrevented);
     teamingOptions->isolatedNonbinaryPrevented = savedSettings.value("isolatedNonbinaryPrevented", false).toBool();
-    ui->isolatedNonbinaryCheckBox->setChecked(teamingOptions->isolatedNonbinaryPrevented);
     teamingOptions->singleGenderPrevented = savedSettings.value("singleGenderPrevented", false).toBool();
-    ui->mixedGenderCheckBox->setChecked(teamingOptions->singleGenderPrevented);
     teamingOptions->isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
-    ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
-    ui->isolatedURMCheckBox->setChecked(teamingOptions->isolatedURMPrevented);
-    ui->isolatedURMCheckBox->blockSignals(false);
     teamingOptions->minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
-    ui->minMeetingTimes->setValue(teamingOptions->minTimeBlocksOverlap);
     teamingOptions->desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
-    ui->desiredMeetingTimes->setValue(teamingOptions->desiredTimeBlocksOverlap);
     teamingOptions->meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toInt();
-    ui->meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
     teamingOptions->scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
-    ui->scheduleWeight->setValue(double(teamingOptions->scheduleWeight));
     savedSettings.beginReadArray("Attributes");
     for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {
         savedSettings.setArrayIndex(attribNum);
@@ -1676,7 +1664,9 @@ void gruepr::loadUI()
 
     if(dataOptions->URMIncluded) {
         ui->URMSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
         ui->isolatedURMCheckBox->setChecked(teamingOptions->isolatedURMPrevented);
+        ui->isolatedURMCheckBox->blockSignals(false);
     }
     else {
         ui->URMFrame->hide();

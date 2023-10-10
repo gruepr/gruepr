@@ -61,8 +61,6 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setButtonText(QWizard::NextButton, tr("Next Step") + "  " + RIGHTARROW);
     button(QWizard::CustomButton2)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     setButtonText(QWizard::CustomButton2, tr("Return to Preview") + "  " + RIGHTARROWTOEND);
-    button(QWizard::FinishButton)->setStyleSheet(NEXTBUTTONSTYLE);
-    setButtonText(QWizard::FinishButton, tr("Close") + "  " + RIGHTDOUBLEARROW);
 }
 
 SurveyMakerWizard::~SurveyMakerWizard() {
@@ -111,7 +109,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
     }
 
     //read all options from a text file
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
     if( !(fileName.isEmpty()) )
     {
         QFile loadFile(fileName);
@@ -1979,14 +1977,24 @@ PreviewAndExportPage::~PreviewAndExportPage()
 void PreviewAndExportPage::initializePage()
 {
     survey = new Survey;
+    surveyHasBeenExported = false;
     auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     wiz->previewPageVisited = true;
     QList<QWizard::WizardButton> buttonLayout;
-    buttonLayout << QWizard::Stretch << QWizard::BackButton << QWizard::FinishButton;
+    buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
     wiz->setButtonLayout(buttonLayout);
-    wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
-    wiz->button(QWizard::CancelButton)->setStyleSheet(STDBUTTONSTYLE);
-
+    wiz->button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
+    wizard()->button(QWizard::CancelButton)->disconnect();
+    connect(wizard()->button(QWizard::CancelButton), &QPushButton::clicked, this, [this] {if(surveyHasBeenExported) {wizard()->reject();}
+                                                                                          else {
+                                                                                            bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+                                                                                            tr("You have not yet exported this survey.\n"
+                                                                                               "Are you sure you want to close?"),
+                                                                                            tr("Yes"), tr("No"));
+                                                                                            if(okClear) {
+                                                                                                wizard()->reject();
+                                                                                            }
+                                                                                          }});
     //Survey title
     const QString title = field("SurveyTitle").toString().trimmed();
     preSectionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2390,6 +2398,7 @@ void PreviewAndExportPage::cleanupPage()
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton << QWizard::CustomButton2;
     wiz->setButtonLayout(buttonLayout);
+    wiz->button(QWizard::NextButton)->setStyleSheet(NEXTBUTTONSTYLE);
     connect(wiz, &QWizard::customButtonClicked, this, [this](int customButton)
             {if(customButton == QWizard::CustomButton2) {while(wizard()->currentId() != SurveyMakerWizard::Page::previewexport) {wizard()->next();}}});
 }
@@ -2399,13 +2408,13 @@ void PreviewAndExportPage::exportSurvey()
     if(destinationGrueprFile->isChecked()) {
         QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
         //save all options to a text file
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
         if( !(fileName.isEmpty()) )
         {
             QFile saveFile(fileName);
             if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text))
             {
-                saveFileLocation->setFile(QFileInfo(fileName).canonicalPath());
+                saveFileLocation->setFile(QFileInfo(fileName).canonicalFilePath());
                 QJsonObject saveObject;
                 saveObject["Title"] = field("SurveyTitle").toString();
 
@@ -2460,6 +2469,7 @@ void PreviewAndExportPage::exportSurvey()
                 QJsonDocument saveDoc(saveObject);
                 saveFile.write(saveDoc.toJson());
                 saveFile.close();
+                surveyHasBeenExported = true;
             }
             else
             {
@@ -2546,6 +2556,7 @@ void PreviewAndExportPage::exportSurvey()
         output2 << csvFileContents;
         saveFile.close();
         saveFile2.close();
+        surveyHasBeenExported = true;
     }
     else if(destinationGoogle->isChecked()) {
         if(!grueprGlobal::internetIsGood())
@@ -2704,6 +2715,7 @@ void PreviewAndExportPage::exportSurvey()
                                                                                                                 UI_DISPLAY_DELAYTIME);});
             successDialog->exec();
             successDialog->deleteLater();
+            surveyHasBeenExported = true;
         }
     }
     else if(destinationCanvas->isChecked()) {
@@ -2818,6 +2830,7 @@ void PreviewAndExportPage::exportSurvey()
             successDialog->setStandardButtons(QMessageBox::Ok);
             successDialog->exec();
             successDialog->deleteLater();
+            surveyHasBeenExported = true;
         }
         delete canvasCourses;
     }
