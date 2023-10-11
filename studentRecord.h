@@ -14,8 +14,8 @@ public:
     StudentRecord();
     explicit StudentRecord(const QJsonObject &jsonStudentRecord);
 
-    void parseRecordFromStringList(const QStringList &fields, const DataOptions* const dataOptions);
-    void createTooltip(const DataOptions* const dataOptions);
+    void parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions);
+    void createTooltip(const DataOptions &dataOptions);
 
     QJsonObject toJson() const;
 

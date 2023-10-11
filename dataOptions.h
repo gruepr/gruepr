@@ -45,6 +45,7 @@ public:
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
     float earlyTimeAsked = 0;                       // earliest time asked in survey (in hours since midnight)
     float lateTimeAsked = 24;                       // latest time asked in survey (in hours since midnight)
+    float scheduleResolution = 1;                   // how finely resolved the schedule is (in hours)
     enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? Are multiple values allowed?
     bool prefTeammatesIncluded = false;             // did students get to include preferred teammates?
     int numPrefTeammateQuestions = 0;

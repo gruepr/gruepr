@@ -56,6 +56,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     baseTimezone = jsonDataOptions["baseTimezone"].toDouble();
     earlyTimeAsked = jsonDataOptions["earlyTimeAsked"].toDouble();
     lateTimeAsked = jsonDataOptions["lateTimeAsked"].toDouble();
+    scheduleResolution = jsonDataOptions["scheduleResolution"].toDouble();
     prefTeammatesIncluded = jsonDataOptions["prefTeammatesIncluded"].toBool();
     numPrefTeammateQuestions = jsonDataOptions["numPrefTeammateQuestions"].toInt();
     prefNonTeammatesIncluded = jsonDataOptions["prefNonTeammatesIncluded"].toBool();
@@ -276,6 +277,7 @@ QJsonObject DataOptions::toJson() const
         {"baseTimezone", baseTimezone},
         {"earlyTimeAsked", earlyTimeAsked},
         {"lateTimeAsked", lateTimeAsked},
+        {"scheduleResolution", scheduleResolution},
         {"attributeType", attributeTypeArray},
         {"prefTeammatesIncluded", prefTeammatesIncluded},
         {"numPrefTeammateQuestions", numPrefTeammateQuestions},

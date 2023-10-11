@@ -66,11 +66,11 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 ////////////////////////////////////////////
 // Move fields read from file into student record values
 ////////////////////////////////////////////
-void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions* const dataOptions)
+void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions)
 {
     int numFields = fields.size();
     // Timestamp
-    int fieldnum = dataOptions->timestampField;
+    int fieldnum = dataOptions.timestampField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         const QString &timestampText = fields.at(fieldnum);
         surveyTimestamp = QDateTime::fromString(timestampText.left(timestampText.lastIndexOf(' ')), TIMESTAMP_FORMAT1); // format with direct download from Google Form
@@ -106,13 +106,13 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // LMSID
-    fieldnum = dataOptions->LMSIDField;
+    fieldnum = dataOptions.LMSIDField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         LMSID = fields.at(fieldnum).toUtf8().trimmed().toInt();
     }
 
     // First name
-    fieldnum = dataOptions->firstNameField;
+    fieldnum = dataOptions.firstNameField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         firstname = fields.at(fieldnum).toLatin1().trimmed();
         if(!firstname.isEmpty()) {
@@ -121,7 +121,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // Last name
-    fieldnum = dataOptions->lastNameField;
+    fieldnum = dataOptions.lastNameField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         lastname = fields.at(fieldnum).toLatin1().trimmed();
         if(!lastname.isEmpty()) {
@@ -130,15 +130,14 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // Email
-    fieldnum = dataOptions->emailField;
+    fieldnum = dataOptions.emailField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         email = fields.at(fieldnum).toLatin1().trimmed();
     }
 
     // gender
-    if(dataOptions->genderIncluded)
-    {
-        fieldnum = dataOptions->genderField;
+    if(dataOptions.genderIncluded) {
+        fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString field = fields.at(fieldnum).toUtf8();
             if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) ||
@@ -172,10 +171,10 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // racial/ethnic heritage
-    if(dataOptions->URMIncluded) {
-        fieldnum = dataOptions->URMField;
+    if(dataOptions.URMIncluded) {
+        fieldnum = dataOptions.URMField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toLatin1().toLower().simplified();
+            QString field = fields.at(fieldnum).toLatin1().toLower().trimmed();
             if(field == "") {
                 field = QObject::tr("--");
             }
@@ -190,34 +189,34 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // attributes
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        fieldnum = dataOptions->attributeField[attribute];
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
+        fieldnum = dataOptions.attributeField[attribute];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toLatin1();
+            QString field = fields.at(fieldnum).toLatin1().trimmed();
             field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
             attributeResponse[attribute] = field;
         }
     }
 
-    // schedule days
-    const int numDays = int(dataOptions->dayNames.size());
-    const int numTimes = int(dataOptions->timeNames.size());
+    // schedule
     float timezoneOffset = 0;
-    fieldnum = dataOptions->timezoneField;
+    fieldnum = dataOptions.timezoneField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         QString timezoneText = fields.at(fieldnum).toUtf8(), timezoneName;
         if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone)) {
-            if(dataOptions->homeTimezoneUsed) {
-                timezoneOffset = dataOptions->baseTimezone - timezone;
+            if(dataOptions.homeTimezoneUsed) {
+                timezoneOffset = dataOptions.baseTimezone - timezone;
             }
         }
     }
+    const int numDays = int(dataOptions.dayNames.size());
+    const int numTimes = int(dataOptions.timeNames.size());
     for(int day = 0; day < numDays; day++) {
-        fieldnum = dataOptions->scheduleField[day];
+        fieldnum = dataOptions.scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString field = fields.at(fieldnum).toUtf8();
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
-            for(const auto &timeName : dataOptions->timeNames) {
+            for(const auto &timeName : dataOptions.timeNames) {
                 float time = grueprGlobal::timeStringToHours(timeName);
                 // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
                 if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > 24))) {
@@ -251,33 +250,39 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     }
                 }
                 int timeindex = 0;
-                while(actualtime > grueprGlobal::timeStringToHours(dataOptions->timeNames.at(timeindex)) && timeindex < numTimes) {
+                while((grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex)) != -1) &&
+                      (actualtime > grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex))) &&
+                      timeindex < numTimes) {
                     timeindex++;
+                }
+
+                if((actualday < 0) || (actualday > MAX_DAYS) || (timeindex < 0) || (timeindex > MAX_BLOCKS_PER_DAY)) {
+                    continue;   // something went wrong in figuring out where to put this value in the array!
                 }
 
                 bool &unavailabilitySpot = unavailable[actualday][timeindex];
 
-                if(dataOptions->scheduleDataIsFreetime) {
+                if(dataOptions.scheduleDataIsFreetime) {
                     unavailabilitySpot = !timenameRegEx.match(field).hasMatch();
                 }
                 else {
                     // since we asked when they're unavailable, ignore any times that we didn't actually ask about
-                    if((time >= dataOptions->earlyTimeAsked) && (time <= dataOptions->lateTimeAsked)) {
+                    if((time >= dataOptions.earlyTimeAsked) && (time <= dataOptions.lateTimeAsked)) {
                         unavailabilitySpot = timenameRegEx.match(field).hasMatch();
                     }
                 }
             }
         }
     }
-    if(!dataOptions->dayNames.isEmpty()) {
+    if(!dataOptions.dayNames.isEmpty()) {
         availabilityChart = QObject::tr("Availability:");
         availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(int day = 0; day < numDays; day++) {
-            availabilityChart += "<th>" + dataOptions->dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
+            availabilityChart += "<th>" + dataOptions.dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         availabilityChart += "</tr>";
         for(int time = 0; time < numTimes; time++) {
-            availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time).toUtf8() + "</th>";
+            availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toUtf8() + "</th>";
             for(int day = 0; day < numDays; day++) {
                 availabilityChart += QString(unavailable[day][time]?
                             "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
@@ -289,9 +294,9 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     ambiguousSchedule = (availabilityChart.count("√") == 0 || int(availabilityChart.count("√")) == (numDays * numTimes));
 
     // section
-    if(dataOptions->sectionIncluded) {
+    if(dataOptions.sectionIncluded) {
         QString sectionText = QObject::tr("section");
-        fieldnum = dataOptions->sectionField;
+        fieldnum = dataOptions.sectionField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             section = fields.at(fieldnum).toUtf8().trimmed();
             if(section.startsWith(sectionText, Qt::CaseInsensitive)) {
@@ -301,8 +306,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // preferred teammates
-    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++) {
-        fieldnum = dataOptions->prefTeammatesField[prefQ];
+    for(int prefQ = 0; prefQ < dataOptions.numPrefTeammateQuestions; prefQ++) {
+        fieldnum = dataOptions.prefTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum).toLatin1();
             static QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
@@ -318,8 +323,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // preferred non-teammates
-    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++) {
-        fieldnum = dataOptions->prefNonTeammatesField[prefQ];
+    for(int prefQ = 0; prefQ < dataOptions.numPrefNonTeammateQuestions; prefQ++) {
+        fieldnum = dataOptions.prefNonTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum).toLatin1();
             static QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
@@ -335,9 +340,9 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // notes
-    for(int note = 0; note < dataOptions->numNotes; note++) {
+    for(int note = 0; note < dataOptions.numNotes; note++) {
         // join each one with a newline after
-        fieldnum = dataOptions->notesField[note];
+        fieldnum = dataOptions.notesField[note];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
             if(!notes.isEmpty() && !nextNote.isEmpty()) {
@@ -354,7 +359,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
 ////////////////////////////////////////////
 // Create a tooltip for a student
 ////////////////////////////////////////////
-void StudentRecord::createTooltip(const DataOptions* const dataOptions)
+void StudentRecord::createTooltip(const DataOptions &dataOptions)
 {
     QString toolTip = "<html>";
     if(duplicateRecord)
@@ -362,44 +367,44 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         toolTip += "<table><tr><td bgcolor=" STARFISHHEX "><b>" + QObject::tr("There appears to be multiple survey submissions from this student!") + "</b></td></tr></table><br>";
     }
     toolTip += firstname + " " + lastname;
-    if(dataOptions->emailField != -1)
+    if(dataOptions.emailField != -1)
     {
         toolTip += "<br>" + email;
     }
-    if(dataOptions->genderIncluded)
+    if(dataOptions.genderIncluded)
     {
         toolTip += "<br>";
         QStringList genderOptions;
-        if(dataOptions->genderType == GenderType::biol)
+        if(dataOptions.genderType == GenderType::biol)
         {
             toolTip += QObject::tr("Gender");
             genderOptions = QString(BIOLGENDERS).split('/');
         }
-        else if(dataOptions->genderType == GenderType::adult)
+        else if(dataOptions.genderType == GenderType::adult)
         {
             toolTip += QObject::tr("Gender");
             genderOptions = QString(ADULTGENDERS).split('/');
         }
-        else if(dataOptions->genderType == GenderType::child)
+        else if(dataOptions.genderType == GenderType::child)
         {
             toolTip += QObject::tr("Gender");
             genderOptions = QString(CHILDGENDERS).split('/');
         }
-        else //if(dataOptions->genderType == GenderType::pronoun)
+        else //if(dataOptions.genderType == GenderType::pronoun)
         {
             toolTip += QObject::tr("Pronouns");
             genderOptions = QString(PRONOUNS).split('/');
         }
         toolTip += ":  " + genderOptions.at(static_cast<int>(gender));
     }
-    if(dataOptions->URMIncluded)
+    if(dataOptions.URMIncluded)
     {
         toolTip += "<br>" + QObject::tr("Identity") + ":  ";
         toolTip += URMResponse;
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
     {
-        if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
+        if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone)
         {
             continue;
         }
@@ -407,17 +412,17 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
         auto value = attributeVals[attribute].constBegin();
         if(*value != -1)
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered)
+            if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered)
             {
                 toolTip += QString::number(*value);
             }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical)
+            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical)
             {
                 // if attribute value is > 26, letters are repeated as needed
                 toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
                                              QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
             }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)
+            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical)
             {
                 const auto lastVal = attributeVals[attribute].constEnd();
                 while(value != lastVal)
@@ -431,7 +436,7 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
                     }
                 }
             }
-            else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)
+            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered)
             {
                 const auto lastVal = attributeVals[attribute].constEnd();
                 while(value != lastVal)
@@ -451,13 +456,13 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
             toolTip += "?";
         }
     }
-    if(dataOptions->timezoneIncluded)
+    if(dataOptions.timezoneIncluded)
     {
         toolTip += "<br>" + QObject::tr("Timezone:  ");
         //find the timezone as attribute value so that -1 can show as unknown timezone
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
+        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
         {
-            if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::timezone)
+            if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone)
             {
                 if(*attributeVals[attribute].constBegin() != -1)
                 {
@@ -476,17 +481,17 @@ void StudentRecord::createTooltip(const DataOptions* const dataOptions)
     {
         toolTip += "<br>--<br>" + availabilityChart;
     }
-    if(dataOptions->prefTeammatesIncluded)
+    if(dataOptions.prefTeammatesIncluded)
     {
         QString note = prefTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions->prefNonTeammatesIncluded)
+    if(dataOptions.prefNonTeammatesIncluded)
     {
         QString note = prefNonTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Non-teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions->numNotes > 0)
+    if(dataOptions.numNotes > 0)
     {
         QString note = notes;
         if(note.size() > SIZE_OF_NOTES_IN_TOOLTIP)

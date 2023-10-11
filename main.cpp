@@ -37,15 +37,12 @@
 //
 // DONE:
 //   NEW FEATURES:
-// - more granular scheduling option, down to the 15 minute level at least: use survey->schedTimeNames in googlehandler and canvashandler
-// - better UI on when close button is hit in surveymaker, confirming close if survey has not been exported
+// - gruepr now auto-saves, including the current set of teaming options, the student database, and all team sets
+// - more granular scheduling option, down to the 15 minute level; use survey->schedTimeNames in googlehandler and canvashandler
+// - better UI on when close button is hit in surveymaker, confirming close if survey has not yet been exported
 //
 //   BUGFIXES:
 // - now handles (by skipping) blank names in the student roster csv file used in surveymaker
-//
-// IN PROG:
-//   NEW FEATURES:
-// - add auto-saving class (teamingoptions, student database, all teamstabs) to gruepr teamingOptions & teamtooltips not saving with teamtab in json?
 //
 // TO DO:
 //   BUGFIXES:

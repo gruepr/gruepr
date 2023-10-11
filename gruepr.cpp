@@ -132,7 +132,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->isolatedURMCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedURMCheckBox);});
     connect(ui->minMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->minMeetingTimes);});
     connect(ui->desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->desiredMeetingTimes);});
-    connect(ui->meetingLengthSpinBox, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
+    connect(ui->meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
     connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
 
     //Connect genetic algorithm progress signals to slots
@@ -326,7 +326,7 @@ void gruepr::editAStudent()
     int reply = win->exec();
     if(reply == QDialog::Accepted)
     {
-        students[indexBeingEdited].createTooltip(dataOptions);
+        students[indexBeingEdited].createTooltip(*dataOptions);
         students[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(students[indexBeingEdited].URMResponse);
 
         rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
@@ -443,7 +443,7 @@ void gruepr::on_addStudentPushButton_clicked()
         if(reply == QDialog::Accepted)
         {
             newStudent.ID = students.size();
-            newStudent.createTooltip(dataOptions);
+            newStudent.createTooltip(*dataOptions);
             newStudent.URM = teamingOptions->URMResponsesConsideredUR.contains(newStudent.URMResponse);
             newStudent.ambiguousSchedule = (newStudent.availabilityChart.count("√") == 0 ||
                                            (newStudent.availabilityChart.count("√") == (dataOptions->dayNames.size() * dataOptions->timeNames.size())));
@@ -555,7 +555,7 @@ void gruepr::on_compareRosterPushButton_clicked()
                         {
                             newStudent.attributeVals[attribute] << -1;
                         }
-                        newStudent.createTooltip(dataOptions);
+                        newStudent.createTooltip(*dataOptions);
 
                         students << newStudent;
 
@@ -575,14 +575,14 @@ void gruepr::on_compareRosterPushButton_clicked()
                         {
                             dataHasChanged = true;
                             students[index].email = emails.at(names.indexOf(name));
-                            students[index].createTooltip(dataOptions);
+                            students[index].createTooltip(*dataOptions);
                         }
                         if(choiceWindow->useRosterName)
                         {
                             dataHasChanged = true;
                             students[index].firstname = name.split(" ").first();
                             students[index].lastname = name.split(" ").mid(1).join(" ");
-                            students[index].createTooltip(dataOptions);
+                            students[index].createTooltip(*dataOptions);
                         }
                     }
                 }
@@ -626,7 +626,7 @@ void gruepr::on_compareRosterPushButton_clicked()
                     dataHasChanged = true;
                     makeTheChange = true;
                     students[studentNum].email = emails.at(names.indexOf(surveyName));
-                    students[studentNum].createTooltip(dataOptions);
+                    students[studentNum].createTooltip(*dataOptions);
                 }
                 else
                 {
@@ -637,7 +637,7 @@ void gruepr::on_compareRosterPushButton_clicked()
             else if(makeTheChange)
             {
                 students[studentNum].email = emails.at(names.indexOf(surveyName));
-                students[studentNum].createTooltip(dataOptions);
+                students[studentNum].createTooltip(*dataOptions);
             }
             i++;
         }
@@ -711,10 +711,10 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             {
                 students[index].duplicateRecord = true;
                 students[index2].duplicateRecord = true;
-                students[index2].createTooltip(dataOptions);
+                students[index2].createTooltip(*dataOptions);
             }
         }
-        students[index].createTooltip(dataOptions);
+        students[index].createTooltip(*dataOptions);
     }
 
     // Re-build the URM info
@@ -1010,6 +1010,16 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
     teamingOptions->meetingBlockSize = (ui->meetingLengthSpinBox->value());
     if(sender == ui->meetingLengthSpinBox) {
         ui->meetingLengthSpinBox->setSuffix(ui->meetingLengthSpinBox->value() > 1? tr(" hours") : tr(" hour"));
+        const int roundedVal = std::round(100*ui->meetingLengthSpinBox->value());
+        if((roundedVal == 100) || (roundedVal == 200) || (roundedVal == 300)) {
+            ui->meetingLengthSpinBox->setDecimals(0);
+        }
+        else if ((roundedVal == 50) || (roundedVal == 150)) {
+            ui->meetingLengthSpinBox->setDecimals(1);
+        }
+        else {
+            ui->meetingLengthSpinBox->setDecimals(2);
+        }
         if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0)) {
             ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
             ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
@@ -1332,6 +1342,7 @@ void gruepr::on_letsDoItButton_clicked()
         teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
     }
     teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
+    teamingOptions->realMeetingBlockSize = std::ceil(teamingOptions->meetingBlockSize / dataOptions->scheduleResolution); // divide by length of time block in hours, rounded up
 
     bestTeamSet.clear();
     finalTeams.clear();
@@ -1569,7 +1580,8 @@ void gruepr::loadDefaultSettings()
     teamingOptions->isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
     teamingOptions->minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
     teamingOptions->desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
-    teamingOptions->meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toInt();
+    teamingOptions->meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toFloat();
+    teamingOptions->realMeetingBlockSize = savedSettings.value("realMeetingBlockSize", 1).toInt();
     teamingOptions->scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
     savedSettings.beginReadArray("Attributes");
     for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {
@@ -2955,6 +2967,7 @@ void gruepr::closeEvent(QCloseEvent *event)
             savedSettings.setValue("minTimeBlocksOverlap", teamingOptions->minTimeBlocksOverlap);
             savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions->desiredTimeBlocksOverlap);
             savedSettings.setValue("meetingBlockSize", teamingOptions->meetingBlockSize);
+            savedSettings.setValue("realMeetingBlockSize", teamingOptions->realMeetingBlockSize);
             savedSettings.setValue("scheduleWeight", teamingOptions->scheduleWeight);
             savedSettings.beginWriteArray("Attributes");
             for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {

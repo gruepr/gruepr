@@ -174,7 +174,7 @@ bool GetGrueprDataDialog::getFromFile()
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
-    if(!surveyFile->open(this, CsvFile::read, tr("Open Survey Data File"), dataFileLocation.canonicalFilePath(), tr("Survey Data")))
+    if(!surveyFile->open(this, CsvFile::read, tr("Open Survey Data File"), dataFileLocation.canonicalPath(), tr("Survey Data")))
     {
         return false;
     }
@@ -902,6 +902,20 @@ bool GetGrueprDataDialog::readData()
                                             {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
         dataOptions->timeNames = allTimeNames;
 
+        // look at all the time values. If any end with 0.25, set schedule resolution to 0.25 immediately and stop looking
+        // if none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
+        dataOptions->scheduleResolution = 1;
+        for(const auto &timeName : dataOptions->timeNames) {
+            const int numOfQuarterHours = std::lround(4 * grueprGlobal::timeStringToHours(timeName)) % 4;
+            if((numOfQuarterHours == 1) || (numOfQuarterHours == 3)) {
+                dataOptions->scheduleResolution = 0.25;
+                break;
+            }
+            else if(numOfQuarterHours == 2) {
+                dataOptions->scheduleResolution = 0.5;
+            }
+        }
+
         //pad the timeNames to include all 24 hours if we will be time-shifting student responses based on their home timezones later
         if(dataOptions->homeTimezoneUsed)
         {
@@ -953,18 +967,19 @@ bool GetGrueprDataDialog::readData()
     int numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     do
     {
-        students << StudentRecord();
-        students.last().parseRecordFromStringList(surveyFile->fieldValues, dataOptions);
-        students.last().ID = students.size();
+        students.emplaceBack(StudentRecord());
+        auto &currStudent = students.last();
+        currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions);
+        currStudent.ID = students.size();
 
         // see if this record is a duplicate; assume it isn't and then check
-        students.last().duplicateRecord = false;
+        currStudent.duplicateRecord = false;
         for(int index = 0; index < numStudents; index++)
         {
-            if(((students.last().firstname + students.last().lastname).compare(students[index].firstname + students[index].lastname, Qt::CaseInsensitive) == 0) ||
-                ((students.last().email.compare(students[index].email, Qt::CaseInsensitive) == 0) && !students.last().email.isEmpty()))
+            if(((currStudent.firstname + currStudent.lastname).compare(students[index].firstname + students[index].lastname, Qt::CaseInsensitive) == 0) ||
+                ((currStudent.email.compare(students[index].email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty()))
             {
-                students.last().duplicateRecord = true;
+                currStudent.duplicateRecord = true;
                 students[index].duplicateRecord = true;
             }
         }
@@ -1014,19 +1029,20 @@ bool GetGrueprDataDialog::readData()
             {
                 // Match not found -- student did not submit a survey -- so add a record with their name
                 numNonSubmitters++;
-                students << StudentRecord();
-                students.last().surveyTimestamp = QDateTime();
-                students.last().firstname = student.firstname;
-                students.last().lastname = student.lastname;
-                students.last().LMSID = student.LMSID;
-                for(auto &day : students.last().unavailable)
+                students.emplaceBack(StudentRecord());
+                auto &currStudent = students.last();
+                currStudent.surveyTimestamp = QDateTime();
+                currStudent.firstname = student.firstname;
+                currStudent.lastname = student.lastname;
+                currStudent.LMSID = student.LMSID;
+                for(auto &day : currStudent.unavailable)
                 {
                     for(auto &time : day)
                     {
                         time = false;
                     }
                 }
-                students.last().ambiguousSchedule = true;
+                currStudent.ambiguousSchedule = true;
                 numStudents++;
             }
         }
@@ -1241,7 +1257,7 @@ bool GetGrueprDataDialog::readData()
 
     // set all of the students' tooltips
     for(auto &student : students) {
-        student.createTooltip(dataOptions);
+        student.createTooltip(*dataOptions);
     }
 
     loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + MAX_ATTRIBUTES);

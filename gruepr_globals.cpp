@@ -10,20 +10,27 @@
 #include <QWidget>
 
 float grueprGlobal::timeStringToHours(const QString &timeStr) {
+    static QStringList formats = QString(TIMEFORMATS).split(';');
+    int i = 0;
+    for (const auto &format : formats) {
+        QTime time = QTime::fromString(timeStr, format);
+        if(time.isValid()) {
+            if(i != 0) {
+                // move this format to be first, since most likely all others will be same
+                const QString currFormat = format;
+                formats.removeOne(currFormat);
+                formats.prepend(currFormat);
+            }
+            return time.hour() + (time.minute() / 60.0) + (time.second()/3600.0);
+        }
+        i++;
+    }
 
     if(timeStr.compare(QObject::tr("noon"), Qt::CaseInsensitive) == 0) {
         return 12;
     }
     if(timeStr.compare(QObject::tr("midnight"), Qt::CaseInsensitive) == 0) {
         return 0;
-    }
-
-    static const QStringList formats = QString(TIMEFORMATS).split(';');
-    for (const auto &format : formats) {
-        QTime time = QTime::fromString(timeStr, format);
-        if (time.isValid()) {
-            return time.hour() + (time.minute() / 60.0) + (time.second()/3600.0);
-        }
     }
 
     // Return -1.0 to indicate an invalid time string

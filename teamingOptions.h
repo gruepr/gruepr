@@ -25,7 +25,8 @@ public:
     QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented
     int desiredTimeBlocksOverlap = 8;                   // want at least this many time blocks per week overlapped (additional overlap is counted less schedule score)
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
-    int meetingBlockSize = 1;                           // count available meeting times in units of 1 hour or 2 hours long
+    float meetingBlockSize = 1;                         // the minimum length of schedule overlap to count as a meeting time (in units of hours)
+    int realMeetingBlockSize = 1;                       // the minimum length of schedule overlap (in units of # of blocks in schedule)
     bool desireHomogeneous[MAX_ATTRIBUTES]; 			// if true/false, tries to make all students on a team have similar/different levels of each attribute
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
     float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight

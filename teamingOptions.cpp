@@ -31,7 +31,8 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     }
     desiredTimeBlocksOverlap = jsonTeamingOptions["desiredTimeBlocksOverlap"].toInt();
     minTimeBlocksOverlap = jsonTeamingOptions["minTimeBlocksOverlap"].toInt();
-    meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toInt();
+    meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
+    realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
     QJsonArray desireHomogeneousArray = jsonTeamingOptions["desireHomogeneous"].toArray();
     int i = 0;
     for(const auto &item : desireHomogeneousArray) {
@@ -197,6 +198,7 @@ QJsonObject TeamingOptions::toJson() const
         {"desiredTimeBlocksOverlap", desiredTimeBlocksOverlap},
         {"minTimeBlocksOverlap", minTimeBlocksOverlap},
         {"meetingBlockSize", meetingBlockSize},
+        {"realMeetingBlockSize", realMeetingBlockSize},
         {"desireHomogeneous", desireHomogeneousArray},
         {"attributeWeights", attributeWeightsArray},
         {"realAttributeWeights", realAttributeWeightsArray},
