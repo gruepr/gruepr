@@ -505,7 +505,7 @@ bool GetGrueprDataDialog::getFromPrevWork()
     QJsonArray studentjsons = content["students"].toArray();
     students.reserve(studentjsons.size());
     for(const auto &studentjson : studentjsons) {
-        students.emplace_back(studentjson.toObject());
+        students.emplaceBack(studentjson.toObject());
     }
     dataOptions = new DataOptions(content["dataoptions"].toObject());
     source = DataOptions::fromPrevWork;
@@ -968,7 +968,7 @@ bool GetGrueprDataDialog::readData()
     int numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
     do
     {
-        students.emplaceBack(StudentRecord());
+        students.emplaceBack();
         auto &currStudent = students.last();
         currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions);
         currStudent.ID = students.size();
@@ -1030,7 +1030,7 @@ bool GetGrueprDataDialog::readData()
             {
                 // Match not found -- student did not submit a survey -- so add a record with their name
                 numNonSubmitters++;
-                students.emplaceBack(StudentRecord());
+                students.emplaceBack();
                 auto &currStudent = students.last();
                 currStudent.surveyTimestamp = QDateTime();
                 currStudent.firstname = student.firstname;

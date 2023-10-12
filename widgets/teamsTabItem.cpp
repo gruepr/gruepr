@@ -38,12 +38,12 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
     students.reserve(studentsArray.size());
     for(const auto &student : studentsArray) {
-        students << StudentRecord(student.toObject());
+        students.emplaceBack(student.toObject());
     }
     QJsonArray teamsArray = jsonTeamsTab["teams"].toArray();
     teams.reserve(teamsArray.size());
     for(const auto &team : teamsArray) {
-        teams << TeamRecord(team.toObject());
+        teams.emplaceBack(team.toObject());
     }
     tabName = jsonTeamsTab["tabName"].toString();
 

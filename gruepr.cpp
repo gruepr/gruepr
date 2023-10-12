@@ -1356,7 +1356,7 @@ void gruepr::on_letsDoItButton_clicked()
         teams.reserve(numTeams);
         for(int team = 0; team < numTeams; team++)	// run through every team to load dataOptions and size
         {
-            teams << TeamRecord(dataOptions, teamingOptions->teamSizesDesired[team]);
+            teams.emplaceBack(dataOptions, teamingOptions->teamSizesDesired[team]);
         }
 
         // Create progress display plot
@@ -1584,7 +1584,7 @@ void gruepr::loadDefaultSettings()
             for(int incompResp = 0; incompResp < numIncompats; incompResp++) {
                 savedSettings.setArrayIndex(incompResp);
                 QStringList incompats = savedSettings.value("incompatibleResponses", "").toString().split(',');
-                teamingOptions->incompatibleAttributeValues[attribNum] << QPair<int,int>(incompats.at(0).toInt(),incompats.at(1).toInt());
+                teamingOptions->incompatibleAttributeValues[attribNum].emplaceBack(incompats.at(0).toInt(),incompats.at(1).toInt());
             }
             savedSettings.endArray();
             int numRequireds = savedSettings.beginReadArray("requiredResponses");
