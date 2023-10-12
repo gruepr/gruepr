@@ -598,19 +598,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                  </property>
                 </widget>
                </item>
-               <item row="1" column="2">
-                <spacer name="horizontalSpacer_1">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>18</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
               </layout>
              </item>
              <item>
@@ -624,10 +611,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                   <string> hour</string>
                  </property>
                  <property name="decimals">
-                  <number>0</number>
+                  <number>2</number>
                  </property>
                  <property name="minimum">
-                  <double>0.000000000000000</double>
+                  <double>0.250000000000000</double>
                  </property>
                  <property name="maximum">
                   <double>3.000000000000000</double>
@@ -639,19 +626,6 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                   <double>1.000000000000000</double>
                  </property>
                 </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>0</width>
-                   <height>18</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>

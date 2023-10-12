@@ -19,7 +19,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
     QSettings savedSettings;
     int numPrevWorks = savedSettings.beginReadArray("prevWorks");
     ui->fromPrevWorkRadioButton->setVisible(numPrevWorks > 0);
-    for (int prevWork = 0; prevWork < numPrevWorks; ++prevWork) {
+    for (int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
         savedSettings.setArrayIndex(prevWork);
         const QString displayName = savedSettings.value("prevWorkName", "").toString() +
                                     " [Last opened: " + savedSettings.value("prevWorkDate", "").toString() + "]";
@@ -781,6 +781,7 @@ bool GetGrueprDataDialog::readData()
 {
     auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
                                                       this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    loadingProgressDialog->setMinimumDuration(0);
     loadingProgressDialog->setWindowModality(Qt::WindowModal);
     loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
 

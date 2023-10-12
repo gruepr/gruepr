@@ -1010,19 +1010,9 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
     teamingOptions->meetingBlockSize = (ui->meetingLengthSpinBox->value());
     if(sender == ui->meetingLengthSpinBox) {
         ui->meetingLengthSpinBox->setSuffix(ui->meetingLengthSpinBox->value() > 1? tr(" hours") : tr(" hour"));
-        const int roundedVal = std::round(100*ui->meetingLengthSpinBox->value());
-        if((roundedVal == 100) || (roundedVal == 200) || (roundedVal == 300)) {
-            ui->meetingLengthSpinBox->setDecimals(0);
-        }
-        else if ((roundedVal == 50) || (roundedVal == 150)) {
-            ui->meetingLengthSpinBox->setDecimals(1);
-        }
-        else {
-            ui->meetingLengthSpinBox->setDecimals(2);
-        }
         if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0)) {
-            ui->minMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
-            ui->desiredMeetingTimes->setMaximum(int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value()));
+            ui->minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
+            ui->desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
         }
     }
 
@@ -1758,11 +1748,24 @@ void gruepr::loadUI()
     }
 
     if(!dataOptions->dayNames.isEmpty()) {
-        ui->minMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
+        ui->minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
         ui->minMeetingTimes->setValue(teamingOptions->minTimeBlocksOverlap);
-        ui->desiredMeetingTimes->setMaximum(int((dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
+        ui->desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
         ui->desiredMeetingTimes->setValue(teamingOptions->desiredTimeBlocksOverlap);
+        //display no decimals if whole number of hours, 1 decimal if on the half-hour, 2 decimals otherwise
+        const int roundedVal = std::round(100*dataOptions->scheduleResolution);
+        if((roundedVal == 100) || (roundedVal == 200) || (roundedVal == 300)) {
+            ui->meetingLengthSpinBox->setDecimals(0);
+        }
+        else if ((roundedVal == 50) || (roundedVal == 150)) {
+            ui->meetingLengthSpinBox->setDecimals(1);
+        }
+        else {
+            ui->meetingLengthSpinBox->setDecimals(2);
+        }
         ui->meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
+        ui->meetingLengthSpinBox->setSingleStep(dataOptions->scheduleResolution);
+        ui->meetingLengthSpinBox->setMinimum(dataOptions->scheduleResolution);
         ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
         ui->scheduleSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
@@ -1822,6 +1825,7 @@ void gruepr::saveState()
             savedSettings.setArrayIndex(index);
         }
         savedSettings.setValue("prevWorkDate", QDateTime::currentDateTime().toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)));
+        savedSettings.setArrayIndex(numIndexes); // go to the end of the array so that we still have access to all values next time
         savedSettings.endArray();
     }
 }
@@ -2515,6 +2519,7 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
     {
         const int numDays = int(_dataOptions->dayNames.size());
         const int numTimes = int(_dataOptions->timeNames.size());
+        const int numBlocksNeeded = _teamingOptions->realMeetingBlockSize;
 
         // combine each student's schedule array into a team schedule array
         studentNum = 0;
@@ -2582,55 +2587,21 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
                 continue;
             }
 
-            // count how many free time blocks there are
-            if(_teamingOptions->meetingBlockSize == 1)
+            //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
+            for(int day = 0; day < numDays; day++)
             {
-                for(int day = 0; day < numDays; day++)
+                for(int time = 0; time < numTimes; time++)
                 {
-                    for(int time = 0; time < numTimes; time++)
-                    {
-                        if(_availabilityChart[day][time])
-                        {
-                            _schedScore[team]++;
+                    int block = 0;
+                    while((_availabilityChart[day][time]) && (block < numBlocksNeeded)) {
+                        block++;
+                        if(block < numBlocksNeeded) {
+                            time++;
                         }
                     }
-                }
-            }
-            else if(_teamingOptions->meetingBlockSize == 2)   //user wants to count only 2-hr time blocks, but don't count wrap-around past end of 1 day!
-            {
-                for(int day = 0; day < numDays; day++)
-                {
-                    for(int time = 0; time < numTimes-1; time++)
-                    {
-                        if(_availabilityChart[day][time])
-                        {
-                            time++;
-                            if(_availabilityChart[day][time])
-                            {
-                                _schedScore[team]++;
-                            }
-                        }
-                    }
-                }
-            }
-            else if(_teamingOptions->meetingBlockSize == 3)   //user wants to count only 3-hr time blocks, but don't count wrap-around past end of 1 day!
-            {
-                for(int day = 0; day < numDays; day++)
-                {
-                    for(int time = 0; time < numTimes-2; time++)
-                    {
-                        if(_availabilityChart[day][time])
-                        {
-                            time++;
-                            if(_availabilityChart[day][time])
-                            {
-                                time++;
-                                if(_availabilityChart[day][time])
-                                {
-                                    _schedScore[team]++;
-                                }
-                            }
-                        }
+
+                    if((block == numBlocksNeeded) && (block > 0)){
+                        _schedScore[team]++;
                     }
                 }
             }
