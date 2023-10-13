@@ -227,7 +227,7 @@ void TeamRecord::createTooltip()
 }
 
 
-void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
+void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int meetingBlockSize)
 {
     //re-zero values
     numSections = 0;
@@ -238,13 +238,16 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
     numUnknown = 0;
     numURM = 0;
     numStudentsWithAmbiguousSchedules = 0;
+    numMeetingTimes = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
     {
         attributeVals[attribute].clear();
     }
-    for(int day = 0; day < dataOptions->dayNames.size(); day++)
+    const int numDays = dataOptions->dayNames.size();
+    const int numTimes = dataOptions->timeNames.size();
+    for(int day = 0; day < numDays; day++)
     {
-        for(int time = 0; time < dataOptions->timeNames.size(); time++)
+        for(int time = 0; time < numTimes; time++)
         {
             numStudentsAvailable[day][time] = 0;
         }
@@ -291,9 +294,9 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
         }
         if(!stu.ambiguousSchedule)
         {
-            for(int day = 0; day < dataOptions->dayNames.size(); day++)
+            for(int day = 0; day < numDays; day++)
             {
-                for(int time = 0; time < dataOptions->timeNames.size(); time++)
+                for(int time = 0; time < numTimes; time++)
                 {
                     if(!stu.unavailable[day][time])
                     {
@@ -309,6 +312,26 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student)
         if(dataOptions->timezoneIncluded)
         {
             timezoneVals.insert(stu.timezone);
+        }
+    }
+
+    //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
+    const int numStudentsWithoutAmbiguousSchedules = size - numStudentsWithAmbiguousSchedules;
+    for(int day = 0; day < numDays; day++)
+    {
+        for(int time = 0; time < numTimes; time++)
+        {
+            int blocks = 0;
+            while((numStudentsAvailable[day][time] == numStudentsWithoutAmbiguousSchedules) && (blocks < meetingBlockSize)) {
+                blocks++;
+                if(blocks < meetingBlockSize) {
+                    time++;
+                }
+            }
+
+            if((blocks == meetingBlockSize) && (blocks > 0)){
+                numMeetingTimes++;
+            }
         }
     }
 }

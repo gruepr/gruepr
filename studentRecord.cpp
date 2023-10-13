@@ -20,7 +20,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 {
     ID = jsonStudentRecord["ID"].toInt();
     LMSID = jsonStudentRecord["LMSID"].toInt();
-    duplicateRecord = jsonStudentRecord["LMSID"].toBool();
+    duplicateRecord = jsonStudentRecord["duplicateRecord"].toBool();
     gender = static_cast<Gender>(jsonStudentRecord["gender"].toInt());
     URM = jsonStudentRecord["URM"].toBool();
     timezone = jsonStudentRecord["timezone"].toDouble();

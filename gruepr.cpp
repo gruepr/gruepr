@@ -1306,8 +1306,7 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
 void gruepr::on_letsDoItButton_clicked()
 {
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
-    if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty())
-    {
+    if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
         bool okContinue = grueprGlobal::warningMessage(this, tr("gruepr"),
                                                         tr("You have selected to prevented isolated URM students, "
                                                            "however none of the race/ethnicity response values "
@@ -1315,8 +1314,7 @@ void gruepr::on_letsDoItButton_clicked()
                                                            "Click Continue to form teams with no students considered URM, "
                                                            "or click Open Selection Window to select the URM responses."),
                                                         tr("Continue"), tr("Open Selection Window"));
-        if(!okContinue)
-        {
+        if(!okContinue) {
             ui->URMResponsesButton->animateClick();
             return;
         }
@@ -1327,8 +1325,11 @@ void gruepr::on_letsDoItButton_clicked()
     float normFactor = (float(teamingOptions->realNumScoringFactors)) /
             (std::accumulate(teamingOptions->attributeWeights, teamingOptions->attributeWeights + dataOptions->numAttributes, 0.0f) +
              (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight));
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++)
-    {
+    if(!std::isfinite(normFactor)) {
+        // pretty sure this should never be true given the math above!
+        normFactor = 0;
+    }
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
     }
     teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
@@ -1341,10 +1342,8 @@ void gruepr::on_letsDoItButton_clicked()
     multipleSectionsInProgress = teamingMultipleSections;
     const int numSectionsToTeam = (teamingMultipleSections? int(dataOptions->sectionNames.size()) : 1);
     const int teamSizeSelector = ui->teamSizeBox->currentIndex();
-    for(int section = 0; section < numSectionsToTeam; section++)
-    {
-        if(teamingMultipleSections)
-        {
+    for(int section = 0; section < numSectionsToTeam; section++) {
+        if(teamingMultipleSections) {
             // team each section one at a time by changing the section and teamsize selection boxes
             ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
             ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
@@ -1354,8 +1353,7 @@ void gruepr::on_letsDoItButton_clicked()
         numTeams = teamingOptions->numTeamsDesired;
         teams.clear();
         teams.reserve(numTeams);
-        for(int team = 0; team < numTeams; team++)	// run through every team to load dataOptions and size
-        {
+        for(int team = 0; team < numTeams; team++) {   // run through every team to load dataOptions and size
             teams.emplaceBack(dataOptions, teamingOptions->teamSizesDesired[team]);
         }
 
@@ -1372,15 +1370,14 @@ void gruepr::on_letsDoItButton_clicked()
                                                                          connect(this, &gruepr::turnOffBusyCursor, this, &QApplication::restoreOverrideCursor);
                                                                          optimizationStoppedmutex.lock();
                                                                          optimizationStopped = true;
-                                                                         optimizationStoppedmutex.unlock();});
+                                                                         optimizationStoppedmutex.unlock();
+                                                                        });
 
         // Get the IDs of students from desired section and change numStudents accordingly
         int numStudentsInSection = 0;
         studentIndexes = new int[dataOptions->numStudentsInSystem];
-        for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
-        {
-            if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == students[index].section)
-            {
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
+            if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == students[index].section) {
                 studentIndexes[numStudentsInSection] = index;
                 numStudentsInSection++;
             }
@@ -1396,13 +1393,12 @@ void gruepr::on_letsDoItButton_clicked()
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
         connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, teamSizeSelector]
-                                                                       { if(teamingMultipleSections && !multipleSectionsInProgress)
-                                                                         {
+                                                                       {if(teamingMultipleSections && !multipleSectionsInProgress) {
                                                                             ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
                                                                             ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
-                                                                         }
-                                                                         this->disconnect(SIGNAL(sectionOptimizationFullyComplete()));
-                                                                         loop.quit();
+                                                                        }
+                                                                        this->disconnect(SIGNAL(sectionOptimizationFullyComplete()));
+                                                                        loop.quit();
                                                                        });
         loop.exec();
     }
@@ -1479,7 +1475,7 @@ void gruepr::optimizationComplete()
     updateTeamScores(students.constData(), numActiveStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     for(auto &team:teams)
     {
-        team.refreshTeamInfo(students.constData());
+        team.refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
     }
 
     // Sort teams by 1st student's name, then set default teamnames and create tooltips
@@ -1979,8 +1975,7 @@ void gruepr::refreshStudentDisplay()
                 ui->studentTable->setItem(numActiveStudents, column++, lastName);
             }
             auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::alphanumeric, student.section);
-            if(dataOptions->sectionIncluded)
-            {
+            if(dataOptions->sectionIncluded) {
                 ui->studentTable->setItem(numActiveStudents, column++, section);
             }
 
@@ -1998,8 +1993,7 @@ void gruepr::refreshStudentDisplay()
             editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
             editButton->setProperty("StudentIndex", numActiveStudents);
             editButton->setProperty("duplicate", duplicate);
-            if(duplicate)
-            {
+            if(duplicate) {
                 editButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
             }
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
@@ -2021,8 +2015,7 @@ void gruepr::refreshStudentDisplay()
                                                  tr("from the list.") + "</html>");
             removerButton->setProperty("StudentIndex", numActiveStudents);
             removerButton->setProperty("duplicate", duplicate);
-            if(duplicate)
-            {
+            if(duplicate) {
                 removerButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
             }
             connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, numStudents = numActiveStudents, removerButton] {

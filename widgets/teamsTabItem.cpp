@@ -514,7 +514,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
         // Re-score the teams and refresh all the info
         gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
-        teams[studentAteam].refreshTeamInfo(students.constData());
+        teams[studentAteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentAteam].createTooltip();
 
         //get the team item in the tree
@@ -563,9 +563,9 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
         //refresh the info for both teams
         gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
-        teams[studentAteam].refreshTeamInfo(students.constData());
+        teams[studentAteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentAteam].createTooltip();
-        teams[studentBteam].refreshTeamInfo(students.constData());
+        teams[studentBteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentBteam].createTooltip();
 
         QString firstStudentName = students[teams[studentAteam].studentIndexes[0]].lastname+students[teams[studentAteam].studentIndexes[0]].firstname;
@@ -664,9 +664,9 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
 
     //refresh the info for both teams
     gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
-    teams[oldTeam].refreshTeamInfo(students.constData());
+    teams[oldTeam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
     teams[oldTeam].createTooltip();
-    teams[newTeam].refreshTeamInfo(students.constData());
+    teams[newTeam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
     teams[newTeam].createTooltip();
 
     QString firstStudentName = students[teams[oldTeam].studentIndexes[0]].lastname+students[teams[oldTeam].studentIndexes[0]].firstname;

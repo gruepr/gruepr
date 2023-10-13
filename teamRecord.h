@@ -17,7 +17,7 @@ public:
     explicit TeamRecord(const QJsonObject &jsonTeamRecord);
 
     void createTooltip();
-    void refreshTeamInfo(const StudentRecord* const student);
+    void refreshTeamInfo(const StudentRecord* const student, const int meetingBlockSize);
 
     QJsonObject toJson() const;
 
@@ -34,6 +34,7 @@ public:
     std::set<float> timezoneVals;
     int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
+    int numMeetingTimes = 0;
     QList<int> studentIndexes;
     QString name;
     QString availabilityChart;

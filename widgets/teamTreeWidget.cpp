@@ -150,7 +150,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        headerLabels << tr("  Meeting  \n  hours  ");
+        headerLabels << tr("  Meeting  \n  times  ");
     }
     headerLabels << tr("display_order");
 
@@ -363,11 +363,11 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
     }
     if(!dataOptions->dayNames.isEmpty())
     {
-        int numAvailTimes = int(team.tooltip.count("100%"));
+        const int numAvailTimes = team.numMeetingTimes;
         teamItem->setText(column, ((team.size > 1)? (QString::number(numAvailTimes)) : ("  --  ")));
         teamItem->setTextAlignment(column, Qt::AlignCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(numAvailTimes));
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, ((team.size > 1)? numAvailTimes : 0));
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, numAvailTimes);
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }

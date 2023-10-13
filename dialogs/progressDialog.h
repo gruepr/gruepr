@@ -13,7 +13,7 @@ class progressDialog : public QDialog
     Q_OBJECT
 
 public:
-    progressDialog(const QString &currSection = "", QChartView *chart = nullptr, QWidget *parent = nullptr);
+    explicit progressDialog(const QString &currSection = "", QChartView *chart = nullptr, QWidget *parent = nullptr);
     ~progressDialog();
     progressDialog(const progressDialog&) = delete;
     progressDialog operator= (const progressDialog&) = delete;

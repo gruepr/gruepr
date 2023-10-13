@@ -48,6 +48,7 @@
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
 // - drag-and-drop issues in teams tab?
+// - check functionality of getGrueprDataDialog lines 866-087: shifting of times for schedules with 30 min. or 15 min. resolution
 //
 //   NEW FEATURES:
 // - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
