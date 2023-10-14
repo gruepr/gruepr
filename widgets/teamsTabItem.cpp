@@ -414,6 +414,7 @@ void TeamsTabItem::teamNamesChanged(int index)
         }
     }
     teamDataTree->resizeColumnToContents(0);
+    emit saveState();
 }
 
 
@@ -425,6 +426,24 @@ void TeamsTabItem::randomizeTeamnames()
 
 void TeamsTabItem::makeNewSetWithAllNewTeammates()
 {
+    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
+        bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current ") + (teamingOptions->haveAnyRequiredTeammates? tr("required") : "") +
+                                                                        ((teamingOptions->haveAnyRequiredTeammates && teamingOptions->haveAnyRequestedTeammates)? tr(" and ") : "") +
+                                                                        ((teamingOptions->haveAnyRequestedTeammates)? tr("requested") : "") + tr(" teammate settings. Do you want to continue?"),
+                                                    tr("Yes"), tr("No"));
+        if(yesDoIt) {
+            for(auto &student : *externalStudents) {
+                for(int i = 0; i < MAX_IDS; i++) {
+                    student.requiredWith[i] = false;
+                    student.requestedWith[i] = false;
+                }
+            }
+        }
+        else {
+            return;
+        }
+    }
+
     for(auto &team : teams) {
         for(const auto index1 : qAsConst(team.studentIndexes)) {
             for(const auto index2 : qAsConst(team.studentIndexes)) {
@@ -513,7 +532,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
                   teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
         // Re-score the teams and refresh all the info
-        gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentAteam].createTooltip();
 
@@ -562,7 +581,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
         teams[studentAteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentAteam].createTooltip();
         teams[studentBteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
@@ -606,6 +625,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
     }
 
     teamDataTree->setUpdatesEnabled(true);
+    emit saveState();
 }
 
 
@@ -663,7 +683,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
-    gruepr::updateTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+    gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     teams[oldTeam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
     teams[oldTeam].createTooltip();
     teams[newTeam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
@@ -707,6 +727,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     }
 
     teamDataTree->setUpdatesEnabled(true);
+    emit saveState();
 }
 
 
@@ -805,6 +826,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     refreshDisplayOrder();
 
     teamDataTree->setUpdatesEnabled(true);
+    emit saveState();
 }
 
 
@@ -838,6 +860,7 @@ void TeamsTabItem::undoRedoDragDrop()
     redoButton->setToolTip(redoItems.isEmpty()? "" : redoItems.first().ToolTip);
     undoButton->setEnabled(!undoItems.isEmpty());
     undoButton->setToolTip(undoItems.isEmpty()? "" : undoItems.first().ToolTip);
+    emit saveState();
 }
 
 

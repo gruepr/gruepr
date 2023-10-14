@@ -109,6 +109,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                 teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, this->students, ui->letsDoItButton, this);
                 ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
                 numTeams = int(teams.size());
+                connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
             }
         }
         else {
@@ -155,7 +156,7 @@ gruepr::~gruepr()
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
-void gruepr::updateTeamScores(const StudentRecord *const _students, const int _numStudents, TeamRecord *const _teams,
+void gruepr::calcTeamScores(const StudentRecord *const _students, const int _numStudents, TeamRecord *const _teams,
                               const int _numTeams,const TeamingOptions *const _teamingOptions,
                               const DataOptions *const _dataOptions)
 {
@@ -1057,6 +1058,8 @@ void gruepr::responsesRulesButton_clicked()
 
         teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
         teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+
+        saveState();
     }
 
     delete win;
@@ -1086,6 +1089,8 @@ void gruepr::on_teammatesButton_clicked()
         teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
         teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
         teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
+
+        saveState();
     }
 
     delete win;
@@ -1472,7 +1477,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    updateTeamScores(students.constData(), numActiveStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+    calcTeamScores(students.constData(), numActiveStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
     for(auto &team:teams)
     {
         team.refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
@@ -1495,8 +1500,10 @@ void gruepr::optimizationComplete()
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
+    connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
 
     ui->dataDisplayTabWidget->setCurrentWidget(teamTab);
+    saveState();
 }
 
 
@@ -1511,6 +1518,7 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
     auto *tab = ui->dataDisplayTabWidget->widget(closingTabIndex);
     ui->dataDisplayTabWidget->removeTab(closingTabIndex);
     tab->deleteLater();
+    saveState();
 }
 
 
@@ -1771,6 +1779,53 @@ void gruepr::loadUI()
     }
 
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+
+    if(std::any_of(students.constBegin(), students.constEnd(), [](StudentRecord student){return student.duplicateRecord;})) {
+        grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
+                                                        "Possible duplicates are marked with a yellow background in the edit and remove buttons."), tr("OK"));
+    }
+
+    // if the data containes preferred teammates or non-teammates and they haven't been loaded in, ask if they should be
+    if(dataOptions->prefTeammatesIncluded && !teamingOptions->haveAnyRequiredTeammates && !teamingOptions->haveAnyRequestedTeammates) {
+        bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
+                                                    tr("The survey asked students for preferred teammates.\n"
+                                                       "Would you like to load those preferences as required teammates?"),
+                                                    tr("Yes"), tr("No"));
+        if(okLoadThem) {
+            QStringList teamTabNames;
+            for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++)
+            {
+                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+            }
+            auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, true);
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+            {
+                this->students[index] = win->students[index];
+            }
+            teamingOptions->haveAnyRequiredTeammates = true;
+            delete win;
+        }
+    }
+    if(dataOptions->prefNonTeammatesIncluded && !teamingOptions->haveAnyPreventedTeammates) {
+        bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
+                                                    tr("The survey ") + (dataOptions->prefTeammatesIncluded? tr("also") : "") + tr(" asked students for preferred non-teammates.\n"
+                                                       "Would you like to load those preferences as prevented teammates?"),
+                                                    tr("Yes"), tr("No"));
+        if(okLoadThem) {
+            QStringList teamTabNames;
+            for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++)
+            {
+                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+            }
+            auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, false, true);
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++)
+            {
+                this->students[index] = win->students[index];
+            }
+            teamingOptions->haveAnyPreventedTeammates = true;
+            delete win;
+        }
+    }
 }
 
 
@@ -1816,12 +1871,13 @@ void gruepr::saveState()
             savedSettings.setArrayIndex(numIndexes);
             savedSettings.setValue("prevWorkName", dataOptions->dataSourceName);
             savedSettings.setValue("prevWorkFile", saveFile.fileName());
+            savedSettings.setValue("prevWorkDate", QDateTime::currentDateTime().toString(QLocale::system().dateTimeFormat(QLocale::LongFormat)));
         }
         else {
             savedSettings.setArrayIndex(index);
+            savedSettings.setValue("prevWorkDate", QDateTime::currentDateTime().toString(QLocale::system().dateTimeFormat(QLocale::LongFormat)));
+            savedSettings.setArrayIndex(numIndexes-1); // go to the end of the array so that we still have access to all values next time
         }
-        savedSettings.setValue("prevWorkDate", QDateTime::currentDateTime().toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat)));
-        savedSettings.setArrayIndex(numIndexes); // go to the end of the array so that we still have access to all values next time
         savedSettings.endArray();
     }
 }

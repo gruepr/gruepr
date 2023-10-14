@@ -62,8 +62,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>822</width>
-            <height>350</height>
+            <width>850</width>
+            <height>418</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout">
@@ -192,7 +192,7 @@
           <item alignment="Qt::AlignLeft">
            <widget class="QToolButton" name="required_loadButton">
             <property name="text">
-             <string>Load values</string>
+             <string>Load values   </string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
@@ -267,8 +267,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>822</width>
-            <height>350</height>
+            <width>850</width>
+            <height>418</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="incompScrollAreaLayout">
@@ -526,8 +526,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>822</width>
-            <height>264</height>
+            <width>850</width>
+            <height>342</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="reqScrollAreaLayout_2">

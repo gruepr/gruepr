@@ -39,10 +39,9 @@ public:
 
     QString tabName;
 
-public slots:
-    void saveTeams();
-    void postTeamsToCanvas();
-    void printTeams();
+signals:
+    void connectedToPrinter();
+    void saveState();
 
 private slots:
     void teamNamesChanged(int index);
@@ -52,6 +51,9 @@ private slots:
     void moveAStudent(const QList<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
     void moveATeam(const QList<int> &arguments);    // arguments = int teamA, int teamB
     void undoRedoDragDrop();
+    void saveTeams();
+    void printTeams();
+    void postTeamsToCanvas();
 
 private:
     void refreshTeamDisplay();
@@ -108,12 +110,9 @@ private:
     void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
     CanvasHandler *canvas = nullptr;
 
-    const QSize SAVEPRINTICONSIZE = QSize(STD_ICON_SIZE, STD_ICON_SIZE);
-    const int BIGGERFONTSIZE = 12;
-    const QFont PRINTFONT = QFont("Oxygen Mono", 10, QFont::Normal);
-
-signals:
-    void connectedToPrinter();
+    inline static const QSize SAVEPRINTICONSIZE = QSize(STD_ICON_SIZE, STD_ICON_SIZE);
+    inline static const int BIGGERFONTSIZE = 12;
+    inline static const QFont PRINTFONT = QFont("Oxygen Mono", 10, QFont::Normal);
 };
 
 #endif // TEAMSTABITEM_H

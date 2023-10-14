@@ -38,8 +38,9 @@
 // DONE:
 //   NEW FEATURES:
 // - gruepr now auto-saves, including the current set of teaming options, the student database, and all team sets
-// - more granular scheduling option, down to the 15 minute level; use survey->schedTimeNames in googlehandler and canvashandler
-// - better UI on when close button is hit in surveymaker, confirming close if survey has not yet been exported
+// - upon opening the file, gruepr now asks whether to auto-load the students' preferred teammates and / or non-teammates
+// - more granular scheduling option, down to the 15 minute level; now uses a timeNames list of strings and a global function to convert a timeName string to time
+// - better UI when close button is hit in surveymaker, confirming close if survey has not yet been exported
 //
 //   BUGFIXES:
 // - now handles (by skipping) blank names in the student roster csv file used in surveymaker
@@ -48,13 +49,11 @@
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
 // - drag-and-drop issues in teams tab?
-// - check functionality of getGrueprDataDialog lines 866-087: shifting of times for schedules with 30 min. or 15 min. resolution
 //
 //   NEW FEATURES:
 // - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
 // - in teammatesRules dialog, enable the 'load from teamsTab' action
 // - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
-// - adjust getGrueprDataDialog lines 844-881 to pad the
 //
 //   C++ MODERNIZATION:
 // - modernize use of pointers throughout to C++17 style; check for memory leaks

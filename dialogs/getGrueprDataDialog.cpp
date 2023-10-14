@@ -19,13 +19,23 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
     QSettings savedSettings;
     int numPrevWorks = savedSettings.beginReadArray("prevWorks");
     ui->fromPrevWorkRadioButton->setVisible(numPrevWorks > 0);
-    for (int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
-        savedSettings.setArrayIndex(prevWork);
-        const QString displayName = savedSettings.value("prevWorkName", "").toString() +
-                                    " [Last opened: " + savedSettings.value("prevWorkDate", "").toString() + "]";
-        const QString fileName = savedSettings.value("prevWorkFile", "").toString();
-        if(!displayName.isEmpty() && !fileName.isEmpty()) {
-            ui->prevWorkComboBox->addItem(displayName, fileName);
+    if(numPrevWorks > 0) {
+        QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
+        prevWorkInfos.reserve(numPrevWorks);
+        for (int prevWork = 0; prevWork < numPrevWorks; prevWork++) {
+            savedSettings.setArrayIndex(prevWork);
+            const QString displayName = savedSettings.value("prevWorkName", "").toString();
+            const QDateTime lastModifiedDate = QDateTime::fromString(savedSettings.value("prevWorkDate", "").toString(), QLocale::system().dateTimeFormat(QLocale::LongFormat));
+            const QString lastModifiedDateString = lastModifiedDate.toString(QLocale::system().dateTimeFormat(QLocale::ShortFormat));
+            const QString fileName = savedSettings.value("prevWorkFile", "").toString();
+            if(!displayName.isEmpty() && !lastModifiedDateString.isEmpty() && !fileName.isEmpty()) {
+                prevWorkInfos.emplaceBack(lastModifiedDate, displayName, lastModifiedDateString, fileName);
+            }
+        }
+        std::sort(prevWorkInfos.begin(), prevWorkInfos.end(), [](std::tuple<QDateTime, QString, QString, QString> a, std::tuple<QDateTime, QString, QString, QString> b)
+                  {return std::get<0>(a) > std::get<0>(b);});  // sort by last modified date descending
+        for(const auto &prevWork : prevWorkInfos) {
+            ui->prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]", std::get<3>(prevWork));
         }
     }
     savedSettings.endArray();
@@ -849,6 +859,7 @@ bool GetGrueprDataDialog::readData()
             dataOptions->lateTimeAsked = std::max(0.0f, grueprGlobal::timeStringToHours(dataOptions->timeNames.constLast()));
             QStringList formats = QString(TIMEFORMATS).split(';');
 
+            //figure out which format to use for the timenames we're adding
             auto timeName = dataOptions->timeNames.constBegin();
             QString timeFormat;
             QTime time;
@@ -863,13 +874,18 @@ bool GetGrueprDataDialog::readData()
                 timeName++;
             } while(!time.isValid() && timeName != dataOptions->timeNames.constEnd());
 
+            float hoursSinceMidnight = 0;
             for(int timeBlock = 0; timeBlock < (24 / dataOptions->scheduleResolution); timeBlock++) {
-                float hoursSinceMidnight = 0;
-                if((dataOptions->timeNames.size() > timeBlock) && (grueprGlobal::timeStringToHours(dataOptions->timeNames[timeBlock]) == hoursSinceMidnight)) {
-                    continue;
+                if(dataOptions->timeNames.size() > timeBlock) {
+                    if(grueprGlobal::timeStringToHours(dataOptions->timeNames[timeBlock]) == hoursSinceMidnight) {
+                        //this timename already exists in the list
+                        hoursSinceMidnight += dataOptions->scheduleResolution;
+                        continue;
+                    }
                 }
                 time.setHMS(int(hoursSinceMidnight), 60 * (hoursSinceMidnight - int(hoursSinceMidnight)), 0);
                 dataOptions->timeNames.insert(timeBlock, time.toString(timeFormat));
+                hoursSinceMidnight += dataOptions->scheduleResolution;
             }
 
             // Ask what should be used as the base timezone to which schedules will all be adjusted

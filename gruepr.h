@@ -31,8 +31,8 @@ public:
     gruepr(gruepr&&) = delete;
     gruepr& operator= (gruepr&&) = delete;
 
-    static void updateTeamScores(const StudentRecord *const _student, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
-                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
+    static void calcTeamScores(const StudentRecord *const _student, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
+                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
 
     bool restartRequested = false;
 
@@ -42,6 +42,9 @@ public:
 
 signals:
     void closed();
+    void generationComplete(const QList<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
+    void sectionOptimizationFullyComplete();
+    void turnOffBusyCursor();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -67,18 +70,13 @@ private slots:
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
-
-signals:
-    void generationComplete(const QList<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
-    void sectionOptimizationFullyComplete();
-    void turnOffBusyCursor();
+    void saveState();
 
 private:
         // setup
     Ui::gruepr *ui;
     void loadDefaultSettings();
     void loadUI();
-    void saveState();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;

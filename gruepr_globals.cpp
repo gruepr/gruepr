@@ -76,10 +76,12 @@ bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, c
     win->setText(message);
     auto *okButton = new QPushButton(OKtext, win);
     okButton->setStyleSheet(SMALLBUTTONSTYLE);
-    auto *cancelButton = new QPushButton(cancelText, win);
-    cancelButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     win->addButton(okButton, QMessageBox::AcceptRole);
-    win->addButton(cancelButton, QMessageBox::RejectRole);
+    if(!cancelText.isEmpty()) {
+        auto *cancelButton = new QPushButton(cancelText, win);
+        cancelButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        win->addButton(cancelButton, QMessageBox::RejectRole);
+    }
     win->exec();
     bool result = (win->clickedButton() == okButton);
     win->deleteLater();

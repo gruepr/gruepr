@@ -210,7 +210,7 @@ void StartDialog::openSurveyMaker() {
 
 
 void StartDialog::openGruepr() {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::setOverrideCursor(Qt::BusyCursor);
 
     bool restart = false;
     do {
@@ -218,7 +218,7 @@ void StartDialog::openGruepr() {
         QApplication::restoreOverrideCursor();
         getDataDialog->exec();
         if(getDataDialog->result() == QDialog::Accepted) {
-            QApplication::setOverrideCursor(Qt::WaitCursor);
+            QApplication::setOverrideCursor(Qt::BusyCursor);
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             this->hide();
             grueprWindow->show();

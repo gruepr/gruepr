@@ -482,8 +482,8 @@ namespace grueprGlobal {
 
     // includes only OK button, and blocks until clicked
     void errorMessage(QWidget *parent, const QString &windowTitle = "", const QString &message = "");
-    // includes OK & Cancel; returns true if OK was clicked, false if cancel was clicked
-    bool warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText);
+    // includes OK & Cancel (unless cancelText is blank); returns true if OK was clicked, false if cancel was clicked
+    bool warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText = "");
 
     void aboutWindow(QWidget *parent);
     void helpWindow(QWidget *parent);

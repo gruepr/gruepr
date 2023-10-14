@@ -18,7 +18,8 @@ class TeammatesRulesDialog : public QDialog
 public:
     enum class TypeOfTeammates{required, prevented, requested};
     explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                  const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr);
+                                  const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr,
+                                  bool autoLoadRequired = false, bool autoLoadPrevented = false, bool autoLoadRequested = false);
     ~TeammatesRulesDialog();
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;

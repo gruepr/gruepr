@@ -7,7 +7,8 @@
 #include <QMessageBox>
 
 TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                           const QString &sectionname, const QStringList &currTeamSets, QWidget *parent) :
+                                           const QString &sectionname, const QStringList &currTeamSets, QWidget *parent,
+                                           bool autoLoadRequired, bool autoLoadPrevented, bool autoLoadRequested) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
     numStudents(incomingStudents.size())
@@ -175,6 +176,23 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     refreshDisplay(TypeOfTeammates::required);
     refreshDisplay(TypeOfTeammates::prevented);
     refreshDisplay(TypeOfTeammates::requested);
+
+    // the following options are for when this window was opened by gruepr immediately after starting, when the survey contained prefteammate or prefnonteammate questions
+    if(autoLoadRequired) {
+        ui->tabWidget->setCurrentIndex(0);
+        loadStudentPrefs(TypeOfTeammates::required);
+    }
+    if(autoLoadPrevented) {
+        ui->tabWidget->setCurrentIndex(1);
+        loadStudentPrefs(TypeOfTeammates::prevented);
+    }
+    if(autoLoadRequested) {
+        ui->tabWidget->setCurrentIndex(2);
+        loadStudentPrefs(TypeOfTeammates::requested);
+    }
+    if(autoLoadRequired || autoLoadPrevented || autoLoadRequested) {
+        accept();
+    }
 }
 
 TeammatesRulesDialog::~TeammatesRulesDialog()
