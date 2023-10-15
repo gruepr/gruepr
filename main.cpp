@@ -36,14 +36,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-//   NEW FEATURES:
-// - gruepr now auto-saves, including the current set of teaming options, the student database, and all team sets
-// - upon opening the file, gruepr now asks whether to auto-load the students' preferred teammates and / or non-teammates
-// - more granular scheduling option, down to the 15 minute level; now uses a timeNames list of strings and a global function to convert a timeName string to time
-// - better UI when close button is hit in surveymaker, confirming close if survey has not yet been exported
-//
 //   BUGFIXES:
-// - now handles (by skipping) blank names in the student roster csv file used in surveymaker
+// - move saveFile location to the standard app data location, instead of the (often inaccessible) app executable location
+// - now gives an ID to students added via roster
+// - now saves/loads number of meeting times for each team when autosaving
 //
 // TO DO:
 //   BUGFIXES:

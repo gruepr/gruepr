@@ -397,7 +397,7 @@
           <item alignment="Qt::AlignLeft">
            <widget class="QToolButton" name="prevented_loadButton">
             <property name="text">
-             <string>Load values</string>
+             <string>Load values   </string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
@@ -669,7 +669,7 @@
           <item alignment="Qt::AlignLeft">
            <widget class="QToolButton" name="requested_loadButton">
             <property name="text">
-             <string>Load values</string>
+             <string>Load values   </string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>

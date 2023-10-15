@@ -512,7 +512,7 @@ void gruepr::on_compareRosterPushButton_clicked()
         }
 
         // create a place to save info for names with mismatched emails
-        QList <int> studentsWithDiffEmail;
+        QList<int> studentsWithDiffEmail;
         studentsWithDiffEmail.reserve(dataOptions->numStudentsInSystem);
 
         for(auto &name : names)
@@ -544,8 +544,9 @@ void gruepr::on_compareRosterPushButton_clicked()
                     {
                         dataHasChanged = true;
 
-                        StudentRecord newStudent;
-                        newStudent.surveyTimestamp = {};
+                        students.emplaceBack();
+                        auto &newStudent = students.last();
+                        newStudent.surveyTimestamp = QDateTime();
                         newStudent.ID = students.size();
                         newStudent.firstname = name.split(" ").first();
                         newStudent.lastname = name.split(" ").mid(1).join(" ");
@@ -1555,6 +1556,7 @@ void gruepr::editDataDisplayTabName(int tabIndex)
         tab->tabName = newNameEditor->text();
     }
     win->deleteLater();
+    saveState();
 }
 
 
@@ -2269,7 +2271,16 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 {
                     nextGenGenePool[genome][ID] = genePool[orderedIndex[genome]][ID];
                 }
-
+/*
+                if(genome == 0) {
+                QString genomeString = "        " + QString::number(orderedIndex[0]) + " --> ";
+                for(int ID = 0; ID < numActiveStudents; ID++)
+                {
+                    genomeString += QString::number(genePool[orderedIndex[genome]][ID]) + ",";
+                }
+                qDebug() << genomeString << Qt::endl;
+                }
+*/
                 nextGenAncestors[genome][0] = nextGenAncestors[genome][1] = orderedIndex[genome];   // both parents are this genome
                 int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
                 for(int generation = 1; generation < GA::NUMGENERATIONSOFANCESTORS; generation++)
@@ -2368,6 +2379,8 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 delete[] unusedTeamScores;
             }
 
+//            qDebug() << scores.at(0); // why is this not the same score as above???
+
             // get genome indexes in order of score, largest to smallest
             std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
 
@@ -2384,7 +2397,14 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             {
                 scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
-
+/*
+            QString genomeString = QString::number(maxScoreInThisGeneration) + " " + QString::number(orderedIndex[0]) + " --> ";
+            for(int ID = 0; ID < numActiveStudents; ID++)
+            {
+                genomeString += QString::number(genePool[orderedIndex[0]][ID]) + ",";
+            }
+            qDebug() << genomeString;
+*/
             emit generationComplete(scores, orderedIndex, generation, scoreStability, unpenalizedGenomePresent);
 
             optimizationStoppedmutex.lock();

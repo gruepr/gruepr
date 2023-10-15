@@ -141,7 +141,7 @@ void GetGrueprDataDialog::loadData()
         return;
     }
 
-    dataOptions->saveStateFileName = QCoreApplication::applicationDirPath() + "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
+    dataOptions->saveStateFileName = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
     QDir dir(QFileInfo(dataOptions->saveStateFileName).absoluteDir());
     if (!dir.exists()) {
         dir.mkpath(".");
@@ -960,6 +960,7 @@ bool GetGrueprDataDialog::readData()
                 students.emplaceBack();
                 auto &currStudent = students.last();
                 currStudent.surveyTimestamp = QDateTime();
+                currStudent.ID = students.size();
                 currStudent.firstname = student.firstname;
                 currStudent.lastname = student.lastname;
                 currStudent.LMSID = student.LMSID;

@@ -19,8 +19,8 @@ TeamRecord::TeamRecord(const QJsonObject &jsonTeamRecord)
     numUnknown = jsonTeamRecord["numUnknown"].toInt();
     numURM = jsonTeamRecord["numURM"].toInt();
     numStudentsWithAmbiguousSchedules = jsonTeamRecord["numStudentsWithAmbiguousSchedules"].toInt();
+    numMeetingTimes = jsonTeamRecord["numMeetingTimes"].toInt();
     name = jsonTeamRecord["name"].toString();
-    availabilityChart = jsonTeamRecord["availabilityChart"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
     dataOptions = new DataOptions(jsonTeamRecord["dataOptions"].toObject());
 
@@ -374,9 +374,9 @@ QJsonObject TeamRecord::toJson() const
         {"timezoneVals", timezoneValsArray},
         {"numStudentsAvailable", numStudentsAvailableArray},
         {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
+        {"numMeetingTimes", numMeetingTimes},
         {"studentIndexes", studentIndexesArray},
         {"name", name},
-        {"availabilityChart", availabilityChart},
         {"tooltip", tooltip},
         {"dataOptions", dataOptions->toJson()}
     };

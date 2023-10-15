@@ -37,7 +37,6 @@ public:
     int numMeetingTimes = 0;
     QList<int> studentIndexes;
     QString name;
-    QString availabilityChart;
     QString tooltip;
 
 private:
