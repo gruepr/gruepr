@@ -157,7 +157,7 @@ gruepr::~gruepr()
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
 void gruepr::calcTeamScores(const StudentRecord *const _students, const int _numStudents, TeamRecord *const _teams,
-                              const int _numTeams,const TeamingOptions *const _teamingOptions,
+                              const int _numTeams, const TeamingOptions *const _teamingOptions,
                               const DataOptions *const _dataOptions)
 {
     auto *teamScores = new float[_numTeams];
@@ -1347,12 +1347,32 @@ void gruepr::on_letsDoItButton_clicked()
     const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
     multipleSectionsInProgress = teamingMultipleSections;
     const int numSectionsToTeam = (teamingMultipleSections? int(dataOptions->sectionNames.size()) : 1);
-    const int teamSizeSelector = ui->teamSizeBox->currentIndex();
+    const bool smallerTeamSizesInSelector = (ui->teamSizeBox->currentIndex() == 0);
     for(int section = 0; section < numSectionsToTeam; section++) {
         if(teamingMultipleSections) {
-            // team each section one at a time by changing the section and teamsize selection boxes
+            // team each section one at a time by changing the section
             ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
-            ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
+        }
+
+        // Get the IDs of students from desired section and change numStudents accordingly
+        int numStudentsInSection = 0;
+        studentIndexes = new int[dataOptions->numStudentsInSystem];
+        for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
+            if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == students[index].section) {
+                studentIndexes[numStudentsInSection] = index;
+                numStudentsInSection++;
+            }
+        }
+        numActiveStudents = numStudentsInSection;
+
+        if(teamingMultipleSections) {
+            // now pick the correct team sizes
+            if(smallerTeamSizesInSelector || (ui->teamSizeBox->count() == 3)) {
+                ui->teamSizeBox->setCurrentIndex(0);
+            }
+            else {
+                ui->teamSizeBox->setCurrentIndex(1);
+            }
         }
 
         // Create a new set of TeamRecords to hold the eventual results
@@ -1369,7 +1389,8 @@ void gruepr::on_letsDoItButton_clicked()
         chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-        QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " + ui->sectionSelectionBox->currentText()) : "");
+        QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
+                                                          ui->sectionSelectionBox->currentText()) : "");
         progressWindow = new progressDialog(sectionName, chartView, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1379,17 +1400,6 @@ void gruepr::on_letsDoItButton_clicked()
                                                                          optimizationStoppedmutex.unlock();
                                                                         });
 
-        // Get the IDs of students from desired section and change numStudents accordingly
-        int numStudentsInSection = 0;
-        studentIndexes = new int[dataOptions->numStudentsInSystem];
-        for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
-            if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == students[index].section) {
-                studentIndexes[numStudentsInSection] = index;
-                numStudentsInSection++;
-            }
-        }
-        numActiveStudents = numStudentsInSection;
-
         // Set up the flag to allow a stoppage and set up futureWatcher to know when results are available
         optimizationStopped = false;
         future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
@@ -1398,14 +1408,18 @@ void gruepr::on_letsDoItButton_clicked()
 
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
-        connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, teamSizeSelector]
+        connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, smallerTeamSizesInSelector]
                                                                        {if(teamingMultipleSections && !multipleSectionsInProgress) {
                                                                             ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
-                                                                            ui->teamSizeBox->setCurrentIndex(teamSizeSelector);     // pick the correct team sizes
+                                                                            if(smallerTeamSizesInSelector || (ui->teamSizeBox->count() == 3)) {  // pick the correct team sizes
+                                                                                ui->teamSizeBox->setCurrentIndex(0);
+                                                                            }
+                                                                            else {
+                                                                                ui->teamSizeBox->setCurrentIndex(1);
+                                                                            }
                                                                         }
-                                                                        this->disconnect(SIGNAL(sectionOptimizationFullyComplete()));
-                                                                        loop.quit();
-                                                                       });
+                                                                        loop.quit();},
+                static_cast<Qt::ConnectionType>(Qt::AutoConnection | Qt::SingleShotConnection));
         loop.exec();
     }
 }
@@ -1674,6 +1688,7 @@ void gruepr::loadUI()
         ui->URMSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
         ui->isolatedURMCheckBox->setChecked(teamingOptions->isolatedURMPrevented);
+        ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
         ui->isolatedURMCheckBox->blockSignals(false);
     }
     else {

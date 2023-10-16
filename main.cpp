@@ -38,8 +38,9 @@
 // DONE:
 //   BUGFIXES:
 // - move saveFile location to the standard app data location, instead of the (often inaccessible) app executable location
-// - now gives an ID to students added via roster
+// - now gives an ID to students added via roster, fixing all associated issues
 // - now saves/loads number of meeting times for each team when autosaving
+// - fixes crash when 1) teaming multiple sections, each section separately, and 2) some sections have an evenly divisible number of students per team and other sections do not
 //
 // TO DO:
 //   BUGFIXES:

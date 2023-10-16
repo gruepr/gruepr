@@ -563,7 +563,7 @@ inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone 
                                               "<p>&nbsp; &nbsp;A population of 30,000 random teamings (each is a \"genome\") is created and then refined over multiple generations. "
                                                  "In each generation, a few of the highest scoring \"elite\" genomes are directly copied (cloned) into the next generation, and then "
                                                  "the remainder are created by mating tournament-selected parent genomes using ordered crossover. Once the next generation's genepool "
-                                                 "is created, each genome has 1 or more potential mutations, implementd as a swapping of two random locations on the genome. A genome's "
+                                                 "is created, each genome has 1 or more potential mutations, implemented as a swapping of two random locations on the genome. A genome's "
                                                  "net score is, generally, the harmonic mean of the compatibility score for each team. Evolution proceeds for at least a minimum number "
                                                  "of generations. It automatically stops (though the user can choose to keep it going indefinitely) after a maximum number of have been "
                                                  "reached or when the best score has remained +/- 1% for a set number of generations in a row.</p>"
