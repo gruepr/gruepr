@@ -53,7 +53,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    ui->saveSurveyFilePushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    //ui->saveSurveyFilePushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->dataDisplayTabWidget->setStyleSheet("QTabWidget {border: none; background-color: lightGray;}"
                                             "QTabWidget::pane {margin: 10px, 0px, 0px, 0px; border: 1px solid black;}");
     ui->dataDisplayTabWidget->tabBar()->setStyleSheet("QTabBar {alignment: center; margin: 6px; padding: 4px; border: none;}"
@@ -63,7 +63,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                        "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
                                                        "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right; margin: 2px;}");
     ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
-    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton, ui->saveSurveyFilePushButton};
+    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton/*, ui->saveSurveyFilePushButton*/};
     for(auto &button : buttons) {
         button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
     }
@@ -89,7 +89,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->letsDoItButton->setFont(altFont);
     ui->addStudentPushButton->setFont(altFont);
     ui->compareRosterPushButton->setFont(altFont);
-    ui->saveSurveyFilePushButton->setFont(altFont);
+    //ui->saveSurveyFilePushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
 
     this->dataOptions = new DataOptions(std::move(dataOptions));
@@ -787,7 +787,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 }
 
 
-void gruepr::on_saveSurveyFilePushButton_clicked()
+/*void gruepr::on_saveSurveyFilePushButton_clicked()
 {
     QSettings savedSettings;
     CsvFile newSurveyFile;
@@ -974,7 +974,7 @@ void gruepr::on_saveSurveyFilePushButton_clicked()
 
     newSurveyFile.close();
 }
-
+*/
 
 void gruepr::simpleUIItemUpdate(QObject *sender)
 {
@@ -1648,16 +1648,27 @@ void gruepr::loadUI()
             ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
             ui->sectionSelectionBox->insertSeparator(2);
             ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
+            if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+                ui->sectionSelectionBox->setCurrentIndex(1);
+            }
+            else if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
+                ui->sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
+            }
+            else {
+                ui->sectionSelectionBox->setCurrentIndex(0);
+            }
             ui->sectionSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
         else {
             ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+            teamingOptions->sectionType = TeamingOptions::SectionType::oneSection;
             ui->sectionFrame->hide();
             ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
     }
     else {
         ui->sectionSelectionBox->addItem(tr("No section data."));
+        teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
         ui->sectionFrame->hide();
         ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
@@ -2288,12 +2299,12 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 }
 /*
                 if(genome == 0) {
-                QString genomeString = "        " + QString::number(orderedIndex[0]) + " --> ";
+                QString genomeString = "elite   " + QString::number(orderedIndex[0]) + " --> ";
                 for(int ID = 0; ID < numActiveStudents; ID++)
                 {
                     genomeString += QString::number(genePool[orderedIndex[genome]][ID]) + ",";
                 }
-                qDebug() << genomeString << Qt::endl;
+                qDebug() << genomeString;
                 }
 */
                 nextGenAncestors[genome][0] = nextGenAncestors[genome][1] = orderedIndex[genome];   // both parents are this genome
@@ -2394,8 +2405,6 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 delete[] unusedTeamScores;
             }
 
-//            qDebug() << scores.at(0); // why is this not the same score as above???
-
             // get genome indexes in order of score, largest to smallest
             std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
 
@@ -2412,14 +2421,14 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             {
                 scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
-/*
-            QString genomeString = QString::number(maxScoreInThisGeneration) + " " + QString::number(orderedIndex[0]) + " --> ";
+
+            QString genomeString = "maxscore " + QString::number(scores[orderedIndex[0]]) + " " + QString::number(orderedIndex[0]) + " --> ";
             for(int ID = 0; ID < numActiveStudents; ID++)
             {
                 genomeString += QString::number(genePool[orderedIndex[0]][ID]) + ",";
             }
             qDebug() << genomeString;
-*/
+
             emit generationComplete(scores, orderedIndex, generation, scoreStability, unpenalizedGenomePresent);
 
             optimizationStoppedmutex.lock();

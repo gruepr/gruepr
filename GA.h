@@ -7,7 +7,8 @@
 
 namespace GA
 {
-    void tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors, int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
+    void tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors,
+                                 int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG);
     void mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const int genomeSize, std::mt19937 &pRNG);
     void mutate(int genome[], const int genomeSize, std::mt19937 &pRNG);
 

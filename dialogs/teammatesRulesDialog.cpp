@@ -102,13 +102,13 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         loadMenu->addAction(loadFromCSV);
         loadButton->setMenu(loadMenu);
     }
-
+/*
     auto saveButtons = {ui->required_saveButton, ui->prevented_saveButton, ui->requested_saveButton};
     for(auto saveButton : saveButtons) {
         saveButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
         connect(saveButton, &QPushButton::clicked, this, [this](){saveCSVFile(static_cast<TypeOfTeammates>(ui->tabWidget->currentIndex()));});
     }
-
+*/
     auto clearButtons = {ui->required_clearButton, ui->prevented_clearButton, ui->requested_clearButton};
     for(auto clearButton : clearButtons) {
         clearButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -546,6 +546,7 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
     refreshDisplay(typeOfTeammates);
 }
 
+/*
 bool TeammatesRulesDialog::saveCSVFile(TypeOfTeammates typeOfTeammates)
 {
     QString typeText;
@@ -603,6 +604,7 @@ bool TeammatesRulesDialog::saveCSVFile(TypeOfTeammates typeOfTeammates)
     csvFile.close();
     return true;
 }
+*/
 
 bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
 {

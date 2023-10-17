@@ -58,7 +58,7 @@ private slots:
     void on_addStudentPushButton_clicked();
     void on_compareRosterPushButton_clicked();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
-    void on_saveSurveyFilePushButton_clicked();
+    //void on_saveSurveyFilePushButton_clicked(); //removed the save survey file button once autosaving everything was implemented
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void on_URMResponsesButton_clicked();
     void responsesRulesButton_clicked();

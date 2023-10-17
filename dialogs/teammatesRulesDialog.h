@@ -55,8 +55,8 @@ private:
     void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
     void clearValues(TypeOfTeammates typeOfTeammates, bool verify = true);
 
-     // these all return true on success, false on fail
-    bool saveCSVFile(TypeOfTeammates typeOfTeammates);
+    // these all return true on success, false on fail
+    //bool saveCSVFile(TypeOfTeammates typeOfTeammates);    // removed the save button once autosaving implemented
     bool loadCSVFile(TypeOfTeammates typeOfTeammates);
     bool loadStudentPrefs(TypeOfTeammates typeOfTeammates);
     bool loadSpreadsheetFile(TypeOfTeammates typeOfTeammates);
