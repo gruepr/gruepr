@@ -286,18 +286,17 @@ namespace grueprGlobal {
     float timeStringToHours(const QString &timeStr);
 }
 
+inline static const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
+inline static const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
+inline static const char TIMESTAMP_FORMAT3[] {"M/d/yyyy h:mm:ss"};
+inline static const char TIMESTAMP_FORMAT4[] {"M/d/yyyy h:mm"};
+
 inline static const char TIMEZONEREGEX[] {R"((.*?)\[?(?>GMT|UTC)\s?([\+\-]?\d{2}):?(\d{2}).*)"}; // capture (1) intro text,
                                                                                                  // skip "[" if present, then either "GMT" or "UTC", then any whitespace if present
                                                                                                  // capture (2) + or - if present plus 2 digits
                                                                                                  // skip ":" if present,
                                                                                                  // capture (3) 2 digits
                                                                                                  // skip rest
-
-inline static const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
-inline static const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
-inline static const char TIMESTAMP_FORMAT3[] {"M/d/yyyy h:mm:ss"};
-inline static const char TIMESTAMP_FORMAT4[] {"M/d/yyyy h:mm"};
-
 inline static const char TIMEZONENAMES[] {"International Date Line West [GMT-12:00];\"Samoa: Midway Island, Samoa [GMT-11:00]\";"
                             "Hawaiian: Hawaii [GMT-10:00];Alaskan: Alaska [GMT-09:00];Pacific: US and Canada, Tijuana [GMT-08:00];Mountain: US and Canada [GMT-07:00];"
                             "\"Mexico Pacific: Chihuahua, La Paz, Mazatlan [GMT-07:00]\";Central: US and Canada [GMT-06:00];Canada Central: Saskatchewan [GMT-06:00];\""
@@ -451,13 +450,13 @@ inline static const char TEAMNAMELISTS[]   {";"
                                  "Lateral Cuneiform,Radius,Cervical Vertebrae,Trapezoid;"
                               "Aviators,Blue Rocks,Crawdads,Drillers,Emeralds,Fireflies,GreenJackets,Hammerheads,Isotopes,Jumbo Shrimp,"
                                  "Knights,Lugnuts,Mighty Mussels,Nuts,Pelicans,Quakes,Rumble Ponies,Skeeters,Trash Pandas,Wood Ducks,Yard Goats,"
-                                 "AquaSox,Bats,Curve,Drive,Express,Flying Squirrels,Grasshoppers,Hops,IronPigs,Blue Jays,Kernels,Lookouts,"
-                                 "Mudcats,Naturals,Patriots,RubberDucks,Sod Poodles,TinCaps,Whitecaps,Baysox,Hot Rods,Marauders,SeaWolves,"
-                                 "Cyclones,Bisons,RiverDogs,Threshers,Clippers,Hooks,Dragons,Tortugas,Shorebirds,Bulls,Chihuahuas,Woodpeckers,"
+                                 "AquaSox,Bats,Curve,Drive,Express,Flying Squirrels,Grasshoppers,Hops,IronPigs,Jays,Kernels,Lookouts,"
+                                 "Mudcats,Naturals,RubberDucks,Sod Poodles,TinCaps,Whitecaps,Baysox,Hot Rods,Marauders,SeaWolves,"
+                                 "Cyclones,Bisons,RiverDogs,Threshers,Hooks,Dragons,Tortugas,Shorebirds,Chihuahuas,Woodpeckers,"
                                  "IronBirds,Nationals,Grizzlies,RoughRiders,Stripers,Senators,Snappers,Shuckers,Hillcats,Redbirds,RockHounds,"
-                                 "Renegades,66ers,Cubs,BlueClaws,Cannon Ballers,Captains,Storm,Flying Tigers,Loons,Travelers,Tourists,Biscuits,"
-                                 "Sounds,Fisher Cats,Tides,Barons,Dodgers,Storm Chasers,Cardinals,Blue Wahoos,Sea Dogs,River Bandits,Fightin Phils,"
-                                 "Aces,Red Wings,River Cats,Red Sox,Lake Bees,Missions,Giants,RailRiders,Mets,Saints,Ports,Rainiers,Tarpons,Smokies,"
+                                 "Renegades,66ers,BlueClaws,Cannon Ballers,Captains,Storm,Flying Tigers,Loons,Travelers,Tourists,Biscuits,"
+                                 "Sounds,Fisher Cats,Tides,Barons,Storm Chasers,Blue Wahoos,Sea Dogs,River Bandits,Fightin Phils,"
+                                 "Aces,Red Wings,River Cats,Lake Bees,Missions,Giants,RailRiders,Ports,Rainiers,Tarpons,Smokies,"
                                  "Mud Hens,Dust Devils,Canadians,Rawhide,Wind Surge,Dash,Timber Rattlers;"
                               "Angling,Bowling,Cannon Shooting,Dog Sledding,Engraving,Fire Fighting,Gliding,Hurling,India Club Swinging,Jeu de Paume,"
                                  "Korfball,Lacrosse,Motorcycle Racing,Orchestra,Pigeon Racing,Roller Hockey,Savate,Tug of War,Vaulting,Waterskiing,"
