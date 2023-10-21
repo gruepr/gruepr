@@ -53,7 +53,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    //ui->saveSurveyFilePushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->dataDisplayTabWidget->setStyleSheet("QTabWidget {border: none; background-color: lightGray;}"
                                             "QTabWidget::pane {margin: 10px, 0px, 0px, 0px; border: 1px solid black;}");
     ui->dataDisplayTabWidget->tabBar()->setStyleSheet("QTabBar {alignment: center; margin: 6px; padding: 4px; border: none;}"
@@ -63,7 +62,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                        "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
                                                        "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right; margin: 2px;}");
     ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
-    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton/*, ui->saveSurveyFilePushButton*/};
+    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton};
     for(auto &button : buttons) {
         button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
     }
@@ -89,7 +88,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->letsDoItButton->setFont(altFont);
     ui->addStudentPushButton->setFont(altFont);
     ui->compareRosterPushButton->setFont(altFont);
-    //ui->saveSurveyFilePushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
 
     this->dataOptions = new DataOptions(std::move(dataOptions));
@@ -787,195 +785,6 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 }
 
 
-/*void gruepr::on_saveSurveyFilePushButton_clicked()
-{
-    QSettings savedSettings;
-    CsvFile newSurveyFile;
-    if(!newSurveyFile.open(this, CsvFile::write, tr("Save Survey Data File"), savedSettings.value("saveFileLocation", "").toString(), tr("Survey Data")))
-    {
-        return;
-    }
-
-    // write header
-    if(dataOptions->timestampField != -1)
-    {
-        newSurveyFile.headerValues << "Timestamp";
-    }
-    if(dataOptions->LMSIDField != -1)
-    {
-        newSurveyFile.headerValues << "LMSID";
-    }
-    if(dataOptions->firstNameField != -1)
-    {
-     newSurveyFile.headerValues << "What is your first name (or the name you prefer to be called)?";
-    }
-    if(dataOptions->lastNameField != -1)
-    {
-        newSurveyFile.headerValues << "What is your last name?";
-    }
-    if(dataOptions->emailField != -1)
-    {
-        newSurveyFile.headerValues << "What is your email address?";
-    }
-    if(dataOptions->genderIncluded)
-    {
-        if(dataOptions->genderType == GenderType::pronoun)
-        {
-            newSurveyFile.headerValues << "What are your pronouns?";
-        }
-        else
-        {
-            newSurveyFile.headerValues << "With which gender do you identify most closely?";
-        }
-    }
-    if(dataOptions->URMIncluded)
-    {
-        newSurveyFile.headerValues << "How do you identify your race, ethnicity, or cultural heritage?";
-    }
-    for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
-    {
-        newSurveyFile.headerValues << dataOptions->attributeQuestionText[attrib];
-    }
-    for(const auto &dayName : dataOptions->dayNames)
-    {
-        if(dataOptions->scheduleDataIsFreetime)
-        {
-            newSurveyFile.headerValues << "Check the times that you are FREE and will be AVAILABLE for group work. [" + dayName + "]";
-        }
-        else
-        {
-            newSurveyFile.headerValues << "Check the times that you are BUSY and will be UNAVAILABLE for group work. [" + dayName + "]";
-        }
-    }
-    if(dataOptions->sectionIncluded)
-    {
-        newSurveyFile.headerValues << "In which section are you enrolled?";
-    }
-    if(dataOptions->prefTeammatesIncluded)
-    {
-        newSurveyFile.headerValues << "Please list name(s) of people you would like to have on your team";
-    }
-    if(dataOptions->prefNonTeammatesIncluded)
-    {
-        newSurveyFile.headerValues << "Please list name(s) of people you would like to not have on your team";
-    }
-    if(dataOptions->numNotes > 0)
-    {
-        newSurveyFile.headerValues << "Notes";
-    }
-    if(!newSurveyFile.writeHeader())
-    {
-        grueprGlobal::errorMessage(this, tr("No File Saved"), tr("No file was saved.\nThere was an issue writing the file."));
-        return;
-    }
-
-    // Write each student's info
-    for(const auto &student : students) {
-        newSurveyFile.fieldValues.clear();
-        newSurveyFile.fieldValues << student.surveyTimestamp.toString(Qt::ISODate);
-        if(dataOptions->LMSIDField != -1)
-        {
-            newSurveyFile.fieldValues << QString::number(student.LMSID);
-        }
-        if(dataOptions->firstNameField != -1)
-        {
-            newSurveyFile.fieldValues << student.firstname;
-        }
-        if(dataOptions->lastNameField != -1)
-        {
-            newSurveyFile.fieldValues << student.lastname;
-        }
-        if(dataOptions->emailField != -1)
-        {
-            newSurveyFile.fieldValues << student.email;
-        }
-        if(dataOptions->genderIncluded)
-        {
-            QStringList genderOptions;
-            if(dataOptions->genderType == GenderType::biol)
-            {
-                genderOptions = QString(BIOLGENDERS).split('/');
-            }
-            else if(dataOptions->genderType == GenderType::adult)
-            {
-                genderOptions = QString(ADULTGENDERS).split('/');
-            }
-            else if(dataOptions->genderType == GenderType::child)
-            {
-                genderOptions = QString(CHILDGENDERS).split('/');
-            }
-            else //if(dataOptions->genderResponses == GenderType::pronoun)
-            {
-                genderOptions = QString(PRONOUNS).split('/');
-            }
-            newSurveyFile.fieldValues << genderOptions.at(static_cast<int>(student.gender));
-        }
-        if(dataOptions->URMIncluded)
-        {
-            newSurveyFile.fieldValues << (student.URMResponse);
-        }
-        for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++)
-        {
-            newSurveyFile.fieldValues << student.attributeResponse[attrib];
-        }
-        for(int day = 0; day < dataOptions->dayNames.size(); day++)
-        {
-            QString times;
-            bool first = true;
-            for(int time = 0; time < dataOptions->timeNames.size(); time++)
-            {
-                if(dataOptions->scheduleDataIsFreetime)
-                {
-                    if(!student.unavailable[day][time])
-                    {
-                        if(!first)
-                        {
-                            times += ';';
-                        }
-                        first = false;
-                        times += dataOptions->timeNames.at(time);
-                    }
-                }
-                else
-                {
-                    if(student.unavailable[day][time])
-                    {
-                        if(!first)
-                        {
-                            times += ';';
-                        }
-                        first = false;
-                        times += dataOptions->timeNames.at(time);
-                    }
-                }
-            }
-            newSurveyFile.fieldValues << times;
-        }
-        if(dataOptions->sectionIncluded)
-        {
-            newSurveyFile.fieldValues << student.section;
-        }
-        if(dataOptions->prefTeammatesIncluded)
-        {
-            QString list = student.prefTeammates;
-            newSurveyFile.fieldValues << list.replace('\n',";");
-        }
-        if(dataOptions->prefNonTeammatesIncluded)
-        {
-            QString list = student.prefNonTeammates;
-            newSurveyFile.fieldValues << list.replace('\n',";");
-        }
-        if(dataOptions->numNotes > 0)
-        {
-            newSurveyFile.fieldValues << student.notes;
-        }
-        newSurveyFile.writeDataRow();
-    }
-
-    newSurveyFile.close();
-}
-*/
-
 void gruepr::simpleUIItemUpdate(QObject *sender)
 {
     teamingOptions->isolatedWomenPrevented = (ui->isolatedWomenCheckBox->isChecked());
@@ -1425,27 +1234,27 @@ void gruepr::on_letsDoItButton_clicked()
 }
 
 
-void gruepr::updateOptimizationProgress(const QList<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
+void gruepr::updateOptimizationProgress(const float *const allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
 {
     if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0)
     {
-        progressChart->loadNextVals(allScores, orderedIndex, unpenalizedGenomePresent);
+        progressChart->loadNextVals(allScores, orderedIndex, GA::POPULATIONSIZE, unpenalizedGenomePresent);
     }
 
     if(generation > GA::MAX_GENERATIONS)
     {
         progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
-                                generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
+                                generation, *std::max_element(allScores, allScores+GA::POPULATIONSIZE), true);
         progressWindow->highlightStopButton();
     }
     else if( (generation >= GA::MIN_GENERATIONS) && (scoreStability > GA::MIN_SCORE_STABILITY) )
     {
-        progressWindow->setText(tr("Score appears to be stable!"), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), true);
+        progressWindow->setText(tr("Score appears to be stable!"), generation, *std::max_element(allScores, allScores+GA::POPULATIONSIZE), true);
         progressWindow->highlightStopButton();
     }
     else
     {
-        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, *std::max_element(allScores.constBegin(), allScores.constEnd()), false);
+        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, *std::max_element(allScores, allScores+GA::POPULATIONSIZE), false);
     }
 }
 
@@ -2207,7 +2016,7 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    QList<float> scores(GA::POPULATIONSIZE);
+    float *scores = new float[GA::POPULATIONSIZE];
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
@@ -2261,7 +2070,7 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // get genome indexes in order of score, largest to smallest
-    std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
+    std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores[i] > scores[j]);});
     emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
 
     int child[MAX_STUDENTS];
@@ -2297,16 +2106,6 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 {
                     nextGenGenePool[genome][ID] = genePool[orderedIndex[genome]][ID];
                 }
-/*
-                if(genome == 0) {
-                QString genomeString = "elite   " + QString::number(orderedIndex[0]) + " --> ";
-                for(int ID = 0; ID < numActiveStudents; ID++)
-                {
-                    genomeString += QString::number(genePool[orderedIndex[genome]][ID]) + ",";
-                }
-                qDebug() << genomeString;
-                }
-*/
                 nextGenAncestors[genome][0] = nextGenAncestors[genome][1] = orderedIndex[genome];   // both parents are this genome
                 int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
                 for(int generation = 1; generation < GA::NUMGENERATIONSOFANCESTORS; generation++)
@@ -2406,7 +2205,7 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             }
 
             // get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [&scores](const int i, const int j){return (scores.at(i) > scores.at(j));});
+            std::sort(orderedIndex, orderedIndex+GA::POPULATIONSIZE, [scores](const int i, const int j){return (scores[i] > scores[j]);});
 
             // determine best score, save in historical record, and calculate score stability
             float maxScoreInThisGeneration = scores[orderedIndex[0]];
@@ -2421,14 +2220,6 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             {
                 scoreStability = maxScoreInThisGeneration / (maxScoreInThisGeneration - maxScoreFromGenerationsAgo);
             }
-
-            QString genomeString = "maxscore " + QString::number(scores[orderedIndex[0]]) + " " + QString::number(orderedIndex[0]) + " --> ";
-            for(int ID = 0; ID < numActiveStudents; ID++)
-            {
-                genomeString += QString::number(genePool[orderedIndex[0]][ID]) + ",";
-            }
-            qDebug() << genomeString;
-
             emit generationComplete(scores, orderedIndex, generation, scoreStability, unpenalizedGenomePresent);
 
             optimizationStoppedmutex.lock();
@@ -2686,7 +2477,7 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
                 for(int time = 0; time < numTimes; time++)
                 {
                     int block = 0;
-                    while((_availabilityChart[day][time]) && (block < numBlocksNeeded)) {
+                    while((_availabilityChart[day][time]) && (block < numBlocksNeeded) && (time < numTimes)) {
                         block++;
                         if(block < numBlocksNeeded) {
                             time++;

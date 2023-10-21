@@ -42,7 +42,7 @@ public:
 
 signals:
     void closed();
-    void generationComplete(const QList<float> &allScores, const int *orderedIndex, int generation, float scoreStability, const bool unpenalizedGenomePresent);
+    void generationComplete(const float *const allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void sectionOptimizationFullyComplete();
     void turnOffBusyCursor();
 
@@ -58,7 +58,6 @@ private slots:
     void on_addStudentPushButton_clicked();
     void on_compareRosterPushButton_clicked();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
-    //void on_saveSurveyFilePushButton_clicked(); //removed the save survey file button once autosaving everything was implemented
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void on_URMResponsesButton_clicked();
     void responsesRulesButton_clicked();
@@ -66,7 +65,7 @@ private slots:
     void on_teamSizeBox_currentIndexChanged(int index);
     void on_teammatesButton_clicked();
     void on_letsDoItButton_clicked();
-    void updateOptimizationProgress(const QList<float> &allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
+    void updateOptimizationProgress(const float *const allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);

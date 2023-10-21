@@ -40,20 +40,20 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
 }
 
 
-void BoxWhiskerPlot::loadNextVals(const QList<float> &vals, const int *const orderedIndex, const bool unpenalizedGenomePresent)
+void BoxWhiskerPlot::loadNextVals(const float *const vals, const int *const orderedIndex, int count, const bool unpenalizedGenomePresent)
 {
     //adds a new distribution to the graph window; QList vals is not sorted, but the indexes in sorted order is given in orderedIndex
     const int NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER = 5;
     const int IGNORE_LOWEST_X_PERCENT_DATA = 5;  //drop outliers at low end
 
-    int count = int(vals.count()) - (int(vals.count())*IGNORE_LOWEST_X_PERCENT_DATA/100);
+    count = count - int(count*IGNORE_LOWEST_X_PERCENT_DATA/100);
     if(count >= NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER)
     {
-        nextVals[QBoxSet::LowerExtreme] = vals.at(orderedIndex[count]);
+        nextVals[QBoxSet::LowerExtreme] = vals[orderedIndex[count]];
         nextVals[QBoxSet::LowerQuartile] = median(vals, orderedIndex, count/2, count);
         nextVals[QBoxSet::Median] = median(vals, orderedIndex, 0, count);
         nextVals[QBoxSet::UpperQuartile] = median(vals, orderedIndex, 0, count/2);
-        nextVals[QBoxSet::UpperExtreme] = vals.at(orderedIndex[0]);
+        nextVals[QBoxSet::UpperExtreme] = vals[orderedIndex[0]];
     }
 
     auto *set = new QBoxSet(nextVals[QBoxSet::LowerExtreme], nextVals[QBoxSet::LowerQuartile],
@@ -91,15 +91,15 @@ void BoxWhiskerPlot::loadNextVals(const QList<float> &vals, const int *const ord
 }
 
 
-float BoxWhiskerPlot::median(const QList<float> &vals, const int *const orderedIndex, const int begin, const int end)
+float BoxWhiskerPlot::median(const float *const vals, const int *const orderedIndex, const int begin, const int end)
 {
     int count = end - begin;
     if ((count % 2) != 0)
     {
-        return vals.at(orderedIndex[count/2 + begin]);
+        return vals[orderedIndex[count/2 + begin]];
     }
 
-    float right = vals.at(orderedIndex[count/2 + begin]);
-    float left = vals.at(orderedIndex[count/2 - 1 + begin]);
+    float right = vals[orderedIndex[count/2 + begin]];
+    float left = vals[orderedIndex[count/2 - 1 + begin]];
     return (right + left) / 2.0F;
 }

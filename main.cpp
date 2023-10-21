@@ -45,10 +45,9 @@
 // TO DO:
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
-// - drag-and-drop issues in teams tab?
 //
 //   NEW FEATURES:
-// - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.
+// - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 // - in teammatesRules dialog, enable the 'load from teamsTab' action
 // - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //
