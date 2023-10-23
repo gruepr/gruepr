@@ -362,7 +362,7 @@
           <item>
            <widget class="QPushButton" name="prevented_addSetPushButton">
             <property name="text">
-             <string>Add this set of required teammates</string>
+             <string>Add this set of prevented teammates</string>
             </property>
            </widget>
           </item>

@@ -105,7 +105,7 @@ DISCLAIMER:
         under the creative commons license: Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0). Other icons and
         graphics are original creations for the gruepr project by Scout < https://scout.camd.northeastern.edu/ >.
 
-        Several embedded font are used: Oxygen Mono, Copyright (C) 2012 Vernon Adams (vern@newtypography.co.uk);
+        Several embedded fonts are used: Oxygen Mono, Copyright (C) 2012 Vernon Adams (vern@newtypography.co.uk);
         DM Sans Copyright (C) 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and Paytone One
         Copyright (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont). All fonts
         are licensed according to the SIL OPEN FONT LICENSE Version 1.1; 
