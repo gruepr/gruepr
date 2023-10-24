@@ -875,7 +875,7 @@ bool GetGrueprDataDialog::readData()
             } while(!time.isValid() && timeName != dataOptions->timeNames.constEnd());
 
             float hoursSinceMidnight = 0;
-            for(int timeBlock = 0; timeBlock < (24 / dataOptions->scheduleResolution); timeBlock++) {
+            for(int timeBlock = 0; timeBlock < int(24 / dataOptions->scheduleResolution); timeBlock++) {
                 if(dataOptions->timeNames.size() > timeBlock) {
                     if(grueprGlobal::timeStringToHours(dataOptions->timeNames[timeBlock]) == hoursSinceMidnight) {
                         //this timename already exists in the list

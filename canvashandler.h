@@ -29,7 +29,7 @@ class CanvasHandler : public QObject
 
 public:
     CanvasHandler(const QString &authenticateURL = "", const QString &accessTokenURL = "", const QString &baseAPIURL = "");
-    ~CanvasHandler();
+    ~CanvasHandler() override;
     CanvasHandler(const CanvasHandler&) = delete;
     CanvasHandler operator= (const CanvasHandler&) = delete;
     CanvasHandler(CanvasHandler&&) = delete;

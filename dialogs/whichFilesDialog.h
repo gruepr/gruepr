@@ -15,7 +15,7 @@ public:
     enum class Action {save, print};
 
     whichFilesDialog(const Action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
-    ~whichFilesDialog();
+    ~whichFilesDialog() override;
     whichFilesDialog(const whichFilesDialog&) = delete;
     whichFilesDialog operator= (const whichFilesDialog&) = delete;
     whichFilesDialog(whichFilesDialog&&) = delete;

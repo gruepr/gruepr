@@ -13,7 +13,7 @@ class StartDialog : public QDialog
 
 public:
     StartDialog(QWidget *parent = nullptr);
-    ~StartDialog();
+    ~StartDialog() override;
     StartDialog(const StartDialog&) = delete;
     StartDialog operator= (const StartDialog&) = delete;
     StartDialog(StartDialog&&) = delete;

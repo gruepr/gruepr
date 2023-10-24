@@ -21,7 +21,7 @@ float grueprGlobal::timeStringToHours(const QString &timeStr) {
                 formats.removeOne(currFormat);
                 formats.prepend(currFormat);
             }
-            return time.hour() + (time.minute() / 60.0) + (time.second()/3600.0);
+            return time.hour() + (time.minute() / 60.0f) + (time.second()/3600.0f);
         }
         i++;
     }

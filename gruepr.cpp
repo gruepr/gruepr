@@ -1617,7 +1617,7 @@ void gruepr::loadUI()
 
     on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 
-    if(std::any_of(students.constBegin(), students.constEnd(), [](StudentRecord student){return student.duplicateRecord;})) {
+    if(std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;})) {
         grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
                                                         "Possible duplicates are marked with a yellow background in the edit and remove buttons."), tr("OK"));
     }
@@ -2016,7 +2016,7 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
     }
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    float *scores = new float[GA::POPULATIONSIZE];
+    auto *scores = new float[GA::POPULATIONSIZE];
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;

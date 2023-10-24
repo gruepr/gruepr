@@ -31,7 +31,7 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
     progressBar->setStyleSheet(PROGRESSBARSTYLE);
     progressBar->setMaximumHeight(8);
     progressBar->setTextVisible(false);
-    progressBar->setRange(0, 125);
+    progressBar->setRange(0, PROGRESSBARMAX);
     progressBar->setValue(0);
     layout->addWidget(progressBar);
 
@@ -84,7 +84,7 @@ void progressDialog::setText(const QString &text, int generation, float score, b
     if(autostopInProgress && !onlyStopManually->isChecked())
     {
         action += tr("\nOptimization will end in ") + QString::number(secsLeftToClose) + tr(" seconds.");
-        score = progressBar->maximum() - ((progressBar->maximum() - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
+        score = PROGRESSBARMAX - ((PROGRESSBARMAX - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
     }
     actionText->setText(action);
     progressBar->setValue(score);
@@ -125,7 +125,7 @@ void progressDialog::updateCountdown()
     explanationText->setText(explanationText->text().replace(stopTime, tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
     if(secsLeftToClose == 0)
     {
-        progressBar->setValue(progressBar->maximum());
+        progressBar->setValue(PROGRESSBARMAX);
         stopHere->animateClick();
     }
 }

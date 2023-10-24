@@ -53,7 +53,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     }
     theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
     for(int response = 0; response < numResponses; response++) {
-        theTable->verticalHeader()->resizeSection(response, rowHeight * TABLEOVERSIZE);
+        theTable->verticalHeader()->resizeSection(response, int(float(rowHeight) * TABLEOVERSIZE));
     }
     theTable->adjustSize();
 

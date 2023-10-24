@@ -24,7 +24,7 @@ public:
     enum Source {fileOnly, fileOrOnline};
 
     CsvFile(Delimiter dlmtr = comma, QObject *parent = nullptr);
-    ~CsvFile();
+    ~CsvFile() override;
     CsvFile(const CsvFile&) = delete;
     CsvFile operator= (const CsvFile&) = delete;
     CsvFile(CsvFile&&) = delete;

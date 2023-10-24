@@ -54,7 +54,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     }
     theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
     for(int i = 0; i < MAXRESPONSEOPTIONS; i++) {
-        theTable->verticalHeader()->resizeSection(i, rowHeight * TABLEOVERSIZE);
+        theTable->verticalHeader()->resizeSection(i, int(float(rowHeight) * TABLEOVERSIZE));
     }
     theTable->adjustSize();
 

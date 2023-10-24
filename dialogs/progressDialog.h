@@ -14,7 +14,7 @@ class progressDialog : public QDialog
 
 public:
     explicit progressDialog(const QString &currSection = "", QChartView *chart = nullptr, QWidget *parent = nullptr);
-    ~progressDialog();
+    ~progressDialog() override;
     progressDialog(const progressDialog&) = delete;
     progressDialog operator= (const progressDialog&) = delete;
     progressDialog(progressDialog&&) = delete;
@@ -46,6 +46,7 @@ private:
     int secsLeftToClose = SECSINCOUNTDOWNTIMER;
     inline static const int CHARTHEIGHT = 400;
     inline static const QSize ICONSIZE = QSize(30,30);
+    inline static const int PROGRESSBARMAX = 125;
 };
 
 #endif // PROGRESSDIALOG_H

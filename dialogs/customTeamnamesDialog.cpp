@@ -34,7 +34,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &in
     }
     theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
     for(int i = 0; i < numTeams; i++) {
-        theTable->verticalHeader()->resizeSection(i, rowHeight * TABLEOVERSIZE);
+        theTable->verticalHeader()->resizeSection(i, int(float(rowHeight) * TABLEOVERSIZE));
     }
     theTable->adjustSize();
 

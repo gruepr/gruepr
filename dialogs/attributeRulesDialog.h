@@ -25,7 +25,7 @@ class AttributeRulesDialog : public QDialog
 
 public:
     explicit AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions, QWidget *parent = nullptr);
-    ~AttributeRulesDialog();
+    ~AttributeRulesDialog() override;
     AttributeRulesDialog(const AttributeRulesDialog&) = delete;
     AttributeRulesDialog operator= (const AttributeRulesDialog&) = delete;
     AttributeRulesDialog(AttributeRulesDialog&&) = delete;

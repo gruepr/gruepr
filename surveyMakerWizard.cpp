@@ -2691,19 +2691,26 @@ void PreviewAndExportPage::exportSurvey()
             successDialog->setTextFormat(Qt::RichText);
             successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
             QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
-            successDialog->setText(tr("Success! Survey created.<br><br>"
-                                       "If you'd like to preview or edit the survey, find it in your") + " <a href='https://drive.google.com'>Google Drive</a> "
-                                       "<img height=\"" + textheight + "\" width=\"" + textheight + "\" src=\":/icons_new/external-link.png\">. " +
-                                    tr("If you wish, you can modify:"
-                                       "<ul>"
-                                       "<li>the survey title</li>"
-                                       "<li>the instructions shown at the top of the survey</li>"
-                                       "<li>the \"description text\" shown with any of the questions</li>"
-                                       "</ul>"
-                                       "Changing the order of the questions or the wording of a question in any other way is not recommended.<br><br>"
-                                       "Students should fill out the survey by going to the following URL:<br><strong>") +
-                                       form.responderURL.toEncoded() +
-                                       tr("</strong><br>You can copy this URL to your clipboard with the button below."));
+            successDialog->setText(
+                                    tr("Success! Survey created.<br><br>"
+                                       "If you'd like to preview or edit the survey, find it in your")
+                                    + " <a href='https://drive.google.com'>Google Drive</a> "
+                                      "<img height=\""
+                                    + textheight + "\" width=\"" + textheight
+                                    + R"(" src=":/icons_new/external-link.png">. )"
+                                    + tr("If you wish, you can modify:"
+                                         "<ul>"
+                                         "<li>the survey title</li>"
+                                         "<li>the instructions shown at the top of the survey</li>"
+                                         "<li>the \"description text\" shown with any of the questions</li>"
+                                         "</ul>"
+                                         "Changing the order of the questions or the wording of a question in any "
+                                         "other way is not recommended.<br><br>"
+                                         "Students should fill out the survey by going to the following "
+                                         "URL:<br><strong>")
+                + form.responderURL.toEncoded()
+                + tr(
+                    "</strong><br>You can copy this URL to your clipboard with the button below."));
             successDialog->setStandardButtons(QMessageBox::Ok);
             auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
             copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace( "background-color: white;", "background-color: green;"));

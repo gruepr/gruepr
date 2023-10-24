@@ -30,7 +30,7 @@ class SurveyMakerWizard : public QWizard
 
 public:
     SurveyMakerWizard(QWidget *parent = nullptr);
-    ~SurveyMakerWizard();
+    ~SurveyMakerWizard() override;
 
     static inline const int numPages = 6;
     enum Page{introtitle, demographics, multichoice, schedule, courseinfo, previewexport};

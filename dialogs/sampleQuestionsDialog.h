@@ -15,7 +15,12 @@ class SampleQuestionsDialog : public QDialog
 
 public:
     explicit SampleQuestionsDialog(QWidget *parent = nullptr);
-    ~SampleQuestionsDialog();
+    ~SampleQuestionsDialog() override;
+    SampleQuestionsDialog(const SampleQuestionsDialog&) = delete;
+    SampleQuestionsDialog operator= (const SampleQuestionsDialog&) = delete;
+    SampleQuestionsDialog(SampleQuestionsDialog&&) = delete;
+    SampleQuestionsDialog& operator= (SampleQuestionsDialog&&) = delete;
+
 
 private:
     Ui::SampleQuestionsDialog *ui;

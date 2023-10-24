@@ -50,7 +50,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     }
     theTable->horizontalHeader()->resizeSection(0, int(float(widthCol0) * TABLEOVERSIZE));
     for(int i = 0; i < numStudents; i++) {
-        theTable->verticalHeader()->resizeSection(i, rowHeight * TABLEOVERSIZE);
+        theTable->verticalHeader()->resizeSection(i, int(float(rowHeight) * TABLEOVERSIZE));
     }
     theTable->adjustSize();
 

@@ -33,7 +33,7 @@ class GoogleHandler : public QObject
 
 public:
     GoogleHandler();
-    ~GoogleHandler();
+    ~GoogleHandler() override;
     GoogleHandler(const GoogleHandler&) = delete;
     GoogleHandler operator= (const GoogleHandler&) = delete;
     GoogleHandler(GoogleHandler&&) = delete;

@@ -18,7 +18,11 @@ class GetGrueprDataDialog : public QDialog
 
 public:
     explicit GetGrueprDataDialog(QWidget *parent = nullptr);
-    ~GetGrueprDataDialog();
+    ~GetGrueprDataDialog() override;
+    GetGrueprDataDialog(const GetGrueprDataDialog&) = delete;
+    GetGrueprDataDialog operator= (const GetGrueprDataDialog&) = delete;
+    GetGrueprDataDialog(GetGrueprDataDialog&&) = delete;
+    GetGrueprDataDialog& operator= (GetGrueprDataDialog&&) = delete;
 
     DataOptions *dataOptions = nullptr;
     QList<StudentRecord> students;

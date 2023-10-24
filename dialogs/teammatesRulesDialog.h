@@ -20,7 +20,7 @@ public:
     explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
                                   const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr,
                                   bool autoLoadRequired = false, bool autoLoadPrevented = false, bool autoLoadRequested = false);
-    ~TeammatesRulesDialog();
+    ~TeammatesRulesDialog() override;
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog(TeammatesRulesDialog&&) = delete;

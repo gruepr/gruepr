@@ -13,6 +13,7 @@ class customResponseOptionsDialog : public listTableDialog
 
 public:
     customResponseOptionsDialog(const QStringList &currentCustomOptions, QWidget *parent = nullptr);
+    ~customResponseOptionsDialog() = default;
     customResponseOptionsDialog(const customResponseOptionsDialog&) = delete;
     customResponseOptionsDialog operator= (const customResponseOptionsDialog&) = delete;
     customResponseOptionsDialog(customResponseOptionsDialog&&) = delete;

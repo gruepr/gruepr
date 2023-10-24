@@ -10,6 +10,7 @@ class customTeamnamesDialog : public listTableDialog
 
 public:
     customTeamnamesDialog(int numTeams = 1, const QStringList &incomingTeamNames = {}, QWidget *parent = nullptr);
+    ~customTeamnamesDialog() = default;
     customTeamnamesDialog(const customTeamnamesDialog&) = delete;
     customTeamnamesDialog operator= (const customTeamnamesDialog&) = delete;
     customTeamnamesDialog(customTeamnamesDialog&&) = delete;

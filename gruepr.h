@@ -25,7 +25,7 @@ class gruepr : public QMainWindow
 
 public:
     explicit gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget *parent = nullptr);
-    ~gruepr();
+    ~gruepr() override;
     gruepr(const gruepr&) = delete;
     gruepr operator= (const gruepr&) = delete;
     gruepr(gruepr&&) = delete;
