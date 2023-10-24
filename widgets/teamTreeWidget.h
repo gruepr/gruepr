@@ -47,6 +47,7 @@ public:
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;        // remember which item is being dragged
+    void dragLeaveEvent(QDragLeaveEvent *event) override;        // get rid of tooltip if drag leaves
     void dragMoveEvent(QDragMoveEvent *event) override;          // update tooltip during drag
     void dropEvent(QDropEvent *event) override;                  // handle when the dragged item is being dropped to allow swapping of teammates or teams
     void leaveEvent(QEvent *event) override;

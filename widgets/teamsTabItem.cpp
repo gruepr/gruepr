@@ -510,7 +510,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         studentBIndex++;
     }
 
-    //Load undo onto stack anc clear redo stack
+    //Load undo onto stack and clear redo stack
     QString UndoTooltip = tr("Undo swapping ") + students[studentAIndex].firstname + " " + students[studentAIndex].lastname +
                            tr(" with ") + students[studentBIndex].firstname + " " + students[studentBIndex].lastname;
     undoItems.prepend({&TeamsTabItem::swapStudents, {studentAteam, studentBID, studentBteam, studentAID}, UndoTooltip});

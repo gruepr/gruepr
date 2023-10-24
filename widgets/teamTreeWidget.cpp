@@ -508,9 +508,20 @@ void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
     draggedItem = currentItem();
     QTreeWidget::dragEnterEvent(event);
 
-    dragDropEventLabel = new QLabel;
+    dragDropEventLabel = new QLabel(this);
     dragDropEventLabel->setWindowFlag(Qt::ToolTip);
     dragDropEventLabel->setTextFormat(Qt::RichText);
+}
+
+
+void TeamTreeWidget::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    QTreeWidget::dragLeaveEvent(event);
+
+    if(dragDropEventLabel != nullptr) {
+        dragDropEventLabel->hide();
+        delete dragDropEventLabel;
+    }
 }
 
 
@@ -520,6 +531,12 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     const QString iconSizeStr = QString::number(iconSize);
 
     QTreeWidget::dragMoveEvent(event);
+
+    if(dragDropEventLabel == nullptr) {
+        dragDropEventLabel = new QLabel(this);
+        dragDropEventLabel->setWindowFlag(Qt::ToolTip);
+        dragDropEventLabel->setTextFormat(Qt::RichText);
+    }
 
     // get the item currently under the cursor and ensure that the item is a TeamTreeWidgetItem
     QTreeWidgetItem* itemUnderCursor = itemAt(event->position().toPoint());
@@ -574,8 +591,10 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 
 void TeamTreeWidget::dropEvent(QDropEvent *event)
 {
-    dragDropEventLabel->hide();
-    delete dragDropEventLabel;
+    if(dragDropEventLabel != nullptr) {
+        dragDropEventLabel->hide();
+        delete dragDropEventLabel;
+    }
 
     droppedItem = itemAt(event->position().toPoint());
     QModelIndex droppedIndex = indexFromItem(droppedItem);
