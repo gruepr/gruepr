@@ -61,8 +61,8 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
     ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
     connect(ui->loadDataPushButton, &QPushButton::clicked, this, &GetGrueprDataDialog::loadData);
 
-    ui->dataSourceFrame->setStyleSheet(QString() + "QFrame {background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX "; "
-                                                           "border: none;}"
+    ui->dataSourceFrame->setStyleSheet(QString("QFrame {background-color: ") + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; "
+                                                        "color: " DEEPWATERHEX "; border: none;}"
                                                    "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
     ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt;}"
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 12pt;}");
@@ -102,6 +102,8 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
 {
     surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
     delete surveyFile;
+    delete canvas;
+    delete google;
     delete ui;
 }
 
@@ -141,7 +143,8 @@ void GetGrueprDataDialog::loadData()
         return;
     }
 
-    dataOptions->saveStateFileName = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
+    dataOptions->saveStateFileName = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
+                                     "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
     QDir dir(QFileInfo(dataOptions->saveStateFileName).absoluteDir());
     if (!dir.exists()) {
         dir.mkpath(".");
@@ -152,7 +155,7 @@ void GetGrueprDataDialog::loadData()
     }
 
 
-    ui->sourceFrame->setStyleSheet(QString() + "QFrame {background-color: white; color: " DEEPWATERHEX "; padding: 10px; border: none;}" + RADIOBUTTONSTYLE);
+    ui->sourceFrame->setStyleSheet(QString("QFrame {background-color: white; color: " DEEPWATERHEX "; padding: 10px; border: none;}") + RADIOBUTTONSTYLE);
     ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: white; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 10px;}");
     QPixmap uploadIcon(":/icons_new/upload_file.png");
@@ -206,7 +209,7 @@ bool GetGrueprDataDialog::getFromGoogle()
 
     //create googleHandler and/or authenticate as needed
     if(google == nullptr) {
-        google = new GoogleHandler();
+        google = new GoogleHandler;
     }
     if(!google->authenticated) {
         auto *loginDialog = new QMessageBox(this);
@@ -233,7 +236,7 @@ bool GetGrueprDataDialog::getFromGoogle()
             //refreshToken failed, so need to start over
             if(!google->authenticated) {
                 delete google;
-                google = new GoogleHandler();
+                google = new GoogleHandler;
             }
         }
 
@@ -242,9 +245,11 @@ bool GetGrueprDataDialog::getFromGoogle()
             loginDialog->setText(loginDialog->text() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
                                                           "  » Your computer may ask whether gruepr can access the network. "
                                                           "This access is needed so that gruepr and Google can communicate.\n\n"
-                                                          "  » In the browser, Google will ask whether you authorize gruepr to access the files gruepr created on your Google Drive. "
+                                                          "  » In the browser, Google will ask whether you authorize gruepr "
+                                                               "to access the files gruepr created on your Google Drive. "
                                                           "This access is needed so that the survey responses can now be downloaded.\n\n"
-                                                          "  » All data associated with this survey, including the questions asked and responses received, exist in your Google Drive only. "
+                                                          "  » All data associated with this survey, including the questions asked and "
+                                                               "responses received, exist in your Google Drive only. "
                                                           "No data from or about this survey will ever be stored or sent anywhere else."));
             loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
             auto *okButton = loginDialog->button(QMessageBox::Ok);
@@ -287,9 +292,9 @@ bool GetGrueprDataDialog::getFromGoogle()
     googleFormsDialog->setWindowIcon(QIcon(":/icons_new/google.png"));
     googleFormsDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
-    auto *label = new QLabel(tr("Which survey should be opened?"));
+    auto *label = new QLabel(tr("Which survey should be opened?"), googleFormsDialog);
     label->setStyleSheet(LABELSTYLE);
-    auto *formsComboBox = new QComboBox;
+    auto *formsComboBox = new QComboBox(googleFormsDialog);
     formsComboBox->setStyleSheet(COMBOBOXSTYLE);
     for(const auto &form : qAsConst(formsList)) {
         formsComboBox->addItem(form);
@@ -357,7 +362,7 @@ bool GetGrueprDataDialog::getFromCanvas()
 
     //create canvasHandler and/or authenticate as needed
     if(canvas == nullptr) {
-        canvas = new CanvasHandler();
+        canvas = new CanvasHandler;
     }
     if(!canvas->authenticated) {
         //IN BETA--GETS USER'S API TOKEM MANUALLY
@@ -391,13 +396,13 @@ bool GetGrueprDataDialog::getFromCanvas()
     canvasCoursesAndQuizzesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
-    auto *label = new QLabel(tr("From which course should the survey be downloaded?"));
-    auto *coursesAndQuizzesComboBox = new QComboBox;
+    auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
+    auto *coursesAndQuizzesComboBox = new QComboBox(canvasCoursesAndQuizzesDialog);
     for(const auto &courseName : qAsConst(courseNames)) {
         coursesAndQuizzesComboBox->addItem(courseName);
         coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesAndQuizzesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
@@ -464,7 +469,8 @@ bool GetGrueprDataDialog::getFromCanvas()
         return false;
     }
 
-    // Only include the timestamp question ("submitted") and then the questions we've asked, which will all begin with (possibly a quotation mark then) an integer then a colon then a space.
+    // Only include the timestamp question ("submitted") and then the questions we've asked.
+    // These will all begin with (possibly a quotation mark then) an integer, then a colon, then a space.
     // (Also ignore the text "question" which serves as the text notifier that several schedule questions are coming up).
     surveyFile->fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", ".*" + CanvasHandler::SCHEDULEQUESTIONINTRO2.trimmed() + ".*"};
 
@@ -518,7 +524,8 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
     static QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
                                                        "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                       ".*(which section are you enrolled).*|(.*(check).+(times).*)", QRegularExpression::CaseInsensitiveOption);
+                                                       ".*(which section are you enrolled).*|(.*(check).+(times).*)",
+                                                       QRegularExpression::CaseInsensitiveOption);
     int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
     if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
         //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
@@ -529,13 +536,19 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     }
 
     // Ask user what the columns mean
-    QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1}, {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
-                                                  {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1}, {"Email Address", "(e).*(mail)", 1},
-                                                  {"Gender", "((gender)|(pronouns))", 1}, {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS}, {"Section", "which section are you enrolled", 1},
-                                                  {"Timezone","(time zone)", 1}, {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
+    QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
+                                                  {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+                                                  {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
+                                                  {"Email Address", "(e).*(mail)", 1},
+                                                  {"Gender", "((gender)|(pronouns))", 1},
+                                                  {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
+                                                  {"Section", "which section are you enrolled", 1},
+                                                  {"Timezone","(time zone)", 1},
+                                                  {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                  {"Multiple Choice", ".*", MAX_ATTRIBUTES}, {"Notes", "", MAX_NOTES_FIELDS}};
+                                                  {"Multiple Choice", ".*", MAX_ATTRIBUTES},
+                                                  {"Notes", "", MAX_NOTES_FIELDS}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {
         const QString &headerVal = surveyFile->headerValues.at(i);
@@ -573,12 +586,12 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     ui->tableWidget->setRowCount(surveyFile->numFields);
     // a label and combobox for each column
     for(int row = 0; row < surveyFile->numFields; row++) {
-        auto *label = new QLabel("\n" + surveyFile->headerValues.at(row) + "\n");
+        auto *label = new QLabel("\n" + surveyFile->headerValues.at(row) + "\n", this);
         label->setStyleSheet(LABELSTYLE);
         label->setWordWrap(true);
         ui->tableWidget->setCellWidget(row, 0, label);
 
-        auto *selector = new QComboBox;
+        auto *selector = new QComboBox(this);
         selector->setStyleSheet(COMBOBOXSTYLE);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value

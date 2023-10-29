@@ -5,9 +5,6 @@
 #include "dataOptions.h"
 #include "teamingOptions.h"
 #include <QCheckBox>
-#include <QFrame>
-#include <QLabel>
-#include <QVBoxLayout>
 
 namespace Ui {
 class AttributeRulesDialog;
@@ -40,14 +37,9 @@ private slots:
 
 private:
     Ui::AttributeRulesDialog *ui;
-    DataOptions::AttributeType attributeType;
     QList<AttributeValue> attributeValues;
     int numPossibleValues;
-    QString valuePrefix(int value);
-    QList<QFrame *> incompFrames;
-    QList<QVBoxLayout *> incompFrameLayouts;
-    QList<QLabel *> incompResponseLabels;
-    QList<QFrame *> incompSepLines;
+    QString valuePrefix(int value, DataOptions::AttributeType attributeType);
     QList< QList<QCheckBox *> > incompCheckboxList;
     QList<QCheckBox *> reqCheckboxes;
 };

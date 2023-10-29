@@ -3,8 +3,6 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QGridLayout>
-#include <QLabel>
 #include <QLineEdit>
 
 class registerDialog : public QDialog
@@ -14,14 +12,15 @@ class registerDialog : public QDialog
 public:
     registerDialog(QWidget *parent = nullptr);
 
-    QLineEdit *name;
-    QLineEdit *institution;
-    QLineEdit *email;
+    QString name;
+    QString institution;
+    QString email;
 
 private:
-    QVBoxLayout *theBox;
-    QLabel *explanation;
-    QDialogButtonBox *buttonBox;
+    QDialogButtonBox *buttonBox = nullptr;
+    QLineEdit *nameLineEdit = nullptr;
+    QLineEdit *institutionLineEdit = nullptr;
+    QLineEdit *emailLineEdit = nullptr;
     inline static const QString EMAILADDRESSREGEX = "^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$";
 };
 

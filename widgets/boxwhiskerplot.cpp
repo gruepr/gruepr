@@ -4,25 +4,24 @@
 
 BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle, QWidget *parent)
 {
-    (void)parent;
+    (void) parent;
     QFont titleFont("Oxygen Mono");
     QFont labelsFont(titleFont);
     labelsFont.setPointSize(titleFont.pointSize()-2);
     legend()->hide();
 
-    dataSeries = new QBoxPlotSeries();
+    dataSeries = new QBoxPlotSeries(this);
     this->addSeries(dataSeries);
 
     setTitle(title);
 
-    axisX = new QCategoryAxis;
+    axisX = new QCategoryAxis(this);
     this->addAxis(axisX, Qt::AlignBottom);
     dataSeries->attachAxis(axisX);
     xAxisRange[axismin] = 0;
     xAxisRange[axismax] = DATAWIDTH/PLOTFREQUENCY;
     axisX->setRange(xAxisRange[axismin], xAxisRange[axismax]);
-    for(int label = 0; label <= xAxisRange[axismax]; label++)
-    {
+    for(int label = 0; label <= xAxisRange[axismax]; label++) {
         axisX->append(QString::number(label*PLOTFREQUENCY), label);
     }
     axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
@@ -30,7 +29,7 @@ BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, 
     axisX->setTitleFont(titleFont);
     axisX->setTitleText(xAxisTitle);
 
-    axisY = new QValueAxis;
+    axisY = new QValueAxis(this);
     this->addAxis(axisY, Qt::AlignLeft);
     dataSeries->attachAxis(axisY);
     axisY->setRange(yAxisRange[axismin], yAxisRange[axismax]);
@@ -47,8 +46,7 @@ void BoxWhiskerPlot::loadNextVals(const float *const vals, const int *const orde
     const int IGNORE_LOWEST_X_PERCENT_DATA = 5;  //drop outliers at low end
 
     count = count - int(count*IGNORE_LOWEST_X_PERCENT_DATA/100);
-    if(count >= NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER)
-    {
+    if(count >= NUM_VALS_NEEDED_FOR_BOX_AND_WHISKER) {
         nextVals[QBoxSet::LowerExtreme] = vals[orderedIndex[count]];
         nextVals[QBoxSet::LowerQuartile] = median(vals, orderedIndex, count/2, count);
         nextVals[QBoxSet::Median] = median(vals, orderedIndex, 0, count);
@@ -58,26 +56,22 @@ void BoxWhiskerPlot::loadNextVals(const float *const vals, const int *const orde
 
     auto *set = new QBoxSet(nextVals[QBoxSet::LowerExtreme], nextVals[QBoxSet::LowerQuartile],
                                       nextVals[QBoxSet::Median], nextVals[QBoxSet::UpperQuartile],
-                                      nextVals[QBoxSet::UpperExtreme]);
-    if(set != nullptr)
-    {
+                                      nextVals[QBoxSet::UpperExtreme], "", this);
+    if(set != nullptr) {
         set->setBrush(QBrush(QColor::fromString(unpenalizedGenomePresent? AQUAHEX : STARFISHHEX)));
         dataSeries->append(set);
     }
 
     //shift x-axis by updateChunkSize if we are at the right edge of graph
-    if(dataSeries->count() > xAxisRange[axismax])
-    {
+    if(dataSeries->count() > xAxisRange[axismax]) {
         xAxisRange[axismin] = std::max(xAxisRange[axismin], dataSeries->count() - 1 + (UPDATECHUNKSIZE - DATAWIDTH)/PLOTFREQUENCY);
         xAxisRange[axismax] = std::max(xAxisRange[axismax], dataSeries->count() - 1 + (UPDATECHUNKSIZE/PLOTFREQUENCY));
         //remove labels getting shifted off the axis (working backwards)
-        for(int label = ((UPDATECHUNKSIZE/PLOTFREQUENCY) - 1); label >= 0; label--)
-        {
+        for(int label = ((UPDATECHUNKSIZE/PLOTFREQUENCY) - 1); label >= 0; label--) {
             axisX->remove(axisX->categoriesLabels().at(label));
         }
         //add labels getting shifted on to the axis
-        for(int label = dataSeries->count() - 1; label <= xAxisRange[axismax]; label++)
-        {
+        for(int label = dataSeries->count() - 1; label <= xAxisRange[axismax]; label++) {
             axisX->append(QString::number(label*PLOTFREQUENCY), label);
         }
         axisX->setRange(xAxisRange[axismin], xAxisRange[axismax]);
@@ -94,8 +88,7 @@ void BoxWhiskerPlot::loadNextVals(const float *const vals, const int *const orde
 float BoxWhiskerPlot::median(const float *const vals, const int *const orderedIndex, const int begin, const int end)
 {
     int count = end - begin;
-    if ((count % 2) != 0)
-    {
+    if ((count % 2) != 0) {
         return vals[orderedIndex[count/2 + begin]];
     }
 

@@ -45,10 +45,10 @@ private:
     bool readData();
     CanvasHandler *canvas = nullptr;
     GoogleHandler *google = nullptr;
-    const QString HEADERTEXT = tr("Question text");
-    const QString CATEGORYTEXT = tr("Category");
-    const QString ROW1TEXT = tr("First Row of Data");
-    const QString UNUSEDTEXT = tr("Unused");
+    inline static const QString HEADERTEXT = QObject::tr("Question text");
+    inline static const QString CATEGORYTEXT = QObject::tr("Category");
+    inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
+    inline static const QString UNUSEDTEXT = QObject::tr("Unused");
 };
 
 #endif // GETGRUEPRDATADIALOG_H

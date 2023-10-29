@@ -2,7 +2,6 @@
 #define CUSTOMTEAMNAMESDIALOG_H
 
 #include "listTableDialog.h"
-#include <QPushButton>
 
 class customTeamnamesDialog : public listTableDialog
 {
@@ -16,14 +15,13 @@ public:
     customTeamnamesDialog(customTeamnamesDialog&&) = delete;
     customTeamnamesDialog& operator= (customTeamnamesDialog&&) = delete;
 
-    QList<QLineEdit *> teamNames;
+    QStringList teamNames;
 
 private slots:
     void clearAllNames();
 
 private:
-    int numTeams;
-    QPushButton *resetNamesButton = nullptr;
+    QList<QLineEdit *> teamNameLineEdits;
 };
 
 #endif // CUSTOMTEAMNAMESDIALOG_H

@@ -21,25 +21,22 @@ public:
     whichFilesDialog(whichFilesDialog&&) = delete;
     whichFilesDialog& operator= (whichFilesDialog&&) = delete;
 
-    QCheckBox *studentFiletxt;
-    QCheckBox *studentFilepdf;
-    QCheckBox *instructorFiletxt;
-    QCheckBox *instructorFilepdf;
-    QCheckBox *spreadsheetFiletxt;
+    bool studentFiletxt = false;
+    bool studentFilepdf = false;
+    bool instructorFiletxt = false;
+    bool instructorFilepdf = false;
+    bool spreadsheetFiletxt = false;
 
 private slots:
     void boxToggled();
 
 private:
-    bool saveDialog;
-    QGridLayout *theGrid;
-    QLabel *explanation;
-    QLabel *textfile;
-    QLabel *pdffile;
-    QPushButton *studentFileLabel;
-    QPushButton *instructorFileLabel;
-    QPushButton *spreadsheetFileLabel;
-    QDialogButtonBox *buttonBox;
+    QCheckBox *studentFiletxtCheckBox = nullptr;
+    QCheckBox *studentFilepdfCheckBox = nullptr;
+    QCheckBox *instructorFiletxtCheckBox = nullptr;
+    QCheckBox *instructorFilepdfCheckBox = nullptr;
+    QCheckBox *spreadsheetFiletxtCheckBox = nullptr;
+    QDialogButtonBox *buttonBox = nullptr;
     QFont previousToolTipFont;
     inline static const int CHECKBOXSIZE = 30;
 };

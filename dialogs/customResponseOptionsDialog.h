@@ -19,8 +19,8 @@ public:
     customResponseOptionsDialog(customResponseOptionsDialog&&) = delete;
     customResponseOptionsDialog& operator= (customResponseOptionsDialog&&) = delete;
 
-    QStringList options;
     int numOptions;
+    QStringList options;
 
 private slots:
     void refreshDisplay();
@@ -30,13 +30,10 @@ private:
     inline bool allFilled();
     inline bool stripPrecedingOrderNumbers(QStringList &options);
 
-    QHBoxLayout *numOptionsLayout = nullptr;
-    QLabel *numOptionsLabel = nullptr;
     QSpinBox *numOptionsBox = nullptr;
+    QCheckBox *orderedResponsesCheckbox = nullptr;
     QList<QLabel *> optionLabels;
     QList<QLineEdit *> optionLineEdits;
-    QCheckBox *orderedResponsesCheckbox = nullptr;
-    QPushButton *clearAllButton = nullptr;
 
     inline const static int MAXRESPONSEOPTIONS = 100;
 };

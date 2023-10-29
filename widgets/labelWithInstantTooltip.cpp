@@ -2,20 +2,14 @@
 #include <QMouseEvent>
 #include <QToolTip>
 
-LabelWithInstantTooltip::LabelWithInstantTooltip(const QString &labelText, QWidget *parent)
-    :QLabel(labelText, parent)
+void LabelWithInstantTooltip::setToolTipText(const QString &text)
 {
+    toolTipText = text;
 }
-
-LabelWithInstantTooltip::LabelWithInstantTooltip(QWidget *parent)
-    :QLabel(parent)
-{
-}
-
 
 void LabelWithInstantTooltip::enterEvent(QEnterEvent *event)
 {
-    QToolTip::showText(QCursor::pos(), toolTipText, this, this->rect(), 60000);
+    QToolTip::showText(QCursor::pos(), toolTipText, this, this->rect(), DISPLAYTIME);
     QLabel::enterEvent(event);
 }
 
@@ -27,12 +21,6 @@ void LabelWithInstantTooltip::leaveEvent(QEvent *event)
 
 void LabelWithInstantTooltip::mouseReleaseEvent(QMouseEvent *event)
 {
-    QToolTip::showText(QCursor::pos(), toolTipText, this, this->rect(), 60000);
+    QToolTip::showText(QCursor::pos(), toolTipText, this, this->rect(), DISPLAYTIME);
     event->accept();
-}
-
-
-void LabelWithInstantTooltip::setToolTipText(const QString &text)
-{
-    toolTipText = text;
 }

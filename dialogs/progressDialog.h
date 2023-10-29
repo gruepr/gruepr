@@ -1,12 +1,12 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
-#include "widgets/boxwhiskerplot.h"
-#include <QCheckBox>
 #include <QDialog>
+#include <QChartView>
+#include <QCheckBox>
 #include <QLabel>
 #include <QProgressBar>
-#include <QVBoxLayout>
+#include <QPushButton>
 
 class progressDialog : public QDialog
 {
@@ -33,7 +33,6 @@ signals:
 
 private:
     bool graphShown;
-    QVBoxLayout *layout = nullptr;
     QLabel *statusText = nullptr;
     QLabel *explanationText = nullptr;
     QProgressBar *progressBar = nullptr;

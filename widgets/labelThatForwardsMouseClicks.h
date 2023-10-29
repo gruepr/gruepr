@@ -10,7 +10,7 @@ class LabelThatForwardsMouseClicks : public QLabel
     Q_OBJECT
 
 public:
-    LabelThatForwardsMouseClicks(QWidget *parent = nullptr);
+    LabelThatForwardsMouseClicks(QWidget *parent = nullptr) : QLabel(parent) {};
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;

@@ -1,9 +1,9 @@
 #include "progressDialog.h"
 #include "gruepr_globals.h"
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QRegularExpression>
 #include <QTimer>
+#include <QVBoxLayout>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to show progress in optimization
@@ -12,11 +12,11 @@
 progressDialog::progressDialog(const QString &currSection, QChartView *chart, QWidget *parent)
     :QDialog (parent)
 {
-    //Set up window with a grid layout
+    //Set up window
     setWindowTitle(currSection.isEmpty() ? tr("Grueping...") : tr("Grueping ") + currSection + "...");
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint);
     setModal(true);
-    layout = new QVBoxLayout(this);
+    auto *layout = new QVBoxLayout(this);
     layout->setSpacing(12);
 
     statusText = new QLabel(tr("Status: Optimizing..."), this);

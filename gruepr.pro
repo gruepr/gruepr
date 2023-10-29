@@ -97,7 +97,6 @@ SOURCES += \
         dialogs/whichFilesDialog.cpp \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
-        widgets/comboBoxThatPassesScrollwheel.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
@@ -142,7 +141,6 @@ HEADERS += \
         dialogs/whichFilesDialog.h \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
-        widgets/comboBoxThatPassesScrollwheel.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \

@@ -29,11 +29,13 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                                                 {return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 
     ui->tabWidget->tabBar()->setExpanding(true);
-    ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE).replace("QTabBar::tab {background-color: white;", "QTabBar::tab {background-color: " TRANSPARENT ";") + LABELSTYLE);
+    ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE).replace("QTabBar::tab {background-color: white;", "QTabBar::tab {background-color: " TRANSPARENT ";") +
+                                 LABELSTYLE);
 
     auto scrollAreas = {ui->requiredScrollArea, ui->preventedScrollArea, ui->requestedScrollArea};
     for(auto &scrollArea : scrollAreas) {
-        scrollArea->setStyleSheet(QString() + "QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: 1px solid black;}" + SCROLLBARSTYLE);
+        scrollArea->setStyleSheet(QString("QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: 1px solid black;}") +
+                                  SCROLLBARSTYLE);
     }
 
     auto scrollAreaWidgets = {ui->requiredScrollAreaWidget, ui->preventedScrollAreaWidget, ui->requestedScrollAreaWidget};
@@ -41,7 +43,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         scrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
     }
 
-    auto frames = {ui->required_addFrame, ui->required_valuesFrame, ui->prevented_addFrame, ui->prevented_valuesFrame, ui->requested_addFrame, ui->requested_valuesFrame};
+    auto frames = {ui->required_addFrame, ui->required_valuesFrame, ui->prevented_addFrame,
+                   ui->prevented_valuesFrame, ui->requested_addFrame, ui->requested_valuesFrame};
     for(auto &frame : frames) {
         frame->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX ";}");
     }
@@ -63,7 +66,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         connect(addSetButton, &QPushButton::clicked, this, [this](){addOneTeammateSet(static_cast<TypeOfTeammates>(ui->tabWidget->currentIndex()));});
     }
 
-    auto studentcomboboxes = {ui->required_studentSelectComboBox, ui->required_studentSelectComboBox2, ui->prevented_studentSelectComboBox, ui->prevented_studentSelectComboBox2,
+    auto studentcomboboxes = {ui->required_studentSelectComboBox, ui->required_studentSelectComboBox2,
+                              ui->prevented_studentSelectComboBox, ui->prevented_studentSelectComboBox2,
                               ui->requested_studentSelectComboBox, ui->requested_teammateSelectComboBox};
     for(auto &studentcombobox : studentcomboboxes) {
         studentcombobox->setStyleSheet(COMBOBOXSTYLE);
@@ -102,13 +106,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         loadMenu->addAction(loadFromCSV);
         loadButton->setMenu(loadMenu);
     }
-/*
-    auto saveButtons = {ui->required_saveButton, ui->prevented_saveButton, ui->requested_saveButton};
-    for(auto saveButton : saveButtons) {
-        saveButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        connect(saveButton, &QPushButton::clicked, this, [this](){saveCSVFile(static_cast<TypeOfTeammates>(ui->tabWidget->currentIndex()));});
-    }
-*/
+
     auto clearButtons = {ui->required_clearButton, ui->prevented_clearButton, ui->requested_clearButton};
     for(auto clearButton : clearButtons) {
         clearButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -119,23 +117,28 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     for(auto &tableWidget : tableWidgets) {
         tableWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-        tableWidget->setStyleSheet("QTableView{gridline-color: lightGray; background-color: " TRANSPARENT "; border: none; font-size: 12pt; font-family: 'DM Sans';}"
-                                        "QTableWidget:item {border-right: 1px solid lightGray; color: black;}" + QString(SCROLLBARSTYLE));
-        tableWidget->horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
-                                                                    "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
-                                          "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
-                                                                "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}");
+        tableWidget->setStyleSheet("QTableView{gridline-color: lightGray; background-color: " TRANSPARENT "; border: none; "
+                                               "font-size: 12pt; font-family: 'DM Sans';}"
+                                   "QTableWidget:item {border-right: 1px solid lightGray; color: black;}" + QString(SCROLLBARSTYLE));
+        tableWidget->horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; "
+                                                                    "border-bottom: none; background-color:" DEEPWATERHEX "; "
+                                                                    "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
+                                                       "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; "
+                                                                             "border-bottom: none; background-color:" DEEPWATERHEX "; "
+                                                                             "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}");
         tableWidget->verticalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: none; border-bottom: none;"
-                                                                  "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}"
-                                        "QHeaderView::section{border-top: none; border-left: none; border-right: none; border-bottom: none;"
-                                                              "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
+                                                                  "background-color:" DEEPWATERHEX "; "
+                                                                  "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}"
+                                                     "QHeaderView::section{border-top: none; border-left: none; border-right: none; border-bottom: none;"
+                                                                           "background-color:" DEEPWATERHEX "; "
+                                                                           "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
         //below is stupid way needed to get text in the top-left corner cell
         auto *button = tableWidget->findChild<QAbstractButton *>();
         if (button) {
             button->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; border: none;");
             auto *lay = new QVBoxLayout(button);
             lay->setContentsMargins(0, 0, 0, 0);
-            auto *label = new QLabel(tr("Student"));
+            auto *label = new QLabel(tr("Student"), this);
             label->setAlignment(Qt::AlignCenter);
             label->setStyleSheet("QLabel {font-size: 12pt; font-family: 'DM Sans'; color: white;}");
             label->setContentsMargins(2, 2, 2, 2);
@@ -150,8 +153,10 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->requested_numRequestsSpinBox->setStyleSheet(SPINBOXSTYLE);
     ui->requested_numRequestsSpinBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
     connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){numberRequestedTeammatesGiven = newVal;});
-    connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){if(newVal > 1) {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammates"));}
-                                                                                                else {ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate "));}});
+    connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){if(newVal > 1) {
+                                                                                                   ui->requested_numRequestsSpinBox->setSuffix(tr(" teammates"));}
+                                                                                                else {
+                                                                                                   ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate "));}});
     ui->requested_lightbulb->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     ui->requested_lightbulb->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
     ui->requested_whatsThisLabel->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
@@ -545,66 +550,6 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
     }
     refreshDisplay(typeOfTeammates);
 }
-
-/*
-bool TeammatesRulesDialog::saveCSVFile(TypeOfTeammates typeOfTeammates)
-{
-    QString typeText;
-    QTableWidget *table;
-    bool requestsInSurvey;
-    if(typeOfTeammates == TypeOfTeammates::required) {
-        typeText = tr("Required");
-        table = ui->required_tableWidget;
-        requestsInSurvey = positiverequestsInSurvey;
-    }
-    else if (typeOfTeammates == TypeOfTeammates::prevented) {
-        typeText = tr("Prevented");
-        table = ui->prevented_tableWidget;
-        requestsInSurvey = negativerequestsInSurvey;
-    }
-    else {
-        typeText = tr("Requested");
-        table = ui->requested_tableWidget;
-        requestsInSurvey = positiverequestsInSurvey;
-    }
-
-    CsvFile csvFile;
-    if(!csvFile.open(this, CsvFile::write, tr("Save File of ") + typeText + tr(" Teammates"), "", tr("Comma-Separated Value File"))) {
-        return false;
-    }
-
-    // write header
-    csvFile.headerValues << tr("basename");
-    int firstDataCol = requestsInSurvey? 1 : 0;
-    int lastDataCol = table->columnCount() - firstDataCol;
-    for(int i = 1; i <= lastDataCol; i++) {
-        csvFile.headerValues << tr("name") + QString::number(i);
-    }
-    if(!csvFile.writeHeader()) {
-        grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This data was not saved.\nThere was an issue writing the file to disk."));
-        return false;
-    }
-
-    // write data rows
-    QStringList firstnameLastname;
-    for(int basename = 0; basename < table->rowCount(); basename++) {
-        csvFile.fieldValues.clear();
-        firstnameLastname = table->verticalHeaderItem(basename)->text().split("  ");
-        csvFile.fieldValues << firstnameLastname.at(0).trimmed() + " " + firstnameLastname.at(1).trimmed();
-        for(int teammate = firstDataCol; teammate <= lastDataCol; teammate++) {
-            QWidget *teammateItem(table->cellWidget(basename,teammate));
-            if (teammateItem != nullptr) {
-                firstnameLastname = teammateItem->property("studentName").toString().split("  ");
-                csvFile.fieldValues << firstnameLastname.at(0).trimmed() + " " + firstnameLastname.at(1).trimmed();
-            }
-        }
-        csvFile.writeDataRow();
-    }
-
-    csvFile.close();
-    return true;
-}
-*/
 
 bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
 {

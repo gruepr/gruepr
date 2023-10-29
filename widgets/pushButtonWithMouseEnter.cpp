@@ -1,6 +1,4 @@
 #include "pushButtonWithMouseEnter.h"
-#include <QGuiApplication>
-
 
 //////////////////
 // QPushButton that signals mouse enter events

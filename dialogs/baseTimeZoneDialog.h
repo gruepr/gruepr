@@ -1,11 +1,8 @@
 #ifndef BASETIMEZONEDIALOG_H
 #define BASETIMEZONEDIALOG_H
 
-#include <QComboBox>
 #include <QDialog>
-#include <QDialogButtonBox>
-#include <QGridLayout>
-#include <QLabel>
+#include <QComboBox>
 
 class baseTimezoneDialog : public QDialog
 {
@@ -16,10 +13,7 @@ public:
     float baseTimezoneVal = 0;
 
 private:
-    QGridLayout *theGrid = nullptr;
-    QLabel *explanation = nullptr;
     QComboBox *timezones = nullptr;
-    QDialogButtonBox *buttonBox = nullptr;
 };
 
 

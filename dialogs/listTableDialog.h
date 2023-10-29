@@ -20,13 +20,13 @@ public:
     void addButton(QPushButton *newButton);
 
 protected:
+    bool eventFilter(QObject *object, QEvent *event) override;   // an event filter to remove scrollwheel events from widget(s) in the table,
+                                                                 // since table is in a scroll area
     QHBoxLayout *buttonLayout = nullptr;
     QDialogButtonBox *buttonBox = nullptr;
     inline static const int TABLEROWINGRID = 5;
     inline static const int BUTTONBOXROWINGRID = 9;
-    inline static const float TABLEOVERSIZE = 1.2f;   // factor to exapnd the first column and every rowof the table, as they often seems to be too small
-    bool eventFilter(QObject *object, QEvent *event) override;   // an event filter to remove scrollwheel events from widget(s) in the table,
-                                                                 // since table is in a scroll area
+    inline static const float TABLEOVERSIZE = 1.2f;   // factor to exapnd the first column and every row of the table, as they often seems to be too small
 };
 
 

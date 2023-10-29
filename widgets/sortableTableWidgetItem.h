@@ -10,7 +10,7 @@
 class SortableTableWidgetItem : public QTableWidgetItem
 {
 public:
-    enum SortType{datetime, alphanumeric};
+    enum class SortType{datetime, alphanumeric};
     SortableTableWidgetItem(const SortType sortType, const QString &txt = "");
     bool operator <(const QTableWidgetItem &other) const override;
 

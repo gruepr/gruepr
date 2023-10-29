@@ -1,6 +1,8 @@
 #include "gatherURMResponsesDialog.h"
 #include "gruepr_globals.h"
+#include <QCheckBox>
 #include <QHeaderView>
+#include <QLabel>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to gather which racial/ethnic/cultural identities should be considered underrepresented
@@ -14,7 +16,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     setMinimumSize(SM_DLG_SIZE, SM_DLG_SIZE);
 
     // Rows 1&2 - explanation and spacer
-    explanation = new QLabel(this);
+    auto *explanation = new QLabel(this);
     explanation->setStyleSheet(LABELSTYLE);
     explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity. "
                             "Which of these should be considered underrepresented?<hr></html>"));
@@ -26,6 +28,9 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
     const int numResponses = int(URMResponses.size());
     theTable->setRowCount(numResponses);
     int widthCol0 = 0, rowHeight = 0;
+    QList<QCheckBox*> enableValue;
+    enableValue.reserve(numResponses);
+    responses.reserve(numResponses);
     for(int response = 0; response < numResponses; response++) {
         const QString &responseText = URMResponses.at(response);
         enableValue << new QCheckBox(this);

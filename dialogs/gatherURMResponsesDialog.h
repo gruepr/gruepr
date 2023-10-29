@@ -2,8 +2,6 @@
 #define GATHERURMRESPONSESDIALOG_H
 
 #include "listTableDialog.h"
-#include <QCheckBox>
-#include <QLabel>
 #include <QPushButton>
 
 class gatherURMResponsesDialog : public listTableDialog
@@ -21,8 +19,6 @@ public:
     QStringList URMResponsesConsideredUR;
 
 private:
-    QLabel *explanation = nullptr;
-    QList<QCheckBox*> enableValue;
     QList<QPushButton*> responses;
 };
 

@@ -52,17 +52,16 @@ void StudentTableWidget::clearSortIndicator()
 void StudentTableWidget::sortByColumn(int column)
 {
     // disallow sorting on the last two columns (edit button and remove button)
-    if(column < columnCount()-2)
-    {
+    if(column < columnCount()-2) {
         QTableWidget::sortByColumn(column, horizontalHeader()->sortIndicatorOrder());
         horizontalHeaderItem(column)->setIcon(QIcon(":/icons_new/blank_arrow.png"));
-        if(column != prevSortColumn)
-        {horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons_new/upDownButton_white.png"));}
+        if(column != prevSortColumn) {
+            horizontalHeaderItem(prevSortColumn)->setIcon(QIcon(":/icons_new/upDownButton_white.png"));
+        }
         prevSortColumn = column;
         prevSortOrder = horizontalHeader()->sortIndicatorOrder();
     }
-    else
-    {
+    else {
         QTableWidget::sortByColumn(prevSortColumn, prevSortOrder);
         horizontalHeader()->setSortIndicator(prevSortColumn, prevSortOrder);
     }
@@ -72,12 +71,10 @@ void StudentTableWidget::sortByColumn(int column)
 void StudentTableWidget::leaveEvent(QEvent *event)
 {
     selectionModel()->clearSelection();
-    for(int row = 0; row < rowCount(); row++)
-    {
+    for(int row = 0; row < rowCount(); row++) {
         cellLeft(row);
     }
-    if(event != nullptr)
-    {
+    if(event != nullptr) {
         QWidget::leaveEvent(event);
     }
 }
@@ -87,13 +84,11 @@ void StudentTableWidget::cellLeft(const int row)
 {
     selectionModel()->clearSelection();
     const int numCols = columnCount();
-    if(cellWidget(row, numCols-1)->property("duplicate").toBool())
-    {
+    if(cellWidget(row, numCols-1)->property("duplicate").toBool()) {
         cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
         cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
     }
-    else
-    {
+    else {
         cellWidget(row, numCols-1)->setStyleSheet("");
         cellWidget(row, numCols-2)->setStyleSheet("");
     }
@@ -115,22 +110,17 @@ void StudentTableWidget::cellEntered(const int row)
     static int prevID = -1;
     const int numCols = columnCount();
     const int numRows = rowCount();
-    if(prevID != -1)
-    {
+    if(prevID != -1) {
         int prevRow = 0;
-        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentIndex").toInt()))
-        {
+        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentIndex").toInt())) {
             prevRow++;
         }
-        if(prevRow < numRows)
-        {
-            if(cellWidget(prevRow, numCols-1)->property("duplicate").toBool())
-            {
+        if(prevRow < numRows) {
+            if(cellWidget(prevRow, numCols-1)->property("duplicate").toBool()) {
                 cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
                 cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
             }
-            else
-            {
+            else {
                 cellWidget(prevRow, numCols-1)->setStyleSheet("");
                 cellWidget(prevRow, numCols-2)->setStyleSheet("");
             }

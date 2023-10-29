@@ -34,9 +34,8 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     theTable->setSelectionMode(QAbstractItemView::NoSelection);
     theTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     theTable->setShowGrid(false);
-    theTable->setStyleSheet(QString() +
-                            "QTableView{background-color: white; border: none;}"
-                             "QTableView::item{border: none; padding: 3px;}" + SCROLLBARSTYLE);
+    theTable->setStyleSheet(QString("QTableView{background-color: white; border: none;}"
+                                    "QTableView::item{border: none; padding: 3px;}") + SCROLLBARSTYLE);
     theTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     theTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     theTable->verticalHeader()->hide();

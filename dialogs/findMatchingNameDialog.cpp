@@ -1,6 +1,9 @@
 #include "findMatchingNameDialog.h"
 #include "Levenshtein.h"
 #include <QButtonGroup>
+#include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QLabel>
 #include <QPushButton>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -13,42 +16,37 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
 {
     // create list of names (map is <Key = Levenshtein distance, Value = name & index in student array>)
     QMultiMap<int, QString> possibleStudents;
-    for(int knownStudent = 0; knownStudent < numStudents; knownStudent++)
-    {
+    for(int knownStudent = 0; knownStudent < numStudents; knownStudent++) {
         int rank = levenshtein::distance(searchName, students[knownStudent].firstname + " " + students[knownStudent].lastname);
-        if(!searchEmail.isEmpty() && searchEmail.compare(students[knownStudent].email, Qt::CaseInsensitive) == 0)
-        {
+        if(!searchEmail.isEmpty() && searchEmail.compare(students[knownStudent].email, Qt::CaseInsensitive) == 0) {
             rank = 0;
         }
-        possibleStudents.insert(rank, students[knownStudent].firstname + " " + students[knownStudent].lastname + "&index=" + QString::number(knownStudent));
+        possibleStudents.insert(rank, students[knownStudent].firstname + " " + students[knownStudent].lastname +
+                                          "&index=" + QString::number(knownStudent));
     }
 
     // Create student selection window
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     setWindowTitle("Choose student");
-    theGrid = new QGridLayout(this);
+    auto *theGrid = new QGridLayout(this);
 
     int row = 0;
-    explanation = new QLabel(this);
+    auto *explanation = new QLabel(this);
     explanation->setStyleSheet(LABELSTYLE);
     QString explanationText;
-    if(!addStudentOption)
-    {
-        if(!nameOfStudentWhoAsked.isEmpty())
-        {
+    if(!addStudentOption) {
+        if(!nameOfStudentWhoAsked.isEmpty()) {
             explanationText += tr("The student ") + nameOfStudentWhoAsked + tr(" listed the following name:") +
                                "<br><b>" + searchName + "</b><br>" +
                                tr("but an exact match could not be found. The most closely matching names are:");
         }
-        else
-        {
+        else {
             explanationText += tr("An exact match for") +
                                "<br><b>" + searchName + "</b><br>" +
                                tr("could not be found. The most closely matching names are:");
         }
     }
-    else
-    {
+    else {
         explanationText += tr("This student on the roster:") +
                            "<br><b>" + searchName + "</b><br>" +
                            tr("could not be found in the survey.") + "<br><br>" +
@@ -60,8 +58,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
     namesList = new QComboBox(this);
     namesList->setStyleSheet(COMBOBOXSTYLE);
     QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
-    while (i != possibleStudents.constEnd())
-    {
+    while (i != possibleStudents.constEnd()) {
         QStringList nameAndNum = i.value().split("&index=");    // split off the index to use as the UserData role
         namesList->addItem(nameAndNum.at(0), nameAndNum.at(1).toInt());
         i++;
@@ -70,8 +67,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
     currSurveyEmail = students[namesList->currentData().toInt()].email;
     currSurveyID = students[namesList->currentData().toInt()].ID;
 
-    if(!addStudentOption)
-    {
+    if(!addStudentOption) {
         theGrid->addWidget(namesList, row++, 0, 1, -1, Qt::AlignLeft);
 
         auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -84,12 +80,12 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
         theGrid->setRowMinimumHeight(row++, DIALOG_SPACER_ROWHEIGHT);
         theGrid->addWidget(buttonBox, row, 0, 1, -1);
 
-        connect(namesList, &QComboBox::currentTextChanged, this, [this, students](const QString &currText){currSurveyName = currText;
-                                                                                                          currSurveyEmail = students[namesList->currentData().toInt()].email;
-                                                                                                          currSurveyID = students[namesList->currentData().toInt()].ID;});
+        connect(namesList, &QComboBox::currentTextChanged, this,
+                    [this, students](const QString &currText){currSurveyName = currText;
+                                                              currSurveyEmail = students[namesList->currentData().toInt()].email;
+                                                              currSurveyID = students[namesList->currentData().toInt()].ID;});
     }
-    else
-    {
+    else {
         // buttons
         auto *addButton = new QPushButton("\n" + tr("Add ") + searchName + "\n" + tr("as a new student") + "\n", this);
         addButton->setStyleSheet(SMALLBUTTONSTYLE);
@@ -115,36 +111,34 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
         comboboxLabel->setStyleSheet(LABELSTYLE);
 
         auto *nameGroup = new QButtonGroup(this);
-        useRosterNameCheckbox = new QRadioButton(tr("Use roster name") + ":  " + searchName);
+        useRosterNameCheckbox = new QRadioButton(tr("Use roster name") + ":  " + searchName, this);
         useRosterNameCheckbox->setStyleSheet(RADIOBUTTONSTYLE);
         useRosterNameCheckbox->setChecked(false);
         useRosterNameCheckbox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         nameGroup->addButton(useRosterNameCheckbox);
         connect(useRosterNameCheckbox, &QRadioButton::clicked, this, [this](const bool checked){useRosterName = checked;});
-        useSurveyNameCheckbox = new QRadioButton(tr("Use survey name") + ":  " + currSurveyName);
+        useSurveyNameCheckbox = new QRadioButton(tr("Use survey name") + ":  " + currSurveyName, this);
         useSurveyNameCheckbox->setStyleSheet(RADIOBUTTONSTYLE);
         useSurveyNameCheckbox->setChecked(true);
         useSurveyNameCheckbox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         nameGroup->addButton(useSurveyNameCheckbox);
 
         auto *emailGroup = new QButtonGroup(this);
-        useRosterEmailCheckbox = new QRadioButton(tr("Use roster email address") + ":  " + (searchEmail.isEmpty()? tr("--") : searchEmail));
+        useRosterEmailCheckbox = new QRadioButton(tr("Use roster email address") + ":  " + (searchEmail.isEmpty()? tr("--") : searchEmail), this);
         useRosterEmailCheckbox->setStyleSheet(RADIOBUTTONSTYLE);
         useRosterEmailCheckbox->setChecked(false);
         useRosterEmailCheckbox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         emailGroup->addButton(useRosterEmailCheckbox);
         connect(useRosterEmailCheckbox, &QRadioButton::clicked, this, [this](const bool checked){useRosterEmail = checked;});
-        useSurveyEmailCheckbox = new QRadioButton(tr("Use survey email address") + ":  " + (currSurveyEmail.isEmpty()? tr("--") : currSurveyEmail));
+        useSurveyEmailCheckbox = new QRadioButton(tr("Use survey email address") + ":  " + (currSurveyEmail.isEmpty()? tr("--") : currSurveyEmail), this);
         useSurveyEmailCheckbox->setStyleSheet(RADIOBUTTONSTYLE);
         useSurveyEmailCheckbox->setChecked(true);
         useSurveyEmailCheckbox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         emailGroup->addButton(useSurveyEmailCheckbox);
-        if((searchEmail == currSurveyEmail) || (searchEmail.isEmpty()))
-        {
+        if((searchEmail == currSurveyEmail) || (searchEmail.isEmpty())) {
             useRosterEmailCheckbox->setEnabled(false);
             useSurveyEmailCheckbox->setEnabled(false);
-            if((searchEmail == currSurveyEmail))
-            {
+            if((searchEmail == currSurveyEmail)) {
                 useSurveyEmailCheckbox->setText(tr("The survey email address matches the roster"));
             }
         }

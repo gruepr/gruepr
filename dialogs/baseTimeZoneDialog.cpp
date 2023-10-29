@@ -1,7 +1,11 @@
 #include "baseTimeZoneDialog.h"
 #include "dataOptions.h"
 #include "gruepr_globals.h"
+#include <QComboBox>
 #include <QDateTime>
+#include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QLabel>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to select base timezone for the class in the survey
@@ -13,10 +17,10 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     //Set up window with a grid layout
     setWindowTitle(tr("Class timezone"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-    theGrid = new QGridLayout(this);
+    auto *theGrid = new QGridLayout(this);
 
     //explanation and a spacer row
-    explanation = new QLabel(this);
+    auto *explanation = new QLabel(this);
     explanation->setStyleSheet(LABELSTYLE);
     explanation->setText(tr("<html>Students were asked to fill out their schedule using their home timezone. "
                             "Which of these should be used as the base timezone for the class? "
@@ -32,8 +36,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");
     timezones = new QComboBox(this);
     timezones->setStyleSheet(COMBOBOXSTYLE);
-    for(auto &zonenameText : timeZoneNames)
-    {
+    for(auto &zonenameText : timeZoneNames) {
         QString zonename;
         zonenameText.remove('"');
         float GMTOffset = 0;
@@ -43,12 +46,13 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     int index = timezones->findData(hoursToGMTFromHere);
     timezones->setCurrentIndex(index != -1? index : 0);
     baseTimezoneVal = timezones->currentData().toFloat();
-    connect(timezones, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {baseTimezoneVal = timezones->currentData().toFloat();});
+    connect(timezones, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this] {baseTimezoneVal = timezones->currentData().toFloat();});
     theGrid->addWidget(timezones, 2, 0, 1, -1);
 
     //a spacer then ok button
     theGrid->setRowMinimumHeight(3, DIALOG_SPACER_ROWHEIGHT);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
     buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
     theGrid->addWidget(buttonBox, 4, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);

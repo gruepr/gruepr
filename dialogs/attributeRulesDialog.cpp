@@ -12,9 +12,11 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString() + TABWIDGETSTYLE + LABELSTYLE);
-    ui->reqScrollArea->setStyleSheet(QString() + "QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX ";}" + SCROLLBARSTYLE);
+    ui->reqScrollArea->setStyleSheet(QString("QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
+                                                          "border: 1px solid; border-color: " AQUAHEX ";}") + SCROLLBARSTYLE);
     ui->reqScrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
-    ui->incompScrollArea->setStyleSheet(QString() + "QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
+    ui->incompScrollArea->setStyleSheet(QString("QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX ";}")
+                                                + SCROLLBARSTYLE);
     ui->incompScrollAreaLayout->setContentsMargins(0, 0, 0, 0);
     auto *resetValuesButton = ui->buttonBox->button(QDialogButtonBox::Reset);
     resetValuesButton->setText(tr("Clear all rules"));
@@ -27,11 +29,10 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
 
     requiredValues = teamingOptions.requiredAttributeValues[attribute];
     incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
-    attributeType = dataOptions.attributeType[attribute];
+    DataOptions::AttributeType attributeType = dataOptions.attributeType[attribute];
     attributeValues.clear();
     auto valueIter = dataOptions.attributeVals[attribute].cbegin();
-    for(const auto &response : dataOptions.attributeQuestionResponses[attribute])
-    {
+    for(const auto &response : dataOptions.attributeQuestionResponses[attribute]) {
         attributeValues.append({*valueIter, response});
         valueIter++;
     }
@@ -46,19 +47,16 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->questionTextLabel_2->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
     QString responses;
     bool firstTime = true;
-    for(const auto &attributeValue : qAsConst(attributeValues))
-    {
+    for(const auto &attributeValue : qAsConst(attributeValues)) {
         // create numbered list of responses (prefixing a number for the token value of -1 and
         // for unordered responses, since they don't already start with number)
-        if(!firstTime)
-        {
+        if(!firstTime) {
             responses += "<br>";
         }
         firstTime = false;
         if((attributeValue.value == -1) ||
-            ((attributeType != DataOptions::AttributeType::ordered) && (attributeType != DataOptions::AttributeType::multiordered)))
-        {
-            responses += valuePrefix(attributeValue.value) + ". ";
+           ((attributeType != DataOptions::AttributeType::ordered) && (attributeType != DataOptions::AttributeType::multiordered))) {
+            responses += valuePrefix(attributeValue.value, attributeType) + ". ";
         }
         responses += attributeValue.response;
     }
@@ -66,40 +64,48 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->responseValuesLabel_2->setText(responses);
 
     ui->reqExplanationLabel->setText(tr("Select the response(s) for which each team must have at least one student."));
-    ui->incompExplanationLabel->setText(tr("For each response, select the other response(s) that should prevent two students from being placed on the same team."));
+    ui->incompExplanationLabel->setText(tr("For each response, select the other response(s) that should "
+                                           "prevent two students from being placed on the same team."));
+    QList<QFrame *> incompFrames;
     incompFrames.reserve(numPossibleValues);
+    QList<QVBoxLayout *> incompFrameLayouts;
     incompFrameLayouts.reserve(numPossibleValues);
+    QList<QLabel *> incompResponseLabels;
     incompResponseLabels.reserve(numPossibleValues);
     QList<QCheckBox *> incompCheckboxes;
     incompCheckboxes.reserve(numPossibleValues);
+    QList<QFrame *> incompSepLines;
+    incompSepLines.reserve(numPossibleValues);
     incompCheckboxList.reserve(numPossibleValues);
     reqCheckboxes.reserve(numPossibleValues);
     for(const auto &attributeValue : qAsConst(attributeValues)) {
         reqCheckboxes << new QCheckBox(this);
         reqCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt;", "12pt; color: " DEEPWATERHEX ";"));
-        reqCheckboxes.last()->setText(valuePrefix(attributeValue.value));
+        reqCheckboxes.last()->setText(valuePrefix(attributeValue.value, attributeType));
         reqCheckboxes.last()->setChecked(requiredValues.contains(attributeValue.value));
         ui->reqScrollAreaLayout->addWidget(reqCheckboxes.last(), 0, Qt::AlignTop);
 
-        incompFrames << new QFrame;
-        incompFrames.last()->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX ";}");
+        incompFrames << new QFrame(this);
+        incompFrames.last()->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
+                                                   "border: 1px solid; border-color: " AQUAHEX ";}");
         incompFrameLayouts << new QVBoxLayout;
         incompFrames.last()->setLayout(incompFrameLayouts.last());
         QString responseLabelText;
         if(attributeValue.value == -1) {
             responseLabelText = attributeValue.response;
         }
-        else if((attributeType == DataOptions::AttributeType::ordered) || (attributeType == DataOptions::AttributeType::multiordered)) {
+        else if((attributeType == DataOptions::AttributeType::ordered) ||
+                (attributeType == DataOptions::AttributeType::multiordered)) {
             responseLabelText = tr("Response ") + attributeValue.response;
         }
         else {
-            responseLabelText = tr("Response ") + valuePrefix(attributeValue.value) + ": " + attributeValue.response;
+            responseLabelText = tr("Response ") + valuePrefix(attributeValue.value, attributeType) + ": " + attributeValue.response;
         }
         incompResponseLabels << new QLabel(responseLabelText, this);
         incompResponseLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
         incompResponseLabels.last()->setWordWrap(true);
         incompFrameLayouts.last()->addWidget(incompResponseLabels.last());
-        incompSepLines << new QFrame;
+        incompSepLines << new QFrame(this);
         incompSepLines.last()->setStyleSheet("border-color: " AQUAHEX);
         incompSepLines.last()->setLineWidth(1);
         incompSepLines.last()->setFrameShape(QFrame::HLine);
@@ -110,7 +116,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
         for(const auto &attributeValue2 : qAsConst(attributeValues)) {
             incompCheckboxes << new QCheckBox(this);
             incompCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt", "12pt"));
-            incompCheckboxes.last()->setText(valuePrefix(attributeValue2.value));
+            incompCheckboxes.last()->setText(valuePrefix(attributeValue2.value, attributeType));
             incompCheckboxes.last()->setChecked(incompatibleValues.contains({attributeValue.value, attributeValue2.value}) ||
                                                 incompatibleValues.contains({attributeValue2.value, attributeValue.value}));
             incompFrameLayouts.last()->addWidget(incompCheckboxes.last(), Qt::AlignTop);
@@ -126,7 +132,7 @@ AttributeRulesDialog::~AttributeRulesDialog()
     delete ui;
 }
 
-QString AttributeRulesDialog::valuePrefix(int value)
+QString AttributeRulesDialog::valuePrefix(int value, DataOptions::AttributeType attributeType)
 {
     if(value == -1) {
         return "--";

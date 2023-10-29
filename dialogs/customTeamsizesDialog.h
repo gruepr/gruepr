@@ -26,8 +26,6 @@ private slots:
 
 private:
     int numStudents;
-    QHBoxLayout *numTeamsLayout = nullptr;
-    QLabel *numTeamsLabel = nullptr;
     QSpinBox *numTeamsBox = nullptr;
     QList<QSpinBox*> teamsizeBox;
     QLabel *remainingStudents = nullptr;

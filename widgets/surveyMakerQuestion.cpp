@@ -6,15 +6,14 @@
 
 SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, const QString &textLabel, bool startingValue)
     : QFrame{parent}
-    , _enabled(true)
 {
     switchButton = new SwitchButton(startingValue);
     connect(switchButton, &SwitchButton::valueChanged, this, &SurveyMakerQuestionWithSwitch::valueChange);
 
-    label = new QLabel;
+    label = new QLabel(this);
     setLabel(textLabel);
 
-    setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
+    setStyleSheet(QString("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}") + SCROLLBARSTYLE);
 
     layout = new QGridLayout(this);
     layout->addWidget(label, 0, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
@@ -31,11 +30,11 @@ void SurveyMakerQuestionWithSwitch::paintEvent(QPaintEvent*)
 {
     setAutoFillBackground(true);
     if (_enabled) {
-        setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
+        setStyleSheet(QString("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}") + SCROLLBARSTYLE);
         label->setText(label->text().replace("#bebebe", DEEPWATERHEX));
     }
     else {
-        setStyleSheet(QString() + "QFrame{background-color: #e6e6e6; color: #bebebe;}" + SCROLLBARSTYLE);
+        setStyleSheet(QString("QFrame{background-color: #e6e6e6; color: #bebebe;}") + SCROLLBARSTYLE);
         label->setText(label->text().replace(DEEPWATERHEX, "#bebebe"));
     }
 }
@@ -44,8 +43,7 @@ void SurveyMakerQuestionWithSwitch::setEnabled(bool flag)
 {
     _enabled = flag;
     switchButton->setEnabled(flag);
-    for(auto *widget : this->findChildren<QWidget *>())
-    {
+    for(auto *widget : this->findChildren<QWidget *>()) {
         widget->setEnabled(flag);
     }
     QWidget::setEnabled(flag);
@@ -96,14 +94,14 @@ void SurveyMakerQuestionWithSwitch::moveWidget(QWidget *widget, int newRow, int 
 SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent)
     : QFrame{parent}
 {
-    label = new QLabel;
+    label = new QLabel(this);
     setNumber(questionNum);
-    deleteButton = new QPushButton;
+    deleteButton = new QPushButton(this);
     deleteButton->setStyleSheet(DELBUTTONSTYLE);
     deleteButton->setText(tr("Delete"));
     deleteButton->setIcon(QIcon(":/icons_new/trashButton.png"));
 
-    questionLabel = new QLabel(tr("Question"));
+    auto *questionLabel = new QLabel(tr("Question"), this);
     questionLabel->setStyleSheet(LABELSTYLE);
     questionPlainTextEdit = new QPlainTextEdit;
     questionPlainTextEdit->setStyleSheet(PLAINTEXTEDITSTYLE);
@@ -111,9 +109,9 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     questionPlainTextEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     resizeQuestionPlainTextEdit();
     questionPlainTextEdit->setPlaceholderText(tr("Type your question..."));
-    responsesLabel = new QLabel(tr("Response type"));
+    responsesLabel = new QLabel(tr("Response type"), this);
     responsesLabel->setStyleSheet(LABELSTYLE);
-    responsesComboBox = new ComboBoxWithElidedContents("1. Very high / 2. Above average / 3. Average");
+    responsesComboBox = new ComboBoxWithElidedContents("1. Very high / 2. Above average / 3. Average", this);
     responsesComboBox->setEditable(false);
     responsesComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     responsesComboBox->installEventFilter(new MouseWheelBlocker(responsesComboBox));
@@ -131,7 +129,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     }
     responsesComboBox->setItemData(item + 1, QStringList({""}));    // reset the "Custom options..." item data and tooltip
     responsesComboBox->setItemData(item + 1, "", Qt::ToolTipRole);
-    multiAllowed = new QCheckBox(tr("Allow students to select multiple options"));
+    multiAllowed = new QCheckBox(tr("Allow students to select multiple options"), this);
 
     connect(deleteButton, &QPushButton::clicked, this, &SurveyMakerMultichoiceQuestion::deleteRequest);
     connect(questionPlainTextEdit, &QPlainTextEdit::textChanged, this, &SurveyMakerMultichoiceQuestion::questionChange);
@@ -140,7 +138,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
 
     setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
 
-    layout = new QGridLayout(this);
+    auto *layout = new QGridLayout(this);
     int row = 0;
     layout->addWidget(label, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
     layout->addWidget(deleteButton, row++, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
@@ -170,7 +168,6 @@ void SurveyMakerMultichoiceQuestion::resizeEvent(QResizeEvent *event)
 void SurveyMakerMultichoiceQuestion::setNumber(const int questionNum)
 {
     label->setText("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + tr("Question ") + QString::number(questionNum) + "</span>");
-    this->questionNum = questionNum;
 }
 
 void SurveyMakerMultichoiceQuestion::deleteRequest()
@@ -250,14 +247,12 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
     static int prevIndex = 0;
     static QStringList currentCustomOptions;
     //see if custom options being enabled
-    if(responsesComboBox->currentText() == tr("Custom options..."))
-    {
+    if(responsesComboBox->currentText() == tr("Custom options...")) {
         auto *window = new customResponseOptionsDialog(currentCustomOptions, this);
 
         // If user clicks OK, use these options
         int reply = window->exec();
-        if(reply == QDialog::Accepted)
-        {
+        if(reply == QDialog::Accepted) {
             bool currentValue = responsesComboBox->blockSignals(true);
             currentCustomOptions = window->options;
             responsesComboBox->setItemText(numOfResponseOptions + 1, currentCustomOptions.join(" / "));
@@ -269,8 +264,7 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
             responsesComboBox->addItem(tr("Custom options..."), QStringList({""}));
             responsesComboBox->blockSignals(currentValue);
         }
-        else
-        {
+        else {
             bool currentValue = responsesComboBox->blockSignals(true);
             responsesComboBox->setCurrentIndex(prevIndex);
             responsesComboBox->blockSignals(currentValue);
@@ -278,14 +272,12 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
 
         delete window;
     }
-    else
-    {
+    else {
         prevIndex = index;
     }
 
     // Put list of options back to just built-ins plus "Custom options"
-    if(index < numOfResponseOptions)
-    {
+    if(index < numOfResponseOptions) {
         responsesComboBox->removeItem(numOfResponseOptions + 2);
         responsesComboBox->removeItem(numOfResponseOptions + 1);
         responsesComboBox->addItem(tr("Custom options..."));
@@ -376,7 +368,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
 
     layout = new QGridLayout(this);
 
-    title = new QLabel("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:14pt\">" + titleText + "</span>");
+    title = new QLabel("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:14pt\">" + titleText + "</span>", this);
     //center the title for just the Survey Title section
     if(pageNum == 0) {
         layout->addWidget(title, row, 0, 1, 1, Qt::AlignCenter | Qt::AlignVCenter);
@@ -385,7 +377,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         layout->addWidget(title, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
     }
 
-    editButton = new QPushButton;
+    auto *editButton = new QPushButton(this);
     editButton->setStyleSheet(QString(DELBUTTONSTYLE).replace("10pt", "12pt"));
     editButton->setIcon(QIcon(":/icons_new/edit.png"));
     editButton->setText(tr("Edit") + " " + (pageNum == 0? tr("title") : tr("section")));
@@ -398,25 +390,25 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         preQuestionSpacer << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         layout->addItem(preQuestionSpacer.last(), row++, 0, 1, -1);
 
-        questionLabel << new QLabel;
+        questionLabel << new QLabel(this);
         questionLabel.last()->setStyleSheet(LABELSTYLE);
         questionLabel.last()->setWordWrap(true);
         layout->addWidget(questionLabel.last(), row++, 0, 1, -1);
         questionLabel.last()->hide();
 
-        questionLineEdit << new QLineEdit;
+        questionLineEdit << new QLineEdit(this);
         questionLineEdit.last()->setStyleSheet(LINEEDITSTYLE);
         layout->addWidget(questionLineEdit.last(), row++, 0, 1, -1);
         questionLineEdit.last()->hide();
 
-        questionComboBox << new QComboBox;
+        questionComboBox << new QComboBox(this);
         questionComboBox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         questionComboBox.last()->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
         questionComboBox.last()->installEventFilter(new MouseWheelBlocker(questionComboBox.last()));
         layout->addWidget(questionComboBox.last(), row++, 0, 1, -1, Qt::AlignLeft);
         questionComboBox.last()->hide();
 
-        questionGroupBox << new QGroupBox;
+        questionGroupBox << new QGroupBox(this);
         questionGroupLayout << new QVBoxLayout;
         questionGroupLayout.last()->setSpacing(6);
         questionGroupLayout.last()->setContentsMargins(20, 0, 0, 0);

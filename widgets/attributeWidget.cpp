@@ -1,11 +1,13 @@
 #include "attributeWidget.h"
 #include <QApplication>
+#include <QFrame>
+#include <QGridLayout>
 
 AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
 {
     setContentsMargins(0,0,0,0);
 
-    theGrid = new QGridLayout(this);
+    auto *theGrid = new QGridLayout(this);
     theGrid->setContentsMargins(0,0,0,0);
     theGrid->setHorizontalSpacing(4);
     theGrid->setVerticalSpacing(2);
@@ -23,7 +25,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     responsesLabel->setTextFormat(Qt::RichText);
     responsesLabel->setWordWrap(true);
     responsesLabel->setIndent(10);
-    responsesFrame = new QFrame(this);
+    auto *responsesFrame = new QFrame(this);
     responsesFrame->setStyleSheet("QFrame {background-color: " TRANSPARENT "; border: 1px solid; border-color: " AQUAHEX "; padding: 2 px;}");
     responsesFrame->setLineWidth(1);
     responsesFrame->setFrameStyle(QFrame::Box | QFrame::Plain);
@@ -31,7 +33,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     hlay->addWidget(responsesLabel);
     theGrid->addWidget(responsesFrame, row++, column, 1, -1);
 
-    weightPreLabel = new QLabel(tr("Weight:"), this);
+    auto *weightPreLabel = new QLabel(tr("Weight:"), this);
     theGrid->addWidget(weightPreLabel, row, column++, Qt::AlignLeft);
     weight = new QDoubleSpinBox(this);
     weight->setFocusPolicy(Qt::StrongFocus);
@@ -44,7 +46,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     weight->setValue(1);
     theGrid->addWidget(weight, row, column++);
     theGrid->setColumnStretch(column++, 1);
-    homogenLabel = new QLabel(tr("Homogeneous Values"), this);
+    auto *homogenLabel = new QLabel(tr("Homogeneous Values"), this);
     homogenLabel->setToolTip(HOMOGENTOOLTIP);
     theGrid->addWidget(homogenLabel, row, column++);
     homogeneous = new SwitchButton(this, true);
@@ -59,8 +61,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
 
 void AttributeWidget::setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions)
 {
-    if(attribute >= dataOptions->numAttributes)
-    {
+    if(attribute >= dataOptions->numAttributes) {
         questionLabel->setText(tr("N/A"));
         responsesLabel->setText(tr("N/A"));
         weight->setEnabled(false);
@@ -71,8 +72,7 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
 
     updateQuestionAndResponses(attribute, dataOptions);
 
-    if(dataOptions->attributeVals[attribute].size() == 1)
-    {
+    if(dataOptions->attributeVals[attribute].size() == 1) {
         teamingOptions->attributeWeights[attribute] = 0;
         weight->setEnabled(false);
         weight->setToolTip(ONLYONETOOLTIP);
@@ -81,8 +81,7 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
         requiredIncompatsButton->setEnabled(false);
         requiredIncompatsButton->setToolTip(ONLYONETOOLTIP);
     }
-    else
-    {
+    else {
         weight->setEnabled(true);
         weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
         homogeneous->setEnabled(true);
@@ -99,63 +98,52 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
     const auto type = dataOptions->attributeType[attribute];
 
     QString questionText = "<html>" + dataOptions->attributeQuestionText.at(attribute);
-    if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered))
-    {
+    if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
         questionText += "<br><i>Multiple responses allowed.</i>";
     }
     questionText += "</html>";
+    questionLabel->setText(questionText);
 
     static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
     QRegularExpressionMatch match;
     int responseNum = 0;
     bool first = true;
-    QString responsesText = "<html>";    //hanging indent
-    for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute]))
-    {
+    QString responsesText = "<html>";
+    for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
         if(!first) {
             responsesText += "<br>";
         }
         first = false;
         responsesText += "<b>";
-        if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered))
-        {
+        if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
             // show response with starting number
             match = startsWithInteger.match(response);
             responsesText += match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
         }
-        else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical))
-        {
+        else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical)) {
             // show response with a preceding letter (letter repeated for responses after 26)
             responsesText += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
             responsesText += "</b>. " + response;
         }
-        else
-        {
+        else {
             // timezone, show response with GMT
             QString timezoneName;
             float hours=0, minutes=0, offsetFromGMT=0;
-            if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT))
-            {
-                QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(static_cast<int>(hours)).arg(static_cast<int>(minutes), 2, 10, QChar('0'));
+            if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
+                QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
                 responsesText += GMTtext + "</b> " + timezoneName;
             }
-            else
-            {
-                responsesText += (responseNum < 26 ?
-                                              QString(char(responseNum + 'A')) :
-                                              QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+            else {
+                responsesText += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
                 responsesText += "</b>. " + response;
             }
         }
-        responsesText += "  (" +
-                                 QString::number(responseCounts.empty() ?
-                                                     (dataOptions->attributeQuestionResponseCounts[attribute].at(response)) :
-                                                     (responseCounts.at(response)))
-                                 + " " + tr("students") + ")";
+        responsesText += "  (" + QString::number(responseCounts.empty() ?
+                                     (dataOptions->attributeQuestionResponseCounts[attribute].at(response)) :
+                                     (responseCounts.at(response))) +
+                         " " + tr("students") + ")";
         responseNum++;
     }
     responsesText += "</html>";
-
-    questionLabel->setText(questionText);
     responsesLabel->setText(responsesText);
 }

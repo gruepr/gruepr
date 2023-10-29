@@ -2,8 +2,6 @@
 #define SAMPLEQUESTIONSDIALOG_H
 
 #include <QDialog>
-#include <QLabel>
-#include <QVBoxLayout>
 
 namespace Ui {
 class SampleQuestionsDialog;
@@ -20,7 +18,6 @@ public:
     SampleQuestionsDialog operator= (const SampleQuestionsDialog&) = delete;
     SampleQuestionsDialog(SampleQuestionsDialog&&) = delete;
     SampleQuestionsDialog& operator= (SampleQuestionsDialog&&) = delete;
-
 
 private:
     Ui::SampleQuestionsDialog *ui;

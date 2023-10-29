@@ -1,12 +1,14 @@
 #include "editOrAddStudentDialog.h"
 #include <QCheckBox>
 #include <QCollator>
+#include <QDialogButtonBox>
+#include <QGridLayout>
+#include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QScrollBar>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to show/edit student data
+// A dialog to edit student data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const DataOptions *const dataOptions, QWidget *parent, bool newStudent)
@@ -14,23 +16,24 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 {
     //Set up window with a grid layout
     if(newStudent) {
-        setWindowTitle(tr("Add new student record"));
+        setWindowTitle(tr("Add new student"));
     }
     else {
-        setWindowTitle(tr("Edit student record"));
+        setWindowTitle(tr("Edit student"));
     }
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     setSizeGripEnabled(true);
-    theGrid = new QGridLayout(this);
+    auto *theGrid = new QGridLayout(this);
 
-    auto *fieldAreaWidg = new QWidget;
+    auto *fieldAreaWidg = new QWidget(this);
     auto *fieldAreaLayout = new QVBoxLayout(fieldAreaWidg);
-    fieldAreaWidg->setLayout(fieldAreaLayout);
     auto *fieldArea = new QScrollArea(this);
     fieldArea->setWidget(fieldAreaWidg);
-    fieldArea->setStyleSheet(QString() + "QScrollArea{border: none;}" + SCROLLBARSTYLE);
+    fieldArea->setStyleSheet(QString("QScrollArea{border: none;}") + SCROLLBARSTYLE);
     fieldArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     fieldArea->setWidgetResizable(true);
+
+    QList<QLabel*> explanation;
 
     if(dataOptions->timestampField != -1) {
         explanation << new QLabel(this);
@@ -106,7 +109,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             explanation.last()->setText(tr("Pronouns"));
             genderOptions = QString(PRONOUNS).split('/');
         }
-        databox << new ComboBoxThatPassesScrollwheel(this);
+        databox << new QComboBox(this);
+        databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
         databox.last()->setStyleSheet(COMBOBOXSTYLE);
         databox.last()->addItems(genderOptions);
         databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -119,7 +123,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABELSTYLE);
         explanation.last()->setText(tr("Racial/ethnic/cultural identity"));
-        databox << new ComboBoxThatPassesScrollwheel(this);
+        databox << new QComboBox(this);
+        databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
         databox.last()->setStyleSheet(COMBOBOXSTYLE);
         databox.last()->addItems(dataOptions->URMResponses);
         databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -133,7 +138,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABELSTYLE);
         explanation.last()->setText(tr("Section"));
-        databox << new ComboBoxThatPassesScrollwheel(this);
+        databox << new QComboBox(this);
+        databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
         databox.last()->setStyleSheet(COMBOBOXSTYLE);
         databox.last()->addItems(dataOptions->sectionNames);
         databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -166,14 +172,14 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
             DataOptions::AttributeType type = dataOptions->attributeType[attribute];
 
-            auto *w = new QWidget;
+            auto *w = new QWidget(this);
             auto *layout = new QVBoxLayout;
             w->setLayout(layout);
 
             //add a selector button if there's multiple attributes
             if(dataOptions->numAttributes > 1) {
                 const int rowSize = 5;  // number of buttons in each row
-                attributeSelectorButtons << new QPushButton(tr("Q") + QString::number(attribute + 1));
+                attributeSelectorButtons << new QPushButton(tr("Q") + QString::number(attribute + 1), this);
                 attributeSelectorButtons.last()->setFlat(true);
                 QString stylesheet = attribute == 0? ATTRIBBUTTONONSTYLE : ATTRIBBUTTONOFFSTYLE;
                 if(attribute == 0) {
@@ -209,7 +215,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             }
 
             // create a question text label
-            auto *attributeQuestionText = new QLabel;
+            auto *attributeQuestionText = new QLabel(this);
             attributeQuestionText->setStyleSheet(LABELSTYLE);
             attributeQuestionText->setWordWrap(true);
             layout->addWidget(attributeQuestionText, Qt::AlignLeft);
@@ -262,7 +268,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             // create the combobox or group of checkboxes as relevant
             if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::categorical)) {
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
-                attributeCombobox << new ComboBoxThatPassesScrollwheel(this);
+                attributeCombobox << new QComboBox(this);
+                attributeCombobox.last()->installEventFilter(new MouseWheelBlocker(attributeCombobox.last()));
                 attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
                 attributeCombobox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
                 attributeCombobox.last()->setEditable(false);
@@ -282,7 +289,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             }
             else if(type == DataOptions::AttributeType::timezone) {
                 attributeQuestionText->setText(tr("Timezone"));
-                attributeCombobox << new ComboBoxThatPassesScrollwheel(this);
+                attributeCombobox << new QComboBox(this);
+                attributeCombobox.last()->installEventFilter(new MouseWheelBlocker(attributeCombobox.last()));
                 attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
                 attributeCombobox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
                 attributeCombobox.last()->setEditable(false);
@@ -316,7 +324,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 auto *internalLayout = new QVBoxLayout;
                 auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
                 for(int option = 0, totNumOptions = int(dataOptions->attributeQuestionResponses[attribute].size()); option < totNumOptions; option++) {
-                    auto *responseCheckBox = new QCheckBox(prefixes.at(option));
+                    auto *responseCheckBox = new QCheckBox(prefixes.at(option), this);
                     responseCheckBox->setStyleSheet(CHECKBOXSTYLE);
                     responseCheckBox->setProperty("responseValue", *attributeValIter);
                     responseCheckBox->setChecked(student.attributeVals[attribute].contains(*attributeValIter));
@@ -407,7 +415,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     //a spacer then ok/cancel buttons
     theGrid->setRowMinimumHeight(1, DIALOG_SPACER_ROWHEIGHT);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     theGrid->addWidget(buttonBox, 2, 0, -1, -1);

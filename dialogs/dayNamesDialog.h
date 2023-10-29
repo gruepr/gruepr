@@ -1,10 +1,8 @@
 #ifndef DAYNAMESDIALOG_H
 #define DAYNAMESDIALOG_H
 
-#include <QCheckBox>
 #include <QDialog>
-#include <QDialogButtonBox>
-#include <QGridLayout>
+#include <QCheckBox>
 #include <QLineEdit>
 
 class dayNamesDialog : public QDialog
@@ -13,10 +11,6 @@ class dayNamesDialog : public QDialog
 
 public:
     dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit *> daynames, QWidget *parent = nullptr);
-
-private:
-    QGridLayout *theGrid;
-    QDialogButtonBox *buttonBox;
 };
 
 #endif // DAYNAMESDIALOG_H

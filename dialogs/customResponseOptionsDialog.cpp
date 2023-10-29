@@ -17,8 +17,8 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     bool comingInOrdered = stripPrecedingOrderNumbers(options);
 
     //Rows 1&2 - the number of options selector and a checkbox for ordered responses
-    numOptionsLayout = new QHBoxLayout;
-    numOptionsLabel = new QLabel(tr("Number of response options: "), this);
+    auto *numOptionsLayout = new QHBoxLayout;
+    auto *numOptionsLabel = new QLabel(tr("Number of response options: "), this);
     numOptionsLabel->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
     numOptionsLayout->addWidget(numOptionsLabel, 0, Qt::AlignRight);
     numOptionsBox = new QSpinBox(this);
@@ -29,7 +29,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     connect(numOptionsBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &customResponseOptionsDialog::refreshDisplay);
     numOptionsLayout->addWidget(numOptionsBox, 0, Qt::AlignLeft);
     theGrid->addLayout(numOptionsLayout, 0, 1, 1, 1);
-    orderedResponsesCheckbox = new QCheckBox("Options have a natural order, as with a Likert-scale response.");
+    orderedResponsesCheckbox = new QCheckBox("Options have a natural order, as with a Likert-scale response.", this);
     orderedResponsesCheckbox->setStyleSheet(CHECKBOXSTYLE);
     orderedResponsesCheckbox->setChecked(comingInOrdered);
     connect(orderedResponsesCheckbox, &QCheckBox::clicked, this, &customResponseOptionsDialog::refreshDisplay);
@@ -41,10 +41,10 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     optionLineEdits.reserve(MAXRESPONSEOPTIONS);
     int widthCol0 = 0, rowHeight = 0;
     for(int i = 0; i < MAXRESPONSEOPTIONS; i++) {
-        optionLabels << new QLabel(tr("Option ") + QString::number(i+1) + " ");
+        optionLabels << new QLabel(tr("Option ") + QString::number(i+1) + " ", this);
         optionLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
         theTable->setCellWidget(i, 0, optionLabels.last());
-        optionLineEdits << new QLineEdit;
+        optionLineEdits << new QLineEdit(this);
         optionLineEdits.last()->setStyleSheet(LINEEDITSTYLE);
         widthCol0 = std::max(widthCol0, optionLabels.last()->width());
         theTable->setCellWidget(i, 1, optionLineEdits.last());
@@ -59,7 +59,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     theTable->adjustSize();
 
     //Add Clear All to the buttons on bottom
-    clearAllButton = new QPushButton(tr("Clear All"), this);
+    auto *clearAllButton = new QPushButton(tr("Clear All"), this);
     clearAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     connect(clearAllButton, &QPushButton::clicked, this, &customResponseOptionsDialog::clearAll);
     addButton(clearAllButton);
@@ -77,14 +77,11 @@ void customResponseOptionsDialog::refreshDisplay()
 
     //show a label and a combobox for as many options as chosen in the numTeams selection
     int i = 0;
-    for(const auto &optionLineEdit : optionLineEdits)
-    {
-        if(i < numOptions)
-        {
+    for(const auto &optionLineEdit : optionLineEdits) {
+        if(i < numOptions) {
             QString currText = optionLineEdits[i]->text();
             int currPos = 0;
-            if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable)
-            {
+            if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable) {
                 SurveyMakerWizard::invalidExpression(optionLineEdits[i], currText, this);
             }
 
@@ -92,8 +89,7 @@ void customResponseOptionsDialog::refreshDisplay()
             optionLabels[i]->setText(tr("Option ") + (orderedResponsesCheckbox->isChecked() ? QString::number(i+1) : QString(char((i%26)+65)).repeated((i/26)+1)));
             theTable->showRow(i);
         }
-        else
-        {
+        else {
             theTable->hideRow(i);
         }
         i++;
@@ -112,8 +108,7 @@ void customResponseOptionsDialog::refreshDisplay()
 void customResponseOptionsDialog::clearAll()
 {
     options.clear();
-    for(int i = 0; i < numOptions; i++)
-    {
+    for(int i = 0; i < numOptions; i++) {
         optionLineEdits[i]->clear();
         options << optionLineEdits[i]->text();
     }

@@ -43,7 +43,7 @@ private:
     SwitchButton *switchButton = nullptr;
     QGridLayout *layout = nullptr;
 
-    bool _enabled;
+    bool _enabled = true;
 };
 
 
@@ -85,12 +85,9 @@ private slots:
     void multiChange(const bool newMulti);
 
 private:
-    int questionNum;
     int numOfResponseOptions;
-    QGridLayout *layout = nullptr;
     QLabel *label = nullptr;
     QPushButton *deleteButton = nullptr;
-    QLabel *questionLabel = nullptr;
     QPlainTextEdit *questionPlainTextEdit = nullptr;
     void resizeQuestionPlainTextEdit();
     QLabel *responsesLabel = nullptr;
@@ -127,7 +124,6 @@ private:
     int row = 0;
     QGridLayout *layout = nullptr;
     QLabel *title = nullptr;
-    QPushButton *editButton = nullptr;
 };
 
 #endif // SURVEYMAKERQUESTION_H

@@ -1,5 +1,7 @@
 #include "dayNamesDialog.h"
 #include "gruepr_globals.h"
+#include <QDialogButtonBox>
+#include <QGridLayout>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to select / name days for the schedule in the survey
@@ -11,10 +13,9 @@ dayNamesDialog::dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit 
     //Set up window with a grid layout
     setWindowTitle(tr("Schedule days"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    theGrid = new QGridLayout(this);
+    auto *theGrid = new QGridLayout(this);
 
-    for(int day = 0; day < MAX_DAYS; day++)
-    {
+    for(int day = 0; day < MAX_DAYS; day++) {
         dayselectors[day]->setStyleSheet(CHECKBOXSTYLE);
         daynames[day]->setStyleSheet(LINEEDITSTYLE);
         theGrid->addWidget(dayselectors[day], day, 0);
@@ -23,7 +24,7 @@ dayNamesDialog::dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit 
 
     //a spacer then ok button
     theGrid->setRowMinimumHeight(MAX_DAYS, DIALOG_SPACER_ROWHEIGHT);
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, this);
     buttonBox->setStyleSheet(SMALLBUTTONSTYLE);
     theGrid->addWidget(buttonBox, MAX_DAYS + 1, 0, 1, -1);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);

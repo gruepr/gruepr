@@ -358,21 +358,18 @@ void TeamsTabItem::teamNamesChanged(int index)
     else
     {
         // Open custom dialog box to collect teamnames
-        QStringList teamNames;
-        teamNames.reserve(teams.size());
-        for(int team = 0; team < teams.size(); team++)
-        {
-            teamNames << teams[teamDisplayNums.at(team)].name;
+        QStringList currentTeamNames;
+        currentTeamNames.reserve(teams.size());
+        for(int team = 0; team < teams.size(); team++) {
+            currentTeamNames << teams[teamDisplayNums.at(team)].name;
         }
-        auto *window = new customTeamnamesDialog(int(teams.size()), teamNames, this);
+        auto *window = new customTeamnamesDialog(int(teams.size()), currentTeamNames, this);
 
         // If user clicks OK, use these team names, otherwise revert to previous option
         int reply = window->exec();
-        if(reply == QDialog::Accepted)
-        {
-            for(int team = 0; team < teams.size(); team++)
-            {
-                    teams[teamDisplayNums.at(team)].name = (window->teamNames[team]->text().isEmpty()? QString::number(team+1) : window->teamNames[team]->text());
+        if(reply == QDialog::Accepted) {
+            for(int team = 0; team < teams.size(); team++) {
+                    teams[teamDisplayNums.at(team)].name = (window->teamNames[team]);
             }
             prevIndex = int(teamnameLists.size());
             bool currentValue = teamnamesComboBox->blockSignals(true);
@@ -382,8 +379,7 @@ void TeamsTabItem::teamNamesChanged(int index)
             teamnamesComboBox->addItem(tr("Custom names..."));
             teamnamesComboBox->blockSignals(currentValue);
         }
-        else
-        {
+        else {
             bool currentValue = teamnamesComboBox->blockSignals(true);
             teamnamesComboBox->setCurrentIndex(prevIndex);
             randTeamnamesCheckBox->setEnabled(prevIndex > 3 && prevIndex < teamnameLists.size());
@@ -875,8 +871,8 @@ void TeamsTabItem::saveTeams()
     //Open specialized dialog box to choose which file(s) to save
     auto *window = new whichFilesDialog(whichFilesDialog::Action::save, previews, this);
     int result = window->exec();
-
-    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
+    
+    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt))
     {
         //save to text files
         QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename for the text file(s)"), "",
@@ -884,10 +880,10 @@ void TeamsTabItem::saveTeams()
         if ( !(baseFileName.isEmpty()) )
         {
             bool problemSaving = false;
-            if(window->instructorFiletxt->isChecked())
+            if(window->instructorFiletxt)
             {
                 QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
-                if(window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked())
+                if(window->studentFiletxt || window->spreadsheetFiletxt)
                 {
                     fullFilename += tr("_instructor");
                 }
@@ -904,10 +900,10 @@ void TeamsTabItem::saveTeams()
                     problemSaving = true;
                 }
             }
-            if(window->studentFiletxt->isChecked())
+            if(window->studentFiletxt)
             {
                 QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
-                if(window->instructorFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked())
+                if(window->instructorFiletxt || window->spreadsheetFiletxt)
                 {
                     fullFilename += tr("_student");
                 }
@@ -924,10 +920,10 @@ void TeamsTabItem::saveTeams()
                     problemSaving = true;
                 }
             }
-            if(window->spreadsheetFiletxt->isChecked())
+            if(window->spreadsheetFiletxt)
             {
                 QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
-                if(window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked())
+                if(window->studentFiletxt || window->spreadsheetFiletxt)
                 {
                     fullFilename += tr("_spreadsheet");
                 }
@@ -950,10 +946,10 @@ void TeamsTabItem::saveTeams()
             }
         }
     }
-    if(result == QDialogButtonBox::Ok && (window->instructorFilepdf->isChecked() || window->studentFilepdf->isChecked()))
+    if(result == QDialogButtonBox::Ok && (window->instructorFilepdf || window->studentFilepdf))
     {
         //save as formatted pdf files
-        printFiles(window->instructorFilepdf->isChecked(), window->studentFilepdf->isChecked(), false, true);
+        printFiles(window->instructorFilepdf, window->studentFilepdf, false, true);
     }
     delete window;
 }
@@ -969,7 +965,7 @@ void TeamsTabItem::postTeamsToCanvas()
     //create canvasHandler and/or authenticate as needed
     if(canvas == nullptr)
     {
-        canvas = new CanvasHandler();
+        canvas = new CanvasHandler;
     }
     if(!canvas->authenticated)
     {
@@ -996,7 +992,7 @@ void TeamsTabItem::postTeamsToCanvas()
     auto *busyBox = canvas->busy();
     QStringList courseNames = canvas->getCourses();
     canvas->notBusy(busyBox);
-    auto *canvasCourses = new QDialog;
+    auto *canvasCourses = new QDialog(this);
     canvasCourses->setWindowTitle(tr("Choose Canvas course"));
     canvasCourses->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -1011,7 +1007,7 @@ void TeamsTabItem::postTeamsToCanvas()
         coursesComboBox->addItem(courseName);
         coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
     }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
@@ -1092,10 +1088,10 @@ void TeamsTabItem::printTeams()
     //Open specialized dialog box to choose which file(s) to print
     auto *window = new whichFilesDialog(whichFilesDialog::Action::print, previews, this);
     int result = window->exec();
-
-    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt->isChecked() || window->studentFiletxt->isChecked() || window->spreadsheetFiletxt->isChecked()))
+    
+    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt))
     {
-        printFiles(window->instructorFiletxt->isChecked(), window->studentFiletxt->isChecked(), window->spreadsheetFiletxt->isChecked(), false);
+        printFiles(window->instructorFiletxt, window->studentFiletxt, window->spreadsheetFiletxt, false);
     }
     delete window;
 }

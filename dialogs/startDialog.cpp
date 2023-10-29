@@ -7,12 +7,13 @@
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QDesktopServices>
+#include <QGridLayout>
 #include <QMenu>
-#include <QProgressDialog>
-#include <QScreen>
+#include <QMenuBar>
+//#include <QScreen>
 #include <QSettings>
 #include <QStringList>
-#include <QThread>
+#include <QToolButton>
 #include <QtNetwork>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,9 +56,9 @@ StartDialog::StartDialog(QWidget *parent)
                                     "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
                                     "QToolButton::menu-indicator {subcontrol-origin: border; subcontrol-position: bottom right;}";
 
-    mainBoxFont = new QFont("DM Sans", BIGFONTSIZE);
-    labelFont = new QFont("DM Sans", LITTLEFONTSIZE);
-    setFont(*mainBoxFont);
+    QFont mainBoxFont("DM Sans", BIGFONTSIZE);
+    QFont labelFont("DM Sans", LITTLEFONTSIZE);
+    setFont(mainBoxFont);
 
     QPixmap backgroundPic(":/icons_new/startup_new.png");
     setFixedSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
@@ -66,13 +67,13 @@ StartDialog::StartDialog(QWidget *parent)
     palette.setBrush(QPalette::Window, backgroundPic);
     setPalette(palette);
 
-    theGrid = new QGridLayout(this);
+    auto *theGrid = new QGridLayout(this);
     int row = 0, col = 0;
 
     theGrid->setRowMinimumHeight(row++, TOPSPACERHEIGHT);
 
-    topLabel = new QLabel(tr("What would you like to do?"), this);
-    topLabel->setFont(*mainBoxFont);
+    auto *topLabel = new QLabel(tr("What would you like to do?"), this);
+    topLabel->setFont(mainBoxFont);
     topLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
     theGrid->addWidget(topLabel, row++, col, 1, -1, Qt::AlignCenter);
 
@@ -81,12 +82,12 @@ StartDialog::StartDialog(QWidget *parent)
     // Create buttons and add to window
     theGrid->setColumnMinimumWidth(col++, LEFTRIGHTSPACERWIDTH);
 
-    survMakeButton = new QToolButton(this);
+    auto *survMakeButton = new QToolButton(this);
     survMakeButton->setFixedSize(TOOLBUTTONSIZE);
     survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     survMakeButton->setIcon(QIcon(":/icons_new/makeASurvey.png"));
     survMakeButton->setIconSize(ICONSIZE);
-    survMakeButton->setFont(*labelFont);
+    survMakeButton->setFont(labelFont);
     survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
     survMakeButton->setStyleSheet(BUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
@@ -94,12 +95,12 @@ StartDialog::StartDialog(QWidget *parent)
 
     theGrid->setColumnMinimumWidth(col++, MIDDLESPACERWIDTH);
 
-    grueprButton = new QToolButton(this);
+    auto *grueprButton = new QToolButton(this);
     grueprButton->setFixedSize(TOOLBUTTONSIZE);
     grueprButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
-    grueprButton->setFont(*labelFont);
+    grueprButton->setFont(labelFont);
     grueprButton->setText(tr("Upload your survey results\nand form your grueps."));
     grueprButton->setStyleSheet(BUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
@@ -112,7 +113,7 @@ StartDialog::StartDialog(QWidget *parent)
     // Create status labels to show when registered and/or latest version installed
     registerLabel = new QLabel(this);
     registerLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
-    registerLabel->setFont(*labelFont);
+    registerLabel->setFont(labelFont);
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
@@ -127,7 +128,7 @@ StartDialog::StartDialog(QWidget *parent)
     registerLabel->setAlignment(Qt::AlignLeft);
     upgradeLabel = new QLabel(this);
     upgradeLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
-    upgradeLabel->setFont(*labelFont);
+    upgradeLabel->setFont(labelFont);
     upgradeLabel->setTextFormat(Qt::RichText);
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     upgradeLabel->setOpenExternalLinks(true);
@@ -149,35 +150,35 @@ StartDialog::StartDialog(QWidget *parent)
     theGrid->addWidget(upgradeLabel, row, 3, 1, 1, Qt::AlignRight);
 
     // Add help/about items to the application menu on mac or a dropdown toolbutton in corner of dialog on windows
-    helpActions << new QAction("gruepr homepage");
+    helpActions << new QAction("gruepr homepage", this);
     helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
     connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(QString("https://") + GRUEPRHOMEPAGE));});
-    helpActions << new QAction("Submit a bug report / feature request");
+    helpActions << new QAction("Submit a bug report / feature request", this);
     helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
     connect(helpActions.last(), &QAction::triggered, this, [](){QDesktopServices::openUrl(QUrl(BUGREPORTPAGE));});
-    helpActions << new QAction("About gruepr");
+    helpActions << new QAction("About gruepr", this);
     helpActions.last()->setMenuRole(QAction::AboutRole);
     connect(helpActions.last(), &QAction::triggered, this, [this](){grueprGlobal::aboutWindow(this);});
-    helpActions << new QAction("How gruepr works");
+    helpActions << new QAction("How gruepr works", this);
     helpActions.last()->setMenuRole(QAction::ApplicationSpecificRole);
     connect(helpActions.last(), &QAction::triggered, this, [this](){grueprGlobal::helpWindow(this);});
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-    helpButton = new QToolButton(this);
+    auto *helpButton = new QToolButton(this);
     helpButton->setStyleSheet(INFOBUTTONSTYLE);
     helpButton->setAutoRaise(false);
     helpButton->setPopupMode(QToolButton::InstantPopup);
     helpButton->setIcon(QIcon(":/icons_new/infoButton.png"));
     helpButton->setIconSize(INFOBUTTONSIZE);
     theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
-    helpMenu = new QMenu;
+    auto *helpMenu = new QMenu(this);
     for(const auto &helpAction : helpActions) {
-        helpAction->setFont(*labelFont);
+        helpAction->setFont(labelFont);
         helpMenu->addAction(helpAction);
     }
     helpButton->setMenu(helpMenu);
 #else
-    menuBar = new QMenuBar(nullptr);
-    helpMenu = new QMenu;
+    auto *menuBar = new QMenuBar(nullptr);
+    helpMenu = new QMenu(this);
     for(const auto &helpAction : helpActions) {
         helpMenu->addAction(helpAction);
     }
@@ -186,22 +187,10 @@ StartDialog::StartDialog(QWidget *parent)
 }
 
 
-StartDialog::~StartDialog() {
-    delete labelFont;
-    delete mainBoxFont;
-    delete helpMenu;
-#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-    //
-#else
-    delete menuBar;
-#endif
-}
-
-
 void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     this->hide();
-    auto *surveyMakerWizard = new SurveyMakerWizard;
+    auto *surveyMakerWizard = new SurveyMakerWizard(this);
     QApplication::restoreOverrideCursor();
     surveyMakerWizard->exec();
     this->show();
@@ -219,7 +208,7 @@ void StartDialog::openGruepr() {
         getDataDialog->exec();
         if(getDataDialog->result() == QDialog::Accepted) {
             QApplication::setOverrideCursor(Qt::BusyCursor);
-            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
+            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this);
             this->hide();
             grueprWindow->show();
             QApplication::restoreOverrideCursor();
@@ -302,7 +291,7 @@ void StartDialog::openRegisterDialog() {
     if(grueprGlobal::internetIsGood())
     {
         //we can connect, so gather name, institution, and email address for submission
-        auto *registerWin = new registerDialog;
+        auto *registerWin = new registerDialog(this);
         if(registerWin->exec() == QDialog::Accepted)
         {
             //If user clicks OK, add to saved settings
@@ -322,9 +311,9 @@ void StartDialog::openRegisterDialog() {
             request->setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
             request->setHeader(QNetworkRequest::ContentTypeHeader,QVariant("application/x-www-form-urlencoded"));
             QJsonObject data;
-            data["name"] = registerWin->name->text();
-            data["institution"] = registerWin->institution->text();
-            data["email"] = registerWin->email->text();
+            data["name"] = registerWin->name;
+            data["institution"] = registerWin->institution;
+            data["email"] = registerWin->email;
             QJsonDocument doc(data);
             QByteArray postData = doc.toJson();
             auto *reply = manager->post(*request, postData);
@@ -334,7 +323,7 @@ void StartDialog::openRegisterDialog() {
             QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
             if(replyBody.contains("Registration successful"))
             {
-                registeredUser = registerWin->name->text();
+                registeredUser = registerWin->name;
                 QSettings savedSettings;
                 savedSettings.setValue("registeredUser", registeredUser);
                 savedSettings.setValue("registeredUserID",QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));

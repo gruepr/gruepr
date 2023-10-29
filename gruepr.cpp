@@ -1855,7 +1855,7 @@ void gruepr::refreshStudentDisplay()
         {
             rowNumbers << QString::number(numActiveStudents + 1);
 
-            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::datetime, QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
+            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime, QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
             if(dataOptions->timestampField != -1) {
                 ui->studentTable->setItem(numActiveStudents, column++, timestamp);
             }
@@ -1867,7 +1867,7 @@ void gruepr::refreshStudentDisplay()
             if(dataOptions->lastNameField != -1) {
                 ui->studentTable->setItem(numActiveStudents, column++, lastName);
             }
-            auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::alphanumeric, student.section);
+            auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::alphanumeric, student.section);
             if(dataOptions->sectionIncluded) {
                 ui->studentTable->setItem(numActiveStudents, column++, section);
             }

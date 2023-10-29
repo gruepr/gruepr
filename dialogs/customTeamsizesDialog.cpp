@@ -17,8 +17,8 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     setMinimumSize(XS_DLG_SIZE, XS_DLG_SIZE);
 
     //Rows 1&2 - the number of teams selector and a spacer
-    numTeamsLayout = new QHBoxLayout;
-    numTeamsLabel = new QLabel(tr("Number of teams: "), this);
+    auto *numTeamsLayout = new QHBoxLayout;
+    auto *numTeamsLabel = new QLabel(tr("Number of teams: "), this);
     numTeamsLabel->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
     numTeamsLayout->addWidget(numTeamsLabel);
     numTeamsBox = new QSpinBox(this);
