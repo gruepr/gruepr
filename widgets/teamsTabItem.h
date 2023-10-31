@@ -1,22 +1,17 @@
 #ifndef TEAMSTABITEM_H
 #define TEAMSTABITEM_H
 
-#include "canvashandler.h"
 #include "dataOptions.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
-#include "widgets/labelWithInstantTooltip.h"
 #include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
 #include <QComboBox>
-#include <QFrame>
-#include <QHBoxLayout>
 #include <QJsonObject>
 #include <QLabel>
 #include <QPrinter>
 #include <QPushButton>
-#include <QVBoxLayout>
 #include <QWidget>
 
 class TeamsTabItem : public QWidget
@@ -56,39 +51,10 @@ private slots:
     void postTeamsToCanvas();
 
 private:
+    TeamTreeWidget *teamDataTree = nullptr;
     void refreshTeamDisplay();
     void refreshDisplayOrder();
     QList<int> getTeamNumbersInDisplayOrder();
-
-    QVBoxLayout *teamDataLayout = nullptr;
-
-    TeamTreeWidget *teamDataTree = nullptr;
-
-    QHBoxLayout *rowsLayout = nullptr;
-    LabelWithInstantTooltip *dragDropExplanation = nullptr;
-    struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments); QList<int> arguments; QString ToolTip;};
-    QList<UndoRedoItem> undoItems;
-    QList<UndoRedoItem> redoItems;
-    QPushButton *undoButton = nullptr;
-    QPushButton *redoButton = nullptr;
-    QPushButton *expandAllButton = nullptr;
-    QPushButton *collapseAllButton = nullptr;
-
-    QFrame *horLine = nullptr;
-
-    QHBoxLayout *teamOptionsLayout = nullptr;
-    QComboBox *teamnamesComboBox = nullptr;
-    QStringList teamnameCategories;
-    QStringList teamnameLists;
-    enum TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};    // see gruepr_globals.h for how teamname lists are signified
-    QList<TeamNameType> teamnameTypes;
-    QCheckBox *randTeamnamesCheckBox = nullptr;
-    QPushButton *sendToPreventedTeammates = nullptr;
-
-    QHBoxLayout *savePrintLayout = nullptr;
-    QPushButton *saveTeamsButton = nullptr;
-    QPushButton *printTeamsButton = nullptr;
-    QPushButton *postTeamsButton = nullptr;
 
     TeamingOptions *teamingOptions = nullptr;
     DataOptions *dataOptions = nullptr;
@@ -96,19 +62,29 @@ private:
     QList<StudentRecord> students;
     int numStudents = 1;
 
+    struct UndoRedoItem{void (TeamsTabItem::*action)(const QList<int> &arguments);
+                        QList<int> arguments;
+                        QString ToolTip;};
+    QList<UndoRedoItem> undoItems;
+    QList<UndoRedoItem> redoItems;
+    QPushButton *undoButton = nullptr;
+    QPushButton *redoButton = nullptr;
+
+    static const QStringList teamnameCategories;
+    static const QStringList teamnameLists;
+    QComboBox *teamnamesComboBox = nullptr;
+    QCheckBox *randTeamnamesCheckBox = nullptr;
+
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     TeamingOptions *externalTeamingOptions = nullptr;
     QList<StudentRecord> *externalStudents = nullptr;
     QPushButton *externalDoItButton = nullptr;
 
-    QString instructorsFileContents;
-    QString studentsFileContents;
-    QString spreadsheetFileContents;
-    void createFileContents();
-    void printFiles(bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
+    enum files{student = 0, instructor = 1, spreadsheet = 2};
+    QStringList createFileContents();   // {studentsFileContents, instructorsFileContents, spreadsheetFileContents}
+    void printFiles(const QStringList &fileContents, bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
     QPrinter *setupPrinter();
     void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
-    CanvasHandler *canvas = nullptr;
 
     inline static const QSize SAVEPRINTICONSIZE = QSize(STD_ICON_SIZE, STD_ICON_SIZE);
     inline static const int BIGGERFONTSIZE = 12;

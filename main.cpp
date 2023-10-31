@@ -38,6 +38,8 @@
 // DONE:
 //   BUGFIXES:
 // - removed persistent tooltips created sometimes when using drag-and-drop to modify teams in gruepr
+//  INTERNAL:
+// - unified and simplified memory management and code styling throughout
 //
 // TO DO:
 //   BUGFIXES:
@@ -51,7 +53,7 @@
 //
 //   C++ MODERNIZATION:
 // - modernize use of pointers throughout to C++17 style; check for memory leaks
-// - remove c-style arrays and update to range-based for-loops except in intense optimization
+// - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
 // - create an LMS class and then subclass Canvas, Google
 //
 //   NETWORK IMPLEMENTATION:

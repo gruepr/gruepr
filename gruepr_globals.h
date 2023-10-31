@@ -353,35 +353,61 @@ inline static const char RESPONSE_OPTIONS[] {"1. Yes / 2. No;"
                                "1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10;"
                                "Custom options..."};
 
-// Options for the team names. A name for each list of names must be given.
-// If name ends with period, names are numeric and increase without end
-// If name ends with asterisk, names beyond list get repeated (as in A, B, C... -> AA, BB, CC... -> AAA, BBB, CCC...)
-// If name ends with tilde, names beyond list get repeated with space between (as in A, B, C... -> A A, B B, C C... -> A A A, B B B, C C C...)
-// If name ends with hashtag, names beyond list get 'sequeled' (as in A, B, C... -> A 2, B 2, C 2... -> A 3, B 3, C 3...)
-inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers.,"
-                                 "Roman numerals.,"
-                                 "Hexadecimal numbers.,"
-                                 "Binary numbers.,"
-                                 "English letters*,"
-                                 "Greek letters (uppercase)*,"
-                                 "Greek letters (lowercase)*,"
-                                 "NATO phonetic alphabet~,"
-                                 "Chemical elements#,"
-                                 "Papal names#,"
-                                 "Constellations#,"
-                                 "Crayola crayon colors#,"
-                                 "Genres of music#,"
-                                 "Cheeses#,"
-                                 "Shakespeare plays (RSC chron.)#,"
-                                 "Languages (globally most spoken)#,"
-                                 "All time best-selling albums in US#,"
-                                 "Minor Simpsons characters#,"
-                                 "Bones of the human skeleton@,"
-                                 "Minor league baseball teams#,"
-                                 "Discontinued Olympic sports#,"
-                                 "Groups of animals#,"
-                                 "Obsolete units of measure@,"
-                                 "Everyone's a winner!@"};
+// Options for the team names; must have corresponding entry in each of the next three sets
+enum class TeamNameType{numeric, repeated, repeated_spaced, sequeled, random_sequeled};
+// Numeric: increase without end;
+// Repeated: A, B, C... -> AA, BB, CC... -> AAA, BBB, CCC...;
+// Repeated_spaced: A, B, C... -> A A, B B, C C... -> A A A, B B B, C C C...;
+// Sequeled: A, B, C... -> A 2, B 2, C 2... -> A 3, B 3, C 3...;
+// Random_sequeled: C, A, Q... -> C 2, A 2, Q 2... -> C 3, A 3, Q 3...
+inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
+                                 "Roman numerals,"
+                                 "Hexadecimal numbers,"
+                                 "Binary numbers,"
+                                 "English letters,"
+                                 "Greek letters (uppercase),"
+                                 "Greek letters (lowercase),"
+                                 "NATO phonetic alphabet,"
+                                 "Groups of animals,"
+                                 "Chemical elements,"
+                                 "Papal names,"
+                                 "Constellations,"
+                                 "Crayola crayon colors,"
+                                 "Genres of music,"
+                                 "Cheeses,"
+                                 "Shakespeare plays (RSC chron.),"
+                                 "Languages (globally most spoken),"
+                                 "All time best-selling albums in US,"
+                                 "Minor Simpsons characters,"
+                                 "Bones of the human skeleton,"
+                                 "Minor league baseball teams,"
+                                 "Discontinued Olympic sports,"
+                                 "Obsolete units of measure,"
+                                 "Everyone's a winner!"};
+inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
+                                                  TeamNameType::numeric,
+                                                  TeamNameType::numeric,
+                                                  TeamNameType::numeric,
+                                                  TeamNameType::repeated,
+                                                  TeamNameType::repeated,
+                                                  TeamNameType::repeated,
+                                                  TeamNameType::repeated_spaced,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::random_sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::random_sequeled,
+                                                  TeamNameType::random_sequeled};
 inline static const char TEAMNAMELISTS[]   {";"
                               ";"
                               ";"
@@ -391,6 +417,14 @@ inline static const char TEAMNAMELISTS[]   {";"
                               "α,β,γ,δ,ε,ζ,η,θ,ι,κ,λ,μ,ν,ξ,ο,π,ρ,σ,τ,υ,φ,χ,ψ,ω;"
                               "Alfa,Bravo,Charlie,Delta,Echo,Foxtrot,Golf,Hotel,India,Juliett,Kilo,Lima,Mike,"
                                  "November,Oscar,Papa,Quebec,Romeo,Sierra,Tango,Uniform,Victor,Whiskey,X-ray,Yankee,Zulu;"
+                              "Congregation of Alligators,Fluffle of Bunnies,Murder of Crows,Drove of Donkeys,Convocation of Eagles,School of Fish,Gaggle of Geese,"
+                                 "Cackle of Hyenas,Mess of Iguanas,Shadow of Jaguars,Mob of Kangaroos,Pride of Lions,Labor of Moles,"
+                                 "Blessing of Narwhals,Parliament of Owls,Pod of Porpoises,Bevy of Quail,Unkindness of Ravens,Shiver of Sharks,"
+                                 "Rafter of Turkeys,Glory of Unicorns,Nest of Vipers,Confusion of Wildebeest,Herd of Yaks,Dazzle of Zebras,"
+                                 "Army of Ants,Swarm of Bees,Brood of Chickens,Dule of Doves,Gang of Elk,Skulk of Foxes,Cloud of Gnats,"
+                                 "Bloat of Hippopotamuses,Smuck of Jellyfish,Litter of Kittens,Plague of Locusts,Brace of Mallards,Watch of Nightingales,"
+                                 "Bed of Oysters,String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
+                                 "Committee of Vultures,Colony of Weasels;"
                               "Hydrogen,Helium,Lithium,Beryllium,Boron,Carbon,Nitrogen,Oxygen,Fluorine,Neon,Sodium,Magnesium,"
                                  "Aluminum,Silicon,Phosphorus,Sulfur,Chlorine,Argon,Potassium,Calcium,Scandium,Titanium,Vanadium,"
                                  "Chromium,Manganese,Iron,Cobalt,Nickel,Copper,Zinc,Gallium,Germanium,Arsenic,Selenium,Bromine,Krypton,"
@@ -462,14 +496,6 @@ inline static const char TEAMNAMELISTS[]   {";"
                                  "Korfball,Lacrosse,Motorcycle Racing,Orchestra,Pigeon Racing,Roller Hockey,Savate,Tug of War,Vaulting,Waterskiing,"
                                  "Ballooning,Croquet,Dueling Pistol,Kaatsen,Life Saving,Plunge Distance Diving,Rope Climb,Solo Synchronized Swimming,"
                                  "Standing High Jump,Polo;"
-                              "Congregation of Alligators,Fluffle of Bunnies,Murder of Crows,Drove of Donkeys,Convocation of Eagles,School of Fish,Gaggle of Geese,"
-                                 "Cackle of Hyenas,Mess of Iguanas,Shadow of Jaguars,Mob of Kangaroos,Pride of Lions,Labor of Moles,"
-                                 "Blessing of Narwhals,Parliament of Owls,Pod of Porpoises,Bevy of Quail,Unkindness of Ravens,Shiver of Sharks,"
-                                 "Rafter of Turkeys,Glory of Unicorns,Nest of Vipers,Confusion of Wildebeest,Herd of Yaks,Dazzle of Zebras,"
-                                 "Army of Ants,Swarm of Bees,Brood of Chickens,Dule of Doves,Gang of Elk,Skulk of Foxes,Cloud of Gnats,"
-                                 "Bloat of Hippopotamuses,Smuck of Jellyfish,Litter of Kittens,Plague of Locusts,Brace of Mallards,Watch of Nightingales,"
-                                 "Bed of Oysters,String of Ponies,Flock of Quetzals,Crash of Rhinos,Dray of Squirrels,Bale of Turtles,Herd of Urchin,"
-                                 "Committee of Vultures,Colony of Weasels;"
                               "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
                                  "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire;"
                               "A1,Gold,Blue Ribbon,Alpha,Numero Uno,First Place,Crème de la crème,Jewel in the crown,Pole Position,Elite,"
