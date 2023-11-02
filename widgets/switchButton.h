@@ -13,15 +13,7 @@ class SwitchButton : public QWidget
     Q_OBJECT
 
 public:
-    enum class Style
-    {
-        YESNO,
-        ONOFF,
-        BOOL,
-        EMPTY
-    };
-
-public:
+    enum class Style {YESNO, ONOFF, BOOL, EMPTY};
     explicit SwitchButton(QWidget* parent = nullptr, bool startingValue = false, Style style = Style::YESNO);
     explicit SwitchButton(bool startingValue = false) : SwitchButton(nullptr, startingValue) {};
     ~SwitchButton() override;

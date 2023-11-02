@@ -281,7 +281,8 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white;  border: 1px solid black; padding: 5px; "
+    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; "
+                                                                               "border: 1px solid black; padding: 5px; "
                                                                                "font-family: 'DM Sans'; font-size: 12pt;}");
     window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
@@ -295,7 +296,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
         auto *selector = new QComboBox;
         selector->setStyleSheet(COMBOBOXSTYLE);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        selector->installEventFilter(window);       // as it's too easy to mistake scrolling through the rows with changing the value
+        selector->installEventFilter(new MouseWheelBlocker(selector));  // as it's too easy to mistake scrolling through the rows with changing the value
         for(const auto &meaning : qAsConst(possibleFieldMeanings))
         {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);

@@ -135,12 +135,10 @@ StartDialog::StartDialog(QWidget *parent)
     // find out if there is an upgrade available
     GrueprVersion version = getLatestVersionFromGithub();
     QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
-    if(version == GrueprVersion::old)
-    {
+    if(version == GrueprVersion::old) {
         upgradeMessage +=  tr("Upgrade available!");
     }
-    else if(version == GrueprVersion::beta)
-    {
+    else if(version == GrueprVersion::beta) {
         upgradeMessage += tr("(pre-release)");
     }
     upgradeMessage += "<\a>";
@@ -239,12 +237,10 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
     QEventLoop loop;
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    if(reply->bytesAvailable() == 0)
-    {
+    if(reply->bytesAvailable() == 0) {
         latestVersionString = "0";
     }
-    else
-    {
+    else {
         static QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
         QRegularExpressionMatch match = versionNum.match(reply->readAll());
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
@@ -257,18 +253,15 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
     QStringList latestVersion = latestVersionString.split('.');
     QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
     // pad fields out to NUMBER_VERSION_FIELDS in size (e.g., 5.2 --> 5.2.0.0)
-    for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++)
-    {
+    for(int field = int(latestVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
         latestVersion << "0";
     }
-    for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++)
-    {
+    for(int field = int(thisVersion.size()); field < NUMBER_VERSION_FIELDS; field++) {
         thisVersion << "0";
     }
     // convert to single integer
     unsigned long long int latestVersionAsInt = 0, thisVersionAsInt = 0;
-    for(int field = 0; field < NUMBER_VERSION_FIELDS; field++)
-    {
+    for(int field = 0; field < NUMBER_VERSION_FIELDS; field++) {
         latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
         thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();
     }
@@ -288,12 +281,10 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
 void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form
     QString registeredUser;
-    if(grueprGlobal::internetIsGood())
-    {
+    if(grueprGlobal::internetIsGood()) {
         //we can connect, so gather name, institution, and email address for submission
         auto *registerWin = new registerDialog(this);
-        if(registerWin->exec() == QDialog::Accepted)
-        {
+        if(registerWin->exec() == QDialog::Accepted) {
             //If user clicks OK, add to saved settings
             registerWin->show();
             registerWin->raise();
@@ -321,8 +312,7 @@ void StartDialog::openRegisterDialog() {
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
             QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
-            if(replyBody.contains("Registration successful"))
-            {
+            if(replyBody.contains("Registration successful")) {
                 registeredUser = registerWin->name;
                 QSettings savedSettings;
                 savedSettings.setValue("registeredUser", registeredUser);
@@ -331,8 +321,7 @@ void StartDialog::openRegisterDialog() {
                 message->setText(tr("Success!"));
                 registerLabel->setText(tr("Thank you for being a registered user."));
             }
-            else
-            {
+            else {
                 registeredUser.clear();
                 icon->setPixmap(QPixmap(":/icons_new/error.png").scaled(REDUCED_ICON_SIZE, REDUCED_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 message->setText(tr("Error. Please try again later or contact <" GRUEPRHELPEMAIL ">."));

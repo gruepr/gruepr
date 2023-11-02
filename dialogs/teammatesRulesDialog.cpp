@@ -959,35 +959,29 @@ bool TeammatesRulesDialog::loadExistingTeamset(TypeOfTeammates typeOfTeammates)
     // Need to convert names to IDs and then add each teammate to the basename
 
     // First prepend the basenames to each list of teammates
-    for(int basestudent = 0; basestudent < basenames.size(); basestudent++)
-    {
+    for(int basestudent = 0; basestudent < basenames.size(); basestudent++) {
         teammates[basestudent].prepend(basenames.at(basestudent));
     }
 
     QList<int> IDs;
-    for(int basename = 0; basename < basenames.size(); basename++)
-    {
+    for(int basename = 0; basename < basenames.size(); basename++) {
         IDs.clear();
-        for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++)  // searchStudent is the name we're looking for
-        {
+        for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++) { // searchStudent is the name we're looking for
             int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
             while((knownStudent < numStudents) &&
-                  (teammates.at(basename).at(searchStudent).compare(students[knownStudent].firstname + " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0))
-            {
+                  (teammates.at(basename).at(searchStudent).compare(students[knownStudent].firstname +
+                    " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0)) {
                 knownStudent++;
             }
 
-            if(knownStudent != numStudents)
-            {
+            if(knownStudent != numStudents) {
                 // Exact match found
                 IDs << students[knownStudent].ID;
             }
-            else
-            {
+            else {
                 // No exact match, so list possible matches sorted by Levenshtein distance
                 auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), this);
-                if(choiceWindow->exec() == QDialog::Accepted)
-                {
+                if(choiceWindow->exec() == QDialog::Accepted) {
                     IDs << choiceWindow->currSurveyID;
                 }
                 delete choiceWindow;
@@ -997,52 +991,41 @@ bool TeammatesRulesDialog::loadExistingTeamset(TypeOfTeammates typeOfTeammates)
         // find the baseStudent
         int index = 0;
         StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((students[index].ID != IDs[0]) && (index < numStudents))
-        {
+        while((students[index].ID != IDs[0]) && (index < numStudents)) {
             index++;
         }
-        if(index < numStudents)
-        {
+        if(index < numStudents) {
             baseStudent = &students[index];
         }
-        else
-        {
+        else {
             continue;
         }
 
         //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
-        for(int ID2 = 1; ID2 < IDs.size(); ID2++)
-        {
-            if(IDs[0] != IDs[ID2])
-            {
+        for(int ID2 = 1; ID2 < IDs.size(); ID2++) {
+            if(IDs[0] != IDs[ID2]) {
                 // find the student with ID2
                 index = 0;
-                while((students[index].ID != IDs[ID2]) && (index < numStudents))
-                {
+                while((students[index].ID != IDs[ID2]) && (index < numStudents)) {
                     index++;
                 }
-                if(index < numStudents)
-                {
+                if(index < numStudents) {
                     student2 = &students[index];
                 }
-                else
-                {
+                else {
                     continue;
                 }
 
                 //we have at least one specified teammate pair!
-                if(whatType == required)
-                {
+                if(whatType == required) {
                     baseStudent->requiredWith[IDs[ID2]] = true;
                     student2->requiredWith[IDs[0]] = true;
                 }
-                else if(whatType == prevented)
-                {
+                else if(whatType == prevented) {
                     baseStudent->preventedWith[IDs[ID2]] = true;
                     student2->preventedWith[IDs[0]] = true;
                 }
-                else    //whatType == requested
-                {
+                else {   //whatType == requested
                     baseStudent->requestedWith[IDs[ID2]] = true;
                 }
             }

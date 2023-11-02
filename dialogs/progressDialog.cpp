@@ -41,8 +41,7 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
 
     auto *buttonBox = new QDialogButtonBox(this);
 
-    if(chart != nullptr)
-    {
+    if(chart != nullptr) {
         layout->addWidget(chart);
         chart->hide();
         graphShown = false;
@@ -81,20 +80,17 @@ void progressDialog::setText(const QString &text, int generation, float score, b
 {
     explanationText->setText(tr("Generation ") + QString::number(generation) + " - " + tr("Top Score = ") + QString::number(score));
     QString action = text;
-    if(autostopInProgress && !onlyStopManually->isChecked())
-    {
+    if(autostopInProgress && !onlyStopManually->isChecked()) {
         action += tr("\nOptimization will end in ") + QString::number(secsLeftToClose) + tr(" seconds.");
         score = PROGRESSBARMAX - ((PROGRESSBARMAX - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
     }
     actionText->setText(action);
     progressBar->setValue(score);
 
-    if(autostopInProgress && !onlyStopManually->isChecked())
-    {
+    if(autostopInProgress && !onlyStopManually->isChecked()) {
         statusText->setText(tr("Status: Finalizing..."));
     }
-    else
-    {
+    else {
         statusText->setText(tr("Status: Optimizing..."));
     }
 }
@@ -103,8 +99,7 @@ void progressDialog::highlightStopButton()
 {
     stopHere->setFocus();
 
-    if(countdownToClose->isActive() || onlyStopManually->isChecked())
-    {
+    if(countdownToClose->isActive() || onlyStopManually->isChecked()) {
         return;
     }
 
@@ -114,8 +109,7 @@ void progressDialog::highlightStopButton()
 
 void progressDialog::updateCountdown()
 {
-    if(onlyStopManually->isChecked())
-    {
+    if(onlyStopManually->isChecked()) {
         secsLeftToClose = SECSINCOUNTDOWNTIMER;
         return;
     }
@@ -123,8 +117,7 @@ void progressDialog::updateCountdown()
     secsLeftToClose--;
     static QRegularExpression stopTime(tr("stop in ") + "\\d*");
     explanationText->setText(explanationText->text().replace(stopTime, tr("stop in ") +  QString::number(std::max(0, secsLeftToClose))));
-    if(secsLeftToClose == 0)
-    {
+    if(secsLeftToClose == 0) {
         progressBar->setValue(PROGRESSBARMAX);
         stopHere->animateClick();
     }
@@ -145,16 +138,14 @@ void progressDialog::statsButtonPushed(QChartView *chart)
     const int numHorizontalAxisMarkers = 14;
     QIcon icon;
     QString butText;
-    if(graphShown)
-    {
+    if(graphShown) {
         chart->show();
         height = CHARTHEIGHT;
         width = numHorizontalAxisMarkers * QFontMetrics(QFont("Oxygen Mono", QFont("Oxygen Mono").pointSize() - 2)).horizontalAdvance("XX  ");
         icon = QIcon(":/icons_new/upButton.png");
         butText = "Hide progress";
     }
-    else
-    {
+    else {
         chart->hide();
         icon = QIcon(":/icons_new/downButton.png");
         butText = "Show progress";

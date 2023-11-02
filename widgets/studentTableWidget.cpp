@@ -9,21 +9,29 @@ StudentTableWidget::StudentTableWidget(QWidget *parent)
     horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
-                                                   "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
-                                       "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; border-bottom: none;"
-                                                             "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
-                                       "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px; subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                                       "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px; subcontrol-origin: padding; subcontrol-position: top left;}");
+                                                   "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                   "color: white; text-align:left;}"
+                                       "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; "
+                                                             "border-bottom: none;"
+                                                             "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                             "color: white; text-align:left;}"
+                                       "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px; "
+                                                                "subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                                       "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px; "
+                                                              "subcontrol-origin: padding; subcontrol-position: top left;}");
     verticalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: none; border-bottom: none; padding: 1px;"
-                                                 "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}"
-                                     "QHeaderView::section{border-top: none; border-left: none; border-right: none; border-bottom: none; padding: 1px;"
-                                                           "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
-    setStyleSheet(QString() + "QTableView{gridline-color: lightGray; font-family: 'DM Sans'; font-size: 12pt;}"
-                               "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; border-bottom: none;"
-                                                            "background-color: " DEEPWATERHEX ";}"
-                               "QTableWidget::item{border-right: 1px solid lightGray; color: black;}"
-                               "QTableWidget::item:selected{background-color: " BUBBLYHEX ";}"
-                               "QTableWidget::item:hover{background-color: " BUBBLYHEX ";}" +
+                                                 "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                 "color: white; text-align:center;}"
+                                     "QHeaderView::section{border-top: none; border-left: none; border-right: none; "
+                                                           "border-bottom: none; padding: 1px;"
+                                                           "background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; "
+                                                           "color: white; text-align:center;}");
+    setStyleSheet(QString("QTableView{gridline-color: lightGray; font-family: 'DM Sans'; font-size: 12pt;}"
+                           "QTableCornerButton::section{border-top: none; border-left: none; border-right: 1px solid gray; "
+                                                        "border-bottom: none; background-color: " DEEPWATERHEX ";}"
+                           "QTableWidget::item{border-right: 1px solid lightGray; color: black;}"
+                           "QTableWidget::item:selected{background-color: " BUBBLYHEX ";}"
+                           "QTableWidget::item:hover{background-color: " BUBBLYHEX ";}") +
                   SCROLLBARSTYLE);
 
     connect(this, &QTableWidget::entered, this, &StudentTableWidget::itemEntered);
@@ -105,7 +113,8 @@ void StudentTableWidget::itemEntered(const QModelIndex &index)
 
 void StudentTableWidget::cellEntered(const int row)
 {
-    // select the current row, reset the background color of the edit and remover buttons in previously selected row and change their color in the current row
+    // select the current row, reset the background color of the edit and remover buttons in previously selected row
+    // and change their color in the current row
     selectRow(row);
     static int prevID = -1;
     const int numCols = columnCount();

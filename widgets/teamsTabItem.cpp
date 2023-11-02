@@ -252,8 +252,7 @@ void TeamsTabItem::teamNamesChanged(int index)
     // Set team names to:
     if(index == 0) {
         // arabic numbers
-        for(int team = 0; team < teams.size(); team++)
-        {
+        for(int team = 0; team < teams.size(); team++) {
             teams[teamDisplayNums.at(team)].name = QString::number(team+1);
         }
         prevIndex = 0;
@@ -264,16 +263,14 @@ void TeamsTabItem::teamNamesChanged(int index)
         QString C[] = {"","C","CC","CCC","CD","D","DC","DCC","DCCC","CM"};
         QString X[] = {"","X","XX","XXX","XL","L","LX","LXX","LXXX","XC"};
         QString I[] = {"","I","II","III","IV","V","VI","VII","VIII","IX"};
-        for(int team = 0; team < teams.size(); team++)
-        {
+        for(int team = 0; team < teams.size(); team++) {
             teams[teamDisplayNums.at(team)].name = M[(team+1)/1000]+C[((team+1)%1000)/100]+X[((team+1)%100)/10]+I[((team+1)%10)];
         }
         prevIndex = 1;
     }
     else if(index == 2) {
         // hexadecimal numbers
-        for(int team = 0; team < teams.size(); team++)
-        {
+        for(int team = 0; team < teams.size(); team++) {
             teams[teamDisplayNums.at(team)].name = QString::number(team, 16).toUpper();
         }
         prevIndex = 2;

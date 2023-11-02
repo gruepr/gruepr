@@ -70,16 +70,3 @@ void listTableDialog::addButton(QPushButton *newButton)
 {
     buttonLayout->insertWidget(0, newButton, 0, Qt::AlignLeft);
 }
-
-
-bool listTableDialog::eventFilter(QObject *object, QEvent *event)
-{
-    if(event->type() == QEvent::Wheel)
-    {
-        event->ignore();
-        return true;
-    }
-
-    event->accept();
-    return QDialog::eventFilter(object, event);
-}

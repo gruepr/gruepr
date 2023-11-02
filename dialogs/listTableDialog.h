@@ -20,8 +20,6 @@ public:
     void addButton(QPushButton *newButton);
 
 protected:
-    bool eventFilter(QObject *object, QEvent *event) override;   // an event filter to remove scrollwheel events from widget(s) in the table,
-                                                                 // since table is in a scroll area
     QHBoxLayout *buttonLayout = nullptr;
     QDialogButtonBox *buttonBox = nullptr;
     inline static const int TABLEROWINGRID = 5;

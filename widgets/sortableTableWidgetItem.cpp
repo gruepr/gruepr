@@ -15,8 +15,7 @@ SortableTableWidgetItem::SortableTableWidgetItem(const SortType sortType, const 
 
 bool SortableTableWidgetItem::operator <(const QTableWidgetItem &other) const
 {
-    if(sortType == SortType::datetime)
-    {
+    if(sortType == SortType::datetime) {
         return QLocale::system().toDateTime(text(), QLocale::ShortFormat) < QLocale::system().toDateTime(other.text(), QLocale::ShortFormat);
     }
 

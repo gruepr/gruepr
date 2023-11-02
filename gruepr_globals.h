@@ -408,7 +408,7 @@ inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::random_sequeled,
                                                   TeamNameType::random_sequeled};
-inline static const char TEAMNAMELISTS[]   {";"
+inline static const char TEAMNAMELISTS[] {";"
                               ";"
                               ";"
                               ";"

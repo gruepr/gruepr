@@ -43,7 +43,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
         teamsizeBox.last()->setStyleSheet(SPINBOXSTYLE);
         teamsizeBox.last()->setRange(1, numStudents);
         teamsizeBox.last()->setValue(idealTeamsize);
-        teamsizeBox.last()->installEventFilter(this);    // remove scrollwheel from affecting the value, as box is in a table inside a scroll area; easy to mistakenly change value
+        teamsizeBox.last()->installEventFilter(new MouseWheelBlocker(teamsizeBox.last()));
         connect(teamsizeBox.last(), QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::teamsizeChanged);
         theTable->setCellWidget(i, 1, teamsizeBox.last());
         rowHeight = std::max(rowHeight, std::max(label->height(), teamsizeBox.last()->height()));
