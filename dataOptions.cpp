@@ -4,31 +4,26 @@
 
 DataOptions::DataOptions()
 {
-    for(int i = 0; i < MAX_ATTRIBUTES; i++)
-    {
+    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeField[i] = -1;
         attributeVals[i].clear();
         attributeQuestionResponseCounts[i].clear();
         attributeType[i] = AttributeType::categorical;
     }
 
-    for(int &field : notesField)
-    {
+    for(int &field : notesField) {
         field = -1;
     }
 
-    for(int &field : prefTeammatesField)
-    {
+    for(int &field : prefTeammatesField) {
         field = -1;
     }
 
-    for(int &field : prefNonTeammatesField)
-    {
+    for(int &field : prefNonTeammatesField) {
         field = -1;
     }
 
-    for(int &field : scheduleField)
-    {
+    for(int &field : scheduleField) {
         field = -1;
     }
 }
@@ -201,8 +196,7 @@ bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &ti
 {
     static QRegularExpression timeZoneFinder(TIMEZONEREGEX);
     QRegularExpressionMatch timezoneCapture = timeZoneFinder.match(fullText);
-    if(timezoneCapture.hasMatch())
-    {
+    if(timezoneCapture.hasMatch()) {
         timezoneName = timezoneCapture.captured(1).trimmed();
         hours = timezoneCapture.captured(2).toFloat();
         minutes = timezoneCapture.captured(3).toFloat();
@@ -236,8 +230,7 @@ QJsonObject DataOptions::toJson() const
         attributeTypeArray.append(static_cast<int>(attributeType[i]));
         attributeQuestionResponsesArray.append(QJsonArray::fromStringList(attributeQuestionResponses[i]));
         QJsonObject attributeQuestionResponseCountsObj;
-        for(const auto &item : attributeQuestionResponseCounts[i])
-        {
+        for(const auto &item : attributeQuestionResponseCounts[i]) {
             attributeQuestionResponseCountsObj.insert(item.first, item.second);
         }
         attributeQuestionResponseCountsArray.append(attributeQuestionResponseCountsObj);

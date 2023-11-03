@@ -41,11 +41,11 @@ public:
     void authenticate(const QString &token);
     bool authenticated = false;
 
-    QDialog* busy(QWidget *parent = nullptr);
-    QLabel* busyBoxIcon = nullptr;
-    QLabel* busyBoxLabel = nullptr;
-    QDialogButtonBox* busyBoxButtons = nullptr;
-    void notBusy(QDialog *busyDialog);
+    QDialog* actionDialog(QWidget *parent = nullptr);
+    QLabel *actionDialogIcon = nullptr;
+    QLabel *actionDialogLabel = nullptr;
+    QDialogButtonBox *actionDialogButtons = nullptr;
+    void actionComplete(QDialog *busyDialog);
 
     QStringList getCourses();
     int getStudentCount(const QString &courseName);

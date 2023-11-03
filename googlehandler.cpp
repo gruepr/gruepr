@@ -11,7 +11,7 @@
 #include <QVBoxLayout>
 
 GoogleHandler::GoogleHandler() {
-    manager = new QNetworkAccessManager;
+    manager = new QNetworkAccessManager(this);
     manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
     manager->setTransferTimeout(TIMEOUT_TIME);
     google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
@@ -370,14 +370,12 @@ void GoogleHandler::getFileList(const QString &initialURL, const QStringList &st
     QJsonArray json_array;
     int numPages = 0;
 
-    do
-    {
+    do {
         reply = google->get(url);
 
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        if(reply->bytesAvailable() == 0)
-        {
+        if(reply->bytesAvailable() == 0) {
             //qDebug() << "no reply";
             delete reply;
             return;
@@ -387,29 +385,23 @@ void GoogleHandler::getFileList(const QString &initialURL, const QStringList &st
         replyBody = reply->readAll();
         //qDebug() << replyBody;
         json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
-        if(json_doc.isArray())
-        {
+        if(json_doc.isArray()) {
             json_array = json_doc.array();
         }
-        else if(json_doc.isObject())
-        {
+        else if(json_doc.isObject()) {
             json_array << json_doc.object();
         }
-        else
-        {
+        else {
             //empty or null
             break;
         }
 
-        for(const auto &value : qAsConst(json_array))
-        {
+        for(const auto &value : qAsConst(json_array)) {
             QJsonObject json_obj = value.toObject();
-            for(int i = 0; i < stringInArrayParams.size(); i++)
-            {
+            for(int i = 0; i < stringInArrayParams.size(); i++) {
                 QStringList subArrayAndParamName = stringInArrayParams.at(i).split('/');   // "array_name/string_paramater_name"
                 QJsonArray subarray = json_obj[subArrayAndParamName.at(0)].toArray();
-                for(const auto &subvalue : qAsConst(subarray))
-                {
+                for(const auto &subvalue : qAsConst(subarray)) {
                     *(stringInArrayVals[i]) << subvalue[subArrayAndParamName.at(1)].toString();
                 }
             }
@@ -437,8 +429,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
 
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    if(reply->bytesAvailable() == 0)
-    {
+    if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
         delete reply;
         return;
@@ -491,7 +482,7 @@ void GoogleHandler::authenticate() {
         }
     });
 
-    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port);
+    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
     google->setReplyHandler(replyHandler);
 
     connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
@@ -510,31 +501,31 @@ void GoogleHandler::authenticate() {
     }
 }
 
-QDialog* GoogleHandler::busy(QWidget *parent) {
+QDialog* GoogleHandler::actionDialog(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *busyDialog = new QDialog(parent);
     busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
-    busyBoxIcon = new QLabel(busyDialog);
-    busyBoxIcon->setPixmap(QPixmap(":/icons_new/google.png").scaled(GOOGLEICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    busyBoxLabel = new QLabel(busyDialog);
-    busyBoxLabel->setStyleSheet(LABELSTYLE);
-    busyBoxLabel->setText(tr("Communicating with Google..."));
-    busyBoxButtons = new QDialogButtonBox(busyDialog);
-    busyBoxButtons->setStyleSheet(SMALLBUTTONSTYLE);
-    busyBoxButtons->setStandardButtons(QDialogButtonBox::NoButton);
-    connect(busyBoxButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
+    actionDialogIcon = new QLabel(busyDialog);
+    actionDialogIcon->setPixmap(QPixmap(":/icons_new/google.png").scaled(GOOGLEICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    actionDialogLabel = new QLabel(busyDialog);
+    actionDialogLabel->setStyleSheet(LABELSTYLE);
+    actionDialogLabel->setText(tr("Communicating with Google..."));
+    actionDialogButtons = new QDialogButtonBox(busyDialog);
+    actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
+    actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
+    connect(actionDialogButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
     auto *theGrid = new QGridLayout;
     busyDialog->setLayout(theGrid);
-    theGrid->addWidget(busyBoxIcon, 0, 0);
-    theGrid->addWidget(busyBoxLabel, 0, 1);
-    theGrid->addWidget(busyBoxButtons, 1, 0, 1, -1);
+    theGrid->addWidget(actionDialogIcon, 0, 0);
+    theGrid->addWidget(actionDialogLabel, 0, 1);
+    theGrid->addWidget(actionDialogButtons, 1, 0, 1, -1);
     busyDialog->setModal(true);
     busyDialog->show();
     busyDialog->adjustSize();
     return busyDialog;
 }
 
-void GoogleHandler::notBusy(QDialog *busyDialog) {
+void GoogleHandler::actionComplete(QDialog *busyDialog) {
     QApplication::restoreOverrideCursor();
     busyDialog->accept();
     busyDialog->deleteLater();

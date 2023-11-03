@@ -121,8 +121,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     QStringList responseOptions = QString(RESPONSE_OPTIONS).split(';');
     numOfResponseOptions = responseOptions.size();
     int item = 0;
-    for(const auto &responseOption : responseOptions)
-    {
+    for(const auto &responseOption : responseOptions) {
         responsesComboBox->addItem(responseOption, responseOption.split(" / "));
         responsesComboBox->setItemData(item + 2, responseOption, Qt::ToolTipRole);
         item++;

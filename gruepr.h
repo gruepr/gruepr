@@ -94,7 +94,7 @@ private:
     QList<AttributeWidget *> attributeWidgets;
 
         // team set optimization
-    int *studentIndexes = nullptr;                                  // array of the indexes of students to be placed on teams
+    int *studentIndexes = nullptr;                                // array of the indexes of students to be placed on teams
     QList<int> optimizeTeams(const int *const studentIndexes);    // return value is a single permutation-of-indexes
     QFuture< QList<int> > future;                                 // needed so that optimization can happen in a separate thread
     QFutureWatcher< QList<int> > futureWatcher;                   // used for signaling of optimization completion

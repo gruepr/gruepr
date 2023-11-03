@@ -41,6 +41,9 @@
 //  INTERNAL:
 // - unified and simplified memory management and code styling throughout
 //
+// INPROG:
+// - crash when loading roster?
+//
 // TO DO:
 //   BUGFIXES:
 // - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed

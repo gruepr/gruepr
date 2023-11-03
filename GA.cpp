@@ -4,6 +4,7 @@
 namespace GA
 {
     unsigned int topgenomelikelihood = 100;
+    int populationsize = 8000;
 }
 
 //////////////////
@@ -13,13 +14,12 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
                                  int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-    std::uniform_int_distribution<unsigned int> randGenome(0, POPULATIONSIZE-1);
+    std::uniform_int_distribution<unsigned int> randGenome(0, populationsize-1);
 
     //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
     //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
     unsigned int tourneyPick[TOURNAMENTSIZE];
-    for(unsigned int &player : tourneyPick)
-    {
+    for(unsigned int &player : tourneyPick) {
         player = randGenome(pRNG);
     }
     std::sort(tourneyPick, tourneyPick+TOURNAMENTSIZE);
@@ -28,15 +28,13 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring, etc.)
     int momsindex = 0;
     //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
-    while(randProbability(pRNG) > topgenomelikelihood)
-    {
+    while(randProbability(pRNG) > topgenomelikelihood) {
         momsindex++;
     }
 
     //pick second genome from tournament in same way, but make sure to not pick the same genome
     int dadsindex = 0;
-    while((randProbability(pRNG) > topgenomelikelihood) || (dadsindex == momsindex))
-    {
+    while((randProbability(pRNG) > topgenomelikelihood) || (dadsindex == momsindex)) {
         dadsindex++;
     }
 
@@ -46,18 +44,14 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
 
     //now make sure partners do not have any common ancestors going back numGenerationsOfAncestors generations
     bool potentialMatesAreRelated;
-    do
-    {
+    do {
         potentialMatesAreRelated = false;
         int startAncestor = 0, endAncestor = 2;
-        for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS; generation++)
-        {
-            for(int momsAncestor = startAncestor; momsAncestor < endAncestor; momsAncestor++)
-            {
-                for(int dadsAncestor = startAncestor; dadsAncestor < endAncestor; dadsAncestor++)
-                {
+        for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS; generation++) {
+            for(int momsAncestor = startAncestor; momsAncestor < endAncestor; momsAncestor++) {
+                for(int dadsAncestor = startAncestor; dadsAncestor < endAncestor; dadsAncestor++) {
                     potentialMatesAreRelated = potentialMatesAreRelated ||
-                            (ancestors[momsindex][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]]][dadsAncestor]);
+                                               (ancestors[momsindex][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]]][dadsAncestor]);
                 }
             }
             startAncestor = endAncestor;
@@ -79,15 +73,12 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     parentage[0] = momsindex; //mom
     parentage[1] = dadsindex; //dad
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 and 1, so grandparents are 2, 3, 4, 5
-    for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++)
-    {
+    for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++) {
         //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up
-        for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++)
-        {
+        for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
             parentage[ancestor] = ancestors[momsindex][ancestor-startAncestor+prevStartAncestor];
         }
-        for(int ancestor = (((endAncestor - startAncestor)/2) + startAncestor); ancestor < endAncestor; ancestor++)
-        {
+        for(int ancestor = (((endAncestor - startAncestor)/2) + startAncestor); ancestor < endAncestor; ancestor++) {
             parentage[ancestor] = ancestors[dadsindex][ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
         }
         prevStartAncestor = startAncestor;
@@ -107,18 +98,15 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
     unsigned int startTeam = randTeam(pRNG);
     unsigned int endTeam;
-    do
-    {
+    do {
         endTeam = randTeam(pRNG);
     }
     while(endTeam == startTeam);
 
     //Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
     unsigned int end=0, start=0, team=0, position=0;
-    while(team < endTeam)
-    {
-        if(startTeam == team)
-        {
+    while(team < endTeam) {
+        if(startTeam == team) {
             start = position;
         }
         //increase position by number of students in this team
@@ -132,8 +120,7 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
     std::copy(dad, dad + genomeSize, child);
 
     //remove from the child each value in mom's allele
-    for(unsigned int i = 0; i < (end-start); i++)
-    {
+    for(unsigned int i = 0; i < (end-start); i++) {
         (void)std::remove(child, child + genomeSize, mom[start+i]);
     }
 

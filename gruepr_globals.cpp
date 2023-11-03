@@ -39,7 +39,7 @@ float grueprGlobal::timeStringToHours(const QString &timeStr) {
 
 bool grueprGlobal::internetIsGood() {
     //make sure we can connect to google
-    auto *manager = new QNetworkAccessManager();
+    auto *manager = new QNetworkAccessManager;
     QEventLoop loop;
     QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);

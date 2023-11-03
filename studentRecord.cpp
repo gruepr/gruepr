@@ -7,10 +7,8 @@ StudentRecord::StudentRecord()
 {
     surveyTimestamp = QDateTime::currentDateTime();
 
-    for(auto &day : unavailable)
-    {
-        for(auto &time : day)
-        {
+    for(auto &day : unavailable) {
+        for(auto &time : day) {
             time = true;
         }
     }
@@ -300,7 +298,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             section = fields.at(fieldnum).toUtf8().trimmed();
             if(section.startsWith(sectionText, Qt::CaseInsensitive)) {
-                section = section.right(section.size() - sectionText.size()).trimmed();    //removing as redundant the word "section" if at the start of the section name
+                section = section.right(section.size() - sectionText.size()).trimmed();    //removing redundant "section" if at the start of the section name
             }
         }
     }
@@ -362,140 +360,111 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
 void StudentRecord::createTooltip(const DataOptions &dataOptions)
 {
     QString toolTip = "<html>";
-    if(duplicateRecord)
-    {
-        toolTip += "<table><tr><td bgcolor=" STARFISHHEX "><b>" + QObject::tr("There appears to be multiple survey submissions from this student!") + "</b></td></tr></table><br>";
+    if(duplicateRecord) {
+        toolTip += "<table><tr><td bgcolor=" STARFISHHEX "><b>" +
+                   QObject::tr("There appears to be multiple survey submissions from this student!") +
+                   "</b></td></tr></table><br>";
     }
     toolTip += firstname + " " + lastname;
-    if(dataOptions.emailField != -1)
-    {
+    if(dataOptions.emailField != -1) {
         toolTip += "<br>" + email;
     }
-    if(dataOptions.genderIncluded)
-    {
+    if(dataOptions.genderIncluded) {
         toolTip += "<br>";
         QStringList genderOptions;
-        if(dataOptions.genderType == GenderType::biol)
-        {
+        if(dataOptions.genderType == GenderType::biol) {
             toolTip += QObject::tr("Gender");
             genderOptions = QString(BIOLGENDERS).split('/');
         }
-        else if(dataOptions.genderType == GenderType::adult)
-        {
+        else if(dataOptions.genderType == GenderType::adult) {
             toolTip += QObject::tr("Gender");
             genderOptions = QString(ADULTGENDERS).split('/');
         }
-        else if(dataOptions.genderType == GenderType::child)
-        {
+        else if(dataOptions.genderType == GenderType::child) {
             toolTip += QObject::tr("Gender");
             genderOptions = QString(CHILDGENDERS).split('/');
         }
-        else //if(dataOptions.genderType == GenderType::pronoun)
-        {
+        else { //if(dataOptions.genderType == GenderType::pronoun)
             toolTip += QObject::tr("Pronouns");
             genderOptions = QString(PRONOUNS).split('/');
         }
         toolTip += ":  " + genderOptions.at(static_cast<int>(gender));
     }
-    if(dataOptions.URMIncluded)
-    {
+    if(dataOptions.URMIncluded) {
         toolTip += "<br>" + QObject::tr("Identity") + ":  ";
         toolTip += URMResponse;
     }
-    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-    {
-        if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone)
-        {
+    for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
+        if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
             continue;
         }
         toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         auto value = attributeVals[attribute].constBegin();
-        if(*value != -1)
-        {
-            if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered)
-            {
+        if(*value != -1) {
+            if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
                 toolTip += QString::number(*value);
             }
-            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical)
-            {
+            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
                 // if attribute value is > 26, letters are repeated as needed
                 toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
                                              QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
             }
-            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical)
-            {
+            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
                 const auto lastVal = attributeVals[attribute].constEnd();
-                while(value != lastVal)
-                {
+                while(value != lastVal) {
                     toolTip += ((*value) <= 26 ? QString(char((*value)-1 + 'A')) :
                                                  QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)));
                     value++;
-                    if(value != lastVal)
-                    {
+                    if(value != lastVal) {
                         toolTip += ",";
                     }
                 }
             }
-            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered)
-            {
+            else if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
                 const auto lastVal = attributeVals[attribute].constEnd();
-                while(value != lastVal)
-                {
+                while(value != lastVal) {
                     toolTip += QString::number(*value);
-
                     value++;
-                    if(value != lastVal)
-                    {
+                    if(value != lastVal) {
                         toolTip += ",";
                     }
                 }
             }
         }
-        else
-        {
+        else {
             toolTip += "?";
         }
     }
-    if(dataOptions.timezoneIncluded)
-    {
+    if(dataOptions.timezoneIncluded) {
         toolTip += "<br>" + QObject::tr("Timezone:  ");
         //find the timezone as attribute value so that -1 can show as unknown timezone
-        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++)
-        {
-            if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone)
-            {
-                if(*attributeVals[attribute].constBegin() != -1)
-                {
+        for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
+            if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
+                if(*attributeVals[attribute].constBegin() != -1) {
                     int hour = int(timezone);
                     int minutes = 60*(timezone - int(timezone));
                     toolTip += QString("GMT%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs((minutes)), 2, 10, QChar('0'));
                 }
-                else
-                {
+                else {
                     toolTip += "?";
                 }
             }
         }
     }
-    if(!(availabilityChart.isEmpty()))
-    {
+    if(!(availabilityChart.isEmpty())) {
         toolTip += "<br>--<br>" + availabilityChart;
     }
-    if(dataOptions.prefTeammatesIncluded)
-    {
+    if(dataOptions.prefTeammatesIncluded) {
         QString note = prefTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions.prefNonTeammatesIncluded)
-    {
+    if(dataOptions.prefNonTeammatesIncluded) {
         QString note = prefNonTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Non-teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions.numNotes > 0)
-    {
+    if(dataOptions.numNotes > 0) {
         QString note = notes;
-        if(note.size() > SIZE_OF_NOTES_IN_TOOLTIP)
-        {
+        if(note.size() > SIZE_OF_NOTES_IN_TOOLTIP) {
             note = note.mid(0, (SIZE_OF_NOTES_IN_TOOLTIP - 3)) + "...";
         }
         toolTip += "<br>--<br>" + QObject::tr("Notes") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));

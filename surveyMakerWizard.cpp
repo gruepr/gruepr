@@ -43,8 +43,7 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
 
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
-    if(previewPageVisited)
-    {
+    if(previewPageVisited) {
         buttonLayout << QWizard::CustomButton2;
     }
     setButtonLayout(buttonLayout);
@@ -80,16 +79,13 @@ QStringList SurveyMakerWizard::timezoneNames = [] {
 void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent)
 {
     auto *lineEdit = qobject_cast<QLineEdit *>(textWidget);
-    if(lineEdit != nullptr)
-    {
+    if(lineEdit != nullptr) {
         lineEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/'));
     }
 
     auto *textEdit = qobject_cast<QTextEdit *>(textWidget);
-    if(textEdit != nullptr)
-    {
-        if(textEdit != nullptr)
-        {
+    if(textEdit != nullptr) {
+        if(textEdit != nullptr) {
             textEdit->setText(currText.remove(',').remove('&').remove('<').remove('>').remove('/').remove('\n').remove('\r'));
         }
     }
@@ -103,80 +99,64 @@ void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText
 void SurveyMakerWizard::loadSurvey(int customButton)
 {
     //make sure we got here with custombutton1
-    if(customButton != QWizard::CustomButton1)
-    {
+    if(customButton != QWizard::CustomButton1) {
         return;
     }
 
     //read all options from a text file
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
-    if( !(fileName.isEmpty()) )
-    {
+    if( !(fileName.isEmpty()) ) {
         QFile loadFile(fileName);
-        if(loadFile.open(QIODevice::ReadOnly))
-        {
+        if(loadFile.open(QIODevice::ReadOnly)) {
             saveFileLocation.setFile(QFileInfo(fileName).canonicalPath());
             QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
             QJsonObject loadObject = loadDoc.object();
 
-            if(loadObject.contains("Title") && loadObject["Title"].isString())
-            {
+            if(loadObject.contains("Title") && loadObject["Title"].isString()) {
                 setField("SurveyTitle", loadObject["Title"].toString());
             }
-            if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool())
-            {
+            if(loadObject.contains("FirstName") && loadObject["FirstName"].isBool()) {
                 setField("FirstName", loadObject["FirstName"].toBool());
             }
-            if(loadObject.contains("LastName") && loadObject["LastName"].isBool())
-            {
+            if(loadObject.contains("LastName") && loadObject["LastName"].isBool()) {
                 setField("LastName", loadObject["LastName"].toBool());
             }
-            if(loadObject.contains("Email") && loadObject["Email"].isBool())
-            {
+            if(loadObject.contains("Email") && loadObject["Email"].isBool()) {
                 setField("Email", loadObject["Email"].toBool());
             }
-            if(loadObject.contains("Gender") && loadObject["Gender"].isBool())
-            {
+            if(loadObject.contains("Gender") && loadObject["Gender"].isBool()) {
                 setField("Gender", loadObject["Gender"].toBool());
             }
-            if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble())
-            {
+            if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble()) {
                 setField("genderOptions", loadObject["GenderType"].toInt());
             }
-            if(loadObject.contains("URM") && loadObject["URM"].isBool())
-            {
+            if(loadObject.contains("URM") && loadObject["URM"].isBool()) {
                 setField("RaceEthnicity", loadObject["URM"].toBool());
             }
 
-            if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble())
-            {
+            if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble()) {
                 int numMultiChoiceQuestions = loadObject["numAttributes"].toInt();
                 setField("multiChoiceNumQuestions", numMultiChoiceQuestions);   // need to set the number before setting the texts, responses, or multis
                 QList<QString> multiChoiceQuestionTexts;
                 QList<QList<QString>> multiChoiceQuestionResponses;
                 QList<bool> multiChoiceQuestionMultis;
                 auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
-                for(int question = 0; question < numMultiChoiceQuestions; question++)
-                {
+                for(int question = 0; question < numMultiChoiceQuestions; question++) {
                     multiChoiceQuestionTexts << "";
                     if(loadObject.contains("Attribute" + QString::number(question+1)+"Question") &&
-                        loadObject["Attribute" + QString::number(question+1)+"Question"].isString())
-                    {
+                        loadObject["Attribute" + QString::number(question+1)+"Question"].isString()) {
                         multiChoiceQuestionTexts.last() = loadObject["Attribute" + QString::number(question+1)+"Question"].toString();
                     }
 
                     multiChoiceQuestionResponses << QStringList({""});
                     if(loadObject.contains("Attribute" + QString::number(question+1)+"Response") &&
-                        loadObject["Attribute" + QString::number(question+1)+"Response"].isDouble())
-                    {
+                        loadObject["Attribute" + QString::number(question+1)+"Response"].isDouble()) {
                         auto responseIndex = loadObject["Attribute" + QString::number(question+1)+"Response"].toInt() - 1;  // "-1" for historical reasons :(
-                        if((responseIndex >= 0) && (responseIndex < responseOptions.size()-1))
-                        {
+                        if((responseIndex >= 0) && (responseIndex < responseOptions.size()-1)) {
                             multiChoiceQuestionResponses.last() = responseOptions[responseIndex].split('/');
                         }
                         else if(loadObject.contains("Attribute" + QString::number(question+1)+"Options") &&
-                             loadObject["Attribute" + QString::number(question+1)+"Options"].isString())
-                        {
+                             loadObject["Attribute" + QString::number(question+1)+"Options"].isString()) {
                             multiChoiceQuestionResponses.last() = loadObject["Attribute" + QString::number(question+1)+"Options"].toString().split('/');
                         }
                         for(auto &response : multiChoiceQuestionResponses.last()) {
@@ -185,8 +165,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                     }
                     multiChoiceQuestionMultis << false;
                     if(loadObject.contains("Attribute" + QString::number(question+1)+"AllowMultiResponse") &&
-                        loadObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"].isBool())
-                    {
+                        loadObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"].isBool()) {
                         multiChoiceQuestionMultis.last() = loadObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"].toBool();
                     }
                 }
@@ -195,102 +174,79 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                 setField("multiChoiceQuestionMultis", QVariant::fromValue<QList<bool>>(multiChoiceQuestionMultis));
             }
 
-            if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool())
-            {
+            if(loadObject.contains("Timezone") && loadObject["Timezone"].isBool()) {
                 setField("Timezone", loadObject["Timezone"].toBool());
             }
-            if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool())
-            {
+            if(loadObject.contains("Schedule") && loadObject["Schedule"].isBool()) {
                 setField("Schedule", loadObject["Schedule"].toBool());
             }
-            if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool())
-            {
+            if(loadObject.contains("ScheduleAsBusy") && loadObject["ScheduleAsBusy"].isBool()) {
                 setField("scheduleBusyOrFree", loadObject["ScheduleAsBusy"].toBool()? SchedulePage::busy : SchedulePage::free);
             }
             QStringList scheduleDayNames;
-            for(int day = 0; day < MAX_DAYS; day++)
-            {
+            for(int day = 0; day < MAX_DAYS; day++) {
                 QString dayString1 = "scheduleDay" + QString::number(day+1);
                 QString dayString2 = dayString1 + "Name";
-                if(loadObject.contains(dayString2) && loadObject[dayString2].isString())
-                {
+                if(loadObject.contains(dayString2) && loadObject[dayString2].isString()) {
                     scheduleDayNames << loadObject[dayString2].toString();
                     //older style was to include day name AND a bool that could turn off the day
-                    if(loadObject.contains(dayString1) && loadObject[dayString1].isBool())
-                    {
-                        if(!loadObject[dayString1].toBool())
-                        {
+                    if(loadObject.contains(dayString1) && loadObject[dayString1].isBool()) {
+                        if(!loadObject[dayString1].toBool()) {
                             scheduleDayNames.last() = "";
                         }
                     }
                 }
-                else
-                {
+                else {
                     scheduleDayNames << "";
-                    if(loadObject.contains(dayString1) && loadObject[dayString1].isBool())
-                    {
-                        if(loadObject[dayString1].toBool())
-                        {
+                    if(loadObject.contains(dayString1) && loadObject[dayString1].isBool()) {
+                        if(loadObject[dayString1].toBool()) {
                             scheduleDayNames.last() = defaultDayNames.at(day);
                         }
                     }
                 }
             }
             setField("scheduleDayNames", scheduleDayNames);
-            if(loadObject.contains("scheduleStartHour") && loadObject["scheduleStartHour"].isDouble())
-            {
+            if(loadObject.contains("scheduleStartHour") && loadObject["scheduleStartHour"].isDouble()) {
                 setField("scheduleFrom", loadObject["scheduleStartHour"].toInt());
             }
-            if(loadObject.contains("scheduleEndHour") && loadObject["scheduleEndHour"].isDouble())
-            {
+            if(loadObject.contains("scheduleEndHour") && loadObject["scheduleEndHour"].isDouble()) {
                 setField("scheduleTo", loadObject["scheduleEndHour"].toInt());
             }
-            if(loadObject.contains("scheduleResolution") && loadObject["scheduleResolution"].isDouble())
-            {
+            if(loadObject.contains("scheduleResolution") && loadObject["scheduleResolution"].isDouble()) {
                 setField("scheduleResolution", loadObject["scheduleResolution"].toInt());
             }
-            if(loadObject.contains("scheduleTimeFormat") && loadObject["scheduleTimeFormat"].isDouble())
-            {
+            if(loadObject.contains("scheduleTimeFormat") && loadObject["scheduleTimeFormat"].isDouble()) {
                 setField("scheduleTimeFormat", loadObject["scheduleTimeFormat"].toInt());
             }
-            if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString())
-            {
+            if(loadObject.contains("baseTimezone") && loadObject["baseTimezone"].isString()) {
                 setField("baseTimezone", loadObject["baseTimezone"].toString());
             }
-            if(loadObject.contains("scheduleQuestion") && loadObject["scheduleQuestion"].isString())
-            {
+            if(loadObject.contains("scheduleQuestion") && loadObject["scheduleQuestion"].isString()) {
                 setField("ScheduleQuestion", loadObject["scheduleQuestion"].toString());
             }
-            else
-            {
+            else {
                 setField("ScheduleQuestion", SchedulePage::generateScheduleQuestion(field("scheduleBusyOrFree").toInt() == SchedulePage::busy,
                                                                                     field("Timezone").toBool(),
                                                                                     field("baseTimezone").toString()));
             }
 
-            if(loadObject.contains("Section") && loadObject["Section"].isBool())
-            {
+            if(loadObject.contains("Section") && loadObject["Section"].isBool()) {
                 setField("Section", loadObject["Section"].toBool());
             }
-            if(loadObject.contains("SectionNames") && loadObject["SectionNames"].isString())
-            {
+            if(loadObject.contains("SectionNames") && loadObject["SectionNames"].isString()) {
                 setField("SectionNames", loadObject["SectionNames"].toString().split(','));
             }
 
-            if(loadObject.contains("PreferredTeammates") && loadObject["PreferredTeammates"].isBool())
-            {
+            if(loadObject.contains("PreferredTeammates") && loadObject["PreferredTeammates"].isBool()) {
                 setField("PrefTeammate", loadObject["PreferredTeammates"].toBool());
             }
-            if(loadObject.contains("PreferredNonTeammates") && loadObject["PreferredNonTeammates"].isBool())
-            {
+            if(loadObject.contains("PreferredNonTeammates") && loadObject["PreferredNonTeammates"].isBool()) {
                 setField("PrefNonTeammate", loadObject["PreferredNonTeammates"].toBool());
             }
-            if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble())
-            {
+            if(loadObject.contains("numPrefTeammates") && loadObject["numPrefTeammates"].isDouble()) {
                 setField("numPrefTeammates", loadObject["numPrefTeammates"].toInt());
             }
-            if(loadObject.contains("StudentNames") && loadObject["StudentNames"].isString())
-            {
+            if(loadObject.contains("StudentNames") && loadObject["StudentNames"].isString()) {
                 setField("StudentNames", loadObject["StudentNames"].toString().split(','));
             }
 
@@ -300,8 +256,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                 next();
             }
         }
-        else
-        {
+        else {
             grueprGlobal::errorMessage(this, tr("File Error"), tr("This file cannot be read."));
         }
     }
@@ -640,8 +595,7 @@ void DemographicsPage::initializePage()
     wiz->button(QWizard::CustomButton2)->setStyleSheet(NEXTBUTTONSTYLE);
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
-    if(wiz->previewPageVisited)
-    {
+    if(wiz->previewPageVisited) {
         buttonLayout << QWizard::CustomButton2;
     }
     wiz->setButtonLayout(buttonLayout);
@@ -658,8 +612,7 @@ void DemographicsPage::cleanupPage()
     wiz->button(QWizard::CustomButton2)->setStyleSheet(QString(NEXTBUTTONSTYLE).replace("border-color: white; ", "border-color: " DEEPWATERHEX "; "));
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::CustomButton1 << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
-    if(wiz->previewPageVisited)
-    {
+    if(wiz->previewPageVisited) {
         buttonLayout << QWizard::CustomButton2;
     }
     wiz->setButtonLayout(buttonLayout);
@@ -670,23 +623,19 @@ void DemographicsPage::update()
     auto genderType = static_cast<GenderType>(genderResponsesComboBox->currentIndex());
     QStringList genderOptions;
     QString questionText;
-    if(genderType == GenderType::biol)
-    {
+    if(genderType == GenderType::biol) {
         questionText = GENDERQUESTION;
         genderOptions = QString(BIOLGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
-    else if(genderType == GenderType::adult)
-    {
+    else if(genderType == GenderType::adult) {
         questionText = GENDERQUESTION;
         genderOptions = QString(ADULTGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
-    else if(genderType == GenderType::child)
-    {
+    else if(genderType == GenderType::child) {
         questionText = GENDERQUESTION;
         genderOptions = QString(CHILDGENDERS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
-    else //if(genderType == GenderType::pronoun)
-    {
+    else {  //if(genderType == GenderType::pronoun)
         questionText = PRONOUNQUESTION;
         genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
@@ -1008,8 +957,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     baseTimezoneComboBox->addItem(tr("Custom timezone"));
     baseTimezoneComboBox->insertSeparator(2);
     int itemNum = 3;
-    for(const auto &zonename : SurveyMakerWizard::timezoneNames)
-    {
+    for(const auto &zonename : SurveyMakerWizard::timezoneNames) {
         baseTimezoneComboBox->addItem(zonename);
         baseTimezoneComboBox->setItemData(itemNum++, zonename, Qt::ToolTipRole);
     }
@@ -1048,8 +996,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     dayNames.reserve(MAX_DAYS);
     dayCheckBoxes.reserve(MAX_DAYS);
     dayLineEdits.reserve(MAX_DAYS);
-    for(int day = 0; day < MAX_DAYS; day++)
-    {
+    for(int day = 0; day < MAX_DAYS; day++) {
         dayNames << SurveyMakerWizard::defaultDayNames.at(day);
         dayCheckBoxes << new QCheckBox;
         dayLineEdits <<  new QLineEdit;
@@ -1263,36 +1210,29 @@ float SchedulePage::getScheduleTo() const
 void SchedulePage::daysComboBox_activated(int index)
 {
     daysComboBox->blockSignals(true);
-    if(index == 0)
-    {
+    if(index == 0) {
         //All Days
-        for(auto &dayCheckBox : dayCheckBoxes)
-        {
+        for(auto &dayCheckBox : dayCheckBoxes) {
             dayCheckBox->setChecked(true);
         }
     }
-    else if(index == 1)
-    {
+    else if(index == 1) {
         //Weekdays
         dayCheckBoxes[Sun]->setChecked(false);
-        for(int day = Mon; day <= Fri; day++)
-        {
+        for(int day = Mon; day <= Fri; day++) {
             dayCheckBoxes[day]->setChecked(true);
         }
         dayCheckBoxes[Sat]->setChecked(false);
     }
-    else if(index == 2)
-    {
+    else if(index == 2) {
         //Weekends
         dayCheckBoxes[Sun]->setChecked(true);
-        for(int day = Mon; day <= Fri; day++)
-        {
+        for(int day = Mon; day <= Fri; day++) {
             dayCheckBoxes[day]->setChecked(false);
         }
         dayCheckBoxes[Sat]->setChecked(true);
     }
-    else
-    {
+    else {
         //Custom Days, open subwindow
         daysWindow->exec();
         checkDays();
@@ -1317,20 +1257,16 @@ void SchedulePage::checkDays()
                     dayCheckBoxes[Wed]->isChecked() && dayCheckBoxes[Thu]->isChecked() && dayCheckBoxes[Fri]->isChecked();
     bool noWeekdays = !(dayCheckBoxes[Mon]->isChecked() || dayCheckBoxes[Tue]->isChecked() ||
                         dayCheckBoxes[Wed]->isChecked() || dayCheckBoxes[Thu]->isChecked() || dayCheckBoxes[Fri]->isChecked());
-    if(weekends && weekdays)
-    {
+    if(weekends && weekdays) {
         daysComboBox->setCurrentIndex(0);
     }
-    else if(weekdays && noWeekends)
-    {
+    else if(weekdays && noWeekends) {
         daysComboBox->setCurrentIndex(1);
     }
-    else if(weekends && noWeekdays)
-    {
+    else if(weekends && noWeekdays) {
         daysComboBox->setCurrentIndex(2);
     }
-    else
-    {
+    else {
         daysComboBox->setCurrentIndex(3);
     }
 }
@@ -1340,8 +1276,7 @@ void SchedulePage::day_LineEdit_textChanged(const QString &text, QLineEdit *dayL
     //validate entry
     QString currText = text;
     int currPos = 0;
-    if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable)
-    {
+    if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable) {
         SurveyMakerWizard::invalidExpression(dayLineEdit, currText, this);
     }
     dayname = currText.trimmed();
@@ -2217,10 +2152,8 @@ void PreviewAndExportPage::initializePage()
         section[SurveyMakerWizard::schedule]->questionLabel[1]->setText(scheduleQuestion);
         section[SurveyMakerWizard::schedule]->questionLabel[1]->show();
         survey->questions << Question(scheduleQuestion, Question::QuestionType::schedule);
-        for(int day = 0; day < MAX_DAYS; day++)
-        {
-            if(!scheduleDays.at(day).isEmpty())
-            {
+        for(int day = 0; day < MAX_DAYS; day++) {
+            if(!scheduleDays.at(day).isEmpty()) {
                 survey->schedDayNames << scheduleDays.at(day);
             }
         }
@@ -2409,11 +2342,9 @@ void PreviewAndExportPage::exportSurvey()
         QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
         //save all options to a text file
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
-        if( !(fileName.isEmpty()) )
-        {
+        if( !(fileName.isEmpty()) ) {
             QFile saveFile(fileName);
-            if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text))
-            {
+            if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
                 saveFileLocation->setFile(QFileInfo(fileName).canonicalFilePath());
                 QJsonObject saveObject;
                 saveObject["Title"] = field("SurveyTitle").toString();
@@ -2431,14 +2362,12 @@ void PreviewAndExportPage::exportSurvey()
                 auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
                 auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
                 auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
-                for(int question = 0; question < numMultiChoiceQuestions; question++)
-                {
+                for(int question = 0; question < numMultiChoiceQuestions; question++) {
                     saveObject["Attribute" + QString::number(question+1)+"Question"] = multiQuestionTexts[question];
                     const int responseOptionNum = responseOptions.indexOf(multiQuestionResponses[question].toStringList().join(" / "));
                     saveObject["Attribute" + QString::number(question+1)+"Response"] = responseOptionNum + 1;
                     saveObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"] = multiQuestionMultis[question].toBool();
-                    if(responseOptionNum == -1) // custom options being used
-                    {
+                    if(responseOptionNum == -1) { // custom options being used
                         saveObject["Attribute" + QString::number(question+1)+"Options"] = multiQuestionResponses[question].toStringList().join(" / ");
                     }
                 }
@@ -2448,8 +2377,7 @@ void PreviewAndExportPage::exportSurvey()
                 saveObject["baseTimezone"] = field("baseTimezone").toString();
                 saveObject["scheduleQuestion"] = field("ScheduleQuestion").toString();
                 QList<QString> dayNames = field("scheduleDayNames").toStringList();
-                for(int day = 0; day < MAX_DAYS; day++)
-                {
+                for(int day = 0; day < MAX_DAYS; day++) {
                     QString dayString1 = "scheduleDay" + QString::number(day+1);
                     QString dayString2 = dayString1 + "Name";
                     saveObject[dayString1] = !dayNames[day].isEmpty();
@@ -2471,8 +2399,7 @@ void PreviewAndExportPage::exportSurvey()
                 saveFile.close();
                 surveyHasBeenExported = true;
             }
-            else
-            {
+            else {
                 grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
             }
         }
@@ -2487,22 +2414,19 @@ void PreviewAndExportPage::exportSurvey()
                                 "  » A text file that lists the questions you should include in your survey.\n\n"
                                 "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
         createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-        if(createSurvey.exec() == QMessageBox::Cancel)
-        {
+        if(createSurvey.exec() == QMessageBox::Cancel) {
             return;
         }
 
         //get the filenames and location
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
-        if(fileName.isEmpty())
-        {
+        if(fileName.isEmpty()) {
             grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
         }
         //create the files
         QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
-        if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text))
-        {
+        if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text)) {
             grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
         }
@@ -2510,40 +2434,33 @@ void PreviewAndExportPage::exportSurvey()
 
         QString textFileContents, csvFileContents = "Timestamp";
         int questionNumber = 0;
-        if(!survey->title.isEmpty())
-        {
+        if(!survey->title.isEmpty()) {
             textFileContents += survey->title + "\n\n";
         }
 
         textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
-        for(const auto &question : qAsConst(survey->questions))
-        {
+        for(const auto &question : qAsConst(survey->questions)) {
             textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
-            if(question.type == Question::QuestionType::schedule)
-            {
+            if(question.type == Question::QuestionType::schedule) {
                 textFileContents += "\n                 ";
-                for(const auto &timeName : survey->schedTimeNames)
-                {
+                for(const auto &timeName : survey->schedTimeNames) {
                     textFileContents += timeName + "    ";
                 }
                 textFileContents += "\n";
-                for(const auto &dayName : qAsConst(survey->schedDayNames))
-                {
-                    if(!(dayName.isEmpty()))
-                    {
+                for(const auto &dayName : qAsConst(survey->schedDayNames)) {
+                    if(!(dayName.isEmpty())) {
                         textFileContents += "\n      " + dayName + "\n";
                         csvFileContents +=  "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text) + "[" + dayName + "]";
                     }
                 }
             }
-            else
-            {
+            else {
                 csvFileContents += "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text);
-                if((question.type == Question::QuestionType::dropdown) || (question.type == Question::QuestionType::radiobutton) || (question.type == Question::QuestionType::checkbox))
-                {
+                if((question.type == Question::QuestionType::dropdown) ||
+                   (question.type == Question::QuestionType::radiobutton) ||
+                   (question.type == Question::QuestionType::checkbox)) {
                     textFileContents += "\n     " + tr("choices") + ": [" + question.options.join(" | ") + "]";
-                    if(question.type == Question::QuestionType::checkbox)
-                    {
+                    if(question.type == Question::QuestionType::checkbox) {
                         textFileContents += "\n     (" + tr("Select one or more") + ")";
                     }
                 }
@@ -2559,18 +2476,15 @@ void PreviewAndExportPage::exportSurvey()
         surveyHasBeenExported = true;
     }
     else if(destinationGoogle->isChecked()) {
-        if(!grueprGlobal::internetIsGood())
-        {
+        if(!grueprGlobal::internetIsGood()) {
             return;
         }
 
         //create googleHandler and/or authenticate as needed
-        if(google == nullptr)
-        {
+        if(google == nullptr) {
             google = new GoogleHandler();
         }
-        if(!google->authenticated)
-        {
+        if(!google->authenticated) {
             auto *loginDialog = new QMessageBox(this);
             loginDialog->setStyleSheet(LABELSTYLE);
             QPixmap icon(":/icons_new/google.png");
@@ -2578,8 +2492,7 @@ void PreviewAndExportPage::exportSurvey()
             loginDialog->setText("");
 
             // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-            if(google->refreshTokenExists)
-            {
+            if(google->refreshTokenExists) {
                 loginDialog->setText(tr("Contacting Google..."));
                 loginDialog->setStandardButtons(QMessageBox::Cancel);
                 connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
@@ -2588,23 +2501,20 @@ void PreviewAndExportPage::exportSurvey()
 
                 google->authenticate();
 
-                if(loginDialog->exec() == QMessageBox::Cancel)
-                {
+                if(loginDialog->exec() == QMessageBox::Cancel) {
                     delete loginDialog;
                     return;
                 }
 
                 //refreshToken failed, so need to start over
-                if(!google->authenticated)
-                {
+                if(!google->authenticated) {
                     delete google;
                     google = new GoogleHandler();
                 }
             }
 
             // still not authenticated, so either didn't have a refreshToken to use or the refreshToken didn't work; need to re-log in on the browser
-            if(!google->authenticated)
-            {
+            if(!google->authenticated) {
                 loginDialog->setText(loginDialog->text() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
                                                               "  » Your computer may ask whether gruepr can access the network. "
                                                               "This access is needed so that gruepr and Google can communicate.\n\n"
@@ -2628,8 +2538,7 @@ void PreviewAndExportPage::exportSurvey()
                 cancelButton->setIconSize(cancelpic.rect().size());
                 cancelButton->setIcon(cancelpic);
                 cancelButton->adjustSize();
-                if(loginDialog->exec() == QMessageBox::Cancel)
-                {
+                if(loginDialog->exec() == QMessageBox::Cancel) {
                     delete loginDialog;
                     return;
                 }
@@ -2639,8 +2548,7 @@ void PreviewAndExportPage::exportSurvey()
                 loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
                 loginDialog->setStandardButtons(QMessageBox::Cancel);
                 connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
-                if(loginDialog->exec() == QMessageBox::Cancel)
-                {
+                if(loginDialog->exec() == QMessageBox::Cancel) {
                     delete loginDialog;
                     return;
                 }
@@ -2649,30 +2557,29 @@ void PreviewAndExportPage::exportSurvey()
         }
 
         //upload the survey as a form
-        auto *busyBox = google->busy();
+        auto *busyBox = google->actionDialog();
         auto form = google->createSurvey(survey);
 
         QPixmap icon;
-        QSize iconSize = google->busyBoxIcon->size();
-        if(form.name.isEmpty())
-        {
-            google->busyBoxLabel->setText(tr("Error. The survey was not created."));
+        QSize iconSize = google->actionDialogIcon->size();
+        if(form.name.isEmpty()) {
+            google->actionDialogLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons_new/error.png");
-            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            google->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
+            google->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            google->actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok);
             busyBox->adjustSize();
             busyBox->exec();
-            google->notBusy(busyBox);
+            google->actionComplete(busyBox);
         }
         else {
             QEventLoop loop;
-            google->busyBoxLabel->setText(tr("Success!"));
+            google->actionDialogLabel->setText(tr("Success!"));
             icon.load(":/icons_new/ok.png");
-            google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            google->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             busyBox->adjustSize();
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
-            google->notBusy(busyBox);
+            google->actionComplete(busyBox);
 
             // append this survey to the saved values
             QSettings settings;
@@ -2726,26 +2633,22 @@ void PreviewAndExportPage::exportSurvey()
         }
     }
     else if(destinationCanvas->isChecked()) {
-        if(!grueprGlobal::internetIsGood())
-        {
+        if(!grueprGlobal::internetIsGood()) {
             return;
         }
 
         //create canvasHandler and/or authenticate as needed
-        if(canvas == nullptr)
-        {
+        if(canvas == nullptr) {
             canvas = new CanvasHandler();
         }
-        if(!canvas->authenticated)
-        {
+        if(!canvas->authenticated) {
             //IN BETA--GETS USER'S API TOKEM MANUALLY
             QSettings savedSettings;
             QString savedCanvasURL = savedSettings.value("canvasURL").toString();
             QString savedCanvasToken = savedSettings.value("canvasToken").toString();
 
             QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
-            if(newURLAndToken.isEmpty())
-            {
+            if(newURLAndToken.isEmpty()) {
                 return;
             }
 
@@ -2762,9 +2665,9 @@ void PreviewAndExportPage::exportSurvey()
         }
 
         //ask the user in which course we're creating the survey
-        auto *busyBox = canvas->busy();
+        auto *busyBox = canvas->actionDialog();
         QStringList courseNames = canvas->getCourses();
-        canvas->notBusy(busyBox);
+        canvas->actionComplete(busyBox);
 
         auto *canvasCourses = new QDialog(this);
         canvasCourses->setWindowTitle(tr("Choose Canvas course"));
@@ -2775,8 +2678,7 @@ void PreviewAndExportPage::exportSurvey()
         auto *label = new QLabel(tr("In which course should this survey be created?"));
         label->setStyleSheet(LABELSTYLE);
         auto *coursesComboBox = new QComboBox;
-        for(const auto &courseName : qAsConst(courseNames))
-        {
+        for(const auto &courseName : qAsConst(courseNames)) {
             coursesComboBox->addItem(courseName);
             coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
         }
@@ -2789,36 +2691,35 @@ void PreviewAndExportPage::exportSurvey()
         canvasCourses->setLayout(vLayout);
         connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
         connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
-        if((canvasCourses->exec() == QDialog::Rejected))
-        {
+        if((canvasCourses->exec() == QDialog::Rejected)) {
             delete canvasCourses;
             return;
         }
 
         //upload the survey as a quiz
-        busyBox = canvas->busy();
+        busyBox = canvas->actionDialog();
         bool success = canvas->createSurvey(coursesComboBox->currentText(), survey);
 
         QPixmap icon;
-        QSize iconSize = canvas->busyBoxIcon->size();
+        QSize iconSize = canvas->actionDialogIcon->size();
         if(!success) {
-            canvas->busyBoxLabel->setText(tr("Error. The survey was not created."));
+            canvas->actionDialogLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons_new/error.png");
-            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            canvas->busyBoxButtons->setStandardButtons(QDialogButtonBox::Ok);
+            canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            canvas->actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok);
             busyBox->adjustSize();
             busyBox->exec();
-            canvas->notBusy(busyBox);
+            canvas->actionComplete(busyBox);
         }
         else {
             QEventLoop loop;
-            canvas->busyBoxLabel->setText(tr("Success!"));
+            canvas->actionDialogLabel->setText(tr("Success!"));
             icon.load(":/icons_new/ok.png");
-            canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             busyBox->adjustSize();
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
-            canvas->notBusy(busyBox);
+            canvas->actionComplete(busyBox);
 
             auto *successDialog = new QMessageBox(this);
             successDialog->setStyleSheet(QString() + LABELSTYLE + SMALLBUTTONSTYLE);

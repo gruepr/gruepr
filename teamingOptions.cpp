@@ -171,8 +171,7 @@ QJsonObject TeamingOptions::toJson() const
         requiredAttributeValuesArray.append(requiredAttributeValuesArraySubArray);
         haveAnyIncompatibleAttributesArray.append(haveAnyIncompatibleAttributes[i]);
         QJsonArray incompatibleAttributeValuesArraySubArray;
-        for(const auto &item : incompatibleAttributeValues[i])
-        {
+        for(const auto &item : incompatibleAttributeValues[i]) {
             QJsonArray pair;
             pair.append(item.first);
             pair.append(item.second);

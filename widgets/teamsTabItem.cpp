@@ -892,9 +892,9 @@ void TeamsTabItem::postTeamsToCanvas()
     }
 
     //ask the user in which course we're creating the teams
-    auto *busyBox = canvas->busy();
+    auto *busyBox = canvas->actionDialog();
     QStringList courseNames = canvas->getCourses();
-    canvas->notBusy(busyBox);
+    canvas->actionComplete(busyBox);
     auto *canvasCourses = new QDialog(this);
     canvasCourses->setWindowTitle(tr("Choose Canvas course"));
     canvasCourses->setWindowIcon(QIcon(":/icons_new/canvas.png"));
@@ -946,26 +946,26 @@ void TeamsTabItem::postTeamsToCanvas()
         }
         teamRosters << teamRoster;
     }
-
-    busyBox = canvas->busy();
-    QSize iconSize = canvas->busyBoxIcon->pixmap().size();
+    
+    busyBox = canvas->actionDialog();
+    QSize iconSize = canvas->actionDialogIcon->pixmap().size();
     QPixmap icon;
     QEventLoop loop;
     if(canvas->createTeams(coursesComboBox->currentText(), tabName, teamNames, teamRosters)) {
-        canvas->busyBoxLabel->setText(tr("Success!"));
+        canvas->actionDialogLabel->setText(tr("Success!"));
         icon.load(":/icons_new/ok.png");
-        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
-        canvas->notBusy(busyBox);
+        canvas->actionComplete(busyBox);
     }
     else {
-        canvas->busyBoxLabel->setText(tr("Error. Teams not created."));
+        canvas->actionDialogLabel->setText(tr("Error. Teams not created."));
         icon.load(":/icons_new/error.png");
-        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
-        canvas->notBusy(busyBox);
+        canvas->actionComplete(busyBox);
         return;
     }
     delete canvasCourses;

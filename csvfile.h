@@ -61,10 +61,10 @@ private:
     listTableDialog *window = nullptr;
     QStringList getLine(const int minFields = -1);
     void validateFieldSelectorBoxes(int callingRow = -1);
-    const QString HEADERTEXT = tr("Column Headers");
-    const QString CATEGORYTEXT = tr("Category");
-    const QString ROW1TEXT = tr("First Row of Data");
-    const QString UNUSEDTEXT = tr("Unused");
+    inline static const QString HEADERTEXT = QObject::tr("Column Headers");
+    inline static const QString CATEGORYTEXT = QObject::tr("Category");
+    inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
+    inline static const QString UNUSEDTEXT = QObject::tr("Unused");
     inline static const int DIALOGWIDTH = 500;
     inline static const int DIALOGHEIGHT = 300;
 };

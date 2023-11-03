@@ -43,11 +43,11 @@ public:
     bool authenticated = false;
     bool refreshTokenExists = false;
 
-    QDialog* busy(QWidget *parent = nullptr);
-    QLabel* busyBoxIcon = nullptr;
-    QLabel* busyBoxLabel = nullptr;
-    QDialogButtonBox* busyBoxButtons = nullptr;
-    void notBusy(QDialog *busyDialog);
+    QDialog* actionDialog(QWidget *parent = nullptr);
+    QLabel *actionDialogIcon = nullptr;
+    QLabel *actionDialogLabel = nullptr;
+    QDialogButtonBox *actionDialogButtons = nullptr;
+    void actionComplete(QDialog *busyDialog);
 
     GoogleForm createSurvey(const Survey *const survey);
     QStringList getSurveyList();

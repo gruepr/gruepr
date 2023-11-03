@@ -15,6 +15,7 @@ class TeamRecord
 public:
     explicit TeamRecord(const DataOptions *const incomingDataOptions, int teamSize);
     explicit TeamRecord(const QJsonObject &jsonTeamRecord);
+    ~TeamRecord();
 
     void createTooltip();
     void refreshTeamInfo(const StudentRecord* const student, const int meetingBlockSize);

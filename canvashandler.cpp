@@ -14,7 +14,7 @@
 
 CanvasHandler::CanvasHandler(const QString &authenticateURL, const QString &accessTokenURL, const QString &baseAPIURL) {
 
-    manager = new QNetworkAccessManager;
+    manager = new QNetworkAccessManager(this);
     manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
     manager->setTransferTimeout(TIMEOUT_TIME);
     canvas = new QOAuth2AuthorizationCodeFlow(authenticateURL, accessTokenURL, manager, this);
@@ -221,8 +221,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
             }
             break;}
         case Question::QuestionType::schedule: {
-            if(survey->schedDayNames.size() == 1)
-            {
+            if(survey->schedDayNames.size() == 1) {
                 //just one question, set it up to post
                 query.addQueryItem("question[question_type]", "multiple_answers_question");
                 query.addQueryItem("question[question_text]", question.text + " <strong><u>[" + survey->schedDayNames.first() + "]</u></strong>");
@@ -233,8 +232,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                     optionNum++;
                 }
             }
-            else
-            {
+            else {
                 // if there will be more than one day in the schedule, create a text "question" to clarify that the next n questions will be for the schedule on different days
                 query.addQueryItem("question[question_type]", "text_only_question");
                 QString scheduleIntroStatement = "<strong>" + SCHEDULEQUESTIONINTRO1 + QString::number(survey->schedDayNames.size()) + SCHEDULEQUESTIONINTRO2;
@@ -436,14 +434,12 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
     QJsonArray json_array;
     int numPages = 0;
 
-    do
-    {
+    do {
         reply = canvas->get(url);
 
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        if(reply->bytesAvailable() == 0)
-        {
+        if(reply->bytesAvailable() == 0) {
             //qDebug() << "no reply";
             delete reply;
             return;
@@ -453,33 +449,26 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
         replyBody = reply->readAll();
         //qDebug() << replyBody;
         json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
-        if(json_doc.isArray())
-        {
+        if(json_doc.isArray()) {
             json_array = json_doc.array();
         }
-        else if(json_doc.isObject())
-        {
+        else if(json_doc.isObject()) {
             json_array << json_doc.object();
         }
-        else
-        {
+        else {
             //empty or null
             break;
         }
 
-        for(const auto &value : qAsConst(json_array))
-        {
+        for(const auto &value : qAsConst(json_array)) {
             QJsonObject json_obj = value.toObject();
-            for(int i = 0; i < stringParams.size(); i++)
-            {
+            for(int i = 0; i < stringParams.size(); i++) {
                 *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
             }
-            for(int i = 0; i < intParams.size(); i++)
-            {
+            for(int i = 0; i < intParams.size(); i++) {
                 *(intVals[i]) << json_obj[intParams.at(i)].toInt();
             }
-            for(int i = 0; i < stringInSubobjectParams.size(); i++)
-            {
+            for(int i = 0; i < stringInSubobjectParams.size(); i++) {
                 QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
                 QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
                 *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
@@ -508,8 +497,7 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
 
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    if(reply->bytesAvailable() == 0)
-    {
+    if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
         delete reply;
         return;
@@ -518,34 +506,27 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
     replyBody = reply->readAll();
     //qDebug() << replyBody;
     json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
-    if(json_doc.isArray())
-    {
+    if(json_doc.isArray()) {
         json_array = json_doc.array();
     }
-    else if(json_doc.isObject())
-    {
+    else if(json_doc.isObject()) {
         json_array << json_doc.object();
     }
-    else
-    {
+    else {
         //empty or null
         reply->deleteLater();
         return;
     }
 
-    for(const auto &value : qAsConst(json_array))
-    {
+    for(const auto &value : qAsConst(json_array)) {
         QJsonObject json_obj = value.toObject();
-        for(int i = 0; i < stringParams.size(); i++)
-        {
+        for(int i = 0; i < stringParams.size(); i++) {
             *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
         }
-        for(int i = 0; i < intParams.size(); i++)
-        {
+        for(int i = 0; i < intParams.size(); i++) {
             *(intVals[i]) << json_obj[intParams.at(i)].toInt();
         }
-        for(int i = 0; i < stringInSubobjectParams.size(); i++)
-        {
+        for(int i = 0; i < stringInSubobjectParams.size(); i++) {
             QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
             QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
@@ -563,8 +544,7 @@ bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
     reply = canvas->get(URL);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    if(reply->bytesAvailable() == 0)
-    {
+    if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
         delete reply;
         return false;
@@ -611,7 +591,7 @@ void CanvasHandler::authenticate() {
        }
     });
 
-    auto *replyHandler = new QOAuthHttpServerReplyHandler(port);
+    auto *replyHandler = new QOAuthHttpServerReplyHandler(port, this);
     canvas->setReplyHandler(replyHandler);
 
     canvas->grant();
@@ -643,15 +623,16 @@ QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, cons
                             "   »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
                             "   »  click \"Generate Token\", and\n"
                             "   »  copy your freshly generated token and paste it into the second field below.\n"
-                            "Depending on your institution's settings, you may have to request that your token be generated by the campus Canvas administrators.\n\n"));
+                            "Depending on your institution's settings, you may have to request that "
+                             "your token be generated by the campus Canvas administrators.\n\n"), getCanvasInfoDialog);
     label->setStyleSheet(LABELSTYLE);
-    auto *canvasURL = new QLineEdit(currentURL);
+    auto *canvasURL = new QLineEdit(currentURL, getCanvasInfoDialog);
     canvasURL->setPlaceholderText(tr("Canvas URL (e.g., https://example.instructure.com)"));
     canvasURL->setStyleSheet(LINEEDITSTYLE);
-    auto *canvasToken = new QLineEdit(currentToken);
+    auto *canvasToken = new QLineEdit(currentToken, getCanvasInfoDialog);
     canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
     canvasToken->setStyleSheet(LINEEDITSTYLE);
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, getCanvasInfoDialog);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
@@ -665,13 +646,11 @@ QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, cons
     auto result = getCanvasInfoDialog->exec();
     getCanvasInfoDialog->deleteLater();
 
-    if(result == QDialog::Rejected)
-    {
+    if(result == QDialog::Rejected) {
         return {};
     }
     QString url = canvasURL->text();
-    if(!url.startsWith("https://") && !url.startsWith("http://"))
-    {
+    if(!url.startsWith("https://") && !url.startsWith("http://")) {
         url.prepend("https://");
     }
     QString token = canvasToken->text().trimmed();
@@ -682,31 +661,31 @@ void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
     baseURL = baseAPIURL;
 }
 
-QDialog* CanvasHandler::busy(QWidget *parent) {
+QDialog* CanvasHandler::actionDialog(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *busyDialog = new QDialog(parent);
     busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
-    busyBoxIcon = new QLabel(busyDialog);
-    busyBoxIcon->setPixmap(QPixmap(":/icons_new/canvas.png").scaled(CANVASICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    busyBoxLabel = new QLabel(busyDialog);
-    busyBoxLabel->setStyleSheet(LABELSTYLE);
-    busyBoxLabel->setText(tr("Communicating with Canvas..."));
-    busyBoxButtons = new QDialogButtonBox(busyDialog);
-    busyBoxButtons->setStyleSheet(SMALLBUTTONSTYLE);
-    busyBoxButtons->setStandardButtons(QDialogButtonBox::NoButton);
-    connect(busyBoxButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
+    actionDialogIcon = new QLabel(busyDialog);
+    actionDialogIcon->setPixmap(QPixmap(":/icons_new/canvas.png").scaled(CANVASICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    actionDialogLabel = new QLabel(busyDialog);
+    actionDialogLabel->setStyleSheet(LABELSTYLE);
+    actionDialogLabel->setText(tr("Communicating with Canvas..."));
+    actionDialogButtons = new QDialogButtonBox(busyDialog);
+    actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
+    actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
+    connect(actionDialogButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
     auto *theGrid = new QGridLayout;
     busyDialog->setLayout(theGrid);
-    theGrid->addWidget(busyBoxIcon, 0, 0);
-    theGrid->addWidget(busyBoxLabel, 0, 1);
-    theGrid->addWidget(busyBoxButtons, 1, 0, 1, -1);
+    theGrid->addWidget(actionDialogIcon, 0, 0);
+    theGrid->addWidget(actionDialogLabel, 0, 1);
+    theGrid->addWidget(actionDialogButtons, 1, 0, 1, -1);
     busyDialog->setModal(true);
     busyDialog->show();
     busyDialog->adjustSize();
     return busyDialog;
 }
 
-void CanvasHandler::notBusy(QDialog *busyDialog) {
+void CanvasHandler::actionComplete(QDialog *busyDialog) {
     QApplication::restoreOverrideCursor();
     busyDialog->accept();
     busyDialog->deleteLater();

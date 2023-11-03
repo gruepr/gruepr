@@ -316,28 +316,28 @@ bool GetGrueprDataDialog::getFromGoogle()
     delete googleFormsDialog;
 
     //download the survey
-    auto *busyBox = google->busy();
+    auto *busyBox = google->actionDialog();
     QString filepath = google->downloadSurveyResult(googleFormName);
     QPixmap icon;
-    QSize iconSize = google->busyBoxIcon->size();
+    QSize iconSize = google->actionDialogIcon->size();
     QEventLoop loop;
     if(filepath.isEmpty()) {
-        google->busyBoxLabel->setText(tr("Error. Survey not downloaded."));
+        google->actionDialogLabel->setText(tr("Error. Survey not downloaded."));
         icon.load(":/icons_new/error.png");
-        google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        google->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         busyBox->adjustSize();
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
-        google->notBusy(busyBox);
+        google->actionComplete(busyBox);
         return false;
     }
-    google->busyBoxLabel->setText(tr("Success!"));
+    google->actionDialogLabel->setText(tr("Success!"));
     icon.load(":/icons_new/ok.png");
-    google->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    google->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
-    google->notBusy(busyBox);
+    google->actionComplete(busyBox);
 
     //open the downloaded file
     if(!surveyFile->openExistingFile(filepath)) {
@@ -385,9 +385,9 @@ bool GetGrueprDataDialog::getFromCanvas()
     }
 
     //ask the user from which course we're downloading the survey
-    auto *busyBox = canvas->busy();
+    auto *busyBox = canvas->actionDialog();
     QStringList courseNames = canvas->getCourses();
-    canvas->notBusy(busyBox);
+    canvas->actionComplete(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
     canvasCoursesAndQuizzesDialog->setStyleSheet(QString() + LABELSTYLE + COMBOBOXSTYLE);
@@ -419,9 +419,9 @@ bool GetGrueprDataDialog::getFromCanvas()
     canvasCoursesAndQuizzesDialog->hide();
 
     //ask which survey (canvas Quiz) to download
-    busyBox = canvas->busy();
+    busyBox = canvas->actionDialog();
     QStringList formsList = canvas->getQuizList(course);
-    canvas->notBusy(busyBox);
+    canvas->actionComplete(busyBox);
 
     canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas quiz"));
     label->setText(tr("Which survey should be downloaded?"));
@@ -437,32 +437,32 @@ bool GetGrueprDataDialog::getFromCanvas()
     delete canvasCoursesAndQuizzesDialog;
 
     //download the survey
-    busyBox = canvas->busy();
+    busyBox = canvas->actionDialog();
     QString filepath = canvas->downloadQuizResult(course, canvasSurveyName);
     QPixmap icon;
-    QSize iconSize = canvas->busyBoxIcon->size();
+    QSize iconSize = canvas->actionDialogIcon->size();
     QEventLoop loop;
     if(filepath.isEmpty()) {
-        canvas->busyBoxLabel->setText(tr("Error. Survey not received."));
+        canvas->actionDialogLabel->setText(tr("Error. Survey not received."));
         icon.load(":/icons_new/error.png");
-        canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         busyBox->adjustSize();
         QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
         loop.exec();
-        canvas->notBusy(busyBox);
+        canvas->actionComplete(busyBox);
         return false;
     }
 
     //get the roster for later comparison
     roster = canvas->getStudentRoster(course);
 
-    canvas->busyBoxLabel->setText(tr("Success!"));
+    canvas->actionDialogLabel->setText(tr("Success!"));
     icon.load(":/icons_new/ok.png");
-    canvas->busyBoxIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
-    canvas->notBusy(busyBox);
+    canvas->actionComplete(busyBox);
 
     //open the downloaded file
     if(!surveyFile->openExistingFile(filepath)) {
