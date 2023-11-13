@@ -1,4 +1,5 @@
 #include "googlehandler.h"
+#include "googlesecrets.h"
 #include <QApplication>
 #include <QDesktopServices>
 #include <QDialogButtonBox>

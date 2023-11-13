@@ -23,7 +23,9 @@
 
 gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::gruepr)
+    ui(new Ui::gruepr),
+    dataOptions(new DataOptions(std::move(dataOptions))),
+    students(std::move(students))
 {
     //Setup the main window
     ui->setupUi(this);
@@ -90,9 +92,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->compareRosterPushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
 
-    this->dataOptions = new DataOptions(std::move(dataOptions));
-    this->students = std::move(students);
-
     teamingOptions = nullptr;
     if(this->dataOptions->dataSource == DataOptions::fromPrevWork) {
         QFile savedFile(this->dataOptions->saveStateFileName, this);
@@ -120,9 +119,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         loadDefaultSettings();
     }
 
-    adjustSize();
-    loadUI();
-
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
     connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
     connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
@@ -134,9 +130,23 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
     connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
 
+    //Connect other UI items to more involved actions
+    connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
+    connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
+    connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
+    connect(ui->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
+    connect(ui->idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
+    connect(ui->teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
+    connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
+    connect(ui->teammatesButton, &QPushButton::clicked, this, &gruepr::makeTeammatesRules);
+    connect(ui->letsDoItButton, &QPushButton::clicked, this, &gruepr::startOptimization);
+
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
+
+    adjustSize();
+    loadUI();
 
     saveState();
 }
@@ -201,14 +211,14 @@ void gruepr::calcTeamScores(const StudentRecord *const _students, const int _num
 }
 
 
-void gruepr::on_newDataSourceButton_clicked()
+void gruepr::restartWithNewData()
 {
     restartRequested = true;
     close();
 }
 
 
-void gruepr::on_sectionSelectionBox_currentIndexChanged(int index)
+void gruepr::changeSection(int index)
 {
     const QString desiredSection = ui->sectionSelectionBox->itemText(index);
     if(desiredSection == "") {
@@ -272,7 +282,7 @@ void gruepr::on_sectionSelectionBox_currentIndexChanged(int index)
     }
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    changeIdealTeamSize(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 }
 
 
@@ -393,7 +403,7 @@ void gruepr::removeAStudent(int index, bool delayVisualUpdate)
 }
 
 
-void gruepr::on_addStudentPushButton_clicked()
+void gruepr::addAStudent()
 {
     if(dataOptions->numStudentsInSystem < MAX_STUDENTS) {
         //Open window with a blank student record in it
@@ -442,7 +452,7 @@ void gruepr::on_addStudentPushButton_clicked()
 }
 
 
-void gruepr::on_compareRosterPushButton_clicked()
+void gruepr::compareStudentsToRoster()
 {
     // Open the roster file
     QSettings savedSettings;
@@ -491,7 +501,6 @@ void gruepr::on_compareRosterPushButton_clicked()
                     if(choiceWindow->addStudent) {   // add as a new student
                         dataHasChanged = true;
 
-                        students.emplaceBack();
                         auto &newStudent = students.last();
                         newStudent.surveyTimestamp = QDateTime();
                         newStudent.ID = students.size();
@@ -704,7 +713,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
     // Load new team sizes in selection box
     ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());
+    changeIdealTeamSize(ui->idealTeamSizeBox->value());
 }
 
 
@@ -723,7 +732,7 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
     if(sender == ui->isolatedURMCheckBox) {
         if(teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
             // if we are just now preventing isolated URM students, but have not selected yet which responses should be considered URM, let's ask user to enter those in
-            on_URMResponsesButton_clicked();
+            selectURMResponses();
         }
     }
 
@@ -754,7 +763,7 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
 }
 
 
-void gruepr::on_URMResponsesButton_clicked()
+void gruepr::selectURMResponses()
 {
     // open window to decide which values are to be considered underrepresented
     auto *win = new gatherURMResponsesDialog(dataOptions->URMResponses, teamingOptions->URMResponsesConsideredUR, this);
@@ -796,7 +805,7 @@ void gruepr::responsesRulesButton_clicked()
 }
 
 
-void gruepr::on_teammatesButton_clicked()
+void gruepr::makeTeammatesRules()
 {
     QStringList teamTabNames;
     for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
@@ -824,7 +833,7 @@ void gruepr::on_teammatesButton_clicked()
 }
 
 
-void gruepr::on_idealTeamSizeBox_valueChanged(int arg1)
+void gruepr::changeIdealTeamSize(int arg1)
 {
     if(teamingOptions->numberRequestedTeammatesGiven > arg1) {
         teamingOptions->numberRequestedTeammatesGiven = arg1;
@@ -969,7 +978,7 @@ inline QString gruepr::writeTeamSizeOption(const int numTeamsA, const int teamsi
 }
 
 
-void gruepr::on_teamSizeBox_currentIndexChanged(int index)
+void gruepr::chooseTeamSizes(int index)
 {
     if(ui->teamSizeBox->currentText() == QString::number(teamingOptions->numTeamsDesired) +
                                          tr(" teams (") + QString::number(ui->idealTeamSizeBox->value()) +
@@ -1007,7 +1016,7 @@ void gruepr::on_teamSizeBox_currentIndexChanged(int index)
 }
 
 
-void gruepr::on_letsDoItButton_clicked()
+void gruepr::startOptimization()
 {
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
@@ -1041,6 +1050,7 @@ void gruepr::on_letsDoItButton_clicked()
 
     bestTeamSet.clear();
     finalTeams.clear();
+    finalTeams.dataOptions = *dataOptions;
 
     const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
     multipleSectionsInProgress = teamingMultipleSections;
@@ -1076,9 +1086,10 @@ void gruepr::on_letsDoItButton_clicked()
         // Create a new set of TeamRecords to hold the eventual results
         numTeams = teamingOptions->numTeamsDesired;
         teams.clear();
+        teams.dataOptions = *dataOptions;
         teams.reserve(numTeams);
         for(int team = 0; team < numTeams; team++) {   // run through every team to load dataOptions and size
-            teams.emplaceBack(dataOptions, teamingOptions->teamSizesDesired[team]);
+            teams.emplaceBack(&teams.dataOptions, teamingOptions->teamSizesDesired[team]);
         }
 
         // Create progress display plot
@@ -1103,6 +1114,20 @@ void gruepr::on_letsDoItButton_clicked()
         future = QtConcurrent::run(&gruepr::optimizeTeams, this, studentIndexes);       // spin optimization off into a separate thread
         futureWatcher.setFuture(future);                                // connect the watcher to get notified when optimization completes
         multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
+
+        // set the working value of the genetic algorithm's population size and tournament selection probability
+        if(numActiveStudents > GA::GENOMESIZETHRESHOLD[1]) {
+            GA::populationsize = GA::POPULATIONSIZE[2];
+            GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[2];
+        }
+        else if(numActiveStudents > GA::GENOMESIZETHRESHOLD[0]) {
+            GA::populationsize = GA::POPULATIONSIZE[1];
+            GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[1];
+        }
+        else {
+            GA::populationsize = GA::POPULATIONSIZE[0];
+            GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[0];
+        }
 
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
@@ -1200,7 +1225,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(*teamingOptions, *dataOptions, teams, students, teamSetName, ui->letsDoItButton, this);
+    auto *teamTab = new TeamsTabItem(*teamingOptions, teams, students, teamSetName, ui->letsDoItButton, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
@@ -1290,7 +1315,7 @@ void gruepr::loadDefaultSettings()
             for(int incompResp = 0; incompResp < numIncompats; incompResp++) {
                 savedSettings.setArrayIndex(incompResp);
                 QStringList incompats = savedSettings.value("incompatibleResponses", "").toString().split(',');
-                teamingOptions->incompatibleAttributeValues[attribNum].emplaceBack(incompats.at(0).toInt(),incompats.at(1).toInt());
+                teamingOptions->incompatibleAttributeValues[attribNum].append({incompats.at(0).toInt(),incompats.at(1).toInt()});
             }
             savedSettings.endArray();
             int numRequireds = savedSettings.beginReadArray("requiredResponses");
@@ -1366,7 +1391,7 @@ void gruepr::loadUI()
     ui->studentTable->resetTable();
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
+    changeIdealTeamSize(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
     ui->teamsizeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     if(dataOptions->genderIncluded) {
@@ -1492,7 +1517,7 @@ void gruepr::loadUI()
         ui->scheduleSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
-    on_idealTeamSizeBox_valueChanged(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    changeIdealTeamSize(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
 
     if(std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;})) {
         grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
@@ -1711,13 +1736,11 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(dataOptions->numStudentsInSystem);
     numActiveStudents = 0;
-    QStringList rowNumbers;
     for(const auto &student : students) {
         column = 0;
         if((ui->sectionSelectionBox->currentIndex() == 0) ||
            (ui->sectionSelectionBox->currentIndex() == 1) ||
            (student.section == ui->sectionSelectionBox->currentText())) {
-            rowNumbers << QString::number(numActiveStudents + 1);
 
             auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime, QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
             if(dataOptions->timestampField != -1) {
@@ -1795,7 +1818,6 @@ void gruepr::refreshStudentDisplay()
         }
     }
     ui->studentTable->setRowCount(numActiveStudents);
-    ui->studentTable->setVerticalHeaderLabels(rowNumbers);
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();
@@ -1811,20 +1833,6 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
     std::random_device randDev;
     std::mt19937 pRNG(randDev());
-
-    // set the working value of the genetic algorithm's tournament selection probability
-    if(numActiveStudents > GA::GENOMESIZETHRESHOLD[1]) {
-        GA::populationsize = GA::POPULATIONSIZE[2];
-        GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[2];
-    }
-    else if(numActiveStudents > GA::GENOMESIZETHRESHOLD[0]) {
-        GA::populationsize = GA::POPULATIONSIZE[1];
-        GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[1];
-    }
-    else {
-        GA::populationsize = GA::POPULATIONSIZE[0];
-        GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[0];
-    }
 
     // Initialize an initial generation of random teammate sets, genePool[populationSize][numStudents].
     // Each genome in this generation stores (by permutation) which students are in which team.

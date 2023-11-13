@@ -42,7 +42,8 @@ public:
 
 signals:
     void closed();
-    void generationComplete(const float *const allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
+    void generationComplete(const float *const allScores, const int *const orderedIndex,
+                            const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void sectionOptimizationFullyComplete();
     void turnOffBusyCursor();
 
@@ -50,22 +51,23 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void on_newDataSourceButton_clicked();
-    void on_sectionSelectionBox_currentIndexChanged(int index);
+    void restartWithNewData();
+    void changeSection(int index);
     void editAStudent();
     void removeAStudent(const QString &name, bool delayVisualUpdate);
     void removeAStudent(int index, bool delayVisualUpdate);
-    void on_addStudentPushButton_clicked();
-    void on_compareRosterPushButton_clicked();
+    void addAStudent();
+    void compareStudentsToRoster();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void simpleUIItemUpdate(QObject *sender = nullptr);
-    void on_URMResponsesButton_clicked();
+    void selectURMResponses();
     void responsesRulesButton_clicked();
-    void on_idealTeamSizeBox_valueChanged(int arg1);
-    void on_teamSizeBox_currentIndexChanged(int index);
-    void on_teammatesButton_clicked();
-    void on_letsDoItButton_clicked();
-    void updateOptimizationProgress(const float *const allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
+    void changeIdealTeamSize(int arg1);
+    void chooseTeamSizes(int index);
+    void makeTeammatesRules();
+    void startOptimization();
+    void updateOptimizationProgress(const float *const allScores, const int *const orderedIndex,
+                                    const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
@@ -86,7 +88,7 @@ private:
         // reading survey data
     int numActiveStudents = MAX_STUDENTS;
     QList<StudentRecord> students;
-    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);           // returns false if file is invalid; checks survey names and emails against roster
+    bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks survey names and emails against roster
     void refreshStudentDisplay();
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
@@ -111,9 +113,9 @@ private:
     bool keepOptimizing = false;
 
         // reporting results
-    QList<TeamRecord> teams;
+    TeamSet teams;
     QList<int> bestTeamSet;
-    QList<TeamRecord> finalTeams;
+    TeamSet finalTeams;
 };
 
 #endif // GRUEPR_H

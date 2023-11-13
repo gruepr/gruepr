@@ -1,7 +1,6 @@
 #ifndef TEAMSTABITEM_H
 #define TEAMSTABITEM_H
 
-#include "dataOptions.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
@@ -19,10 +18,10 @@ class TeamsTabItem : public QWidget
 Q_OBJECT
 
 public:
-    explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions,
-                          const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
+    explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet &incomingTeamSet, QList<StudentRecord> &incomingStudents,
+                          const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent = nullptr);
+    explicit TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents,
                           QPushButton *letsDoItButton, QWidget *parent = nullptr);
-    explicit TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, QWidget *parent = nullptr);
     void init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton);    // handle the constructor work after loading data
     ~TeamsTabItem() override;
     TeamsTabItem(const TeamsTabItem&) = delete;
@@ -57,8 +56,7 @@ private:
     QList<int> getTeamNumbersInDisplayOrder();
 
     TeamingOptions *teamingOptions = nullptr;
-    DataOptions *dataOptions = nullptr;
-    QList<TeamRecord> teams;
+    TeamSet teams;
     QList<StudentRecord> students;
     int numStudents = 1;
 

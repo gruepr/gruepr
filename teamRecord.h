@@ -13,9 +13,8 @@
 class TeamRecord
 {
 public:
-    explicit TeamRecord(const DataOptions *const incomingDataOptions, int teamSize);
-    explicit TeamRecord(const QJsonObject &jsonTeamRecord);
-    ~TeamRecord();
+    explicit TeamRecord(const DataOptions *const teamSetDataOptions, int teamSize) : size(teamSize), teamSetDataOptions(teamSetDataOptions) {};
+    explicit TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord);
 
     void createTooltip();
     void refreshTeamInfo(const StudentRecord* const student, const int meetingBlockSize);
@@ -41,7 +40,14 @@ public:
     QString tooltip;
 
 private:
-    const DataOptions *dataOptions = nullptr;
+    const DataOptions *teamSetDataOptions;
+};
+
+
+class TeamSet : public QList<TeamRecord>
+{
+public:
+    DataOptions dataOptions;
 };
 
 #endif // TEAMRECORD_H

@@ -27,8 +27,8 @@ inline static const int PRINTOUT_FONTSIZE = 9;
 inline static const char16_t LEFTARROW = u'\u2190';
 inline static const char16_t LEFTDOUBLEARROW = u'\u00AB';
 inline static const char16_t RIGHTARROW = u'\u2192';
-inline static const char16_t RIGHTARROWTOEND = u'\u21E5';
 inline static const char16_t RIGHTDOUBLEARROW = u'\u00BB';
+inline static const char16_t RIGHTARROWTOEND = u'\u21E5';
 inline static const char16_t LEFTRIGHTARROW = u'\u27F7';
 inline static const char16_t BULLET = u'\u2022';
 

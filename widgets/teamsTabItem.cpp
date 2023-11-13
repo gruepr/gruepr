@@ -22,16 +22,14 @@
 const QStringList TeamsTabItem::teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
 const QStringList TeamsTabItem::teamnameLists = QString(TEAMNAMELISTS).split(';');
 
-TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const DataOptions &incomingDataOptions,
-                           const QList<TeamRecord> &incomingTeams, QList<StudentRecord> &incomingStudents, const QString &incomingTabName,
-                           QPushButton *letsDoItButton, QWidget *parent)
-    :QWidget(parent)
+TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet &incomingTeamSet, QList<StudentRecord> &incomingStudents,
+                           const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent)
+    : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made to use in print/save
-    dataOptions = new DataOptions(incomingDataOptions);
-    teams = incomingTeams;
+    teams = incomingTeamSet;
     students = incomingStudents;
-    numStudents = dataOptions->numStudentsInSystem;
+    numStudents = teams.dataOptions.numStudentsInSystem;
     tabName = incomingTabName;
 
     init(incomingTeamingOptions, incomingStudents, letsDoItButton);
@@ -41,7 +39,6 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     :QWidget(parent)
 {
     teamingOptions = new TeamingOptions(jsonTeamsTab["teamingOptions"].toObject());
-    dataOptions = new DataOptions(jsonTeamsTab["dataOptions"].toObject());
     numStudents = jsonTeamsTab["numStudents"].toInt();
     QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
     students.reserve(studentsArray.size());
@@ -49,9 +46,10 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
         students.emplaceBack(student.toObject());
     }
     QJsonArray teamsArray = jsonTeamsTab["teams"].toArray();
+    teams.dataOptions = DataOptions(teamsArray.begin()->toObject()["dataOptions"].toObject());
     teams.reserve(teamsArray.size());
     for(const auto &team : teamsArray) {
-        teams.emplaceBack(team.toObject());
+        teams.emplaceBack(&teams.dataOptions, team.toObject());
     }
     tabName = jsonTeamsTab["tabName"].toString();
 
@@ -195,7 +193,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     savePrintLayout->addWidget(postTeamsButton);
 
     teamDataTree->collapseAll();
-    teamDataTree->resetDisplay(dataOptions, teamingOptions);
+    teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
     refreshTeamDisplay();
     teamDataTree->sortByColumn(0, Qt::AscendingOrder);
     teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
@@ -210,7 +208,6 @@ TeamsTabItem::~TeamsTabItem()
 {
     // delete dynamically allocated objects
     delete teamingOptions;
-    delete dataOptions;
 }
 
 
@@ -226,7 +223,6 @@ QJsonObject TeamsTabItem::toJson() const
 
     QJsonObject content {
         {"teamingOptions", teamingOptions->toJson()},
-        {"dataOptions", dataOptions->toJson()},
         {"teams", teamsArray},
         {"students", studentsArray},
         {"numStudents", numStudents},
@@ -483,7 +479,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
                   teams[studentBteam].studentIndexes[teams[studentBteam].studentIndexes.indexOf(studentBIndex)]);
 
         // Re-score the teams and refresh all the info
-        gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, &teams.dataOptions);
         teams[studentAteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentAteam].createTooltip();
 
@@ -504,7 +500,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         childItems.reserve(numStudentsOnTeam);
         for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++) {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], dataOptions, teamingOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], &teams.dataOptions, teamingOptions);
             teamItem->addChild(childItems[studentNum]);
         }
     }
@@ -526,7 +522,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+        gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, &teams.dataOptions);
         teams[studentAteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
         teams[studentAteam].createTooltip();
         teams[studentBteam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
@@ -534,10 +530,10 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
         QString firstStudentName = students[teams[studentAteam].studentIndexes[0]].lastname+students[teams[studentAteam].studentIndexes[0]].firstname;
         QString firstStudentSection = students[teams[studentAteam].studentIndexes[0]].section;
-        teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
+        teamDataTree->refreshTeam(teamAItem, teams[studentAteam], studentAteam, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
         firstStudentName = students[teams[studentBteam].studentIndexes[0]].lastname+students[teams[studentBteam].studentIndexes[0]].firstname;
         firstStudentSection = students[teams[studentBteam].studentIndexes[0]].section;
-        teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
+        teamDataTree->refreshTeam(teamBItem, teams[studentBteam], studentBteam, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
         teamAItem->setScoreColor(teams[studentAteam].score);
         teamBItem->setScoreColor(teams[studentBteam].score);
 
@@ -554,13 +550,13 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         childItems.reserve(std::max(numStudentsOnTeamA, numStudentsOnTeamB));
         for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++) {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], dataOptions, teamingOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentAteam].studentIndexes[studentNum]], &teams.dataOptions, teamingOptions);
             teamAItem->addChild(childItems[studentNum]);
         }
         childItems.clear();
         for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++) {
             childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentBteam].studentIndexes[studentNum]], dataOptions, teamingOptions);
+            teamDataTree->refreshStudent(childItems[studentNum], students[teams[studentBteam].studentIndexes[studentNum]], &teams.dataOptions, teamingOptions);
             teamBItem->addChild(childItems[studentNum]);
         }
     }
@@ -620,7 +616,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info for both teams
-    gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, dataOptions);
+    gruepr::calcTeamScores(students.constData(), numStudents, teams.data(), int(teams.size()), teamingOptions, &teams.dataOptions);
     teams[oldTeam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
     teams[oldTeam].createTooltip();
     teams[newTeam].refreshTeamInfo(students.constData(), teamingOptions->realMeetingBlockSize);
@@ -628,10 +624,10 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
 
     QString firstStudentName = students[teams[oldTeam].studentIndexes[0]].lastname+students[teams[oldTeam].studentIndexes[0]].firstname;
     QString firstStudentSection = students[teams[oldTeam].studentIndexes[0]].section;
-    teamDataTree->refreshTeam(oldTeamItem, teams[oldTeam], oldTeam, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
+    teamDataTree->refreshTeam(oldTeamItem, teams[oldTeam], oldTeam, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
     firstStudentName = students[teams[newTeam].studentIndexes[0]].lastname+students[teams[newTeam].studentIndexes[0]].firstname;
     firstStudentSection = students[teams[newTeam].studentIndexes[0]].section;
-    teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
+    teamDataTree->refreshTeam(newTeamItem, teams[newTeam], newTeam, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
     oldTeamItem->setScoreColor(teams[oldTeam].score);
     newTeamItem->setScoreColor(teams[newTeam].score);
 
@@ -649,13 +645,13 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     childItems.reserve(std::max(numStudentsOnStudentTeam, numStudentsOnNewTeam));
     for(int studentNum = 0; studentNum < numStudentsOnStudentTeam; studentNum++) {
         childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-        teamDataTree->refreshStudent(childItems[studentNum], students[teams[oldTeam].studentIndexes[studentNum]], dataOptions, teamingOptions);
+        teamDataTree->refreshStudent(childItems[studentNum], students[teams[oldTeam].studentIndexes[studentNum]], &teams.dataOptions, teamingOptions);
         oldTeamItem->addChild(childItems[studentNum]);
     }
     childItems.clear();
     for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++) {
         childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-        teamDataTree->refreshStudent(childItems[studentNum], students[teams[newTeam].studentIndexes[studentNum]], dataOptions, teamingOptions);
+        teamDataTree->refreshStudent(childItems[studentNum], students[teams[newTeam].studentIndexes[studentNum]], &teams.dataOptions, teamingOptions);
         newTeamItem->addChild(childItems[studentNum]);
     }
 
@@ -1007,7 +1003,7 @@ void TeamsTabItem::refreshTeamDisplay()
         parentItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::team, teamDataTree->columnCount(), currentTeam.score);
         QString firstStudentName = students[currentTeam.studentIndexes[0]].lastname+students[currentTeam.studentIndexes[0]].firstname;
         QString firstStudentSection = students[currentTeam.studentIndexes[0]].section;
-        teamDataTree->refreshTeam(parentItems.last(), currentTeam, teamNum, firstStudentName, firstStudentSection, dataOptions, teamingOptions);
+        teamDataTree->refreshTeam(parentItems.last(), currentTeam, teamNum, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
 
         //remove all student items in the team
         for(auto &studentItem : parentItems.last()->takeChildren()) {
@@ -1018,7 +1014,7 @@ void TeamsTabItem::refreshTeamDisplay()
         //add new student items
         for(int studentOnTeam = 0, numStudentsOnTeam = currentTeam.size; studentOnTeam < numStudentsOnTeam; studentOnTeam++) {
             childItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::student);
-            teamDataTree->refreshStudent(childItems.last(), students[currentTeam.studentIndexes[studentOnTeam]], dataOptions, teamingOptions);
+            teamDataTree->refreshStudent(childItems.last(), students[currentTeam.studentIndexes[studentOnTeam]], &teams.dataOptions, teamingOptions);
             parentItems.last()->addChild(childItems.last());
         }
 
@@ -1047,15 +1043,15 @@ QStringList TeamsTabItem::createFileContents()
 {
     QString spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
 
-    QString instructorsFileContents = tr("Source: ") + dataOptions->dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
+    QString instructorsFileContents = tr("Source: ") + teams.dataOptions.dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
     instructorsFileContents += tr("Teaming Options") + ":";
-    if(dataOptions->genderIncluded) {
+    if(teams.dataOptions.genderIncluded) {
         instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
         instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
         instructorsFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
         instructorsFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
     }
-    if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented) {
+    if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
         instructorsFileContents += "\n" + tr("Isolated URM students prevented");
     }
     if(teamingOptions->scheduleWeight > 0) {
@@ -1065,25 +1061,25 @@ QStringList TeamsTabItem::createFileContents()
         instructorsFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
         instructorsFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
     }
-    for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
+    for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
         instructorsFileContents += "\n" + tr("Attribute ") + QString::number(attrib+1) + ": "
                 + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib])) +
                 + ", " + (teamingOptions->desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
     }
     instructorsFileContents += "\n\n\n";
-    for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
+    for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
         QString questionWithResponses = tr("Attribute ") + QString::number(attrib+1) + "\n" +
-                                        dataOptions->attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
-        for(int response = 0; response < dataOptions->attributeQuestionResponses[attrib].size(); response++) {
-            if((dataOptions->attributeType[attrib] == DataOptions::AttributeType::ordered) ||
-                (dataOptions->attributeType[attrib] == DataOptions::AttributeType::multiordered)) {
-                questionWithResponses += "\n\t" + dataOptions->attributeQuestionResponses[attrib].at(response);
+                                        teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
+        for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
+            if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
+                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered)) {
+                questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
             }
-            else if((dataOptions->attributeType[attrib] == DataOptions::AttributeType::categorical) ||
-                    (dataOptions->attributeType[attrib] == DataOptions::AttributeType::multicategorical)) {
+            else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
+                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multicategorical)) {
                 questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
                                                                    QString(char(response%26 + 'A')).repeated(1 + (response/26)));
-                questionWithResponses += ". " + dataOptions->attributeQuestionResponses[attrib].at(response);
+                questionWithResponses += ". " + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
             }
         }
         questionWithResponses += "\n\n\n";
@@ -1105,16 +1101,16 @@ QStringList TeamsTabItem::createFileContents()
 
     // get the relevant gender terminology
     QStringList genderOptions;
-    if(dataOptions->genderType == GenderType::biol) {
+    if(teams.dataOptions.genderType == GenderType::biol) {
         genderOptions = QString(BIOLGENDERS7CHAR).split('/');
     }
-    else if(dataOptions->genderType == GenderType::adult) {
+    else if(teams.dataOptions.genderType == GenderType::adult) {
         genderOptions = QString(ADULTGENDERS7CHAR).split('/');
     }
-    else if(dataOptions->genderType == GenderType::child) {
+    else if(teams.dataOptions.genderType == GenderType::child) {
         genderOptions = QString(CHILDGENDERS7CHAR).split('/');
     }
-    else { //if(dataOptions->genderType == GenderType::pronoun)
+    else { //if(teams.dataOptions.genderType == GenderType::pronoun)
         genderOptions = QString(PRONOUNS7CHAR).split('/');
     }
 
@@ -1128,10 +1124,10 @@ QStringList TeamsTabItem::createFileContents()
         //loop through each teammate in the team
         for(int teammate = 0; teammate < teams[team].size; teammate++) {
             const auto &thisStudent = students[teams[team].studentIndexes.at(teammate)];
-            if(dataOptions->genderIncluded) {
+            if(teams.dataOptions.genderIncluded) {
                 instructorsFileContents += " " + genderOptions.at(static_cast<int>(thisStudent.gender)) + " ";
             }
-            if(dataOptions->URMIncluded) {
+            if(teams.dataOptions.URMIncluded) {
                 if(thisStudent.URM) {
                     instructorsFileContents += tr(" URM ");
                 }
@@ -1139,17 +1135,17 @@ QStringList TeamsTabItem::createFileContents()
                     instructorsFileContents += "     ";
                 }
             }
-            for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+            for(int attribute = 0; attribute < teams.dataOptions.numAttributes; attribute++) {
                 auto value = thisStudent.attributeVals[attribute].constBegin();
                 if(*value != -1) {
-                    if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) {
+                    if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
                         instructorsFileContents += (QString::number(*value)).leftJustified(3);
                     }
-                    else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) {
+                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
                         instructorsFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
                                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
                     }
-                    else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
+                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
                         const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue) {
@@ -1162,7 +1158,7 @@ QStringList TeamsTabItem::createFileContents()
                         }
                         instructorsFileContents += attributeList.leftJustified(3);
                     }
-                    else if(dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered) {
+                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
                         const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue) {
@@ -1187,11 +1183,11 @@ QStringList TeamsTabItem::createFileContents()
             spreadsheetFileContents += thisStudent.section + "\t" + teams[team].name + "\t" + thisStudent.firstname +
                     " " + thisStudent.lastname + "\t" + thisStudent.email + "\n";
         }
-        if(!dataOptions->dayNames.isEmpty()) {
+        if(!teams.dataOptions.dayNames.isEmpty()) {
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(const auto &dayName : dataOptions->dayNames) {
+            for(const auto &dayName : teams.dataOptions.dayNames) {
                 // using first 3 characters in day name as abbreviation
                 instructorsFileContents += "  " + dayName.left(3) + "  ";
                 studentsFileContents += "  " + dayName.left(3) + "  ";
@@ -1199,10 +1195,10 @@ QStringList TeamsTabItem::createFileContents()
             instructorsFileContents += "\n";
             studentsFileContents += "\n";
 
-            for(int time = 0; time < dataOptions->timeNames.size(); time++) {
-                instructorsFileContents += dataOptions->timeNames.at(time) + QString((11-dataOptions->timeNames.at(time).size()), ' ');
-                studentsFileContents += dataOptions->timeNames.at(time) + QString((11-dataOptions->timeNames.at(time).size()), ' ');
-                for(int day = 0; day < dataOptions->dayNames.size(); day++) {
+            for(int time = 0; time < teams.dataOptions.timeNames.size(); time++) {
+                instructorsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
+                studentsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
+                for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
                     QString percentage;
                     if(teams[team].size > teams[team].numStudentsWithAmbiguousSchedules) {
                         percentage = QString::number((100*teams[team].numStudentsAvailable[day][time]) /
@@ -1211,7 +1207,7 @@ QStringList TeamsTabItem::createFileContents()
                     else {
                         percentage = "?";
                     }
-                    QStringView left3 = QStringView{dataOptions->dayNames.at(day).left(3)};
+                    QStringView left3 = QStringView{teams.dataOptions.dayNames.at(day).left(3)};
                     instructorsFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
                     studentsFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
                 }

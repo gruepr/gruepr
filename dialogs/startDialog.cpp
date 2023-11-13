@@ -188,7 +188,7 @@ StartDialog::StartDialog(QWidget *parent)
 void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     this->hide();
-    auto *surveyMakerWizard = new SurveyMakerWizard(this);
+    auto *surveyMakerWizard = new SurveyMakerWizard;
     QApplication::restoreOverrideCursor();
     surveyMakerWizard->exec();
     this->show();
@@ -206,7 +206,7 @@ void StartDialog::openGruepr() {
         getDataDialog->exec();
         if(getDataDialog->result() == QDialog::Accepted) {
             QApplication::setOverrideCursor(Qt::BusyCursor);
-            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this);
+            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             this->hide();
             grueprWindow->show();
             QApplication::restoreOverrideCursor();

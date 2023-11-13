@@ -22,11 +22,11 @@ namespace GA
     inline static const int NUM_ELITES = 3;                         // from each generation, this many highest scoring genomes are directly cloned into the next generation. Some suggest elitism helps speed genetic algorithms, but can lead to premature convergence. Having at least 1 elite significantly stabilizes the high score to end optimization
     inline static const int TOURNAMENTSIZE = 60;                    // most of the next generation is created by mating many pairs of parent genomes, each time chosen from genomes in a randomly selected tournament in the genepool
     inline static const int POPULATIONSIZE[] = {60000, 30000, 8000};	// the number of genomes in each generation--larger size is slower, but each generation is more likely to have optimal result.
-    inline static const int TOPGENOMELIKELIHOOD[] = {10, 33, 100};  // percent likelihood of selecting the best genome in the tournament as parent; if top is not selected, move to next best genome with same probability, and so on
+    inline static const int TOPGENOMELIKELIHOOD[] = {10, 33, 66};   // percent likelihood of selecting the best genome in the tournament as parent; if top is not selected, move to next best genome with same probability, and so on
     inline static const int GENOMESIZETHRESHOLD[] = {25, 75};       // threshold values of genome size that decide which POPULATIONSIZE and TOPGENOMELIKELIHOOD values to use -- if genome is <= threshold 1, use more diversity; if <= threshold 2, use medium diversity
                                                                     // when the genome size gets larger, the genomes are less similar and thus selecting non-top genomes is less advantageous to maintaining genomic diversity
     extern unsigned int topgenomelikelihood;                        // the working value, set when beginning an optimization and the genome size is known
-    extern int populationsize;                        // the working value, set when beginning an optimization and the genome size is known
+    extern int populationsize;                                      // the working value, set when beginning an optimization and the genome size is known
 
     inline static const int MUTATIONLIKELIHOOD = 50;                // percent likelihood of a mutation (when mutation occurs, another chance at mutation is given with same likelihood (iteratively))
 

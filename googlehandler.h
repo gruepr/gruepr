@@ -1,7 +1,6 @@
 #ifndef GOOGLEHANDLER_H
 #define GOOGLEHANDLER_H
 
-#include "googlesecrets.h"
 #include "gruepr_globals.h"
 #include "survey.h"
 #include <QDialog>

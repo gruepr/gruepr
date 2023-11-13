@@ -1,13 +1,8 @@
 #include "teamRecord.h"
 #include <QJsonArray>
 
-TeamRecord::TeamRecord(const DataOptions *const incomingDataOptions, int teamSize)
-{
-    dataOptions = incomingDataOptions;
-    size = teamSize;
-}
 
-TeamRecord::TeamRecord(const QJsonObject &jsonTeamRecord)
+TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord) : teamSetDataOptions(teamSetDataOptions)
 {
     LMSID = jsonTeamRecord["LMSID"].toInt();
     score = jsonTeamRecord["score"].toDouble();
@@ -22,7 +17,6 @@ TeamRecord::TeamRecord(const QJsonObject &jsonTeamRecord)
     numMeetingTimes = jsonTeamRecord["numMeetingTimes"].toInt();
     name = jsonTeamRecord["name"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
-    dataOptions = new DataOptions(jsonTeamRecord["dataOptions"].toObject());
 
     QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
@@ -51,11 +45,6 @@ TeamRecord::TeamRecord(const QJsonObject &jsonTeamRecord)
     }
 }
 
-TeamRecord::~TeamRecord()
-{
-    delete dataOptions;
-}
-
 
 void TeamRecord::createTooltip()
 {
@@ -66,22 +55,22 @@ void TeamRecord::createTooltip()
                        "You may want to relax some constraints and try to form teams again.") + "</b></td></tr></table><br>";
     }
     toolTipText += QObject::tr("Team ") + name + "<br>";
-    if(dataOptions->genderIncluded) {
+    if(teamSetDataOptions->genderIncluded) {
         toolTipText += QObject::tr("Gender") + ":  ";
         QStringList genderSingularOptions, genderPluralOptions;
-        if(dataOptions->genderType == GenderType::biol) {
+        if(teamSetDataOptions->genderType == GenderType::biol) {
             genderSingularOptions = QString(BIOLGENDERS).split('/');
             genderPluralOptions = QString(BIOLGENDERS).split('/');
         }
-        else if(dataOptions->genderType == GenderType::adult) {
+        else if(teamSetDataOptions->genderType == GenderType::adult) {
             genderSingularOptions = QString(ADULTGENDERS).split('/');
             genderPluralOptions = QString(ADULTGENDERSPLURAL).split('/');
         }
-        else if(dataOptions->genderType == GenderType::child) {
+        else if(teamSetDataOptions->genderType == GenderType::child) {
             genderSingularOptions = QString(CHILDGENDERS).split('/');
             genderPluralOptions = QString(CHILDGENDERSPLURAL).split('/');
         }
-        else { //if(dataOptions->genderType == GenderType::pronoun)
+        else { //if(teamSetDataOptions->genderType == GenderType::pronoun)
             genderSingularOptions = QString(PRONOUNS).split('/');
             genderPluralOptions = QString(PRONOUNS).split('/');
         }
@@ -107,16 +96,16 @@ void TeamRecord::createTooltip()
             toolTipText += QString::number(numUnknown) + " " + ((numUnknown == 1)? (genderSingularOptions.at(static_cast<int>(Gender::unknown))) : (genderPluralOptions.at(static_cast<int>(Gender::unknown))));
         }
     }
-    if(dataOptions->URMIncluded) {
+    if(teamSetDataOptions->URMIncluded) {
         toolTipText += "<br>" + QObject::tr("URM") + ":  " + QString::number(numURM);
     }
-    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         toolTipText += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         auto teamVals = attributeVals[attribute].cbegin();
         auto lastVal = attributeVals[attribute].cend();
-        if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-           (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
+        if((teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+           (teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
             if(*teamVals == -1) {
                 teamVals++;
@@ -133,8 +122,8 @@ void TeamRecord::createTooltip()
                 toolTipText += "?";
             }
         }
-        else if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) ||
-                (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)) {
+        else if((teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::categorical) ||
+                (teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical)) {
             // attribute is categorical, so important info is the list of values
             // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
             toolTipText += (*teamVals <= 26 ? QString(char(*teamVals - 1 + 'A')) : QString(char((*teamVals - 1)%26 + 'A')).repeated(1+((*teamVals - 1)/26)));
@@ -143,37 +132,37 @@ void TeamRecord::createTooltip()
             }
         }
     }
-    if(dataOptions->timezoneIncluded) {
+    if(teamSetDataOptions->timezoneIncluded) {
         float timezoneA = *timezoneVals.cbegin();
         float timezoneB = *timezoneVals.crbegin();
         QString timezoneText;
         if(timezoneA == timezoneB) {
             int hour = int(timezoneA);
-            int minutes = 60*(timezoneA - int(timezoneA));
+            int minutes = int(60*(timezoneA - int(timezoneA)));
             timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));;
         }
         else {
             int hourA = int(timezoneA);
             int hourB = int(timezoneB);
-            int minutesA = 60*(timezoneA - int(timezoneA));
-            int minutesB = 60*(timezoneB - int(timezoneB));
+            int minutesA = int(60*(timezoneA - int(timezoneA)));
+            int minutesB = int(60*(timezoneB - int(timezoneB)));
             timezoneText = (QString("%1%2:%3 ") + RIGHTARROW + " %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
                                                                   .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(std::abs(minutesB), 2, 10, QChar('0'));
         }
         toolTipText += "<br>" + QObject::tr("Timezones:  GMT") + timezoneText;
     }
-    if(!dataOptions->dayNames.isEmpty()) {
+    if(!teamSetDataOptions->dayNames.isEmpty()) {
         toolTipText += "<br>--<br>" + QObject::tr("Availability:") + "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
 
-        for(const auto &dayName : dataOptions->dayNames) {
+        for(const auto &dayName : teamSetDataOptions->dayNames) {
             // using first 3 characters in day name as abbreviation
             toolTipText += "<th>" + dayName.left(3) + "</th>";
         }
         toolTipText += "</tr>";
 
-        for(int time = 0; time < dataOptions->timeNames.size(); time++) {
-            toolTipText += "<tr><th>" + dataOptions->timeNames.at(time) + "</th>";
-            for(int day = 0; day < dataOptions->dayNames.size(); day++) {
+        for(int time = 0; time < teamSetDataOptions->timeNames.size(); time++) {
+            toolTipText += "<tr><th>" + teamSetDataOptions->timeNames.at(time) + "</th>";
+            for(int day = 0; day < teamSetDataOptions->dayNames.size(); day++) {
                 QString percentage;
                 if(size > numStudentsWithAmbiguousSchedules) {
                     percentage = QString::number((100*numStudentsAvailable[day][time]) / (size-numStudentsWithAmbiguousSchedules)) + "% ";
@@ -210,11 +199,11 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
     numURM = 0;
     numStudentsWithAmbiguousSchedules = 0;
     numMeetingTimes = 0;
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+    for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
         attributeVals[attribute].clear();
     }
-    const int numDays = dataOptions->dayNames.size();
-    const int numTimes = dataOptions->timeNames.size();
+    const int numDays = teamSetDataOptions->dayNames.size();
+    const int numTimes = teamSetDataOptions->timeNames.size();
     for(int day = 0; day < numDays; day++) {
         for(int time = 0; time < numTimes; time++) {
             numStudentsAvailable[day][time] = 0;
@@ -228,7 +217,7 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
             sections << stu.section;
             numSections++;
         }
-        if(dataOptions->genderIncluded) {
+        if(teamSetDataOptions->genderIncluded) {
             if(stu.gender == Gender::woman) {
                 numWomen++;
             }
@@ -242,12 +231,12 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
                 numUnknown++;
             }
         }
-        if(dataOptions->URMIncluded) {
+        if(teamSetDataOptions->URMIncluded) {
             if(stu.URM) {
                 numURM++;
             }
         }
-        for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
             attributeVals[attribute].insert(stu.attributeVals[attribute].constBegin(), stu.attributeVals[attribute].constEnd());
         }
         if(!stu.ambiguousSchedule) {
@@ -262,7 +251,7 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
         else {
             numStudentsWithAmbiguousSchedules++;
         }
-        if(dataOptions->timezoneIncluded) {
+        if(teamSetDataOptions->timezoneIncluded) {
             timezoneVals.insert(stu.timezone);
         }
     }
@@ -328,7 +317,7 @@ QJsonObject TeamRecord::toJson() const
         {"studentIndexes", studentIndexesArray},
         {"name", name},
         {"tooltip", tooltip},
-        {"dataOptions", dataOptions->toJson()}
+        {"dataOptions", teamSetDataOptions->toJson()}
     };
 
     return content;
