@@ -18,9 +18,13 @@
 class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-    enum TreeItemType{team, student};
-    TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
-    void setScoreColor(float teamScore);
+    enum class TreeItemType{team, student};
+    explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
+    ~TeamTreeWidgetItem() = default;
+    TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
+    TeamTreeWidgetItem operator= (const TeamTreeWidgetItem&) = delete;
+    TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;
+    TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;    void setScoreColor(float teamScore);
     bool operator<(const QTreeWidgetItem &other) const override;
 
 private:

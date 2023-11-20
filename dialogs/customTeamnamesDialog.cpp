@@ -16,6 +16,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &in
     //Table of team names
     theTable->setRowCount(numTeams);
     int widthCol0 = 0, rowHeight = 0;
+    teamNameLineEdits.reserve(numTeams);
     for(int team = 0; team < numTeams; team++) {
         auto *label = new QLabel(tr("Team ") + QString::number(team+1) + " ", this);
         label->setStyleSheet(LABELSTYLE);

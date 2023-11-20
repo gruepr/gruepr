@@ -68,14 +68,6 @@ SurveyMakerWizard::~SurveyMakerWizard() {
     savedSettings.setValue("saveFileLocation", saveFileLocation.canonicalFilePath());
 }
 
-QStringList SurveyMakerWizard::timezoneNames = [] {
-    QStringList names = QString(TIMEZONENAMES).split(";");
-    for(auto &name : names){
-        name = name.remove('"').trimmed();
-    }
-    return names;
-}();
-
 void SurveyMakerWizard::invalidExpression(QWidget *textWidget, QString &currText, QWidget *parent)
 {
     auto *lineEdit = qobject_cast<QLineEdit *>(textWidget);
@@ -1714,7 +1706,7 @@ bool CourseInfoPage::uploadRoster()
     // Open the roster file
     CsvFile rosterFile;
     QFileInfo *saveFilePath = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
-    if(!rosterFile.open(this, CsvFile::read, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
+    if(!rosterFile.open(this, CsvFile::Operation::read, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
         return false;
     }
 

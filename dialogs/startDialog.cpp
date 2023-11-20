@@ -209,6 +209,7 @@ void StartDialog::openGruepr() {
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             this->hide();
             grueprWindow->show();
+            emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
             delete getDataDialog;
             QEventLoop loop;
@@ -220,6 +221,7 @@ void StartDialog::openGruepr() {
         }
         else {
             restart = false;
+            emit closeDataDialogProgressBar();
             delete getDataDialog;
         }
     } while(restart);

@@ -38,11 +38,10 @@
 // DONE:
 //   BUGFIXES:
 // - removed persistent tooltips created sometimes when using drag-and-drop to modify teams in gruepr
+// - fixed several issues with the compare-to-roster feature in gruepr
+//
 //  INTERNAL:
 // - unified and simplified memory management and code styling throughout
-//
-// INPROG:
-// - crash when loading roster?
 //
 // TO DO:
 //   BUGFIXES:

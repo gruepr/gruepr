@@ -9,9 +9,10 @@
 #include <QSettings>
 #include <QStandardItemModel>
 
-GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
+GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     QDialog(parent),
-    ui(new Ui::GetGrueprDataDialog)
+    ui(new Ui::GetGrueprDataDialog),
+    parent(parent)
 {
     ui->setupUi(this);
     setWindowTitle(tr("gruepr - Form teams"));
@@ -47,10 +48,10 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
     connect(ui->fromPrevWorkRadioButton, &QRadioButton::toggled, ui->prevWorkComboBox, &QComboBox::setVisible);
     ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
-    ui->sourceButtonGroup->setId(ui->fromFileRadioButton, DataOptions::fromFile);
-    ui->sourceButtonGroup->setId(ui->fromGoogleradioButton, DataOptions::fromGoogle);
-    ui->sourceButtonGroup->setId(ui->fromCanvasradioButton, DataOptions::fromCanvas);
-    ui->sourceButtonGroup->setId(ui->fromPrevWorkRadioButton, DataOptions::fromPrevWork);
+    ui->sourceButtonGroup->setId(ui->fromFileRadioButton, static_cast<int>(DataOptions::DataSource::fromFile));
+    ui->sourceButtonGroup->setId(ui->fromGoogleradioButton, static_cast<int>(DataOptions::DataSource::fromGoogle));
+    ui->sourceButtonGroup->setId(ui->fromCanvasradioButton, static_cast<int>(DataOptions::DataSource::fromCanvas));
+    ui->sourceButtonGroup->setId(ui->fromPrevWorkRadioButton, static_cast<int>(DataOptions::DataSource::fromPrevWork));
     ui->loadDataPushButton->adjustSize();
     QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
     QPainter painter(&whiteUploadIcon);
@@ -100,7 +101,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(QWidget *parent) :
 
 GetGrueprDataDialog::~GetGrueprDataDialog()
 {
-    surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
+    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
     delete surveyFile;
     delete canvas;
     delete google;
@@ -109,26 +110,26 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
 
 void GetGrueprDataDialog::loadData()
 {
-    surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
+    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
     ui->tableWidget->clearContents();
     ui->tableWidget->setRowCount(0);
     delete dataOptions;
 
     bool fileLoaded = false;
-    switch(ui->sourceButtonGroup->checkedId()) {
-    case DataOptions::fromFile:
+    switch(static_cast<DataOptions::DataSource>(ui->sourceButtonGroup->checkedId())) {
+    case DataOptions::DataSource::fromFile:
         dataOptions = new DataOptions;
         fileLoaded = getFromFile();
         break;
-    case DataOptions::fromGoogle:
+    case DataOptions::DataSource::fromGoogle:
         dataOptions = new DataOptions;
         fileLoaded = getFromGoogle();
         break;
-    case DataOptions::fromCanvas:
+    case DataOptions::DataSource::fromCanvas:
         dataOptions = new DataOptions;
         fileLoaded = getFromCanvas();
         break;
-    case DataOptions::fromPrevWork:
+    case DataOptions::DataSource::fromPrevWork:
         fileLoaded = getFromPrevWork();
         break;
     }
@@ -137,7 +138,7 @@ void GetGrueprDataDialog::loadData()
         return;
     }
 
-    if(source == DataOptions::fromPrevWork) {
+    if(source == DataOptions::DataSource::fromPrevWork) {
         ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
         ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->animateClick();
         return;
@@ -187,12 +188,12 @@ bool GetGrueprDataDialog::getFromFile()
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
-    if(!surveyFile->open(this, CsvFile::read, tr("Open Survey Data File"), dataFileLocation.canonicalPath(), tr("Survey Data"))) {
+    if(!surveyFile->open(this, CsvFile::Operation::read, tr("Open Survey Data File"), dataFileLocation.canonicalPath(), tr("Survey Data"))) {
         return false;
     }
 
     savedSettings.setValue("saveFileLocation", surveyFile->fileInfo().canonicalFilePath());
-    source = DataOptions::fromFile;
+    source = DataOptions::DataSource::fromFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
     QPixmap fileIcon(":/icons_new/file.png");
@@ -344,7 +345,7 @@ bool GetGrueprDataDialog::getFromGoogle()
         return false;
     }
 
-    source = DataOptions::fromGoogle;
+    source = DataOptions::DataSource::fromGoogle;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = googleFormName;
     QPixmap fileIcon(":/icons_new/google.png");
@@ -474,7 +475,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     // (Also ignore the text "question" which serves as the text notifier that several schedule questions are coming up).
     surveyFile->fieldsToBeIgnored = QStringList{R"(^(?!(submitted)|("?\d+: .*)).*$)", ".*" + CanvasHandler::SCHEDULEQUESTIONINTRO2.trimmed() + ".*"};
 
-    source = DataOptions::fromCanvas;
+    source = DataOptions::DataSource::fromCanvas;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = canvasSurveyName;
     QPixmap fileIcon(":/icons_new/canvas.png");
@@ -490,18 +491,35 @@ bool GetGrueprDataDialog::getFromPrevWork()
     if(!savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
         return false;
     }
+
+    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, 100, nullptr, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    loadingProgressDialog->setAutoReset(false);
+    connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
+    loadingProgressDialog->setAttribute(Qt::WA_DeleteOnClose, true);
+    loadingProgressDialog->setMinimumDuration(0);
+    loadingProgressDialog->setWindowModality(Qt::WindowModal);
+    loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
+
     QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
     savedFile.close();
+
+    loadingProgressDialog->setValue(1);
 
     QJsonObject content = doc.object();
     QJsonArray studentjsons = content["students"].toArray();
     students.reserve(studentjsons.size());
+    int i = 2;
+    loadingProgressDialog->setMaximum(studentjsons.size() + 3);
     for(const auto &studentjson : studentjsons) {
         students.emplaceBack(studentjson.toObject());
+        loadingProgressDialog->setValue(i++);
     }
     dataOptions = new DataOptions(content["dataoptions"].toObject());
-    source = DataOptions::fromPrevWork;
+    source = DataOptions::DataSource::fromPrevWork;
     dataOptions->dataSource = source;
+
+    loadingProgressDialog->setValue(loadingProgressDialog->maximum());
+    loadingProgressDialog->setLabelText("Opening gruepr window...");
 
     return true;
 }
@@ -511,13 +529,13 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     if(!surveyFile->readHeader()) {
         // header row could not be read as valid data
         grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
         return false;
     }
 
     if(surveyFile->headerValues.size() < 2) {
         grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
         return false;
     }
 
@@ -560,7 +578,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
                 ignore = true;
             }
             // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
-            if((ui->sourceButtonGroup->checkedId() == DataOptions::fromCanvas) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
+            if((ui->sourceButtonGroup->checkedId() == static_cast<int>(DataOptions::DataSource::fromCanvas)) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
                 surveyFile->fieldMeanings[i] = "**LMSID**";
                 ignore = true;
             }
@@ -744,7 +762,10 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
 bool GetGrueprDataDialog::readData()
 {
     auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
-                                                      this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+                                                      nullptr, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    loadingProgressDialog->setAutoReset(false);
+    connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
+    loadingProgressDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     loadingProgressDialog->setMinimumDuration(0);
     loadingProgressDialog->setWindowModality(Qt::WindowModal);
     loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
@@ -830,7 +851,7 @@ bool GetGrueprDataDialog::readData()
     if(!surveyFile->readDataRow()) {
         grueprGlobal::errorMessage(this, tr("Insufficient number of students."),
                                    tr("There are no survey responses in this file."));
-        surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
         return false;
     }
 
@@ -890,13 +911,13 @@ bool GetGrueprDataDialog::readData()
             float hoursSinceMidnight = 0;
             for(int timeBlock = 0; timeBlock < int(24 / dataOptions->scheduleResolution); timeBlock++) {
                 if(dataOptions->timeNames.size() > timeBlock) {
-                    if(grueprGlobal::timeStringToHours(dataOptions->timeNames[timeBlock]) == hoursSinceMidnight) {
+                    if(grueprGlobal::timeStringToHours(dataOptions->timeNames.at(timeBlock)) == hoursSinceMidnight) {
                         //this timename already exists in the list
                         hoursSinceMidnight += dataOptions->scheduleResolution;
                         continue;
                     }
                 }
-                time.setHMS(int(hoursSinceMidnight), 60 * (hoursSinceMidnight - int(hoursSinceMidnight)), 0);
+                time.setHMS(int(hoursSinceMidnight), int(60 * (hoursSinceMidnight - int(hoursSinceMidnight))), 0);
                 dataOptions->timeNames.insert(timeBlock, time.toString(timeFormat));
                 hoursSinceMidnight += dataOptions->scheduleResolution;
             }
@@ -928,7 +949,7 @@ bool GetGrueprDataDialog::readData()
         currStudent.duplicateRecord = false;
         for(int index = 0; index < numStudents; index++) {
             if(((currStudent.firstname + currStudent.lastname).compare(students[index].firstname + students[index].lastname, Qt::CaseInsensitive) == 0) ||
-                ((currStudent.email.compare(students[index].email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty())) {
+                ((currStudent.email.compare(students.at(index).email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty())) {
                 currStudent.duplicateRecord = true;
                 students[index].duplicateRecord = true;
             }
@@ -958,12 +979,12 @@ bool GetGrueprDataDialog::readData()
 
     // if there's a (separately-sourced) roster of students, compare against the list of submissions and add the info of any non-submitters now
     // for now, only works with Canvas, since using LMSID as the match
-    if(ui->sourceButtonGroup->checkedId() == DataOptions::fromCanvas) {
+    if(ui->sourceButtonGroup->checkedId() == static_cast<int>(DataOptions::DataSource::fromCanvas)) {
         int numNonSubmitters = 0;
         for(const auto &student : roster) {
             int index = 0;
             int LMSid = student.LMSID;
-            while((index < numStudents) && (LMSid != students[index].LMSID)) {
+            while((index < numStudents) && (LMSid != students.at(index).LMSID)) {
                 index++;
             }
 
@@ -1167,8 +1188,8 @@ bool GetGrueprDataDialog::readData()
     }
 
     loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + MAX_ATTRIBUTES);
-    surveyFile->close((source == DataOptions::fromGoogle) || (source == DataOptions::fromCanvas));
+    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
     loadingProgressDialog->setValue(loadingProgressDialog->maximum());
-    loadingProgressDialog->deleteLater();
+    loadingProgressDialog->setLabelText("Opening gruepr window...");
     return true;
 }

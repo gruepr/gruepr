@@ -82,7 +82,7 @@ class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
     Q_OBJECT
 
 public:
-    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr);
+    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {};
 
 signals:
     void error(const QString &errorString);

@@ -149,8 +149,9 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     for(const auto &item : attributeQuestionResponseCountsArray) {
         attributeQuestionResponseCounts[i].clear();
         QVariantMap attributeQuestionResponseCountsArraySubobject = item.toObject().toVariantMap();
-        for(const auto &key : attributeQuestionResponseCountsArraySubobject.keys()) {
-            attributeQuestionResponseCounts[i].emplace(key, attributeQuestionResponseCountsArraySubobject.value(key).toInt());
+        for(auto iter = attributeQuestionResponseCountsArraySubobject.cbegin(),
+                 end = attributeQuestionResponseCountsArraySubobject.cend(); iter != end; ++iter) {
+            attributeQuestionResponseCounts[i].emplace(iter.key(), iter.value().toInt());
         }
         i++;
     }

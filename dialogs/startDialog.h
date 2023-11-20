@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QLabel>
+#include <QProgressDialog>
 
 class StartDialog : public QDialog
 {
@@ -16,6 +17,9 @@ public:
     StartDialog(StartDialog&&) = delete;
     StartDialog& operator= (StartDialog&&) = delete;
 
+signals:
+    void closeDataDialogProgressBar();
+
 private:
     void openRegisterDialog();
     void openSurveyMaker();
@@ -25,6 +29,7 @@ private:
 
     QLabel *registerLabel = nullptr;
     QLabel *upgradeLabel = nullptr;
+    QProgressDialog *loadingBar = nullptr;
 
     QList<QAction *> helpActions;
 };

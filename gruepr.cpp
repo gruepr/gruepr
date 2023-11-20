@@ -93,7 +93,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataDisplayTabWidget->setFont(altFont);
 
     teamingOptions = nullptr;
-    if(this->dataOptions->dataSource == DataOptions::fromPrevWork) {
+    if(this->dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
         QFile savedFile(this->dataOptions->saveStateFileName, this);
         if(savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
             QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
@@ -292,7 +292,7 @@ void gruepr::editAStudent()
 
     // remove this student's current attribute responses from the counts in dataOptions
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
-        const QString &currentStudentResponse = students[indexBeingEdited].attributeResponse[attribute];
+        const QString &currentStudentResponse = students.at(indexBeingEdited).attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
@@ -315,14 +315,14 @@ void gruepr::editAStudent()
     int reply = win->exec();
     if(reply == QDialog::Accepted) {
         students[indexBeingEdited].createTooltip(*dataOptions);
-        students[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(students[indexBeingEdited].URMResponse);
+        students[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(students.at(indexBeingEdited).URMResponse);
 
         rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     }
 
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
-        const QString &currentStudentResponse = students[indexBeingEdited].attributeResponse[attribute];
+        const QString &currentStudentResponse = students.at(indexBeingEdited).attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
@@ -346,16 +346,16 @@ void gruepr::editAStudent()
 
 void gruepr::removeAStudent(const QString &name, bool delayVisualUpdate)
 {
-    // use the name to find the index
-    int index = 0;
     if(!name.isEmpty()) {
+        // use the name to find the index
+        int index = 0;
         // don't have index, need to search and locate based on name
         while((index < dataOptions->numStudentsInSystem) &&
-              (name.compare(students[index].firstname + " " + students[index].lastname), Qt::CaseInsensitive) != 0) {
+               (name.compare((students.at(index).firstname + " " + students.at(index).lastname), Qt::CaseInsensitive) != 0)) {
             index++;
         }
+        removeAStudent(index, delayVisualUpdate);
     }
-    removeAStudent(index, delayVisualUpdate);
 }
 
 
@@ -363,7 +363,7 @@ void gruepr::removeAStudent(int index, bool delayVisualUpdate)
 {
     if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
         // remove this student from all other students who might have them as required/prevented/requested
-        const int IDBeingRemoved = students[index].ID;
+        const int IDBeingRemoved = students.at(index).ID;
         for(int otherIndex = 0; otherIndex < dataOptions->numStudentsInSystem; otherIndex++) {
             students[otherIndex].requiredWith[IDBeingRemoved] = false;
             students[otherIndex].preventedWith[IDBeingRemoved] = false;
@@ -373,7 +373,7 @@ void gruepr::removeAStudent(int index, bool delayVisualUpdate)
 
     // update in dataOptions and then the attribute tab the count of each attribute response
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
-        const QString &currentStudentResponse = students[index].attributeResponse[attribute];
+        const QString &currentStudentResponse = students.at(index).attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
@@ -456,8 +456,8 @@ void gruepr::compareStudentsToRoster()
 {
     // Open the roster file
     QSettings savedSettings;
-    CsvFile rosterFile;
-    if(!rosterFile.open(this, CsvFile::read, tr("Open Student Roster File"), savedSettings.value("saveFileLocation").toString(), tr("Roster File"))) {
+    CsvFile rosterFile(CsvFile::Delimiter::comma, this);
+    if(!rosterFile.open(this, CsvFile::Operation::read, tr("Open Student Roster File"), savedSettings.value("saveFileLocation").toString(), tr("Roster File"))) {
         return;
     }
 
@@ -469,7 +469,7 @@ void gruepr::compareStudentsToRoster()
         QStringList namesNotFound;
         namesNotFound.reserve(dataOptions->numStudentsInSystem);
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
-            namesNotFound << students[index].firstname + " " + students[index].lastname;
+            namesNotFound << students.at(index).firstname + " " + students.at(index).lastname;
         }
 
         // create a place to save info for names with mismatched emails
@@ -487,7 +487,7 @@ void gruepr::compareStudentsToRoster()
                 // Exact match found
                 namesNotFound.removeAll(students[index].firstname + " " + students[index].lastname);
                 if(!emails.isEmpty()) {
-                    if(students[index].email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0) {
+                    if(students.at(index).email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0) {
                         // Email in survey doesn't match roster
                         studentsWithDiffEmail << index;
                     }
@@ -501,17 +501,19 @@ void gruepr::compareStudentsToRoster()
                     if(choiceWindow->addStudent) {   // add as a new student
                         dataHasChanged = true;
 
-                        auto &newStudent = students.last();
+                        StudentRecord newStudent;
                         newStudent.surveyTimestamp = QDateTime();
                         newStudent.ID = students.size();
                         newStudent.firstname = name.split(" ").first();
                         newStudent.lastname = name.split(" ").mid(1).join(" ");
-                        newStudent.email = emails.isEmpty()? "" : emails.at(names.indexOf(name));
+                        if(!emails.isEmpty()) {
+                            newStudent.email = emails.at(names.indexOf(name));
+                        }
                         newStudent.URM = teamingOptions->URMResponsesConsideredUR.contains(newStudent.URMResponse);
-                        newStudent.ambiguousSchedule = true;
                         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
                             newStudent.attributeVals[attribute] << -1;
                         }
+                        newStudent.ambiguousSchedule = true;
                         newStudent.createTooltip(*dataOptions);
 
                         students << newStudent;
@@ -549,8 +551,8 @@ void gruepr::compareStudentsToRoster()
         if(!emails.isEmpty()) {
             // Now handle the times where the roster and survey have different email addresses
             for(auto &studentNum : studentsWithDiffEmail) {
-                QString surveyName = students[studentNum].firstname + " " + students[studentNum].lastname;
-                QString surveyEmail = students[studentNum].email;
+                const QString surveyName = students.at(studentNum).firstname + " " + students.at(studentNum).lastname;
+                const QString surveyEmail = students.at(studentNum).email;
                 if(keepAsking) {
                     auto *whichEmailWindow = new QMessageBox(QMessageBox::Question, tr("Email addresses do not match"),
                                                              tr("This student on the roster:") +
@@ -614,11 +616,11 @@ void gruepr::compareStudentsToRoster()
                 keepOrDeleteWindow->setCheckBox(applyToAll);
                 connect(applyToAll, &QCheckBox::clicked, keepOrDeleteWindow, [&keepAsking] (bool checked) {keepAsking = !checked;});
                 keepOrDeleteWindow->button(QMessageBox::Ok)->setText(tr("Keep ") + name);
-                connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::accept);
+                connect(keepOrDeleteWindow->button(QMessageBox::Ok), &QPushButton::clicked, keepOrDeleteWindow, &QMessageBox::accept);
                 keepOrDeleteWindow->button(QMessageBox::Cancel)->setText(tr("Remove ") + name);
-                connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QDialog::reject);
+                connect(keepOrDeleteWindow->button(QMessageBox::Cancel), &QPushButton::clicked, keepOrDeleteWindow, &QMessageBox::reject);
 
-                if(keepOrDeleteWindow->exec() == QDialog::Rejected) {
+                if(keepOrDeleteWindow->exec() == QMessageBox::Rejected) {
                     dataHasChanged = true;
                     makeTheChange = true;
                     removeAStudent(name, true);
@@ -637,6 +639,7 @@ void gruepr::compareStudentsToRoster()
 
         if(dataHasChanged) {
             rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+            saveState();
         }
     }
     rosterFile.close();
@@ -775,7 +778,7 @@ void gruepr::selectURMResponses()
         teamingOptions->URMResponsesConsideredUR.removeDuplicates();
         //(re)apply these values to the student database
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
-            students[index].URM = teamingOptions->URMResponsesConsideredUR.contains(students[index].URMResponse);
+            students[index].URM = teamingOptions->URMResponsesConsideredUR.contains(students.at(index).URMResponse);
         }
     }
 
@@ -807,8 +810,10 @@ void gruepr::responsesRulesButton_clicked()
 
 void gruepr::makeTeammatesRules()
 {
+    const int numTabs = ui->dataDisplayTabWidget->count();
     QStringList teamTabNames;
-    for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+    teamTabNames.reserve(numTabs);
+    for(int tab = 1; tab < numTabs; tab++) {
         teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
     }
 
@@ -1310,7 +1315,7 @@ void gruepr::loadDefaultSettings()
         teamingOptions->desireHomogeneous[attribNum] = savedSettings.value("desireHomogeneous", false).toBool();
         teamingOptions->attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
         // Shouldn't re-load the incompatible and required responses if working with new survey data
-        if(dataOptions->dataSource == DataOptions::fromPrevWork) {
+        if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
             int numIncompats = savedSettings.beginReadArray("incompatibleResponses");
             for(int incompResp = 0; incompResp < numIncompats; incompResp++) {
                 savedSettings.setArrayIndex(incompResp);
@@ -1342,13 +1347,13 @@ void gruepr::loadUI()
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
 
     ui->dataSourceLabel->setText(dataOptions->dataSourceName);
-    if(dataOptions->dataSource == DataOptions::fromGoogle) {
+    if(dataOptions->dataSource == DataOptions::DataSource::fromGoogle) {
         ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/google.png"));
     }
-    else if(dataOptions->dataSource == DataOptions::fromCanvas) {
+    else if(dataOptions->dataSource == DataOptions::DataSource::fromCanvas) {
         ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/canvas.png"));
     }
-    else if(dataOptions->dataSource == DataOptions::fromPrevWork) {
+    else if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
         ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/icon.svg"));
     }
 
@@ -1463,19 +1468,19 @@ void gruepr::loadUI()
                 attributeSelectorButtons.last()->setStyleSheet(stylesheet);
                 ui->attributeSelectorGrid->addWidget(attributeSelectorButtons.last(), attribute/rowSize, attribute%rowSize);
                 connect(attributeSelectorButtons.last(), &QPushButton::clicked, this, [this, attribute]
-                                                                                        {ui->attributesStackedWidget->setCurrentIndex(attribute);
-                                                                                          for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
-                                                                                            if( (attribute == attrib) ||
-                                                                                                (attributeSelectorButtons[attrib]->styleSheet()
-                                                                                                                           .contains("background-color: " OPENWATERHEX ";")) ) {
-                                                                                               attributeSelectorButtons[attrib]->setStyleSheet(
-                                                                                                                         attributeSelectorButtons[attrib]->styleSheet()
-                                                                                                                         .replace("white", "black")
-                                                                                                                         .replace(OPENWATERHEX, "white")
-                                                                                                                         .replace("black", OPENWATERHEX));
-                                                                                            }
-                                                                                          }
-                                                                                         });
+                                                        {ui->attributesStackedWidget->setCurrentIndex(attribute);
+                                                          for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
+                                                            if( (attribute == attrib) ||
+                                                                (attributeSelectorButtons.at(attrib)->styleSheet()
+                                                                                           .contains("background-color: " OPENWATERHEX ";")) ) {
+                                                               attributeSelectorButtons[attrib]->setStyleSheet(
+                                                                                         attributeSelectorButtons.at(attrib)->styleSheet()
+                                                                                         .replace("white", "black")
+                                                                                         .replace(OPENWATERHEX, "white")
+                                                                                         .replace("black", OPENWATERHEX));
+                                                            }
+                                                          }
+                                                         });
                 ui->attributeSelectorGrid->setColumnStretch(rowSize, 1);
             }
 
@@ -1531,8 +1536,10 @@ void gruepr::loadUI()
                                                        "Would you like to load those preferences as required teammates?"),
                                                     tr("Yes"), tr("No"));
         if(okLoadThem) {
+            const int numTabs = ui->dataDisplayTabWidget->count();
             QStringList teamTabNames;
-            for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+            teamTabNames.reserve(numTabs);
+            for(int tab = 1; tab < numTabs; tab++) {
                 teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
             }
             auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, true);
@@ -1549,8 +1556,10 @@ void gruepr::loadUI()
                                                        "Would you like to load those preferences as prevented teammates?"),
                                                     tr("Yes"), tr("No"));
         if(okLoadThem) {
+            const int numTabs = ui->dataDisplayTabWidget->count();
             QStringList teamTabNames;
-            for(int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+            teamTabNames.reserve(numTabs);
+            for(int tab = 1; tab < numTabs; tab++) {
                 teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
             }
             auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, false, true);

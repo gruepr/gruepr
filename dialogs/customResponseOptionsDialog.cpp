@@ -79,7 +79,7 @@ void customResponseOptionsDialog::refreshDisplay()
     int i = 0;
     for(const auto &optionLineEdit : optionLineEdits) {
         if(i < numOptions) {
-            QString currText = optionLineEdits[i]->text();
+            QString currText = optionLineEdits.at(i)->text();
             int currPos = 0;
             if(SurveyMakerWizard::noInvalidPunctuation.validate(currText, currPos) != QValidator::Acceptable) {
                 SurveyMakerWizard::invalidExpression(optionLineEdits[i], currText, this);

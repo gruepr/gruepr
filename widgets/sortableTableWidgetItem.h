@@ -11,7 +11,13 @@ class SortableTableWidgetItem : public QTableWidgetItem
 {
 public:
     enum class SortType{datetime, alphanumeric};
-    SortableTableWidgetItem(const SortType sortType, const QString &txt = "");
+    explicit SortableTableWidgetItem(const SortType sortType, const QString &txt = "");
+    ~SortableTableWidgetItem() = default;
+    SortableTableWidgetItem(const SortableTableWidgetItem&) = delete;
+    SortableTableWidgetItem operator= (const SortableTableWidgetItem&) = delete;
+    SortableTableWidgetItem(SortableTableWidgetItem&&) = delete;
+    SortableTableWidgetItem& operator= (SortableTableWidgetItem&&) = delete;
+
     bool operator <(const QTableWidgetItem &other) const override;
 
 private:

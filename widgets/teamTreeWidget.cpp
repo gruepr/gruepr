@@ -580,7 +580,7 @@ void TeamTreeWidget::leaveEvent(QEvent *event)
 
 TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, float teamScore)
 {
-    if(type == team && columns > 0) {
+    if(type == TreeItemType::team && columns > 0) {
         numColumns = columns;
         for(int col = 0; col < numColumns; col++) {
             setForeground(col, Qt::black);

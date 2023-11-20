@@ -111,6 +111,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         }
         databox << new QComboBox(this);
         databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
+        databox.last()->setFocusPolicy(Qt::StrongFocus);
         databox.last()->setStyleSheet(COMBOBOXSTYLE);
         databox.last()->addItems(genderOptions);
         databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -125,6 +126,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Racial/ethnic/cultural identity"));
         databox << new QComboBox(this);
         databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
+        databox.last()->setFocusPolicy(Qt::StrongFocus);
         databox.last()->setStyleSheet(COMBOBOXSTYLE);
         databox.last()->addItems(dataOptions->URMResponses);
         databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -140,6 +142,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Section"));
         databox << new QComboBox(this);
         databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
+        databox.last()->setFocusPolicy(Qt::StrongFocus);
         databox.last()->setStyleSheet(COMBOBOXSTYLE);
         databox.last()->addItems(dataOptions->sectionNames);
         databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -201,10 +204,10 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                         {attributeStack->setCurrentIndex(attribute);
                             for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
                                 if( (attribute == attrib) ||
-                                    (attributeSelectorButtons[attrib]->styleSheet()
+                                    (attributeSelectorButtons.at(attrib)->styleSheet()
                                          .contains("background-color: " OPENWATERHEX ";")) ) {
                                     attributeSelectorButtons[attrib]->setStyleSheet(
-                                        attributeSelectorButtons[attrib]->styleSheet()
+                                        attributeSelectorButtons.at(attrib)->styleSheet()
                                             .replace("white", "black")
                                             .replace(OPENWATERHEX, "white")
                                             .replace("black", OPENWATERHEX));
@@ -270,6 +273,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeQuestionText->setText((dataOptions->attributeQuestionText.at(attribute)));
                 attributeCombobox << new QComboBox(this);
                 attributeCombobox.last()->installEventFilter(new MouseWheelBlocker(attributeCombobox.last()));
+                attributeCombobox.last()->setFocusPolicy(Qt::StrongFocus);
                 attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
                 attributeCombobox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
                 attributeCombobox.last()->setEditable(false);
@@ -291,6 +295,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeQuestionText->setText(tr("Timezone"));
                 attributeCombobox << new QComboBox(this);
                 attributeCombobox.last()->installEventFilter(new MouseWheelBlocker(attributeCombobox.last()));
+                attributeCombobox.last()->setFocusPolicy(Qt::StrongFocus);
                 attributeCombobox.last()->setStyleSheet(COMBOBOXSTYLE);
                 attributeCombobox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
                 attributeCombobox.last()->setEditable(false);
@@ -443,7 +448,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.email = datatext[textfield++]->text();
     }
     if(dataOptions->genderIncluded) {
-        student.gender = static_cast<Gender>(databox[boxfield++]->currentIndex());
+        student.gender = static_cast<Gender>(databox.at(boxfield++)->currentIndex());
     }
     if(dataOptions->URMIncluded) {
         student.URMResponse = databox[boxfield++]->currentText();
@@ -458,9 +463,9 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.attributeVals[attribute].clear();
         if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
             QStringList attributeResponse;
-            for(int itemNum = 0, totNumItems = attributeMultibox[multiboxNum]->layout()->count(); itemNum < totNumItems; itemNum++) {
+            for(int itemNum = 0, totNumItems = attributeMultibox.at(multiboxNum)->layout()->count(); itemNum < totNumItems; itemNum++) {
                 // loop through all items in the attributeMultibox: make sure it's a checkbox, then add the response if it's checked
-                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox[multiboxNum]->layout()->itemAt(itemNum)->widget());
+                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox.at(multiboxNum)->layout()->itemAt(itemNum)->widget());
                 if((optionCheckBox != nullptr) && (optionCheckBox->isChecked())) {
                     student.attributeVals[attribute] << optionCheckBox->property("responseValue").toInt();
                     attributeResponse << optionCheckBox->text();
@@ -475,7 +480,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
             multiboxNum++;
         }
         else {
-            if(attributeCombobox[comboboxNum]->currentIndex() == 0) {
+            if(attributeCombobox.at(comboboxNum)->currentIndex() == 0) {
                 student.attributeVals[attribute] << -1;
                 student.attributeResponse[attribute] = "";
                 if(type == DataOptions::AttributeType::timezone) {
@@ -483,9 +488,9 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
                 }
             }
             else {
-                student.attributeResponse[attribute] = attributeCombobox[comboboxNum]->currentText();
+                student.attributeResponse[attribute] = attributeCombobox.at(comboboxNum)->currentText();
                 if(type == DataOptions::AttributeType::timezone) {
-                    student.timezone = attributeCombobox[comboboxNum]->currentData().toFloat();
+                    student.timezone = attributeCombobox.at(comboboxNum)->currentData().toFloat();
                     student.attributeVals[attribute] << int(student.timezone);
                 }
                 else {

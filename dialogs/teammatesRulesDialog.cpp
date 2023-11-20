@@ -302,7 +302,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
                 // find studentB from their ID
                 StudentRecord *studentB = nullptr;
                 int index = 0;
-                while((students[index].ID != studentBID) && (index < numStudents)) {
+                while((students.at(index).ID != studentBID) && (index < numStudents)) {
                     index++;
                 }
                 if(index < numStudents) {
@@ -423,7 +423,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         for(int ID1 = 0; ID1 < IDs.size(); ID1++) {
             // find the student with ID1
             int index = 0;
-            while((students[index].ID != IDs[ID1]) && (index < numStudents)) {
+            while((students.at(index).ID != IDs[ID1]) && (index < numStudents)) {
                 index++;
             }
             if(index < numStudents) {
@@ -437,7 +437,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
                 if(IDs[ID1] != IDs[ID2]) {
                     // find the student with ID2
                     index = 0;
-                    while((students[index].ID != IDs[ID2]) && (index < numStudents)) {
+                    while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
                         index++;
                     }
                     if(index < numStudents) {
@@ -465,7 +465,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         // find the student with this ID
         StudentRecord *baseStudent = nullptr;
         int index = 0;
-        while((students[index].ID != baseStudentID) && (index < numStudents)) {
+        while((students.at(index).ID != baseStudentID) && (index < numStudents)) {
             index++;
         }
         if(index < numStudents) {
@@ -565,7 +565,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
     }
 
     CsvFile csvFile;
-    if(!csvFile.open(this, CsvFile::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File"))) {
+    if(!csvFile.open(this, CsvFile::Operation::read, tr("Open CSV File of Teammates"), "", tr("Comma-Separated Value File"))) {
         return false;
     }
 
@@ -655,7 +655,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
         // find the baseStudent
         int index = 0;
         StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((students[index].ID != IDs[0]) && (index < numStudents)) {
+        while((students.at(index).ID != IDs[0]) && (index < numStudents)) {
             index++;
         }
         if(index < numStudents) {
@@ -670,7 +670,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
             if(IDs[0] != IDs[ID2]) {
                 // find the student with ID2
                 index = 0;
-                while((students[index].ID != IDs[ID2]) && (index < numStudents)) {
+                while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
                     index++;
                 }
                 if(index < numStudents) {
@@ -741,7 +741,7 @@ bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
                 // find the baseStudent
                 int index = 0;
                 StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-                while((students[index].ID != IDs[0]) && (index < numStudents)) {
+                while((students.at(index).ID != IDs[0]) && (index < numStudents)) {
                     index++;
                 }
                 if(index < numStudents) {
@@ -756,7 +756,7 @@ bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
                     if(IDs[0] != IDs[ID2]) {
                         // find the student with ID2
                         index = 0;
-                        while((students[index].ID != IDs[ID2]) && (index < numStudents)) {
+                        while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
                             index++;
                         }
                         if(index < numStudents) {
@@ -790,8 +790,8 @@ bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
 
 bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
 {
-    CsvFile spreadsheetFile(CsvFile::tab);
-    if(!spreadsheetFile.open(this, CsvFile::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File"))) {
+    CsvFile spreadsheetFile(CsvFile::Delimiter::tab);
+    if(!spreadsheetFile.open(this, CsvFile::Operation::read, tr("Open Spreadsheet File of Previous Teammates"), "", tr("Spreadsheet File"))) {
         return false;
     }
 
@@ -870,7 +870,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
         for(int ID1 = 0; ID1 < IDs.size(); ID1++) {
             // find the student with ID1
             int index = 0;
-            while((students[index].ID != IDs[ID1]) && (index < numStudents)) {
+            while((students.at(index).ID != IDs[ID1]) && (index < numStudents)) {
                 index++;
             }
             if(index < numStudents) {
@@ -884,7 +884,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
                 if(IDs[ID1] != IDs[ID2]) {
                     // find the student with ID2
                     index = 0;
-                    while((students[index].ID != IDs[ID2]) && (index < numStudents)) {
+                    while((students.at(index).ID != IDs[ID2]) && (index < numStudents)) {
                         index++;
                     }
                     if(index < numStudents) {

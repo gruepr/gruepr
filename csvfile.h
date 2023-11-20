@@ -20,18 +20,18 @@ class CsvFile : public QObject
     Q_OBJECT
 
 public:
-    enum Delimiter {comma, tab};
-    enum Source {fileOnly, fileOrOnline};
+    enum class Delimiter {comma, tab};
+    enum class Source {fileOnly, fileOrOnline};
 
-    CsvFile(Delimiter dlmtr = comma, QObject *parent = nullptr);
+    CsvFile(Delimiter dlmtr = Delimiter::comma, QObject *parent = nullptr);
     ~CsvFile() override;
     CsvFile(const CsvFile&) = delete;
     CsvFile operator= (const CsvFile&) = delete;
     CsvFile(CsvFile&&) = delete;
     CsvFile& operator= (CsvFile&&) = delete;
 
-    enum Operation {read, write};
-    bool open(QWidget *parent = nullptr, Operation operation = read, const QString &caption = tr("Open csv File"),
+    enum class Operation {read, write};
+    bool open(QWidget *parent = nullptr, Operation operation = Operation::read, const QString &caption = tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     bool openExistingFile(const QString &filepath);
     QFileInfo fileInfo();

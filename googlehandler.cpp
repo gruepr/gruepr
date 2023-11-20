@@ -488,7 +488,8 @@ void GoogleHandler::authenticate() {
 
     connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
                                                                            emit granted();});
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](){authenticated = false;
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](const QString &error){qDebug() << error;
+                                                                                    authenticated = false;
                                                                                     google->setRefreshToken("");
                                                                                     refreshTokenExists = false;
                                                                                     emit denied();});
@@ -533,7 +534,6 @@ void GoogleHandler::actionComplete(QDialog *busyDialog) {
 }
 
 
-grueprOAuthHttpServerReplyHandler::grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent) : QOAuthHttpServerReplyHandler(port, parent) {}
 
 void grueprOAuthHttpServerReplyHandler::networkReplyFinished(QNetworkReply *reply)
 {

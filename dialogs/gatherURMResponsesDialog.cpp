@@ -47,11 +47,11 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
         connect(responses.last(), &QPushButton::clicked, enableValue.last(), &QCheckBox::toggle);
         connect(enableValue.last(), &QCheckBox::stateChanged, this, [this, response](int state){
                                                                                  if(state == Qt::Checked) {
-                                                                                    URMResponsesConsideredUR << responses[response]->text();
+                                                                                    URMResponsesConsideredUR << responses.at(response)->text();
                                                                                     responses.last()->setStyleSheet("Text-align:left;font-weight: bold;");
                                                                                  }
                                                                                  else {
-                                                                                    URMResponsesConsideredUR.removeAll(responses[response]->text());
+                                                                                    URMResponsesConsideredUR.removeAll(responses.at(response)->text());
                                                                                     responses.last()->setStyleSheet("Text-align:left;");
                                                                                  }
                                                                                  });

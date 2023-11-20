@@ -31,6 +31,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
     DataOptions::AttributeType attributeType = dataOptions.attributeType[attribute];
     attributeValues.clear();
+    attributeValues.reserve(dataOptions.attributeVals[attribute].size());
     auto valueIter = dataOptions.attributeVals[attribute].cbegin();
     for(const auto &response : dataOptions.attributeQuestionResponses[attribute]) {
         attributeValues.append({*valueIter, response});
@@ -159,7 +160,7 @@ void AttributeRulesDialog::Ok()
             response1Value++;
         }
         // get the checkboxes in this set
-        const auto &checkBoxList = incompCheckboxList[response1Index];
+        const auto &checkBoxList = incompCheckboxList.at(response1Index);
 
         // look at each checkbox in the set
         for(int response2Index = 0; response2Index < numPossibleValues; response2Index++) {
@@ -181,7 +182,7 @@ void AttributeRulesDialog::Ok()
         while(attributeValues.at(responseIndex).value != responseValue) {
             responseValue++;
         }
-        if(reqCheckboxes[responseIndex]->isChecked() && !requiredValues.contains(responseValue)) {
+        if(reqCheckboxes.at(responseIndex)->isChecked() && !requiredValues.contains(responseValue)) {
             requiredValues << responseValue;
         }
     }

@@ -25,6 +25,8 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     numTeamsBox->setStyleSheet(SPINBOXSTYLE);
     numTeamsBox->setRange(1, numStudents);
     numTeamsBox->setValue((numStudents%idealTeamsize == 0)? ((numStudents/idealTeamsize)-1) : (numStudents/idealTeamsize));
+    numTeamsBox->installEventFilter(new MouseWheelBlocker(numTeamsBox));
+    numTeamsBox->setFocusPolicy(Qt::StrongFocus);
     connect(numTeamsBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::refreshDisplay);
     numTeamsLayout->addWidget(numTeamsBox);
     theGrid->addLayout(numTeamsLayout, 0, 1, 1, 1);
@@ -44,6 +46,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
         teamsizeBox.last()->setRange(1, numStudents);
         teamsizeBox.last()->setValue(idealTeamsize);
         teamsizeBox.last()->installEventFilter(new MouseWheelBlocker(teamsizeBox.last()));
+        teamsizeBox.last()->setFocusPolicy(Qt::StrongFocus);
         connect(teamsizeBox.last(), QOverload<int>::of(&QSpinBox::valueChanged), this, &customTeamsizesDialog::teamsizeChanged);
         theTable->setCellWidget(i, 1, teamsizeBox.last());
         rowHeight = std::max(rowHeight, std::max(label->height(), teamsizeBox.last()->height()));
@@ -74,7 +77,7 @@ void customTeamsizesDialog::refreshDisplay()
     int studentsOnATeamCount = 0;
     for(int i = 0; i < numStudents; i++) {
         if(i < numTeams) {
-            studentsOnATeamCount += teamsizeBox[i]->value();
+            studentsOnATeamCount += teamsizeBox.at(i)->value();
             theTable->showRow(i);
         }
         else {
@@ -98,7 +101,7 @@ void customTeamsizesDialog::refreshDisplay()
 void customTeamsizesDialog::teamsizeChanged(int /*unused*/)
 {
     for(int i = 0; i < numStudents; i++) {
-        teamsizes[i] = teamsizeBox[i]->value();
+        teamsizes[i] = teamsizeBox.at(i)->value();
     }
 
     refreshDisplay();

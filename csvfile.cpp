@@ -10,7 +10,7 @@
 
 CsvFile::CsvFile(Delimiter dlmtr, QObject *parent) : QObject(parent)
 {
-    if(dlmtr == tab) {
+    if(dlmtr == Delimiter::tab) {
         delimiter = '\t';
     }
 }
@@ -30,7 +30,7 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
     file = nullptr;
     stream = nullptr;
 
-    if(operation == read) {
+    if(operation == Operation::read) {
         QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
         if (!fileName.isEmpty()) {
             file = new QFile(fileName);
@@ -236,7 +236,6 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
     }
 
     window = new listTableDialog(tr("Select column definitions"), false, false, parent);
-    //Set up window with a grid layout
     window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);
 
     auto *explanation = new QLabel(window);
@@ -261,9 +260,13 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
 
     // a label and combobox for each column
     window->theTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; "
-                                                                               "border: 1px solid black; padding: 5px; "
-                                                                               "font-family: 'DM Sans'; font-size: 12pt;}");
+    window->theTable->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; padding: 5px; "
+                                                                              "border-top: none; border-bottom: none; border-left: none; "
+                                                                              "border-right: 1px solid white; "
+                                                                              "font-family: 'DM Sans'; font-size: 12pt;}");
+    window->theTable->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}"
+                                    "QTableView::item{border-top: none; border-bottom: none; border-left: none; border-right: 1px solid darkGray; padding: 3px;}" +
+                                    QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
     window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++) {

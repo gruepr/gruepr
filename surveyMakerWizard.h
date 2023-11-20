@@ -48,7 +48,11 @@ public:
                                                        locale.toString(SurveyMakerWizard::sundayMidnight.addDays(5), "dddd"),
                                                        locale.toString(SurveyMakerWizard::sundayMidnight.addDays(6), "dddd")};
 
-    static QStringList timezoneNames;
+    static inline const QStringList timezoneNames = [](){QStringList names = QString(TIMEZONENAMES).split(";");
+                                                         for(auto &name : names){
+                                                             name = name.remove('"').trimmed();
+                                                         }
+                                                         return names;}();
 
     //RegEx for punctuation not allowed within a URL, and a function to handle problem cases
     static inline const QRegularExpressionValidator noInvalidPunctuation = QRegularExpressionValidator(QRegularExpression("[^,&<>/]*"));
@@ -222,6 +226,7 @@ public:
     static inline const QList<QPair<QString, QString>> timeFormats = [](){QStringList formats = QString(TIMEFORMATS).split(';');
                                                                           QStringList examples = QString(TIMEFORMATEXAMPLES).split(';');
                                                                           QList<QPair<QString, QString>> x;
+                                                                          x.reserve(formats.size());
                                                                           for(int i = 0; i < formats.size(); i++) {
                                                                               x << qMakePair(formats.at(i), examples.at(i));
                                                                           }
@@ -341,7 +346,7 @@ class PreviewAndExportPage : public SurveyMakerPage
 
 public:
     PreviewAndExportPage(QWidget *parent = nullptr);
-    ~PreviewAndExportPage();
+    ~PreviewAndExportPage() override;
 
     void initializePage() override;
     void cleanupPage() override;
