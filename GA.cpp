@@ -96,7 +96,7 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
 
     //randomly choose two team boundaries in the genome from which to cut an allele
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
-    unsigned int startTeam = randTeam(pRNG);
+    const unsigned int startTeam = randTeam(pRNG);
     unsigned int endTeam;
     do {
         endTeam = randTeam(pRNG);

@@ -11,7 +11,7 @@ class StartDialog : public QDialog
 
 public:
     StartDialog(QWidget *parent = nullptr);
-    ~StartDialog() = default;
+    ~StartDialog() override = default;
     StartDialog(const StartDialog&) = delete;
     StartDialog operator= (const StartDialog&) = delete;
     StartDialog(StartDialog&&) = delete;

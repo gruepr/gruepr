@@ -118,7 +118,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     responsesComboBox->addItem(tr("Choose an option..."), QStringList({""}));
     responsesComboBox->setItemData(0, "", Qt::ToolTipRole);
     responsesComboBox->insertSeparator(1);
-    QStringList responseOptions = QString(RESPONSE_OPTIONS).split(';');
+    const QStringList responseOptions = QString(RESPONSE_OPTIONS).split(';');
     numOfResponseOptions = responseOptions.size();
     int item = 0;
     for(const auto &responseOption : responseOptions) {
@@ -194,7 +194,7 @@ void SurveyMakerMultichoiceQuestion::multiChange(const bool newMulti)
 {
     emit multiChanged(newMulti);
 
-    QStringList newResponses = responsesComboBox->currentData().toStringList();
+    const QStringList newResponses = responsesComboBox->currentData().toStringList();
     emit responsesChanged(newResponses);
 
     updatePreviewWidget();
@@ -206,7 +206,7 @@ void SurveyMakerMultichoiceQuestion::setResponses(const QStringList &newResponse
         responsesComboBox->setCurrentIndex(0);
     }
     else {
-        QString newResponsesAsString = newResponses.join(" / ");
+        const QString newResponsesAsString = newResponses.join(" / ");
         if(responsesComboBox->findText(newResponsesAsString, Qt::MatchFixedString) != -1) {
             responsesComboBox->setCurrentText(newResponsesAsString);
         }
@@ -250,9 +250,9 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
         auto *window = new customResponseOptionsDialog(currentCustomOptions, this);
 
         // If user clicks OK, use these options
-        int reply = window->exec();
+        const int reply = window->exec();
         if(reply == QDialog::Accepted) {
-            bool currentValue = responsesComboBox->blockSignals(true);
+            const bool currentValue = responsesComboBox->blockSignals(true);
             currentCustomOptions = window->options;
             responsesComboBox->setItemText(numOfResponseOptions + 1, currentCustomOptions.join(" / "));
             responsesComboBox->setItemData(numOfResponseOptions + 1, currentCustomOptions);
@@ -264,7 +264,7 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
             responsesComboBox->blockSignals(currentValue);
         }
         else {
-            bool currentValue = responsesComboBox->blockSignals(true);
+            const bool currentValue = responsesComboBox->blockSignals(true);
             responsesComboBox->setCurrentIndex(prevIndex);
             responsesComboBox->blockSignals(currentValue);
         }
@@ -282,7 +282,7 @@ void SurveyMakerMultichoiceQuestion::responsesComboBoxActivated(int index)
         responsesComboBox->addItem(tr("Custom options..."));
     }
 
-    QStringList newResponses = responsesComboBox->currentData().toStringList();
+    const QStringList newResponses = responsesComboBox->currentData().toStringList();
     emit responsesChanged(newResponses);
 
     updatePreviewWidget();
@@ -315,7 +315,7 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
             topLabel->setStyleSheet(LABELSTYLE);
             topLabel->setWordWrap(true);
             previewLayout->addWidget(topLabel);
-            QStringList responses = responsesComboBox->currentData().toStringList();
+            const QStringList responses = responsesComboBox->currentData().toStringList();
             QList<QCheckBox*> re;
             re.reserve(responses.size());
             for(const auto &response : responses) {
@@ -330,7 +330,7 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
             topLabel->setStyleSheet(LABELSTYLE);
             topLabel->setWordWrap(true);
             previewLayout->addWidget(topLabel);
-            QStringList responses = responsesComboBox->currentData().toStringList();
+            const QStringList responses = responsesComboBox->currentData().toStringList();
             QList<QRadioButton*> re;
             re.reserve(responses.size());
             for(const auto &response : responses) {

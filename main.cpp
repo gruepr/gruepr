@@ -75,15 +75,15 @@
 #include "gruepr_globals.h"
 #include "dialogs/startDialog.h"
 #include <QApplication>
-#include <QScreen>
 #include <QFontDatabase>
+#include <QScreen>
 #include <QSplashScreen>
 
 
 int main(int argc, char *argv[])
 {
     // Set up application
-    QApplication a(argc, argv);
+    const QApplication a(argc, argv);
     QApplication::setOrganizationName("gruepr");
     QApplication::setApplicationName("gruepr");
     QApplication::setApplicationVersion(GRUEPR_VERSION_NUMBER);
@@ -92,12 +92,12 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont(":/fonts/DMSans-Regular.ttf");
 
     // Get the screen size
-    QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
-    int screenWidth = screenGeometry.width();
-    int screenHeight = screenGeometry.height();
+    const QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
+    const int screenWidth = screenGeometry.width();
+    const int screenHeight = screenGeometry.height();
 
     // Show splash screen
-    QPixmap splashPic(":/icons_new/splash_new.png");
+    const QPixmap splashPic(":/icons_new/splash_new.png");
     auto *splash = new QSplashScreen(splashPic.scaled(screenWidth/2, screenHeight/2, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     splash->setAttribute(Qt::WA_DeleteOnClose);
     const int messageSize = (25 * splash->height()) / splashPic.height();

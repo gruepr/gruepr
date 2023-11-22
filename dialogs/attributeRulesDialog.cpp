@@ -8,7 +8,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui(new Ui::AttributeRulesDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString() + TABWIDGETSTYLE + LABELSTYLE);
@@ -29,7 +29,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
 
     requiredValues = teamingOptions.requiredAttributeValues[attribute];
     incompatibleValues = teamingOptions.incompatibleAttributeValues[attribute];
-    DataOptions::AttributeType attributeType = dataOptions.attributeType[attribute];
+    const DataOptions::AttributeType attributeType = dataOptions.attributeType[attribute];
     attributeValues.clear();
     attributeValues.reserve(dataOptions.attributeVals[attribute].size());
     auto valueIter = dataOptions.attributeVals[attribute].cbegin();
@@ -145,7 +145,7 @@ QString AttributeRulesDialog::valuePrefix(int value, DataOptions::AttributeType 
     }
 
     // response's preceding letter (letter repeated for responses after 26)
-    int valueIndex = value - 1;
+    const int valueIndex = value - 1;
     return ((valueIndex < 26) ? QString(char(valueIndex + 'A')) : QString(char(valueIndex%26 + 'A')).repeated(1 + (valueIndex/26)));
 }
 

@@ -223,8 +223,8 @@ public:
                                                                        {QObject::tr("1 hr"), 60/MIN_SCHEDULE_RESOLUTION},
                                                                        {QObject::tr("30 min"), 30/MIN_SCHEDULE_RESOLUTION},
                                                                        {QObject::tr("15 min"), 15/MIN_SCHEDULE_RESOLUTION}};  // int value is # of time blocks
-    static inline const QList<QPair<QString, QString>> timeFormats = [](){QStringList formats = QString(TIMEFORMATS).split(';');
-                                                                          QStringList examples = QString(TIMEFORMATEXAMPLES).split(';');
+    static inline const QList<QPair<QString, QString>> timeFormats = [](){const QStringList formats = QString(TIMEFORMATS).split(';');
+                                                                          const QStringList examples = QString(TIMEFORMATEXAMPLES).split(';');
                                                                           QList<QPair<QString, QString>> x;
                                                                           x.reserve(formats.size());
                                                                           for(int i = 0; i < formats.size(); i++) {

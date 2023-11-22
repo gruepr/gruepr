@@ -30,7 +30,7 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    QFont font("DM Sans");
+    const QFont font("DM Sans");
     _labeloff->setFont(font);
     _labelon->setFont(font);
     _labeloff->setText("Off");
@@ -98,7 +98,7 @@ void SwitchButton::paintEvent(QPaintEvent*)
     painter->begin(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    QPen pen(Qt::NoPen);
+    const QPen pen(Qt::NoPen);
     painter->setPen(pen);
 
     if (_enabled) {
@@ -130,12 +130,12 @@ void SwitchButton::mousePressEvent(QMouseEvent*)
     __animationGroup->stop();
 #endif
 
-    int hback = 20;
+    const int hback = 20;
     QSize initial_size(hback, hback);
     QSize final_size(width() - 4, hback);
 
     int xi = 2;
-    int y  = 2;
+    const int y  = 2;
     int xf = width() - 22;
 
     if (_value) {
@@ -199,10 +199,10 @@ bool SwitchButton::value() const
 
 void SwitchButton::_update()
 {
-    int hback = 20;
+    const int hback = 20;
     QSize final_size(hback, hback);
 
-    int y = 2;
+    const int y = 2;
     int xf = 2;
 
     if (_value) {
@@ -238,7 +238,7 @@ void SwitchButton::SwitchBackground::paintEvent(QPaintEvent*)
     painter->begin(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    QPen pen(Qt::NoPen);
+    const QPen pen(Qt::NoPen);
     painter->setPen(pen);
     if (_enabled) {
         painter->setBrush(_bluebrush);
@@ -273,7 +273,7 @@ void SwitchButton::SwitchCircle::paintEvent(QPaintEvent*)
     painter->begin(this);
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    QPen pen(Qt::NoPen);
+    const QPen pen(Qt::NoPen);
     painter->setPen(pen);
 
     if (_enabled) {

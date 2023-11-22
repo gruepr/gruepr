@@ -47,7 +47,7 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 
 void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
 {
-    bool itemIsStudent = (item->parent() != nullptr);
+    const bool itemIsStudent = (item->parent() != nullptr);
     if(itemIsStudent) {  // only collapse the top level items (teams, not students on the team)
         return;
     }
@@ -76,7 +76,7 @@ void TeamTreeWidget::collapseAll()
 
 void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
 {
-    bool itemIsStudent = (item->parent() != nullptr);
+    const bool itemIsStudent = (item->parent() != nullptr);
     if(itemIsStudent) {  // only expand the top level items (teams, not students on the team)
         return;
     }
@@ -125,7 +125,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     if(dataOptions->URMIncluded) {
         headerLabels << tr("  URM  ");
     }
-    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         headerLabels << tr("  Q") + QString::number(attribute+1) + "  ";
     }
@@ -243,7 +243,7 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
-    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         QString attributeText;
         int sortData;
@@ -290,23 +290,23 @@ void TeamTreeWidget::refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &te
         column++;
     }
     if(dataOptions->timezoneIncluded) {
-        float firstTeamVal = *(team.timezoneVals.cbegin());
-        float lastTeamVal = *(team.timezoneVals.crbegin());
+        const float firstTeamVal = *(team.timezoneVals.cbegin());
+        const float lastTeamVal = *(team.timezoneVals.crbegin());
         QString timezoneText;
         if(firstTeamVal == lastTeamVal) {
-            int hour = int(firstTeamVal);
-            int minutes = 60*(firstTeamVal - int(firstTeamVal));
+            const int hour = int(firstTeamVal);
+            const int minutes = 60*(firstTeamVal - int(firstTeamVal));
             timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));;
         }
         else {
-            int hourF = int(firstTeamVal);
-            int minutesF = 60*(firstTeamVal - int(firstTeamVal));
-            int hourL = int(lastTeamVal);
-            int minutesL = 60*(lastTeamVal - int(lastTeamVal));
+            const int hourF = int(firstTeamVal);
+            const int minutesF = 60*(firstTeamVal - int(firstTeamVal));
+            const int hourL = int(lastTeamVal);
+            const int minutesL = 60*(lastTeamVal - int(lastTeamVal));
             timezoneText = QString("%1%2:%3").arg(hourF >= 0 ? "+" : "").arg(hourF).arg(std::abs(minutesF), 2, 10, QChar('0')) + " " + RIGHTARROW + " " +
                             QString("%1%2:%3").arg(hourL >= 0 ? "+" : "").arg(hourL).arg(std::abs(minutesL), 2, 10, QChar('0'));
         }
-        int sortData = int(firstTeamVal * 100 + lastTeamVal);
+        const int sortData = int(firstTeamVal * 100 + lastTeamVal);
 
         teamItem->setText(column, timezoneText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -375,7 +375,7 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;
     }
-    int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
+    const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         auto value = stu.attributeVals[attribute].constBegin();
         if(*value != -1) {
@@ -418,15 +418,15 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         column++;
     }
     if(dataOptions->timezoneIncluded) {
-        int hour = int(stu.timezone);
-        int minutes = 60*(stu.timezone - int(stu.timezone));
+        const int hour = int(stu.timezone);
+        const int minutes = 60*(stu.timezone - int(stu.timezone));
         studentItem->setText(column, QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(minutes, 2, 10, QChar('0')));
         studentItem->setToolTip(column, stu.tooltip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;
     }
     if(!dataOptions->dayNames.isEmpty()) {
-        int availableTimes = stu.ambiguousSchedule? 0 : int(stu.availabilityChart.count("√"));
+        const int availableTimes = stu.ambiguousSchedule? 0 : int(stu.availabilityChart.count("√"));
         studentItem->setText(column, availableTimes == 0? "--" : QString::number(availableTimes));
         studentItem->setToolTip(column, stu.tooltip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);
@@ -479,7 +479,7 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 
     // adjust the location and text of the tooltip
     dragDropEventLabel->move(QCursor::pos() + QPoint(iconSize, iconSize));
-    bool dragItemIsStudent = (draggedItem->parent() != nullptr), dropItemIsStudent = (dropItem->parent() != nullptr);
+    const bool dragItemIsStudent = (draggedItem->parent() != nullptr), dropItemIsStudent = (dropItem->parent() != nullptr);
     if((draggedItem == dropItem) || (!dragItemIsStudent && dropItemIsStudent) || (draggedItem->parent() == dropItem)) {  // dragging item onto self, team->student, or student->own team
         dragDropEventLabel->hide();
     }
@@ -522,13 +522,13 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     }
 
     droppedItem = itemAt(event->position().toPoint());
-    QModelIndex droppedIndex = indexFromItem(droppedItem);
+    const QModelIndex droppedIndex = indexFromItem(droppedItem);
     if( !droppedIndex.isValid() ) {
         return;
     }
 
     // in the tree view, students have a parent (the team number) but teams do not.
-    bool dragItemIsStudent = (draggedItem->parent() != nullptr), dropItemIsStudent = (droppedItem->parent() != nullptr);
+    const bool dragItemIsStudent = (draggedItem->parent() != nullptr), dropItemIsStudent = (droppedItem->parent() != nullptr);
     if(dragItemIsStudent && dropItemIsStudent) {         // two students
         // UserRole data stored in the item is the studentRecord.ID; TeamNumber data stored in the parent's column 0 is the team number
         emit swapChildren({(draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
@@ -606,7 +606,7 @@ bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
         return false;
     }
 
-    int sortColumn = treeWidget()->sortColumn();
+    const int sortColumn = treeWidget()->sortColumn();
 
     if(sortColumn == 0) {
         return (data(sortColumn, TEAMINFO_SORT_ROLE).toString() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toString());

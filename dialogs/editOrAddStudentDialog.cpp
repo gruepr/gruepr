@@ -173,7 +173,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
         // create the UI for each attribute - either a combobox with single possible values loaded or checkboxes for multiple possible values
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-            DataOptions::AttributeType type = dataOptions->attributeType[attribute];
+            const DataOptions::AttributeType type = dataOptions->attributeType[attribute];
 
             auto *w = new QWidget(this);
             auto *layout = new QVBoxLayout;
@@ -256,7 +256,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                     }
                     else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical)) {
                         // show response with a preceding letter (letter repeated for responses after 26)
-                        QString prefix =  (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+                        const QString prefix =  (responseNum < 26 ? QString(char(responseNum + 'A')) :
+                                                                    QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
                         responsesText += prefix;
                         responsesText += "</b>. " + response;
                         prefixes << prefix;
@@ -317,7 +318,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                     attributeCombobox.last()->setCurrentText(student.attributeResponse[attribute]);
                 }
                 else {  // no exact match for some reason, so match to the numerical value of timezone if possible (and revert to "unknown" if still can't find)
-                    int index = attributeCombobox.last()->findData(student.timezone);
+                    const int index = attributeCombobox.last()->findData(student.timezone);
                     attributeCombobox.last()->setCurrentIndex(index != -1? index : 0);
                 }
                 layout->addWidget(attributeCombobox.last());
@@ -405,8 +406,8 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if((dataOptions->prefTeammatesIncluded) || (dataOptions->prefNonTeammatesIncluded) || (dataOptions->numNotes > 0)) {
         // calculate the height of 1 row of text in the multilines
-        QFontMetrics fm(datamultiline.last()->document()->defaultFont());
-        QMargins margin = datamultiline.last()->contentsMargins();
+        const QFontMetrics fm(datamultiline.last()->document()->defaultFont());
+        const QMargins margin = datamultiline.last()->contentsMargins();
         const int rowOfTextHeight = fm.lineSpacing() + qRound(datamultiline.last()->document()->documentMargin()) +
                                     datamultiline.last()->frameWidth() * 2 + margin.top() + margin.bottom();
         for(auto &textbox : datamultiline) {
@@ -459,7 +460,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
 
     int multiboxNum = 0, comboboxNum = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        DataOptions::AttributeType type = dataOptions->attributeType[attribute];
+        const DataOptions::AttributeType type = dataOptions->attributeType[attribute];
         student.attributeVals[attribute].clear();
         if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
             QStringList attributeResponse;

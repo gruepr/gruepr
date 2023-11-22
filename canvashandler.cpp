@@ -8,8 +8,8 @@
 #include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QOAuthHttpServerReplyHandler>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 CanvasHandler::CanvasHandler(const QString &authenticateURL, const QString &accessTokenURL, const QString &baseAPIURL) {
@@ -63,7 +63,7 @@ int CanvasHandler::getStudentCount(const QString &courseName) {
 
 // Retrieves the StudentRoster in the given course
 QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) {
-    int courseID = getCourseID(courseName);
+    const int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return {};
     }
@@ -98,7 +98,7 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) 
 
 // Creates a teamset
 bool CanvasHandler::createTeams(const QString &courseName, const QString &setName, const QStringList &teamNames, const QList<QList<StudentRecord>> &teams) {
-    int courseID = getCourseID(courseName);
+    const int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return false;
     }
@@ -152,7 +152,7 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
 }
 
 bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const survey) {
-    int courseID = getCourseID(courseName);
+    const int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return false;
     }
@@ -173,7 +173,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
     QList<QList<int>*> intParams = {&quizID};
     QList<QStringList*> stringInSubobjectParams = {&x};
     postToCanvasGetSingleResult(url, postData, {"html_url", "mobile_url"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
-    int surveyID = quizID.constFirst();
+    const int surveyID = quizID.constFirst();
 
     //add each question
     int questionNum = 0;
@@ -314,7 +314,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
 }
 
 QStringList CanvasHandler::getQuizList(const QString &courseName) {
-    int courseID = getCourseID(courseName);
+    const int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return {};
     }
@@ -335,17 +335,17 @@ QStringList CanvasHandler::getQuizList(const QString &courseName) {
 }
 
 QString CanvasHandler::downloadQuizResult(const QString &courseName, const QString &quizName) {
-    int courseID = getCourseID(courseName);
+    const int courseID = getCourseID(courseName);
     if(courseID == -1) {
         return {};
     }
 
-    int quizID = getQuizID(quizName);
+    const int quizID = getQuizID(quizName);
     if(quizID == -1) {
         return {};
     }
 
-    QUrl URL = getQuizResultsURL(courseID, quizID);
+    const QUrl URL = getQuizResultsURL(courseID, quizID);
     if(URL.isEmpty()) {
         return {};
     }
@@ -366,7 +366,7 @@ QString CanvasHandler::downloadQuizResult(const QString &courseName, const QStri
         ids.clear();
         getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports", {}, stringParams, {"id"}, intParams, {"file/filename"}, stringInSubobjectParams);
     } while(filename.first().isEmpty());
-    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_') + ".csv");
+    const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_') + ".csv");
     // sometimes still a delay, so attempt to download every two seconds
     while(!downloadFile(URL, filepath.absoluteFilePath())) {
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
@@ -400,10 +400,10 @@ int CanvasHandler::getQuizID(const QString &quizName) {
 }
 
 QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
-    QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports";
+    const QString url = "/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports";
     QUrlQuery query;
     query.addQueryItem("quiz_report[report_type]", "student_analysis");
-    QByteArray postData = query.toString(QUrl::FullyEncoded).toUtf8();
+    const QByteArray postData = query.toString(QUrl::FullyEncoded).toUtf8();
     QStringList x;
     QList<int> quizReportID;
     QStringList quizReportFileURL;
@@ -469,13 +469,13 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
                 *(intVals[i]) << json_obj[intParams.at(i)].toInt();
             }
             for(int i = 0; i < stringInSubobjectParams.size(); i++) {
-                QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
+                const QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
                 QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
                 *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
             }
         }
-        static QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
-        QRegularExpressionMatch nextURLMatch = nextURL.match(replyHeader);
+        static const QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
+        const QRegularExpressionMatch nextURLMatch = nextURL.match(replyHeader);
         url = nextURLMatch.captured(1);
     }
     while(!url.isNull() && ++numPages < NUM_PAGES_TO_LOAD);
@@ -488,7 +488,7 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
                                                                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
     QEventLoop loop;
-    QString url = baseURL+URL;
+    const QString url = baseURL+URL;
     QString replyBody;
     QJsonDocument json_doc;
     QJsonArray json_array;
@@ -527,7 +527,7 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
             *(intVals[i]) << json_obj[intParams.at(i)].toInt();
         }
         for(int i = 0; i < stringInSubobjectParams.size(); i++) {
-            QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
+            const QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
             QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
         }
@@ -586,7 +586,7 @@ void CanvasHandler::authenticate() {
     canvas->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
        // Percent-decode the "code" parameter so Google can match it
        if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
-          QByteArray code = parameters->value("code").toByteArray();
+          const QByteArray code = parameters->value("code").toByteArray();
           parameters->insert("code", QUrl::fromPercentEncoding(code));
        }
     });
@@ -653,7 +653,7 @@ QStringList CanvasHandler::askUserForManualToken(const QString &currentURL, cons
     if(!url.startsWith("https://") && !url.startsWith("http://")) {
         url.prepend("https://");
     }
-    QString token = canvasToken->text().trimmed();
+    const QString token = canvasToken->text().trimmed();
     return {url, token};
 }
 

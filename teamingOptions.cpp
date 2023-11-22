@@ -22,7 +22,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     isolatedNonbinaryPrevented = jsonTeamingOptions["isolatedNonbinaryPrevented"].toBool();
     singleGenderPrevented = jsonTeamingOptions["singleGenderPrevented"].toBool();
     isolatedURMPrevented = jsonTeamingOptions["isolatedURMPrevented"].toBool();
-    QJsonArray URMResponsesConsideredURArray = jsonTeamingOptions["URMResponsesConsideredUR"].toArray();
+    const QJsonArray URMResponsesConsideredURArray = jsonTeamingOptions["URMResponsesConsideredUR"].toArray();
     URMResponsesConsideredUR.clear();
     URMResponsesConsideredUR.reserve(URMResponsesConsideredURArray.size());
     for(const auto &item : URMResponsesConsideredURArray) {
@@ -32,7 +32,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     minTimeBlocksOverlap = jsonTeamingOptions["minTimeBlocksOverlap"].toInt();
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
-    QJsonArray desireHomogeneousArray = jsonTeamingOptions["desireHomogeneous"].toArray();
+    const QJsonArray desireHomogeneousArray = jsonTeamingOptions["desireHomogeneous"].toArray();
     int i = 0;
     for(const auto &item : desireHomogeneousArray) {
         desireHomogeneous[i] = item.toBool();
@@ -41,7 +41,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         desireHomogeneous[j] = false;
     }
-    QJsonArray attributeWeightsArray = jsonTeamingOptions["attributeWeights"].toArray();
+    const QJsonArray attributeWeightsArray = jsonTeamingOptions["attributeWeights"].toArray();
     i = 0;
     for(const auto &item : attributeWeightsArray) {
         attributeWeights[i] = item.toDouble();
@@ -50,7 +50,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         attributeWeights[j] = 1;
     }
-    QJsonArray realAttributeWeightsArray = jsonTeamingOptions["realAttributeWeights"].toArray();
+    const QJsonArray realAttributeWeightsArray = jsonTeamingOptions["realAttributeWeights"].toArray();
     i = 0;
     for(const auto &item : realAttributeWeightsArray) {
         realAttributeWeights[i] = item.toDouble();
@@ -59,7 +59,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         realAttributeWeights[j] = 1;
     }
-    QJsonArray haveAnyRequiredAttributesArray = jsonTeamingOptions["haveAnyRequiredAttributes"].toArray();
+    const QJsonArray haveAnyRequiredAttributesArray = jsonTeamingOptions["haveAnyRequiredAttributes"].toArray();
     i = 0;
     for(const auto &item : haveAnyRequiredAttributesArray) {
         haveAnyRequiredAttributes[i] = item.toBool();
@@ -68,15 +68,15 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         haveAnyRequiredAttributes[j] = false;
     }
-    QJsonArray requiredAttributeValuesArray = jsonTeamingOptions["requiredAttributeValues"].toArray();
+    const QJsonArray requiredAttributeValuesArray = jsonTeamingOptions["requiredAttributeValues"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        QJsonArray requiredAttributeValuesArraySubArray = requiredAttributeValuesArray[i].toArray();
+        const QJsonArray requiredAttributeValuesArraySubArray = requiredAttributeValuesArray[i].toArray();
         requiredAttributeValues[i].clear();
         for (const auto &val : requiredAttributeValuesArraySubArray) {
             requiredAttributeValues[i] << val.toInt();
         }
     }
-    QJsonArray haveAnyIncompatibleAttributesArray = jsonTeamingOptions["haveAnyIncompatibleAttributes"].toArray();
+    const QJsonArray haveAnyIncompatibleAttributesArray = jsonTeamingOptions["haveAnyIncompatibleAttributes"].toArray();
     i = 0;
     for(const auto &item : haveAnyIncompatibleAttributesArray) {
         haveAnyIncompatibleAttributes[i] = item.toBool();
@@ -85,12 +85,12 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         haveAnyIncompatibleAttributes[j] = false;
     }
-    QJsonArray incompatibleAttributeValuesArray = jsonTeamingOptions["incompatibleAttributeValues"].toArray();
+    const QJsonArray incompatibleAttributeValuesArray = jsonTeamingOptions["incompatibleAttributeValues"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        QJsonArray incompatibleAttributeValuesArraySubArray = incompatibleAttributeValuesArray[i].toArray();
+        const QJsonArray incompatibleAttributeValuesArraySubArray = incompatibleAttributeValuesArray[i].toArray();
         incompatibleAttributeValues[i].clear();
         for(const auto &pair : incompatibleAttributeValuesArraySubArray) {
-            QJsonArray pairOfVals = pair.toArray();
+            const QJsonArray pairOfVals = pair.toArray();
             incompatibleAttributeValues[i].append({pairOfVals[0].toInt(), pairOfVals[1].toInt()});
         }
     }
@@ -101,7 +101,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     haveAnyPreventedTeammates = jsonTeamingOptions["haveAnyPreventedTeammates"].toBool();
     haveAnyRequestedTeammates = jsonTeamingOptions["haveAnyRequestedTeammates"].toBool();
     numberRequestedTeammatesGiven = jsonTeamingOptions["numberRequestedTeammatesGiven"].toInt();
-    QJsonArray smallerTeamsSizesArray = jsonTeamingOptions["smallerTeamsSizes"].toArray();
+    const QJsonArray smallerTeamsSizesArray = jsonTeamingOptions["smallerTeamsSizes"].toArray();
     i = 0;
     for (const auto &val : smallerTeamsSizesArray) {
         smallerTeamsSizes[i] = val.toInt();
@@ -111,7 +111,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
         smallerTeamsSizes[j] = 0;
     }
     smallerTeamsNumTeams = jsonTeamingOptions["smallerTeamsNumTeams"].toInt();
-    QJsonArray largerTeamsSizesArray = jsonTeamingOptions["largerTeamsSizes"].toArray();
+    const QJsonArray largerTeamsSizesArray = jsonTeamingOptions["largerTeamsSizes"].toArray();
     i = 0;
     for (const auto &val : largerTeamsSizesArray) {
         largerTeamsSizes[i] = val.toInt();
@@ -122,7 +122,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     }
     largerTeamsNumTeams = jsonTeamingOptions["largerTeamsNumTeams"].toInt();
     numTeamsDesired = jsonTeamingOptions["numTeamsDesired"].toInt();
-    QJsonArray teamSizesDesiredArray = jsonTeamingOptions["teamSizesDesired"].toArray();
+    const QJsonArray teamSizesDesiredArray = jsonTeamingOptions["teamSizesDesired"].toArray();
     i = 0;
     for (const auto &val : teamSizesDesiredArray) {
         teamSizesDesired[i] = val.toInt();

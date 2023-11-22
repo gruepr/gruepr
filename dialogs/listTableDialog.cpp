@@ -10,7 +10,7 @@
 listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool stretchLastColumn, QWidget *parent)
     : QDialog(parent)
 {
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint );
     setSizeGripEnabled(true);
     setWindowTitle(title);
     setStyleSheet("QDialog{background-color: white;}");

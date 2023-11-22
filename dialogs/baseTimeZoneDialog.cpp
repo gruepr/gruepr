@@ -43,7 +43,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
         DataOptions::parseTimezoneInfoFromText(zonenameText, zonename, GMTOffset);
         timezones->addItem(zonenameText, GMTOffset);
     }
-    int index = timezones->findData(hoursToGMTFromHere);
+    const int index = timezones->findData(hoursToGMTFromHere);
     timezones->setCurrentIndex(index != -1? index : 0);
     baseTimezoneVal = timezones->currentData().toFloat();
     connect(timezones, QOverload<int>::of(&QComboBox::currentIndexChanged),

@@ -5,7 +5,7 @@
 BoxWhiskerPlot::BoxWhiskerPlot(const QString &title, const QString &xAxisTitle, const QString &yAxisTitle, QWidget *parent)
 {
     (void) parent;
-    QFont titleFont("Oxygen Mono");
+    const QFont titleFont("Oxygen Mono");
     QFont labelsFont(titleFont);
     labelsFont.setPointSize(titleFont.pointSize()-2);
     legend()->hide();
@@ -87,12 +87,12 @@ void BoxWhiskerPlot::loadNextVals(const float *const vals, const int *const orde
 
 float BoxWhiskerPlot::median(const float *const vals, const int *const orderedIndex, const int begin, const int end)
 {
-    int count = end - begin;
+    const int count = end - begin;
     if ((count % 2) != 0) {
         return vals[orderedIndex[count/2 + begin]];
     }
 
-    float right = vals[orderedIndex[count/2 + begin]];
-    float left = vals[orderedIndex[count/2 - 1 + begin]];
+    const float right = vals[orderedIndex[count/2 + begin]];
+    const float left = vals[orderedIndex[count/2 - 1 + begin]];
     return (right + left) / 2.0F;
 }

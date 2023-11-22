@@ -9,8 +9,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 class SurveyMakerQuestionWithSwitch : public QFrame

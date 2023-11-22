@@ -1,11 +1,11 @@
 #include "gruepr.h"
 #include "ui_gruepr.h"
+#include "dialogs/attributeRulesDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
-#include "dialogs/attributeRulesDialog.h"
-#include "dialogs/teammatesRulesDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
+#include "dialogs/teammatesRulesDialog.h"
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
@@ -96,11 +96,11 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     if(this->dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
         QFile savedFile(this->dataOptions->saveStateFileName, this);
         if(savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
-            QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
+            const QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
             savedFile.close();
             QJsonObject content = doc.object();
             teamingOptions = new TeamingOptions(content["teamingoptions"].toObject());
-            QJsonArray teamsetjsons = content["teamsets"].toArray();
+            const QJsonArray teamsetjsons = content["teamsets"].toArray();
             TeamsTabItem *teamTab = nullptr;
             for(const auto &teamsetjson : teamsetjsons) {
                 teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, this->students, ui->letsDoItButton, this);
@@ -288,7 +288,7 @@ void gruepr::changeSection(int index)
 
 void gruepr::editAStudent()
 {
-    int indexBeingEdited = sender()->property("StudentIndex").toInt();
+    const int indexBeingEdited = sender()->property("StudentIndex").toInt();
 
     // remove this student's current attribute responses from the counts in dataOptions
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
@@ -312,7 +312,7 @@ void gruepr::editAStudent()
     auto *win = new editOrAddStudentDialog(students[indexBeingEdited], dataOptions, this, false);
 
     //If user clicks OK, replace student in the database with edited copy
-    int reply = win->exec();
+    const int reply = win->exec();
     if(reply == QDialog::Accepted) {
         students[indexBeingEdited].createTooltip(*dataOptions);
         students[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(students.at(indexBeingEdited).URMResponse);
@@ -411,7 +411,7 @@ void gruepr::addAStudent()
         auto *win = new editOrAddStudentDialog(newStudent, dataOptions, this, true);
 
         //If user clicks OK, add student to the database
-        int reply = win->exec();
+        const int reply = win->exec();
         if(reply == QDialog::Accepted) {
             newStudent.ID = students.size();
             newStudent.createTooltip(*dataOptions);
@@ -455,7 +455,7 @@ void gruepr::addAStudent()
 void gruepr::compareStudentsToRoster()
 {
     // Open the roster file
-    QSettings savedSettings;
+    const QSettings savedSettings;
     CsvFile rosterFile(CsvFile::Delimiter::comma, this);
     if(!rosterFile.open(this, CsvFile::Operation::read, tr("Open Student Roster File"), savedSettings.value("saveFileLocation").toString(), tr("Roster File"))) {
         return;
@@ -522,7 +522,7 @@ void gruepr::compareStudentsToRoster()
                         numActiveStudents = dataOptions->numStudentsInSystem;
                     }
                     else {  // selected an inexact match
-                        QString surveyName = choiceWindow->currSurveyName;
+                        const QString surveyName = choiceWindow->currSurveyName;
                         namesNotFound.removeAll(surveyName);
                         index = 0;
                         while(surveyName != (students[index].firstname + " " + students[index].lastname)) {
@@ -683,7 +683,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
     // Re-build the section options in the selection box
     if(dataOptions->sectionIncluded) {
-        QString currentSection = ui->sectionSelectionBox->currentText();
+        const QString currentSection = ui->sectionSelectionBox->currentText();
         ui->sectionSelectionBox->clear();
         dataOptions->sectionNames.clear();
         for(int sectionIndex = 0; sectionIndex < dataOptions->numStudentsInSystem; sectionIndex++) {
@@ -772,7 +772,7 @@ void gruepr::selectURMResponses()
     auto *win = new gatherURMResponsesDialog(dataOptions->URMResponses, teamingOptions->URMResponsesConsideredUR, this);
 
     //If user clicks OK, replace the responses considered underrepresented with the set from the window
-    int reply = win->exec();
+    const int reply = win->exec();
     if(reply == QDialog::Accepted) {
         teamingOptions->URMResponsesConsideredUR = win->URMResponsesConsideredUR;
         teamingOptions->URMResponsesConsideredUR.removeDuplicates();
@@ -793,7 +793,7 @@ void gruepr::responsesRulesButton_clicked()
     auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, this);
 
     //If user clicks OK, replace with new sets of values
-    int reply = win->exec();
+    const int reply = win->exec();
     if(reply == QDialog::Accepted) {
         teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
         teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
@@ -821,7 +821,7 @@ void gruepr::makeTeammatesRules()
                                          ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName,
                                          teamTabNames, this);
     //If user clicks OK, replace student database with copy that has had pairings added
-    int reply = win->exec();
+    const int reply = win->exec();
     if(reply == QDialog::Accepted) {
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
             this->students[index] = win->students[index];
@@ -902,7 +902,7 @@ void gruepr::changeIdealTeamSize(int arg1)
             largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
 
             // Add first option to selection box
-            QString smallerTeamOption = writeTeamSizeOption(numSmallerATeams, smallerTeamsSizeA, teamingOptions->numTeamsDesired+1-numSmallerATeams, smallerTeamsSizeB);
+            const QString smallerTeamOption = writeTeamSizeOption(numSmallerATeams, smallerTeamsSizeA, teamingOptions->numTeamsDesired+1-numSmallerATeams, smallerTeamsSizeB);
             if(numSmallerATeams > 0) {
                 cumNumSmallerATeams += numSmallerATeams;
             }
@@ -911,7 +911,7 @@ void gruepr::changeIdealTeamSize(int arg1)
             }
 
             // Add second option to selection box
-            QString largerTeamOption = writeTeamSizeOption(teamingOptions->numTeamsDesired-numLargerATeams, largerTeamsSizeB, numLargerATeams, largerTeamsSizeA);
+            const QString largerTeamOption = writeTeamSizeOption(teamingOptions->numTeamsDesired-numLargerATeams, largerTeamsSizeB, numLargerATeams, largerTeamsSizeA);
             if((teamingOptions->numTeamsDesired-numLargerATeams) > 0) {
                 cumNumLargerBTeams += teamingOptions->numTeamsDesired-numLargerATeams;
             }
@@ -938,8 +938,8 @@ void gruepr::changeIdealTeamSize(int arg1)
 
     if(ui->sectionSelectionBox->currentIndex() == 1) {
         // load new team sizes in selection box by adding together the sizes from each section
-        QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB);
-        QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA);
+        const QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB);
+        const QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA);
 
         ui->teamSizeBox->addItem(smallerTeamOption);
         if(smallerTeamOption != largerTeamOption) {
@@ -996,7 +996,7 @@ void gruepr::chooseTeamSizes(int index)
         auto *win = new customTeamsizesDialog(numActiveStudents, ui->idealTeamSizeBox->value(), this);
 
         //If user clicks OK, use these team sizes, otherwise revert to option 1, smaller team sizes
-        int reply = win->exec();
+        const int reply = win->exec();
         if(reply == QDialog::Accepted) {
             teamingOptions->numTeamsDesired = win->numTeams;
             setTeamSizes(win->teamsizes.constData());
@@ -1025,13 +1025,13 @@ void gruepr::startOptimization()
 {
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
-        bool okContinue = grueprGlobal::warningMessage(this, tr("gruepr"),
-                                                        tr("You have selected to prevented isolated URM students, "
-                                                           "however none of the race/ethnicity response values "
-                                                           "have been selected to be considered as underrepresented.\n\n"
-                                                           "Click Continue to form teams with no students considered URM, "
-                                                           "or click Open Selection Window to select the URM responses."),
-                                                        tr("Continue"), tr("Open Selection Window"));
+        const bool okContinue = grueprGlobal::warningMessage(this, tr("gruepr"),
+                                                             tr("You have selected to prevented isolated URM students, "
+                                                                "however none of the race/ethnicity response values "
+                                                                "have been selected to be considered as underrepresented.\n\n"
+                                                                "Click Continue to form teams with no students considered URM, "
+                                                                "or click Open Selection Window to select the URM responses."),
+                                                             tr("Continue"), tr("Open Selection Window"));
         if(!okContinue) {
             ui->URMResponsesButton->animateClick();
             return;
@@ -1103,7 +1103,7 @@ void gruepr::startOptimization()
         chartView->setRenderHint(QPainter::Antialiasing);
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
-        QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
+        const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
                                                           ui->sectionSelectionBox->currentText()) : "");
         progressWindow = new progressDialog(sectionName, chartView, this);
         progressWindow->show();
@@ -1229,7 +1229,7 @@ void gruepr::optimizationComplete()
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
-    QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
+    const QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
     auto *teamTab = new TeamsTabItem(*teamingOptions, teams, students, teamSetName, ui->letsDoItButton, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
@@ -1316,17 +1316,17 @@ void gruepr::loadDefaultSettings()
         teamingOptions->attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
         // Shouldn't re-load the incompatible and required responses if working with new survey data
         if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
-            int numIncompats = savedSettings.beginReadArray("incompatibleResponses");
+            const int numIncompats = savedSettings.beginReadArray("incompatibleResponses");
             for(int incompResp = 0; incompResp < numIncompats; incompResp++) {
                 savedSettings.setArrayIndex(incompResp);
-                QStringList incompats = savedSettings.value("incompatibleResponses", "").toString().split(',');
+                const QStringList incompats = savedSettings.value("incompatibleResponses", "").toString().split(',');
                 teamingOptions->incompatibleAttributeValues[attribNum].append({incompats.at(0).toInt(),incompats.at(1).toInt()});
             }
             savedSettings.endArray();
-            int numRequireds = savedSettings.beginReadArray("requiredResponses");
+            const int numRequireds = savedSettings.beginReadArray("requiredResponses");
             for(int requiredResp = 0; requiredResp < numRequireds; requiredResp++) {
                 savedSettings.setArrayIndex(requiredResp);
-                int required = savedSettings.value("requiredResponse", "").toInt();
+                const int required = savedSettings.value("requiredResponse", "").toInt();
                 teamingOptions->requiredAttributeValues[attribNum] << required;
             }
             savedSettings.endArray();
@@ -1343,7 +1343,7 @@ void gruepr::loadDefaultSettings()
 void gruepr::loadUI()
 {
     //Restore window geometry
-    QSettings savedSettings;
+    const QSettings savedSettings;
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
 
     ui->dataSourceLabel->setText(dataOptions->dataSourceName);
@@ -1531,10 +1531,10 @@ void gruepr::loadUI()
 
     // if the data containes preferred teammates or non-teammates and they haven't been loaded in, ask if they should be
     if(dataOptions->prefTeammatesIncluded && !teamingOptions->haveAnyRequiredTeammates && !teamingOptions->haveAnyRequestedTeammates) {
-        bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
-                                                    tr("The survey asked students for preferred teammates.\n"
-                                                       "Would you like to load those preferences as required teammates?"),
-                                                    tr("Yes"), tr("No"));
+        const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
+                                                            tr("The survey asked students for preferred teammates.\n"
+                                                               "Would you like to load those preferences as required teammates?"),
+                                                            tr("Yes"), tr("No"));
         if(okLoadThem) {
             const int numTabs = ui->dataDisplayTabWidget->count();
             QStringList teamTabNames;
@@ -1551,10 +1551,11 @@ void gruepr::loadUI()
         }
     }
     if(dataOptions->prefNonTeammatesIncluded && !teamingOptions->haveAnyPreventedTeammates) {
-        bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
-                                                    tr("The survey ") + (dataOptions->prefTeammatesIncluded? tr("also") : "") + tr(" asked students for preferred non-teammates.\n"
-                                                       "Would you like to load those preferences as prevented teammates?"),
-                                                    tr("Yes"), tr("No"));
+        const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
+                                                            tr("The survey ") + (dataOptions->prefTeammatesIncluded? tr("also") : "") +
+                                                            tr(" asked students for preferred non-teammates.\n"
+                                                               "Would you like to load those preferences as prevented teammates?"),
+                                                            tr("Yes"), tr("No"));
         if(okLoadThem) {
             const int numTabs = ui->dataDisplayTabWidget->count();
             QStringList teamTabNames;
@@ -1596,12 +1597,12 @@ void gruepr::saveState()
             teamsetjsons.append(tab->toJson());
         }
         content["teamsets"] = teamsetjsons;
-        QJsonDocument doc(content);
+        const QJsonDocument doc(content);
         saveFile.write(doc.toJson(QJsonDocument::Compact));
         saveFile.close();
 
         //find which savestate this is in the settings
-        int numIndexes = savedSettings.beginReadArray("prevWorks");
+        const int numIndexes = savedSettings.beginReadArray("prevWorks");
         int index = -1;
         for(int i = 0; i < numIndexes; i++) {
             savedSettings.setArrayIndex(i);
@@ -1658,21 +1659,21 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
 
     // Ask user what the columns mean
     // Preloading the selector boxes with "unused" except first time "email", "first name", "last name", and "name" are found
-    QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
-                                                     {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
-                                                     {"Email Address", "(e).*(mail)", 1},
-                                                     {"Full Name (First Last)", "(name)", 1},
-                                                     {"Full Name (Last, First)", "(name)", 1}};;
+    const QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                         {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
+                                                         {"Email Address", "(e).*(mail)", 1},
+                                                         {"Full Name (First Last)", "(name)", 1},
+                                                         {"Full Name (Last, First)", "(name)", 1}};;
     if(rosterFile.chooseFieldMeaningsDialog(rosterFieldOptions, this)->exec() == QDialog::Rejected) {
         return false;
     }
 
     // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
-    int emailField = int(rosterFile.fieldMeanings.indexOf("Email Address"));
-    int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
-    int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
-    int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
-    int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
+    const int emailField = int(rosterFile.fieldMeanings.indexOf("Email Address"));
+    const int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
+    const int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
+    const int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
+    const int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
 
     // Process each row until there's an empty one. Load names and email addresses
     names.clear();
@@ -1689,7 +1690,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
             name = rosterFile.fieldValues.at(firstLastNameField).trimmed();
         }
         else if(lastFirstNameField != -1) {
-            QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
+            const QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
             name = QString(lastandfirstname.at(1) + " " + lastandfirstname.at(0)).trimmed();
         }
         else if(firstNameField != -1 && lastNameField != -1) {
@@ -1726,7 +1727,7 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != -1? 1 : 0) + (dataOptions->firstNameField != -1? 1 : 0) +
                                      (dataOptions->lastNameField != -1? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
-    QIcon unsortedIcon(":/icons_new/upDownButton_white.png");
+    const QIcon unsortedIcon(":/icons_new/upDownButton_white.png");
     int column = 0;
     if(dataOptions->timestampField != -1) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
@@ -1768,7 +1769,7 @@ void gruepr::refreshStudentDisplay()
                 ui->studentTable->setItem(numActiveStudents, column++, section);
             }
 
-            bool duplicate = student.duplicateRecord;
+            const bool duplicate = student.duplicateRecord;
 
             QList<QTableWidgetItem*> items = {timestamp, firstName, lastName, section};
             for(auto &item : items) {
@@ -2056,8 +2057,8 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             std::sort(orderedIndex, orderedIndex+GA::populationsize, [scores](const int i, const int j){return (scores[i] > scores[j]);});
 
             // determine best score, save in historical record, and calculate score stability
-            float maxScoreInThisGeneration = scores[orderedIndex[0]];
-            float maxScoreFromGenerationsAgo = bestScores[(generation+1)%GA::GENERATIONS_OF_STABILITY];
+            const float maxScoreInThisGeneration = scores[orderedIndex[0]];
+            const float maxScoreFromGenerationsAgo = bestScores[(generation+1)%GA::GENERATIONS_OF_STABILITY];
             bestScores[generation%GA::GENERATIONS_OF_STABILITY] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
 
             if(maxScoreInThisGeneration == maxScoreFromGenerationsAgo) {
@@ -2161,12 +2162,12 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
                 if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
                     // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
                     for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
-                        int n = int(attributeLevelsInTeam.count(pair.first));
+                        const int n = int(attributeLevelsInTeam.count(pair.first));
                         if(pair.first == pair.second) {
                             _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (calculation = 0 if n == 0 or n == 1)
                         }
                         else {
-                            int m = int(attributeLevelsInTeam.count(pair.second));
+                            const int m = int(attributeLevelsInTeam.count(pair.second));
                             _penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions (calculation = 0 if n == 0 or m == 0)
                         }
                     }
@@ -2298,7 +2299,7 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
             // convert counts to a schedule score
             // normal schedule score is number of overlaps / desired number of overlaps
             if(_schedScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
-                int numAdditionalOverlaps = int(_schedScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
+                const int numAdditionalOverlaps = int(_schedScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
                 _schedScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
                 float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
                 for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
@@ -2504,7 +2505,7 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
         return(float(numTeamsScored)/harmonicSum);      //harmonic mean
     }
 
-    float mean = regularSum / float(numTeamsScored);    //"punished" arithmetic mean
+    const float mean = regularSum / float(numTeamsScored);    //"punished" arithmetic mean
     return(mean - (std::abs(mean)/2));
 }
 

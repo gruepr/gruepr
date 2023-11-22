@@ -14,7 +14,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
 {
     setMinimumSize(XS_DLG_SIZE, XS_DLG_SIZE);
 
-    bool comingInOrdered = stripPrecedingOrderNumbers(options);
+    const bool comingInOrdered = stripPrecedingOrderNumbers(options);
 
     //Rows 1&2 - the number of options selector and a checkbox for ordered responses
     auto *numOptionsLayout = new QHBoxLayout;
@@ -86,7 +86,8 @@ void customResponseOptionsDialog::refreshDisplay()
             }
 
             options << (orderedResponsesCheckbox->isChecked() ? (QString::number(i+1) + ". ") : "") + optionLineEdit->text().trimmed();
-            optionLabels[i]->setText(tr("Option ") + (orderedResponsesCheckbox->isChecked() ? QString::number(i+1) : QString(char((i%26)+65)).repeated((i/26)+1)));
+            optionLabels[i]->setText(tr("Option ") + (orderedResponsesCheckbox->isChecked() ? QString::number(i+1) :
+                                                                                              QString(char((i%26)+'A')).repeated((i/26)+1)));
             theTable->showRow(i);
         }
         else {
@@ -96,9 +97,9 @@ void customResponseOptionsDialog::refreshDisplay()
     }
 
     // auto-adjust the height to accomodate change in number of rows in table
-    int currWindowWidth = size().width();
+    const int currWindowWidth = size().width();
     adjustSize();
-    int newWindowHeight = size().height();
+    const int newWindowHeight = size().height();
     resize(currWindowWidth, newWindowHeight);
 
     buttonBox->button(QDialogButtonBox::Ok)->setEnabled(allFilled());

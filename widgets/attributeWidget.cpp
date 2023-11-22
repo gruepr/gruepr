@@ -130,7 +130,7 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
             QString timezoneName;
             float hours=0, minutes=0, offsetFromGMT=0;
             if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
-                QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
+                const QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
                 responsesText += GMTtext + "</b> " + timezoneName;
             }
             else {

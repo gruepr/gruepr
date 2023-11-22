@@ -18,7 +18,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     setWindowTitle(tr("gruepr - Form teams"));
 
     QSettings savedSettings;
-    int numPrevWorks = savedSettings.beginReadArray("prevWorks");
+    const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
     ui->fromPrevWorkRadioButton->setVisible(numPrevWorks > 0);
     if(numPrevWorks > 0) {
         QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
@@ -68,7 +68,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt;}"
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 12pt;}");
     ui->dataSourceLabel->adjustSize();
-    QPixmap fileIcon(":/icons_new/file.png");
+    const QPixmap fileIcon(":/icons_new/file.png");
     h = ui->dataSourceLabel->height();
     ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
 
@@ -146,7 +146,7 @@ void GetGrueprDataDialog::loadData()
 
     dataOptions->saveStateFileName = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
                                      "/saveFiles/" + QString::number(QDateTime::currentSecsSinceEpoch()) + ".gr";
-    QDir dir(QFileInfo(dataOptions->saveStateFileName).absoluteDir());
+    const QDir dir(QFileInfo(dataOptions->saveStateFileName).absoluteDir());
     if (!dir.exists()) {
         dir.mkpath(".");
     }
@@ -159,8 +159,8 @@ void GetGrueprDataDialog::loadData()
     ui->sourceFrame->setStyleSheet(QString("QFrame {background-color: white; color: " DEEPWATERHEX "; padding: 10px; border: none;}") + RADIOBUTTONSTYLE);
     ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: white; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 10px;}");
-    QPixmap uploadIcon(":/icons_new/upload_file.png");
-    int h = ui->loadDataPushButton->height();
+    const QPixmap uploadIcon(":/icons_new/upload_file.png");
+    const int h = ui->loadDataPushButton->height();
     ui->loadDataPushButton->setIcon(uploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
     ui->dataSourceFrame->setEnabled(true);
     ui->dataSourceIcon->setEnabled(true);
@@ -196,8 +196,8 @@ bool GetGrueprDataDialog::getFromFile()
     source = DataOptions::DataSource::fromFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
-    QPixmap fileIcon(":/icons_new/file.png");
-    int h = ui->dataSourceLabel->height();
+    const QPixmap fileIcon(":/icons_new/file.png");
+    const int h = ui->dataSourceLabel->height();
     ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
     return true;
 }
@@ -215,7 +215,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     if(!google->authenticated) {
         auto *loginDialog = new QMessageBox(this);
         loginDialog->setStyleSheet(LABELSTYLE);
-        QPixmap icon(":/icons_new/google.png");
+        const QPixmap icon(":/icons_new/google.png");
         loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         loginDialog->setText("");
 
@@ -255,7 +255,7 @@ bool GetGrueprDataDialog::getFromGoogle()
             loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
             auto *okButton = loginDialog->button(QMessageBox::Ok);
             auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
-            int height = okButton->height();
+            const int height = okButton->height();
             QPixmap loginpic(":/icons_new/google_signin_button.png");
             loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
             okButton->setText("");
@@ -318,9 +318,9 @@ bool GetGrueprDataDialog::getFromGoogle()
 
     //download the survey
     auto *busyBox = google->actionDialog();
-    QString filepath = google->downloadSurveyResult(googleFormName);
+    const QString filepath = google->downloadSurveyResult(googleFormName);
     QPixmap icon;
-    QSize iconSize = google->actionDialogIcon->size();
+    const QSize iconSize = google->actionDialogIcon->size();
     QEventLoop loop;
     if(filepath.isEmpty()) {
         google->actionDialogLabel->setText(tr("Error. Survey not downloaded."));
@@ -348,8 +348,8 @@ bool GetGrueprDataDialog::getFromGoogle()
     source = DataOptions::DataSource::fromGoogle;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = googleFormName;
-    QPixmap fileIcon(":/icons_new/google.png");
-    int h = ui->dataSourceLabel->height();
+    const QPixmap fileIcon(":/icons_new/google.png");
+    const int h = ui->dataSourceLabel->height();
     ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
@@ -371,7 +371,7 @@ bool GetGrueprDataDialog::getFromCanvas()
         QString savedCanvasURL = savedSettings.value("canvasURL").toString();
         QString savedCanvasToken = savedSettings.value("canvasToken").toString();
 
-        QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
+        const QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
         if(newURLAndToken.isEmpty()) {
             return false;
         }
@@ -439,9 +439,9 @@ bool GetGrueprDataDialog::getFromCanvas()
 
     //download the survey
     busyBox = canvas->actionDialog();
-    QString filepath = canvas->downloadQuizResult(course, canvasSurveyName);
+    const QString filepath = canvas->downloadQuizResult(course, canvasSurveyName);
     QPixmap icon;
-    QSize iconSize = canvas->actionDialogIcon->size();
+    const QSize iconSize = canvas->actionDialogIcon->size();
     QEventLoop loop;
     if(filepath.isEmpty()) {
         canvas->actionDialogLabel->setText(tr("Error. Survey not received."));
@@ -478,8 +478,8 @@ bool GetGrueprDataDialog::getFromCanvas()
     source = DataOptions::DataSource::fromCanvas;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = canvasSurveyName;
-    QPixmap fileIcon(":/icons_new/canvas.png");
-    int h = ui->dataSourceLabel->height();
+    const QPixmap fileIcon(":/icons_new/canvas.png");
+    const int h = ui->dataSourceLabel->height();
     ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
@@ -500,13 +500,13 @@ bool GetGrueprDataDialog::getFromPrevWork()
     loadingProgressDialog->setWindowModality(Qt::WindowModal);
     loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
 
-    QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
+    const QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
     savedFile.close();
 
     loadingProgressDialog->setValue(1);
 
     QJsonObject content = doc.object();
-    QJsonArray studentjsons = content["students"].toArray();
+    const QJsonArray studentjsons = content["students"].toArray();
     students.reserve(studentjsons.size());
     int i = 2;
     loadingProgressDialog->setMaximum(studentjsons.size() + 3);
@@ -540,11 +540,11 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     }
 
     // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
-    static QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
-                                                       "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                       ".*(which section are you enrolled).*|(.*(check).+(times).*)",
-                                                       QRegularExpression::CaseInsensitiveOption);
-    int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
+    static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
+                                                             "(.*(like to have on your team).*)|(.*(want to work with).*)|"
+                                                             ".*(which section are you enrolled).*|(.*(check).+(times).*)",
+                                                             QRegularExpression::CaseInsensitiveOption);
+    const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
     if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
         //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
         //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
@@ -629,7 +629,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
             selector->setCurrentText(surveyFile->fieldMeanings.at(row));
         }
         selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-        int width = selector->minimumSizeHint().width();
+        const int width = selector->minimumSizeHint().width();
         selector->setMinimumWidth(width);
         selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         ui->tableWidget->setCellWidget(row, 1, selector);
@@ -666,7 +666,7 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
         if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
             continue;
         }
-        QString selection = box->currentText();
+        const QString selection = box->currentText();
 
         // set it in the CsvFile's data
         surveyFile->fieldMeanings[row] = selection;
@@ -712,8 +712,8 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
         box->blockSignals(true);
         auto *model = qobject_cast<QStandardItemModel *>(box->model());
         for(auto &takenValue : takenValues) {
-            QString fieldval = takenValue.first;
-            int numAllowed = box->itemData(box->findText(fieldval)).toInt();
+            const QString fieldval = takenValue.first;
+            const int numAllowed = box->itemData(box->findText(fieldval)).toInt();
             QStandardItem *item = model->item(box->findText(fieldval));
             if((fullyUsedValues[fieldval] > 1) && (box->currentText() == fieldval)) {
                 // number exceeds max. allowed somehow, so set to unused
@@ -824,19 +824,19 @@ bool GetGrueprDataDialog::readData()
     lastFoundIndex = 0;
     for(int scheduleQuestion = 0, numScheduleFields = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleFields; scheduleQuestion++) {
         dataOptions->scheduleField[scheduleQuestion] = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
-        QString scheduleQuestionText = surveyFile->headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
-        static QRegularExpression freeOrAvailable(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption);
+        const QString scheduleQuestionText = surveyFile->headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
+        static const QRegularExpression freeOrAvailable(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption);
         if(scheduleQuestionText.contains(freeOrAvailable)) {
             // if >=1 field has this language, all interpreted as free time
             dataOptions->scheduleDataIsFreetime = true;
         }
-        static QRegularExpression homeTimezone(".+\\b(your home)\\b.+", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression homeTimezone(".+\\b(your home)\\b.+", QRegularExpression::CaseInsensitiveOption);
         if(scheduleQuestionText.contains(homeTimezone)) {
             // if >=1 field has this language, all interpreted as referring to each student's home timezone
             dataOptions->homeTimezoneUsed = true;
         }
-        static QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name is in brackets at end of field (where Google Forms puts column titles in matrix questions)
-        QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
+        static const QRegularExpression dayNameFinder("\\[([^[]*)\\]");   // Day name is in brackets at end of field (where Google Forms puts column titles in matrix questions)
+        const QRegularExpressionMatch dayName = dayNameFinder.match(scheduleQuestionText);
         if(dayName.hasMatch()) {
             dataOptions->dayNames << dayName.captured(1);
         }
@@ -891,7 +891,7 @@ bool GetGrueprDataDialog::readData()
         if(dataOptions->homeTimezoneUsed) {
             dataOptions->earlyTimeAsked = std::max(0.0f, grueprGlobal::timeStringToHours(dataOptions->timeNames.constFirst()));
             dataOptions->lateTimeAsked = std::max(0.0f, grueprGlobal::timeStringToHours(dataOptions->timeNames.constLast()));
-            QStringList formats = QString(TIMEFORMATS).split(';');
+            const QStringList formats = QString(TIMEFORMATS).split(';');
 
             //figure out which format to use for the timenames we're adding
             auto timeName = dataOptions->timeNames.constBegin();
@@ -958,7 +958,7 @@ bool GetGrueprDataDialog::readData()
         // Figure out what type of gender data was given (if any) -- initialized value is GenderType::adult, and we're checking each student
         // because some values are ambiguous to GenderType (e.g. "nonbinary")
         if(dataOptions->genderIncluded) {
-            QString genderText = surveyFile->fieldValues.at(dataOptions->genderField).toUtf8();
+            const QString genderText = surveyFile->fieldValues.at(dataOptions->genderField).toUtf8();
             if(genderText.contains(tr("male"), Qt::CaseInsensitive)) {  // contains "male" also picks up "female"
                 dataOptions->genderType = GenderType::biol;
             }
@@ -983,7 +983,7 @@ bool GetGrueprDataDialog::readData()
         int numNonSubmitters = 0;
         for(const auto &student : roster) {
             int index = 0;
-            int LMSid = student.LMSID;
+            const int LMSid = student.LMSID;
             while((index < numStudents) && (LMSid != students.at(index).LMSID)) {
                 index++;
             }
@@ -1046,14 +1046,16 @@ bool GetGrueprDataDialog::readData()
             // otherwise, if any response is missing an integer at the start, then it is categorical
             // The regex to recognize ordered/numerical is:
             // digit(s) then, optionally, "." or "," then end; OR digit(s) then "." or "," then any character but digits; OR digit(s) then any character but "." or ","
-            static QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
+            static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
             if(dataOptions->attributeField[attribute] == dataOptions->timezoneField) {
                 attributeType = DataOptions::AttributeType::timezone;
             }
-            else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return response.contains(',');})) {
+            else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
+                                                                              {return response.contains(',');})) {
                 attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
             }
-            else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response) {return startsWithInteger.match(response).hasMatch();})) {
+            else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
+                                                                              {return startsWithInteger.match(response).hasMatch();})) {
                 attributeType = DataOptions::AttributeType::ordered;
             }
             else {

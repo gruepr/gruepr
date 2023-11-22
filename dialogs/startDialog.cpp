@@ -56,8 +56,8 @@ StartDialog::StartDialog(QWidget *parent)
                                     "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
                                     "QToolButton::menu-indicator {subcontrol-origin: border; subcontrol-position: bottom right;}";
 
-    QFont mainBoxFont("DM Sans", BIGFONTSIZE);
-    QFont labelFont("DM Sans", LITTLEFONTSIZE);
+    const QFont mainBoxFont("DM Sans", BIGFONTSIZE);
+    const QFont labelFont("DM Sans", LITTLEFONTSIZE);
     setFont(mainBoxFont);
 
     QPixmap backgroundPic(":/icons_new/startup_new.png");
@@ -119,11 +119,13 @@ StartDialog::StartDialog(QWidget *parent)
     registerLabel->setOpenExternalLinks(false);
     connect(registerLabel, &QLabel::linkActivated, this, &StartDialog::openRegisterDialog);
     // check to see if this copy of gruepr has been registered
-    QSettings savedSettings;
-    QString registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString UserID = savedSettings.value("registeredUserID", "").toString();
-    const bool registered = (!registeredUser.isEmpty() && (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex())));
-    QString registerMessage = (registered? (tr("Thank you for being a registered user.")) : (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
+    const QSettings savedSettings;
+    const QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    const QString UserID = savedSettings.value("registeredUserID", "").toString();
+    const bool registered = !registeredUser.isEmpty() &&
+                            (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
+    const QString registerMessage = (registered? (tr("Thank you for being a registered user.")) :
+                                                 (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
     registerLabel->setText(registerMessage);
     registerLabel->setAlignment(Qt::AlignLeft);
     upgradeLabel = new QLabel(this);
@@ -133,7 +135,7 @@ StartDialog::StartDialog(QWidget *parent)
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     upgradeLabel->setOpenExternalLinks(true);
     // find out if there is an upgrade available
-    GrueprVersion version = getLatestVersionFromGithub();
+    const GrueprVersion version = getLatestVersionFromGithub();
     QString upgradeMessage = tr("Version") + ": " + GRUEPR_VERSION_NUMBER + " <a href=\"" + GRUEPRDOWNLOADPAGE + "\">";
     if(version == GrueprVersion::old) {
         upgradeMessage +=  tr("Upgrade available!");
@@ -243,8 +245,8 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
         latestVersionString = "0";
     }
     else {
-        static QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
-        QRegularExpressionMatch match = versionNum.match(reply->readAll());
+        static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
+        const QRegularExpressionMatch match = versionNum.match(reply->readAll());
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
         upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available for download"));
     }
@@ -307,13 +309,13 @@ void StartDialog::openRegisterDialog() {
             data["name"] = registerWin->name;
             data["institution"] = registerWin->institution;
             data["email"] = registerWin->email;
-            QJsonDocument doc(data);
-            QByteArray postData = doc.toJson();
+            const QJsonDocument doc(data);
+            const QByteArray postData = doc.toJson();
             auto *reply = manager->post(*request, postData);
             QEventLoop loop;
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
-            QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
+            const QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
             if(replyBody.contains("Registration successful")) {
                 registeredUser = registerWin->name;
                 QSettings savedSettings;

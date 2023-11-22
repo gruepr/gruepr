@@ -1,19 +1,19 @@
 #include "gruepr_globals.h"
-#include <QGridLayout>
 #include <QEvent>
+#include <QGridLayout>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTextBrowser>
 #include <QTime>
-#include <QtNetwork>
 #include <QWidget>
+#include <QtNetwork>
 
 float grueprGlobal::timeStringToHours(const QString &timeStr) {
     static QStringList formats = QString(TIMEFORMATS).split(';');
     int i = 0;
     for (const auto &format : formats) {
-        QTime time = QTime::fromString(timeStr, format);
+        const QTime time = QTime::fromString(timeStr, format);
         if(time.isValid()) {
             if(i != 0) {
                 // move this format to be first, since most likely all others will be same
@@ -44,7 +44,7 @@ bool grueprGlobal::internetIsGood() {
     QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    const bool weGotProblems = (networkReply->bytesAvailable() == 0);
     delete networkReply;
     delete manager;
     if(weGotProblems) {
@@ -83,15 +83,15 @@ bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, c
         win->addButton(cancelButton, QMessageBox::RejectRole);
     }
     win->exec();
-    bool result = (win->clickedButton() == okButton);
+    const bool result = (win->clickedButton() == okButton);
     win->deleteLater();
     return result;
 }
 
 void grueprGlobal::aboutWindow(QWidget *parent) {
-    QSettings savedSettings;
-    QString registeredUser = savedSettings.value("registeredUser", "").toString();
-    QString user = registeredUser.isEmpty()? QObject::tr("UNREGISTERED") : (QObject::tr("registered to ") + registeredUser);
+    const QSettings savedSettings;
+    const QString registeredUser = savedSettings.value("registeredUser", "").toString();
+    const QString user = registeredUser.isEmpty()? QObject::tr("UNREGISTERED") : (QObject::tr("registered to ") + registeredUser);
     QMessageBox::about(parent, QObject::tr("About gruepr"), ABOUTWINDOWCONTENT + QObject::tr("<p><b>This copy of gruepr is ") + user + "</b>.");
 }
 

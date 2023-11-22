@@ -1,10 +1,7 @@
 #ifndef GRUEPR_H
 #define GRUEPR_H
 
-#include <QFuture>
-#include <QFutureWatcher>
 #include <QMainWindow>
-#include <QPrinter>
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
@@ -14,6 +11,9 @@
 #include "teamingOptions.h"
 #include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QPrinter>
 
 
 namespace Ui {class gruepr;}

@@ -106,8 +106,7 @@ void StudentTableWidget::cellLeft(const int row)
 void StudentTableWidget::itemEntered(const QModelIndex &index)
 {
     setSelection(this->visualRect(index), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-    int row = index.row();
-    cellEntered(row);
+    cellEntered(index.row());
 }
 
 

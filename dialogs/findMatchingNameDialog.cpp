@@ -59,7 +59,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
     namesList->setStyleSheet(COMBOBOXSTYLE);
     QMultiMap<int, QString>::const_iterator i = possibleStudents.constBegin();
     while (i != possibleStudents.constEnd()) {
-        QStringList nameAndNum = i.value().split("&index=");    // split off the index to use as the UserData role
+        const QStringList nameAndNum = i.value().split("&index=");    // split off the index to use as the UserData role
         namesList->addItem(nameAndNum.at(0), nameAndNum.at(1).toInt());
         i++;
     }

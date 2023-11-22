@@ -53,7 +53,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     QJsonArray attributeResponseArray = jsonStudentRecord["attributeResponse"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeResponse[i] = attributeResponseArray[i].toString();
-        QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
+        const QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
         for (const auto &val : attributeValsArraySubArray) {
             attributeVals[i] << val.toInt();
         }
@@ -66,7 +66,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 ////////////////////////////////////////////
 void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions)
 {
-    int numFields = fields.size();
+    const int numFields = fields.size();
     // Timestamp
     int fieldnum = dataOptions.timestampField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
@@ -86,7 +86,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                                 surveyTimestamp = QLocale::system().toDateTime(timestampText, QLocale::LongFormat);
                                 if(surveyTimestamp.isNull()) {
                                     int i = 0;
-                                    QList<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
+                                    const QList<Qt::DateFormat> stdTimestampFormats = {Qt::TextDate, Qt::ISODate, Qt::ISODateWithMs, Qt::RFC2822Date};
                                     while(i < stdTimestampFormats.size() && surveyTimestamp.isNull()) {
                                         surveyTimestamp = QDateTime::fromString(timestampText, stdTimestampFormats.at(i));
                                         i++;
@@ -137,7 +137,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions.genderIncluded) {
         fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toUtf8();
+            const QString field = fields.at(fieldnum).toUtf8();
             if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) ||
                 field.contains(QObject::tr("woman"), Qt::CaseInsensitive) ||
                 field.contains(QObject::tr("girl"), Qt::CaseInsensitive) ||
@@ -200,7 +200,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     float timezoneOffset = 0;
     fieldnum = dataOptions.timezoneField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        QString timezoneText = fields.at(fieldnum).toUtf8(), timezoneName;
+        const QString timezoneText = fields.at(fieldnum).toUtf8();
+        QString timezoneName;
         if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone)) {
             if(dataOptions.homeTimezoneUsed) {
                 timezoneOffset = dataOptions.baseTimezone - timezone;
@@ -212,10 +213,10 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int day = 0; day < numDays; day++) {
         fieldnum = dataOptions.scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toUtf8();
+            const QString field = fields.at(fieldnum).toUtf8();
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
             for(const auto &timeName : dataOptions.timeNames) {
-                float time = grueprGlobal::timeStringToHours(timeName);
+                const float time = grueprGlobal::timeStringToHours(timeName);
                 // ignore this timeslot if we're not looking at all 7 days and this one wraps around the day
                 if((numDays < MAX_DAYS) && (((time + timezoneOffset) < 0) || ((time + timezoneOffset) > 24))) {
                     continue;
@@ -293,7 +294,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
 
     // section
     if(dataOptions.sectionIncluded) {
-        QString sectionText = QObject::tr("section");
+        const QString sectionText = QObject::tr("section");
         fieldnum = dataOptions.sectionField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             section = fields.at(fieldnum).toUtf8().trimmed();
@@ -308,7 +309,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         fieldnum = dataOptions.prefTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum).toLatin1();
-            static QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
+            static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
             nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
             nextTeammate = nextTeammate.trimmed();
             if(!prefTeammates.isEmpty() && !nextTeammate.isEmpty()) {
@@ -325,7 +326,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         fieldnum = dataOptions.prefNonTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum).toLatin1();
-            static QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
+            static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
             nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
             nextTeammate = nextTeammate.trimmed();
             if(!prefNonTeammates.isEmpty() && !nextTeammate.isEmpty()) {
@@ -342,7 +343,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         // join each one with a newline after
         fieldnum = dataOptions.notesField[note];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
+            const QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
             if(!notes.isEmpty() && !nextNote.isEmpty()) {
                 notes += "\n" + nextNote;
             }
@@ -441,8 +442,8 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
         for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
             if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
                 if(*attributeVals[attribute].constBegin() != -1) {
-                    int hour = int(timezone);
-                    int minutes = 60*(timezone - int(timezone));
+                    const int hour = int(timezone);
+                    const int minutes = 60*(timezone - int(timezone));
                     toolTip += QString("GMT%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs((minutes)), 2, 10, QChar('0'));
                 }
                 else {
@@ -477,10 +478,10 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
 QJsonObject StudentRecord::toJson() const
 {
     QJsonArray unavailableArray, preventedWithArray, requiredWithArray, requestedWithArray, attributeValsArray, attributeResponseArray;
-    for(int i = 0; i < MAX_DAYS; i++) {
+    for(const auto &unavailableDay : unavailable) {
         QJsonArray unavailableArraySubArray;
         for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
-            unavailableArraySubArray.append(unavailable[i][j]);
+            unavailableArraySubArray.append(unavailableDay[j]);
         }
         unavailableArray.append(unavailableArraySubArray);
     }

@@ -20,7 +20,7 @@ class TeamTreeWidgetItem : public QTreeWidgetItem
 public:
     enum class TreeItemType{team, student};
     explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
-    ~TeamTreeWidgetItem() = default;
+    ~TeamTreeWidgetItem() override = default;
     TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
     TeamTreeWidgetItem operator= (const TeamTreeWidgetItem&) = delete;
     TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;

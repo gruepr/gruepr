@@ -16,7 +16,7 @@ class editOrAddStudentDialog : public QDialog
 
 public:
     editOrAddStudentDialog(StudentRecord &student, const DataOptions *const dataOptions, QWidget *parent = nullptr, bool newStudent = false);
-    ~editOrAddStudentDialog() = default;
+    ~editOrAddStudentDialog() override = default;
     editOrAddStudentDialog(const editOrAddStudentDialog&) = delete;
     editOrAddStudentDialog operator= (const editOrAddStudentDialog&) = delete;
     editOrAddStudentDialog(editOrAddStudentDialog&&) = delete;

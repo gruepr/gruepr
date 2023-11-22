@@ -18,28 +18,28 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
     name = jsonTeamRecord["name"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
 
-    QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
+    const QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
+        const QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
         for (const auto &val : attributeValsArraySubArray) {
             attributeVals[i].insert(val.toInt());
         }
     }
 
-    QJsonArray timezoneValsArray = jsonTeamRecord["timezoneVals"].toArray();
+    const QJsonArray timezoneValsArray = jsonTeamRecord["timezoneVals"].toArray();
     for (const auto &val : timezoneValsArray) {
         timezoneVals.insert(val.toDouble());
     }
 
-    QJsonArray numStudentsAvailableArray = jsonTeamRecord["numStudentsAvailable"].toArray();
+    const QJsonArray numStudentsAvailableArray = jsonTeamRecord["numStudentsAvailable"].toArray();
     for(int i = 0; i < MAX_DAYS; i++) {
-        QJsonArray numStudentsAvailableArraySubArray = numStudentsAvailableArray[i].toArray();
+        const QJsonArray numStudentsAvailableArraySubArray = numStudentsAvailableArray[i].toArray();
         for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
             numStudentsAvailable[i][j] = numStudentsAvailableArraySubArray[j].toInt();
         }
     }
 
-    QJsonArray studentIndexesArray = jsonTeamRecord["studentIndexes"].toArray();
+    const QJsonArray studentIndexesArray = jsonTeamRecord["studentIndexes"].toArray();
     for (const auto &val : studentIndexesArray) {
         studentIndexes << val.toInt();
     }
@@ -99,7 +99,7 @@ void TeamRecord::createTooltip()
     if(teamSetDataOptions->URMIncluded) {
         toolTipText += "<br>" + QObject::tr("URM") + ":  " + QString::number(numURM);
     }
-    int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1 : 0);
+    const int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         toolTipText += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
         auto teamVals = attributeVals[attribute].cbegin();
@@ -133,19 +133,19 @@ void TeamRecord::createTooltip()
         }
     }
     if(teamSetDataOptions->timezoneIncluded) {
-        float timezoneA = *timezoneVals.cbegin();
-        float timezoneB = *timezoneVals.crbegin();
+        const float timezoneA = *timezoneVals.cbegin();
+        const float timezoneB = *timezoneVals.crbegin();
         QString timezoneText;
         if(timezoneA == timezoneB) {
-            int hour = int(timezoneA);
-            int minutes = int(60*(timezoneA - int(timezoneA)));
+            const int hour = int(timezoneA);
+            const int minutes = int(60*(timezoneA - int(timezoneA)));
             timezoneText = QString("%1%2:%3").arg(hour >= 0 ? "+" : "").arg(hour).arg(std::abs(minutes), 2, 10, QChar('0'));;
         }
         else {
-            int hourA = int(timezoneA);
-            int hourB = int(timezoneB);
-            int minutesA = int(60*(timezoneA - int(timezoneA)));
-            int minutesB = int(60*(timezoneB - int(timezoneB)));
+            const int hourA = int(timezoneA);
+            const int hourB = int(timezoneB);
+            const int minutesA = int(60*(timezoneA - int(timezoneA)));
+            const int minutesB = int(60*(timezoneB - int(timezoneB)));
             timezoneText = (QString("%1%2:%3 ") + RIGHTARROW + " %4%5:%6").arg(timezoneA >= 0 ? "+" : "").arg(hourA).arg(std::abs(minutesA), 2, 10, QChar('0'))
                                                                   .arg(timezoneB >= 0 ? "+" : "").arg(hourB).arg(std::abs(minutesB), 2, 10, QChar('0'));
         }
@@ -278,9 +278,9 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
 QJsonObject TeamRecord::toJson() const
 {
     QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, studentIndexesArray;
-    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+    for(const auto &attributeVal : attributeVals) {
         QJsonArray attributeValsArraySubArray;
-        for (const auto &val : attributeVals[i]) {
+        for (const auto &val : attributeVal) {
             attributeValsArraySubArray.append(val);
         }
         attributeValsArray.append(attributeValsArraySubArray);
@@ -288,10 +288,10 @@ QJsonObject TeamRecord::toJson() const
     for(const auto &timezoneVal : timezoneVals) {
         timezoneValsArray.append(timezoneVal);
     }
-    for(int i = 0; i < MAX_DAYS; i++) {
+    for(const auto &numStudentsAvailableInADay : numStudentsAvailable) {
         QJsonArray numStudentsAvailableArraySubArray;
-        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
-            numStudentsAvailableArraySubArray.append(numStudentsAvailable[i][j]);
+        for(int numStudentsAvailableNow : numStudentsAvailableInADay) {
+            numStudentsAvailableArraySubArray.append(numStudentsAvailableNow);
         }
         numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);
     }

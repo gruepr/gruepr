@@ -22,8 +22,10 @@ SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
     setWizardStyle(QWizard::ModernStyle);
     setMinimumWidth(800);
     setMinimumHeight(600);
+    setWindowFlag(Qt::CustomizeWindowHint, true);
+    setWindowFlag(Qt::WindowCloseButtonHint, false);
 
-    QSettings savedSettings;
+    const QSettings savedSettings;
     restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
     saveFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
 
@@ -96,13 +98,13 @@ void SurveyMakerWizard::loadSurvey(int customButton)
     }
 
     //read all options from a text file
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), saveFileLocation.canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
     if( !(fileName.isEmpty()) ) {
         QFile loadFile(fileName);
         if(loadFile.open(QIODevice::ReadOnly)) {
             saveFileLocation.setFile(QFileInfo(fileName).canonicalPath());
-            QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
-            QJsonObject loadObject = loadDoc.object();
+            const QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
+            const QJsonObject loadObject = loadDoc.object();
 
             if(loadObject.contains("Title") && loadObject["Title"].isString()) {
                 setField("SurveyTitle", loadObject["Title"].toString());
@@ -127,7 +129,7 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
 
             if(loadObject.contains("numAttributes") && loadObject["numAttributes"].isDouble()) {
-                int numMultiChoiceQuestions = loadObject["numAttributes"].toInt();
+                const int numMultiChoiceQuestions = loadObject["numAttributes"].toInt();
                 setField("multiChoiceNumQuestions", numMultiChoiceQuestions);   // need to set the number before setting the texts, responses, or multis
                 QList<QString> multiChoiceQuestionTexts;
                 QList<QList<QString>> multiChoiceQuestionResponses;
@@ -177,8 +179,8 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
             QStringList scheduleDayNames;
             for(int day = 0; day < MAX_DAYS; day++) {
-                QString dayString1 = "scheduleDay" + QString::number(day+1);
-                QString dayString2 = dayString1 + "Name";
+                const QString dayString1 = "scheduleDay" + QString::number(day+1);
+                const QString dayString2 = dayString1 + "Name";
                 if(loadObject.contains(dayString2) && loadObject[dayString2].isString()) {
                     scheduleDayNames << loadObject[dayString2].toString();
                     //older style was to include day name AND a bool that could turn off the day
@@ -388,23 +390,23 @@ IntroPage::IntroPage(QWidget *parent)
 
     bannerLeft = new QLabel;
     bannerLeft->setStyleSheet("QLabel {background-color: " DEEPWATERHEX ";}");
-    QPixmap leftPixmap(":/icons_new/BannerLeft.png");
+    const QPixmap leftPixmap(":/icons_new/BannerLeft.png");
     bannerLeft->setPixmap(leftPixmap.scaledToHeight(120, Qt::SmoothTransformation));
     bannerLeft->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     bannerLeft->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     bannerRight = new QLabel;
     bannerRight->setStyleSheet("QLabel {background-color: " DEEPWATERHEX ";}");
-    QPixmap rightPixmap(":/icons_new/BannerRight.png");
+    const QPixmap rightPixmap(":/icons_new/BannerRight.png");
     bannerRight->setPixmap(rightPixmap.scaledToHeight(120, Qt::SmoothTransformation));
     bannerRight->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     bannerRight->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     banner = new QLabel;
-    QString labelText = "<html><body>"
-                        "<span style=\"font-family: 'Paytone One'; font-size: 24pt; color: white;\">"
-                        "Make a survey with gruepr</span><br>"
-                        "<span style=\"font-family: 'DM Sans'; font-size: 16pt; color: white;\">"
-                        "Creating optimal grueps is easy! Get started with our five step survey-making flow below.</span>"
-                        "</body></html>";
+    const QString labelText = "<html><body>"
+                              "<span style=\"font-family: 'Paytone One'; font-size: 24pt; color: white;\">"
+                              "Make a survey with gruepr</span><br>"
+                              "<span style=\"font-family: 'DM Sans'; font-size: 16pt; color: white;\">"
+                              "Creating optimal grueps is easy! Get started with our five step survey-making flow below.</span>"
+                              "</body></html>";
     banner->setText(labelText);
     banner->setAlignment(Qt::AlignCenter);
     banner->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
@@ -544,7 +546,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     topLabel->setStyleSheet(LABELSTYLE);
     topLabel->setWordWrap(true);
     vbox->addWidget(topLabel);
-    QStringList genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
+    const QStringList genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     for(const auto &genderOption : genderOptions) {
         ge << new QRadioButton(genderOption);
         vbox->addWidget(ge.last());
@@ -686,7 +688,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
         questionPreviewLayouts << new QVBoxLayout;
         questionPreviews.last()->setLayout(questionPreviewLayouts.last());
-        QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
+        const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
         questionPreviewTopLabels << new QLabel(fillInQuestion);
         questionPreviewTopLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("font-size: 10pt;", "font-size: 12pt;"));
         questionPreviewTopLabels.last()->setWordWrap(true);
@@ -1032,8 +1034,8 @@ SchedulePage::SchedulePage(QWidget *parent)
     toComboBox->setEnabled(false);
     int startindex = 0, endindex = 0;
     for(int time = 0; time < (24 * 60 / MIN_SCHEDULE_RESOLUTION); time++) {
-        float hoursSinceMidnight = time * MIN_SCHEDULE_RESOLUTION / 60.0f;
-        QString timeName = SurveyMakerWizard::sundayMidnight.time().addSecs(hoursSinceMidnight * 3600).toString("h:mm A");
+        const float hoursSinceMidnight = time * MIN_SCHEDULE_RESOLUTION / 60.0f;
+        const QString timeName = SurveyMakerWizard::sundayMidnight.time().addSecs(hoursSinceMidnight * 3600).toString("h:mm A");
         fromComboBox->addItem(timeName, hoursSinceMidnight);
         toComboBox->addItem(timeName, hoursSinceMidnight);
         if(hoursSinceMidnight == DEFAULTSCHEDSTARTTIME) {
@@ -1125,7 +1127,7 @@ QStringList SchedulePage::getDayNames() const
 
 void SchedulePage::setBaseTimezone(const QString &newBaseTimezone)
 {
-    int index = baseTimezoneComboBox->findText(newBaseTimezone, Qt::MatchFixedString);
+    const int index = baseTimezoneComboBox->findText(newBaseTimezone, Qt::MatchFixedString);
     if(index != -1) {
         baseTimezoneComboBox->setCurrentIndex(index);
         customBaseTimezone->hide();
@@ -1136,7 +1138,7 @@ void SchedulePage::setBaseTimezone(const QString &newBaseTimezone)
         customBaseTimezone->setEnabled(baseTimezoneComboBox->isEnabled());
         customBaseTimezone->setText(newBaseTimezone);
     }
-    QString newScheduleQuestion = generateScheduleQuestion(busyOrFreeComboBox->currentIndex() == busy, questions[timezone]->getValue(), newBaseTimezone);
+    const QString newScheduleQuestion = generateScheduleQuestion(busyOrFreeComboBox->currentIndex() == busy, questions[timezone]->getValue(), newBaseTimezone);
     setScheduleQuestion(newScheduleQuestion);
     baseTimezone = newBaseTimezone;
     emit baseTimezoneChanged(newBaseTimezone);
@@ -1243,12 +1245,12 @@ void SchedulePage::day_CheckBox_toggled(bool checked, QLineEdit *dayLineEdit, co
 
 void SchedulePage::checkDays()
 {
-    bool weekends = dayCheckBoxes[Sun]->isChecked() && dayCheckBoxes[Sat]->isChecked();
-    bool noWeekends = !(dayCheckBoxes[Sun]->isChecked() || dayCheckBoxes[Sat]->isChecked());
-    bool weekdays = dayCheckBoxes[Mon]->isChecked() && dayCheckBoxes[Tue]->isChecked() &&
-                    dayCheckBoxes[Wed]->isChecked() && dayCheckBoxes[Thu]->isChecked() && dayCheckBoxes[Fri]->isChecked();
-    bool noWeekdays = !(dayCheckBoxes[Mon]->isChecked() || dayCheckBoxes[Tue]->isChecked() ||
-                        dayCheckBoxes[Wed]->isChecked() || dayCheckBoxes[Thu]->isChecked() || dayCheckBoxes[Fri]->isChecked());
+    const bool weekends = dayCheckBoxes[Sun]->isChecked() && dayCheckBoxes[Sat]->isChecked();
+    const bool noWeekends = !(dayCheckBoxes[Sun]->isChecked() || dayCheckBoxes[Sat]->isChecked());
+    const bool weekdays = dayCheckBoxes[Mon]->isChecked() && dayCheckBoxes[Tue]->isChecked() &&
+                          dayCheckBoxes[Wed]->isChecked() && dayCheckBoxes[Thu]->isChecked() && dayCheckBoxes[Fri]->isChecked();
+    const bool noWeekdays = !(dayCheckBoxes[Mon]->isChecked() || dayCheckBoxes[Tue]->isChecked() ||
+                              dayCheckBoxes[Wed]->isChecked() || dayCheckBoxes[Thu]->isChecked() || dayCheckBoxes[Fri]->isChecked());
     if(weekends && weekdays) {
         daysComboBox->setCurrentIndex(0);
     }
@@ -1310,8 +1312,8 @@ void SchedulePage::update()
         toComboBox->setStyleSheet(COMBOBOXSTYLE);
     }
 
-    bool scheduleOn = questions[schedule]->getValue();
-    bool timezoneOn = questions[timezone]->getValue();
+    const bool scheduleOn = questions[schedule]->getValue();
+    const bool timezoneOn = questions[timezone]->getValue();
 
     baseTimezoneLabel->setVisible(timezoneOn);
     baseTimezoneLabel->setEnabled(scheduleOn);
@@ -1553,7 +1555,7 @@ void CourseInfoPage::update()
     }
     addSectionButton->setEnabled(questions[section]->getValue());
 
-    bool oneOfPrefQuestions = (questions[wantToWorkWith]->getValue() || questions[wantToAvoid]->getValue());
+    const bool oneOfPrefQuestions = (questions[wantToWorkWith]->getValue() || questions[wantToAvoid]->getValue());
     if (oneOfPrefQuestions) {
         selectFromRosterLabel->setText(selectFromRosterLabel->text().replace("#bebebe", DEEPWATERHEX));
     }
@@ -1719,19 +1721,19 @@ bool CourseInfoPage::uploadRoster()
 
     // Ask user what the columns mean
     // Preloading the selector boxes with "unused" except first time "first name", "last name", and "name" are found
-    QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
-                                                    {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
-                                                    {"Full Name (First Last)", "(name)", 1},
-                                                    {"Full Name (Last, First)", "(name)", 1}};;
+    const QList<possFieldMeaning> rosterFieldOptions  = {{"First Name", "((first)|(given)|(preferred)).*(name)", 1},
+                                                          {"Last Name", "((last)|(sur)|(family)).*(name)", 1},
+                                                          {"Full Name (First Last)", "(name)", 1},
+                                                          {"Full Name (Last, First)", "(name)", 1}};;
     if(rosterFile.chooseFieldMeaningsDialog(rosterFieldOptions, this)->exec() == QDialog::Rejected) {
         return false;
     }
 
     // set field values now according to uer's selection of field meanings (defulting to -1 if not chosen)
-    int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
-    int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
-    int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
-    int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
+    const int firstNameField = int(rosterFile.fieldMeanings.indexOf("First Name"));
+    const int lastNameField = int(rosterFile.fieldMeanings.indexOf("Last Name"));
+    const int firstLastNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (First Last)"));
+    const int lastFirstNameField = int(rosterFile.fieldMeanings.indexOf("Full Name (Last, First)"));
 
     studentNames.clear();
 
@@ -1749,7 +1751,7 @@ bool CourseInfoPage::uploadRoster()
             name = rosterFile.fieldValues.at(firstLastNameField).simplified();
         }
         else if(lastFirstNameField != -1) {
-            QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
+            const QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
             name = lastandfirstname.at(1).trimmed() + " " + lastandfirstname.at(0).simplified();
         }
         else if(firstNameField != -1 && lastNameField != -1) {
@@ -1784,7 +1786,7 @@ bool CourseInfoPage::uploadRoster()
 PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::previewexport, parent)
 {
-    int lastPageIndex = qobject_cast<SurveyMakerWizard *>(wizard())->numPages - 1;
+    const int lastPageIndex = qobject_cast<SurveyMakerWizard *>(wizard())->numPages - 1;
     for(int sectionNum = 0; sectionNum < lastPageIndex; sectionNum++) {
         preSectionSpacer << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         questionLayout->addItem(preSectionSpacer.last());
@@ -1813,16 +1815,16 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     auto helpLayout = new QHBoxLayout;
     helpLayout->addWidget(helpIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
     helpLayout->addWidget(helpLabel, 1, Qt::AlignVCenter);
-    QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:"
-                          "<ul>"
-                          "<li><u>Google Form in Your Google Drive</u> Send your students the link, and gruepr can download the results.</li>"
-                          "<li><u>Survey in Your Canvas Course</u> Publish it in the Canvas page your class already uses, and gruepr can download the results.</li>"
-                          "<li><u>Text Files on Your Computer</u>  Use your own survey instrument. "
-                          " One file lists your survey questions, and another is preformatted for you to (1) open in Excel, Numbers, or Sheets,"
-                          " (2) fill in your students' responses, and then (3) open in gruepr.</li>"
-                          "<li><u>gruepr Survey File on Your Computer</u> Save your work for reuse, modification, or sharing with colleagues.</li>"
-                          "</ul>"
-                          "</span></html>");
+    const QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:"
+                                "<ul>"
+                                "<li><u>Google Form in Your Google Drive</u> Send your students the link, and gruepr can download the results.</li>"
+                                "<li><u>Survey in Your Canvas Course</u> Publish it in the Canvas page your class already uses, and gruepr can download the results.</li>"
+                                "<li><u>Text Files on Your Computer</u>  Use your own survey instrument. "
+                                " One file lists your survey questions, and another is preformatted for you to (1) open in Excel, Numbers, or Sheets,"
+                                " (2) fill in your students' responses, and then (3) open in gruepr.</li>"
+                                "<li><u>gruepr Survey File on Your Computer</u> Save your work for reuse, modification, or sharing with colleagues.</li>"
+                                "</ul>"
+                                "</span></html>");
     helpIcon->setToolTipText(helpText);
     helpLabel->setToolTipText(helpText);
     destinationGoogle = new QRadioButton(tr("Google Form"));
@@ -1914,7 +1916,7 @@ void PreviewAndExportPage::initializePage()
     wizard()->button(QWizard::CancelButton)->disconnect();
     connect(wizard()->button(QWizard::CancelButton), &QPushButton::clicked, this, [this] {if(surveyHasBeenExported) {wizard()->reject();}
                                                                                           else {
-                                                                                            bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+                                                                                            const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
                                                                                             tr("You have not yet exported this survey.\n"
                                                                                                "Are you sure you want to close?"),
                                                                                             tr("Yes"), tr("No"));
@@ -2224,7 +2226,7 @@ void PreviewAndExportPage::initializePage()
 
     if(prefTeammate) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[1]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        QString questionText = CourseInfoPage::generateTeammateQuestion(true, typingStudentNames, numPrefTeammates);
+        const QString questionText = CourseInfoPage::generateTeammateQuestion(true, typingStudentNames, numPrefTeammates);
         section[SurveyMakerWizard::courseinfo]->questionLabel[1]->setText(questionText);
         section[SurveyMakerWizard::courseinfo]->questionLabel[1]->show();
         if(typingStudentNames) {
@@ -2265,7 +2267,7 @@ void PreviewAndExportPage::initializePage()
 
     if(prefNonTeammate) {
         section[SurveyMakerWizard::courseinfo]->preQuestionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        QString questionText = CourseInfoPage::generateTeammateQuestion(false, typingStudentNames, numPrefTeammates);
+        const QString questionText = CourseInfoPage::generateTeammateQuestion(false, typingStudentNames, numPrefTeammates);
         section[SurveyMakerWizard::courseinfo]->questionLabel[2]->show();
         section[SurveyMakerWizard::courseinfo]->questionLabel[2]->setText(questionText);
         if(typingStudentNames) {
@@ -2333,7 +2335,7 @@ void PreviewAndExportPage::exportSurvey()
     if(destinationGrueprFile->isChecked()) {
         QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
         //save all options to a text file
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+        const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
         if( !(fileName.isEmpty()) ) {
             QFile saveFile(fileName);
             if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -2370,8 +2372,8 @@ void PreviewAndExportPage::exportSurvey()
                 saveObject["scheduleQuestion"] = field("ScheduleQuestion").toString();
                 QList<QString> dayNames = field("scheduleDayNames").toStringList();
                 for(int day = 0; day < MAX_DAYS; day++) {
-                    QString dayString1 = "scheduleDay" + QString::number(day+1);
-                    QString dayString2 = dayString1 + "Name";
+                    const QString dayString1 = "scheduleDay" + QString::number(day+1);
+                    const QString dayString2 = dayString1 + "Name";
                     saveObject[dayString1] = !dayNames[day].isEmpty();
                     saveObject[dayString2] = dayNames[day];
                 }
@@ -2386,7 +2388,7 @@ void PreviewAndExportPage::exportSurvey()
                 saveObject["numPrefTeammates"] = field("numPrefTeammates").toInt();
                 saveObject["StudentNames"] = field("StudentNames").toStringList().join(',');
 
-                QJsonDocument saveDoc(saveObject);
+                const QJsonDocument saveDoc(saveObject);
                 saveFile.write(saveDoc.toJson());
                 saveFile.close();
                 surveyHasBeenExported = true;
@@ -2411,7 +2413,7 @@ void PreviewAndExportPage::exportSurvey()
         }
 
         //get the filenames and location
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
+        const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
         if(fileName.isEmpty()) {
             grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
             return;
@@ -2479,7 +2481,7 @@ void PreviewAndExportPage::exportSurvey()
         if(!google->authenticated) {
             auto *loginDialog = new QMessageBox(this);
             loginDialog->setStyleSheet(LABELSTYLE);
-            QPixmap icon(":/icons_new/google.png");
+            const QPixmap icon(":/icons_new/google.png");
             loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             loginDialog->setText("");
 
@@ -2517,7 +2519,7 @@ void PreviewAndExportPage::exportSurvey()
                 loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
                 auto *okButton = loginDialog->button(QMessageBox::Ok);
                 auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
-                int height = okButton->height();
+                const int height = okButton->height();
                 QPixmap loginpic(":/icons_new/google_signin_button.png");
                 loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
                 okButton->setText("");
@@ -2553,7 +2555,7 @@ void PreviewAndExportPage::exportSurvey()
         auto form = google->createSurvey(survey);
 
         QPixmap icon;
-        QSize iconSize = google->actionDialogIcon->size();
+        const QSize iconSize = google->actionDialogIcon->size();
         if(form.name.isEmpty()) {
             google->actionDialogLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons_new/error.png");
@@ -2575,7 +2577,7 @@ void PreviewAndExportPage::exportSurvey()
 
             // append this survey to the saved values
             QSettings settings;
-            int currentArraySize = settings.beginReadArray("GoogleForm");
+            const int currentArraySize = settings.beginReadArray("GoogleForm");
             settings.endArray();
             settings.beginWriteArray("GoogleForm");
             settings.setArrayIndex(currentArraySize);
@@ -2589,7 +2591,7 @@ void PreviewAndExportPage::exportSurvey()
             successDialog->setStyleSheet(QString() + LABELSTYLE + SMALLBUTTONSTYLE);
             successDialog->setTextFormat(Qt::RichText);
             successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
-            QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
+            const QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
             successDialog->setText(
                                     tr("Success! Survey created.<br><br>"
                                        "If you'd like to preview or edit the survey, find it in your")
@@ -2639,7 +2641,7 @@ void PreviewAndExportPage::exportSurvey()
             QString savedCanvasURL = savedSettings.value("canvasURL").toString();
             QString savedCanvasToken = savedSettings.value("canvasToken").toString();
 
-            QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
+            const QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
             if(newURLAndToken.isEmpty()) {
                 return;
             }
@@ -2690,10 +2692,10 @@ void PreviewAndExportPage::exportSurvey()
 
         //upload the survey as a quiz
         busyBox = canvas->actionDialog();
-        bool success = canvas->createSurvey(coursesComboBox->currentText(), survey);
+        const bool success = canvas->createSurvey(coursesComboBox->currentText(), survey);
 
         QPixmap icon;
-        QSize iconSize = canvas->actionDialogIcon->size();
+        const QSize iconSize = canvas->actionDialogIcon->size();
         if(!success) {
             canvas->actionDialogLabel->setText(tr("Error. The survey was not created."));
             icon.load(":/icons_new/error.png");

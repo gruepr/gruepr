@@ -18,7 +18,7 @@ GoogleHandler::GoogleHandler() {
     google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
 
     QString refreshToken;
-    QSettings settings;
+    const QSettings settings;
     refreshToken = settings.value("GoogleRefreshToken", "").toString();
 
     if(!refreshToken.isEmpty()) {
@@ -40,7 +40,7 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
     google->setContentType(QAbstractOAuth::ContentType::Json);
-    QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
+    const QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
     QJsonObject info;
     info["title"] = title;
     info["document_title"] = title;
@@ -51,8 +51,8 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     QList<QStringList*> stringParams = {&formIDInList, &submissionURL, &revisionIDinList};
     QList<QStringList*> stringInSubobjectParams = {&y};
     postToGoogleGetSingleResult(url, QJsonDocument(form).toJson(), {"formId", "responderUri", "revisionId"}, stringParams, {}, stringInSubobjectParams);
-    QString formID = formIDInList.constFirst();
-    QString surveySubmissionURL = submissionURL.constFirst();
+    const QString formID = formIDInList.constFirst();
+    const QString surveySubmissionURL = submissionURL.constFirst();
     QString revisionID = revisionIDinList.constFirst();
     if(formID.isEmpty()) {
         return {};
@@ -222,13 +222,13 @@ QStringList GoogleHandler::getSurveyList() {
     formsList.clear();
 
     QSettings settings;
-    int size = settings.beginReadArray("GoogleForm");
+    const int size = settings.beginReadArray("GoogleForm");
     for (int i = 0; i < size; ++i) {
         settings.setArrayIndex(i);
-        QString name = settings.value("name").toString();
-        QString id = settings.value("ID").toString();
-        QString createdTime = settings.value("createdTime").toString();
-        QString responderURL = settings.value("responderURL").toString();
+        const QString name = settings.value("name").toString();
+        const QString id = settings.value("ID").toString();
+        const QString createdTime = settings.value("createdTime").toString();
+        const QString responderURL = settings.value("responderURL").toString();
         if(!id.isEmpty()) {
             formsList.append({name, id, createdTime, responderURL});
         }
@@ -306,8 +306,8 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     }
 
     //prepare a file for the results
-    static QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
-    QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
+    static const QRegularExpression unallowedChars(R"([#&&{}\/\<>*?$!'":@+`|=])");
+    const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
     QFile file(filepath.absoluteFilePath());
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     //qDebug() << file.errorString();
@@ -457,7 +457,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
             *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
         }
         for(int i = 0; i < stringInSubobjectParams.size(); i++) {
-            QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
+            const QStringList subobjectAndParamName = stringInSubobjectParams.at(i).split('/');   // "subobject_name/string_paramater_name"
             QJsonObject object = json_obj[subobjectAndParamName.at(0)].toObject();
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
         }
@@ -478,7 +478,7 @@ void GoogleHandler::authenticate() {
     google->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         // Percent-decode the "code" parameter so Google can match it
         if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
-            QByteArray code = parameters->value("code").toByteArray();
+            const QByteArray code = parameters->value("code").toByteArray();
             parameters->insert("code", QUrl::fromPercentEncoding(code));
         }
     });

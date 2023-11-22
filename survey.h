@@ -1,9 +1,9 @@
 #ifndef SURVEY_H
 #define SURVEY_H
 
+#include <QList>
 #include <QString>
 #include <QStringList>
-#include <QList>
 
 
 class Question

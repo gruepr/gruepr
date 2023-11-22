@@ -82,7 +82,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     possibleRequestedTeammates = {ui->requested_teammateSelectComboBox};
 
     auto loadButtons = {ui->required_loadButton, ui->prevented_loadButton, ui->requested_loadButton};
-    QFont font("DM Sans");
+    const QFont font("DM Sans");
     for(auto &loadButton : loadButtons) {
         loadButton->setStyleSheet(SMALLTOOLBUTTONSTYLEINVERTED);
         auto *loadMenu = new QMenu(this);
@@ -134,7 +134,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                                                                            "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
         //below is stupid way needed to get text in the top-left corner cell
         auto *button = tableWidget->findChild<QAbstractButton *>();
-        if (button) {
+        if (button != nullptr) {
             button->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; border: none;");
             auto *lay = new QVBoxLayout(button);
             lay->setContentsMargins(0, 0, 0, 0);
@@ -160,11 +160,11 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->requested_lightbulb->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     ui->requested_lightbulb->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
     ui->requested_whatsThisLabel->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
-    QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
-                          "students will be with placed on a team with a certain number of teammates from a list. "
-                          "For example, you might allow students to make up to five requests, and use this feature so that everyone gets "
-                          "placed with at least one from their list."
-                          "</span></html>");
+    const QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
+                                "students will be with placed on a team with a certain number of teammates from a list. "
+                                "For example, you might allow students to make up to five requests, and use this feature so that everyone gets "
+                                "placed with at least one from their list."
+                                "</span></html>");
     ui->requested_lightbulb->setToolTipText(helpText);
     ui->requested_whatsThisLabel->setToolTipText(helpText);
 
@@ -461,7 +461,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         }
     }
     else {
-        int baseStudentID = ui->requested_studentSelectComboBox->currentData().toInt();
+        const int baseStudentID = ui->requested_studentSelectComboBox->currentData().toInt();
         // find the student with this ID
         StudentRecord *baseStudent = nullptr;
         int index = 0;
@@ -471,10 +471,10 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         if(index < numStudents) {
             baseStudent = &students[index];
 
-            for(int ID1 = 0; ID1 < IDs.size(); ID1++) {
-                if(baseStudentID != IDs[ID1]) {
+            for(const int ID : IDs) {
+                if(baseStudentID != ID) {
                     //we have at least one requested teammate pair!
-                    baseStudent->requestedWith[IDs[ID1]] = true;
+                    baseStudent->requestedWith[ID] = true;
                 }
             }
         }
@@ -488,7 +488,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
 
 void TeammatesRulesDialog::clearAllValues()
 {
-    bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+    const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
                                                        tr("This will remove all teammates rules listed in all of the tables.\n"
                                                           "Are you sure you want to continue?"),
                                                        tr("Yes"), tr("No"));
@@ -519,7 +519,7 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
     }
 
     if(verify) {
-        bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+        const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
                                                           tr("This will remove all rules listed in the ") + typeText + tr(" teammates table.\n"
                                                           "Are you sure you want to continue?"),
                                                           tr("Yes"), tr("No"));
@@ -599,13 +599,13 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
     QList<QStringList> teammates;
     csvFile.readHeader();
     while(csvFile.readDataRow()) {
-        int pos = int(basenames.indexOf(csvFile.fieldValues.at(0).trimmed())); // get index of this name
+        const int pos = int(basenames.indexOf(csvFile.fieldValues.at(0).trimmed())); // get index of this name
 
         if(pos == -1) { // basename is not yet found in basenames list
             basenames << csvFile.fieldValues.at(0).trimmed();
             teammates.append(QStringList());
             for(int i = 1; i < numFields; i++) {
-                QString teammate = csvFile.fieldValues.at(i).trimmed();
+                const QString teammate = csvFile.fieldValues.at(i).trimmed();
                 if(!teammate.isEmpty()) {
                     teammates.last() << teammate;
                 }
@@ -826,7 +826,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
     QList<QStringList> teammateLists;
     spreadsheetFile.readHeader();
     while(spreadsheetFile.readDataRow()) {
-        int pos = int(teamnames.indexOf(spreadsheetFile.fieldValues.at(1).trimmed())); // get index of this team
+        const int pos = int(teamnames.indexOf(spreadsheetFile.fieldValues.at(1).trimmed())); // get index of this team
 
         if(pos == -1) {     // team is not yet found in teams list
             teamnames << spreadsheetFile.fieldValues.at(1).trimmed();
@@ -939,7 +939,7 @@ bool TeammatesRulesDialog::loadExistingTeamset(TypeOfTeammates typeOfTeammates)
         connect(buttons, &QDialogButtonBox::rejected, win, &QDialog::reject);
         layout->addWidget(buttons);
 
-        int result = win->exec();
+        const int result = win->exec();
         win->deleteLater();
         if(result == QDialog::Accepted) {
             teamSet = teamsetChooser->currentText();

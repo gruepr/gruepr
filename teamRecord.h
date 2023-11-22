@@ -4,8 +4,8 @@
 #include "dataOptions.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
-#include <QString>
 #include <QList>
+#include <QString>
 #include <set>
 
 // all the info about one team

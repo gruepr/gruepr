@@ -31,7 +31,8 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
     stream = nullptr;
 
     if(operation == Operation::read) {
-        QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
+        const QString fileName = QFileDialog::getOpenFileName(parent, caption, filepath,
+                                                              filetypeDescriptor + " File (*.csv *.txt);;All Files (*)");
         if (!fileName.isEmpty()) {
             file = new QFile(fileName);
             if(file->open(QIODevice::ReadOnly)) {
@@ -42,7 +43,8 @@ bool CsvFile::open(QWidget *parent, Operation operation, const QString &caption,
         }
     }
     else {
-        QString fileName = QFileDialog::getSaveFileName(parent, caption, filepath, filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
+        const QString fileName = QFileDialog::getSaveFileName(parent, caption, filepath,
+                                                              filetypeDescriptor + " File (*.csv);;Text File (*.txt);;All Files (*)");
         if (!fileName.isEmpty()) {
             file = new QFile(fileName);
             if(file->open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -267,6 +269,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
     window->theTable->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}"
                                     "QTableView::item{border-top: none; border-bottom: none; border-left: none; border-right: 1px solid darkGray; padding: 3px;}" +
                                     QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
+    window->theTable->setAlternatingRowColors(true);
     window->theTable->setHorizontalHeaderLabels(QStringList({HEADERTEXT, CATEGORYTEXT}));
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++) {
@@ -295,7 +298,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
             selector->setCurrentText(fieldMeanings.at(row));
         }
         selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-        int width = selector->minimumSizeHint().width();
+        const int width = selector->minimumSizeHint().width();
         selector->setMinimumWidth(width);
         selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         window->theTable->setCellWidget(row, 1, selector);
@@ -331,7 +334,7 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
     for(auto row : rows) {
         // get the selected fieldMeaning
         const auto *box = qobject_cast<QComboBox *>(window->theTable->cellWidget(row, 1));
-        QString selection = box->currentText();
+        const QString selection = box->currentText();
 
         // set it in the CsvFile's data
         fieldMeanings[row] = selection;
@@ -374,8 +377,8 @@ void CsvFile::validateFieldSelectorBoxes(int callingRow)
         box->blockSignals(true);
         auto *model = qobject_cast<QStandardItemModel *>(box->model());
         for(auto &takenValue : takenValues) {
-            QString fieldval = takenValue.first;
-            int numAllowed = box->itemData(box->findText(fieldval)).toInt();
+            const QString fieldval = takenValue.first;
+            const int numAllowed = box->itemData(box->findText(fieldval)).toInt();
             QStandardItem *item = model->item(box->findText(fieldval));
             if((fullyUsedValues[fieldval] > 1) && (box->currentText() == fieldval)) {
                 // number exceeds max. allowed somehow, so set to unused
@@ -449,7 +452,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
     QString value;
 
     for(int i = 0; i < line.size(); i++) {
-        QChar current=line.at(i);
+        const QChar current=line.at(i);
 
         // Normal state
         if (state == Normal) {
