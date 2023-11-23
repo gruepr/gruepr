@@ -178,7 +178,7 @@ StartDialog::StartDialog(QWidget *parent)
     helpButton->setMenu(helpMenu);
 #else
     auto *menuBar = new QMenuBar(nullptr);
-    helpMenu = new QMenu(this);
+    auto *helpMenu = new QMenu(this);
     for(const auto &helpAction : helpActions) {
         helpMenu->addAction(helpAction);
     }

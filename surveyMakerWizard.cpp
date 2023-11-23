@@ -2476,7 +2476,7 @@ void PreviewAndExportPage::exportSurvey()
 
         //create googleHandler and/or authenticate as needed
         if(google == nullptr) {
-            google = new GoogleHandler();
+            google = new GoogleHandler;
         }
         if(!google->authenticated) {
             auto *loginDialog = new QMessageBox(this);
@@ -2503,7 +2503,7 @@ void PreviewAndExportPage::exportSurvey()
                 //refreshToken failed, so need to start over
                 if(!google->authenticated) {
                     delete google;
-                    google = new GoogleHandler();
+                    google = new GoogleHandler;
                 }
             }
 

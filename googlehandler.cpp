@@ -422,12 +422,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
                                                                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
     QEventLoop loop;
-    QString replyBody;
-    QJsonDocument json_doc;
-    QJsonArray json_array;
-
     auto *reply = google->post(URL, postData);
-
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -436,9 +431,10 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
         return;
     }
 
-    replyBody = reply->readAll();
+    const QString replyBody = reply->readAll();
     //qDebug() << replyBody;
-    json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    const QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    QJsonArray json_array;
     if(json_doc.isArray()) {
         json_array = json_doc.array();
     }
