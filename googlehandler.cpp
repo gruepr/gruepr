@@ -484,7 +484,7 @@ void GoogleHandler::authenticate() {
 
     connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
                                                                            emit granted();});
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](const QString &error){qDebug() << error;
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](const QString &error){
                                                                                     authenticated = false;
                                                                                     google->setRefreshToken("");
                                                                                     refreshTokenExists = false;

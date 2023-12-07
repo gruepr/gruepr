@@ -43,9 +43,13 @@
 //  INTERNAL:
 // - unified and simplified memory management and code styling throughout
 //
+//  NEW FEATURES:
+// - now automatically obtains students' email addresses from Canvas when downloading survey results
+//
 // TO DO:
 //   BUGFIXES:
-// - does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
+// - sometimes does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
+// - sometimes does not obtain token from Google once authorized in browser
 //
 //   NEW FEATURES:
 // - see if any window is larger than screen size and downsize accordingly

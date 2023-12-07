@@ -998,6 +998,7 @@ bool GetGrueprDataDialog::readData()
                 currStudent.firstname = student.firstname;
                 currStudent.lastname = student.lastname;
                 currStudent.LMSID = student.LMSID;
+                currStudent.email = student.email;
                 for(auto &day : currStudent.unavailable) {
                     for(auto &time : day) {
                         time = false;
@@ -1006,6 +1007,14 @@ bool GetGrueprDataDialog::readData()
                 currStudent.ambiguousSchedule = true;
                 numStudents++;
             }
+            else if(students.at(index).email.isEmpty() && !student.email.isEmpty()) {
+                // Match found, but student doesn't have an email address yet, so copy it from roster info
+                students[index].email = student.email;
+            }
+        }
+
+        if(dataOptions->emailField == -1 && std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &i){return !i.email.isEmpty();})) {
+            dataOptions->emailField = 1;    // emails added from the roster, so update dataOptions to reflect
         }
 
         if(numNonSubmitters > 0) {

@@ -69,12 +69,13 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) 
     }
 
     QStringList studentNames;
+    QStringList studentEmails;
     QList<int> ids;
     QStringList x;
-    QList<QStringList*> studentNamesInList = {&studentNames};
+    QList<QStringList*> studentNamesandEmailsInList = {&studentNames, &studentEmails};
     QList<QList<int>*> idsInList = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student", {"sortable_name"}, studentNamesInList, {"id"}, idsInList, {}, stringInSubobjectParams);
+    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student", {"sortable_name", "email"}, studentNamesandEmailsInList, {"id"}, idsInList, {}, stringInSubobjectParams);
 
     QStringList firstNames, lastNames;
     for(const auto &studentName : studentNames) {
@@ -90,6 +91,7 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) 
         student.firstname = firstNames.at(i);
         student.lastname = lastNames.at(i);
         student.LMSID = ids.at(i);
+        student.email = studentEmails.at(i);
         roster << student;
     }
 
