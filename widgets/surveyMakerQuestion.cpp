@@ -7,13 +7,14 @@
 SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, const QString &textLabel, bool startingValue)
     : QFrame{parent}
 {
+    setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
+
     switchButton = new SwitchButton(startingValue);
     connect(switchButton, &SwitchButton::valueChanged, this, &SurveyMakerQuestionWithSwitch::valueChange);
 
     label = new QLabel(this);
+    label->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
     setLabel(textLabel);
-
-    setStyleSheet(QString("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}") + SCROLLBARSTYLE);
 
     layout = new QGridLayout(this);
     layout->addWidget(label, 0, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
@@ -26,23 +27,10 @@ void SurveyMakerQuestionWithSwitch::mousePressEvent(QMouseEvent *event)
     switchButton->mousePressEvent(event);
 }
 
-void SurveyMakerQuestionWithSwitch::paintEvent(QPaintEvent*)
-{
-    setAutoFillBackground(true);
-    if (_enabled) {
-        setStyleSheet(QString("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}") + SCROLLBARSTYLE);
-        label->setText(label->text().replace("#bebebe", DEEPWATERHEX));
-    }
-    else {
-        setStyleSheet(QString("QFrame{background-color: #e6e6e6; color: #bebebe;}") + SCROLLBARSTYLE);
-        label->setText(label->text().replace(DEEPWATERHEX, "#bebebe"));
-    }
-}
-
 void SurveyMakerQuestionWithSwitch::setEnabled(bool flag)
 {
-    _enabled = flag;
     switchButton->setEnabled(flag);
+    label->setEnabled(flag);
     for(auto *widget : this->findChildren<QWidget *>()) {
         widget->setEnabled(flag);
     }
@@ -51,7 +39,7 @@ void SurveyMakerQuestionWithSwitch::setEnabled(bool flag)
 
 void SurveyMakerQuestionWithSwitch::setLabel(const QString &text)
 {
-    label->setText("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + text + "</span>");
+    label->setText(text);
 }
 
 void SurveyMakerQuestionWithSwitch::valueChange(bool newvalue)
@@ -94,7 +82,10 @@ void SurveyMakerQuestionWithSwitch::moveWidget(QWidget *widget, int newRow, int 
 SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, QWidget *parent)
     : QFrame{parent}
 {
+    setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
+
     label = new QLabel(this);
+    label->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
     setNumber(questionNum);
     deleteButton = new QPushButton(this);
     deleteButton->setStyleSheet(DELBUTTONSTYLE);
@@ -135,8 +126,6 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     connect(responsesComboBox, &QComboBox::activated, this, &SurveyMakerMultichoiceQuestion::responsesComboBoxActivated);
     connect(multiAllowed, &QCheckBox::toggled, this, &SurveyMakerMultichoiceQuestion::multiChange);
 
-    setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
-
     auto *layout = new QGridLayout(this);
     int row = 0;
     layout->addWidget(label, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
@@ -166,7 +155,7 @@ void SurveyMakerMultichoiceQuestion::resizeEvent(QResizeEvent *event)
 
 void SurveyMakerMultichoiceQuestion::setNumber(const int questionNum)
 {
-    label->setText("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + tr("Question ") + QString::number(questionNum) + "</span>");
+    label->setText(tr("Question ") + QString::number(questionNum));
 }
 
 void SurveyMakerMultichoiceQuestion::deleteRequest()
@@ -363,11 +352,14 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
 SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QString &titleText, const int numQuestions, QWidget *parent)
     : QFrame{parent}
 {
-    setStyleSheet(QString() + "QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}" + SCROLLBARSTYLE);
+    setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
 
     layout = new QGridLayout(this);
 
-    title = new QLabel("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:14pt\">" + titleText + "</span>", this);
+    title = new QLabel(this);
+    title->setStyleSheet(QString(LABELSTYLE).replace("10pt", "14pt"));
+    title->setText(titleText);
+
     //center the title for just the Survey Title section
     if(pageNum == 0) {
         layout->addWidget(title, row, 0, 1, 1, Qt::AlignCenter | Qt::AlignVCenter);
@@ -426,5 +418,5 @@ void SurveyMakerPreviewSection::addWidget(QWidget *widget)
 
 void SurveyMakerPreviewSection::setTitle(const QString &newTitle)
 {
-    title->setText("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:14pt\">" + newTitle + "</span>");
+    title->setText(newTitle);
 }

@@ -115,7 +115,7 @@ inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(2
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold; "
                                                              "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
 inline static const char LABELSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
-                                          "QLabel:disabled {color: darkGray; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
+                                          "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                        "font-family: 'DM Sans'; font-size: 12pt;}"
                                              "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
@@ -188,6 +188,14 @@ inline static const char TABWIDGETSTYLE[] = "QTabWidget::pane {background-color:
                                               "QTabBar::tab:!selected {background-color: white; border: 3px solid white; border-bottom-color: white;}"
                                               "QTabBar::tab:hover {background-color: white; border: 3px solid white; border-bottom-color: " AQUAHEX ";}";
 inline static const char BIGTOOLTIPSTYLE[] = "QToolTip {font-family: 'DM Sans'; font-size: 12pt; background-color: white; color: black;}";
+inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
+                                                "border-top: 1px solid " AQUAHEX "; border-right: 1px solid " AQUAHEX "; "
+                                                "border-bottom: 1px solid " AQUAHEX "; border-left: 1px solid " AQUAHEX ";}"
+                                       "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
+                                                "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
+                                                "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+inline static const char BORDERLESSBLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
+                                                 "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
 
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;

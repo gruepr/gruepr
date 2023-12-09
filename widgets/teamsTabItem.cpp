@@ -113,13 +113,13 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
 
     rowsLayout->addStretch(0);
 
-    auto *expandAllButton = new QPushButton(tr("Expand All Rows"), this);
+    auto *expandAllButton = new QPushButton(tr("Expand All Teams"), this);
     expandAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     expandAllButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(expandAllButton, &QPushButton::clicked, teamDataTree, &TeamTreeWidget::expandAll);
     rowsLayout->addWidget(expandAllButton);
 
-    auto *collapseAllButton = new QPushButton(tr("Collapse All Rows"), this);
+    auto *collapseAllButton = new QPushButton(tr("Collapse All Teams"), this);
     collapseAllButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     collapseAllButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(collapseAllButton, &QPushButton::clicked, teamDataTree, &TeamTreeWidget::collapseAll);

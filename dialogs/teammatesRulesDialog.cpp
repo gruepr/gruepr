@@ -46,7 +46,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     auto frames = {ui->required_addFrame, ui->required_valuesFrame, ui->prevented_addFrame,
                    ui->prevented_valuesFrame, ui->requested_addFrame, ui->requested_valuesFrame};
     for(auto &frame : frames) {
-        frame->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX ";}");
+        frame->setStyleSheet(BLUEFRAME);
     }
 
     auto addLabels = {ui->required_explanationLabel, ui->prevented_explanationLabel, ui->requested_explanationLabel};

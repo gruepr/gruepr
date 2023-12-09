@@ -45,8 +45,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                         "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}");
     QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
     for(auto &frame : frames) {
-        frame->setStyleSheet(QString() + "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: 1px solid; border-color: " AQUAHEX "}" +
-                                         LABELSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        frame->setStyleSheet(QString(BLUEFRAME) + LABELSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     }
     ui->attributesStackedWidget->setStyleSheet(QString() + "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}");
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));

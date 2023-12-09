@@ -717,7 +717,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     }
 
     addQuestionButtonFrame = new QFrame(this);
-    addQuestionButtonFrame->setStyleSheet("background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";");
+    addQuestionButtonFrame->setStyleSheet(BLUEFRAME);
     addQuestionButtonLayout = new QHBoxLayout(addQuestionButtonFrame);
     addQuestionButton = new QPushButton;
     addQuestionButton->setStyleSheet(ADDBUTTONSTYLE);
@@ -729,7 +729,6 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     questionLayout->addWidget(addQuestionButtonFrame);
     questionLayout->addItem(stretch);
 
-    addQuestion();
     addQuestion();
 }
 
@@ -970,10 +969,13 @@ SchedulePage::SchedulePage(QWidget *parent)
     auto *timespan = new QWidget;
     auto *timespanLayout = new QVBoxLayout(timespan);
     timespanLayout->setSpacing(2);
-    timespanLabel = new QLabel(tr("Timespan:"));
+    timespanLabel = new QLabel(tr("Span:"));
     timespanLabel->setStyleSheet(LABELSTYLE);
     timespanLabel->setEnabled(false);
     timespanLayout->addWidget(timespanLabel);
+
+    auto *daysW = new QWidget;
+    auto *daysLayout = new QHBoxLayout(daysW);
     daysComboBox = new QComboBox;
     daysComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     daysComboBox->installEventFilter(new MouseWheelBlocker(daysComboBox));
@@ -983,8 +985,9 @@ SchedulePage::SchedulePage(QWidget *parent)
     daysComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     daysComboBox->setEnabled(false);
     daysComboBox->setCurrentIndex(0);
-    timespanLayout->addWidget(daysComboBox);
     connect(daysComboBox, &QComboBox::activated, this, &SchedulePage::daysComboBox_activated);
+    daysLayout->addWidget(daysComboBox);
+    timespanLayout->addWidget(daysW);
 
     //connect subwindow ui to slots
     dayNames.reserve(MAX_DAYS);
@@ -1009,7 +1012,7 @@ SchedulePage::SchedulePage(QWidget *parent)
 
     auto *fromTo = new QWidget;
     auto *fromToLayout = new QHBoxLayout(fromTo);
-    fromLabel = new QLabel(tr("From"));
+    fromLabel = new QLabel(tr("from"));
     fromLabel->setStyleSheet(LABELSTYLE);
     fromLabel->setEnabled(false);
     fromToLayout->addWidget(fromLabel);
@@ -1078,7 +1081,7 @@ SchedulePage::SchedulePage(QWidget *parent)
 
     auto *format = new QWidget;
     auto *formatLayout = new QHBoxLayout(format);
-    formatLabel = new QLabel(tr("Time format:"));
+    formatLabel = new QLabel(tr("time format:"));
     formatLabel->setStyleSheet(LABELSTYLE);
     formatLabel->setEnabled(false);
     formatLayout->addWidget(formatLabel);
@@ -1395,6 +1398,8 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     registerField("SectionNames", this, "sectionNames", "sectionNamesChanged");
 
     questions[wantToWorkWith]->setLabel(tr("Classmates I want to work with"));
+    questions[wantToWorkWith]->setStyleSheet(questions[wantToWorkWith]->styleSheet().replace("border-bottom: 1px solid " AQUAHEX, "border-bottom: 0px")
+                                                                                    .replace("border-bottom: 1px solid #bebebe", "border-bottom: 0px"));
     connect(questions[wantToWorkWith], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
     questionPreviewTopLabels[wantToWorkWith]->setText(tr("Classmates"));
     questionPreviewLayouts[wantToWorkWith]->addWidget(questionPreviewTopLabels[wantToWorkWith]);
@@ -1418,6 +1423,8 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     questionLayout->removeItem(questionLayout->itemAt(4));
 
     questions[wantToAvoid]->setLabel(tr("Classmates I want to avoid"));
+    questions[wantToAvoid]->setStyleSheet(questions[wantToAvoid]->styleSheet().replace("border-top: 1px solid " AQUAHEX, "border-top: 0px")
+                                                                              .replace("border-top: 1px solid #bebebe", "border-top: 0px"));
     connect(questions[wantToAvoid], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
     questionPreviewTopLabels[wantToAvoid]->setText(tr("Classmates"));
     questionPreviewLayouts[wantToAvoid]->addWidget(questionPreviewTopLabels[wantToAvoid]);
@@ -1451,7 +1458,8 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     registerField("numPrefTeammates", numPrefTeammatesSpinBox);
 
     selectFromRosterLabel = new LabelThatForwardsMouseClicks;
-    selectFromRosterLabel->setText("<span style=\"color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size:12pt\">" + tr("Select from a class roster") + "</span>");
+    selectFromRosterLabel->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    selectFromRosterLabel->setText(tr("Select from a class roster"));
     selectFromRosterSwitch = new SwitchButton(false);
     connect(selectFromRosterSwitch, &SwitchButton::valueChanged, this, &CourseInfoPage::update);
     connect(selectFromRosterLabel, &LabelThatForwardsMouseClicks::mousePressed, selectFromRosterSwitch, &SwitchButton::mousePressEvent);
@@ -1464,7 +1472,6 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     uploadButton->setStyleSheet(ADDBUTTONSTYLE);
     uploadButton->setText(tr("Upload class roster"));
     uploadButton->setIcon(QIcon(":/icons_new/addButton.png"));
-    uploadButton->setEnabled(false);
     connect(uploadButton, &QPushButton::clicked, this, &CourseInfoPage::uploadRoster);
     questions[wantToAvoid]->addWidget(uploadExplainer, 4, 0, true);
     questions[wantToAvoid]->addWidget(uploadButton, 5, 0, false, Qt::AlignLeft);
@@ -1562,6 +1569,7 @@ void CourseInfoPage::update()
     else {
         selectFromRosterLabel->setText(selectFromRosterLabel->text().replace(DEEPWATERHEX, "#bebebe"));
     }
+    selectFromRosterLabel->setEnabled(oneOfPrefQuestions);
     selectFromRosterSwitch->setEnabled(oneOfPrefQuestions);
     numPrefTeammatesExplainer->setEnabled(oneOfPrefQuestions);
     numPrefTeammatesSpinBox->setEnabled(oneOfPrefQuestions);

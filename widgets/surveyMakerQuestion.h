@@ -29,7 +29,6 @@ public:
     void moveWidget(QWidget *widget, int newRow, int newColumn, bool expandToRestOfRow, Qt::Alignment horizontalAlignment = Qt::Alignment());
 
     void mousePressEvent(QMouseEvent *event) override;
-    void paintEvent(QPaintEvent* event) override;
     void setEnabled(bool);
 
 signals:
@@ -42,8 +41,6 @@ private:
     QLabel *label = nullptr;
     SwitchButton *switchButton = nullptr;
     QGridLayout *layout = nullptr;
-
-    bool _enabled = true;
 };
 
 

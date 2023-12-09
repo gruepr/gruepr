@@ -36,44 +36,48 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // DONE:
-//   BUGFIXES:
-// - removed persistent tooltips created sometimes when using drag-and-drop to modify teams in gruepr
-// - fixed several issues with the compare-to-roster feature in gruepr
 //
-//  INTERNAL:
-// - unified and simplified memory management and code styling throughout
+//  - minor UI fixes and updates
 //
-//  NEW FEATURES:
-// - now automatically obtains students' email addresses from Canvas when downloading survey results
+//    BUGFIXES:
+//  - removed persistent tooltips created sometimes when using drag-and-drop to modify teams in gruepr
+//  - fixed several issues with the compare-to-roster feature in gruepr
 //
-// TO DO:
-//   BUGFIXES:
-// - sometimes does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
-// - sometimes does not obtain token from Google once authorized in browser
+//   INTERNAL:
+//  - unified and simplified memory management and code styling throughout
 //
 //   NEW FEATURES:
-// - see if any window is larger than screen size and downsize accordingly
-// - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
-// - in teammatesRules dialog, enable the 'load from teamsTab' action
-// - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
+//  - now automatically obtains students' email addresses from Canvas when downloading survey results
 //
-//   C++ MODERNIZATION:
-// - modernize use of pointers throughout to C++17 style; check for memory leaks
-// - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
-// - create an LMS class and then subclass Canvas, Google
 //
-//   NETWORK IMPLEMENTATION:
-// - enable PKCE with the Google (and Canvas?) OAuth2 flows
-// - auto-shorten URL for Google Form (using Google's firebase API?)
-// - create timeout function to nicely handle canvas and google connections
-// - allow selection of which google drive account to use, remembering different refresh tokens for each
-// - add integration with Blackboard, Qualtrics, others
-// - enable in Google Forms various options -- must wait on new API functionality from Google
-//     - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
-//     - Question options: req'd question, answer validity checks
-//   WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
-// - use multiple genepools with limited cross-breeding
-// - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
+// TO DO:
+//    BUGFIXES:
+//  - sometimes does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
+//  - sometimes does not obtain token from Google once authorized in browser
+//
+//    NEW FEATURES:
+//  - see if any window is larger than screen size and downsize accordingly
+//  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
+//  - in teammatesRules dialog, enable the 'load from teamsTab' action
+//  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
+//
+//    C++ MODERNIZATION:
+//  - modernize use of pointers throughout to C++17 style; check for memory leaks
+//  - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
+//  - create an LMS class and then subclass Canvas, Google
+//
+//    NETWORK IMPLEMENTATION:
+//  - enable PKCE with the Google (and Canvas?) OAuth2 flows
+//  - auto-shorten URL for Google Form (using Google's firebase API?)
+//  - create timeout function to nicely handle canvas and google connections
+//  - allow selection of which google drive account to use, remembering different refresh tokens for each
+//  - add integration with Blackboard, Qualtrics, others
+//  - enable in Google Forms various options -- must wait on new API functionality from Google
+//      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
+//      - Question options: req'd question, answer validity checks
+//    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
+//  - use multiple genepools with limited cross-breeding
+//  - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"

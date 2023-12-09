@@ -158,7 +158,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation.last()->setText(tr("Multiple choice questions"));
 
         auto *attributeFrame = new QFrame(this);
-        attributeFrame->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; border: none;}");
+        attributeFrame->setStyleSheet(BLUEFRAME);
         auto *attributeFrameLayout = new QVBoxLayout;
         attributeFrame->setLayout(attributeFrameLayout);
         QGridLayout *attributeSelectorGrid = nullptr;
@@ -368,8 +368,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABELSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
-        explanation.last()->setText(tr("Preferred Teammates") + "<br><i>&nbsp;&nbsp;" + tr("Firstname Lastname") +
-                                      "<br>&nbsp;&nbsp;" + tr("Enter each name on a separate line") + "</i>");
+        explanation.last()->setText(tr("Preferred Teammates<br>&nbsp;&nbsp;&nbsp;[Enter as 'Firstname Lastname', each name on a separate line]"));
         datamultiline << new QPlainTextEdit(this);
         datamultiline.last()->setStyleSheet(PLAINTEXTEDITSTYLE);
         datamultiline.last()->setPlaceholderText(tr("Enter text"));
@@ -382,8 +381,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABELSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
-        explanation.last()->setText(tr("Preferred Non-teammates") + "<br><i>&nbsp;&nbsp;" + tr("Firstname Lastname") +
-                                      "<br>&nbsp;&nbsp;" + tr("Enter each name on a separate line") + "</i>");
+        explanation.last()->setText(tr("Preferred Non-teammates<br>&nbsp;&nbsp;&nbsp;[Enter as 'Firstname Lastname', each name on a separate line]"));
         datamultiline << new QPlainTextEdit(this);
         datamultiline.last()->setStyleSheet(PLAINTEXTEDITSTYLE);
         datamultiline.last()->setPlaceholderText(tr("Enter text"));

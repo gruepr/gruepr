@@ -60,8 +60,8 @@ SwitchButton::SwitchButton(QWidget* parent, bool startingValue, Style style)
         setFixedSize(QSize(45, 24));
     }
 
-    _labeloff->setStyleSheet("background-color: " BUBBLYHEX "; color: " OPENWATERHEX ";");
-    _labelon->setStyleSheet("background-color: " OPENWATERHEX "; color: " BUBBLYHEX ";");
+    _labeloff->setStyleSheet("QLabel {background-color: " BUBBLYHEX "; color: " OPENWATERHEX "; border: none;}");
+    _labelon->setStyleSheet("QLabel {background-color: " OPENWATERHEX "; color: " BUBBLYHEX "; border: none;}");
 
     if(_value) {
         _background->resize(width() - 4, 20);
@@ -106,16 +106,16 @@ void SwitchButton::paintEvent(QPaintEvent*)
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
         painter->setBrush(QColor::fromString(BUBBLYHEX));
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
-        _labeloff->setStyleSheet("background-color: " BUBBLYHEX "; color: " OPENWATERHEX ";");
-        _labelon->setStyleSheet("background-color: " OPENWATERHEX "; color: " BUBBLYHEX ";");
+        _labeloff->setStyleSheet("QLabel {background-color: " BUBBLYHEX "; color: " OPENWATERHEX "; border: none;}");
+        _labelon->setStyleSheet("QLabel {background-color: " OPENWATERHEX "; color: " BUBBLYHEX "; border: none;}");
     }
     else {
         painter->setBrush(QColor(190, 190, 190));
         painter->drawRoundedRect(0, 0, width(), height(), 12, 12);
         painter->setBrush(QColor(QColor(230, 230, 230)));
         painter->drawRoundedRect(1, 1, width() - 2, height() - 2, 10, 10);
-        _labeloff->setStyleSheet("background-color: #e6e6e6; color: darkgrey;");
-        _labelon->setStyleSheet("background-color: #bebebe; color: #e6e6e6;");
+        _labeloff->setStyleSheet("QLabel {background-color: #e6e6e6; color: darkgrey; border: none}");
+        _labelon->setStyleSheet("QLabel {background-color: #bebebe; color: #e6e6e6; border: none}");
     }
     painter->end();
 }

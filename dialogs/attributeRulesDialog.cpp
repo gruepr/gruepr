@@ -87,8 +87,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
         ui->reqScrollAreaLayout->addWidget(reqCheckboxes.last(), 0, Qt::AlignTop);
 
         incompFrames << new QFrame(this);
-        incompFrames.last()->setStyleSheet("QFrame{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
-                                                   "border: 1px solid; border-color: " AQUAHEX ";}");
+        incompFrames.last()->setStyleSheet(BLUEFRAME);
         incompFrameLayouts << new QVBoxLayout;
         incompFrames.last()->setLayout(incompFrameLayouts.last());
         QString responseLabelText;
