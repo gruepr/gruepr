@@ -795,8 +795,8 @@ void TeamsTabItem::saveTeams()
     //Open specialized dialog box to choose which file(s) to save
     auto *window = new whichFilesDialog(whichFilesDialog::Action::save, previews, this);
     const int result = window->exec();
-    
-    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt)) {
+
+    if(result == QDialog::Accepted && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt)) {
         //save to text files
         const QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename for the text file(s)"), "",
                                                                   tr("Text File (*.txt);;All Files (*)"));
@@ -855,7 +855,7 @@ void TeamsTabItem::saveTeams()
             }
         }
     }
-    if(result == QDialogButtonBox::Ok && (window->instructorFilepdf || window->studentFilepdf)) {
+    if(result == QDialog::Accepted && (window->instructorFilepdf || window->studentFilepdf)) {
         //save as formatted pdf files
         printFiles(fileContents, window->instructorFilepdf, window->studentFilepdf, false, true);
     }
@@ -991,7 +991,7 @@ void TeamsTabItem::printTeams()
     auto *window = new whichFilesDialog(whichFilesDialog::Action::print, previews, this);
     const int result = window->exec();
     
-    if(result == QDialogButtonBox::Ok && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt)) {
+    if(result == QDialog::Accepted && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt)) {
         printFiles(fileContents, window->instructorFiletxt, window->studentFiletxt, window->spreadsheetFiletxt, false);
     }
     delete window;
