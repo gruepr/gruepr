@@ -32,30 +32,6 @@ StartDialog::StartDialog(QWidget *parent)
 //    int screenWidth = screenGeometry.width();
 //    int screenHeight = screenGeometry.height();
 
-    const int BASEWINDOWWIDTH = 800;
-    const int BASEWINDOWHEIGHT = 456;
-    const int LEFTRIGHTSPACERWIDTH = 74;
-    const int MIDDLESPACERWIDTH = 42;
-    const int TOPSPACERHEIGHT = 30;
-    const int MIDDLESPACERHEIGHT = 36;
-    const int BOTTOMSPACERHEIGHT = 46;
-    const QSize TOOLBUTTONSIZE(300, 256);
-#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-    const QSize INFOBUTTONSIZE(25, 25);
-#endif
-    const int ICONHEIGHT = 117;
-    const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
-    const int BIGFONTSIZE = 24;
-    const int LITTLEFONTSIZE = 12;
-    const QString BUTTONSTYLE = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX "; "
-                                             "color: " DEEPWATERHEX "; background-color: white;} "
-                                "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
-    const QString INFOBUTTONSTYLE = "QToolButton {border-style: solid; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
-                                                  "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
-                                                  "color: " DEEPWATERHEX "; background-color: white;} "
-                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
-                                    "QToolButton::menu-indicator {subcontrol-origin: border; subcontrol-position: bottom right;}";
-
     const QFont mainBoxFont("DM Sans", BIGFONTSIZE);
     const QFont labelFont("DM Sans", LITTLEFONTSIZE);
     setFont(mainBoxFont);
@@ -86,10 +62,11 @@ StartDialog::StartDialog(QWidget *parent)
     survMakeButton->setFixedSize(TOOLBUTTONSIZE);
     survMakeButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     survMakeButton->setIcon(QIcon(":/icons_new/makeASurvey.png"));
+    const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(labelFont);
     survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
-    survMakeButton->setStyleSheet(BUTTONSTYLE);
+    survMakeButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
 
@@ -102,7 +79,7 @@ StartDialog::StartDialog(QWidget *parent)
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(labelFont);
     grueprButton->setText(tr("Upload your survey results\nand form your grueps."));
-    grueprButton->setStyleSheet(BUTTONSTYLE);
+    grueprButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
 
@@ -205,15 +182,15 @@ void StartDialog::openGruepr() {
     do {
         auto *getDataDialog = new GetGrueprDataDialog(this);
         QApplication::restoreOverrideCursor();
-        getDataDialog->exec();
-        if(getDataDialog->result() == QDialog::Accepted) {
+        auto result = getDataDialog->exec();
+        if(result == QDialog::Accepted) {
             QApplication::setOverrideCursor(Qt::BusyCursor);
             auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
             this->hide();
             grueprWindow->show();
             emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
-            delete getDataDialog;
+            getDataDialog->deleteLater();
             QEventLoop loop;
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
@@ -224,7 +201,7 @@ void StartDialog::openGruepr() {
         else {
             restart = false;
             emit closeDataDialogProgressBar();
-            delete getDataDialog;
+            getDataDialog->deleteLater();
         }
     } while(restart);
 }
@@ -338,6 +315,6 @@ void StartDialog::openRegisterDialog() {
             delete request;
             delete manager;
         }
-        delete registerWin;
+        registerWin->deleteLater();
     }
 }

@@ -95,22 +95,25 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setText(tr("Confirm"));
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-
-    surveyFile = new CsvFile;
 }
 
 GetGrueprDataDialog::~GetGrueprDataDialog()
 {
-    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
-    delete surveyFile;
-    delete canvas;
-    delete google;
+    if(surveyFile != nullptr) {
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        surveyFile->deleteLater();
+    }
+    canvas->deleteLater();
+    google->deleteLater();
     delete ui;
 }
 
 void GetGrueprDataDialog::loadData()
 {
-    surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+    if(surveyFile != nullptr) {
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        surveyFile->deleteLater();
+    }
     ui->tableWidget->clearContents();
     ui->tableWidget->setRowCount(0);
     delete dataOptions;
@@ -119,14 +122,17 @@ void GetGrueprDataDialog::loadData()
     switch(static_cast<DataOptions::DataSource>(ui->sourceButtonGroup->checkedId())) {
     case DataOptions::DataSource::fromFile:
         dataOptions = new DataOptions;
+        surveyFile = new CsvFile;
         fileLoaded = getFromFile();
         break;
     case DataOptions::DataSource::fromGoogle:
         dataOptions = new DataOptions;
+        surveyFile = new CsvFile;
         fileLoaded = getFromGoogle();
         break;
     case DataOptions::DataSource::fromCanvas:
         dataOptions = new DataOptions;
+        surveyFile = new CsvFile;
         fileLoaded = getFromCanvas();
         break;
     case DataOptions::DataSource::fromPrevWork:
@@ -230,7 +236,7 @@ bool GetGrueprDataDialog::getFromGoogle()
             google->authenticate();
 
             if(loginDialog->exec() == QMessageBox::Cancel) {
-                delete loginDialog;
+                loginDialog->deleteLater();
                 return false;
             }
 
@@ -269,7 +275,7 @@ bool GetGrueprDataDialog::getFromGoogle()
             cancelButton->setIcon(cancelpic);
             cancelButton->adjustSize();
             if(loginDialog->exec() == QMessageBox::Cancel) {
-                delete loginDialog;
+                loginDialog->deleteLater();
                 return false;
             }
 
@@ -279,11 +285,11 @@ bool GetGrueprDataDialog::getFromGoogle()
             loginDialog->setStandardButtons(QMessageBox::Cancel);
             connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
             if(loginDialog->exec() == QMessageBox::Cancel) {
-                delete loginDialog;
+                loginDialog->deleteLater();
                 return false;
             }
         }
-        delete loginDialog;
+        loginDialog->deleteLater();
     }
 
     //ask which survey to download
@@ -310,11 +316,11 @@ bool GetGrueprDataDialog::getFromGoogle()
     connect(buttonBox, &QDialogButtonBox::accepted, googleFormsDialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, googleFormsDialog, &QDialog::reject);
     if((googleFormsDialog->exec() == QDialog::Rejected)) {
-        delete googleFormsDialog;
+        googleFormsDialog->deleteLater();
         return false;
     }
     const QString googleFormName = formsComboBox->currentText();
-    delete googleFormsDialog;
+    googleFormsDialog->deleteLater();
 
     //download the survey
     auto *busyBox = google->actionDialog();
@@ -413,7 +419,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesAndQuizzesDialog, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesAndQuizzesDialog, &QDialog::reject);
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected)) {
-        delete canvasCoursesAndQuizzesDialog;
+        canvasCoursesAndQuizzesDialog->deleteLater();
         return false;
     }
     const QString course = coursesAndQuizzesComboBox->currentText();
@@ -431,11 +437,11 @@ bool GetGrueprDataDialog::getFromCanvas()
         coursesAndQuizzesComboBox->addItem(form);
     }
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected)) {
-        delete canvasCoursesAndQuizzesDialog;
+        canvasCoursesAndQuizzesDialog->deleteLater();
         return false;
     }
     const QString canvasSurveyName = coursesAndQuizzesComboBox->currentText();
-    delete canvasCoursesAndQuizzesDialog;
+    canvasCoursesAndQuizzesDialog->deleteLater();
 
     //download the survey
     busyBox = canvas->actionDialog();

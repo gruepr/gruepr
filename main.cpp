@@ -121,7 +121,9 @@ int main(int argc, char *argv[])
     QEventLoop loop;
     QAction::connect(startWindow, &QDialog::finished, &loop, &QEventLoop::quit);
     startWindow->show();
+    splash->deleteLater();
     loop.exec();
+    startWindow->deleteLater();
 
     return 0;
 }

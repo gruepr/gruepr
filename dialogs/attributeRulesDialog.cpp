@@ -18,7 +18,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->incompScrollArea->setStyleSheet(QString("QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX ";}")
                                                 + SCROLLBARSTYLE);
     ui->incompScrollAreaLayout->setContentsMargins(0, 0, 0, 0);
-    auto *resetValuesButton = ui->buttonBox->button(QDialogButtonBox::Reset);
+    const auto &resetValuesButton = ui->buttonBox->button(QDialogButtonBox::Reset);
     resetValuesButton->setText(tr("Clear all rules"));
     resetValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);

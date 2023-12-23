@@ -40,8 +40,8 @@ private:
     QList<AttributeValue> attributeValues;
     int numPossibleValues;
     QString valuePrefix(int value, DataOptions::AttributeType attributeType);
-    QList< QList<QCheckBox *> > incompCheckboxList;
-    QList<QCheckBox *> reqCheckboxes;
+    QList<QList<QCheckBox*>> incompCheckboxList;
+    QList<QCheckBox*> reqCheckboxes;
 };
 
 #endif // ATTRIBUTERULESDIALOG_H

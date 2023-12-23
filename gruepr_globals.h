@@ -44,6 +44,14 @@ inline static const char16_t BULLET = u'\u2022';
 inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: 'DM Sans';"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
+inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX "; "
+                                                                  "color: " DEEPWATERHEX "; background-color: white;} "
+                                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
+inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
+                                                           "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
+                                                           "color: " DEEPWATERHEX "; background-color: white;} "
+                                             "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
+                                             "QToolButton::menu-indicator {subcontrol-origin: border; subcontrol-position: bottom right;}";
 inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
                                                          "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
                                                          "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}";
