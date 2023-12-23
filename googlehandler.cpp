@@ -14,8 +14,8 @@
 GoogleHandler::GoogleHandler() {
     manager = new QNetworkAccessManager(this);
     manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-    manager->setTransferTimeout(TIMEOUT_TIME);
-    google = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
+    //manager->setTransferTimeout(TIMEOUT_TIME);
+    googleOAuthFlow = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
 
     QString refreshToken;
     const QSettings settings;
@@ -23,23 +23,23 @@ GoogleHandler::GoogleHandler() {
 
     if(!refreshToken.isEmpty()) {
         refreshTokenExists = true;
-        google->setRefreshToken(refreshToken);
+        googleOAuthFlow->setRefreshToken(refreshToken);
     }
 }
 
 GoogleHandler::~GoogleHandler() {
     QSettings settings;
-    settings.setValue("GoogleRefreshToken", google->refreshToken());
+    settings.setValue("GoogleRefreshToken", googleOAuthFlow->refreshToken());
 
-    delete google->replyHandler();
+    delete googleOAuthFlow->replyHandler();
     delete manager;
-    delete google;
+    delete googleOAuthFlow;
 }
 
 GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
-    google->setContentType(QAbstractOAuth::ContentType::Json);
+    googleOAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
     const QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
     QJsonObject info;
     info["title"] = title;
@@ -274,7 +274,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //download the form itself into a JSON so that we can get the questions
     QString url = "https://forms.googleapis.com/v1/forms/" + ID;
     QEventLoop loop;
-    auto *reply = google->get(url);
+    auto *reply = googleOAuthFlow->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -322,7 +322,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
 
     //now download into a big JSON all of the responses (actually it's just the first 5000 responses! if there are >5000, will need to work with paginated results!)
     url = "https://forms.googleapis.com/v1/forms/" + ID + "/responses";
-    reply = google->get(url);
+    reply = googleOAuthFlow->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -422,7 +422,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
                                                                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
     QEventLoop loop;
-    auto *reply = google->post(URL, postData);
+    auto *reply = googleOAuthFlow->post(URL, postData);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -463,39 +463,45 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
 }
 
 void GoogleHandler::authenticate() {
-    google->setScope("https://www.googleapis.com/auth/drive.file");
+    googleOAuthFlow->setScope("https://www.googleapis.com/auth/drive.file");
 
     const QUrl redirectUri = QString(REDIRECT_URI);
-    const auto port = static_cast<quint16>(redirectUri.port(REDIRECT_URI_PORT));
+    const int port = (redirectUri.port(REDIRECT_URI_PORT));
 
-    google->setClientIdentifier(CLIENT_ID);
-    google->setClientIdentifierSharedKey(CLIENT_SECRET);
+    googleOAuthFlow->setClientIdentifier(CLIENT_ID);
+    googleOAuthFlow->setClientIdentifierSharedKey(CLIENT_SECRET);
 
-    google->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
+    googleOAuthFlow->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         // Percent-decode the "code" parameter so Google can match it
-        if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
+        if (stage == QAbstractOAuth::Stage::RequestingAuthorization) {
+            // The only way to get refresh_token from Google Cloud
+            parameters->insert("access_type", "offline");
+            parameters->insert("prompt", "consent");
+        }
+        else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
+            // Percent-decode the "code" parameter so Google can match it
             const QByteArray code = parameters->value("code").toByteArray();
-            parameters->insert("code", QUrl::fromPercentEncoding(code));
+            parameters->replace("code", QUrl::fromPercentEncoding(code));
         }
     });
 
     auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
-    google->setReplyHandler(replyHandler);
+    googleOAuthFlow->setReplyHandler(replyHandler);
 
-    connect(google, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
+    connect(googleOAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
                                                                            emit granted();});
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](/*const QString &error*/){
                                                                                     authenticated = false;
-                                                                                    google->setRefreshToken("");
+                                                                                    googleOAuthFlow->setRefreshToken("");
                                                                                     refreshTokenExists = false;
                                                                                     emit denied();});
 
     if(refreshTokenExists) {
-        google->refreshAccessToken();
+        googleOAuthFlow->refreshAccessToken();
     }
     else {
-        QAbstractOAuth2::connect(google, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
-        google->grant();
+        QAbstractOAuth2::connect(googleOAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
+        googleOAuthFlow->grant();
     }
 }
 

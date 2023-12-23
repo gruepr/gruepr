@@ -60,7 +60,7 @@ private:
     void postToGoogleGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                                                      const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals);
 
-    QOAuth2AuthorizationCodeFlow *google = nullptr;
+    QOAuth2AuthorizationCodeFlow *googleOAuthFlow = nullptr;
     QNetworkAccessManager *manager = nullptr;
     QList<GoogleForm> formsList;
 
@@ -82,7 +82,7 @@ class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
     Q_OBJECT
 
 public:
-    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {};
+    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {}
 
 signals:
     void error(const QString &errorString);
