@@ -19,7 +19,7 @@ customTeamnamesDialog::customTeamnamesDialog(int numTeams, const QStringList &in
     teamNameLineEdits.reserve(numTeams);
     for(int team = 0; team < numTeams; team++) {
         auto *label = new QLabel(tr("Team ") + QString::number(team+1) + " ", this);
-        label->setStyleSheet(LABELSTYLE);
+        label->setStyleSheet(LABEL10PTSTYLE);
         theTable->setCellWidget(team, 0, label);
         widthCol0 = std::max(widthCol0, label->width());
         teamNameLineEdits << new QLineEdit(this);

@@ -346,9 +346,9 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
                 previewLayout->addWidget(questionPreviews.last());
                 questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
                 questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
-                questionPreviewTopLabels.last()->setStyleSheet(LABELSTYLE);
+                questionPreviewTopLabels.last()->setStyleSheet(LABEL10PTSTYLE);
                 questionPreviewTopLabels.last()->setWordWrap(true);
-                questionPreviewBottomLabels.last()->setStyleSheet(LABELSTYLE);
+                questionPreviewBottomLabels.last()->setStyleSheet(LABEL10PTSTYLE);
                 questionPreviewBottomLabels.last()->setWordWrap(true);
                 connect(questions.last(), &SurveyMakerQuestionWithSwitch::valueChanged, questionPreviews.last(), &QWidget::setVisible);
             }
@@ -516,7 +516,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     auto *genderResponses = new QWidget;
     auto *genderResponsesLayout = new QHBoxLayout(genderResponses);
     genderResponsesLabel = new QLabel(tr("Ask as: "));
-    genderResponsesLabel->setStyleSheet(LABELSTYLE);
+    genderResponsesLabel->setStyleSheet(LABEL10PTSTYLE);
     genderResponsesLabel->setEnabled(false);
     genderResponsesLayout->addWidget(genderResponsesLabel);
     genderResponsesComboBox = new QComboBox;
@@ -543,7 +543,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     vbox->setContentsMargins(20, 0, 0, 0);
     options->setLayout(vbox);
     auto *topLabel = new QLabel(SELECTONE);
-    topLabel->setStyleSheet(LABELSTYLE);
+    topLabel->setStyleSheet(LABEL10PTSTYLE);
     topLabel->setWordWrap(true);
     vbox->addWidget(topLabel);
     const QStringList genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
@@ -653,7 +653,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     sampleQuestionsIcon = new QLabel;
     sampleQuestionsIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
     sampleQuestionsLabel = new QLabel(tr("Unsure of what to ask? Take a look at some example questions!"));
-    sampleQuestionsLabel->setStyleSheet(LABELSTYLE);
+    sampleQuestionsLabel->setStyleSheet(LABEL10PTSTYLE);
     sampleQuestionsLabel->setWordWrap(true);
     sampleQuestionsLayout = new QHBoxLayout(sampleQuestionsFrame);
     sampleQuestionsButton = new QPushButton(tr("View Examples"));
@@ -690,7 +690,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         questionPreviews.last()->setLayout(questionPreviewLayouts.last());
         const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
         questionPreviewTopLabels << new QLabel(fillInQuestion);
-        questionPreviewTopLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("font-size: 10pt;", "font-size: 12pt;"));
+        questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
         questionPreviewTopLabels.last()->setWordWrap(true);
         questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
         questionPreviewLayouts.last()->addWidget(multichoiceQuestions.last()->previewWidget);
@@ -738,6 +738,38 @@ void MultipleChoicePage::initializePage()
 
 void MultipleChoicePage::cleanupPage()
 {
+}
+
+bool MultipleChoicePage::validatePage()
+{
+    int multiQuestionsWOQuestionText = 0, multiQuestionsWOResponses = 0;
+    for(int questionNum = 0; questionNum < numQuestions; questionNum++) {
+        if(multichoiceQuestions[questionNum]->getQuestion().isEmpty()) {
+            multiQuestionsWOQuestionText++;
+        }
+        if(multichoiceQuestions[questionNum]->getResponses() == QStringList({""})) {
+            multiQuestionsWOResponses++;
+        }
+    }
+
+    if(numQuestions == 1 && multiQuestionsWOQuestionText == 1 && multiQuestionsWOResponses == 1) {
+        // just one empty question; default starting of this page, so assume they just clicked next and no problem
+        return true;
+    }
+
+    if(multiQuestionsWOQuestionText > 0 || multiQuestionsWOResponses > 0) {
+        const QString missingInfo = ((multiQuestionsWOQuestionText > 0)? tr("text") : "") +
+                                    ((multiQuestionsWOQuestionText > 0 && multiQuestionsWOResponses > 0)? tr(" or ") : "") +
+                                    ((multiQuestionsWOResponses > 0)? tr("response options") : "");
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                        tr("You have one or more questions missing\nthe question ") + missingInfo + ".\n",
+                                                        tr("Continue"), tr("Go back"));
+        if(!continueOrNah) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void MultipleChoicePage::setNumQuestions(const int newNumQuestions)
@@ -889,12 +921,12 @@ SchedulePage::SchedulePage(QWidget *parent)
     for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
         auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(time*MIN_SCHEDULE_RESOLUTION*60)
                                                         .toString(timeFormats.at(DEFAULTTIMEFORMAT).first));
-        rowLabel->setStyleSheet(LABELSTYLE);
+        rowLabel->setStyleSheet(LABEL10PTSTYLE);
         scLayout->addWidget(rowLabel, time+1, 0);
     }
     for(int day = 0; day < 7; day++) {
         auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
-        colLabel->setStyleSheet(LABELSTYLE);
+        colLabel->setStyleSheet(LABEL10PTSTYLE);
         scLayout->addWidget(colLabel, 0, day+1);
     }
     for(int time = 1; time <= MAX_BLOCKS_PER_DAY; time++) {
@@ -919,7 +951,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     auto *busyOrFree = new QWidget;
     auto *busyOrFreeLayout = new QHBoxLayout(busyOrFree);
     busyOrFreeLabel = new QLabel(tr("Ask as: "));
-    busyOrFreeLabel->setStyleSheet(LABELSTYLE);
+    busyOrFreeLabel->setStyleSheet(LABEL10PTSTYLE);
     busyOrFreeLabel->setEnabled(false);
     busyOrFreeLayout->addWidget(busyOrFreeLabel);
     busyOrFreeComboBox = new QComboBox;
@@ -938,7 +970,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     registerField("scheduleBusyOrFree", busyOrFreeComboBox);
 
     baseTimezoneLabel = new QLabel(tr("Select timezone"));
-    baseTimezoneLabel->setStyleSheet(LABELSTYLE);
+    baseTimezoneLabel->setStyleSheet(LABEL10PTSTYLE);
     baseTimezoneLabel->hide();
     questions[schedule]->addWidget(baseTimezoneLabel, row++, 0, false);
     baseTimezoneComboBox = new ComboBoxWithElidedContents("Pacific: US and Canada, Tijuana [GMT-08:00]", this);
@@ -970,7 +1002,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     auto *timespanLayout = new QVBoxLayout(timespan);
     timespanLayout->setSpacing(2);
     timespanLabel = new QLabel(tr("Span:"));
-    timespanLabel->setStyleSheet(LABELSTYLE);
+    timespanLabel->setStyleSheet(LABEL10PTSTYLE);
     timespanLabel->setEnabled(false);
     timespanLayout->addWidget(timespanLabel);
 
@@ -1013,7 +1045,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     auto *fromTo = new QWidget;
     auto *fromToLayout = new QHBoxLayout(fromTo);
     fromLabel = new QLabel(tr("from"));
-    fromLabel->setStyleSheet(LABELSTYLE);
+    fromLabel->setStyleSheet(LABEL10PTSTYLE);
     fromLabel->setEnabled(false);
     fromToLayout->addWidget(fromLabel);
     fromComboBox = new QComboBox;
@@ -1025,7 +1057,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     fromComboBox->setEnabled(false);
     fromToLayout->addWidget(fromComboBox, 1);
     toLabel = new QLabel(tr("to"));
-    toLabel->setStyleSheet(LABELSTYLE);
+    toLabel->setStyleSheet(LABEL10PTSTYLE);
     toLabel->setEnabled(false);
     fromToLayout->addWidget(toLabel);
     toComboBox = new QComboBox;
@@ -1060,7 +1092,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     auto *resolution = new QWidget;
     auto *resolutionLayout = new QHBoxLayout(resolution);
     resolutionLabel = new QLabel(tr("every"));
-    resolutionLabel->setStyleSheet(LABELSTYLE);
+    resolutionLabel->setStyleSheet(LABEL10PTSTYLE);
     resolutionLabel->setEnabled(false);
     resolutionLayout->addWidget(resolutionLabel);
     resolutionComboBox = new QComboBox;
@@ -1082,7 +1114,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     auto *format = new QWidget;
     auto *formatLayout = new QHBoxLayout(format);
     formatLabel = new QLabel(tr("time format:"));
-    formatLabel->setStyleSheet(LABELSTYLE);
+    formatLabel->setStyleSheet(LABEL10PTSTYLE);
     formatLabel->setEnabled(false);
     formatLayout->addWidget(formatLabel);
     formatComboBox = new QComboBox;
@@ -1447,7 +1479,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
 
     numPrefTeammatesExplainer = new QLabel(tr("Number of classmates a student can indicate:"));
     numPrefTeammatesExplainer->setWordWrap(true);
-    numPrefTeammatesExplainer->setStyleSheet(LABELSTYLE);
+    numPrefTeammatesExplainer->setStyleSheet(LABEL10PTSTYLE);
     numPrefTeammatesSpinBox = new QSpinBox;
     numPrefTeammatesSpinBox->setValue(1);
     numPrefTeammatesSpinBox->setMinimum(1);
@@ -1458,7 +1490,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     registerField("numPrefTeammates", numPrefTeammatesSpinBox);
 
     selectFromRosterLabel = new LabelThatForwardsMouseClicks;
-    selectFromRosterLabel->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    selectFromRosterLabel->setStyleSheet(LABEL12PTSTYLE);
     selectFromRosterLabel->setText(tr("Select from a class roster"));
     selectFromRosterSwitch = new SwitchButton(false);
     connect(selectFromRosterSwitch, &SwitchButton::valueChanged, this, &CourseInfoPage::update);
@@ -1467,7 +1499,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     questions[wantToAvoid]->addWidget(selectFromRosterSwitch, 3, 1, false, Qt::AlignRight);
     uploadExplainer = new QLabel(tr("You can upload a class roster so that students select names rather than typing as a free response question"));
     uploadExplainer->setWordWrap(true);
-    uploadExplainer->setStyleSheet(LABELSTYLE);
+    uploadExplainer->setStyleSheet(LABEL10PTSTYLE);
     uploadButton = new QPushButton;
     uploadButton->setStyleSheet(ADDBUTTONSTYLE);
     uploadButton->setText(tr("Upload class roster"));
@@ -1488,6 +1520,29 @@ void CourseInfoPage::initializePage()
 
 void CourseInfoPage::cleanupPage()
 {
+}
+
+bool CourseInfoPage::validatePage()
+{
+    if(questions[section]->getValue() && sectionNames.size() < 2) {
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                tr("You have added the Section question,\nbut there are fewer than two choices.\n"),
+                                                                tr("Continue"), tr("Go back"));
+        if(!continueOrNah) {
+            return false;
+        }
+    }
+
+    if((questions[wantToWorkWith]->getValue() || questions[wantToAvoid]->getValue()) && selectFromRosterSwitch->value() && studentNames.isEmpty()) {
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                tr("You have not yet added a class roster\nfrom which students can select names.\n"),
+                                                                tr("Continue"), tr("Go back"));
+        if(!continueOrNah) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void CourseInfoPage::resizeEvent(QResizeEvent *event)
@@ -1539,7 +1594,7 @@ void CourseInfoPage::update()
     }
 
     auto *topLabel = new QLabel(tr("Select one:"));
-    topLabel->setStyleSheet(LABELSTYLE);
+    topLabel->setStyleSheet(LABEL10PTSTYLE);
     topLabel->setWordWrap(true);
     sectionsPreviewLayout->addWidget(topLabel);
     sc.clear();
@@ -1818,7 +1873,7 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     painter.end();
     helpIcon->setPixmap(whiteLightbulb);
     auto helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"), this);
-    helpLabel->setStyleSheet(QString(LABELSTYLE).replace(DEEPWATERHEX, "white").replace("10pt;", "12pt;") + BIGTOOLTIPSTYLE);
+    helpLabel->setStyleSheet(QString(LABEL12PTSTYLE).replace(DEEPWATERHEX, "white") + BIGTOOLTIPSTYLE);
     helpLabel->setWordWrap(true);
     auto helpLayout = new QHBoxLayout;
     helpLayout->addWidget(helpIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
@@ -1881,12 +1936,12 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     schedGridLayout = new QGridLayout(schedGrid);
     for(int time = 0; time < MAX_BLOCKS_PER_DAY; time++) {
         auto *rowLabel = new QLabel(SurveyMakerWizard::sundayMidnight.time().addSecs(time * MIN_SCHEDULE_RESOLUTION * 60).toString("h:mm A"));
-        rowLabel->setStyleSheet(LABELSTYLE);
+        rowLabel->setStyleSheet(LABEL10PTSTYLE);
         schedGridLayout->addWidget(rowLabel, time+1, 0);
     }
     for(int day = 0; day < MAX_DAYS; day++) {
         auto *colLabel = new QLabel(SurveyMakerWizard::sundayMidnight.addDays(day).toString("ddd"));
-        colLabel->setStyleSheet(LABELSTYLE);
+        colLabel->setStyleSheet(LABEL10PTSTYLE);
         schedGridLayout->addWidget(colLabel, 0, day+1);
         schedGridLayout->setColumnStretch(day, 1);
     }
@@ -1924,11 +1979,11 @@ void PreviewAndExportPage::initializePage()
     wizard()->button(QWizard::CancelButton)->disconnect();
     connect(wizard()->button(QWizard::CancelButton), &QPushButton::clicked, this, [this] {if(surveyHasBeenExported) {wizard()->reject();}
                                                                                           else {
-                                                                                            const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
-                                                                                            tr("You have not yet exported this survey.\n"
-                                                                                               "Are you sure you want to close?"),
-                                                                                            tr("Yes"), tr("No"));
-                                                                                            if(okClear) {
+                                                                                            const bool okClose = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                                            tr("You have not yet exported or saved this survey.\n"
+                                                                                               "Do you want to close?"),
+                                                                                            tr("Close"), tr("Go back"));
+                                                                                            if(okClose) {
                                                                                                 wizard()->reject();
                                                                                             }
                                                                                           }});
@@ -2488,7 +2543,7 @@ void PreviewAndExportPage::exportSurvey()
         }
         if(!google->authenticated) {
             auto *loginDialog = new QMessageBox(this);
-            loginDialog->setStyleSheet(LABELSTYLE);
+            loginDialog->setStyleSheet(LABEL10PTSTYLE);
             const QPixmap icon(":/icons_new/google.png");
             loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             loginDialog->setText("");
@@ -2596,7 +2651,7 @@ void PreviewAndExportPage::exportSurvey()
             settings.endArray();
 
             auto *successDialog = new QMessageBox(this);
-            successDialog->setStyleSheet(QString() + LABELSTYLE + SMALLBUTTONSTYLE);
+            successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
             successDialog->setTextFormat(Qt::RichText);
             successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
             const QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
@@ -2678,7 +2733,7 @@ void PreviewAndExportPage::exportSurvey()
         auto *vLayout = new QVBoxLayout;
         int i = 1;
         auto *label = new QLabel(tr("In which course should this survey be created?"));
-        label->setStyleSheet(LABELSTYLE);
+        label->setStyleSheet(LABEL10PTSTYLE);
         auto *coursesComboBox = new QComboBox;
         for(const auto &courseName : qAsConst(courseNames)) {
             coursesComboBox->addItem(courseName);
@@ -2724,7 +2779,7 @@ void PreviewAndExportPage::exportSurvey()
             canvas->actionComplete(busyBox);
 
             auto *successDialog = new QMessageBox(this);
-            successDialog->setStyleSheet(QString() + LABELSTYLE + SMALLBUTTONSTYLE);
+            successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
             successDialog->setTextFormat(Qt::RichText);
             successDialog->setText(tr("Success! Survey created.<br><br>"
                                        "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site. "

@@ -19,7 +19,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     //Rows 1&2 - the number of options selector and a checkbox for ordered responses
     auto *numOptionsLayout = new QHBoxLayout;
     auto *numOptionsLabel = new QLabel(tr("Number of response options: "), this);
-    numOptionsLabel->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
+    numOptionsLabel->setStyleSheet(QString(LABEL10PTSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
     numOptionsLayout->addWidget(numOptionsLabel, 0, Qt::AlignRight);
     numOptionsBox = new QSpinBox(this);
     numOptionsBox->setStyleSheet(SPINBOXSTYLE);
@@ -42,7 +42,7 @@ customResponseOptionsDialog::customResponseOptionsDialog(const QStringList &curr
     int widthCol0 = 0, rowHeight = 0;
     for(int i = 0; i < MAXRESPONSEOPTIONS; i++) {
         optionLabels << new QLabel(tr("Option ") + QString::number(i+1) + " ", this);
-        optionLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
+        optionLabels.last()->setStyleSheet(QString(LABEL10PTSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
         theTable->setCellWidget(i, 0, optionLabels.last());
         optionLineEdits << new QLineEdit(this);
         optionLineEdits.last()->setStyleSheet(LINEEDITSTYLE);

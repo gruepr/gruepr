@@ -2,6 +2,7 @@
 #define GRUEPR_GLOBALS
 
 #include "GA.h"
+#include <QApplication>
 #include <QObject>
 
 
@@ -39,6 +40,9 @@ inline static const char16_t BULLET = u'\u2022';
 #define OPENWATERHEX "#13a9b2"
 #define AQUAHEX "#41d2ca"
 #define BUBBLYHEX "#dcf2f4"
+
+#define SCREENWIDTH qApp->property("_SCREENWIDTH").toInt()
+#define SCREENHEIGHT qApp->property("_SCREENHEIGHT").toInt()
 
 // define stylesheets used throughout gruepr
 inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
@@ -122,8 +126,14 @@ inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: " TRANSPAR
 inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: " DEEPWATERHEX "; "
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold; "
                                                              "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
-inline static const char LABELSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
-                                          "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
+                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL12PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans'; border: none;}"
+                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 12pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL14PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 14pt; font-family: 'DM Sans'; border: none;}"
+                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 14pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL24PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 24pt; font-family: 'DM Sans'; border: none;}"
+                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 24pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                        "font-family: 'DM Sans'; font-size: 12pt;}"
                                              "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
@@ -146,7 +156,11 @@ inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; 
                                                                   "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                              "QComboBox::drop-down {border-width: 0px;}"
                                              "QComboBox::down-arrow {image: url(:/icons_new/downButton.png); width: 14px; height: 9px; border-width: 0px;}"
-                                             "QComboBox QAbstractItemView {background-color: white; color: black; selection-background-color: " DEEPWATERHEX "; selection-color: white;}";
+                                             "QComboBox QAbstractItemView {background-color: white; color: black;}"
+                                             "QComboBox QAbstractItemView::item {background-color: white; color: black; "
+                                                                                 "selection-background-color: " OPENWATERHEX "; selection-color: white;}"
+                                             "QComboBox QAbstractItemView::item:selected {background-color: " OPENWATERHEX "; color: white;}"
+                                             "QComboBox QAbstractItemView::item:hover {background-color: " OPENWATERHEX "; color: white;}";
 inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; border-style: solid; border-color: black; border-width: 1px;"
                                                             "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                  "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "

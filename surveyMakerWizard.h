@@ -153,6 +153,7 @@ public:
 
     void initializePage() override;
     void cleanupPage() override;
+    bool validatePage() override;
 
     void setNumQuestions(const int newNumQuestions);
     int getNumQuestions() const;
@@ -295,6 +296,7 @@ public:
 
     void initializePage() override;
     void cleanupPage() override;
+    bool validatePage() override;
     void resizeEvent(QResizeEvent *event) override;
 
     void setSectionNames(const QStringList &newSectionNames);

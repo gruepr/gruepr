@@ -17,7 +17,7 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
 
     // Rows 1&2 - explanation and spacer
     auto *explanation = new QLabel(this);
-    explanation->setStyleSheet(LABELSTYLE);
+    explanation->setStyleSheet(LABEL10PTSTYLE);
     explanation->setText(tr("<html>Students gave the following responses when asked about their racial/ethnic/cultural identity. "
                             "Which of these should be considered underrepresented?<hr></html>"));
     explanation->setWordWrap(true);
@@ -35,24 +35,26 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
         const QString &responseText = URMResponses.at(response);
         enableValue << new QCheckBox(this);
         enableValue.last()->setChecked(URMResponsesConsideredUR.contains(responseText));
-        enableValue.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("QCheckBox {", "QCheckBox {Text-align:center; margin-left:10%; margin-right:10%;"));
+        enableValue.last()->setStyleSheet(CHECKBOXSTYLE);
         theTable->setCellWidget(response, 0, enableValue.last());
         widthCol0 = std::max(widthCol0, enableValue.last()->width());
         responses << new QPushButton(this);
         responses.last()->setText(responseText);
         responses.last()->setFlat(true);
-        responses.last()->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
+        responses.last()->setStyleSheet(URMResponsesConsideredUR.contains(responseText)?
+                                        QString(SMALLBUTTONSTYLETRANSPARENTFLAT).replace("12pt", "12pt; font-weight: bold") : SMALLBUTTONSTYLETRANSPARENTFLAT);
         theTable->setCellWidget(response, 1, responses.last());
         rowHeight = std::max(rowHeight, std::max(enableValue.last()->height(), responses.last()->height()));
         connect(responses.last(), &QPushButton::clicked, enableValue.last(), &QCheckBox::toggle);
-        connect(enableValue.last(), &QCheckBox::stateChanged, this, [this, response](int state){
+        connect(enableValue.last(), &QCheckBox::stateChanged, this, [this, thisResponse=responses.last()](int state){
                                                                                  if(state == Qt::Checked) {
-                                                                                    URMResponsesConsideredUR << responses.at(response)->text();
-                                                                                    responses.last()->setStyleSheet("Text-align:left;font-weight: bold;");
+                                                                                    URMResponsesConsideredUR << thisResponse->text();
+                                                                                     thisResponse->setStyleSheet(QString(SMALLBUTTONSTYLETRANSPARENTFLAT)
+                                                                                                                    .replace("12pt", "12pt; font-weight: bold"));
                                                                                  }
                                                                                  else {
-                                                                                    URMResponsesConsideredUR.removeAll(responses.at(response)->text());
-                                                                                    responses.last()->setStyleSheet("Text-align:left;");
+                                                                                    URMResponsesConsideredUR.removeAll(thisResponse->text());
+                                                                                    thisResponse->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
                                                                                  }
                                                                                  });
     }

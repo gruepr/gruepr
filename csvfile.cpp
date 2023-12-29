@@ -241,7 +241,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
     window->setMinimumSize(DIALOGWIDTH, DIALOGHEIGHT);
 
     auto *explanation = new QLabel(window);
-    explanation->setStyleSheet(LABELSTYLE);
+    explanation->setStyleSheet(LABEL10PTSTYLE);
     explanation->setText(tr("<html>The following fields were found in the first row of the file. "
                          "Please verify the category of information contained in each column. Select \"") + UNUSEDTEXT +
                          tr("\" for any field(s) that should be ignored.<hr></html>"));
@@ -274,7 +274,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
     window->theTable->setRowCount(numFields);
     for(int row = 0; row < numFields; row++) {
         auto *label = new QLabel("\n" + headerValues.at(row) + "\n", window);
-        label->setStyleSheet(LABELSTYLE);
+        label->setStyleSheet(LABEL10PTSTYLE);
         label->setWordWrap(true);
         window->theTable->setCellWidget(row, 0, label);
 

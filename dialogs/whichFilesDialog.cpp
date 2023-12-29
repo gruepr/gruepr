@@ -23,14 +23,14 @@ whichFilesDialog::whichFilesDialog(const Action saveOrPrint, const QStringList &
     QToolTip::setFont(QFont("Oxygen Mono", previousToolTipFont.pointSize()));
 
     auto *explanation = new QLabel(this);
-    explanation->setStyleSheet(LABELSTYLE);
+    explanation->setStyleSheet(LABEL10PTSTYLE);
     explanation->setTextFormat(Qt::RichText);
     explanation->setText(tr("<br>You can ") + saveOrPrintString + tr(" the following files:<br>Preview a file by hovering over the title.<br>"));
     theGrid->addWidget(explanation, row++, 0, 1, -1);
 
     if(saveDialog) {
         auto *textfile = new QLabel(this);
-        textfile->setStyleSheet(LABELSTYLE);
+        textfile->setStyleSheet(LABEL10PTSTYLE);
         textfile->setText(tr("text"));
         theGrid->addWidget(textfile, 1, 0);
         auto *pdftxtline = new QFrame(this);
@@ -41,7 +41,7 @@ whichFilesDialog::whichFilesDialog(const Action saveOrPrint, const QStringList &
         pdftxtline->setFixedHeight(1);
         theGrid->addWidget(pdftxtline, row, 1, totNumOptionAreaRows, 1);
         auto *pdffile = new QLabel(this);
-        pdffile->setStyleSheet(LABELSTYLE);
+        pdffile->setStyleSheet(LABEL10PTSTYLE);
         pdffile->setText("pdf");
         theGrid->addWidget(pdffile, row++, 2);
     }

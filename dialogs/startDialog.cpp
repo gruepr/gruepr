@@ -27,11 +27,6 @@ StartDialog::StartDialog(QWidget *parent)
     setWindowTitle("gruepr - Welcome!");
     setAttribute(Qt::WA_DeleteOnClose);
 
-//    // Get the screen size
-//    QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
-//    int screenWidth = screenGeometry.width();
-//    int screenHeight = screenGeometry.height();
-
     const QFont mainBoxFont("DM Sans", BIGFONTSIZE);
     const QFont labelFont("DM Sans", LITTLEFONTSIZE);
     setFont(mainBoxFont);
@@ -49,8 +44,7 @@ StartDialog::StartDialog(QWidget *parent)
     theGrid->setRowMinimumHeight(row++, TOPSPACERHEIGHT);
 
     auto *topLabel = new QLabel(tr("What would you like to do?"), this);
-    topLabel->setFont(mainBoxFont);
-    topLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
+    topLabel->setStyleSheet(LABEL24PTSTYLE);
     theGrid->addWidget(topLabel, row++, col, 1, -1, Qt::AlignCenter);
 
     theGrid->setRowMinimumHeight(row++, MIDDLESPACERHEIGHT);
@@ -89,8 +83,7 @@ StartDialog::StartDialog(QWidget *parent)
 
     // Create status labels to show when registered and/or latest version installed
     registerLabel = new QLabel(this);
-    registerLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
-    registerLabel->setFont(labelFont);
+    registerLabel->setStyleSheet(LABEL12PTSTYLE);
     registerLabel->setTextFormat(Qt::RichText);
     registerLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     registerLabel->setOpenExternalLinks(false);
@@ -106,8 +99,7 @@ StartDialog::StartDialog(QWidget *parent)
     registerLabel->setText(registerMessage);
     registerLabel->setAlignment(Qt::AlignLeft);
     upgradeLabel = new QLabel(this);
-    upgradeLabel->setStyleSheet("QLabel { color: " DEEPWATERHEX "; }");
-    upgradeLabel->setFont(labelFont);
+    upgradeLabel->setStyleSheet(LABEL12PTSTYLE);
     upgradeLabel->setTextFormat(Qt::RichText);
     upgradeLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
     upgradeLabel->setOpenExternalLinks(true);

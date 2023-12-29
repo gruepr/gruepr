@@ -32,7 +32,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
 
     int row = 0;
     auto *explanation = new QLabel(this);
-    explanation->setStyleSheet(LABELSTYLE);
+    explanation->setStyleSheet(LABEL10PTSTYLE);
     QString explanationText;
     if(!addStudentOption) {
         if(!nameOfStudentWhoAsked.isEmpty()) {
@@ -102,13 +102,13 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
 
         // UI for add student
         auto *addNameLabel = new QLabel(tr("Name") + ":  " + searchName, this);
-        addNameLabel->setStyleSheet(LABELSTYLE);
+        addNameLabel->setStyleSheet(LABEL10PTSTYLE);
         auto *addEmailLabel = new QLabel(tr("Email address") + ":  " + (searchEmail.isEmpty()? tr("--") : searchEmail), this);
-        addEmailLabel->setStyleSheet(LABELSTYLE);
+        addEmailLabel->setStyleSheet(LABEL10PTSTYLE);
 
         // UI for merge student
         auto *comboboxLabel = new QLabel(tr("The most closely matching names in the survey are:"), this);
-        comboboxLabel->setStyleSheet(LABELSTYLE);
+        comboboxLabel->setStyleSheet(LABEL10PTSTYLE);
 
         auto *nameGroup = new QButtonGroup(this);
         useRosterNameCheckbox = new QRadioButton(tr("Use roster name") + ":  " + searchName, this);

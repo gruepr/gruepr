@@ -23,6 +23,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
     }
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     setSizeGripEnabled(true);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     auto *theGrid = new QGridLayout(this);
 
     auto *fieldAreaWidg = new QWidget(this);
@@ -37,7 +38,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->timestampField != -1) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Survey timestamp"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
@@ -55,7 +56,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->firstNameField != -1) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("First name"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
@@ -67,7 +68,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->lastNameField != -1) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Last name"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
@@ -79,7 +80,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->emailField != -1) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Email address"));
         datatext << new QLineEdit(this);
         datatext.last()->setStyleSheet(LINEEDITSTYLE);
@@ -91,7 +92,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->genderIncluded) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         QStringList genderOptions;
         if(dataOptions->genderType == GenderType::biol) {
             explanation.last()->setText(tr("Gender"));
@@ -122,7 +123,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->URMIncluded) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Racial/ethnic/cultural identity"));
         databox << new QComboBox(this);
         databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
@@ -138,7 +139,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->sectionIncluded) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Section"));
         databox << new QComboBox(this);
         databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
@@ -154,7 +155,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->numAttributes != 0) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Multiple choice questions"));
 
         auto *attributeFrame = new QFrame(this);
@@ -219,7 +220,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
             // create a question text label
             auto *attributeQuestionText = new QLabel(this);
-            attributeQuestionText->setStyleSheet(LABELSTYLE);
+            attributeQuestionText->setStyleSheet(LABEL10PTSTYLE);
             attributeQuestionText->setWordWrap(true);
             layout->addWidget(attributeQuestionText, Qt::AlignLeft);
 
@@ -227,7 +228,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             QStringList prefixes;
             if(!(type == DataOptions::AttributeType::timezone)) {
                 auto *responsesLabel = new QLabel(this);
-                responsesLabel->setStyleSheet(LABELSTYLE);
+                responsesLabel->setStyleSheet(LABEL10PTSTYLE);
                 responsesLabel->setTextFormat(Qt::RichText);
                 responsesLabel->setWordWrap(true);
                 responsesLabel->setIndent(10);
@@ -349,7 +350,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(!dataOptions->dayNames.isEmpty()) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Schedule"));
         auto *adjustScheduleButton = new QPushButton(this);
         adjustScheduleButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -366,7 +367,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->prefTeammatesIncluded) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
         explanation.last()->setText(tr("Preferred Teammates<br>&nbsp;&nbsp;&nbsp;[Enter as 'Firstname Lastname', each name on a separate line]"));
         datamultiline << new QPlainTextEdit(this);
@@ -379,7 +380,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->prefNonTeammatesIncluded) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
         explanation.last()->setText(tr("Preferred Non-teammates<br>&nbsp;&nbsp;&nbsp;[Enter as 'Firstname Lastname', each name on a separate line]"));
         datamultiline << new QPlainTextEdit(this);
@@ -392,7 +393,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     if(dataOptions->numNotes > 0) {
         explanation << new QLabel(this);
-        explanation.last()->setStyleSheet(LABELSTYLE);
+        explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Notes"));
         datamultiline << new QPlainTextEdit(this);
         datamultiline.last()->setStyleSheet(PLAINTEXTEDITSTYLE);
@@ -547,7 +548,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
 
     //explanation and a spacer row
     auto *adjustScheduleWindowExplanation = new QLabel(adjustScheduleWindow);
-    adjustScheduleWindowExplanation->setStyleSheet(LABELSTYLE);
+    adjustScheduleWindowExplanation->setStyleSheet(LABEL10PTSTYLE);
     adjustScheduleWindowExplanation->setText("<html>" + student.firstname + " " + student.lastname + tr(" is AVAILABLE to meet at these times: <hr></html>"));
     adjustScheduleWindowExplanation->setWordWrap(true);
     adjustScheduleWindowGrid->addWidget(adjustScheduleWindowExplanation, gridrow++, gridcolumn, 1, -1);
@@ -565,7 +566,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     gridcolumn = 1;
     for(const auto &dayName : dataOptions->dayNames) {
         auto *columnHeader = new QLabel(adjustScheduleWindow);
-        columnHeader->setStyleSheet(LABELSTYLE);
+        columnHeader->setStyleSheet(LABEL10PTSTYLE);
         columnHeader->setText(dayName.toUtf8().left(3));   // using first 3 characters in day name as abbreviation
         adjustScheduleWindowGrid->addWidget(columnHeader, gridrow, gridcolumn++, 1, 1);
     }
@@ -573,7 +574,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     for(int time = 0; time < dataOptions->timeNames.size(); time++) {
         gridcolumn = 0;
         auto *rowHeader = new QLabel(adjustScheduleWindow);
-        rowHeader->setStyleSheet(LABELSTYLE);
+        rowHeader->setStyleSheet(LABEL10PTSTYLE);
         rowHeader->setText(dataOptions->timeNames.at(time).toUtf8());
         adjustScheduleWindowGrid->addWidget(rowHeader, gridrow, gridcolumn++, 1, 1);
         for(int day = 0; day < dataOptions->dayNames.size(); day++) {

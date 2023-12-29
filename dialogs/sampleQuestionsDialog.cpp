@@ -12,7 +12,7 @@ SampleQuestionsDialog::SampleQuestionsDialog(QWidget *parent) :
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     ui->tabWidget->tabBar()->setDocumentMode(true);
     ui->tabWidget->tabBar()->setExpanding(true);
-    ui->tabWidget->setStyleSheet(QString() + TABWIDGETSTYLE + CHECKBOXSTYLE + RADIOBUTTONSTYLE + LABELSTYLE);
+    ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE) + CHECKBOXSTYLE + RADIOBUTTONSTYLE + LABEL10PTSTYLE);
     ui->buttonBox->button(QDialogButtonBox::Close)->setStyleSheet(SMALLBUTTONSTYLE);
 }
 

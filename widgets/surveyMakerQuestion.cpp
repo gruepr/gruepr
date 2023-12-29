@@ -13,7 +13,7 @@ SurveyMakerQuestionWithSwitch::SurveyMakerQuestionWithSwitch(QWidget *parent, co
     connect(switchButton, &SwitchButton::valueChanged, this, &SurveyMakerQuestionWithSwitch::valueChange);
 
     label = new QLabel(this);
-    label->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    label->setStyleSheet(LABEL12PTSTYLE);
     setLabel(textLabel);
 
     layout = new QGridLayout(this);
@@ -85,7 +85,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
 
     label = new QLabel(this);
-    label->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    label->setStyleSheet(LABEL12PTSTYLE);
     setNumber(questionNum);
     deleteButton = new QPushButton(this);
     deleteButton->setStyleSheet(DELBUTTONSTYLE);
@@ -93,7 +93,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     deleteButton->setIcon(QIcon(":/icons_new/trashButton.png"));
 
     auto *questionLabel = new QLabel(tr("Question"), this);
-    questionLabel->setStyleSheet(LABELSTYLE);
+    questionLabel->setStyleSheet(LABEL10PTSTYLE);
     questionPlainTextEdit = new QPlainTextEdit;
     questionPlainTextEdit->setStyleSheet(PLAINTEXTEDITSTYLE);
     questionPlainTextEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -101,7 +101,7 @@ SurveyMakerMultichoiceQuestion::SurveyMakerMultichoiceQuestion(int questionNum, 
     resizeQuestionPlainTextEdit();
     questionPlainTextEdit->setPlaceholderText(tr("Type your question..."));
     responsesLabel = new QLabel(tr("Response type"), this);
-    responsesLabel->setStyleSheet(LABELSTYLE);
+    responsesLabel->setStyleSheet(LABEL10PTSTYLE);
     responsesComboBox = new ComboBoxWithElidedContents("1. Very high / 2. Above average / 3. Average", this);
     responsesComboBox->setEditable(false);
     responsesComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
@@ -301,7 +301,7 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
         if(multiAllowed->isChecked()) {
             //multiallowed, so preview is list of checkboxes
             auto *topLabel = new QLabel(SELECTMULT);
-            topLabel->setStyleSheet(LABELSTYLE);
+            topLabel->setStyleSheet(LABEL10PTSTYLE);
             topLabel->setWordWrap(true);
             previewLayout->addWidget(topLabel);
             const QStringList responses = responsesComboBox->currentData().toStringList();
@@ -316,7 +316,7 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
         else if(responsesComboBox->currentData().toStringList().size() <= 9) {
             //select one and <=15 options, so radiobuttons
             auto *topLabel = new QLabel(SELECTONE);
-            topLabel->setStyleSheet(LABELSTYLE);
+            topLabel->setStyleSheet(LABEL10PTSTYLE);
             topLabel->setWordWrap(true);
             previewLayout->addWidget(topLabel);
             const QStringList responses = responsesComboBox->currentData().toStringList();
@@ -336,7 +336,7 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
             re->addItems(list);
             previewLayout->addWidget(re);
             auto *bottomLabel = new QLabel(tr("Options") + ": " + list.join(" / "));
-            bottomLabel->setStyleSheet(LABELSTYLE);
+            bottomLabel->setStyleSheet(LABEL10PTSTYLE);
             bottomLabel->setWordWrap(true);
             previewLayout->addWidget(bottomLabel);
         }
@@ -357,7 +357,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
     layout = new QGridLayout(this);
 
     title = new QLabel(this);
-    title->setStyleSheet(QString(LABELSTYLE).replace("10pt", "14pt"));
+    title->setStyleSheet(LABEL14PTSTYLE);
     title->setText(titleText);
 
     //center the title for just the Survey Title section
@@ -382,7 +382,7 @@ SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QS
         layout->addItem(preQuestionSpacer.last(), row++, 0, 1, -1);
 
         questionLabel << new QLabel(this);
-        questionLabel.last()->setStyleSheet(LABELSTYLE);
+        questionLabel.last()->setStyleSheet(LABEL10PTSTYLE);
         questionLabel.last()->setWordWrap(true);
         layout->addWidget(questionLabel.last(), row++, 0, 1, -1);
         questionLabel.last()->hide();

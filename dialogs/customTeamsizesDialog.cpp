@@ -19,7 +19,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     //Rows 1&2 - the number of teams selector and a spacer
     auto *numTeamsLayout = new QHBoxLayout;
     auto *numTeamsLabel = new QLabel(tr("Number of teams: "), this);
-    numTeamsLabel->setStyleSheet(QString(LABELSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
+    numTeamsLabel->setStyleSheet(QString(LABEL10PTSTYLE).replace("QLabel {", "QLabel {background-color: " TRANSPARENT ";"));
     numTeamsLayout->addWidget(numTeamsLabel);
     numTeamsBox = new QSpinBox(this);
     numTeamsBox->setStyleSheet(SPINBOXSTYLE);
@@ -38,7 +38,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     int widthCol0 = 0, rowHeight = 0;
     for(int i = 0; i < numStudents; i++) {
         auto *label = new QLabel(tr("Team ") + QString::number(i+1) + " ", this);
-        label->setStyleSheet(LABELSTYLE);
+        label->setStyleSheet(LABEL10PTSTYLE);
         theTable->setCellWidget(i, 0, label);
         widthCol0 = std::max(widthCol0, label->width());
         teamsizeBox << new QSpinBox(this);
@@ -60,7 +60,7 @@ customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize,
     //Rows 4&5 - a spacer and remaining students label
     addSpacerRow(3);
     remainingStudents = new QLabel(this);
-    remainingStudents->setStyleSheet(LABELSTYLE);
+    remainingStudents->setStyleSheet(LABEL10PTSTYLE);
     theGrid->addWidget(remainingStudents, 4, 0, 1, -1, Qt::AlignCenter);
 
     refreshDisplay();
@@ -86,11 +86,11 @@ void customTeamsizesDialog::refreshDisplay()
     }
     remainingStudents->setText(tr("Remaining students: ") + QString::number(numStudents-studentsOnATeamCount));
     if(numStudents != studentsOnATeamCount) {
-        remainingStudents->setStyleSheet(QString(LABELSTYLE).replace("color: " DEEPWATERHEX ";", "color: red;"));
+        remainingStudents->setStyleSheet(QString(LABEL10PTSTYLE).replace("color: " DEEPWATERHEX ";", "color: red;"));
         buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
     else {
-        remainingStudents->setStyleSheet(LABELSTYLE);
+        remainingStudents->setStyleSheet(LABEL10PTSTYLE);
         buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     }
 

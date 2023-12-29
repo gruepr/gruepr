@@ -20,7 +20,7 @@ registerDialog::registerDialog(QWidget *parent)
     setStyleSheet("background-color: white");
 
     auto *explanation = new QLabel(this);
-    explanation->setStyleSheet(LABELSTYLE);
+    explanation->setStyleSheet(LABEL10PTSTYLE);
     explanation->setText(tr("Thank you for registering your copy of gruepr. "
                             "Doing so enables me to best support the community of educators that uses it. "
                             "This information will never be sold or shared.\n"

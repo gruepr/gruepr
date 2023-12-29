@@ -512,7 +512,7 @@ QDialog* GoogleHandler::actionDialog(QWidget *parent) {
     actionDialogIcon = new QLabel(busyDialog);
     actionDialogIcon->setPixmap(QPixmap(":/icons_new/google.png").scaled(GOOGLEICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     actionDialogLabel = new QLabel(busyDialog);
-    actionDialogLabel->setStyleSheet(LABELSTYLE);
+    actionDialogLabel->setStyleSheet(LABEL10PTSTYLE);
     actionDialogLabel->setText(tr("Communicating with Google..."));
     actionDialogButtons = new QDialogButtonBox(busyDialog);
     actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);

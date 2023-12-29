@@ -15,13 +15,13 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     int row = 0, column = 0;
 
     questionLabel = new QLabel(this);
-    questionLabel->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    questionLabel->setStyleSheet(LABEL12PTSTYLE);
     questionLabel->setTextFormat(Qt::RichText);
     questionLabel->setWordWrap(true);
     theGrid->addWidget(questionLabel, row++, column, 1, -1);
 
     responsesLabel = new QLabel(this);
-    responsesLabel->setStyleSheet(LABELSTYLE);
+    responsesLabel->setStyleSheet(LABEL10PTSTYLE);
     responsesLabel->setTextFormat(Qt::RichText);
     responsesLabel->setWordWrap(true);
     responsesLabel->setIndent(10);

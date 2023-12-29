@@ -18,6 +18,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     setWindowTitle(tr("Teammate rules"));
     setSizeGripEnabled(true);
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
 
     //copy data into local versions, including full database of students
     sectionName = sectionname;
@@ -30,7 +31,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE).replace("QTabBar::tab {background-color: white;", "QTabBar::tab {background-color: " TRANSPARENT ";") +
-                                 LABELSTYLE);
+                                 LABEL10PTSTYLE);
 
     auto scrollAreas = {ui->requiredScrollArea, ui->preventedScrollArea, ui->requestedScrollArea};
     for(auto &scrollArea : scrollAreas) {
@@ -51,7 +52,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 
     auto addLabels = {ui->required_explanationLabel, ui->prevented_explanationLabel, ui->requested_explanationLabel};
     for(auto &addLabel : addLabels) {
-        addLabel->setStyleSheet(LABELSTYLE);
+        addLabel->setStyleSheet(LABEL10PTSTYLE);
     }
 
     auto addTeammateButtons = {ui->required_addTeammatePushButton, ui->prevented_addTeammatePushButton, ui->requested_addTeammatePushButton};
@@ -148,8 +149,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
 
     ui->line->setStyleSheet("border-color: " AQUAHEX);
     ui->line->setFixedHeight(1);
-
-    ui->requested_numRequestsExplanation->setStyleSheet(LABELSTYLE);
+    
+    ui->requested_numRequestsExplanation->setStyleSheet(LABEL10PTSTYLE);
     ui->requested_numRequestsSpinBox->setStyleSheet(SPINBOXSTYLE);
     ui->requested_numRequestsSpinBox->setValue(teamingOptions.numberRequestedTeammatesGiven);
     connect(ui->requested_numRequestsSpinBox, &QSpinBox::valueChanged, this, [this](int newVal){numberRequestedTeammatesGiven = newVal;});
@@ -158,8 +159,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                                                                                                 else {
                                                                                                    ui->requested_numRequestsSpinBox->setSuffix(tr(" teammate "));}});
     ui->requested_lightbulb->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    ui->requested_lightbulb->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
-    ui->requested_whatsThisLabel->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
+    ui->requested_lightbulb->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    ui->requested_whatsThisLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     const QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
                                 "students will be with placed on a team with a certain number of teammates from a list. "
                                 "For example, you might allow students to make up to five requests, and use this feature so that everyone gets "

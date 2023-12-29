@@ -10,8 +10,9 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     ui->tabWidget->tabBar()->setExpanding(true);
-    ui->tabWidget->setStyleSheet(QString() + TABWIDGETSTYLE + LABELSTYLE);
+    ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE) + LABEL10PTSTYLE);
     ui->reqScrollArea->setStyleSheet(QString("QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
                                                           "border: 1px solid; border-color: " AQUAHEX ";}") + SCROLLBARSTYLE);
     ui->reqScrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
@@ -43,9 +44,9 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->questionNumLabel->setText(tr("Multiple choice question ") + QString::number(attribute + 1));
     ui->questionNumLabel_2->setText(tr("Multiple choice question ") + QString::number(attribute + 1));
     ui->questionTextLabel->setText(dataOptions.attributeQuestionText.at(attribute));
-    ui->questionTextLabel->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    ui->questionTextLabel->setStyleSheet(LABEL12PTSTYLE);
     ui->questionTextLabel_2->setText(dataOptions.attributeQuestionText.at(attribute));
-    ui->questionTextLabel_2->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+    ui->questionTextLabel_2->setStyleSheet(LABEL12PTSTYLE);
     QString responses;
     bool firstTime = true;
     for(const auto &attributeValue : qAsConst(attributeValues)) {
@@ -102,7 +103,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
             responseLabelText = tr("Response ") + valuePrefix(attributeValue.value, attributeType) + ": " + attributeValue.response;
         }
         incompResponseLabels << new QLabel(responseLabelText, this);
-        incompResponseLabels.last()->setStyleSheet(QString(LABELSTYLE).replace("10pt", "12pt"));
+        incompResponseLabels.last()->setStyleSheet(LABEL12PTSTYLE);
         incompResponseLabels.last()->setWordWrap(true);
         incompFrameLayouts.last()->addWidget(incompResponseLabels.last());
         incompSepLines << new QFrame(this);

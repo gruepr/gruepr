@@ -38,10 +38,12 @@
 // DONE:
 //
 //  - minor UI fixes and updates
+//  - sanity checks with warnings while creating the survey
 //
 //    BUGFIXES:
 //  - removed persistent tooltips created sometimes when using drag-and-drop to modify teams in gruepr
 //  - fixed several issues with the compare-to-roster feature in gruepr
+//  - see if any window is larger than screen size and downsize accordingly
 //
 //   INTERNAL:
 //  - unified and simplified memory management and code styling throughout
@@ -56,7 +58,6 @@
 //  - sometimes does not obtain token from Google once authorized in browser
 //
 //    NEW FEATURES:
-//  - see if any window is larger than screen size and downsize accordingly
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
@@ -68,7 +69,6 @@
 //
 //    NETWORK IMPLEMENTATION:
 //  - enable PKCE with the Google (and Canvas?) OAuth2 flows
-//  - auto-shorten URL for Google Form (using Google's firebase API?)
 //  - create timeout function to nicely handle canvas and google connections
 //  - allow selection of which google drive account to use, remembering different refresh tokens for each
 //  - add integration with Blackboard, Qualtrics, others
@@ -99,14 +99,13 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont(":/fonts/PaytoneOne-Regular.ttf");
     QFontDatabase::addApplicationFont(":/fonts/DMSans-Regular.ttf");
 
-    // Get the screen size
     const QRect screenGeometry = QGuiApplication::screens().at(0)->availableGeometry();
-    const int screenWidth = screenGeometry.width();
-    const int screenHeight = screenGeometry.height();
+    qApp->setProperty("_SCREENWIDTH", screenGeometry.width());
+    qApp->setProperty("_SCREENHEIGHT", screenGeometry.height());
 
     // Show splash screen
     const QPixmap splashPic(":/icons_new/splash_new.png");
-    auto *splash = new QSplashScreen(splashPic.scaled(screenWidth/2, screenHeight/2, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    auto *splash = new QSplashScreen(splashPic.scaled(SCREENWIDTH/2, SCREENHEIGHT/2, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     splash->setAttribute(Qt::WA_DeleteOnClose);
     const int messageSize = (25 * splash->height()) / splashPic.height();
     QFont splashFont("DM Sans");

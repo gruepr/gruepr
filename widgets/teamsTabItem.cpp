@@ -78,11 +78,11 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     teamDataLayout->addLayout(rowsLayout);
 
     auto helpIcon = new LabelWithInstantTooltip("", this);
-    helpIcon->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
+    helpIcon->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     rowsLayout->addWidget(helpIcon);
     auto *dragDropExplanation = new LabelWithInstantTooltip(tr("Adjust the teams"), this);
-    dragDropExplanation->setStyleSheet(QString(LABELSTYLE) + BIGTOOLTIPSTYLE);
+    dragDropExplanation->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     rowsLayout->addWidget(dragDropExplanation);
     const QString helpText = tr("<html><span style=\"color: black;\">Use drag-and-drop to move students and teams:"
                                  "<ul>"
@@ -903,7 +903,7 @@ void TeamsTabItem::postTeamsToCanvas()
     auto *vLayout = new QVBoxLayout;
     int i = 1;
     auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCourses);
-    label->setStyleSheet(LABELSTYLE);
+    label->setStyleSheet(LABEL10PTSTYLE);
     auto *coursesComboBox = new QComboBox(canvasCourses);
     coursesComboBox->setStyleSheet(COMBOBOXSTYLE);
     for(const auto &courseName : qAsConst(courseNames)) {
@@ -1244,7 +1244,7 @@ void TeamsTabItem::printFiles(const QStringList &fileContents, bool printInstruc
     auto *msgBox = new QMessageBox(this);
     msgBox->setIcon(QMessageBox::NoIcon);
     msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
-    msgBox->setStyleSheet(LABELSTYLE);
+    msgBox->setStyleSheet(LABEL10PTSTYLE);
     msgBox->setStandardButtons(QMessageBox::NoButton);
     msgBox->setModal(false);
     msgBox->show();

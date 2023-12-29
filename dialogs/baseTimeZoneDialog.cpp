@@ -21,7 +21,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
 
     //explanation and a spacer row
     auto *explanation = new QLabel(this);
-    explanation->setStyleSheet(LABELSTYLE);
+    explanation->setStyleSheet(LABEL10PTSTYLE);
     explanation->setText(tr("<html>Students were asked to fill out their schedule using their home timezone. "
                             "Which of these should be used as the base timezone for the class? "
                             "The schedules will all be adjusted to correspond to this value.<hr></html>"));

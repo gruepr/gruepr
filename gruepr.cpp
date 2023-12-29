@@ -45,7 +45,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
                                                         "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}");
     QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
     for(auto &frame : frames) {
-        frame->setStyleSheet(QString(BLUEFRAME) + LABELSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     }
     ui->attributesStackedWidget->setStyleSheet(QString() + "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}");
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
@@ -118,6 +118,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         loadDefaultSettings();
     }
 
+    loadUI();
+
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
     connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
     connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
@@ -143,9 +145,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
-
-    adjustSize();
-    loadUI();
 
     saveState();
 }
@@ -563,7 +562,7 @@ void gruepr::compareStudentsToRoster()
                                                              QMessageBox::Ok | QMessageBox::Cancel, this);
                     whichEmailWindow->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
                                                                                                Qt::KeepAspectRatio, Qt::SmoothTransformation));
-                    whichEmailWindow->setStyleSheet(LABELSTYLE);
+                    whichEmailWindow->setStyleSheet(LABEL10PTSTYLE);
                     whichEmailWindow->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
                     whichEmailWindow->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
                     auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(studentsWithDiffEmail.size() - i) + tr(" students)"), whichEmailWindow);
@@ -607,7 +606,7 @@ void gruepr::compareStudentsToRoster()
                                                            QMessageBox::Ok | QMessageBox::Cancel, this);
                 keepOrDeleteWindow->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
                                                                                       Qt::KeepAspectRatio, Qt::SmoothTransformation));
-                keepOrDeleteWindow->setStyleSheet(LABELSTYLE);
+                keepOrDeleteWindow->setStyleSheet(LABEL10PTSTYLE);
                 keepOrDeleteWindow->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
                 keepOrDeleteWindow->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
                 auto *applyToAll = new QCheckBox(tr("Apply to all remaining (") + QString::number(namesNotFound.size() - i) + tr(" students)"), keepOrDeleteWindow);
@@ -1024,7 +1023,7 @@ void gruepr::startOptimization()
 {
     // User wants to not isolate URM, but has not indicated any responses to be considered underrepresented
     if(dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
-        const bool okContinue = grueprGlobal::warningMessage(this, tr("gruepr"),
+        const bool okContinue = grueprGlobal::warningMessage(this, tr("Are you sure?"),
                                                              tr("You have selected to prevented isolated URM students, "
                                                                 "however none of the race/ethnicity response values "
                                                                 "have been selected to be considered as underrepresented.\n\n"
@@ -1342,9 +1341,11 @@ void gruepr::loadDefaultSettings()
 void gruepr::loadUI()
 {
     //Restore window geometry
+    adjustSize();
     const QSettings savedSettings;
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
 
+    //Set the label and icon for the data source
     ui->dataSourceLabel->setText(dataOptions->dataSourceName);
     if(dataOptions->dataSource == DataOptions::DataSource::fromGoogle) {
         ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/google.png"));
@@ -2531,7 +2532,7 @@ void gruepr::closeEvent(QCloseEvent *event)
         QApplication::beep();
         auto *saveOptionsOnClose = new QMessageBox(this);
         saveOptionsOnClose->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-        saveOptionsOnClose->setStyleSheet(LABELSTYLE);
+        saveOptionsOnClose->setStyleSheet(LABEL10PTSTYLE);
         auto *neverShowAgain = new QCheckBox(tr("Don't ask me this again"), saveOptionsOnClose);
         neverShowAgain->setStyleSheet(CHECKBOXSTYLE);
 

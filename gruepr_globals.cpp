@@ -57,7 +57,7 @@ bool grueprGlobal::internetIsGood() {
 void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, const QString &message) {
     auto *win = new QMessageBox(parent);
     win->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-    win->setStyleSheet(LABELSTYLE);
+    win->setStyleSheet(LABEL10PTSTYLE);
     win->setIconPixmap(QPixmap(":/icons_new/error.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     win->setWindowTitle(windowTitle.isEmpty()? "gruepr" : windowTitle);
     win->setText(message.isEmpty()? QObject::tr("There was an unspecified error.") : message);
@@ -70,7 +70,7 @@ void grueprGlobal::errorMessage(QWidget *parent, const QString &windowTitle, con
 bool grueprGlobal::warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText) {
     auto *win = new QMessageBox(parent);
     win->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-    win->setStyleSheet(LABELSTYLE);
+    win->setStyleSheet(LABEL10PTSTYLE);
     win->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     win->setWindowTitle(windowTitle);
     win->setText(message);

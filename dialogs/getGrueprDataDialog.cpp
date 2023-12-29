@@ -74,7 +74,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
 
     ui->hLine->setStyleSheet("QFrame {color: " OPENWATERHEX ";}"
                              "QFrame::disabled {color: lightGray;}");
-    ui->fieldsExplainer->setStyleSheet(LABELSTYLE);
+    ui->fieldsExplainer->setStyleSheet(LABEL10PTSTYLE);
     ui->headerRowCheckBox->setStyleSheet("QCheckBox {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
                                          "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}");
     connect(ui->headerRowCheckBox, &QCheckBox::clicked, this, [this]{if(ui->headerRowCheckBox->isChecked())
@@ -220,7 +220,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     }
     if(!google->authenticated) {
         auto *loginDialog = new QMessageBox(this);
-        loginDialog->setStyleSheet(LABELSTYLE);
+        loginDialog->setStyleSheet(LABEL10PTSTYLE);
         const QPixmap icon(":/icons_new/google.png");
         loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         loginDialog->setText("");
@@ -300,7 +300,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     googleFormsDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("Which survey should be opened?"), googleFormsDialog);
-    label->setStyleSheet(LABELSTYLE);
+    label->setStyleSheet(LABEL10PTSTYLE);
     auto *formsComboBox = new QComboBox(googleFormsDialog);
     formsComboBox->setStyleSheet(COMBOBOXSTYLE);
     for(const auto &form : qAsConst(formsList)) {
@@ -397,7 +397,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     canvas->actionComplete(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
-    canvasCoursesAndQuizzesDialog->setStyleSheet(QString() + LABELSTYLE + COMBOBOXSTYLE);
+    canvasCoursesAndQuizzesDialog->setStyleSheet(QString(LABEL10PTSTYLE) + COMBOBOXSTYLE);
     canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas course"));
     canvasCoursesAndQuizzesDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     canvasCoursesAndQuizzesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -504,7 +504,7 @@ bool GetGrueprDataDialog::getFromPrevWork()
     loadingProgressDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     loadingProgressDialog->setMinimumDuration(0);
     loadingProgressDialog->setWindowModality(Qt::WindowModal);
-    loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
+    loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE);
 
     const QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
     savedFile.close();
@@ -611,7 +611,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
     // a label and combobox for each column
     for(int row = 0; row < surveyFile->numFields; row++) {
         auto *label = new QLabel("\n" + surveyFile->headerValues.at(row) + "\n", this);
-        label->setStyleSheet(LABELSTYLE);
+        label->setStyleSheet(LABEL10PTSTYLE);
         label->setWordWrap(true);
         ui->tableWidget->setCellWidget(row, 0, label);
 
@@ -774,7 +774,7 @@ bool GetGrueprDataDialog::readData()
     loadingProgressDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     loadingProgressDialog->setMinimumDuration(0);
     loadingProgressDialog->setWindowModality(Qt::WindowModal);
-    loadingProgressDialog->setStyleSheet(QString(LABELSTYLE) + PROGRESSBARSTYLE);
+    loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE);
 
     // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
     dataOptions->timestampField = int(surveyFile->fieldMeanings.indexOf("Timestamp"));

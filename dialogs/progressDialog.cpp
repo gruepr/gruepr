@@ -20,11 +20,11 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
     layout->setSpacing(12);
 
     statusText = new QLabel(tr("Status: Optimizing..."), this);
-    statusText->setStyleSheet(QString(LABELSTYLE).replace("font-size: 10pt;", "font-size: 14pt; font-weight: bold;"));
+    statusText->setStyleSheet(QString(LABEL14PTSTYLE).replace("font-size", "font-weight: bold; font-size"));
     layout->addWidget(statusText);
 
     explanationText = new QLabel(tr("Generation 0 - Top Score = 0"), this);
-    explanationText->setStyleSheet(LABELSTYLE);
+    explanationText->setStyleSheet(LABEL10PTSTYLE);
     layout->addWidget(explanationText);
 
     progressBar = new QProgressBar(this);
@@ -36,7 +36,7 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
     layout->addWidget(progressBar);
 
     actionText = new QLabel(tr("Please wait while your grueps are created!"), this);
-    actionText->setStyleSheet(QString(LABELSTYLE).replace("color: " DEEPWATERHEX ";", "color: " OPENWATERHEX ";").replace("font-size: 10pt;", "font-size: 14pt;"));
+    actionText->setStyleSheet(QString(LABEL14PTSTYLE).replace("color: " DEEPWATERHEX ";", "color: " OPENWATERHEX ";"));
     layout->addWidget(actionText);
 
     auto *buttonBox = new QDialogButtonBox(this);
