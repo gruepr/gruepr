@@ -1,7 +1,7 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019 - 2023
+// Copyright (C) 2019 - 2024
 // Joshua Hertz
 // info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,19 +37,6 @@
 //
 // DONE:
 //
-//  - minor UI fixes and updates
-//  - sanity checks with warnings while creating the survey
-//
-//    BUGFIXES:
-//  - removed persistent tooltips created sometimes when using drag-and-drop to modify teams in gruepr
-//  - fixed several issues with the compare-to-roster feature in gruepr
-//  - see if any window is larger than screen size and downsize accordingly
-//
-//   INTERNAL:
-//  - unified and simplified memory management and code styling throughout
-//
-//   NEW FEATURES:
-//  - now automatically obtains students' email addresses from Canvas when downloading survey results
 //
 //
 // TO DO:
