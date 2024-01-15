@@ -1,45 +1,122 @@
 #include "googlehandler.h"
 #include "googlesecrets.h"
-#include <QApplication>
+#include <QAbstractButton>
 #include <QDesktopServices>
-#include <QDialogButtonBox>
-#include <QIcon>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QLabel>
 #include <QLineEdit>
-#include <QOAuthHttpServerReplyHandler>
+#include <QMessageBox>
 #include <QVBoxLayout>
 
-GoogleHandler::GoogleHandler() {
-    manager = new QNetworkAccessManager(this);
-    manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-    //manager->setTransferTimeout(TIMEOUT_TIME);
-    googleOAuthFlow = new QOAuth2AuthorizationCodeFlow(QString(AUTHENTICATEURL), QString(ACCESSTOKENURL), manager, this);
+GoogleHandler::GoogleHandler(QObject *parent) : LMS(parent) {
+    initOAuth2();
+    OAuthFlow->setAuthorizationUrl(QString(AUTHENTICATEURL));
+    OAuthFlow->setAccessTokenUrl(QString(ACCESSTOKENURL));
 
-    QString refreshToken;
     const QSettings settings;
-    refreshToken = settings.value("GoogleRefreshToken", "").toString();
+    const QString refreshToken = settings.value("GoogleRefreshToken", "").toString();
 
     if(!refreshToken.isEmpty()) {
         refreshTokenExists = true;
-        googleOAuthFlow->setRefreshToken(refreshToken);
+        OAuthFlow->setRefreshToken(refreshToken);
     }
 }
 
 GoogleHandler::~GoogleHandler() {
-    QSettings settings;
-    settings.setValue("GoogleRefreshToken", googleOAuthFlow->refreshToken());
+    const QString refreshToken = OAuthFlow->refreshToken();
+    if(!refreshToken.isEmpty()) {
+        QSettings settings;
+        settings.setValue("GoogleRefreshToken", refreshToken);
+    }
+}
 
-    delete googleOAuthFlow->replyHandler();
-    delete manager;
-    delete googleOAuthFlow;
+bool GoogleHandler::authenticate() {
+    auto *loginDialog = new QMessageBox;
+    loginDialog->setStyleSheet(LABEL10PTSTYLE);
+    loginDialog->setIconPixmap(icon().scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    loginDialog->setText("");
+
+    // if refreshToken is found, try to use it to get accessTokens without re-granting permission
+    if(refreshTokenExists) {
+        loginDialog->setText(tr("Contacting Google..."));
+        loginDialog->setStandardButtons(QMessageBox::Cancel);
+        loginDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        connect(this, &LMS::granted, loginDialog, &QMessageBox::accept);
+        connect(this, &LMS::denied, loginDialog, [&loginDialog]() {
+            loginDialog->setText(tr("Google is requesting that you re-authorize gruepr.\n\n"));
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->accept();
+        });
+
+        LMS::authenticate();
+
+        if(loginDialog->exec() == QMessageBox::Cancel) {
+            loginDialog->deleteLater();
+            return false;
+        }
+
+        //refreshToken failed, so need to start over
+        if(!authenticated) {
+            refreshTokenExists = false;
+        }
+    }
+
+    // still not authenticated, so either didn't have a refreshToken to use or the refreshToken didn't work; need to re-log in on the browser
+    if(!authenticated) {
+        loginDialog->setText(QString() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
+                                            "  » Your computer may ask whether gruepr can access the network. "
+                                            "This access is needed so that gruepr and Google can communicate.\n\n"
+                                            "  » In the browser, Google will ask whether you authorize gruepr "
+                                            "to access the files gruepr created on your Google Drive. "
+                                            "This access is needed so that the survey responses can now be downloaded.\n\n"
+                                            "  » All data associated with this survey, including the questions asked and "
+                                            "responses received, exist in your Google Drive only. "
+                                            "No data from or about this survey will ever be stored or sent anywhere else."));
+        loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+        auto *okButton = loginDialog->button(QMessageBox::Ok);
+        auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
+        cancelButton->setStyleSheet("");
+        const int height = okButton->height();
+        QPixmap loginpic(":/icons_new/google_signin_button.png");
+        loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
+        okButton->setText("");
+        okButton->setIconSize(loginpic.rect().size());
+        okButton->setIcon(loginpic);
+        okButton->adjustSize();
+        QPixmap cancelpic(":/icons_new/cancel_signin_button.png");
+        cancelpic = cancelpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
+        cancelButton->setText("");
+        cancelButton->setIconSize(cancelpic.rect().size());
+        cancelButton->setIcon(cancelpic);
+        cancelButton->adjustSize();
+        if(loginDialog->exec() == QMessageBox::Cancel) {
+            loginDialog->deleteLater();
+            return false;
+        }
+
+        LMS::authenticate();
+
+        loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
+        loginDialog->setStandardButtons(QMessageBox::Cancel);
+        loginDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        connect(this, &LMS::granted, loginDialog, &QMessageBox::accept);
+
+        if(loginDialog->exec() == QMessageBox::Cancel) {
+            loginDialog->deleteLater();
+            return false;
+        }
+    }
+
+    loginDialog->deleteLater();
+    return true;
 }
 
 GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
-    googleOAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
+    OAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
     const QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
     QJsonObject info;
     info["title"] = title;
@@ -235,19 +312,6 @@ QStringList GoogleHandler::getSurveyList() {
     }
     settings.endArray();
 
-// below requires access to (restricted) google drive scope; it lists all forms in the user's drive, not just those create by this app--note the "trashed=false" setting seems not to work
-/*
-    QList<QStringList*> stringInArrayParams = {&ids, &names, &createdTimes};
-    QUrl fileURL("https://www.googleapis.com/drive/v3/files");
-    QUrlQuery terms;
-    terms.addQueryItem("q", "mimeType='application/vnd.google-apps.form'");
-    terms.addQueryItem("trashed", "false");
-    terms.addQueryItem("orderBy", "createdTime desc");
-    terms.addQueryItem("fields", "files(id,name,createdTime)");
-    fileURL.setQuery(terms);
-    getFileList(fileURL.toString(QUrl::None), {"files/id", "files/name", "files/createdTime"}, stringInArrayParams);
-*/
-
     std::sort(formsList.begin(), formsList.end(), [](const GoogleForm &lhs, const GoogleForm &rhs)
                                                   {return (QDateTime::fromString(lhs.createdTime,Qt::ISODate) < QDateTime::fromString(rhs.createdTime,Qt::ISODate));});
     QStringList formNames;
@@ -274,16 +338,16 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //download the form itself into a JSON so that we can get the questions
     QString url = "https://forms.googleapis.com/v1/forms/" + ID;
     QEventLoop loop;
-    auto *reply = googleOAuthFlow->get(url);
+    auto *reply = OAuthFlow->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
-        //qDebug() << "no reply";
+        qDebug() << "no reply";
         delete reply;
         return {};
     }
     QString replyBody = reply->readAll();
-    //qDebug() << replyBody;
+    qDebug() << replyBody;
     reply->deleteLater();
     QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     //pull out each question and save the question ID and text
@@ -310,7 +374,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), surveyName.simplified().replace(unallowedChars, "_") + ".csv");
     QFile file(filepath.absoluteFilePath());
     file.open(QIODevice::WriteOnly | QIODevice::Text);
-    //qDebug() << file.errorString();
+    qDebug() << file.errorString();
     QTextStream out(&file);
 
     //save the header row
@@ -322,7 +386,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
 
     //now download into a big JSON all of the responses (actually it's just the first 5000 responses! if there are >5000, will need to work with paginated results!)
     url = "https://forms.googleapis.com/v1/forms/" + ID + "/responses";
-    reply = googleOAuthFlow->get(url);
+    reply = OAuthFlow->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -360,69 +424,14 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     return filepath.absoluteFilePath();
 }
 
-// function below gives list of Google Forms on Google Drive; requires direct access to Google Drive, which is a restricted scope and requires high security
-/*
-void GoogleHandler::getFileList(const QString &initialURL, const QStringList &stringInArrayParams, QList<QStringList*> &stringInArrayVals)
-{
-    QEventLoop loop;
-    QNetworkReply *reply = nullptr;
-    QString url = initialURL, replyHeader, replyBody;
-    QJsonDocument json_doc;
-    QJsonArray json_array;
-    int numPages = 0;
 
-    do {
-        reply = google->get(url);
-
-        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-        loop.exec();
-        if(reply->bytesAvailable() == 0) {
-            //qDebug() << "no reply";
-            delete reply;
-            return;
-        }
-
-        replyHeader = reply->rawHeader("Link");
-        replyBody = reply->readAll();
-        //qDebug() << replyBody;
-        json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
-        if(json_doc.isArray()) {
-            json_array = json_doc.array();
-        }
-        else if(json_doc.isObject()) {
-            json_array << json_doc.object();
-        }
-        else {
-            //empty or null
-            break;
-        }
-
-        for(const auto &value : qAsConst(json_array)) {
-            QJsonObject json_obj = value.toObject();
-            for(int i = 0; i < stringInArrayParams.size(); i++) {
-                QStringList subArrayAndParamName = stringInArrayParams.at(i).split('/');   // "array_name/string_paramater_name"
-                QJsonArray subarray = json_obj[subArrayAndParamName.at(0)].toArray();
-                for(const auto &subvalue : qAsConst(subarray)) {
-                    *(stringInArrayVals[i]) << subvalue[subArrayAndParamName.at(1)].toString();
-                }
-            }
-        }
-        //next 3 lines work with do/while in case more than one page of results exist. Currently based off Canvas pagination; would need to be updated to work here
-        static QRegularExpression nextURL(R"(^.*\<(.*?)\>; rel="next")");
-        QRegularExpressionMatch nextURLMatch = nextURL.match(replyHeader);
-        url = nextURLMatch.captured(1);
-    }
-    while(!url.isNull() && ++numPages < NUM_PAGES_TO_LOAD);
-
-    reply->deleteLater();
-}
-*/
+////////////////////////////////////////////
 
 void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
     QEventLoop loop;
-    auto *reply = googleOAuthFlow->post(URL, postData);
+    auto *reply = OAuthFlow->post(URL, postData);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
@@ -462,86 +471,26 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     reply->deleteLater();
 }
 
-void GoogleHandler::authenticate() {
-    googleOAuthFlow->setScope("https://www.googleapis.com/auth/drive.file");
-
-    const QUrl redirectUri = QString(REDIRECT_URI);
-    const int port = (redirectUri.port(REDIRECT_URI_PORT));
-
-    googleOAuthFlow->setClientIdentifier(CLIENT_ID);
-    googleOAuthFlow->setClientIdentifierSharedKey(CLIENT_SECRET);
-
-    googleOAuthFlow->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
-        // Percent-decode the "code" parameter so Google can match it
-        if (stage == QAbstractOAuth::Stage::RequestingAuthorization) {
-            // The only way to get refresh_token from Google Cloud
-            parameters->insert("access_type", "offline");
-            parameters->insert("prompt", "consent");
-        }
-        else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
-            // Percent-decode the "code" parameter so Google can match it
-            const QByteArray code = parameters->value("code").toByteArray();
-            parameters->replace("code", QUrl::fromPercentEncoding(code));
-        }
-    });
-
-    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
-    googleOAuthFlow->setReplyHandler(replyHandler);
-
-    connect(googleOAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){authenticated = true;
-                                                                           emit granted();});
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](/*const QString &error*/){
-                                                                                    authenticated = false;
-                                                                                    googleOAuthFlow->setRefreshToken("");
-                                                                                    refreshTokenExists = false;
-                                                                                    emit denied();});
-
-    if(refreshTokenExists) {
-        googleOAuthFlow->refreshAccessToken();
-    }
-    else {
-        QAbstractOAuth2::connect(googleOAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
-        googleOAuthFlow->grant();
-    }
+QString GoogleHandler::getScopes() const {
+    return "https://www.googleapis.com/auth/drive.file";
 }
 
-QDialog* GoogleHandler::actionDialog(QWidget *parent) {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-    auto *busyDialog = new QDialog(parent);
-    busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
-    actionDialogIcon = new QLabel(busyDialog);
-    actionDialogIcon->setPixmap(QPixmap(":/icons_new/google.png").scaled(GOOGLEICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    actionDialogLabel = new QLabel(busyDialog);
-    actionDialogLabel->setStyleSheet(LABEL10PTSTYLE);
-    actionDialogLabel->setText(tr("Communicating with Google..."));
-    actionDialogButtons = new QDialogButtonBox(busyDialog);
-    actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
-    actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
-    connect(actionDialogButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
-    auto *theGrid = new QGridLayout;
-    busyDialog->setLayout(theGrid);
-    theGrid->addWidget(actionDialogIcon, 0, 0);
-    theGrid->addWidget(actionDialogLabel, 0, 1);
-    theGrid->addWidget(actionDialogButtons, 1, 0, 1, -1);
-    busyDialog->setModal(true);
-    busyDialog->show();
-    busyDialog->adjustSize();
-    return busyDialog;
+QString GoogleHandler::getClientID() const {
+    return CLIENT_ID;
 }
 
-void GoogleHandler::actionComplete(QDialog *busyDialog) {
-    QApplication::restoreOverrideCursor();
-    busyDialog->accept();
-    busyDialog->deleteLater();
+QString GoogleHandler::getClientSecret() const {
+    return CLIENT_SECRET;
 }
 
+QString GoogleHandler::getActionDialogIcon() const {
+    return ":/icons_new/google.png";
+}
 
+QString GoogleHandler::getActionDialogLabel() const {
+    return tr("Communicating with Google...");
+}
 
-void grueprOAuthHttpServerReplyHandler::networkReplyFinished(QNetworkReply *reply)
-{
-    if(reply->error() != QNetworkReply::NoError) {
-        emit error(reply->errorString());
-    }
-
-    QOAuthHttpServerReplyHandler::networkReplyFinished(reply);
-};
+QPixmap GoogleHandler::icon() {
+    return {":/icons_new/google.png"};
+}

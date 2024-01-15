@@ -34,16 +34,18 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// DONE:
-//
-//
-//
-// TO DO:
+// INPROG:
 //    BUGFIXES:
 //  - sometimes does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
 //  - sometimes does not obtain token from Google once authorized in browser
 //
+//
+// DONE:
+//    C++ MODERNIZATION:
+//  - createed an LMS class and then subclass Canvas, Google; reorganized files into an LMS subfolder
+//
+//
+// TO DO:
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
@@ -52,7 +54,6 @@
 //    C++ MODERNIZATION:
 //  - modernize use of pointers throughout to C++17 style; check for memory leaks
 //  - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
-//  - create an LMS class and then subclass Canvas, Google
 //
 //    NETWORK IMPLEMENTATION:
 //  - enable PKCE with the Google (and Canvas?) OAuth2 flows
@@ -60,8 +61,9 @@
 //  - allow selection of which google drive account to use, remembering different refresh tokens for each
 //  - add integration with Blackboard, Qualtrics, others
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
-//      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again
+//      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
 //      - Question options: req'd question, answer validity checks
+//
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 //  - use multiple genepools with limited cross-breeding
 //  - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.

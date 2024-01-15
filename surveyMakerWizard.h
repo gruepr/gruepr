@@ -3,8 +3,6 @@
 
 #include <QWizard>
 #include <QWizardPage>
-#include "canvashandler.h"
-#include "googlehandler.h"
 #include "gruepr_globals.h"
 #include "survey.h"
 #include "dialogs/dayNamesDialog.h"
@@ -348,7 +346,6 @@ class PreviewAndExportPage : public SurveyMakerPage
 
 public:
     PreviewAndExportPage(QWidget *parent = nullptr);
-    ~PreviewAndExportPage() override;
 
     void initializePage() override;
     void cleanupPage() override;
@@ -362,8 +359,6 @@ private:
     QWidget *schedGrid = nullptr;
     QGridLayout *schedGridLayout = nullptr;
     Survey *survey = nullptr;
-    GoogleHandler *google = nullptr;
-    CanvasHandler *canvas = nullptr;
     QRadioButton *destinationGoogle = nullptr;
     QRadioButton *destinationCanvas = nullptr;
     QRadioButton *destinationTextFiles = nullptr;

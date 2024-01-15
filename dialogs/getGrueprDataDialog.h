@@ -2,11 +2,9 @@
 #define GETGRUEPRDATADIALOG_H
 
 #include <QDialog>
-#include "canvashandler.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/startDialog.h"
-#include "googlehandler.h"
 #include "studentRecord.h"
 
 namespace Ui {
@@ -45,8 +43,6 @@ private:
     bool readQuestionsFromHeader();
     void validateFieldSelectorBoxes(int callingRow = -1);
     bool readData();
-    CanvasHandler *canvas = nullptr;
-    GoogleHandler *google = nullptr;
     inline static const QString HEADERTEXT = QObject::tr("Question text");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");
     inline static const QString ROW1TEXT = QObject::tr("First Row of Data");

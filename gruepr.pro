@@ -64,15 +64,16 @@ macx: LIBS += -L /usr/local/lib
 macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
+        LMS/LMS.cpp \
+        LMS/canvashandler.cpp \
+        LMS/googlehandler.cpp \
         Levenshtein.cpp \
-        canvashandler.cpp \
         csvfile.cpp \
         dataOptions.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/getGrueprDataDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
         dialogs/teammatesRulesDialog.cpp \
-        googlehandler.cpp \
         gruepr_globals.cpp \
         main.cpp \
         gruepr.cpp \
@@ -109,15 +110,16 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+        LMS/LMS.h \
+        LMS/canvashandler.h \
+        LMS/googlehandler.h \
         Levenshtein.h \
-        canvashandler.h \
         csvfile.h \
         dataOptions.h \
         dialogs/attributeRulesDialog.h \
         dialogs/getGrueprDataDialog.h \
         dialogs/sampleQuestionsDialog.h \
         dialogs/teammatesRulesDialog.h \
-        googlehandler.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \

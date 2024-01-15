@@ -10,7 +10,6 @@
 #include <QGridLayout>
 #include <QMenu>
 #include <QMenuBar>
-//#include <QScreen>
 #include <QSettings>
 #include <QStringList>
 #include <QToolButton>

@@ -1,5 +1,5 @@
 #include "teamsTabItem.h"
-#include "canvashandler.h"
+#include "LMS/canvashandler.h"
 #include "dialogs/customTeamnamesDialog.h"
 #include "dialogs/whichFilesDialog.h"
 #include "gruepr.h"
@@ -185,7 +185,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     connect(printTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::printTeams);
     savePrintLayout->addWidget(printTeamsButton);
 
-    auto *postTeamsButton = new QPushButton(QIcon(":/icons_new/canvas.png"), tr("Post"), this);
+    auto *postTeamsButton = new QPushButton(QIcon(CanvasHandler::icon()), tr("Post"), this);
     postTeamsButton->setStyleSheet(SAVEPRINTBUTTONSTYLE);
     postTeamsButton->setIconSize(SAVEPRINTICONSIZE);
     postTeamsButton->setToolTip(tr("Post this set of teams to Canvas as a new group set"));
@@ -870,26 +870,11 @@ void TeamsTabItem::postTeamsToCanvas()
         return;
     }
 
-    //create canvasHandler and/or authenticate as needed
-    auto *canvas = new CanvasHandler;
-
-    if(!canvas->authenticated) {
-        QSettings savedSettings;
-        QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-        QString savedCanvasToken = savedSettings.value("canvasToken").toString();
-
-        const QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken, this);
-        if(newURLAndToken.isEmpty()) {
-            return;
-        }
-
-        savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
-        savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
-        savedSettings.setValue("canvasURL", savedCanvasURL);
-        savedSettings.setValue("canvasToken", savedCanvasToken);
-
-        canvas->setBaseURL(savedCanvasURL);
-        canvas->authenticate(savedCanvasToken);
+    //create canvasHandler and authenticate
+    auto *canvas = new CanvasHandler(this);
+    if(!canvas->authenticate()) {
+        canvas->deleteLater();
+        return;
     }
 
     //ask the user in which course we're creating the teams
@@ -898,7 +883,7 @@ void TeamsTabItem::postTeamsToCanvas()
     canvas->actionComplete(busyBox);
     auto *canvasCourses = new QDialog(this);
     canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-    canvasCourses->setWindowIcon(QIcon(":/icons_new/canvas.png"));
+    canvasCourses->setWindowIcon(QIcon(CanvasHandler::icon()));
     canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;

@@ -1,5 +1,7 @@
 #include "getGrueprDataDialog.h"
 #include "ui_getGrueprDataDialog.h"
+#include "LMS/canvashandler.h"
+#include "LMS/googlehandler.h"
 #include "gruepr_globals.h"
 #include "dialogs/baseTimeZoneDialog.h"
 #include <QComboBox>
@@ -103,8 +105,6 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
         surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
         surveyFile->deleteLater();
     }
-    canvas->deleteLater();
-    google->deleteLater();
     delete ui;
 }
 
@@ -117,6 +117,7 @@ void GetGrueprDataDialog::loadData()
     ui->tableWidget->clearContents();
     ui->tableWidget->setRowCount(0);
     delete dataOptions;
+    roster.clear();
 
     bool fileLoaded = false;
     switch(static_cast<DataOptions::DataSource>(ui->sourceButtonGroup->checkedId())) {
@@ -190,6 +191,8 @@ void GetGrueprDataDialog::loadData()
 
 bool GetGrueprDataDialog::getFromFile()
 {
+    const QPixmap icon(":/icons_new/file.png");
+
     QSettings savedSettings;
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
@@ -202,9 +205,8 @@ bool GetGrueprDataDialog::getFromFile()
     source = DataOptions::DataSource::fromFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
-    const QPixmap fileIcon(":/icons_new/file.png");
     const int h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
+    ui->dataSourceIcon->setPixmap(icon.scaledToHeight(h, Qt::SmoothTransformation));
     return true;
 }
 
@@ -214,89 +216,18 @@ bool GetGrueprDataDialog::getFromGoogle()
         return false;
     }
 
-    //create googleHandler and/or authenticate as needed
-    if(google == nullptr) {
-        google = new GoogleHandler;
-    }
-    if(!google->authenticated) {
-        auto *loginDialog = new QMessageBox(this);
-        loginDialog->setStyleSheet(LABEL10PTSTYLE);
-        const QPixmap icon(":/icons_new/google.png");
-        loginDialog->setIconPixmap(icon.scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        loginDialog->setText("");
-
-        // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-        if(google->refreshTokenExists) {
-            loginDialog->setText(tr("Contacting Google..."));
-            loginDialog->setStandardButtons(QMessageBox::Cancel);
-            connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
-            connect(google, &GoogleHandler::denied, loginDialog, [&loginDialog]() {loginDialog->setText(tr("Google is requesting that you re-authorize gruepr.\n\n"));
-                                                                                   loginDialog->accept();});
-
-            google->authenticate();
-
-            if(loginDialog->exec() == QMessageBox::Cancel) {
-                loginDialog->deleteLater();
-                return false;
-            }
-
-            //refreshToken failed, so need to start over
-            if(!google->authenticated) {
-                delete google;
-                google = new GoogleHandler;
-            }
-        }
-
-        // still not authenticated, so either didn't have a refreshToken to use or the refreshToken didn't work; need to re-log in on the browser
-        if(!google->authenticated) {
-            loginDialog->setText(loginDialog->text() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
-                                                          "  » Your computer may ask whether gruepr can access the network. "
-                                                          "This access is needed so that gruepr and Google can communicate.\n\n"
-                                                          "  » In the browser, Google will ask whether you authorize gruepr "
-                                                               "to access the files gruepr created on your Google Drive. "
-                                                          "This access is needed so that the survey responses can now be downloaded.\n\n"
-                                                          "  » All data associated with this survey, including the questions asked and "
-                                                               "responses received, exist in your Google Drive only. "
-                                                          "No data from or about this survey will ever be stored or sent anywhere else."));
-            loginDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-            auto *okButton = loginDialog->button(QMessageBox::Ok);
-            auto *cancelButton = loginDialog->button(QMessageBox::Cancel);
-            const int height = okButton->height();
-            QPixmap loginpic(":/icons_new/google_signin_button.png");
-            loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
-            okButton->setText("");
-            okButton->setIconSize(loginpic.rect().size());
-            okButton->setIcon(loginpic);
-            okButton->adjustSize();
-            QPixmap cancelpic(":/icons_new/cancel_signin_button.png");
-            cancelpic = cancelpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
-            cancelButton->setText("");
-            cancelButton->setIconSize(cancelpic.rect().size());
-            cancelButton->setIcon(cancelpic);
-            cancelButton->adjustSize();
-            if(loginDialog->exec() == QMessageBox::Cancel) {
-                loginDialog->deleteLater();
-                return false;
-            }
-
-            google->authenticate();
-
-            loginDialog->setText(tr("Please use your browser to log in to Google and then return here."));
-            loginDialog->setStandardButtons(QMessageBox::Cancel);
-            connect(google, &GoogleHandler::granted, loginDialog, &QMessageBox::accept);
-            if(loginDialog->exec() == QMessageBox::Cancel) {
-                loginDialog->deleteLater();
-                return false;
-            }
-        }
-        loginDialog->deleteLater();
+    //create googleHandler and authenticate
+    auto *google = new GoogleHandler(this);
+    if(!google->authenticate()) {
+        google->deleteLater();
+        return false;
     }
 
     //ask which survey to download
     QStringList formsList = google->getSurveyList();
     auto *googleFormsDialog = new QDialog(this);
     googleFormsDialog->setWindowTitle(tr("Choose Google survey"));
-    googleFormsDialog->setWindowIcon(QIcon(":/icons_new/google.png"));
+    googleFormsDialog->setWindowIcon(GoogleHandler::icon());
     googleFormsDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     auto *label = new QLabel(tr("Which survey should be opened?"), googleFormsDialog);
@@ -317,46 +248,38 @@ bool GetGrueprDataDialog::getFromGoogle()
     connect(buttonBox, &QDialogButtonBox::rejected, googleFormsDialog, &QDialog::reject);
     if((googleFormsDialog->exec() == QDialog::Rejected)) {
         googleFormsDialog->deleteLater();
+        google->deleteLater();
         return false;
     }
     const QString googleFormName = formsComboBox->currentText();
     googleFormsDialog->deleteLater();
 
     //download the survey
-    auto *busyBox = google->actionDialog();
+    auto *busyBox = google->actionDialog(this);
     const QString filepath = google->downloadSurveyResult(googleFormName);
-    QPixmap icon;
+    const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
+
+    const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
+    google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    const QString resultText = (fail? tr("Error. Survey not downloaded.") : tr("Survey downloaded"));
+    google->actionDialogLabel->setText(resultText);
     QEventLoop loop;
-    if(filepath.isEmpty()) {
-        google->actionDialogLabel->setText(tr("Error. Survey not downloaded."));
-        icon.load(":/icons_new/error.png");
-        google->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        busyBox->adjustSize();
-        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-        loop.exec();
-        google->actionComplete(busyBox);
-        return false;
-    }
-    google->actionDialogLabel->setText(tr("Success!"));
-    icon.load(":/icons_new/ok.png");
-    google->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
     google->actionComplete(busyBox);
+    google->deleteLater();
 
-    //open the downloaded file
-    if(!surveyFile->openExistingFile(filepath)) {
+    if(fail) {
         return false;
     }
 
     source = DataOptions::DataSource::fromGoogle;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = googleFormName;
-    const QPixmap fileIcon(":/icons_new/google.png");
     const int h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
+    ui->dataSourceIcon->setPixmap(GoogleHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
 }
@@ -368,38 +291,21 @@ bool GetGrueprDataDialog::getFromCanvas()
     }
 
     //create canvasHandler and/or authenticate as needed
-    if(canvas == nullptr) {
-        canvas = new CanvasHandler;
-    }
-    if(!canvas->authenticated) {
-        //IN BETA--GETS USER'S API TOKEM MANUALLY
-        QSettings savedSettings;
-        QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-        QString savedCanvasToken = savedSettings.value("canvasToken").toString();
-
-        const QStringList newURLAndToken = canvas->askUserForManualToken(savedCanvasURL, savedCanvasToken);
-        if(newURLAndToken.isEmpty()) {
-            return false;
-        }
-
-        savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
-        savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
-        savedSettings.setValue("canvasURL", savedCanvasURL);
-        savedSettings.setValue("canvasToken", savedCanvasToken);
-
-        canvas->setBaseURL(savedCanvasURL);
-        canvas->authenticate(savedCanvasToken);
+    auto *canvas = new CanvasHandler(this);
+    if(!canvas->authenticate()) {
+        canvas->deleteLater();
+        return false;
     }
 
     //ask the user from which course we're downloading the survey
-    auto *busyBox = canvas->actionDialog();
+    auto *busyBox = canvas->actionDialog(this);
     QStringList courseNames = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
     canvasCoursesAndQuizzesDialog->setStyleSheet(QString(LABEL10PTSTYLE) + COMBOBOXSTYLE);
     canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas course"));
-    canvasCoursesAndQuizzesDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
+    canvasCoursesAndQuizzesDialog->setWindowIcon(CanvasHandler::icon());
     canvasCoursesAndQuizzesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
@@ -420,13 +326,14 @@ bool GetGrueprDataDialog::getFromCanvas()
     connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesAndQuizzesDialog, &QDialog::reject);
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected)) {
         canvasCoursesAndQuizzesDialog->deleteLater();
+        canvas->deleteLater();
         return false;
     }
     const QString course = coursesAndQuizzesComboBox->currentText();
     canvasCoursesAndQuizzesDialog->hide();
 
     //ask which survey (canvas Quiz) to download
-    busyBox = canvas->actionDialog();
+    busyBox = canvas->actionDialog(this);
     QStringList formsList = canvas->getQuizList(course);
     canvas->actionComplete(busyBox);
 
@@ -438,41 +345,34 @@ bool GetGrueprDataDialog::getFromCanvas()
     }
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected)) {
         canvasCoursesAndQuizzesDialog->deleteLater();
+        canvas->deleteLater();
         return false;
     }
     const QString canvasSurveyName = coursesAndQuizzesComboBox->currentText();
     canvasCoursesAndQuizzesDialog->deleteLater();
 
-    //download the survey
-    busyBox = canvas->actionDialog();
+    //download the survey and, if successful, the roster
+    busyBox = canvas->actionDialog(this);
     const QString filepath = canvas->downloadQuizResult(course, canvasSurveyName);
-    QPixmap icon;
-    const QSize iconSize = canvas->actionDialogIcon->size();
-    QEventLoop loop;
-    if(filepath.isEmpty()) {
-        canvas->actionDialogLabel->setText(tr("Error. Survey not received."));
-        icon.load(":/icons_new/error.png");
-        canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        busyBox->adjustSize();
-        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-        loop.exec();
-        canvas->actionComplete(busyBox);
-        return false;
+    const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
+    if(!fail) {
+        //get the roster for later comparison
+        roster = canvas->getStudentRoster(course);
     }
 
-    //get the roster for later comparison
-    roster = canvas->getStudentRoster(course);
-
-    canvas->actionDialogLabel->setText(tr("Success!"));
-    icon.load(":/icons_new/ok.png");
-    canvas->actionDialogIcon->setPixmap(icon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
+    const QSize iconSize = canvas->actionDialogIcon->size();
+    canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    const QString resultText = (fail? tr("Error. Survey not downloaded.") : tr("Survey downloaded"));
+    canvas->actionDialogLabel->setText(resultText);
+    QEventLoop loop;
     busyBox->adjustSize();
     QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
     loop.exec();
     canvas->actionComplete(busyBox);
+    canvas->deleteLater();
 
-    //open the downloaded file
-    if(!surveyFile->openExistingFile(filepath)) {
+    if(fail) {
         return false;
     }
 
@@ -484,9 +384,8 @@ bool GetGrueprDataDialog::getFromCanvas()
     source = DataOptions::DataSource::fromCanvas;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = canvasSurveyName;
-    const QPixmap fileIcon(":/icons_new/canvas.png");
     const int h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
+    ui->dataSourceIcon->setPixmap(CanvasHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
 }
@@ -984,8 +883,7 @@ bool GetGrueprDataDialog::readData()
     } while(surveyFile->readDataRow() && numStudents < MAX_STUDENTS);
 
     // if there's a (separately-sourced) roster of students, compare against the list of submissions and add the info of any non-submitters now
-    // for now, only works with Canvas, since using LMSID as the match
-    if(ui->sourceButtonGroup->checkedId() == static_cast<int>(DataOptions::DataSource::fromCanvas)) {
+    if(!roster.isEmpty()) {
         int numNonSubmitters = 0;
         for(const auto &student : roster) {
             int index = 0;
