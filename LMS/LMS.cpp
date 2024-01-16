@@ -14,26 +14,23 @@ void LMS::initOAuth2() {
     manager->setTransferTimeout(TIMEOUT_TIME);
 
     OAuthFlow = new QOAuth2AuthorizationCodeFlow(manager, this);
-    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
-    OAuthFlow->setReplyHandler(replyHandler);
     OAuthFlow->setScope(getScopes());
     OAuthFlow->setClientIdentifier(getClientID());
     OAuthFlow->setClientIdentifierSharedKey(getClientSecret());
-    OAuthFlow->setModifyParametersFunction([](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
-        if (stage == QAbstractOAuth::Stage::RequestingAuthorization) {
-            // The only way to get refresh_token from Google Cloud
-            parameters->insert("access_type", "offline");
-            parameters->insert("prompt", "consent");
-        }
-        else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
-            // Percent-decode the "code" parameter so Google can match it
-            const QByteArray code = parameters->value("code").toByteArray();
-            parameters->replace("code", QUrl::fromPercentEncoding(code));
-        }
-    });
+    OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
+
+    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, OAuthFlow);
+    OAuthFlow->setReplyHandler(replyHandler);
+
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QString &reply){
+        emit replyReceived(reply);
+    });
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){
         authenticated = true;
+        if(!OAuthFlow->refreshToken().isEmpty()) {
+            refreshTokenExists = true;
+        }
         emit granted();
     });
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](/*const QString &error*/){
@@ -53,7 +50,6 @@ bool LMS::authenticate() {
     }
     return true;
 }
-
 
 QDialog* LMS::actionDialog(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));

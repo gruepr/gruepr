@@ -24,7 +24,7 @@ class GoogleHandler : public LMS
     Q_OBJECT
 
 public:
-    GoogleHandler(QObject *parent = nullptr);
+    GoogleHandler(QWidget *parent = nullptr);
     ~GoogleHandler() override;
     GoogleHandler(const GoogleHandler&) = delete;
     GoogleHandler operator= (const GoogleHandler&) = delete;
@@ -32,6 +32,7 @@ public:
     GoogleHandler& operator= (GoogleHandler&&) = delete;
 
     bool authenticate() override;
+
     GoogleForm createSurvey(const Survey *const survey);
     QStringList getSurveyList();
     QString downloadSurveyResult(const QString &surveyName);
@@ -43,12 +44,20 @@ private:
                                                                                      const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals);
 
     QList<GoogleForm> formsList;
+    QString accountName;
+
+    //PKCE
+    QByteArray code_verifier;
+    QByteArray code_challenge;
+
+    QWidget *parent = nullptr;
 
     QString getScopes() const override;
     QString getClientID() const override;
     QString getClientSecret() const override;
     QString getActionDialogIcon() const override;
     QString getActionDialogLabel() const override;
+    std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const override;
 
     inline static const char AUTHENTICATEURL[]{"https://accounts.google.com/o/oauth2/auth"};
     inline static const char ACCESSTOKENURL[]{"https://oauth2.googleapis.com/token"};

@@ -2561,18 +2561,6 @@ void PreviewAndExportPage::exportSurvey()
             return;
         }
 
-        // append this survey to the saved values
-        QSettings settings;
-        const int currentArraySize = settings.beginReadArray("GoogleForm");
-        settings.endArray();
-        settings.beginWriteArray("GoogleForm");
-        settings.setArrayIndex(currentArraySize);
-        settings.setValue("name", form.name);
-        settings.setValue("ID", form.ID);
-        settings.setValue("createdTime", form.createdTime);
-        settings.setValue("responderURL", form.responderURL);
-        settings.endArray();
-
         auto *successDialog = new QMessageBox(this);
         successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
         successDialog->setTextFormat(Qt::RichText);

@@ -23,7 +23,7 @@ class CanvasHandler : public LMS
     Q_OBJECT
 
 public:
-    CanvasHandler(QObject *parent = nullptr);
+    CanvasHandler(QWidget *parent = nullptr);
     ~CanvasHandler() override;
     CanvasHandler(const CanvasHandler&) = delete;
     CanvasHandler operator= (const CanvasHandler&) = delete;
@@ -67,11 +67,14 @@ private:
     QList<StudentRecord> roster;
     QList<CanvasQuiz> quizList;
 
+    QWidget *parent = nullptr;
+
     QString getScopes() const override;
     QString getClientID() const override;
     QString getClientSecret() const override;
     QString getActionDialogIcon() const override;
     QString getActionDialogLabel() const override;
+    std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const override;
 
     inline static const int NUM_PAGES_TO_LOAD = 20;
     inline static const QString CLIENT_ID{""};

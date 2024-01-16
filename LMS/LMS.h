@@ -22,10 +22,6 @@ public:
     LMS(LMS&&) = delete;
     LMS& operator= (LMS&&) = delete;
 
-    //OAuth2
-    bool authenticated = false;
-    bool refreshTokenExists = false;
-
     //"Please wait, still communicating" dialog
     QDialog* actionDialog(QWidget *parent = nullptr);
     QLabel *actionDialogIcon = nullptr;
@@ -34,23 +30,27 @@ public:
     void actionComplete(QDialog *busyDialog);
 
 signals:
-    //OAuth2
+    void replyReceived(const QString &reply);
     void granted();
     void denied();
 
 protected:
     void initOAuth2();
+    virtual bool authenticate();
+    bool authenticated = false;
+    bool refreshTokenExists = false;
+
     QOAuth2AuthorizationCodeFlow *OAuthFlow = nullptr;
     QNetworkAccessManager *manager = nullptr;
     QUrl redirectUri;
     quint16 port;
-    virtual bool authenticate();
 
     virtual QString getScopes() const = 0;
     virtual QString getClientID() const = 0;
     virtual QString getClientSecret() const = 0;
     virtual QString getActionDialogIcon() const = 0;
     virtual QString getActionDialogLabel() const = 0;
+    virtual std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const = 0;
 
     inline static const QSize ICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec

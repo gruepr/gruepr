@@ -34,16 +34,19 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// INPROG:
-//    BUGFIXES:
-//  - sometimes does not recognize when Google refreshtoken is not accepted and a re-authorization is needed
-//  - sometimes does not obtain token from Google once authorized in browser
-//
 //
 // DONE:
+//    BUGFIXES:
+//  - fixed Google authorization issues
+//
+//    NEW FEATURES:
+//  - allow selection of which google drive account to use: need to assoc. set of forms with each account name
+//  - uses more secure PKCE setting when connecting to Google API
+//
 //    C++ MODERNIZATION:
 //  - createed an LMS class and then subclass Canvas, Google; reorganized files into an LMS subfolder
 //
+// INPROG:
 //
 // TO DO:
 //    NEW FEATURES:
@@ -56,9 +59,7 @@
 //  - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
 //
 //    NETWORK IMPLEMENTATION:
-//  - enable PKCE with the Google (and Canvas?) OAuth2 flows
-//  - create timeout function to nicely handle canvas and google connections
-//  - allow selection of which google drive account to use, remembering different refresh tokens for each
+//  - create timeout function to nicely handle LMS connections
 //  - add integration with Blackboard, Qualtrics, others
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
