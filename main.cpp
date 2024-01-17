@@ -47,6 +47,8 @@
 //  - createed an LMS class and then subclass Canvas, Google; reorganized files into an LMS subfolder
 //
 // INPROG:
+//  - fix weird look of top of getdatadialog after loading file (or just google survey?)
+//  - stop rest of getdatadialog accept if failed loaddata
 //
 // TO DO:
 //    NEW FEATURES:

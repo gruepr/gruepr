@@ -53,26 +53,26 @@ bool LMS::authenticate() {
 
 QDialog* LMS::actionDialog(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-    auto *busyDialog = new QDialog(parent);
-    busyDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
-    actionDialogIcon = new QLabel(busyDialog);
+    auto *dialog = new QDialog(parent);
+    dialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
+    actionDialogIcon = new QLabel(dialog);
     actionDialogIcon->setPixmap(QPixmap(getActionDialogIcon()).scaled(ICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    actionDialogLabel = new QLabel(busyDialog);
-    actionDialogLabel->setStyleSheet(LABEL10PTSTYLE);
+    actionDialogLabel = new QLabel(dialog);
+    actionDialogLabel->setStyleSheet(LABEL12PTSTYLE);
     actionDialogLabel->setText(getActionDialogLabel());
-    actionDialogButtons = new QDialogButtonBox(busyDialog);
+    actionDialogButtons = new QDialogButtonBox(dialog);
     actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
     actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
-    connect(actionDialogButtons, &QDialogButtonBox::accepted, busyDialog, &QDialog::accept);
+    connect(actionDialogButtons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     auto *theGrid = new QGridLayout;
-    busyDialog->setLayout(theGrid);
+    dialog->setLayout(theGrid);
     theGrid->addWidget(actionDialogIcon, 0, 0);
     theGrid->addWidget(actionDialogLabel, 0, 1);
     theGrid->addWidget(actionDialogButtons, 1, 0, 1, -1);
-    busyDialog->setModal(true);
-    busyDialog->show();
-    busyDialog->adjustSize();
-    return busyDialog;
+    dialog->setModal(true);
+    dialog->show();
+    dialog->adjustSize();
+    return dialog;
 }
 
 void LMS::actionComplete(QDialog *busyDialog) {

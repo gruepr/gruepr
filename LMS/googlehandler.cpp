@@ -1,23 +1,16 @@
 #include "googlehandler.h"
 #include "googlesecrets.h"
-#include <QAbstractButton>
 #include <QDesktopServices>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
-#include <QMessageBox>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
     OAuthFlow->setAuthorizationUrl(QString(AUTHENTICATEURL));
     OAuthFlow->setAccessTokenUrl(QString(ACCESSTOKENURL));
-
-    auto code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
-                          QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1(); // 43 <= length <= 128
-    auto code_challenge = QCryptographicHash::hash(code_verifier, QCryptographicHash::Sha256).
-                                                                  toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
-
 
     const QSettings settings;
     const QString refreshToken = settings.value("GoogleRefreshToken", "").toString();
@@ -43,19 +36,17 @@ GoogleHandler::~GoogleHandler() {
 bool GoogleHandler::authenticate() {
     // if refreshToken is found, try to use it to get accessTokens without re-granting permission
     if(refreshTokenExists) {
-        auto *loginDialog = new QMessageBox(parent);
-        loginDialog->setModal(true);
-        loginDialog->setStyleSheet(LABEL10PTSTYLE);
-        loginDialog->setIconPixmap(icon().scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        loginDialog->setStandardButtons(QMessageBox::Cancel);
-        loginDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        auto *loginDialog = actionDialog(parent);
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
+        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
         bool changingAccounts = false;
         if(!accountName.isEmpty()){
-            loginDialog->setText(tr("Connecting to Google with account ") + accountName + "...\n" + tr("Press Cancel now to use a different account"));
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME * 2, loginDialog, &QMessageBox::accept);
-            loginDialog->exec();
-            changingAccounts = (loginDialog->result() == QMessageBox::Cancel);
+            actionDialogLabel->setText(tr("Connecting to Google with account ") + "\n" + accountName + "\n" +
+                                       tr("Press Cancel now to use a different account"));
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME * 2, loginDialog, &QDialog::accept);
+            changingAccounts = (loginDialog->result() == QDialog::Rejected);
         }
 
         if(changingAccounts) {
@@ -64,10 +55,9 @@ bool GoogleHandler::authenticate() {
             OAuthFlow->setRefreshToken("");
         }
         else {
-            loginDialog->setText(tr("Connecting to Google..."));
-            loginDialog->open();
-            connect(this, &LMS::replyReceived, loginDialog, [&loginDialog, this](const QString &reply) {
-                loginDialog->setText(loginDialog->text() + "\n" + tr("Response received..."));
+            actionDialogLabel->setText(tr("Connecting to Google..."));
+            connect(this, &LMS::replyReceived, loginDialog, [this](const QString &reply) {
+                actionDialogLabel->setText(actionDialogLabel->text() + "\n" + tr("Response received..."));
                 const auto json_doc = QJsonDocument::fromJson(reply.toUtf8());
                 const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
                 if(id_token.size() == 3) {
@@ -75,9 +65,9 @@ bool GoogleHandler::authenticate() {
                     accountName = id_token_JWTPayload["email"].toString();
                 }
             });
-            connect(this, &LMS::granted, loginDialog, &QMessageBox::accept);
-            connect(this, &LMS::denied, loginDialog, [&loginDialog]() {
-                loginDialog->setText(loginDialog->text() + "\n" + tr("Google is requesting that you re-authorize gruepr."));
+            connect(this, &LMS::granted, loginDialog, &QDialog::accept);
+            connect(this, &LMS::denied, loginDialog, [&loginDialog, this]() {
+                actionDialogLabel->setText(actionDialogLabel->text() + "\n" + tr("Google is requesting that you re-authorize gruepr."));
                 QEventLoop loop;
                 QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
                 loop.exec();
@@ -86,50 +76,49 @@ bool GoogleHandler::authenticate() {
 
             LMS::authenticate();
 
-            if(loginDialog->exec() == QMessageBox::Cancel) {
-                loginDialog->deleteLater();
+            if(loginDialog->exec() == QDialog::Rejected) {
+                actionComplete(loginDialog);
                 return false;
             }
         }
-        loginDialog->deleteLater();
+        actionComplete(loginDialog);
     }
 
     // didn't have a refreshToken, the refreshToken didn't work, or user wants to change accounts: time to (re)authorize
     if(!authenticated) {
-        auto *loginDialog2 = new QMessageBox(parent);
-        loginDialog2->setModal(true);
-        loginDialog2->setStyleSheet(LABEL10PTSTYLE);
-        loginDialog2->setIconPixmap(icon().scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        loginDialog2->setText(QString() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
-                                            "  » Your computer may ask whether gruepr can access the network. "
+        auto *loginDialog2 = actionDialog(parent);
+        actionDialogLabel->setText(QString() + tr("The next step will open a browser window so you can sign in with Google.\n\n"
+                                            "  » Your computer may ask whether gruepr can access the network.\n"
                                             "This access is needed so that gruepr and Google can communicate.\n\n"
-                                            "  » In the browser, Google will ask whether you authorize gruepr "
-                                            "to access the files gruepr creates on your Google Drive. "
+                                            "  » In the browser, Google will ask whether you authorize gruepr\n"
+                                            "to access the files gruepr creates on your Google Drive.\n"
                                             "This access is needed so that the survey responses can now be downloaded.\n\n"
-                                            "  » All data associated with this survey, including the questions asked and "
-                                            "responses received, exist in your Google Drive only. "
+                                            "  » All data associated with this survey, including the questions asked and\n"
+                                            "responses received, exist in your Google Drive only.\n\n"
                                             "No data from or about this survey will ever be stored or sent anywhere else."));
-        loginDialog2->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-        auto *okButton = loginDialog2->button(QMessageBox::Ok);
-        const int height = okButton->height();
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
+        actionDialogButtons->setStyleSheet("");
+        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        auto *okButton = actionDialogButtons->button(QDialogButtonBox::Ok);
         QPixmap loginpic(":/icons_new/google_signin_button.png");
-        loginpic = loginpic.scaledToHeight(int(1.5f * float(height)), Qt::SmoothTransformation);
+        loginpic = loginpic.scaledToHeight(okButton->height(), Qt::SmoothTransformation);
         okButton->setText("");
         okButton->setIconSize(loginpic.rect().size());
         okButton->setIcon(loginpic);
         okButton->adjustSize();
-        loginDialog2->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
-        if(loginDialog2->exec() == QMessageBox::Cancel) {
-            loginDialog2->deleteLater();
+        if(loginDialog2->exec() == QDialog::Rejected) {
+            actionComplete(loginDialog2);
             return false;
         }
 
-        loginDialog2->setText(tr("Please use your browser to log in to Google and then return here."));
-        loginDialog2->setStandardButtons(QMessageBox::Cancel);
-        loginDialog2->open();
-        connect(this, &LMS::replyReceived, loginDialog2, [&loginDialog2, this](const QString &reply) {
-            loginDialog2->setText(loginDialog2->text() + "\n" + tr("Response received..."));
+        actionDialogLabel->setText(tr("Please use your browser to log in to Google and then return here."));
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
+        loginDialog2->adjustSize();
+        connect(this, &LMS::replyReceived, loginDialog2, [this](const QString &reply) {
+            actionDialogLabel->setText(actionDialogLabel->text() + "\n" + tr("Response received..."));
             const auto json_doc = QJsonDocument::fromJson(reply.toUtf8());
             const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
             if(id_token.size() == 3) {
@@ -137,16 +126,16 @@ bool GoogleHandler::authenticate() {
                 accountName = id_token_JWTPayload["email"].toString();
             }
         });
-        connect(this, &LMS::granted, loginDialog2, &QMessageBox::accept);
+        connect(this, &LMS::granted, loginDialog2, &QDialog::accept);
 
         LMS::authenticate();
 
-        if(loginDialog2->exec() == QMessageBox::Cancel) {
-            loginDialog2->deleteLater();
+        if(loginDialog2->exec() == QDialog::Rejected) {
+            actionComplete(loginDialog2);
             return false;
         }
 
-        loginDialog2->deleteLater();
+        actionComplete(loginDialog2);
     }
 
     return true;
@@ -560,7 +549,12 @@ QString GoogleHandler::getActionDialogLabel() const {
 }
 
 std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> GoogleHandler::getModifyParametersFunction() const {
-    return [this](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
+    auto code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
+                          QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1(); // 43 <= length <= 128
+    auto code_challenge = QCryptographicHash::hash(code_verifier, QCryptographicHash::Sha256).
+                          toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+
+    return [code_verifier, code_challenge](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {
         if (stage == QAbstractOAuth::Stage::RequestingAuthorization) {
             // needed to get refresh_token from Google Cloud
             parameters->insert("access_type", "offline");

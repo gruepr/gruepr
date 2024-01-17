@@ -46,10 +46,6 @@ private:
     QList<GoogleForm> formsList;
     QString accountName;
 
-    //PKCE
-    QByteArray code_verifier;
-    QByteArray code_challenge;
-
     QWidget *parent = nullptr;
 
     QString getScopes() const override;
