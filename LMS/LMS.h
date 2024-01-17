@@ -17,10 +17,6 @@ class LMS : public QObject
 public:
     LMS(QObject *parent = nullptr);
     ~LMS() override = default;
-    LMS(const LMS&) = delete;
-    LMS operator= (const LMS&) = delete;
-    LMS(LMS&&) = delete;
-    LMS& operator= (LMS&&) = delete;
 
     //"Please wait, still communicating" dialog
     QDialog* actionDialog(QWidget *parent = nullptr);

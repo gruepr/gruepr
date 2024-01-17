@@ -155,7 +155,6 @@ bool GoogleHandler::authenticate() {
 GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
-    OAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
     const QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
     QJsonObject info;
     info["title"] = title;
@@ -169,6 +168,9 @@ GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     postToGoogleGetSingleResult(url, QJsonDocument(form).toJson(),
                                 {"formId", "responderUri", "revisionId"}, stringParams,
                                 {}, stringInSubobjectParams);
+    if(formIDInList.isEmpty() || submissionURL.isEmpty() || revisionIDinList.isEmpty()) {
+        return {};
+    }
     const QString formID = formIDInList.constFirst();
     const QString surveySubmissionURL = submissionURL.constFirst();
     QString revisionID = revisionIDinList.constFirst();
@@ -498,13 +500,13 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
                                                 const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
+    OAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
     QEventLoop loop;
     auto *reply = OAuthFlow->post(URL, postData);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
-        delete reply;
         return;
     }
 
@@ -520,7 +522,6 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     }
     else {
         //empty or null
-        reply->deleteLater();
         return;
     }
 
@@ -535,8 +536,6 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
         }
     }
-
-    reply->deleteLater();
 }
 
 QString GoogleHandler::getScopes() const {
