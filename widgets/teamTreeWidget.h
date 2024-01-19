@@ -24,7 +24,8 @@ public:
     TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
     TeamTreeWidgetItem operator= (const TeamTreeWidgetItem&) = delete;
     TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;
-    TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;    void setScoreColor(float teamScore);
+    TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;
+    void setScoreColor(float teamScore);
     bool operator<(const QTreeWidgetItem &other) const override;
 
 private:

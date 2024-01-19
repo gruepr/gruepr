@@ -16,7 +16,6 @@ class LMS : public QObject
 
 public:
     LMS(QObject *parent = nullptr);
-    ~LMS() override = default;
 
     //"Please wait, still communicating" dialog
     QDialog* actionDialog(QWidget *parent = nullptr);

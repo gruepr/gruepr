@@ -37,7 +37,7 @@
 //
 // DONE:
 //    BUGFIXES:
-//  - fixed many Google authorization issues
+//  - fixed many Google authorization and connection issues; updated connection UI
 //  - fixed crash when trying to form teams after loading a file without ever selecting a section
 //
 //    NEW FEATURES:

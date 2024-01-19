@@ -17,6 +17,10 @@ public:
     explicit SwitchButton(QWidget* parent = nullptr, bool startingValue = false, Style style = Style::YESNO);
     explicit SwitchButton(bool startingValue = false) : SwitchButton(nullptr, startingValue) {};
     ~SwitchButton() override;
+    SwitchButton(const SwitchButton&) = delete;
+    SwitchButton operator= (const SwitchButton&) = delete;
+    SwitchButton(SwitchButton&&) = delete;
+    SwitchButton& operator= (SwitchButton&&) = delete;
 
     //-- QWidget methods
     void mousePressEvent(QMouseEvent* event = nullptr) override;
@@ -62,10 +66,14 @@ private:
 class SwitchButton::SwitchBackground : public QWidget
 {
     Q_OBJECT
-    Q_DISABLE_COPY(SwitchBackground)
 
 public:
     explicit SwitchBackground(QWidget* parent = nullptr);
+    ~SwitchBackground() override = default;
+    SwitchBackground(const SwitchBackground&) = delete;
+    SwitchBackground operator= (const SwitchBackground&) = delete;
+    SwitchBackground(SwitchBackground&&) = delete;
+    SwitchBackground& operator= (SwitchBackground&&) = delete;
 
     //-- QWidget methods
     void paintEvent(QPaintEvent* event = nullptr) override;
@@ -81,10 +89,14 @@ private:
 class SwitchButton::SwitchCircle : public QWidget
 {
     Q_OBJECT
-    Q_DISABLE_COPY(SwitchCircle)
 
 public:
     explicit SwitchCircle(QWidget* parent = nullptr);
+    ~SwitchCircle() override = default;
+    SwitchCircle(const SwitchCircle&) = delete;
+    SwitchCircle operator= (const SwitchCircle&) = delete;
+    SwitchCircle(SwitchCircle&&) = delete;
+    SwitchCircle& operator= (SwitchCircle&&) = delete;
 
     //-- QWidget methods
     void paintEvent(QPaintEvent* event = nullptr) override;
