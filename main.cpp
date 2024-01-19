@@ -39,6 +39,7 @@
 //    BUGFIXES:
 //  - fixed many Google authorization and connection issues; updated connection UI
 //  - fixed crash when trying to form teams after loading a file without ever selecting a section
+//  - now maintains visibility / palette even with macOS in dark mode
 //
 //    NEW FEATURES:
 //  - now allows selection of which google drive account to use, new forms will associate with the account used
