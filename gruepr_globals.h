@@ -6,6 +6,7 @@
 #include <QObject>
 
 
+inline static const int MIN_STUDENTS = 4;
 inline static const int MAX_STUDENTS = GA::MAX_RECORDS;               // each student is a "record" in the genetic algorithm
 inline static const int MAX_IDS = 2 * MAX_STUDENTS;                   // since students can be removed and added yet IDs always increase, need more IDs than possible students
 inline static const int MAX_TEAMS = MAX_STUDENTS/2;

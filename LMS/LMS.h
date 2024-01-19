@@ -44,6 +44,8 @@ protected:
     virtual QString getScopes() const = 0;
     virtual QString getClientID() const = 0;
     virtual QString getClientSecret() const = 0;
+    virtual QString getClientAuthorizationUrl() const = 0;
+    virtual QString getClientAccessTokenUrl() const = 0;
     virtual QString getActionDialogIcon() const = 0;
     virtual QString getActionDialogLabel() const = 0;
     virtual std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const = 0;
@@ -52,7 +54,7 @@ protected:
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 20000;   //msec
     inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
-    inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT)};
+    inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};
 };
 
 

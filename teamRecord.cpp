@@ -290,7 +290,7 @@ QJsonObject TeamRecord::toJson() const
     }
     for(const auto &numStudentsAvailableInADay : numStudentsAvailable) {
         QJsonArray numStudentsAvailableArraySubArray;
-        for(int numStudentsAvailableNow : numStudentsAvailableInADay) {
+        for(const int numStudentsAvailableNow : numStudentsAvailableInADay) {
             numStudentsAvailableArraySubArray.append(numStudentsAvailableNow);
         }
         numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);

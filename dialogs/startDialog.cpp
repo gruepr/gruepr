@@ -218,9 +218,9 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
         upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available for download"));
     }
-    delete reply;
+    reply->deleteLater();
     delete request;
-    delete manager;
+    manager->deleteLater();
 
     QStringList latestVersion = latestVersionString.split('.');
     QStringList thisVersion = QString(GRUEPR_VERSION_NUMBER).split('.');
@@ -284,6 +284,7 @@ void StartDialog::openRegisterDialog() {
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
             const QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
+            reply->deleteLater();
             if(replyBody.contains("Registration successful")) {
                 registeredUser = registerWin->name;
                 QSettings savedSettings;
@@ -302,9 +303,7 @@ void StartDialog::openRegisterDialog() {
             loop.exec();
             registerWin->hide();
             delete box;
-            delete reply;
             delete request;
-            delete manager;
         }
         registerWin->deleteLater();
     }

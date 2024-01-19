@@ -43,7 +43,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     }
     savedSettings.endArray();
 
-    ui->sourceFrame->setStyleSheet(QString() + "QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
+    ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
                                    QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
     ui->prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
     ui->prevWorkComboBox->hide();
@@ -108,6 +108,41 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
     delete ui;
 }
 
+void GetGrueprDataDialog::accept() {
+    if(!readData()) {
+        ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
+                                       QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
+        ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
+                                              "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
+        QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
+        QPainter painter(&whiteUploadIcon);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
+        painter.end();
+        int h = ui->loadDataPushButton->height();
+        ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
+        ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
+        ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
+                                                           "border-top: none; border-bottom: none; border-left: none; "
+                                                           "border-right: 1px solid darkGray; "
+                                                           "font-family: 'DM Sans'; font-size: 12pt;}");
+        ui->tableWidget->clearContents();
+        ui->tableWidget->setRowCount(0);
+        ui->dataSourceFrame->setEnabled(false);
+        ui->dataSourceIcon->setEnabled(false);
+        ui->dataSourceLabel->setEnabled(false);
+        ui->dataSourceLabel->setText(tr("No survey loaded"));
+        ui->hLine->setEnabled(false);
+        ui->fieldsExplainer->setEnabled(false);
+        ui->headerRowCheckBox->setEnabled(false);
+        ui->tableWidget->setEnabled(false);
+        return;
+    }
+
+    QDialog::accept();
+}
+
 void GetGrueprDataDialog::loadData()
 {
     if(surveyFile != nullptr) {
@@ -163,7 +198,8 @@ void GetGrueprDataDialog::loadData()
     }
 
 
-    ui->sourceFrame->setStyleSheet(QString("QFrame {background-color: white; color: " DEEPWATERHEX "; padding: 10px; border: none;}") + RADIOBUTTONSTYLE);
+    ui->sourceFrame->setStyleSheet("QFrame {background-color: white; color: " DEEPWATERHEX "; padding: 10px; border: none;}" +
+                                   QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: " DEEPWATERHEX ";"));
     ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: white; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 10px;}");
     const QPixmap uploadIcon(":/icons_new/upload_file.png");
@@ -186,7 +222,6 @@ void GetGrueprDataDialog::loadData()
                                    QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
 
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-    connect(this, &QDialog::accepted, this, &GetGrueprDataDialog::readData);
 }
 
 bool GetGrueprDataDialog::getFromFile()
@@ -262,7 +297,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? tr("Error. Survey not downloaded.") : tr("Survey downloaded"));
+    const QString resultText = (fail? tr("Error. Survey not downloaded. Please retry later.") : tr("Survey downloaded"));
     google->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();
@@ -363,7 +398,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = canvas->actionDialogIcon->size();
     canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? tr("Error. Survey not downloaded.") : tr("Survey downloaded"));
+    const QString resultText = (fail? tr("Error. Survey not downloaded. Please retry later.") : tr("Survey downloaded"));
     canvas->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();
@@ -881,6 +916,13 @@ bool GetGrueprDataDialog::readData()
         numStudents++;
         loadingProgressDialog->setValue(2 + numStudents);
     } while(surveyFile->readDataRow() && numStudents < MAX_STUDENTS);
+
+    if(numStudents < MIN_STUDENTS) {
+        grueprGlobal::errorMessage(this, tr("Insufficient number of students."),
+                                   tr("There are only ") + QString::number(numStudents) + tr(" survey responses.\n") + QString::number(MIN_STUDENTS) + tr(" is the minimum."));
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        return false;
+    }
 
     // if there's a (separately-sourced) roster of students, compare against the list of submissions and add the info of any non-submitters now
     if(!roster.isEmpty()) {

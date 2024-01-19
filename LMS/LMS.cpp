@@ -15,6 +15,8 @@ void LMS::initOAuth2() {
 
     OAuthFlow = new QOAuth2AuthorizationCodeFlow(manager, this);
     OAuthFlow->setScope(getScopes());
+    OAuthFlow->setAuthorizationUrl(getClientAuthorizationUrl());
+    OAuthFlow->setAccessTokenUrl(getClientAccessTokenUrl());
     OAuthFlow->setClientIdentifier(getClientID());
     OAuthFlow->setClientIdentifierSharedKey(getClientSecret());
     OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
@@ -39,6 +41,11 @@ void LMS::initOAuth2() {
         refreshTokenExists = false;
         emit denied();
     });
+    /*connect(OAuthFlow, &QAbstractOAuth2::error, this, [](const QString &error, const QString &errorDescription, const QUrl &uri) {
+        qDebug() << error;
+        qDebug() << errorDescription;
+        qDebug() << uri;
+    });*/
 }
 
 bool LMS::authenticate() {
@@ -58,7 +65,13 @@ QDialog* LMS::actionDialog(QWidget *parent) {
     actionDialogIcon = new QLabel(dialog);
     actionDialogIcon->setPixmap(QPixmap(getActionDialogIcon()).scaled(ICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     actionDialogLabel = new QLabel(dialog);
+//#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+//    actionDialogLabel->setStyleSheet(LABEL10PTSTYLE);
+//#else
     actionDialogLabel->setStyleSheet(LABEL12PTSTYLE);
+//#endif
+    actionDialogLabel->setTextFormat(Qt::RichText);
+    actionDialogLabel->setWordWrap(false);
     actionDialogLabel->setText(getActionDialogLabel());
     actionDialogButtons = new QDialogButtonBox(dialog);
     actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
@@ -66,11 +79,13 @@ QDialog* LMS::actionDialog(QWidget *parent) {
     connect(actionDialogButtons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     auto *theGrid = new QGridLayout;
     dialog->setLayout(theGrid);
-    theGrid->addWidget(actionDialogIcon, 0, 0);
-    theGrid->addWidget(actionDialogLabel, 0, 1);
+    theGrid->addWidget(actionDialogIcon, 0, 0, Qt::AlignLeft | Qt::AlignTop);
+    theGrid->addWidget(actionDialogLabel, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);
     theGrid->addWidget(actionDialogButtons, 1, 0, 1, -1);
+    theGrid->setColumnStretch(1, 1);
     dialog->setModal(true);
     dialog->show();
+    dialog->setMinimumSize(XS_DLG_SIZE, ICONSIZE.height());
     dialog->adjustSize();
     return dialog;
 }

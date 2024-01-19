@@ -51,12 +51,15 @@ private:
     QString getScopes() const override;
     QString getClientID() const override;
     QString getClientSecret() const override;
+    QString getClientAuthorizationUrl() const override;
+    QString getClientAccessTokenUrl() const override;
     QString getActionDialogIcon() const override;
     QString getActionDialogLabel() const override;
     std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const override;
 
     inline static const char AUTHENTICATEURL[]{"https://accounts.google.com/o/oauth2/auth"};
     inline static const char ACCESSTOKENURL[]{"https://oauth2.googleapis.com/token"};
+    inline static const char SCOPES[]{"openid email https://www.googleapis.com/auth/drive.file"};
     //inline static const char CLIENT_ID[]{** Hidden in googlesecrets.h **};
     //inline static const char CLIENT_SECRET[]{** Hidden in googlesecrets.h **};
 };

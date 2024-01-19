@@ -135,7 +135,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
     connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
-    connect(ui->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
+    connect(ui->sectionSelectionBox, &QComboBox::activated, this, &gruepr::changeSection);
     connect(ui->idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
     connect(ui->teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
     connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
@@ -146,6 +146,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
+    changeSection(0);   // not exactly sure why this is needed, but loading a section is needed to prevent a crash if letsDoItButton is immediately clicked
     saveState();
 }
 
@@ -732,7 +733,7 @@ void gruepr::simpleUIItemUpdate(QObject *sender)
     ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
     if(sender == ui->isolatedURMCheckBox) {
         if(teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
-            // if we are just now preventing isolated URM students, but have not selected yet which responses should be considered URM, let's ask user to enter those in
+            // if we are just now preventing isolated URM students but have not selected which responses should be considered URM, ask user
             selectURMResponses();
         }
     }
@@ -950,8 +951,8 @@ void gruepr::changeIdealTeamSize(int arg1)
         ui->teamSizeBox->addItem(tr("Custom team sizes"));
     }
 
-    // if we have fewer than 4 students somehow, disable the form teams button
-    ui->letsDoItButton->setEnabled(numStudentsBeingTeamed >= 4);
+    // if we have fewer than MIN_STUDENTS students somehow, disable the form teams button
+    ui->letsDoItButton->setEnabled(numStudentsBeingTeamed >= MIN_STUDENTS);
 
     ui->teamSizeBox->setUpdatesEnabled(true);
 }
@@ -1151,7 +1152,8 @@ void gruepr::startOptimization()
 }
 
 
-void gruepr::updateOptimizationProgress(const float *const allScores, const int *const orderedIndex, const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
+void gruepr::updateOptimizationProgress(const float *const allScores, const int *const orderedIndex,
+                                        const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
 {
     if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0) {
         progressChart->loadNextVals(allScores, orderedIndex, GA::populationsize, unpenalizedGenomePresent);
@@ -1387,7 +1389,6 @@ void gruepr::loadUI()
         teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
         ui->sectionFrame->hide();
         ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
     }
     teamingOptions->sectionName = ui->sectionSelectionBox->currentText();
     ui->sectionSelectionBox->blockSignals(false);
@@ -1428,7 +1429,8 @@ void gruepr::loadUI()
         ui->URMLabel->hide();
         ui->URMLabelSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->URMFrame->setStyleSheet(ui->URMFrame->styleSheet().replace("border: 1px solid;",
-                                                                       "border-top: none; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"));
+                                                                       "border-top: none; border-bottom: 1px solid; "
+                                                                       "border-left: 1px solid; border-right: 1px solid;"));
     }
 
     if(dataOptions->numAttributes == 0) {
@@ -1748,11 +1750,13 @@ void gruepr::refreshStudentDisplay()
     numActiveStudents = 0;
     for(const auto &student : students) {
         column = 0;
-        if((ui->sectionSelectionBox->currentIndex() == 0) ||
-           (ui->sectionSelectionBox->currentIndex() == 1) ||
-           (student.section == ui->sectionSelectionBox->currentText())) {
+        if((numActiveStudents < dataOptions->numStudentsInSystem) &&            // make sure student exists and is in the section(s) being teamed
+            ((ui->sectionSelectionBox->currentIndex() == 0) ||
+             (ui->sectionSelectionBox->currentIndex() == 1) ||
+             (student.section == ui->sectionSelectionBox->currentText()))) {
 
-            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime, QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
+            auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
+                                                          QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
             if(dataOptions->timestampField != -1) {
                 ui->studentTable->setItem(numActiveStudents, column++, timestamp);
             }
@@ -1827,7 +1831,7 @@ void gruepr::refreshStudentDisplay()
             numActiveStudents++;
         }
     }
-    ui->studentTable->setRowCount(numActiveStudents);
+    ui->studentTable->setRowCount(std::min(dataOptions->numStudentsInSystem, numActiveStudents)); // not sure how numActiveStudents could be larger, but safer to take min
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();
@@ -1912,7 +1916,9 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
     auto sharedNumTeams = numTeams;
     auto *sharedTeamingOptions = teamingOptions;
     auto *sharedDataOptions = dataOptions;
-#pragma omp parallel default(none) shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+#pragma omp parallel default(none) \
+                     shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+                     private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[sharedNumTeams];
         attributeScore = new float*[sharedDataOptions->numAttributes];
@@ -1996,7 +2002,7 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
                 }
             }
 
-            // take all but the single top-scoring elite genome and mutate with some probability; if a mutation occurred, mutate same genome again with same probability
+            // mutate all but the single top-scoring elite genome with some probability; if mutation occurs, mutate same genome again with same probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 1; genome < GA::populationsize; genome++) {
                 while(randProbability(pRNG) < GA::MUTATIONLIKELIHOOD) {
@@ -2016,7 +2022,9 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             sharedNumTeams = numTeams;
             sharedTeamingOptions = teamingOptions;
             sharedDataOptions = dataOptions;
-#pragma omp parallel default(none) shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+#pragma omp parallel default(none) \
+            shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+            private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[sharedNumTeams];
                 attributeScore = new float*[sharedDataOptions->numAttributes];
@@ -2073,7 +2081,8 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             localOptimizationStopped = optimizationStopped;
             optimizationStoppedmutex.unlock();
         }
-        while(!localOptimizationStopped && ((generation < GA::MIN_GENERATIONS) || ((generation < GA::MAX_GENERATIONS) && (scoreStability < GA::MIN_SCORE_STABILITY))));
+        while(!localOptimizationStopped && ((generation < GA::MIN_GENERATIONS) ||
+                                            ((generation < GA::MAX_GENERATIONS) && (scoreStability < GA::MIN_SCORE_STABILITY))));
 
         if(localOptimizationStopped) {
             keepOptimizing = false;
@@ -2164,11 +2173,11 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
                     for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
                         const int n = int(attributeLevelsInTeam.count(pair.first));
                         if(pair.first == pair.second) {
-                            _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (calculation = 0 if n == 0 or n == 1)
+                            _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
                         }
                         else {
                             const int m = int(attributeLevelsInTeam.count(pair.second));
-                            _penaltyPoints[team] += n * m;           // number of incompatible pairings is the number of n -> m interactions (calculation = 0 if n == 0 or m == 0)
+                            _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
                         }
                     }
                 }
@@ -2210,7 +2219,7 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
 
                     _attributeScore[attribute][team] = attributeRangeInTeam /
                                                       (*(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin()));
-                    if(_teamingOptions->desireHomogeneous[attribute]) { //attribute scores are 0 if homogeneous and +1 if full range of values are in a team, so flip if want homogeneous
+                    if(_teamingOptions->desireHomogeneous[attribute]) { //attributeScores = 0 if homogeneous and +1 if full range of values are in a team; flip if want homogeneous
                         _attributeScore[attribute][team] = 1 - _attributeScore[attribute][team];
                     }
                 }

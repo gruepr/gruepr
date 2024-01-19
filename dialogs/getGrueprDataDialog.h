@@ -26,6 +26,9 @@ public:
     DataOptions *dataOptions = nullptr;
     QList<StudentRecord> students;
 
+public slots:
+    void accept() override;
+
 private:
     Ui::GetGrueprDataDialog *ui;
     StartDialog *parent;

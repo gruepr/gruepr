@@ -9,14 +9,6 @@
 
 CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
-    //***********************************************
-    //To be updated after out of beta
-    const QString authenticateURL = "";
-    const QString accessTokenURL = "";
-    const QString baseAPIURL = "";
-    //***********************************************
-    OAuthFlow->setAuthorizationUrl(authenticateURL);
-    OAuthFlow->setAccessTokenUrl(accessTokenURL);
     setBaseURL(baseAPIURL);
 
     const QSettings settings;
@@ -37,6 +29,131 @@ CanvasHandler::~CanvasHandler() {
         QSettings settings;
         settings.setValue("CanvasRefreshToken", refreshToken);
     }
+}
+
+bool CanvasHandler::authenticate() {
+
+    //***************************************************
+    //IN BETA--GETS USER'S API TOKEN MANUALLY
+    QSettings savedSettings;
+    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
+    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+
+    const QStringList newURLAndToken = askUserForManualURLandToken(savedCanvasURL, savedCanvasToken);
+    if(newURLAndToken.isEmpty()) {
+        return false;
+    }
+
+    savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
+    savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
+    savedSettings.setValue("canvasURL", savedCanvasURL);
+    savedSettings.setValue("canvasToken", savedCanvasToken);
+
+    setBaseURL(savedCanvasURL);
+    authenticateWithManualToken(savedCanvasToken);
+
+    return true;
+    //IN BETA--GETS USER'S API TOKEN MANUALLY
+    //***************************************************
+
+    // if refreshToken is found, try to use it to get accessTokens without re-granting permission
+    if(refreshTokenExists) {
+        auto *loginDialog = actionDialog(parent);
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
+        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        actionDialogLabel->setText(tr("Connecting to Canvas..."));
+        loginDialog->show();
+        loginDialog->adjustSize();
+        connect(this, &LMS::replyReceived, loginDialog, [this, &loginDialog](/*const QString &reply*/) {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
+            loginDialog->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
+            loop.exec();
+        });
+        connect(this, &LMS::granted, loginDialog, [this, &loginDialog]() {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
+            loginDialog->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->accept();
+        });
+        connect(this, &LMS::denied, loginDialog, [this, &loginDialog]() {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Canvas is requesting that you re-authorize gruepr."));
+            loginDialog->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->accept();
+        });
+
+        LMS::authenticate();
+
+        if(loginDialog->exec() == QMessageBox::Cancel) {
+            actionComplete(loginDialog);
+            return false;
+        }
+        actionComplete(loginDialog);
+    }
+
+    // didn't have a refreshToken or the refreshToken didn't work: time to (re)authorize
+    if(!authenticated) {
+        auto *loginDialog2 = actionDialog(parent);
+        actionDialogLabel->setText(tr("The next step will open a browser window so you can sign in with Canvas "
+                                      "and then authorize gruepr to access the surveys that it creates in your Canvas class. "
+                                      "You will need to select all checkboxes to provide this authorization.<br><br>"
+                                      "ALL data associated with your survey will exist in your Canvas class only. "
+                                      "No data will ever be stored or sent anywhere else."));
+        actionDialogLabel->setWordWrap(true);
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
+        actionDialogButtons->setStyleSheet("");
+        actionDialogButtons->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        loginDialog2->show();
+        loginDialog2->adjustSize();
+
+        if(loginDialog2->exec() == QMessageBox::Cancel) {
+            actionComplete(loginDialog2);
+            return false;
+        }
+
+        actionDialogLabel->setText(tr("Please use your browser to log in to Canvas and then return here."));
+        actionDialogLabel->setWordWrap(false);
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        loginDialog2->show();
+        loginDialog2->adjustSize();
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
+        connect(this, &LMS::replyReceived, loginDialog2, [this, &loginDialog2](/*const QString &reply*/) {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
+            loginDialog2->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
+            loop.exec();
+        });
+        connect(this, &LMS::granted, loginDialog2, [this, &loginDialog2]() {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
+            loginDialog2->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog2->accept();
+        });
+
+        LMS::authenticate();
+
+        if(loginDialog2->exec() == QMessageBox::Cancel) {
+            actionComplete(loginDialog2);
+            return false;
+        }
+
+        actionComplete(loginDialog2);
+    }
+
+    return true;
 }
 
 // Retrieves course names, and loads the names, Canvas course IDs, and student counts
@@ -129,6 +246,9 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
     QList<QList<int>*> intParams = {&quizID};
     QList<QStringList*> stringInSubobjectParams = {&x};
     postToCanvasGetSingleResult(url, postData, {"html_url", "mobile_url"}, stringParams, {"id"}, intParams, {}, stringInSubobjectParams);
+    if(quizID.isEmpty()) {
+        return false;
+    }
     const int surveyID = quizID.constFirst();
 
     //add each question
@@ -449,7 +569,7 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
         loop.exec();
         if(reply->bytesAvailable() == 0) {
             //qDebug() << "no reply";
-            delete reply;
+            reply->deleteLater();
             return;
         }
 
@@ -506,7 +626,7 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
     loop.exec();
     if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
-        delete reply;
+        reply->deleteLater();
         return;
     }
 
@@ -553,7 +673,7 @@ bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
     loop.exec();
     if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
-        delete reply;
+        reply->deleteLater();
         return false;
     }
 
@@ -564,107 +684,6 @@ bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
     QDataStream out(&file);
     out << replyBody;
     reply->deleteLater();
-    return true;
-}
-
-bool CanvasHandler::authenticate() {
-
-    //***************************************************
-    //IN BETA--GETS USER'S API TOKEN MANUALLY
-    QSettings savedSettings;
-    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
-
-    const QStringList newURLAndToken = askUserForManualURLandToken(savedCanvasURL, savedCanvasToken);
-    if(newURLAndToken.isEmpty()) {
-        return false;
-    }
-
-    savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
-    savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
-    savedSettings.setValue("canvasURL", savedCanvasURL);
-    savedSettings.setValue("canvasToken", savedCanvasToken);
-
-    setBaseURL(savedCanvasURL);
-    authenticateWithManualToken(savedCanvasToken);
-
-    return true;
-    //IN BETA--GETS USER'S API TOKEN MANUALLY
-    //***************************************************
-
-    // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-    if(refreshTokenExists) {
-        auto *loginDialog = new QMessageBox(parent);
-        loginDialog->setModal(true);
-        loginDialog->setStyleSheet(LABEL10PTSTYLE);
-        loginDialog->setIconPixmap(icon().scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        loginDialog->setStandardButtons(QMessageBox::Cancel);
-        loginDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        loginDialog->setText(tr("Connecting to Canvas..."));
-        loginDialog->open();
-        connect(this, &LMS::replyReceived, loginDialog, [&loginDialog]() {
-            loginDialog->setText(loginDialog->text() + "\n" + tr("Response received..."));
-        });
-        connect(this, &LMS::granted, loginDialog, &QMessageBox::accept);
-        connect(this, &LMS::denied, loginDialog, [&loginDialog]() {
-            loginDialog->setText(loginDialog->text() + "\n" + tr("Canvas is requesting that you re-authorize gruepr."));
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-            loop.exec();
-            loginDialog->accept();
-        });
-
-        LMS::authenticate();
-
-        if(loginDialog->exec() == QMessageBox::Cancel) {
-            loginDialog->deleteLater();
-            return false;
-        }
-        loginDialog->deleteLater();
-    }
-
-    // didn't have a refreshToken or the refreshToken didn't work; need to re-log in on the browser
-    if(!authenticated) {
-        auto *loginDialog2 = new QMessageBox(parent);
-        loginDialog2->setModal(true);
-        loginDialog2->setStyleSheet(LABEL10PTSTYLE);
-        loginDialog2->setIconPixmap(icon().scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        loginDialog2->setText(QString() + tr("The next step will open a browser window so you can sign in with Canvas.\n\n"
-                                             "  » Your computer may ask whether gruepr can access the network. "
-                                             "This access is needed so that gruepr and Canvas can communicate.\n\n"
-                                             "  » In the browser, Canvas will ask whether you authorize gruepr "
-                                             "to access the files gruepr created in your Canvas class. "
-                                             "This access is needed so that the survey responses can now be downloaded.\n\n"
-                                             "  » All data associated with this survey, including the questions asked and "
-                                             "responses received, exist in your Canvas class only. "
-                                             "No data from or about this survey will ever be stored or sent anywhere else."));
-        loginDialog2->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-        loginDialog2->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
-        loginDialog2->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-
-        if(loginDialog2->exec() == QMessageBox::Cancel) {
-            loginDialog2->deleteLater();
-            return false;
-        }
-
-        loginDialog2->setText(tr("Please use your browser to log in to Canvas and then return here."));
-        loginDialog2->setStandardButtons(QMessageBox::Cancel);
-        loginDialog2->open();
-        connect(this, &LMS::replyReceived, loginDialog2, [&loginDialog2]() {
-            loginDialog2->setText(loginDialog2->text() + "\n" + tr("Response received..."));
-        });
-        connect(this, &LMS::granted, loginDialog2, &QMessageBox::accept);
-
-        LMS::authenticate();
-
-        if(loginDialog2->exec() == QMessageBox::Cancel) {
-            loginDialog2->deleteLater();
-            return false;
-        }
-
-        loginDialog2->deleteLater();
-    }
-
     return true;
 }
 
@@ -732,16 +751,7 @@ void CanvasHandler::setBaseURL(const QString &baseAPIURL) {
 }
 
 QString CanvasHandler::getScopes() const {
-    return "url:GET|/api/v1/courses "                                             // get list of user's courses
-           "url:GET|/api/v1/courses/:course_id/users "                            // get roster of students in a course
-           "url:POST|/api/v1/courses/:course_id/quizzes "                         // create a quiz (i.e., survey)
-           "url:POST|/api/v1/courses/:course_id/quizzes/:quiz_id/questions "      // create a quiz question
-           "url:GET|/api/v1/courses/:course_id/quizzes "                          // get list of quizzes in a course
-           "url:POST|/api/v1/courses/:course_id/quizzes/:quiz_id/reports "        // create a quiz report (i.e., csv file of responses)
-           "url:GET|/api/v1/courses/:course_id/quizzes/:quiz_id/reports "         // obtain the URL of the quiz report
-           "url:POST|/api/v1/courses/:course_id/group_categories "                // create a group set
-           "url:POST|/api/v1/group_categories/:group_category_id/groups "         // create a group in a group set
-           "url:POST|/api/v1/groups/:group_id/memberships";                       // put students on a group
+    return SCOPES;
 }
 
 QString CanvasHandler::getClientID() const {
@@ -750,6 +760,14 @@ QString CanvasHandler::getClientID() const {
 
 QString CanvasHandler::getClientSecret() const {
     return CLIENT_SECRET;
+}
+
+QString CanvasHandler::getClientAuthorizationUrl() const {
+    return authenticateURL;
+}
+
+QString CanvasHandler::getClientAccessTokenUrl() const {
+    return accessTokenURL;
 }
 
 QString CanvasHandler::getActionDialogIcon() const {
@@ -770,7 +788,7 @@ std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *pa
         }
         else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
             // Percent-decode the "code" parameter so Google can match it
-            const QByteArray code = parameters->value("code").toByteArray();
+            QByteArray code = parameters->value("code").toByteArray();
             parameters->replace("code", QUrl::fromPercentEncoding(code));
         }
     };

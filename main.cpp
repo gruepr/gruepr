@@ -37,32 +37,32 @@
 //
 // DONE:
 //    BUGFIXES:
-//  - fixed Google authorization issues
+//  - fixed many Google authorization issues
+//  - fixed crash when trying to form teams after loading a file without ever selecting a section
 //
 //    NEW FEATURES:
-//  - allow selection of which google drive account to use: need to assoc. set of forms with each account name
+//  - now allows selection of which google drive account to use, new forms will associate with the account used
 //  - uses more secure PKCE setting when connecting to Google API
+//  - much more nicely handles error upon loading survey files with < 4 responses
 //
 //    C++ MODERNIZATION:
-//  - createed an LMS class and then subclass Canvas, Google; reorganized files into an LMS subfolder
-//
-// INPROG:
-//  - fix weird look of top of getdatadialog after loading file (or just google survey?)
-//  - stop rest of getdatadialog accept if failed loaddata
+//  - createed an LMS class with derived classes for Canvas & Google (& future LMSes); reorganized files into an LMS subfolder
 //
 // TO DO:
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
+//  - add integration with Blackboard, Qualtrics, others
 //
 //    C++ MODERNIZATION:
-//  - modernize use of pointers throughout to C++17 style; check for memory leaks
+//  - modernize pointers throughout to smart pointers
 //  - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
+//  - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
+//  - analyze for memory leaks
 //
 //    NETWORK IMPLEMENTATION:
-//  - create timeout function to nicely handle LMS connections
-//  - add integration with Blackboard, Qualtrics, others
+//  - create timeout function to more nicely handle LMS connections
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
 //      - Question options: req'd question, answer validity checks
