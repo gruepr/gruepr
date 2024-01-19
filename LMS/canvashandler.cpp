@@ -65,7 +65,8 @@ bool CanvasHandler::authenticate() {
         actionDialogLabel->setText(tr("Connecting to Canvas..."));
         loginDialog->show();
         loginDialog->adjustSize();
-        connect(this, &LMS::replyReceived, loginDialog, [this, &loginDialog](/*const QString &reply*/) {
+
+        connect(this, &LMS::serverReplyReceived, loginDialog, [this, &loginDialog](/*const QByteArray &reply*/) {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
             loginDialog->adjustSize();
             QEventLoop loop;
@@ -99,7 +100,7 @@ bool CanvasHandler::authenticate() {
     }
 
     // didn't have a refreshToken or the refreshToken didn't work: time to (re)authorize
-    if(!authenticated) {
+    if(!authenticated()) {
         auto *loginDialog2 = actionDialog(parent);
         actionDialogLabel->setText(tr("The next step will open a browser window so you can sign in with Canvas "
                                       "and then authorize gruepr to access the surveys that it creates in your Canvas class. "
@@ -127,7 +128,7 @@ bool CanvasHandler::authenticate() {
         loginDialog2->show();
         loginDialog2->adjustSize();
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
-        connect(this, &LMS::replyReceived, loginDialog2, [this, &loginDialog2](/*const QString &reply*/) {
+        connect(this, &LMS::serverReplyReceived, loginDialog2, [this, &loginDialog2](/*const QString &reply*/) {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
             loginDialog2->adjustSize();
             QEventLoop loop;
@@ -690,7 +691,6 @@ bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
 // For testing: sets token manually
 void CanvasHandler::authenticateWithManualToken(const QString &token) {
     OAuthFlow->setToken(token);
-    authenticated = true;
 }
 
 QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentURL, const QString &currentToken) {
@@ -738,7 +738,7 @@ QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentURL
     if(result == QDialog::Rejected) {
         return {};
     }
-    QString url = canvasURL->text();
+    QString url = canvasURL->text().trimmed();
     if(!url.startsWith("https://") && !url.startsWith("http://")) {
         url.prepend("https://");
     }

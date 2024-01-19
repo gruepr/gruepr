@@ -50,7 +50,6 @@ bool GoogleHandler::authenticate() {
         }
 
         if(changingAccounts) {
-            authenticated = false;
             refreshTokenExists = false;
             OAuthFlow->setRefreshToken("");
         }
@@ -58,20 +57,17 @@ bool GoogleHandler::authenticate() {
             actionDialogLabel->setText(tr("Connecting to Google..."));
             loginDialog->show();
             loginDialog->adjustSize();
-            connect(this, &LMS::replyReceived, loginDialog, [this, &loginDialog](const QString &reply) {
+            connect(this, &LMS::serverReplyReceived, loginDialog, [this, &loginDialog](const QByteArray &reply) {
                 actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
                 loginDialog->adjustSize();
                 QEventLoop loop;
                 QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
                 loop.exec();
-                const auto json_doc = QJsonDocument::fromJson(reply.toUtf8());
+                const auto json_doc = QJsonDocument::fromJson(reply);
                 const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
                 if(id_token.size() == 3) {
                     const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8())).object();
                     accountName = id_token_JWTPayload["email"].toString();
-                }
-                if(accountName.isEmpty()) {
-                    authenticated = false;
                 }
             });
             connect(this, &LMS::granted, loginDialog, [this, &loginDialog]() {
@@ -102,7 +98,7 @@ bool GoogleHandler::authenticate() {
     }
 
     // didn't have a refreshToken, the refreshToken didn't work, or user wants to change accounts: time to (re)authorize
-    if(!authenticated) {
+    if(!authenticated()) {
         auto *loginDialog2 = actionDialog(parent);
         actionDialogLabel->setText(tr("The next step will open a browser window so you can sign in with Google "
                                       "and then authorize gruepr to access the surveys that it creates on your Google Drive. "
@@ -116,7 +112,11 @@ bool GoogleHandler::authenticate() {
         actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
         auto *okButton = actionDialogButtons->button(QDialogButtonBox::Ok);
         QPixmap loginpic(":/icons_new/google_signin_button.png");
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
         loginpic = loginpic.scaledToHeight(okButton->height() * 2, Qt::SmoothTransformation);
+#else
+        loginpic = loginpic.scaledToHeight(okButton->height(), Qt::SmoothTransformation);
+#endif
         okButton->setText("");
         okButton->setIconSize(loginpic.rect().size());
         okButton->setIcon(loginpic);
@@ -136,13 +136,13 @@ bool GoogleHandler::authenticate() {
         loginDialog2->show();
         loginDialog2->adjustSize();
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
-        connect(this, &LMS::replyReceived, loginDialog2, [this, &loginDialog2](const QString &reply) {
+        connect(this, &LMS::serverReplyReceived, loginDialog2, [this, &loginDialog2](const QByteArray &reply) {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
             loginDialog2->adjustSize();
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
             loop.exec();
-            const auto json_doc = QJsonDocument::fromJson(reply.toUtf8());
+            const auto json_doc = QJsonDocument::fromJson(reply);
             const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
             if(id_token.size() == 3) {
                 const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8())).object();
@@ -156,6 +156,14 @@ bool GoogleHandler::authenticate() {
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
             loop.exec();
             loginDialog2->accept();
+        });
+        connect(this, &LMS::denied, loginDialog2, [this, &loginDialog2]() {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
+            loginDialog2->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog2->reject();
         });
 
         LMS::authenticate();
@@ -431,14 +439,14 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     auto *reply = OAuthFlow->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
+    //qDebug() << reply->error();
     if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
         reply->deleteLater();
         return {};
     }
     QString replyBody = reply->readAll();
-    //qDebug() << replyBody;
-    reply->deleteLater();
+    //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     //pull out each question and save the question ID and text
     const QJsonArray items = json_doc["items"].toArray();
@@ -482,6 +490,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     reply = OAuthFlow->get(url);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
+    //qDebug() << reply->errorString();
     if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";
         reply->deleteLater();
@@ -489,7 +498,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
         return filepath.absoluteFilePath();
     }
     replyBody = reply->readAll();
-    //qDebug() << replyBody;
+    //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     reply->deleteLater();
     json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
@@ -529,6 +538,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
     connect(manager, &QNetworkAccessManager::finished, &loop, &QEventLoop::quit);
     auto *reply = OAuthFlow->post(URL, postData);
     loop.exec();
+    //qDebug() << reply->errorString();
 
     if(reply->bytesAvailable() == 0) {
         //qDebug() << "no reply";

@@ -26,17 +26,15 @@ void LMS::initOAuth2() {
 
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QByteArray &data){
-        emit replyReceived(data);
+        emit serverReplyReceived(data);
     });
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){
-        authenticated = true;
         if(!OAuthFlow->refreshToken().isEmpty()) {
             refreshTokenExists = true;
         }
         emit granted();
     });
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](/*const QString &error*/){
-        authenticated = false;
         OAuthFlow->setRefreshToken("");
         refreshTokenExists = false;
         emit denied();
@@ -58,6 +56,10 @@ bool LMS::authenticate() {
     return true;
 }
 
+bool LMS::authenticated() {
+    return OAuthFlow->status() == QAbstractOAuth::Status::Granted;
+}
+
 QDialog* LMS::actionDialog(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *dialog = new QDialog(parent);
@@ -65,11 +67,7 @@ QDialog* LMS::actionDialog(QWidget *parent) {
     actionDialogIcon = new QLabel(dialog);
     actionDialogIcon->setPixmap(QPixmap(getActionDialogIcon()).scaled(ICONSIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     actionDialogLabel = new QLabel(dialog);
-//#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-//    actionDialogLabel->setStyleSheet(LABEL10PTSTYLE);
-//#else
     actionDialogLabel->setStyleSheet(LABEL12PTSTYLE);
-//#endif
     actionDialogLabel->setTextFormat(Qt::RichText);
     actionDialogLabel->setWordWrap(false);
     actionDialogLabel->setText(getActionDialogLabel());

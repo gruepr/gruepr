@@ -25,14 +25,14 @@ public:
     void actionComplete(QDialog *busyDialog);
 
 signals:
-    void replyReceived(const QString &reply);
+    void serverReplyReceived(const QByteArray &reply);  // localhost authorization callback received
     void granted();
     void denied();
 
 protected:
     void initOAuth2();
     virtual bool authenticate();
-    bool authenticated = false;
+    bool authenticated();
     bool refreshTokenExists = false;
 
     QOAuth2AuthorizationCodeFlow *OAuthFlow = nullptr;
@@ -51,7 +51,7 @@ protected:
 
     inline static const QSize ICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
-    inline static const int TIMEOUT_TIME = 20000;   //msec
+    inline static const int TIMEOUT_TIME = 5000;   //msec
     inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};
 };
