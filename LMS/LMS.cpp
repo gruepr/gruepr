@@ -25,8 +25,8 @@ void LMS::initOAuth2() {
     OAuthFlow->setReplyHandler(replyHandler);
 
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QString &reply){
-        emit replyReceived(reply);
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QByteArray &data){
+        emit replyReceived(data);
     });
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){
         authenticated = true;
