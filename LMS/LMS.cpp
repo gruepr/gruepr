@@ -20,29 +20,29 @@ void LMS::initOAuth2() {
     OAuthFlow->setClientIdentifier(getClientID());
     OAuthFlow->setClientIdentifierSharedKey(getClientSecret());
     OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
-
-    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, OAuthFlow);
-    OAuthFlow->setReplyHandler(replyHandler);
-
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QByteArray &data){
-        emit serverReplyReceived(data);
-    });
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){
         if(!OAuthFlow->refreshToken().isEmpty()) {
             refreshTokenExists = true;
         }
         emit granted();
     });
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](/*const QString &error*/){
+
+    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, OAuthFlow);
+    OAuthFlow->setReplyHandler(replyHandler);
+    replyHandler->setCallbackText(tr("Authorization complete. You may close this page and return to gruepr."));
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, &LMS::serverReplyReceived);
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](const QString &errorString){
         OAuthFlow->setRefreshToken("");
         refreshTokenExists = false;
-        emit denied();
+        emit denied(errorString);
     });
     /*connect(OAuthFlow, &QAbstractOAuth2::error, this, [](const QString &error, const QString &errorDescription, const QUrl &uri) {
+        qDebug() << "OAuth error: ";
         qDebug() << error;
         qDebug() << errorDescription;
         qDebug() << uri;
+        qDebug() << "************";
     });*/
 }
 
@@ -53,6 +53,7 @@ bool LMS::authenticate() {
     else {
         OAuthFlow->grant();
     }
+
     return true;
 }
 
@@ -91,6 +92,7 @@ QDialog* LMS::actionDialog(QWidget *parent) {
 void LMS::actionComplete(QDialog *busyDialog) {
     QApplication::restoreOverrideCursor();
     busyDialog->accept();
+    disconnect(busyDialog);
     busyDialog->deleteLater();
 }
 

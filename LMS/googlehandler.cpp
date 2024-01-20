@@ -57,6 +57,7 @@ bool GoogleHandler::authenticate() {
             actionDialogLabel->setText(tr("Connecting to Google..."));
             loginDialog->show();
             loginDialog->adjustSize();
+
             connect(this, &LMS::serverReplyReceived, loginDialog, [this, &loginDialog](const QByteArray &reply) {
                 actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
                 loginDialog->adjustSize();
@@ -76,15 +77,15 @@ bool GoogleHandler::authenticate() {
                 QEventLoop loop;
                 QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
                 loop.exec();
-                loginDialog->accept();
+                actionComplete(loginDialog);
             });
-            connect(this, &LMS::denied, loginDialog, [this, &loginDialog]() {
+            connect(this, &LMS::denied, loginDialog, [this, &loginDialog](/*const QString &errorString*/) {
                 actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Google is requesting that you re-authorize gruepr."));
                 loginDialog->adjustSize();
                 QEventLoop loop;
                 QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
                 loop.exec();
-                loginDialog->accept();
+                actionComplete(loginDialog);
             });
 
             LMS::authenticate();
@@ -94,7 +95,6 @@ bool GoogleHandler::authenticate() {
                 return false;
             }
         }
-        actionComplete(loginDialog);
     }
 
     // didn't have a refreshToken, the refreshToken didn't work, or user wants to change accounts: time to (re)authorize
@@ -155,9 +155,9 @@ bool GoogleHandler::authenticate() {
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
             loop.exec();
-            loginDialog2->accept();
+            actionComplete(loginDialog2);
         });
-        connect(this, &LMS::denied, loginDialog2, [this, &loginDialog2]() {
+        connect(this, &LMS::denied, loginDialog2, [this, &loginDialog2](/*const QString &errorString*/) {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
             loginDialog2->adjustSize();
             QEventLoop loop;
@@ -172,8 +172,6 @@ bool GoogleHandler::authenticate() {
             actionComplete(loginDialog2);
             return false;
         }
-
-        actionComplete(loginDialog2);
     }
 
     return true;
@@ -594,7 +592,11 @@ QString GoogleHandler::getClientAccessTokenUrl() const {
 }
 
 QString GoogleHandler::getActionDialogIcon() const {
-    return ":/icons_new/google.png";
+    return ICON;
+}
+
+QPixmap GoogleHandler::icon() {
+    return {ICON};
 }
 
 QString GoogleHandler::getActionDialogLabel() const {
@@ -623,8 +625,4 @@ std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *pa
             parameters->replace("code", QUrl::fromPercentEncoding(code));
         }
     };
-}
-
-QPixmap GoogleHandler::icon() {
-    return {":/icons_new/google.png"};
 }

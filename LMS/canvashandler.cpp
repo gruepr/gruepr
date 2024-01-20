@@ -771,7 +771,11 @@ QString CanvasHandler::getClientAccessTokenUrl() const {
 }
 
 QString CanvasHandler::getActionDialogIcon() const {
-    return ":/icons_new/canvas.png";
+    return ICON;
+}
+
+QPixmap CanvasHandler::icon() {
+    return {ICON};
 }
 
 QString CanvasHandler::getActionDialogLabel() const {
@@ -792,8 +796,4 @@ std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *pa
             parameters->replace("code", QUrl::fromPercentEncoding(code));
         }
     };
-}
-
-QPixmap CanvasHandler::icon() {
-    return {":/icons_new/canvas.png"};
 }

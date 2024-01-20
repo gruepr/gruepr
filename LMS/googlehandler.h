@@ -60,6 +60,7 @@ private:
     inline static const char AUTHENTICATEURL[]{"https://accounts.google.com/o/oauth2/auth"};
     inline static const char ACCESSTOKENURL[]{"https://oauth2.googleapis.com/token"};
     inline static const char SCOPES[]{"openid email https://www.googleapis.com/auth/drive.file"};
+    inline static const char ICON[]{":/icons_new/google.png"};
     //inline static const char CLIENT_ID[]{** Hidden in googlesecrets.h **};
     //inline static const char CLIENT_SECRET[]{** Hidden in googlesecrets.h **};
 };

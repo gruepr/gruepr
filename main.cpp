@@ -35,19 +35,9 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// DONE:
+// INPROG:
 //    BUGFIXES:
-//  - fixed many Google authorization and connection issues; updated connection UI
-//  - fixed crash when trying to form teams after loading a file without ever selecting a section
-//  - now maintains visibility / palette even with macOS in dark mode
-//
-//    NEW FEATURES:
-//  - now allows selection of which google drive account to use, new forms will associate with the account used
-//  - uses more secure PKCE setting when connecting to Google API
-//  - much more nicely handles error upon loading survey files with < 4 responses
-//
-//    C++ MODERNIZATION:
-//  - createed an LMS class with derived classes for Canvas & Google (& future LMSes); reorganized files into an LMS subfolder
+//  - fixing Google authorization and connection issues
 //
 // TO DO:
 //    NEW FEATURES:

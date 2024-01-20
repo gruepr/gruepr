@@ -89,6 +89,7 @@ private:
                                       "url:POST|/api/v1/courses/:course_id/group_categories "                // create a group set
                                       "url:POST|/api/v1/group_categories/:group_category_id/groups "         // create a group in a group set
                                       "url:POST|/api/v1/groups/:group_id/memberships"};                       // put students on a group}
+    inline static const char ICON[]{":/icons_new/canvas.png"};
     //***********************************************
     //To be updated after out of beta
     inline static const QString CLIENT_ID{""};
