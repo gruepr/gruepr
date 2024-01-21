@@ -33,11 +33,9 @@ void LMS::initOAuth2() {
     OAuthFlow->setReplyHandler(replyHandler);
     replyHandler->setCallbackText(tr("Authorization complete. You may close this page and return to gruepr."));
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, &LMS::serverReplyReceived);
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](QString &error, const QString &errorDescription, const QUrl &uri) {
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](const QString &error) {
         qDebug() << "replyHandler error: ";
         qDebug() << error;
-        qDebug() << errorDescription;
-        qDebug() << uri;
         qDebug() << "************";
     });
 }

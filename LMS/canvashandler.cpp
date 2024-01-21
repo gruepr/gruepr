@@ -83,6 +83,7 @@ bool CanvasHandler::authenticate() {
         connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog, [this, &loginDialog]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Canvas is requesting that you re-authorize gruepr."));
             loginDialog->adjustSize();
+            OAuthFlow->setRefreshToken("");
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
@@ -95,7 +96,6 @@ bool CanvasHandler::authenticate() {
             actionComplete(loginDialog);
             return false;
         }
-        actionComplete(loginDialog);
     }
 
     // didn't have a refreshToken or the refreshToken didn't work: time to (re)authorize
@@ -142,6 +142,14 @@ bool CanvasHandler::authenticate() {
             loop.exec();
             actionComplete(loginDialog2);
         });
+        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog2, [this, &loginDialog2]() {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Canvas. Plese retry later."));
+            loginDialog2->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog2->reject();
+        });
 
         LMS::authenticate();
 
@@ -149,8 +157,6 @@ bool CanvasHandler::authenticate() {
             actionComplete(loginDialog2);
             return false;
         }
-
-        actionComplete(loginDialog2);
     }
 
     return true;
