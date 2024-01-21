@@ -15,7 +15,6 @@ CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
     const QString refreshToken = settings.value("CanvasRefreshToken", "").toString();
 
     if(!refreshToken.isEmpty()) {
-        refreshTokenExists = true;
         OAuthFlow->setRefreshToken(refreshToken);
     }
 
@@ -57,7 +56,7 @@ bool CanvasHandler::authenticate() {
     //***************************************************
 
     // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-    if(refreshTokenExists) {
+    if(!OAuthFlow->refreshToken().isEmpty()) {
         auto *loginDialog = actionDialog(parent);
         actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
@@ -73,26 +72,26 @@ bool CanvasHandler::authenticate() {
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
             loop.exec();
         });
-        connect(this, &LMS::granted, loginDialog, [this, &loginDialog]() {
+        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog, [this, &loginDialog]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
             loginDialog->adjustSize();
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
             loop.exec();
-            loginDialog->accept();
+            actionComplete(loginDialog);
         });
-        connect(this, &LMS::denied, loginDialog, [this, &loginDialog]() {
+        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog, [this, &loginDialog]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Canvas is requesting that you re-authorize gruepr."));
             loginDialog->adjustSize();
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
-            loginDialog->accept();
+            actionComplete(loginDialog);
         });
 
         LMS::authenticate();
 
-        if(loginDialog->exec() == QMessageBox::Cancel) {
+        if(loginDialog->exec() == QDialog::Rejected) {
             actionComplete(loginDialog);
             return false;
         }
@@ -135,13 +134,13 @@ bool CanvasHandler::authenticate() {
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
             loop.exec();
         });
-        connect(this, &LMS::granted, loginDialog2, [this, &loginDialog2]() {
+        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog2, [this, &loginDialog2]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
             loginDialog2->adjustSize();
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
             loop.exec();
-            loginDialog2->accept();
+            actionComplete(loginDialog2);
         });
 
         LMS::authenticate();

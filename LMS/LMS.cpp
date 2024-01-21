@@ -21,39 +21,34 @@ void LMS::initOAuth2() {
     OAuthFlow->setClientIdentifierSharedKey(getClientSecret());
     OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
     connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
-    connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, this, [this](){
-        if(!OAuthFlow->refreshToken().isEmpty()) {
-            refreshTokenExists = true;
-        }
-        emit granted();
-    });
-
-    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, OAuthFlow);
-    OAuthFlow->setReplyHandler(replyHandler);
-    replyHandler->setCallbackText(tr("Authorization complete. You may close this page and return to gruepr."));
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, &LMS::serverReplyReceived);
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](const QString &errorString){
-        OAuthFlow->setRefreshToken("");
-        refreshTokenExists = false;
-        emit denied(errorString);
-    });
-    /*connect(OAuthFlow, &QAbstractOAuth2::error, this, [](const QString &error, const QString &errorDescription, const QUrl &uri) {
-        qDebug() << "OAuth error: ";
+    connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, this, [](const QString &error, const QString &errorDescription, const QUrl &uri) {
+        qDebug() << "OAuthFlow error: ";
         qDebug() << error;
         qDebug() << errorDescription;
         qDebug() << uri;
         qDebug() << "************";
-    });*/
+    });
+
+    auto *replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
+    OAuthFlow->setReplyHandler(replyHandler);
+    replyHandler->setCallbackText(tr("Authorization complete. You may close this page and return to gruepr."));
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, &LMS::serverReplyReceived);
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](QString &error, const QString &errorDescription, const QUrl &uri) {
+        qDebug() << "replyHandler error: ";
+        qDebug() << error;
+        qDebug() << errorDescription;
+        qDebug() << uri;
+        qDebug() << "************";
+    });
 }
 
 bool LMS::authenticate() {
-    if(refreshTokenExists) {
+    if(!OAuthFlow->refreshToken().isEmpty()) {
         OAuthFlow->refreshAccessToken();
     }
     else {
         OAuthFlow->grant();
     }
-
     return true;
 }
 

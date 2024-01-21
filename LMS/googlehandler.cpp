@@ -15,7 +15,6 @@ GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
     accountName = settings.value("GoogleAccountName", "").toString();
 
     if(!refreshToken.isEmpty()) {
-        refreshTokenExists = true;
         OAuthFlow->setRefreshToken(refreshToken);
     }
 }
@@ -33,7 +32,7 @@ GoogleHandler::~GoogleHandler() {
 
 bool GoogleHandler::authenticate() {
     // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-    if(refreshTokenExists) {
+    if(!OAuthFlow->refreshToken().isEmpty()) {
         auto *loginDialog = actionDialog(parent);
         actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
@@ -50,7 +49,6 @@ bool GoogleHandler::authenticate() {
         }
 
         if(changingAccounts) {
-            refreshTokenExists = false;
             OAuthFlow->setRefreshToken("");
         }
         else {
@@ -71,7 +69,7 @@ bool GoogleHandler::authenticate() {
                     accountName = id_token_JWTPayload["email"].toString();
                 }
             });
-            connect(this, &LMS::granted, loginDialog, [this, &loginDialog]() {
+            connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog, [this, &loginDialog]() {
                 actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
                 loginDialog->adjustSize();
                 QEventLoop loop;
@@ -79,9 +77,10 @@ bool GoogleHandler::authenticate() {
                 loop.exec();
                 actionComplete(loginDialog);
             });
-            connect(this, &LMS::denied, loginDialog, [this, &loginDialog](/*const QString &errorString*/) {
+            connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog, [this, &loginDialog]() {
                 actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Google is requesting that you re-authorize gruepr."));
                 loginDialog->adjustSize();
+                OAuthFlow->setRefreshToken("");
                 QEventLoop loop;
                 QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
                 loop.exec();
@@ -149,7 +148,7 @@ bool GoogleHandler::authenticate() {
                 accountName = id_token_JWTPayload["email"].toString();
             }
         });
-        connect(this, &LMS::granted, loginDialog2, [this, &loginDialog2]() {
+        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog2, [this, &loginDialog2]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
             loginDialog2->adjustSize();
             QEventLoop loop;
@@ -157,7 +156,7 @@ bool GoogleHandler::authenticate() {
             loop.exec();
             actionComplete(loginDialog2);
         });
-        connect(this, &LMS::denied, loginDialog2, [this, &loginDialog2](/*const QString &errorString*/) {
+        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog2, [this, &loginDialog2]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
             loginDialog2->adjustSize();
             QEventLoop loop;

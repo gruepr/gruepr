@@ -146,7 +146,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
-    changeSection(0);   // not exactly sure why this is needed, but loading a section is needed to prevent a crash if letsDoItButton is immediately clicked
+    changeSection(0);   // not exactly sure why this is needed, but this prevents crash if letsDoItButton is immediately clicked
     saveState();
 }
 
@@ -251,10 +251,10 @@ void gruepr::changeSection(int index)
 
         // record a tally for each response, starting with a 0 count for each response found in all of the survey data
         std::map<QString, int> currentResponseCounts;
-        for(const auto & responseCount : qAsConst(dataOptions->attributeQuestionResponseCounts[attribute])) {
+        for(const auto &responseCount : qAsConst(dataOptions->attributeQuestionResponseCounts[attribute])) {
             currentResponseCounts[responseCount.first] = 0;
         }
-        for(const auto &student:students) {
+        for(const auto &student : students) {
             if((ui->sectionSelectionBox->currentIndex() == 0) ||
                (ui->sectionSelectionBox->currentIndex() == 1) ||
                (student.section == ui->sectionSelectionBox->currentText())) {
