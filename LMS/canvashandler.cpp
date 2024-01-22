@@ -797,7 +797,7 @@ std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *pa
         }
         else if (stage == QAbstractOAuth::Stage::RequestingAccessToken) {
             // Percent-decode the "code" parameter so Google can match it
-            QByteArray code = parameters->value("code").toByteArray();
+            const QByteArray code = parameters->value("code").toByteArray();
             parameters->replace("code", QUrl::fromPercentEncoding(code));
         }
     };

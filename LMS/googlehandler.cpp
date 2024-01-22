@@ -56,12 +56,7 @@ bool GoogleHandler::authenticate() {
             loginDialog->show();
             loginDialog->adjustSize();
 
-            connect(this, &LMS::serverReplyReceived, loginDialog, [this, &loginDialog](const QByteArray &reply) {
-                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
-                loginDialog->adjustSize();
-                QEventLoop loop;
-                QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
-                loop.exec();
+            connect(this, &LMS::serverReplyReceived, loginDialog, [this](const QByteArray &reply) {
                 const auto json_doc = QJsonDocument::fromJson(reply);
                 const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
                 if(id_token.size() == 3) {
@@ -85,6 +80,14 @@ bool GoogleHandler::authenticate() {
                 QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
                 loop.exec();
                 actionComplete(loginDialog);
+            });
+            connect(this, &LMS::serverCancelled, loginDialog, [this, &loginDialog]() {
+                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
+                loginDialog->adjustSize();
+                QEventLoop loop;
+                QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+                loop.exec();
+                loginDialog->reject();
             });
 
             LMS::authenticate();
@@ -135,12 +138,7 @@ bool GoogleHandler::authenticate() {
         loginDialog2->show();
         loginDialog2->adjustSize();
         connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
-        connect(this, &LMS::serverReplyReceived, loginDialog2, [this, &loginDialog2](const QByteArray &reply) {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
-            loop.exec();
+        connect(this, &LMS::serverReplyReceived, loginDialog2, [this](const QByteArray &reply) {
             const auto json_doc = QJsonDocument::fromJson(reply);
             const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
             if(id_token.size() == 3) {
@@ -157,6 +155,14 @@ bool GoogleHandler::authenticate() {
             actionComplete(loginDialog2);
         });
         connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog2, [this, &loginDialog2]() {
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
+            loginDialog2->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog2->reject();
+        });
+        connect(this, &LMS::serverCancelled, loginDialog2, [this, &loginDialog2]() {
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
             loginDialog2->adjustSize();
             QEventLoop loop;
@@ -620,7 +626,7 @@ std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *pa
             // PKCE
             parameters->insert("code_verifier", code_verifier);
             // Percent-decode the "code" parameter so Google can match it
-            QByteArray code = parameters->value("code").toByteArray();
+            const QByteArray code = parameters->value("code").toByteArray();
             parameters->replace("code", QUrl::fromPercentEncoding(code));
         }
     };

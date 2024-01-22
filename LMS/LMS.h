@@ -10,6 +10,21 @@
 #include <QtNetwork>
 
 
+class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
+{
+    Q_OBJECT
+
+public:
+    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {}
+
+signals:
+    void error(const QString &errorString);
+
+private:
+    void networkReplyFinished(QNetworkReply *reply) override;
+};
+
+
 class LMS : public QObject
 {
     Q_OBJECT
@@ -25,7 +40,8 @@ public:
     void actionComplete(QDialog *busyDialog);
 
 signals:
-    void serverReplyReceived(const QByteArray &reply);  // localhost authorization callback received
+    void serverReplyReceived(const QByteArray &reply);  // localhost callback received
+    void serverCancelled();
 
 protected:
     void initOAuth2();
@@ -34,6 +50,7 @@ protected:
 
     QOAuth2AuthorizationCodeFlow *OAuthFlow = nullptr;
     QNetworkAccessManager *manager = nullptr;
+    grueprOAuthHttpServerReplyHandler *replyHandler = nullptr;
     QUrl redirectUri;
     quint16 port;
 
@@ -51,22 +68,6 @@ protected:
     inline static const int TIMEOUT_TIME = 5000;   //msec
     inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};
-};
-
-
-// helper class below is used in order to expose & emit the errorString
-class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
-{
-    Q_OBJECT
-
-public:
-    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {}
-
-signals:
-    void error(const QString &errorString);
-
-private:
-    void networkReplyFinished(QNetworkReply *reply) override;
 };
 
 #endif // LMS_H
