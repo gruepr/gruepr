@@ -39,10 +39,6 @@ public:
     QDialogButtonBox *actionDialogButtons = nullptr;
     void actionComplete(QDialog *busyDialog);
 
-signals:
-    void serverReplyReceived(const QByteArray &reply);  // localhost callback received
-    void serverCancelled();
-
 protected:
     void initOAuth2();
     virtual bool authenticate();

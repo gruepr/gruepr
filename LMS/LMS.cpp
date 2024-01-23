@@ -24,25 +24,13 @@ void LMS::initOAuth2() {
 
     replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
     OAuthFlow->setReplyHandler(replyHandler);
-    replyHandler->setCallbackText(tr("Authorization complete. You may close this page and return to gruepr."));
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, &LMS::serverReplyReceived);
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, &LMS::serverCancelled);
-
-    /*
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, this, [](const QString &error, const QString &errorDescription, const QUrl &uri) {
-        qDebug() << "OAuthFlow error: ";
-        qDebug() << error;
-        qDebug() << errorDescription;
-        qDebug() << uri;
-        qDebug() << "************";
-    });
-        connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [this](const QString &error) {
-        qDebug() << "replyHandler error: ";
-        qDebug() << error;
-        qDebug() << "************";
-        emit serverCancel();
-    });
-    */
+    replyHandler->setCallbackText("<font size=\"+2\" face=\"arial\" color=\"" DEEPWATERHEX "\">" +
+                                  tr("Authorization complete. You may close this page and return to gruepr.") + "</font>");
+    // connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](const QString &error) {
+    //     qDebug() << "replyHandler error: ";
+    //     qDebug() << error;
+    //     qDebug() << "************";
+    // });
 }
 
 bool LMS::authenticate() {
@@ -89,17 +77,18 @@ QDialog* LMS::actionDialog(QWidget *parent) {
 
 void LMS::actionComplete(QDialog *busyDialog) {
     QApplication::restoreOverrideCursor();
-    busyDialog->accept();
-    disconnect(busyDialog);
-    busyDialog->deleteLater();
+    if(busyDialog != nullptr) {
+        busyDialog->accept();
+        disconnect(busyDialog);
+        busyDialog->deleteLater();
+    }
 }
 
 
 void grueprOAuthHttpServerReplyHandler::networkReplyFinished(QNetworkReply *reply)
 {
     if(reply->error() != QNetworkReply::NoError) {
-        emit error(reply->errorString());
+        emit error(QMetaEnum::fromType<QNetworkReply::NetworkError>().valueToKey(reply->error()));
     }
-
     QOAuthHttpServerReplyHandler::networkReplyFinished(reply);
 };

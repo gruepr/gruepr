@@ -35,9 +35,12 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// INPROG:
+// DONE:
+//    INTERNAL:
+//  - simplified LMS / OAuth handling
+//
 //    BUGFIXES:
-//  - fixing Google authorization and connection issues
+//  - fixed remaining Google authorization and connection issues
 //
 // TO DO:
 //    NEW FEATURES:
@@ -46,7 +49,7 @@
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
 //
-//    C++ MODERNIZATION:
+//    INTERNAL:
 //  - modernize pointers throughout to smart pointers
 //  - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
 //  - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.

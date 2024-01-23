@@ -9,17 +9,14 @@
 
 CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
-    setBaseURL(baseAPIURL);
 
     const QSettings settings;
     const QString refreshToken = settings.value("CanvasRefreshToken", "").toString();
+    setBaseURL(baseAPIURL);
 
     if(!refreshToken.isEmpty()) {
         OAuthFlow->setRefreshToken(refreshToken);
     }
-
-    canvasCourses.clear();
-    roster.clear();
 }
 
 CanvasHandler::~CanvasHandler() {
@@ -55,40 +52,47 @@ bool CanvasHandler::authenticate() {
     //IN BETA--GETS USER'S API TOKEN MANUALLY
     //***************************************************
 
-    // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-    if(!OAuthFlow->refreshToken().isEmpty()) {
-        auto *loginDialog = actionDialog(parent);
-        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
-        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
-        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        actionDialogLabel->setText(tr("Connecting to Canvas..."));
-        loginDialog->show();
-        loginDialog->adjustSize();
+    QDialog *loginDialog = actionDialog(parent);
 
-        connect(this, &LMS::serverReplyReceived, loginDialog, [this, &loginDialog](/*const QByteArray &reply*/) {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
-            loginDialog->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
-            loop.exec();
-        });
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog, [this, &loginDialog]() {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
-            loginDialog->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
-            loop.exec();
-            actionComplete(loginDialog);
-        });
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog, [this, &loginDialog]() {
+    connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog, [this, &loginDialog]() {
+        //Authorization granted
+        actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
+        loginDialog->adjustSize();
+        QEventLoop loop;
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
+        loop.exec();
+        actionComplete(loginDialog);
+    });
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, loginDialog, [this, &loginDialog](const QString &error) {
+        if((OAuthFlow->status() == QAbstractOAuth::Status::RefreshingToken) &&
+            (error.contains("ProtocolInvalidOperationError", Qt::CaseInsensitive) || error.contains("AuthenticationRequiredError", Qt::CaseInsensitive))) {
+            //Need user to re-grant permission
             actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Canvas is requesting that you re-authorize gruepr."));
             loginDialog->adjustSize();
             OAuthFlow->setRefreshToken("");
             QEventLoop loop;
             QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
             loop.exec();
-            actionComplete(loginDialog);
-        });
+            loginDialog->accept();
+        }
+        else {
+            //Unknown connection error, will need to start over
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Canvas.<br>Plese retry later."));
+            loginDialog->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->reject();
+        }
+    });
+
+    if(!OAuthFlow->refreshToken().isEmpty()) {
+        //RefreshToken is found, try to use it to get accessTokens without having to re-grant permission
+        actionDialogLabel->setText(tr("Connecting to Canvas..."));
+        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
+        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        loginDialog->adjustSize();
 
         LMS::authenticate();
 
@@ -98,9 +102,8 @@ bool CanvasHandler::authenticate() {
         }
     }
 
-    // didn't have a refreshToken or the refreshToken didn't work: time to (re)authorize
     if(!authenticated()) {
-        auto *loginDialog2 = actionDialog(parent);
+        // didn't have a refreshToken, the refreshToken didn't work, or user wants to change accounts: time to (re)authorize
         actionDialogLabel->setText(tr("The next step will open a browser window so you can sign in with Canvas "
                                       "and then authorize gruepr to access the surveys that it creates in your Canvas class. "
                                       "You will need to select all checkboxes to provide this authorization.<br><br>"
@@ -108,53 +111,30 @@ bool CanvasHandler::authenticate() {
                                       "No data will ever be stored or sent anywhere else."));
         actionDialogLabel->setWordWrap(true);
         actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
         actionDialogButtons->setStyleSheet("");
         actionDialogButtons->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
         actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        loginDialog2->show();
-        loginDialog2->adjustSize();
+        loginDialog->show();
+        loginDialog->adjustSize();
 
-        if(loginDialog2->exec() == QMessageBox::Cancel) {
-            actionComplete(loginDialog2);
+        if(loginDialog->exec() == QDialog::Rejected) {
+            actionComplete(loginDialog);
             return false;
         }
 
-        actionDialogLabel->setText(tr("Please use your browser to log in to Canvas and then return here."));
+        actionDialogLabel->setText(tr("Please use your browser to log in<br>to Canvas and then return here."));
         actionDialogLabel->setWordWrap(false);
         actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
         actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        loginDialog2->show();
-        loginDialog2->adjustSize();
-        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
-        connect(this, &LMS::serverReplyReceived, loginDialog2, [this, &loginDialog2](/*const QString &reply*/) {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Response received..."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 4, &loop, &QEventLoop::quit);
-            loop.exec();
-        });
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog2, [this, &loginDialog2]() {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
-            loop.exec();
-            actionComplete(loginDialog2);
-        });
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog2, [this, &loginDialog2]() {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Canvas. Plese retry later."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-            loop.exec();
-            loginDialog2->reject();
-        });
+        loginDialog->show();
+        loginDialog->adjustSize();
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
 
         LMS::authenticate();
 
-        if(loginDialog2->exec() == QMessageBox::Cancel) {
-            actionComplete(loginDialog2);
+        if(loginDialog->exec() == QDialog::Rejected) {
+            actionComplete(loginDialog);
             return false;
         }
     }
@@ -704,7 +684,8 @@ QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentURL
     getCanvasInfoDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     getCanvasInfoDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
-    auto *label = new QLabel(tr("The next step will allow gruepr to interact with your Canvas course. This feature is currently in beta.\n"
+    auto *label = new QLabel(tr("Completing the steps below would allow gruepr to interact with your Canvas course using a self-generated access token.\n"
+                                "This feature is not officially allowed by Canvas and is included for testing purposes only.\n"
                             "The information typed below will be saved to your computer so that you only have to perform the following steps once.\n"
                             "This information will not be sent anywhere and should not be shared with anyone.\n\n"
                             "1) enter your institution's canvas URL in the first field below.\n"

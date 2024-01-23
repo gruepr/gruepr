@@ -31,20 +31,63 @@ GoogleHandler::~GoogleHandler() {
 }
 
 bool GoogleHandler::authenticate() {
-    // if refreshToken is found, try to use it to get accessTokens without re-granting permission
-    if(!OAuthFlow->refreshToken().isEmpty()) {
-        auto *loginDialog = actionDialog(parent);
-        actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
-        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
-        actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    QDialog *loginDialog = actionDialog(parent);
 
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QByteArray &reply) {
+        //Grab the account name (email address) out of the OpenID reply
+        const auto json_doc = QJsonDocument::fromJson(reply);
+        const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
+        if(id_token.size() == 3) {
+            const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8())).object();
+            accountName = id_token_JWTPayload["email"].toString();
+        }
+    });
+    connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog, [this, &loginDialog]() {
+        //Authorization granted
+        actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
+        loginDialog->adjustSize();
+        QEventLoop loop;
+        QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
+        loop.exec();
+        actionComplete(loginDialog);
+    });
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, loginDialog, [this, &loginDialog](const QString &error) {
+        if((OAuthFlow->status() == QAbstractOAuth::Status::RefreshingToken) &&
+            (error.contains("ProtocolInvalidOperationError", Qt::CaseInsensitive) || error.contains("AuthenticationRequiredError", Qt::CaseInsensitive))) {
+            //Need user to re-grant permission
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Google is requesting that you re-authorize gruepr."));
+            loginDialog->adjustSize();
+            OAuthFlow->setRefreshToken("");
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->accept();
+        }
+        else {
+            //Unknown connection error, will need to start over
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google.<br>Plese retry later."));
+            loginDialog->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->reject();
+        }
+    });
+
+    if(!OAuthFlow->refreshToken().isEmpty()) {
+        //RefreshToken is found, try to use it to get accessTokens without having to re-grant permission
         bool changingAccounts = false;
         if(!accountName.isEmpty()){
-            actionDialogLabel->setText(tr("Connecting to Google with account: ") + "<br>" + accountName + "<br>" +
-                                       tr("Click Cancel to use a different account"));
+            actionDialogLabel->setText(tr("Using Google account: ") + "<br>" + accountName);
+            actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+            actionDialogButtons->button(QDialogButtonBox::Ok)->setText(tr("Proceed"));
+            actionDialogButtons->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+            connect(actionDialogButtons->button(QDialogButtonBox::Ok), &QPushButton::clicked, loginDialog, &QDialog::accept);
+            actionDialogButtons->button(QDialogButtonBox::Cancel)->setText(tr("Change account"));
+            actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+            connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
             loginDialog->show();
             loginDialog->adjustSize();
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME * 2, loginDialog, &QDialog::accept);
             changingAccounts = (loginDialog->exec() == QDialog::Rejected);
         }
 
@@ -53,42 +96,10 @@ bool GoogleHandler::authenticate() {
         }
         else {
             actionDialogLabel->setText(tr("Connecting to Google..."));
-            loginDialog->show();
+            actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
+            connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
+            actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
             loginDialog->adjustSize();
-
-            connect(this, &LMS::serverReplyReceived, loginDialog, [this](const QByteArray &reply) {
-                const auto json_doc = QJsonDocument::fromJson(reply);
-                const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
-                if(id_token.size() == 3) {
-                    const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8())).object();
-                    accountName = id_token_JWTPayload["email"].toString();
-                }
-            });
-            connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog, [this, &loginDialog]() {
-                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
-                loginDialog->adjustSize();
-                QEventLoop loop;
-                QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
-                loop.exec();
-                actionComplete(loginDialog);
-            });
-            connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog, [this, &loginDialog]() {
-                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Google is requesting that you re-authorize gruepr."));
-                loginDialog->adjustSize();
-                OAuthFlow->setRefreshToken("");
-                QEventLoop loop;
-                QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-                loop.exec();
-                actionComplete(loginDialog);
-            });
-            connect(this, &LMS::serverCancelled, loginDialog, [this, &loginDialog]() {
-                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
-                loginDialog->adjustSize();
-                QEventLoop loop;
-                QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-                loop.exec();
-                loginDialog->reject();
-            });
 
             LMS::authenticate();
 
@@ -99,9 +110,8 @@ bool GoogleHandler::authenticate() {
         }
     }
 
-    // didn't have a refreshToken, the refreshToken didn't work, or user wants to change accounts: time to (re)authorize
     if(!authenticated()) {
-        auto *loginDialog2 = actionDialog(parent);
+        // didn't have a refreshToken, the refreshToken didn't work, or user wants to change accounts: time to (re)authorize
         actionDialogLabel->setText(tr("The next step will open a browser window so you can sign in with Google "
                                       "and then authorize gruepr to access the surveys that it creates on your Google Drive. "
                                       "You will need to select all checkboxes to provide this authorization.<br><br>"
@@ -109,13 +119,13 @@ bool GoogleHandler::authenticate() {
                                       "No data will ever be stored or sent anywhere else."));
         actionDialogLabel->setWordWrap(true);
         actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
         actionDialogButtons->setStyleSheet("");
         actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
         auto *okButton = actionDialogButtons->button(QDialogButtonBox::Ok);
         QPixmap loginpic(":/icons_new/google_signin_button.png");
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-        loginpic = loginpic.scaledToHeight(okButton->height() * 2, Qt::SmoothTransformation);
+        loginpic = loginpic.scaledToHeight(actionDialogButtons->button(QDialogButtonBox::Cancel)->height() * 5 / 4, Qt::SmoothTransformation);
 #else
         loginpic = loginpic.scaledToHeight(okButton->height(), Qt::SmoothTransformation);
 #endif
@@ -123,58 +133,26 @@ bool GoogleHandler::authenticate() {
         okButton->setIconSize(loginpic.rect().size());
         okButton->setIcon(loginpic);
         okButton->adjustSize();
-        loginDialog2->show();
-        loginDialog2->adjustSize();
+        loginDialog->show();
+        loginDialog->adjustSize();
 
-        if(loginDialog2->exec() == QDialog::Rejected) {
-            actionComplete(loginDialog2);
+        if(loginDialog->exec() == QDialog::Rejected) {
+            actionComplete(loginDialog);
             return false;
         }
 
-        actionDialogLabel->setText(tr("Please use your browser to log in to Google and then return here."));
+        actionDialogLabel->setText(tr("Please use your browser to log in<br>to Google and then return here."));
         actionDialogLabel->setWordWrap(false);
         actionDialogButtons->setStandardButtons(QDialogButtonBox::Cancel);
         actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        loginDialog2->show();
-        loginDialog2->adjustSize();
-        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog2, &QDialog::reject);
-        connect(this, &LMS::serverReplyReceived, loginDialog2, [this](const QByteArray &reply) {
-            const auto json_doc = QJsonDocument::fromJson(reply);
-            const auto id_token = json_doc["id_token"].toString().split('.');  //id_token is JWT-encoded user info
-            if(id_token.size() == 3) {
-                const auto id_token_JWTPayload = QJsonDocument::fromJson(QByteArray::fromBase64(id_token.at(1).toUtf8())).object();
-                accountName = id_token_JWTPayload["email"].toString();
-            }
-        });
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::granted, loginDialog2, [this, &loginDialog2]() {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("Login successful."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME / 2, &loop, &QEventLoop::quit);
-            loop.exec();
-            actionComplete(loginDialog2);
-        });
-        connect(OAuthFlow, &QOAuth2AuthorizationCodeFlow::error, loginDialog2, [this, &loginDialog2]() {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-            loop.exec();
-            loginDialog2->reject();
-        });
-        connect(this, &LMS::serverCancelled, loginDialog2, [this, &loginDialog2]() {
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google. Plese retry later."));
-            loginDialog2->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-            loop.exec();
-            loginDialog2->reject();
-        });
+        loginDialog->show();
+        loginDialog->adjustSize();
+        connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
 
         LMS::authenticate();
 
-        if(loginDialog2->exec() == QDialog::Rejected) {
-            actionComplete(loginDialog2);
+        if(loginDialog->exec() == QDialog::Rejected) {
+            actionComplete(loginDialog);
             return false;
         }
     }
