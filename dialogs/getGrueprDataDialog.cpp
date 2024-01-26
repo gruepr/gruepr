@@ -109,35 +109,37 @@ GetGrueprDataDialog::~GetGrueprDataDialog()
 }
 
 void GetGrueprDataDialog::accept() {
-    if(!readData()) {
-        ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-        ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
-                                       QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
-        ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
-                                              "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
-        QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
-        QPainter painter(&whiteUploadIcon);
-        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
-        painter.end();
-        int h = ui->loadDataPushButton->height();
-        ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
-        ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
-        ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
-                                                           "border-top: none; border-bottom: none; border-left: none; "
-                                                           "border-right: 1px solid darkGray; "
-                                                           "font-family: 'DM Sans'; font-size: 12pt;}");
-        ui->tableWidget->clearContents();
-        ui->tableWidget->setRowCount(0);
-        ui->dataSourceFrame->setEnabled(false);
-        ui->dataSourceIcon->setEnabled(false);
-        ui->dataSourceLabel->setEnabled(false);
-        ui->dataSourceLabel->setText(tr("No survey loaded"));
-        ui->hLine->setEnabled(false);
-        ui->fieldsExplainer->setEnabled(false);
-        ui->headerRowCheckBox->setEnabled(false);
-        ui->tableWidget->setEnabled(false);
-        return;
+    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
+        if(!readData()) {
+            ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+            ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
+                                           QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
+            ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
+                                                  "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
+            QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
+            QPainter painter(&whiteUploadIcon);
+            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+            painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
+            painter.end();
+            int h = ui->loadDataPushButton->height();
+            ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
+            ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
+            ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
+                                                               "border-top: none; border-bottom: none; border-left: none; "
+                                                               "border-right: 1px solid darkGray; "
+                                                               "font-family: 'DM Sans'; font-size: 12pt;}");
+            ui->tableWidget->clearContents();
+            ui->tableWidget->setRowCount(0);
+            ui->dataSourceFrame->setEnabled(false);
+            ui->dataSourceIcon->setEnabled(false);
+            ui->dataSourceLabel->setEnabled(false);
+            ui->dataSourceLabel->setText(tr("No survey loaded"));
+            ui->hLine->setEnabled(false);
+            ui->fieldsExplainer->setEnabled(false);
+            ui->headerRowCheckBox->setEnabled(false);
+            ui->tableWidget->setEnabled(false);
+            return;
+        }
     }
 
     QDialog::accept();

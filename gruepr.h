@@ -62,7 +62,7 @@ private slots:
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void selectURMResponses();
     void responsesRulesButton_clicked();
-    void changeIdealTeamSize(int arg1);
+    void changeIdealTeamSize();
     void chooseTeamSizes(int index);
     void makeTeammatesRules();
     void startOptimization();

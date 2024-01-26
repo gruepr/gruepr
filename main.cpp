@@ -34,13 +34,14 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // DONE:
 //    INTERNAL:
 //  - simplified LMS / OAuth handling
 //
 //    BUGFIXES:
-//  - fixed remaining Google authorization and connection issues
+//  - improved Google authorization and connection; still not perfect
+//  - fixed crash under certain conditions related to teaming multiple sections
+//  - fixed crash on loading previous work
 //
 // TO DO:
 //    NEW FEATURES:

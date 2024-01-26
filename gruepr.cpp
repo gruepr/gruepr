@@ -135,7 +135,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
     connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
-    connect(ui->sectionSelectionBox, &QComboBox::activated, this, &gruepr::changeSection);
+    connect(ui->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
     connect(ui->idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
     connect(ui->teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
     connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
@@ -146,7 +146,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
 
-    changeSection(0);   // not exactly sure why this is needed, but this prevents crash if letsDoItButton is immediately clicked
     saveState();
 }
 
@@ -225,9 +224,8 @@ void gruepr::changeSection(int index)
         return;
     }
 
+    teamingOptions->sectionName = desiredSection;
     if(!multipleSectionsInProgress) {
-        teamingOptions->sectionName = desiredSection;
-
         if(!dataOptions->sectionIncluded) {
             teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
         }
@@ -255,9 +253,9 @@ void gruepr::changeSection(int index)
             currentResponseCounts[responseCount.first] = 0;
         }
         for(const auto &student : students) {
-            if((ui->sectionSelectionBox->currentIndex() == 0) ||
-               (ui->sectionSelectionBox->currentIndex() == 1) ||
-               (student.section == ui->sectionSelectionBox->currentText())) {
+            if((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+               (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
+               (student.section == teamingOptions->sectionName)) {
                 const QString &currentStudentResponse = student.attributeResponse[attribute];
 
                 if(!student.attributeResponse[attribute].isEmpty()) {
@@ -280,8 +278,8 @@ void gruepr::changeSection(int index)
         attributeWidgets[attribute]->updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
     }
 
-    ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
-    changeIdealTeamSize(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    ui->idealTeamSizeBox->setMaximum(std::max(2, numActiveStudents / 2));
+    changeIdealTeamSize();    // load new team sizes in selection box, if necessary
 }
 
 
@@ -682,7 +680,6 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
     // Re-build the section options in the selection box
     if(dataOptions->sectionIncluded) {
-        const QString currentSection = ui->sectionSelectionBox->currentText();
         ui->sectionSelectionBox->clear();
         dataOptions->sectionNames.clear();
         for(int sectionIndex = 0; sectionIndex < dataOptions->numStudentsInSystem; sectionIndex++) {
@@ -704,8 +701,8 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
         }
 
-        if(ui->sectionSelectionBox->findText(currentSection) != -1) {
-            ui->sectionSelectionBox->setCurrentText(currentSection);
+        if(ui->sectionSelectionBox->findText(teamingOptions->sectionName) != -1) {
+            ui->sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
         }
     }
 
@@ -715,7 +712,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
     // Load new team sizes in selection box
     ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
-    changeIdealTeamSize(ui->idealTeamSizeBox->value());
+    changeIdealTeamSize();
 }
 
 
@@ -817,7 +814,9 @@ void gruepr::makeTeammatesRules()
     }
 
     auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
-                                         ((ui->sectionSelectionBox->currentIndex()==0) || (ui->sectionSelectionBox->currentIndex()==1))? "" : teamingOptions->sectionName,
+                                         ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                                          (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
+                                          (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
                                          teamTabNames, this);
     //If user clicks OK, replace student database with copy that has had pairings added
     const int reply = win->exec();
@@ -837,26 +836,37 @@ void gruepr::makeTeammatesRules()
 }
 
 
-void gruepr::changeIdealTeamSize(int arg1)
+void gruepr::changeIdealTeamSize()
 {
-    if(teamingOptions->numberRequestedTeammatesGiven > arg1) {
-        teamingOptions->numberRequestedTeammatesGiven = arg1;
+    const int idealSize = ui->idealTeamSizeBox->value();
+    if(teamingOptions->numberRequestedTeammatesGiven > idealSize) {
+        teamingOptions->numberRequestedTeammatesGiven = idealSize;
     }
 
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
     ui->teamSizeBox->setUpdatesEnabled(false);
 
     // typically just figuring out team sizes for one section or for all students together, but need to re-calculate for each section if we will team all sections independently
-    const int numSectionsToCalculate = (ui->sectionSelectionBox->currentIndex() == 1? int(dataOptions->sectionNames.size()) : 1);
+    const bool calculatingSeparateSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress;
+    const int numSectionsToCalculate = (calculatingSeparateSections? int(dataOptions->sectionNames.size()) : 1);
     int numStudentsBeingTeamed = numActiveStudents;
     int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
     int cumNumSmallerATeams=0, cumNumSmallerBTeams = 0, cumNumLargerATeams=0, cumNumLargerBTeams = 0;
     for(int section = 0; section < numSectionsToCalculate; section++) {
         ui->teamSizeBox->clear();
 
-        if(ui->sectionSelectionBox->currentIndex() == 1) {
+        if(calculatingSeparateSections) {
             // if teaming all sections separately, figure out how many students in this section
             const QString sectionName = ui->sectionSelectionBox->itemText(section + 3);
+            numStudentsBeingTeamed = 0;
+            for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
+                if(students[index].section == sectionName) {
+                    numStudentsBeingTeamed++;
+                }
+            }
+        }
+        else if(multipleSectionsInProgress) {
+            const QString sectionName = ui->sectionSelectionBox->currentText();
             numStudentsBeingTeamed = 0;
             for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
                 if(students[index].section == sectionName) {
@@ -868,16 +878,16 @@ void gruepr::changeIdealTeamSize(int arg1)
             numStudentsBeingTeamed = numActiveStudents;
         }
 
-        teamingOptions->numTeamsDesired = std::max(1, numStudentsBeingTeamed/arg1);
+        teamingOptions->numTeamsDesired = std::max(1, numStudentsBeingTeamed/idealSize);
         teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired;
         teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
 
-        if(numStudentsBeingTeamed%arg1 != 0) {      //if teams can't be evenly divided into this size
+        if(numStudentsBeingTeamed%idealSize != 0) {      //if teams can't be evenly divided into this size
 
             // reset the potential team sizes
-            for(int student = 0; student < MAX_STUDENTS; student++) {
-                teamingOptions->smallerTeamsSizes[student] = 0;
-                teamingOptions->largerTeamsSizes[student] = 0;
+            for(int teamNum = 0; teamNum < MAX_STUDENTS; teamNum++) {
+                teamingOptions->smallerTeamsSizes[teamNum] = 0;
+                teamingOptions->largerTeamsSizes[teamNum] = 0;
             }
 
             // What are the team sizes when desiredTeamSize represents a maximum size?
@@ -918,24 +928,28 @@ void gruepr::changeIdealTeamSize(int arg1)
                 cumNumLargerATeams += numLargerATeams;
             }
 
-            if(ui->sectionSelectionBox->currentIndex() != 1) {
+            if(!calculatingSeparateSections) {
                 ui->teamSizeBox->addItem(smallerTeamOption);
                 ui->teamSizeBox->addItem(largerTeamOption);
             }
         }
-        else {
+        else {  // evenly divisible number of students
             cumNumSmallerATeams += teamingOptions->numTeamsDesired;
-            smallerTeamsSizeA = arg1;
+            smallerTeamsSizeA = idealSize;
             cumNumLargerBTeams += teamingOptions->numTeamsDesired;
-            largerTeamsSizeB = arg1;
+            largerTeamsSizeB = idealSize;
+            for(int teamNum = 0; teamNum < teamingOptions->numTeamsDesired; teamNum++) {
+                teamingOptions->smallerTeamsSizes[teamNum] = idealSize;
+                teamingOptions->largerTeamsSizes[teamNum] = idealSize;
+            }
 
-            if(ui->sectionSelectionBox->currentIndex() != 1) {
-                ui->teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(arg1) + tr(" students each)"));
+            if(!calculatingSeparateSections) {
+                ui->teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(idealSize) + tr(" students each)"));
             }
         }
     }
 
-    if(ui->sectionSelectionBox->currentIndex() == 1) {
+    if(calculatingSeparateSections) {
         // load new team sizes in selection box by adding together the sizes from each section
         const QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB);
         const QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA);
@@ -960,6 +974,11 @@ void gruepr::changeIdealTeamSize(int arg1)
 
 inline QString gruepr::writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB)
 {
+    if((numTeamsA == 0) || (numTeamsB == 0)) {
+        const QString numTeamsString = QString::number((numTeamsA == 0)? numTeamsB : numTeamsA);
+        const QString numStudentsString = QString::number((numTeamsA == 0)? teamsizeB : teamsizeA);
+        return numTeamsString + tr(" teams (") + numStudentsString + tr(" students each)");
+    }
     QString teamOption = QString::number(numTeamsA + numTeamsB) + ((numTeamsA + numTeamsB > 1)? tr(" teams") : tr(" team")) + " (";
     if(numTeamsA > 0) {
         teamOption += QString::number(numTeamsA) + tr(" of ") + QString::number(teamsizeA) + tr(" student");
@@ -1070,7 +1089,9 @@ void gruepr::startOptimization()
         int numStudentsInSection = 0;
         studentIndexes = new int[dataOptions->numStudentsInSystem];
         for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
-            if(ui->sectionSelectionBox->currentIndex() == 0 || ui->sectionSelectionBox->currentText() == students[index].section) {
+            if((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
+                (teamingOptions->sectionName == students[index].section)) {
                 studentIndexes[numStudentsInSection] = index;
                 numStudentsInSection++;
             }
@@ -1103,7 +1124,7 @@ void gruepr::startOptimization()
 
         // Create window to display progress, and connect the stop optimization button in the window to the actual stopping of the optimization thread
         const QString sectionName = (teamingMultipleSections? (tr("section ") + QString::number(section + 1) + " / " + QString::number(numSectionsToTeam) + ": " +
-                                                          ui->sectionSelectionBox->currentText()) : "");
+                                                          teamingOptions->sectionName) : "");
         progressWindow = new progressDialog(sectionName, chartView, this);
         progressWindow->show();
         connect(progressWindow, &progressDialog::letsStop, this, [this] {QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1397,7 +1418,7 @@ void gruepr::loadUI()
     ui->studentTable->resetTable();
 
     ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
-    changeIdealTeamSize(ui->idealTeamSizeBox->value());    // load new team sizes in selection box
+    changeIdealTeamSize();    // load new team sizes in selection box
     ui->teamsizeSpacer->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     if(dataOptions->genderIncluded) {
@@ -1524,7 +1545,8 @@ void gruepr::loadUI()
         ui->scheduleSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
-    changeIdealTeamSize(ui->idealTeamSizeBox->value());    // load new team sizes in selection box, if necessary
+    changeIdealTeamSize();    // load new team sizes in selection box, if necessary
+    chooseTeamSizes(0);
 
     if(std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &student){return student.duplicateRecord;})) {
         grueprGlobal::warningMessage(this, "gruepr", tr("There appears to be at least one student with multiple survey submissions. "
@@ -1748,12 +1770,13 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(dataOptions->numStudentsInSystem);
     numActiveStudents = 0;
-    for(const auto &student : students) {
+    for(const auto &student : qAsConst(students)) {
         column = 0;
         if((numActiveStudents < dataOptions->numStudentsInSystem) &&            // make sure student exists and is in the section(s) being teamed
-            ((ui->sectionSelectionBox->currentIndex() == 0) ||
-             (ui->sectionSelectionBox->currentIndex() == 1) ||
-             (student.section == ui->sectionSelectionBox->currentText()))) {
+           ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+            (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
+            (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
+            (student.section == teamingOptions->sectionName))) {
 
             auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
                                                           QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
@@ -1916,9 +1939,10 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
     auto sharedNumTeams = numTeams;
     auto *sharedTeamingOptions = teamingOptions;
     auto *sharedDataOptions = dataOptions;
-#pragma omp parallel default(none) \
-                     shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-                     private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+#pragma omp parallel \
+        default(none) \
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+        private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[sharedNumTeams];
         attributeScore = new float*[sharedDataOptions->numAttributes];
@@ -2022,9 +2046,10 @@ QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
             sharedNumTeams = numTeams;
             sharedTeamingOptions = teamingOptions;
             sharedDataOptions = dataOptions;
-#pragma omp parallel default(none) \
-            shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-            private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+#pragma omp parallel \
+        default(none) \
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+        private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[sharedNumTeams];
                 attributeScore = new float*[sharedDataOptions->numAttributes];
