@@ -34,6 +34,10 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// INPROG:
+//  - more robust connection, with auto-retry of missed authentication and download attempts (re-download seems to be working; reauthenticating gives:
+//                  "qt.networkauth.oauth2: Cannot refresh access token. Refresh Access Token is already in progress"
+//
 // TO DO:
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)

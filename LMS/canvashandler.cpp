@@ -152,7 +152,10 @@ QStringList CanvasHandler::getCourses() {
     QList<QList<int>*> idsAndStudentCounts = {&ids, &studentCounts};
     QList<QStringList*> stringInSubobjectParams = {&x};
 
-    getPaginatedCanvasResults("/api/v1/courses?include[]=total_students", {"name"}, courseNamesInList, {"id", "total_students"}, idsAndStudentCounts, {}, stringInSubobjectParams);
+    getPaginatedCanvasResults("/api/v1/courses?include[]=total_students",
+                              {"name"}, courseNamesInList,
+                              {"id", "total_students"}, idsAndStudentCounts,
+                              {}, stringInSubobjectParams);
     courseNames.removeAll("");
 
     canvasCourses.clear();
@@ -187,7 +190,10 @@ QList<StudentRecord> CanvasHandler::getStudentRoster(const QString &courseName) 
     QList<QStringList*> studentNamesandEmailsInList = {&studentNames, &studentEmails};
     QList<QList<int>*> idsInList = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student", {"sortable_name", "email"}, studentNamesandEmailsInList, {"id"}, idsInList, {}, stringInSubobjectParams);
+    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/users?enrollment_type[]=student",
+                              {"sortable_name", "email"}, studentNamesandEmailsInList,
+                              {"id"}, idsInList,
+                              {}, stringInSubobjectParams);
 
     QStringList firstNames, lastNames;
     for(const auto &studentName : studentNames) {
@@ -386,7 +392,10 @@ QStringList CanvasHandler::getQuizList(const QString &courseName) {
     QList<QStringList*> titlesInList = {&titles};
     QList<QList<int>*> idsInList = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&x};
-    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes", {"title"}, titlesInList, {"id"}, idsInList, {}, stringInSubobjectParams);
+    getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes",
+                              {"title"}, titlesInList,
+                              {"id"}, idsInList,
+                              {}, stringInSubobjectParams);
 
     quizList.clear();
     for(int i = 0; i < titles.size(); i++) {
@@ -419,13 +428,16 @@ QString CanvasHandler::downloadQuizResult(const QString &courseName, const QStri
     QList<QStringList*> stringParams = {&x};
     QList<QList<int>*> intParams = {&ids};
     QList<QStringList*> stringInSubobjectParams = {&filename};
-    // check every two seconds--a file object (including a download URL) is added to the json results when it is
+    // check every two seconds--a file object (including a download URL) is added to the json results when it is ready
     do {
         QTimer::singleShot(RELOAD_DELAY_TIME, &loop, &QEventLoop::quit);
         loop.exec();
         filename.clear();
         ids.clear();
-        getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports", {}, stringParams, {"id"}, intParams, {"file/filename"}, stringInSubobjectParams);
+        getPaginatedCanvasResults("/api/v1/courses/" + QString::number(courseID) + "/quizzes/" + QString::number(quizID) + "/reports",
+                                  {}, stringParams,
+                                  {"id"}, intParams,
+                                  {"file/filename"}, stringInSubobjectParams);
     } while(filename.first().isEmpty());
     const QFileInfo filepath(QStandardPaths::writableLocation(QStandardPaths::TempLocation), quizName.simplified().replace(' ','_') + ".csv");
     // sometimes still a delay, so attempt to download every two seconds
@@ -532,7 +544,10 @@ QUrl CanvasHandler::getQuizResultsURL(const int courseID, const int quizID) {
         loop.exec();
         quizReportID.clear();
         quizReportFileURL.clear();
-        postToCanvasGetSingleResult(url, postData, {}, {stringParams}, {"id"}, intParams, {"file/url"}, stringInSubobjectParams);
+        postToCanvasGetSingleResult(url, postData,
+                                    {}, {stringParams},
+                                    {"id"}, intParams,
+                                    {"file/url"}, stringInSubobjectParams);
     } while(quizReportFileURL.first().isEmpty());
 
     return {quizReportFileURL.first()};
@@ -597,28 +612,19 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
     reply->deleteLater();
 }
 
-void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
-                                                                                                const QStringList &intParams, QList<QList<int>*> &intVals,
-                                                                                                const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals) {
-    QEventLoop loop;
-    const QString url = baseURL+URL;
-    QString replyBody;
-    QJsonDocument json_doc;
-    QJsonArray json_array;
+void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteArray &postData,
+                                                const QStringList &stringParams, QList<QStringList*> &stringVals,
+                                                const QStringList &intParams, QList<QList<int>*> &intVals,
+                                                const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals) {
+    const auto replyBody = httpRequest(Method::post, baseURL + URL, postData);
 
-    auto *reply = OAuthFlow->post(url, postData);
-
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    if(reply->bytesAvailable() == 0) {
-        //qDebug() << "no reply";
-        reply->deleteLater();
+    if(replyBody.isEmpty()) {
         return;
     }
 
-    replyBody = reply->readAll();
     //qDebug() << replyBody;
-    json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    const QJsonDocument json_doc = QJsonDocument::fromJson(replyBody);
+    QJsonArray json_array;
     if(json_doc.isArray()) {
         json_array = json_doc.array();
     }
@@ -627,7 +633,6 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
     }
     else {
         //empty or null
-        reply->deleteLater();
         return;
     }
 
@@ -645,31 +650,19 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
             *(stringInSubobjectVals[i]) << object[subobjectAndParamName.at(1)].toString();
         }
     }
-
-    reply->deleteLater();
 }
 
 bool CanvasHandler::downloadFile(const QUrl &URL, const QString &filepath) {
-    QEventLoop loop;
-    QNetworkReply *reply = nullptr;
-    QByteArray replyBody;
-
-    reply = OAuthFlow->get(URL);
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    if(reply->bytesAvailable() == 0) {
-        //qDebug() << "no reply";
-        reply->deleteLater();
+    const auto replyBody = httpRequest(Method::get, URL);
+    if(replyBody.isEmpty()) {
+        //qDebug() << "empty reply";
         return false;
     }
-
-    replyBody = reply->readAll();
-    //qDebug() << replyBody;
+    //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     QFile file(filepath);
     file.open(QIODevice::WriteOnly);
     QDataStream out(&file);
     out << replyBody;
-    reply->deleteLater();
     return true;
 }
 

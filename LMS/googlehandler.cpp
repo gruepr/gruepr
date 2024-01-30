@@ -32,6 +32,7 @@ GoogleHandler::~GoogleHandler() {
 
 bool GoogleHandler::authenticate() {
     QDialog *loginDialog = actionDialog(parent);
+    int attemptNumber = 1;
 
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QByteArray &reply) {
         //Grab the account name (email address) out of the OpenID reply
@@ -51,7 +52,7 @@ bool GoogleHandler::authenticate() {
         loop.exec();
         actionComplete(loginDialog);
     });
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, loginDialog, [this, &loginDialog](const QString &error) {
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, loginDialog, [this, &loginDialog, &attemptNumber](const QString &error) {
         if((OAuthFlow->status() == QAbstractOAuth::Status::RefreshingToken) &&
             (error.contains("ProtocolInvalidOperationError", Qt::CaseInsensitive) || error.contains("AuthenticationRequiredError", Qt::CaseInsensitive))) {
             //Need user to re-grant permission
@@ -65,12 +66,19 @@ bool GoogleHandler::authenticate() {
         }
         else {
             //Unknown connection error, will need to start over
-            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google.<br>Plese retry later."));
-            loginDialog->adjustSize();
-            QEventLoop loop;
-            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-            loop.exec();
-            loginDialog->reject();
+            if(attemptNumber < 4) {
+                qDebug() << "attempt number " << attemptNumber << "failed";
+                attemptNumber++;
+                LMS::authenticate();
+            }
+            else {
+                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google.<br>Plese retry later."));
+                loginDialog->adjustSize();
+                QEventLoop loop;
+                QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+                loop.exec();
+                loginDialog->reject();
+            }
         }
     });
 
@@ -416,17 +424,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //download the form itself into a JSON so that we can get the questions
     QString url = "https://forms.googleapis.com/v1/forms/" + ID;
     //qDebug() << url;
-    QEventLoop loop;
-    auto *reply = OAuthFlow->get(url);
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    //qDebug() << reply->error();
-    if(reply->bytesAvailable() == 0) {
-        //qDebug() << "no reply";
-        reply->deleteLater();
-        return {};
-    }
-    QString replyBody = reply->readAll();
+    QString replyBody = httpRequest(Method::get, url);
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     //pull out each question and save the question ID and text
@@ -468,19 +466,8 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //now download into a big JSON all of the responses (actually it's just the first 5000 responses! if >5000, will need to work with paginated results!)
     url = "https://forms.googleapis.com/v1/forms/" + ID + "/responses";
     //qDebug() << url;
-    reply = OAuthFlow->get(url);
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    //qDebug() << reply->errorString();
-    if(reply->bytesAvailable() == 0) {
-        //qDebug() << "no reply";
-        reply->deleteLater();
-        file.close();
-        return filepath.absoluteFilePath();
-    }
-    replyBody = reply->readAll();
+    replyBody = httpRequest(Method::get, url);
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
-    reply->deleteLater();
     json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
     const QJsonArray responses = json_doc["responses"].toArray();
@@ -515,18 +502,12 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
     OAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
-    QEventLoop loop;
-    connect(manager, &QNetworkAccessManager::finished, &loop, &QEventLoop::quit);
-    auto *reply = OAuthFlow->post(URL, postData);
-    loop.exec();
-    //qDebug() << reply->errorString();
+    const QString replyBody = httpRequest(Method::post, URL, postData);
 
-    if(reply->bytesAvailable() == 0) {
-        //qDebug() << "no reply";
+    if(replyBody.isEmpty()) {
         return;
     }
 
-    const QString replyBody = reply->readAll();
     //qDebug() << replyBody;
     const QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
     QJsonArray json_array;

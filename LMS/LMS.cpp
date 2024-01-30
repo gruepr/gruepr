@@ -47,6 +47,68 @@ bool LMS::authenticated() {
     return OAuthFlow->status() == QAbstractOAuth::Status::Granted;
 }
 
+QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data) {
+    switch(method) {
+    case Method::get: {
+        QEventLoop loop;
+        auto *reply = OAuthFlow->get(url);
+        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+        int attempt = 1;
+        while((reply->error() != QNetworkReply::NoError) && (attempt < 5)) {
+            //qDebug() << reply->errorString();
+            //qDebug() << "attempt " << attempt << " of " << url << " failed. Retrying.";
+            delete reply;
+            emit retrying(++attempt);
+            reply = OAuthFlow->get(url);
+            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
+
+        if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
+            //qDebug() << "**** failed or empty reply";
+            reply->deleteLater();
+            return {};
+        }
+
+        auto replyBody = reply->readAll();
+        reply->deleteLater();
+        return replyBody;
+        break;
+    }
+    case Method::post: {
+        QEventLoop loop;
+        auto *reply = OAuthFlow->post(url, data);
+        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+        int attempt = 1;
+        while((reply->error() != QNetworkReply::NoError) && (attempt < 5)) {
+            //qDebug() << reply->errorString();
+            //qDebug() << "attempt " << attempt << " of " << url << " failed. Retrying.";
+            delete reply;
+            emit retrying(++attempt);
+            reply = OAuthFlow->post(url, data);
+            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
+        }
+
+        if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
+            //qDebug() << "**** failed or empty reply";
+            reply->deleteLater();
+            return {};
+        }
+
+        auto replyBody = reply->readAll();
+        reply->deleteLater();
+        return replyBody;
+        break;
+    }
+    default: {
+        return {};
+    }
+    }
+}
+
 QDialog* LMS::actionDialog(QWidget *parent) {
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *dialog = new QDialog(parent);

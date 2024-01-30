@@ -39,10 +39,15 @@ public:
     QDialogButtonBox *actionDialogButtons = nullptr;
     void actionComplete(QDialog *busyDialog);
 
+signals:
+    void retrying(int attemptNum);
+
 protected:
     void initOAuth2();
     virtual bool authenticate();
     bool authenticated();
+    enum class Method{get, post};
+    QByteArray httpRequest(const Method method, const QUrl &url, const QByteArray &data = "");
 
     QOAuth2AuthorizationCodeFlow *OAuthFlow = nullptr;
     QNetworkAccessManager *manager = nullptr;

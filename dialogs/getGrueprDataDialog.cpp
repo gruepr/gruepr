@@ -293,6 +293,16 @@ bool GetGrueprDataDialog::getFromGoogle()
 
     //download the survey
     auto *busyBox = google->actionDialog(this);
+    connect(google, &GoogleHandler::retrying, google, [&google](int attemptNum){
+        if(attemptNum == 2) {
+            google->actionDialogLabel->setText(google->actionDialogLabel->text() + "<br>" +
+                                               tr("Retrying connection - attempt ") + QString::number(attemptNum));
+        }
+        else {
+            google->actionDialogLabel->setText(google->actionDialogLabel->text()
+                                                   .replace(QString::number(attemptNum-1), QString::number(attemptNum)));
+        }
+    });
     const QString filepath = google->downloadSurveyResult(googleFormName);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
 
