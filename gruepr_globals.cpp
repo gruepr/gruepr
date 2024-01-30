@@ -41,10 +41,10 @@ bool grueprGlobal::internetIsGood() {
     //make sure we can connect to google
     auto *manager = new QNetworkAccessManager;
     QEventLoop loop;
-    QNetworkReply *networkReply = manager->get(QNetworkRequest(QUrl("http://www.google.com")));
+    QNetworkReply *networkReply = manager->head(QNetworkRequest(QUrl("http://www.google.com")));
     QObject::connect(networkReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    const bool weGotProblems = (networkReply->bytesAvailable() == 0);
+    const bool weGotProblems = (networkReply->rawHeaderList().isEmpty());
     networkReply->deleteLater();
     manager->deleteLater();
     if(weGotProblems) {

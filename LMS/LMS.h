@@ -67,6 +67,8 @@ protected:
     inline static const QSize ICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec
     inline static const int TIMEOUT_TIME = 5000;   //msec
+    inline static const int RETRY_DELAY_TIME = 20;  //msec, delay time before retrying a GET or POST following an error returned
+    inline static const int NUM_RETRIES_BEFORE_ABORT = 5;   //number of times we will retry a GET or POST before fully giving up
     inline static const int REDIRECT_URI_PORT = 6174;   //Kaprekar's number
     inline static const QString REDIRECT_URI{"https://127.0.0.1:" + QString::number(REDIRECT_URI_PORT) + "/"};
 };

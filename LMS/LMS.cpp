@@ -25,7 +25,7 @@ void LMS::initOAuth2() {
     replyHandler = new grueprOAuthHttpServerReplyHandler(port, this);
     OAuthFlow->setReplyHandler(replyHandler);
     replyHandler->setCallbackText("<font size=\"+2\" face=\"arial\" color=\"" DEEPWATERHEX "\">" +
-                                  tr("Authorization complete. You may close this page and return to gruepr.") + "</font>");
+                                  tr("Authorization complete! You may close this page and return to gruepr.") + "</font>");
     // connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](const QString &error) {
     //     qDebug() << "replyHandler error: ";
     //     qDebug() << error;
@@ -48,65 +48,33 @@ bool LMS::authenticated() {
 }
 
 QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data) {
-    switch(method) {
-    case Method::get: {
+    QEventLoop loop;
+    auto *reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    int attempt = 1;
+    while((reply->error() != QNetworkReply::NoError) && (attempt < NUM_RETRIES_BEFORE_ABORT)) {
+        //qDebug() << reply->errorString();
+        //qDebug() << "attempt " << attempt << " of " << url << " failed. Retrying.";
+        delete reply;
+        emit retrying(++attempt);
         QEventLoop loop;
-        auto *reply = OAuthFlow->get(url);
+        QTimer::singleShot(RETRY_DELAY_TIME, &loop, &QEventLoop::quit);   // 20 ms delay before retry
+        loop.exec();
+        reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        int attempt = 1;
-        while((reply->error() != QNetworkReply::NoError) && (attempt < 5)) {
-            //qDebug() << reply->errorString();
-            //qDebug() << "attempt " << attempt << " of " << url << " failed. Retrying.";
-            delete reply;
-            emit retrying(++attempt);
-            reply = OAuthFlow->get(url);
-            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-            loop.exec();
-        }
-
-        if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
-            //qDebug() << "**** failed or empty reply";
-            reply->deleteLater();
-            return {};
-        }
-
-        auto replyBody = reply->readAll();
-        reply->deleteLater();
-        return replyBody;
-        break;
     }
-    case Method::post: {
-        QEventLoop loop;
-        auto *reply = OAuthFlow->post(url, data);
-        connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-        loop.exec();
-        int attempt = 1;
-        while((reply->error() != QNetworkReply::NoError) && (attempt < 5)) {
-            //qDebug() << reply->errorString();
-            //qDebug() << "attempt " << attempt << " of " << url << " failed. Retrying.";
-            delete reply;
-            emit retrying(++attempt);
-            reply = OAuthFlow->post(url, data);
-            connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-            loop.exec();
-        }
 
-        if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
-            //qDebug() << "**** failed or empty reply";
-            reply->deleteLater();
-            return {};
-        }
-
-        auto replyBody = reply->readAll();
+    if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
+        //qDebug() << "**** failed or empty reply";
         reply->deleteLater();
-        return replyBody;
-        break;
-    }
-    default: {
         return {};
     }
-    }
+
+    auto replyBody = reply->readAll();
+    reply->deleteLater();
+    return replyBody;
 }
 
 QDialog* LMS::actionDialog(QWidget *parent) {

@@ -11,19 +11,28 @@ CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
 
     const QSettings settings;
-    const QString refreshToken = settings.value("CanvasRefreshToken", "").toString();
-    setBaseURL(baseAPIURL);
+    const QByteArray key = "gruepr";
 
-    if(!refreshToken.isEmpty()) {
-        OAuthFlow->setRefreshToken(refreshToken);
+    QByteArray encToken = settings.value("CanvasRefreshToken", "").toByteArray();
+    if(!encToken.isEmpty()) {
+        for (int i = 0; i < encToken.size(); ++i) {
+            encToken[i] ^= key[i%key.size()];
+        }
+        OAuthFlow->setRefreshToken(encToken);
     }
+
+    setBaseURL(baseAPIURL);
 }
 
 CanvasHandler::~CanvasHandler() {
-    const QString refreshToken = OAuthFlow->refreshToken();
-    if(!refreshToken.isEmpty()) {
+    if(!OAuthFlow->refreshToken().isEmpty()) {
         QSettings settings;
-        settings.setValue("CanvasRefreshToken", refreshToken);
+        const QByteArray key = "gruepr";
+        QByteArray encToken = OAuthFlow->refreshToken().toUtf8();
+        for (int i = 0; i < encToken.size(); ++i) {
+            encToken[i] ^= key[i%key.size()];
+        }
+        settings.setValue("CanvasRefreshToken", encToken);
     }
 }
 

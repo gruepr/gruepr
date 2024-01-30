@@ -11,22 +11,41 @@ GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
     initOAuth2();
 
     const QSettings settings;
-    const QString refreshToken = settings.value("GoogleRefreshToken", "").toString();
-    accountName = settings.value("GoogleAccountName", "").toString();
+    const QByteArray key = "gruepr";
 
-    if(!refreshToken.isEmpty()) {
-        OAuthFlow->setRefreshToken(refreshToken);
+    QByteArray encToken = settings.value("GoogleRefreshToken", "").toByteArray();
+    if(!encToken.isEmpty()) {
+        for (int i = 0; i < encToken.size(); ++i) {
+            encToken[i] ^= key[i%key.size()];
+        }
+        OAuthFlow->setRefreshToken(encToken);
     }
+
+    QByteArray encName = settings.value("GoogleAccountName", "").toByteArray();
+    for (int i = 0; i < encName.size(); ++i) {
+        encName[i] ^= key[i%key.size()];
+    }
+    accountName = encName;
 }
 
 GoogleHandler::~GoogleHandler() {
     QSettings settings;
-    const QString refreshToken = OAuthFlow->refreshToken();
-    if(!refreshToken.isEmpty()) {
-        settings.setValue("GoogleRefreshToken", refreshToken);
+    const QByteArray key = "gruepr";
+
+    if(!OAuthFlow->refreshToken().isEmpty()) {
+        QByteArray encToken = OAuthFlow->refreshToken().toUtf8();
+        for (int i = 0; i < encToken.size(); ++i) {
+            encToken[i] ^= key[i%key.size()];
+        }
+        settings.setValue("GoogleRefreshToken", encToken);
     }
+
     if(!accountName.isEmpty()) {
-        settings.setValue("GoogleAccountName", accountName);
+        QByteArray encName = accountName.toUtf8();
+        for (int i = 0; i < encName.size(); ++i) {
+            encName[i] ^= key[i%key.size()];
+        }
+        settings.setValue("GoogleAccountName", encName);
     }
 }
 
@@ -69,6 +88,7 @@ bool GoogleHandler::authenticate() {
             if(attemptNumber < 4) {
                 qDebug() << "attempt number " << attemptNumber << "failed";
                 attemptNumber++;
+                manager->clearConnectionCache();
                 LMS::authenticate();
             }
             else {
