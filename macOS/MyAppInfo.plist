@@ -27,7 +27,7 @@
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>2019-2023</string>
+        <string>2019-2024</string>
         <key>NSRequiresAquaSystemAppearance</key>
         <true/>
 </dict>
