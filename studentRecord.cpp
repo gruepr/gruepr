@@ -106,13 +106,13 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // LMSID
     fieldnum = dataOptions.LMSIDField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        LMSID = fields.at(fieldnum).toUtf8().trimmed().toInt();
+        LMSID = fields.at(fieldnum).trimmed().toInt();
     }
 
     // First name
     fieldnum = dataOptions.firstNameField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        firstname = fields.at(fieldnum).toLatin1().trimmed();
+        firstname = fields.at(fieldnum).trimmed();
         if(!firstname.isEmpty()) {
             firstname[0] = firstname[0].toUpper();
         }
@@ -121,7 +121,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // Last name
     fieldnum = dataOptions.lastNameField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        lastname = fields.at(fieldnum).toLatin1().trimmed();
+        lastname = fields.at(fieldnum).trimmed();
         if(!lastname.isEmpty()) {
             lastname[0] = lastname[0].toUpper();
         }
@@ -130,14 +130,14 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     // Email
     fieldnum = dataOptions.emailField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        email = fields.at(fieldnum).toLatin1().trimmed();
+        email = fields.at(fieldnum).trimmed();
     }
 
     // gender
     if(dataOptions.genderIncluded) {
         fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString field = fields.at(fieldnum).toUtf8();
+            const QString field = fields.at(fieldnum);
             if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) ||
                 field.contains(QObject::tr("woman"), Qt::CaseInsensitive) ||
                 field.contains(QObject::tr("girl"), Qt::CaseInsensitive) ||
@@ -172,7 +172,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions.URMIncluded) {
         fieldnum = dataOptions.URMField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toLatin1().toLower().trimmed();
+            QString field = fields.at(fieldnum).toLower().trimmed();
             if(field == "") {
                 field = QObject::tr("--");
             }
@@ -190,7 +190,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int attribute = 0; attribute < dataOptions.numAttributes; attribute++) {
         fieldnum = dataOptions.attributeField[attribute];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString field = fields.at(fieldnum).toLatin1().trimmed();
+            QString field = fields.at(fieldnum).trimmed();
             field.replace("â€”","-");       // replace bad UTF-8 character representation of em-dash
             attributeResponse[attribute] = field;
         }
@@ -200,7 +200,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     float timezoneOffset = 0;
     fieldnum = dataOptions.timezoneField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        const QString timezoneText = fields.at(fieldnum).toUtf8();
+        const QString timezoneText = fields.at(fieldnum);
         QString timezoneName;
         if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone)) {
             if(dataOptions.homeTimezoneUsed) {
@@ -213,7 +213,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int day = 0; day < numDays; day++) {
         fieldnum = dataOptions.scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString field = fields.at(fieldnum).toUtf8();
+            const QString field = fields.at(fieldnum);
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
             for(const auto &timeName : dataOptions.timeNames) {
                 const float time = grueprGlobal::timeStringToHours(timeName);
@@ -277,11 +277,11 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         availabilityChart = QObject::tr("Availability:");
         availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(int day = 0; day < numDays; day++) {
-            availabilityChart += "<th>" + dataOptions.dayNames.at(day).toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
+            availabilityChart += "<th>" + dataOptions.dayNames.at(day).left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         availabilityChart += "</tr>";
         for(int time = 0; time < numTimes; time++) {
-            availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time).toUtf8() + "</th>";
+            availabilityChart += "<tr><th>" + dataOptions.timeNames.at(time) + "</th>";
             for(int day = 0; day < numDays; day++) {
                 availabilityChart += QString(unavailable[day][time]?
                             "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
@@ -297,7 +297,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         const QString sectionText = QObject::tr("section");
         fieldnum = dataOptions.sectionField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            section = fields.at(fieldnum).toUtf8().trimmed();
+            section = fields.at(fieldnum).trimmed();
             if(section.startsWith(sectionText, Qt::CaseInsensitive)) {
                 section = section.right(section.size() - sectionText.size()).trimmed();    //removing redundant "section" if at the start of the section name
             }
@@ -308,7 +308,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int prefQ = 0; prefQ < dataOptions.numPrefTeammateQuestions; prefQ++) {
         fieldnum = dataOptions.prefTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString nextTeammate = fields.at(fieldnum).toLatin1();
+            QString nextTeammate = fields.at(fieldnum);
             static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
             nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
             nextTeammate = nextTeammate.trimmed();
@@ -325,7 +325,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int prefQ = 0; prefQ < dataOptions.numPrefNonTeammateQuestions; prefQ++) {
         fieldnum = dataOptions.prefNonTeammatesField[prefQ];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            QString nextTeammate = fields.at(fieldnum).toLatin1();
+            QString nextTeammate = fields.at(fieldnum);
             static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
             nextTeammate.replace(nameSeparators, "\n");     // replace every [, ; & and] with new line
             nextTeammate = nextTeammate.trimmed();
@@ -343,7 +343,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         // join each one with a newline after
         fieldnum = dataOptions.notesField[note];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString nextNote = fields.at(fieldnum).toLatin1().trimmed();
+            const QString nextNote = fields.at(fieldnum).trimmed();
             if(!notes.isEmpty() && !nextNote.isEmpty()) {
                 notes += "\n" + nextNote;
             }

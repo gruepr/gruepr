@@ -812,7 +812,7 @@ bool GetGrueprDataDialog::readData()
         QStringList allTimeNames;
         do {
             for(int scheduleQuestion = 0, numScheduleQuestions = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleQuestions; scheduleQuestion++) {
-                QString scheduleFieldText = QString(surveyFile->fieldValues.at(dataOptions->scheduleField[scheduleQuestion]).toUtf8()).toLower().split(';').join(',');
+                QString scheduleFieldText = (surveyFile->fieldValues.at(dataOptions->scheduleField[scheduleQuestion])).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
                 allTimeNames << CsvFile::getLine(scheduleFieldStream);
             }
@@ -910,7 +910,7 @@ bool GetGrueprDataDialog::readData()
         // Figure out what type of gender data was given (if any) -- initialized value is GenderType::adult, and we're checking each student
         // because some values are ambiguous to GenderType (e.g. "nonbinary")
         if(dataOptions->genderIncluded) {
-            const QString genderText = surveyFile->fieldValues.at(dataOptions->genderField).toUtf8();
+            const QString genderText = surveyFile->fieldValues.at(dataOptions->genderField);
             if(genderText.contains(tr("male"), Qt::CaseInsensitive)) {  // contains "male" also picks up "female"
                 dataOptions->genderType = GenderType::biol;
             }

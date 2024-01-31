@@ -41,8 +41,22 @@ bool CanvasHandler::authenticate() {
     //***************************************************
     //IN BETA--GETS USER'S API TOKEN MANUALLY
     QSettings savedSettings;
-    QString savedCanvasURL = savedSettings.value("canvasURL").toString();
-    QString savedCanvasToken = savedSettings.value("canvasToken").toString();
+    const QByteArray key = "gruepr";
+    QString savedCanvasURL = savedSettings.value("canvasURL", "").toString();
+    QString savedCanvasToken = savedSettings.value("canvasToken", "").toString();
+    //older versions of gruepr saves as plaintext qstring; if saved as QByteArray, need to 'decrypt'
+    if(!savedCanvasURL.isEmpty() && !savedCanvasURL.contains("http", Qt::CaseInsensitive)) {
+        QByteArray encURL = savedSettings.value("canvasURL", "").toByteArray();
+        for (int i = 0; i < encURL.size(); ++i) {
+            encURL[i] ^= key[i%key.size()];
+        }
+        savedCanvasURL = encURL;
+        QByteArray encToken = savedSettings.value("canvasToken", "").toByteArray();
+        for (int i = 0; i < encToken.size(); ++i) {
+            encToken[i] ^= key[i%key.size()];
+        }
+        savedCanvasToken = encToken;
+    }
 
     const QStringList newURLAndToken = askUserForManualURLandToken(savedCanvasURL, savedCanvasToken);
     if(newURLAndToken.isEmpty()) {
@@ -51,8 +65,16 @@ bool CanvasHandler::authenticate() {
 
     savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
     savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
-    savedSettings.setValue("canvasURL", savedCanvasURL);
-    savedSettings.setValue("canvasToken", savedCanvasToken);
+    QByteArray encURL = savedCanvasURL.toUtf8();
+    for (int i = 0; i < encURL.size(); ++i) {
+        encURL[i] ^= key[i%key.size()];
+    }
+    QByteArray encToken = savedCanvasToken.toUtf8();
+    for (int i = 0; i < encToken.size(); ++i) {
+        encToken[i] ^= key[i%key.size()];
+    }
+    savedSettings.setValue("canvasURL", encURL);
+    savedSettings.setValue("canvasToken", encToken);
 
     setBaseURL(savedCanvasURL);
     authenticateWithManualToken(savedCanvasToken);
@@ -567,7 +589,8 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
                                                                          const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals) {
     QEventLoop loop;
     QNetworkReply *reply = nullptr;
-    QString url = baseURL+initialURL, replyHeader, replyBody;
+    QString url = baseURL+initialURL, replyHeader;
+    QByteArray replyBody;
     QJsonDocument json_doc;
     QJsonArray json_array;
     int numPages = 0;
@@ -586,7 +609,7 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
         replyHeader = reply->rawHeader("Link");
         replyBody = reply->readAll();
         //qDebug() << replyBody;
-        json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+        json_doc = QJsonDocument::fromJson(replyBody);
         if(json_doc.isArray()) {
             json_array = json_doc.array();
         }

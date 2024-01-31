@@ -444,9 +444,9 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //download the form itself into a JSON so that we can get the questions
     QString url = "https://forms.googleapis.com/v1/forms/" + ID;
     //qDebug() << url;
-    QString replyBody = httpRequest(Method::get, url);
+    auto replyBody = httpRequest(Method::get, url);
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
-    QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    QJsonDocument json_doc = QJsonDocument::fromJson(replyBody);
     //pull out each question and save the question ID and text
     const QJsonArray items = json_doc["items"].toArray();
     QList<GoogleFormQuestion> questions;
@@ -488,7 +488,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //qDebug() << url;
     replyBody = httpRequest(Method::get, url);
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
-    json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    json_doc = QJsonDocument::fromJson(replyBody);
     //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
     const QJsonArray responses = json_doc["responses"].toArray();
     for(const auto &response : qAsConst(responses)) {
@@ -522,14 +522,14 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
                                                 const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals)
 {
     OAuthFlow->setContentType(QAbstractOAuth::ContentType::Json);
-    const QString replyBody = httpRequest(Method::post, URL, postData);
+    const auto replyBody = httpRequest(Method::post, URL, postData);
 
     if(replyBody.isEmpty()) {
         return;
     }
 
     //qDebug() << replyBody;
-    const QJsonDocument json_doc = QJsonDocument::fromJson(replyBody.toUtf8());
+    const QJsonDocument json_doc = QJsonDocument::fromJson(replyBody);
     QJsonArray json_array;
     if(json_doc.isArray()) {
         json_array = json_doc.array();

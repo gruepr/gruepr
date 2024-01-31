@@ -510,11 +510,11 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.availabilityChart = QObject::tr("Availability:");
         student.availabilityChart += "<table style='padding: 0px 3px 0px 3px;'><tr><th></th>";
         for(const auto &dayName : dataOptions->dayNames) {
-            student.availabilityChart += "<th>" + dayName.toUtf8().left(3) + "</th>";   // using first 3 characters in day name as abbreviation
+            student.availabilityChart += "<th>" + dayName.left(3) + "</th>";   // using first 3 characters in day name as abbreviation
         }
         student.availabilityChart += "</tr>";
         for(int time = 0; time < dataOptions->timeNames.size(); time++) {
-            student.availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time).toUtf8() + "</th>";
+            student.availabilityChart += "<tr><th>" + dataOptions->timeNames.at(time) + "</th>";
             for(int day = 0; day < dataOptions->dayNames.size(); day++) {
                 student.availabilityChart += QString(student.unavailable[day][time]?
                                                          "<td align = center> </td>" : "<td align = center bgcolor='PaleGreen'><b>√</b></td>");
@@ -567,7 +567,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
     for(const auto &dayName : dataOptions->dayNames) {
         auto *columnHeader = new QLabel(adjustScheduleWindow);
         columnHeader->setStyleSheet(LABEL10PTSTYLE);
-        columnHeader->setText(dayName.toUtf8().left(3));   // using first 3 characters in day name as abbreviation
+        columnHeader->setText(dayName.left(3));   // using first 3 characters in day name as abbreviation
         adjustScheduleWindowGrid->addWidget(columnHeader, gridrow, gridcolumn++, 1, 1);
     }
     gridrow++;
@@ -575,7 +575,7 @@ void editOrAddStudentDialog::adjustSchedule(const StudentRecord &student, const 
         gridcolumn = 0;
         auto *rowHeader = new QLabel(adjustScheduleWindow);
         rowHeader->setStyleSheet(LABEL10PTSTYLE);
-        rowHeader->setText(dataOptions->timeNames.at(time).toUtf8());
+        rowHeader->setText(dataOptions->timeNames.at(time));
         adjustScheduleWindowGrid->addWidget(rowHeader, gridrow, gridcolumn++, 1, 1);
         for(int day = 0; day < dataOptions->dayNames.size(); day++) {
             checkBox[day][time] = new QCheckBox(adjustScheduleWindow);
