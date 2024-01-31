@@ -293,7 +293,7 @@ bool GetGrueprDataDialog::getFromGoogle()
 
     //download the survey
     auto *busyBox = google->actionDialog(this);
-    connect(google, &GoogleHandler::retrying, google, [&google](int attemptNum){
+    connect(google, &GoogleHandler::retrying, busyBox, [&google, &busyBox](int attemptNum){
         if(attemptNum == 2) {
             google->actionDialogLabel->setText(google->actionDialogLabel->text() + "<br>" +
                                                tr("Retrying connection - attempt ") + QString::number(attemptNum));
@@ -302,6 +302,7 @@ bool GetGrueprDataDialog::getFromGoogle()
             google->actionDialogLabel->setText(google->actionDialogLabel->text()
                                                    .replace(QString::number(attemptNum-1), QString::number(attemptNum)));
         }
+        busyBox->adjustSize();
     });
     const QString filepath = google->downloadSurveyResult(googleFormName);
     const bool fail = filepath.isEmpty() || !surveyFile->openExistingFile(filepath);
@@ -309,11 +310,14 @@ bool GetGrueprDataDialog::getFromGoogle()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? tr("Error. Survey not downloaded. Please retry later.") : tr("Survey downloaded"));
+    const QString textheight = QString::number(busyBox->fontMetrics().boundingRect('G').height() * 2);
+    const QString resultText = (fail? tr("Download failed. Check that the survey still exists "
+                                         "in your Google Drive and retry later.") : tr("Survey downloaded"));
     google->actionDialogLabel->setText(resultText);
+    google->actionDialogLabel->setWordWrap(true);
     QEventLoop loop;
     busyBox->adjustSize();
-    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+    QTimer::singleShot(fail? (UI_DISPLAY_DELAYTIME * 2) : (UI_DISPLAY_DELAYTIME / 2), &loop, &QEventLoop::quit);
     loop.exec();
     google->actionComplete(busyBox);
     google->deleteLater();
@@ -410,7 +414,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = canvas->actionDialogIcon->size();
     canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString resultText = (fail? tr("Error. Survey not downloaded. Please retry later.") : tr("Survey downloaded"));
+    const QString resultText = (fail? tr("Download failed. Please retry later.") : tr("Survey downloaded"));
     canvas->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();

@@ -110,9 +110,11 @@ bool GoogleHandler::authenticate() {
             actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
             actionDialogButtons->button(QDialogButtonBox::Ok)->setText(tr("Proceed"));
             actionDialogButtons->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+            actionDialogButtons->button(QDialogButtonBox::Ok)->adjustSize();
             connect(actionDialogButtons->button(QDialogButtonBox::Ok), &QPushButton::clicked, loginDialog, &QDialog::accept);
             actionDialogButtons->button(QDialogButtonBox::Cancel)->setText(tr("Change account"));
             actionDialogButtons->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+            actionDialogButtons->button(QDialogButtonBox::Cancel)->adjustSize();
             connect(actionDialogButtons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, loginDialog, &QDialog::reject);
             loginDialog->show();
             loginDialog->adjustSize();
@@ -445,6 +447,9 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     QString url = "https://forms.googleapis.com/v1/forms/" + ID;
     //qDebug() << url;
     auto replyBody = httpRequest(Method::get, url);
+    if(replyBody.isEmpty()) {
+        return {};
+    }
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     QJsonDocument json_doc = QJsonDocument::fromJson(replyBody);
     //pull out each question and save the question ID and text
@@ -487,6 +492,9 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     url = "https://forms.googleapis.com/v1/forms/" + ID + "/responses";
     //qDebug() << url;
     replyBody = httpRequest(Method::get, url);
+    if(replyBody.isEmpty()) {
+        return {};
+    }
     //qDebug() << replyBody.first(std::min(200, int(replyBody.size())));
     json_doc = QJsonDocument::fromJson(replyBody);
     //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
