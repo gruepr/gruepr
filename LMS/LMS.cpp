@@ -26,11 +26,11 @@ void LMS::initOAuth2() {
     OAuthFlow->setReplyHandler(replyHandler);
     replyHandler->setCallbackText("<font size=\"+2\" face=\"arial\" color=\"" DEEPWATERHEX "\">" +
                                   tr("Authorization complete! You may close this page and return to gruepr.") + "</font>");
-    // connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](const QString &error) {
-    //     qDebug() << "replyHandler error: ";
-    //     qDebug() << error;
-    //     qDebug() << "************";
-    // });
+    //connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, this, [](const QString &error) {
+        //qDebug() << "replyHandler error: ";
+        //qDebug() << error;
+        //qDebug() << "************";
+    //});
 }
 
 bool LMS::authenticate() {
@@ -59,7 +59,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         delete reply;
         emit retrying(++attempt);
         QEventLoop loop;
-        QTimer::singleShot(RETRY_DELAY_TIME, &loop, &QEventLoop::quit);   // 20 ms delay before retry
+        QTimer::singleShot(RETRY_DELAY_TIME, &loop, &QEventLoop::quit);   // delay before retry
         loop.exec();
         reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -68,6 +68,7 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
 
     if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
         //qDebug() << "**** failed or empty reply";
+        emit requestFailed(reply->error());
         reply->deleteLater();
         return {};
     }
@@ -78,7 +79,6 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
 }
 
 QDialog* LMS::actionDialog(QWidget *parent) {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *dialog = new QDialog(parent);
     dialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::CustomizeWindowHint);
     actionDialogIcon = new QLabel(dialog);
@@ -106,7 +106,6 @@ QDialog* LMS::actionDialog(QWidget *parent) {
 }
 
 void LMS::actionComplete(QDialog *busyDialog) {
-    QApplication::restoreOverrideCursor();
     if(busyDialog != nullptr) {
         busyDialog->accept();
         disconnect(busyDialog);

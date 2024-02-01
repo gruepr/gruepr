@@ -51,7 +51,6 @@ GoogleHandler::~GoogleHandler() {
 
 bool GoogleHandler::authenticate() {
     QDialog *loginDialog = actionDialog(parent);
-    int attemptNumber = 1;
 
     connect(replyHandler, &grueprOAuthHttpServerReplyHandler::replyDataReceived, this, [this](const QByteArray &reply) {
         //Grab the account name (email address) out of the OpenID reply
@@ -71,7 +70,7 @@ bool GoogleHandler::authenticate() {
         loop.exec();
         actionComplete(loginDialog);
     });
-    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, loginDialog, [this, &loginDialog, &attemptNumber](const QString &error) {
+    connect(replyHandler, &grueprOAuthHttpServerReplyHandler::error, loginDialog, [this, &loginDialog](const QString &error) {
         if((OAuthFlow->status() == QAbstractOAuth::Status::RefreshingToken) &&
             (error.contains("ProtocolInvalidOperationError", Qt::CaseInsensitive) || error.contains("AuthenticationRequiredError", Qt::CaseInsensitive))) {
             //Need user to re-grant permission
@@ -85,20 +84,12 @@ bool GoogleHandler::authenticate() {
         }
         else {
             //Unknown connection error, will need to start over
-            if(attemptNumber < 4) {
-                qDebug() << "attempt number " << attemptNumber << "failed";
-                attemptNumber++;
-                manager->clearConnectionCache();
-                LMS::authenticate();
-            }
-            else {
-                actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google.<br>Plese retry later."));
-                loginDialog->adjustSize();
-                QEventLoop loop;
-                QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-                loop.exec();
-                loginDialog->reject();
-            }
+            actionDialogLabel->setText(actionDialogLabel->text() + "<br>" + tr("There is an error connecting to Google.<br>Plese retry later."));
+            loginDialog->adjustSize();
+            QEventLoop loop;
+            QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+            loop.exec();
+            loginDialog->reject();
         }
     });
 
