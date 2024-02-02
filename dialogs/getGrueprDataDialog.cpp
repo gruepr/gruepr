@@ -121,8 +121,7 @@ void GetGrueprDataDialog::accept() {
             painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
             painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
             painter.end();
-            int h = ui->loadDataPushButton->height();
-            ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
+            ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(ui->loadDataPushButton->height(), Qt::SmoothTransformation));
             ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
             ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
                                                                "border-top: none; border-bottom: none; border-left: none; "
@@ -314,7 +313,6 @@ bool GetGrueprDataDialog::getFromGoogle()
     const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    const QString textheight = QString::number(busyBox->fontMetrics().boundingRect('G').height() * 2);
     const QString resultText = (fail? (tr("Download failed.") + "<br>" +
                                       (fileNotFound? tr("The survey was not found in your Google Drive. ") :
                                        tr("Please retry later."))) :
