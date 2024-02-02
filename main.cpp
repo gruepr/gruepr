@@ -34,11 +34,8 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// INPROG:
-//  - more robust connection, with auto-retry of missed authentication and download attempts (re-download seems to be working; reauthenticating gives:
-//                  "qt.networkauth.oauth2: Cannot refresh access token. Refresh Access Token is already in progress"
-//
 // DONE:
+//  - more robust connection to Google, with auto-retry of missed connection attempts
 //  - no longer saves tokens and usernames in plaintext
 //  - removed unnecessary string conversions that corrupted accented and other non-ASCII characters
 //
