@@ -34,13 +34,6 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// DONE:
-//  - more robust connection to Google, with auto-retry of missed download attempts
-//  - no longer saves tokens and usernames in plaintext
-//  - improved handling of data that has only a single section included
-//  - improved handling of students with a blank section (incl. students on roster without survey)
-//  - removed unnecessary string conversions that corrupted accented and other non-ASCII characters
-//
 // TO DO:
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
