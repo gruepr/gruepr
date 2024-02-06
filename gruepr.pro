@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 12.5
+gruepr_version = 12.6
 copyright_year = 2019-2024
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
@@ -39,11 +39,7 @@ macx: ICON = icons_new\gruepr.icns
 macx: QMAKE_INFO_PLIST = macOS\MyAppInfo.plist
 macx: QMAKE_TARGET_BUNDLE_PREFIX = com.gruepr
 
-# The following define makes your compiler emit warnings if you use
-# any feature of Qt which has been marked as deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
 
 CONFIG += c++17
 
