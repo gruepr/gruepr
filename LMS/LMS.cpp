@@ -13,6 +13,11 @@ void LMS::initOAuth2() {
     manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
     manager->setTransferTimeout(TIMEOUT_TIME);
 
+    connect(manager, &QNetworkAccessManager::sslErrors, this, [](QNetworkReply *reply, const QList<QSslError> &errors) {
+        qDebug() << errors;
+        reply->ignoreSslErrors();
+    });
+
     OAuthFlow = new QOAuth2AuthorizationCodeFlow(manager, this);
     OAuthFlow->setScope(getScopes());
     OAuthFlow->setAuthorizationUrl(getClientAuthorizationUrl());
