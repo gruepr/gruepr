@@ -35,6 +35,9 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TO DO:
+//    BUGFIX:
+//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
+//
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action

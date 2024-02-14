@@ -13,11 +13,6 @@ void LMS::initOAuth2() {
     manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
     manager->setTransferTimeout(TIMEOUT_TIME);
 
-    connect(manager, &QNetworkAccessManager::sslErrors, this, [](QNetworkReply *reply, const QList<QSslError> &errors) {
-        qDebug() << errors;
-        reply->ignoreSslErrors();
-    });
-
     OAuthFlow = new QOAuth2AuthorizationCodeFlow(manager, this);
     OAuthFlow->setScope(getScopes());
     OAuthFlow->setAuthorizationUrl(getClientAuthorizationUrl());
@@ -55,13 +50,16 @@ bool LMS::authenticated() {
 QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArray &data) {
     QEventLoop loop;
     auto *reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
+    //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
+    //connect(reply, &QNetworkReply::uploadProgress, this, [](qint64 bytesSent, qint64 bytesTotal){qDebug() << "upload " << bytesSent <<" / " << bytesTotal;});
+    //connect(reply, &QNetworkReply::downloadProgress, this, [](qint64 bytesReceived, qint64 bytesTotal){qDebug() << "download " << bytesReceived <<" / " << bytesTotal;});
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-    qDebug() << "url: " << url
+    /*qDebug() << "url: " << url
              << "\nStatus code " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
              << ", " << reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toByteArray()
              << "\nFrom cache? " << reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool()
-             << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();
+             << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();*/
 
     int attempt = 1;
     while((reply->error() != QNetworkReply::NoError) && (attempt < NUM_RETRIES_BEFORE_ABORT)) {
@@ -73,13 +71,16 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         QTimer::singleShot(RETRY_DELAY_TIME, &loop, &QEventLoop::quit);   // delay before retry
         loop.exec();
         reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
+        //connect(reply, &QNetworkReply::requestSent, this, [](){qDebug() << "requestSent";});
+        //connect(reply, &QNetworkReply::uploadProgress, this, [](qint64 bytesSent, qint64 bytesTotal){qDebug() << "upload " << bytesSent <<" / " << bytesTotal;});
+        //connect(reply, &QNetworkReply::downloadProgress, this, [](qint64 bytesReceived, qint64 bytesTotal){qDebug() << "download " << bytesReceived <<" / " << bytesTotal;});
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        qDebug() << "*** Attempt " << attempt
+        /*qDebug() << "*** Attempt " << attempt
                  << "\nStatus code " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
                  << ", " << reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toByteArray()
                  << "\nFrom cache? " << reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool()
-                 << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();
+                 << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();*/
     }
 
     if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
