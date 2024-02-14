@@ -52,6 +52,12 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
     auto *reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
+    qDebug() << "url: " << url
+             << "\nStatus code " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
+             << ", " << reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toByteArray()
+             << "\nFrom cache? " << reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool()
+             << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();
+
     int attempt = 1;
     while((reply->error() != QNetworkReply::NoError) && (attempt < NUM_RETRIES_BEFORE_ABORT)) {
         //qDebug() << reply->errorString();
@@ -64,6 +70,11 @@ QByteArray LMS::httpRequest(const Method method, const QUrl &url, const QByteArr
         reply = ((method == Method::get)? OAuthFlow->get(url) :  OAuthFlow->post(url, data));
         connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
+        qDebug() << "*** Attempt " << attempt
+                 << "\nStatus code " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
+                 << ", " << reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toByteArray()
+                 << "\nFrom cache? " << reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool()
+                 << "\nhttp2 used? " << reply->attribute(QNetworkRequest::Http2WasUsedAttribute).toBool();
     }
 
     if((reply->error() != QNetworkReply::NoError) || (reply->bytesAvailable() == 0)) {
