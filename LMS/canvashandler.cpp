@@ -793,7 +793,7 @@ QString CanvasHandler::getActionDialogLabel() const {
     return tr("Communicating with Canvas...");
 }
 
-std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> CanvasHandler::getModifyParametersFunction() const {
+QAbstractOAuth::ModifyParametersFunction CanvasHandler::getModifyParametersFunction() const {
     //*********************************
     //copied from Google, almost definitely needs to be updated
     return [](QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters) {

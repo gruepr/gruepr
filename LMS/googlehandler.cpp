@@ -586,7 +586,7 @@ QString GoogleHandler::getActionDialogLabel() const {
     return tr("Communicating with Google...");
 }
 
-std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> GoogleHandler::getModifyParametersFunction() const {
+QAbstractOAuth::ModifyParametersFunction GoogleHandler::getModifyParametersFunction() const {
     auto code_verifier = (QUuid::createUuid().toString(QUuid::WithoutBraces) +
                           QUuid::createUuid().toString(QUuid::WithoutBraces)).toLatin1(); // 43 <= length <= 128
     auto code_challenge = QCryptographicHash::hash(code_verifier, QCryptographicHash::Sha256).
@@ -606,6 +606,8 @@ std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *pa
             // Percent-decode the "code" parameter so Google can match it
             const QByteArray code = parameters->value("code").toByteArray();
             parameters->replace("code", QUrl::fromPercentEncoding(code));
+            qDebug() << "code: " << code;
+            qDebug() << " -->  " << QUrl::fromPercentEncoding(code);
         }
     };
 }

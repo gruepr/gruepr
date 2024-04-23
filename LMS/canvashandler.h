@@ -76,7 +76,7 @@ private:
     QString getClientAccessTokenUrl() const override;
     QString getActionDialogIcon() const override;
     QString getActionDialogLabel() const override;
-    std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const override;
+    QAbstractOAuth::ModifyParametersFunction getModifyParametersFunction() const override;
 
     inline static const int NUM_PAGES_TO_LOAD = 20;
     inline static const char SCOPES[]{"url:GET|/api/v1/courses "                                             // get list of user's courses

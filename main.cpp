@@ -19,7 +19,7 @@
 //    along with this program.  If not, see < https://www.gnu.org/licenses/ >.
 //
 //    This software incorporates code from the open source Qt libraries,
-//    using version 6.5. These can be freely downloaded from
+//    using version 6.7. These can be freely downloaded from
 //    < http://qt.io/download >.
 //
 //    Some icons were originally created by Icons8 < https://icons8.com >.
@@ -34,12 +34,17 @@
 //    - Paytone One, (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DONE:
+//  - updated Qt base to 6.7.0
+//
 // TO DO:
 //    BUGFIX:
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
+//  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
 //
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
+//  - add free response number as a question type
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
