@@ -1,0 +1,260 @@
+\doxysection{Survey\+Maker\+Wizard Class Reference}
+\hypertarget{class_survey_maker_wizard}{}\label{class_survey_maker_wizard}\index{SurveyMakerWizard@{SurveyMakerWizard}}
+
+
+{\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
+
+Inheritance diagram for Survey\+Maker\+Wizard\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_survey_maker_wizard}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Page}} \{ \newline
+\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca9b589b6763657e8cab7411b20f3dd006}{introtitle}}
+, \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca8655b57e84ca1808f35bc32ea04ec3ef}{demographics}}
+, \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9cab9716090d157fd900addca367f177a45}{multichoice}}
+, \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca3bb20ca2e7c3dd31d0b5b43a4e3f5e72}{schedule}}
+, \newline
+\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca5919aad0b755bb721b4ab94c04b4719c}{courseinfo}}
+, \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca167d441fa467359f295ad718fede26dd}{previewexport}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_survey_maker_wizard_a00f72d37f0707f342079da9f334409ea}{load\+Survey}} (int custom\+Button)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_wizard_a07490d87a34e89f9e2bab4b93403f419}{Survey\+Maker\+Wizard}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{class_survey_maker_wizard_a7f48439ab88bf4958a2a97d4ef97a410}{\texorpdfstring{$\sim$}{\string~}\+Survey\+Maker\+Wizard}} () override
+\item 
+\mbox{\hyperlink{class_survey_maker_wizard_a2ec99abea484d137827e8fd7e759eff4}{Survey\+Maker\+Wizard}} (const \mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&)=delete
+\item 
+\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \mbox{\hyperlink{class_survey_maker_wizard_a795a8015ea4a9984de8f2642668f426d}{operator=}} (const \mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&)=delete
+\item 
+\mbox{\hyperlink{class_survey_maker_wizard_ad28f5b1c32c094cfda13507920e5a9d9}{Survey\+Maker\+Wizard}} (\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&\&)=delete
+\item 
+\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \& \mbox{\hyperlink{class_survey_maker_wizard_a327a1a2e4f8d6473e922b4c3dd0676ea}{operator=}} (\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&\&)=delete
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{class_survey_maker_wizard_aa7afe0f011cfd5c35f0b72f3e8d8e4b1}{invalid\+Expression}} (QWidget \texorpdfstring{$\ast$}{*}text\+Widget, QString \&curr\+Text, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QFile\+Info \mbox{\hyperlink{class_survey_maker_wizard_a58d222c19bd117a18ef44c54980b8127}{save\+File\+Location}}
+\item 
+bool \mbox{\hyperlink{class_survey_maker_wizard_aabdc7b1dcb9db9ede00c84f8462ee428}{preview\+Page\+Visited}} = false
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{class_survey_maker_wizard_a8de9e52674ee52058b51c69ac67a9ec0}{num\+Pages}} = 6
+\item 
+static const QList$<$ int $>$ \mbox{\hyperlink{class_survey_maker_wizard_ae7ac3c3f719c454b7100437546f6bf60}{num\+Of\+Questions\+In\+Page}} = \{0, 5, \mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}, 2, 3, 0\}
+\item 
+static const QString\+List \mbox{\hyperlink{class_survey_maker_wizard_a772963bf6d2edb937dd3cd7208aa0a5f}{page\+Names}}
+\item 
+static const auto \mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{sunday\+Midnight}} = QDate\+Time(QDate(2017, 1, 1), QTime(0, 0))
+\item 
+static const auto \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}} = QLocale\+::system()
+\item 
+static const QString\+List \mbox{\hyperlink{class_survey_maker_wizard_a4306843655f02dbe34521502ab569b67}{default\+Day\+Names}}
+\item 
+static const QString\+List \mbox{\hyperlink{class_survey_maker_wizard_a8917efad8781c7b18bc14d634afc7c85}{timezone\+Names}}
+\item 
+static const QRegular\+Expression\+Validator \mbox{\hyperlink{class_survey_maker_wizard_af5d6747c33be7918b83f44cfa87bd435}{no\+Invalid\+Punctuation}} = QRegular\+Expression\+Validator(QRegular\+Expression("{}\mbox{[}\texorpdfstring{$^\wedge$}{\string^},\&$<$$>$/\mbox{]}\texorpdfstring{$\ast$}{*}"{}))
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}\index{SurveyMakerWizard@{SurveyMakerWizard}!Page@{Page}}
+\index{Page@{Page}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{Page}{Page}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+enum \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Survey\+Maker\+Wizard\+::\+Page}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{introtitle@{introtitle}!SurveyMakerWizard@{SurveyMakerWizard}}\index{SurveyMakerWizard@{SurveyMakerWizard}!introtitle@{introtitle}}}\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca9b589b6763657e8cab7411b20f3dd006}\label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+introtitle&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{demographics@{demographics}!SurveyMakerWizard@{SurveyMakerWizard}}\index{SurveyMakerWizard@{SurveyMakerWizard}!demographics@{demographics}}}\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca8655b57e84ca1808f35bc32ea04ec3ef}\label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+demographics&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{multichoice@{multichoice}!SurveyMakerWizard@{SurveyMakerWizard}}\index{SurveyMakerWizard@{SurveyMakerWizard}!multichoice@{multichoice}}}\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9cab9716090d157fd900addca367f177a45}\label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+multichoice&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{schedule@{schedule}!SurveyMakerWizard@{SurveyMakerWizard}}\index{SurveyMakerWizard@{SurveyMakerWizard}!schedule@{schedule}}}\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca3bb20ca2e7c3dd31d0b5b43a4e3f5e72}\label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+schedule&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{courseinfo@{courseinfo}!SurveyMakerWizard@{SurveyMakerWizard}}\index{SurveyMakerWizard@{SurveyMakerWizard}!courseinfo@{courseinfo}}}\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca5919aad0b755bb721b4ab94c04b4719c}\label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+courseinfo&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{previewexport@{previewexport}!SurveyMakerWizard@{SurveyMakerWizard}}\index{SurveyMakerWizard@{SurveyMakerWizard}!previewexport@{previewexport}}}\Hypertarget{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca167d441fa467359f295ad718fede26dd}\label{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c} 
+previewexport&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_survey_maker_wizard_a07490d87a34e89f9e2bab4b93403f419}\index{SurveyMakerWizard@{SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\index{SurveyMakerWizard@{SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{SurveyMakerWizard()}{SurveyMakerWizard()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a07490d87a34e89f9e2bab4b93403f419} 
+Survey\+Maker\+Wizard\+::\+Survey\+Maker\+Wizard (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_wizard_a7f48439ab88bf4958a2a97d4ef97a410}\index{SurveyMakerWizard@{SurveyMakerWizard}!````~SurveyMakerWizard@{\texorpdfstring{$\sim$}{\string~}SurveyMakerWizard}}
+\index{````~SurveyMakerWizard@{\texorpdfstring{$\sim$}{\string~}SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}SurveyMakerWizard()}{\string~SurveyMakerWizard()}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a7f48439ab88bf4958a2a97d4ef97a410} 
+Survey\+Maker\+Wizard\+::\texorpdfstring{$\sim$}{\string~}\+Survey\+Maker\+Wizard (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_survey_maker_wizard_a2ec99abea484d137827e8fd7e759eff4}\index{SurveyMakerWizard@{SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\index{SurveyMakerWizard@{SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{SurveyMakerWizard()}{SurveyMakerWizard()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a2ec99abea484d137827e8fd7e759eff4} 
+Survey\+Maker\+Wizard\+::\+Survey\+Maker\+Wizard (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_survey_maker_wizard_ad28f5b1c32c094cfda13507920e5a9d9}\index{SurveyMakerWizard@{SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\index{SurveyMakerWizard@{SurveyMakerWizard}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{SurveyMakerWizard()}{SurveyMakerWizard()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_ad28f5b1c32c094cfda13507920e5a9d9} 
+Survey\+Maker\+Wizard\+::\+Survey\+Maker\+Wizard (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_survey_maker_wizard_aa7afe0f011cfd5c35f0b72f3e8d8e4b1}\index{SurveyMakerWizard@{SurveyMakerWizard}!invalidExpression@{invalidExpression}}
+\index{invalidExpression@{invalidExpression}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{invalidExpression()}{invalidExpression()}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_aa7afe0f011cfd5c35f0b72f3e8d8e4b1} 
+void Survey\+Maker\+Wizard\+::invalid\+Expression (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{text\+Widget}{, }\item[{QString \&}]{curr\+Text}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{class_survey_maker_wizard_a00f72d37f0707f342079da9f334409ea}\index{SurveyMakerWizard@{SurveyMakerWizard}!loadSurvey@{loadSurvey}}
+\index{loadSurvey@{loadSurvey}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{loadSurvey}{loadSurvey}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a00f72d37f0707f342079da9f334409ea} 
+void Survey\+Maker\+Wizard\+::load\+Survey (\begin{DoxyParamCaption}\item[{int}]{custom\+Button}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [slot]}}
+
+\Hypertarget{class_survey_maker_wizard_a795a8015ea4a9984de8f2642668f426d}\index{SurveyMakerWizard@{SurveyMakerWizard}!operator=@{operator=}}
+\index{operator=@{operator=}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a795a8015ea4a9984de8f2642668f426d} 
+\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} Survey\+Maker\+Wizard\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_survey_maker_wizard_a327a1a2e4f8d6473e922b4c3dd0676ea}\index{SurveyMakerWizard@{SurveyMakerWizard}!operator=@{operator=}}
+\index{operator=@{operator=}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a327a1a2e4f8d6473e922b4c3dd0676ea} 
+\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \& Survey\+Maker\+Wizard\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_survey_maker_wizard}{Survey\+Maker\+Wizard}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_survey_maker_wizard_a4306843655f02dbe34521502ab569b67}\index{SurveyMakerWizard@{SurveyMakerWizard}!defaultDayNames@{defaultDayNames}}
+\index{defaultDayNames@{defaultDayNames}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{defaultDayNames}{defaultDayNames}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a4306843655f02dbe34521502ab569b67} 
+const QString\+List Survey\+Maker\+Wizard\+::default\+Day\+Names\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{\mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(0),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(1),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(2),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(3),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(4),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(5),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(6),\ \textcolor{stringliteral}{"{}dddd"{}})\}}
+
+\end{DoxyCode}
+\Hypertarget{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}\index{SurveyMakerWizard@{SurveyMakerWizard}!locale@{locale}}
+\index{locale@{locale}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{locale}{locale}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514} 
+const auto Survey\+Maker\+Wizard\+::locale = QLocale\+::system()\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_survey_maker_wizard_af5d6747c33be7918b83f44cfa87bd435}\index{SurveyMakerWizard@{SurveyMakerWizard}!noInvalidPunctuation@{noInvalidPunctuation}}
+\index{noInvalidPunctuation@{noInvalidPunctuation}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{noInvalidPunctuation}{noInvalidPunctuation}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_af5d6747c33be7918b83f44cfa87bd435} 
+const QRegular\+Expression\+Validator Survey\+Maker\+Wizard\+::no\+Invalid\+Punctuation = QRegular\+Expression\+Validator(QRegular\+Expression("{}\mbox{[}\texorpdfstring{$^\wedge$}{\string^},\&$<$$>$/\mbox{]}\texorpdfstring{$\ast$}{*}"{}))\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_survey_maker_wizard_ae7ac3c3f719c454b7100437546f6bf60}\index{SurveyMakerWizard@{SurveyMakerWizard}!numOfQuestionsInPage@{numOfQuestionsInPage}}
+\index{numOfQuestionsInPage@{numOfQuestionsInPage}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{numOfQuestionsInPage}{numOfQuestionsInPage}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_ae7ac3c3f719c454b7100437546f6bf60} 
+const QList$<$int$>$ Survey\+Maker\+Wizard\+::num\+Of\+Questions\+In\+Page = \{0, 5, \mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}, 2, 3, 0\}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_survey_maker_wizard_a8de9e52674ee52058b51c69ac67a9ec0}\index{SurveyMakerWizard@{SurveyMakerWizard}!numPages@{numPages}}
+\index{numPages@{numPages}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{numPages}{numPages}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a8de9e52674ee52058b51c69ac67a9ec0} 
+const int Survey\+Maker\+Wizard\+::num\+Pages = 6\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_survey_maker_wizard_a772963bf6d2edb937dd3cd7208aa0a5f}\index{SurveyMakerWizard@{SurveyMakerWizard}!pageNames@{pageNames}}
+\index{pageNames@{pageNames}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{pageNames}{pageNames}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a772963bf6d2edb937dd3cd7208aa0a5f} 
+const QString\+List Survey\+Maker\+Wizard\+::page\+Names\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{QObject::tr(\textcolor{stringliteral}{"{}Survey\ Name"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Demographics"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Multiple\ Choice"{}}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QObject::tr(\textcolor{stringliteral}{"{}Scheduling"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Course\ Info"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Preview\ \&\ Export"{}})\}}
+
+\end{DoxyCode}
+\Hypertarget{class_survey_maker_wizard_aabdc7b1dcb9db9ede00c84f8462ee428}\index{SurveyMakerWizard@{SurveyMakerWizard}!previewPageVisited@{previewPageVisited}}
+\index{previewPageVisited@{previewPageVisited}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{previewPageVisited}{previewPageVisited}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_aabdc7b1dcb9db9ede00c84f8462ee428} 
+bool Survey\+Maker\+Wizard\+::preview\+Page\+Visited = false}
+
+\Hypertarget{class_survey_maker_wizard_a58d222c19bd117a18ef44c54980b8127}\index{SurveyMakerWizard@{SurveyMakerWizard}!saveFileLocation@{saveFileLocation}}
+\index{saveFileLocation@{saveFileLocation}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{saveFileLocation}{saveFileLocation}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a58d222c19bd117a18ef44c54980b8127} 
+QFile\+Info Survey\+Maker\+Wizard\+::save\+File\+Location}
+
+\Hypertarget{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}\index{SurveyMakerWizard@{SurveyMakerWizard}!sundayMidnight@{sundayMidnight}}
+\index{sundayMidnight@{sundayMidnight}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{sundayMidnight}{sundayMidnight}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed} 
+const auto Survey\+Maker\+Wizard\+::sunday\+Midnight = QDate\+Time(QDate(2017, 1, 1), QTime(0, 0))\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_survey_maker_wizard_a8917efad8781c7b18bc14d634afc7c85}\index{SurveyMakerWizard@{SurveyMakerWizard}!timezoneNames@{timezoneNames}}
+\index{timezoneNames@{timezoneNames}!SurveyMakerWizard@{SurveyMakerWizard}}
+\doxysubsubsection{\texorpdfstring{timezoneNames}{timezoneNames}}
+{\footnotesize\ttfamily \label{class_survey_maker_wizard_a8917efad8781c7b18bc14d634afc7c85} 
+const QString\+List Survey\+Maker\+Wizard\+::timezone\+Names\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ []()\{QStringList\ names\ =\ QString(\mbox{\hyperlink{gruepr__globals_8h_a7aa431c40d38e55f5b741990c24b3d74}{TIMEZONENAMES}}).split(\textcolor{stringliteral}{"{};"{}});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\ \&name\ :\ names)\{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name\ =\ name.remove(\textcolor{charliteral}{'"{}'}).trimmed();}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ names;\}()}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8h}{survey\+Maker\+Wizard.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8cpp}{survey\+Maker\+Wizard.\+cpp}}\end{DoxyCompactItemize}

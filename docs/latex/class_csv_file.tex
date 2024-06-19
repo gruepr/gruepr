@@ -1,0 +1,399 @@
+\doxysection{Csv\+File Class Reference}
+\hypertarget{class_csv_file}{}\label{class_csv_file}\index{CsvFile@{CsvFile}}
+
+
+{\ttfamily \#include $<$csvfile.\+h$>$}
+
+Inheritance diagram for Csv\+File\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_csv_file}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}{Delimiter}} \{ \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ab6d00dc1ba038e5901cd6c06b2daa192}{comma}}
+, \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ae7f8cbd87d347be881cba92dad128518}{tab}}
+ \}
+\item 
+enum class \mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87}{Source}} \{ \mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87a7d3f4cdfa456ea96667d07d21ec83c5e}{file\+Only}}
+, \mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87a1dc5bf111d7d8ebc20fa4814616d6ed3}{file\+Or\+Online}}
+ \}
+\item 
+enum class \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0}{Operation}} \{ \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e}{read}}
+, \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aefb2a684e4afb7d55e6147fbe5a332ee}{write}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_csv_file_ae4940b6e7521b11ad34014c8b4fbb0b5}{Csv\+File}} (\mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}{Delimiter}} dlmtr=\mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ab6d00dc1ba038e5901cd6c06b2daa192}{Delimiter\+::comma}}, QObject \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{class_csv_file_abf0c0890107ec1f3157934fe7324809c}{\texorpdfstring{$\sim$}{\string~}\+Csv\+File}} () override
+\item 
+\mbox{\hyperlink{class_csv_file_aa21ffb3ba00c84d47758d3fc19078f5c}{Csv\+File}} (const \mbox{\hyperlink{class_csv_file}{Csv\+File}} \&)=delete
+\item 
+\mbox{\hyperlink{class_csv_file}{Csv\+File}} \mbox{\hyperlink{class_csv_file_a89cfd176c8dcf5b0e9fa4e8575c5f625}{operator=}} (const \mbox{\hyperlink{class_csv_file}{Csv\+File}} \&)=delete
+\item 
+\mbox{\hyperlink{class_csv_file_a72e8f727a39a03952182253aad49180e}{Csv\+File}} (\mbox{\hyperlink{class_csv_file}{Csv\+File}} \&\&)=delete
+\item 
+\mbox{\hyperlink{class_csv_file}{Csv\+File}} \& \mbox{\hyperlink{class_csv_file_a68acb0432c503e15f4165bb3fc55d10a}{operator=}} (\mbox{\hyperlink{class_csv_file}{Csv\+File}} \&\&)=delete
+\item 
+bool \mbox{\hyperlink{class_csv_file_a695735b336bb41a7fa1fbfa348a00689}{open}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr, \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0}{Operation}} operation=\mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e}{Operation\+::read}}, const QString \&caption=tr("{}Open csv File"{}), const QString \&filepath="{}"{}, const QString \&filetype\+Descriptor="{}"{})
+\item 
+bool \mbox{\hyperlink{class_csv_file_a5974c669635239e024d851caa989e4a8}{open\+Existing\+File}} (const QString \&filepath)
+\item 
+QFile\+Info \mbox{\hyperlink{class_csv_file_adf67cb0d8e8b45400288e274dc3f664d}{file\+Info}} ()
+\item 
+bool \mbox{\hyperlink{class_csv_file_a666fac23959f5d30e691b6b14ce8d32a}{is\+Open}} ()
+\item 
+void \mbox{\hyperlink{class_csv_file_a843260cab19bb3fe5ad2b69b08b44203}{close}} (bool delete\+File=false)
+\item 
+bool \mbox{\hyperlink{class_csv_file_aa79b5b88711b2193e1fe284f9dc1e4c3}{read\+Header}} ()
+\item 
+QDialog \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_csv_file_a371c259af47a72b1ae3c107ec6c75faf}{choose\+Field\+Meanings\+Dialog}} (const QList$<$ \mbox{\hyperlink{structposs_field_meaning}{poss\+Field\+Meaning}} $>$ \&possible\+Field\+Meanings=\{\}, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+bool \mbox{\hyperlink{class_csv_file_a94996a6ed562b35ae46c92162046f66e}{read\+Data\+Row}} (bool reset\+To\+Start=false)
+\item 
+bool \mbox{\hyperlink{class_csv_file_ae49e33940a633a6728b27f97c93843e1}{write\+Header}} ()
+\item 
+void \mbox{\hyperlink{class_csv_file_aeb8738d6aad8b450885c802386e64c06}{write\+Data\+Row}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static QString\+List \mbox{\hyperlink{class_csv_file_a9ee888a463387db2bc116a1c15fb9797}{get\+Line}} (QText\+Stream \&external\+Stream, const int min\+Fields=-\/1, const char \mbox{\hyperlink{class_csv_file_a8fc1a0931ef23e96b7293ee9168d13bd}{delimiter}}=\textquotesingle{},\textquotesingle{})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{class_csv_file_a22010665d01d561d52e740e251a487cb}{header\+Values}}
+\item 
+bool \mbox{\hyperlink{class_csv_file_a4a34f01fe7b4dc46af2c836625f75b51}{has\+Header\+Row}} = true
+\item 
+int \mbox{\hyperlink{class_csv_file_ab96a50756453c73d66b8ead4990445b7}{num\+Fields}} = 0
+\item 
+int \mbox{\hyperlink{class_csv_file_a4cdfb0129ea6d8cfa223d87befa368e8}{estimated\+Number\+Rows}} = 0
+\item 
+QString\+List \mbox{\hyperlink{class_csv_file_aabb428e07c7820657a1d5f65961ed8f9}{field\+Meanings}}
+\item 
+QString\+List \mbox{\hyperlink{class_csv_file_a83cf1186a71b6cbdb9df0f18ec8ced1f}{field\+Values}}
+\item 
+QString\+List \mbox{\hyperlink{class_csv_file_aaef8530ad1c3d21662b39a24e9f7ffb6}{fields\+To\+Be\+Ignored}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{class_csv_file_ad3b1066e2f0c5fb579af34b572288271}{get\+Line}} (const int min\+Fields=-\/1)
+\item 
+void \mbox{\hyperlink{class_csv_file_a2ce4fe145b700a5c2b9f99e40dbdb43c}{validate\+Field\+Selector\+Boxes}} (int calling\+Row=-\/1)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QFile \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_csv_file_a4d52566da6bf21c8ae98c41438f843ab}{file}} = nullptr
+\item 
+QText\+Stream \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_csv_file_ae13433e2a4fd30f299dd0b6aa636aabe}{stream}} = nullptr
+\item 
+char \mbox{\hyperlink{class_csv_file_a8fc1a0931ef23e96b7293ee9168d13bd}{delimiter}} = \textquotesingle{},\textquotesingle{}
+\item 
+\mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_csv_file_a3517ee1a44b3892fb68d3d6854706335}{window}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const QString \mbox{\hyperlink{class_csv_file_aadd5923632573a600fe4c1c9f717511f}{HEADERTEXT}} = QObject\+::tr("{}Column Headers"{})
+\item 
+static const QString \mbox{\hyperlink{class_csv_file_aa860c404764e0213bd92f1d523910fd4}{CATEGORYTEXT}} = QObject\+::tr("{}Category"{})
+\item 
+static const QString \mbox{\hyperlink{class_csv_file_a6ba023933e6dda10213e3cd4a8f1d964}{ROW1\+TEXT}} = QObject\+::tr("{}First Row of Data"{})
+\item 
+static const QString \mbox{\hyperlink{class_csv_file_a40c669a5a686dcc2e80c76b613c61211}{UNUSEDTEXT}} = QObject\+::tr("{}Unused"{})
+\item 
+static const int \mbox{\hyperlink{class_csv_file_a295da3fe236dbd85565d2068775ff6f2}{DIALOGWIDTH}} = 500
+\item 
+static const int \mbox{\hyperlink{class_csv_file_a5436076d72ef8513a48da7f9a53bef58}{DIALOGHEIGHT}} = 300
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}\index{CsvFile@{CsvFile}!Delimiter@{Delimiter}}
+\index{Delimiter@{Delimiter}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{Delimiter}{Delimiter}}
+{\footnotesize\ttfamily \label{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6} 
+enum class \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}{Csv\+File\+::\+Delimiter}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{comma@{comma}!CsvFile@{CsvFile}}\index{CsvFile@{CsvFile}!comma@{comma}}}\Hypertarget{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ab6d00dc1ba038e5901cd6c06b2daa192}\label{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6} 
+comma&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{tab@{tab}!CsvFile@{CsvFile}}\index{CsvFile@{CsvFile}!tab@{tab}}}\Hypertarget{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ae7f8cbd87d347be881cba92dad128518}\label{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6} 
+tab&\\
+\hline
+
+\end{DoxyEnumFields}
+\Hypertarget{class_csv_file_a24aa1e878889470d80eeabf427772ac0}\index{CsvFile@{CsvFile}!Operation@{Operation}}
+\index{Operation@{Operation}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{Operation}{Operation}}
+{\footnotesize\ttfamily \label{class_csv_file_a24aa1e878889470d80eeabf427772ac0} 
+enum class \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0}{Csv\+File\+::\+Operation}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{read@{read}!CsvFile@{CsvFile}}\index{CsvFile@{CsvFile}!read@{read}}}\Hypertarget{class_csv_file_a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e}\label{class_csv_file_a24aa1e878889470d80eeabf427772ac0} 
+read&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{write@{write}!CsvFile@{CsvFile}}\index{CsvFile@{CsvFile}!write@{write}}}\Hypertarget{class_csv_file_a24aa1e878889470d80eeabf427772ac0aefb2a684e4afb7d55e6147fbe5a332ee}\label{class_csv_file_a24aa1e878889470d80eeabf427772ac0} 
+write&\\
+\hline
+
+\end{DoxyEnumFields}
+\Hypertarget{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87}\index{CsvFile@{CsvFile}!Source@{Source}}
+\index{Source@{Source}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{Source}{Source}}
+{\footnotesize\ttfamily \label{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87} 
+enum class \mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87}{Csv\+File\+::\+Source}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{fileOnly@{fileOnly}!CsvFile@{CsvFile}}\index{CsvFile@{CsvFile}!fileOnly@{fileOnly}}}\Hypertarget{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87a7d3f4cdfa456ea96667d07d21ec83c5e}\label{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87} 
+file\+Only&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{fileOrOnline@{fileOrOnline}!CsvFile@{CsvFile}}\index{CsvFile@{CsvFile}!fileOrOnline@{fileOrOnline}}}\Hypertarget{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87a1dc5bf111d7d8ebc20fa4814616d6ed3}\label{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87} 
+file\+Or\+Online&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_csv_file_ae4940b6e7521b11ad34014c8b4fbb0b5}\index{CsvFile@{CsvFile}!CsvFile@{CsvFile}}
+\index{CsvFile@{CsvFile}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{CsvFile()}{CsvFile()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{class_csv_file_ae4940b6e7521b11ad34014c8b4fbb0b5} 
+Csv\+File\+::\+Csv\+File (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}{Delimiter}}}]{dlmtr}{ = {\ttfamily \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ab6d00dc1ba038e5901cd6c06b2daa192}{Delimiter\+::comma}}}, }\item[{QObject \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_abf0c0890107ec1f3157934fe7324809c}\index{CsvFile@{CsvFile}!````~CsvFile@{\texorpdfstring{$\sim$}{\string~}CsvFile}}
+\index{````~CsvFile@{\texorpdfstring{$\sim$}{\string~}CsvFile}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}CsvFile()}{\string~CsvFile()}}
+{\footnotesize\ttfamily \label{class_csv_file_abf0c0890107ec1f3157934fe7324809c} 
+Csv\+File\+::\texorpdfstring{$\sim$}{\string~}\+Csv\+File (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_csv_file_aa21ffb3ba00c84d47758d3fc19078f5c}\index{CsvFile@{CsvFile}!CsvFile@{CsvFile}}
+\index{CsvFile@{CsvFile}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{CsvFile()}{CsvFile()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{class_csv_file_aa21ffb3ba00c84d47758d3fc19078f5c} 
+Csv\+File\+::\+Csv\+File (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_csv_file}{Csv\+File}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_csv_file_a72e8f727a39a03952182253aad49180e}\index{CsvFile@{CsvFile}!CsvFile@{CsvFile}}
+\index{CsvFile@{CsvFile}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{CsvFile()}{CsvFile()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{class_csv_file_a72e8f727a39a03952182253aad49180e} 
+Csv\+File\+::\+Csv\+File (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_csv_file}{Csv\+File}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_csv_file_a371c259af47a72b1ae3c107ec6c75faf}\index{CsvFile@{CsvFile}!chooseFieldMeaningsDialog@{chooseFieldMeaningsDialog}}
+\index{chooseFieldMeaningsDialog@{chooseFieldMeaningsDialog}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{chooseFieldMeaningsDialog()}{chooseFieldMeaningsDialog()}}
+{\footnotesize\ttfamily \label{class_csv_file_a371c259af47a72b1ae3c107ec6c75faf} 
+QDialog \texorpdfstring{$\ast$}{*} Csv\+File\+::choose\+Field\+Meanings\+Dialog (\begin{DoxyParamCaption}\item[{const QList$<$ \mbox{\hyperlink{structposs_field_meaning}{poss\+Field\+Meaning}} $>$ \&}]{possible\+Field\+Meanings}{ = {\ttfamily \{\}}, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_a843260cab19bb3fe5ad2b69b08b44203}\index{CsvFile@{CsvFile}!close@{close}}
+\index{close@{close}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{close()}{close()}}
+{\footnotesize\ttfamily \label{class_csv_file_a843260cab19bb3fe5ad2b69b08b44203} 
+void Csv\+File\+::close (\begin{DoxyParamCaption}\item[{bool}]{delete\+File}{ = {\ttfamily false}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_adf67cb0d8e8b45400288e274dc3f664d}\index{CsvFile@{CsvFile}!fileInfo@{fileInfo}}
+\index{fileInfo@{fileInfo}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{fileInfo()}{fileInfo()}}
+{\footnotesize\ttfamily \label{class_csv_file_adf67cb0d8e8b45400288e274dc3f664d} 
+QFile\+Info Csv\+File\+::file\+Info (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_ad3b1066e2f0c5fb579af34b572288271}\index{CsvFile@{CsvFile}!getLine@{getLine}}
+\index{getLine@{getLine}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{getLine()}{getLine()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_csv_file_ad3b1066e2f0c5fb579af34b572288271} 
+QString\+List Csv\+File\+::get\+Line (\begin{DoxyParamCaption}\item[{const int}]{min\+Fields}{ = {\ttfamily -\/1}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a9ee888a463387db2bc116a1c15fb9797}\index{CsvFile@{CsvFile}!getLine@{getLine}}
+\index{getLine@{getLine}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{getLine()}{getLine()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_csv_file_a9ee888a463387db2bc116a1c15fb9797} 
+QString\+List Csv\+File\+::get\+Line (\begin{DoxyParamCaption}\item[{QText\+Stream \&}]{external\+Stream}{, }\item[{const int}]{min\+Fields}{ = {\ttfamily -\/1}, }\item[{const char}]{delimiter}{ = {\ttfamily \textquotesingle{},\textquotesingle{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{class_csv_file_a666fac23959f5d30e691b6b14ce8d32a}\index{CsvFile@{CsvFile}!isOpen@{isOpen}}
+\index{isOpen@{isOpen}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{isOpen()}{isOpen()}}
+{\footnotesize\ttfamily \label{class_csv_file_a666fac23959f5d30e691b6b14ce8d32a} 
+bool Csv\+File\+::is\+Open (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_a695735b336bb41a7fa1fbfa348a00689}\index{CsvFile@{CsvFile}!open@{open}}
+\index{open@{open}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{open()}{open()}}
+{\footnotesize\ttfamily \label{class_csv_file_a695735b336bb41a7fa1fbfa348a00689} 
+bool Csv\+File\+::open (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}, }\item[{\mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0}{Operation}}}]{operation}{ = {\ttfamily \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e}{Operation\+::read}}}, }\item[{const QString \&}]{caption}{ = {\ttfamily tr("{}Open~csv~File"{})}, }\item[{const QString \&}]{filepath}{ = {\ttfamily "{}"{}}, }\item[{const QString \&}]{filetype\+Descriptor}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_a5974c669635239e024d851caa989e4a8}\index{CsvFile@{CsvFile}!openExistingFile@{openExistingFile}}
+\index{openExistingFile@{openExistingFile}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{openExistingFile()}{openExistingFile()}}
+{\footnotesize\ttfamily \label{class_csv_file_a5974c669635239e024d851caa989e4a8} 
+bool Csv\+File\+::open\+Existing\+File (\begin{DoxyParamCaption}\item[{const QString \&}]{filepath}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_a89cfd176c8dcf5b0e9fa4e8575c5f625}\index{CsvFile@{CsvFile}!operator=@{operator=}}
+\index{operator=@{operator=}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_csv_file_a89cfd176c8dcf5b0e9fa4e8575c5f625} 
+\mbox{\hyperlink{class_csv_file}{Csv\+File}} Csv\+File\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_csv_file}{Csv\+File}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_csv_file_a68acb0432c503e15f4165bb3fc55d10a}\index{CsvFile@{CsvFile}!operator=@{operator=}}
+\index{operator=@{operator=}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_csv_file_a68acb0432c503e15f4165bb3fc55d10a} 
+\mbox{\hyperlink{class_csv_file}{Csv\+File}} \& Csv\+File\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_csv_file}{Csv\+File}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_csv_file_a94996a6ed562b35ae46c92162046f66e}\index{CsvFile@{CsvFile}!readDataRow@{readDataRow}}
+\index{readDataRow@{readDataRow}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{readDataRow()}{readDataRow()}}
+{\footnotesize\ttfamily \label{class_csv_file_a94996a6ed562b35ae46c92162046f66e} 
+bool Csv\+File\+::read\+Data\+Row (\begin{DoxyParamCaption}\item[{bool}]{reset\+To\+Start}{ = {\ttfamily false}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_aa79b5b88711b2193e1fe284f9dc1e4c3}\index{CsvFile@{CsvFile}!readHeader@{readHeader}}
+\index{readHeader@{readHeader}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{readHeader()}{readHeader()}}
+{\footnotesize\ttfamily \label{class_csv_file_aa79b5b88711b2193e1fe284f9dc1e4c3} 
+bool Csv\+File\+::read\+Header (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_a2ce4fe145b700a5c2b9f99e40dbdb43c}\index{CsvFile@{CsvFile}!validateFieldSelectorBoxes@{validateFieldSelectorBoxes}}
+\index{validateFieldSelectorBoxes@{validateFieldSelectorBoxes}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{validateFieldSelectorBoxes()}{validateFieldSelectorBoxes()}}
+{\footnotesize\ttfamily \label{class_csv_file_a2ce4fe145b700a5c2b9f99e40dbdb43c} 
+void Csv\+File\+::validate\+Field\+Selector\+Boxes (\begin{DoxyParamCaption}\item[{int}]{calling\+Row}{ = {\ttfamily -\/1}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_aeb8738d6aad8b450885c802386e64c06}\index{CsvFile@{CsvFile}!writeDataRow@{writeDataRow}}
+\index{writeDataRow@{writeDataRow}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{writeDataRow()}{writeDataRow()}}
+{\footnotesize\ttfamily \label{class_csv_file_aeb8738d6aad8b450885c802386e64c06} 
+void Csv\+File\+::write\+Data\+Row (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_csv_file_ae49e33940a633a6728b27f97c93843e1}\index{CsvFile@{CsvFile}!writeHeader@{writeHeader}}
+\index{writeHeader@{writeHeader}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{writeHeader()}{writeHeader()}}
+{\footnotesize\ttfamily \label{class_csv_file_ae49e33940a633a6728b27f97c93843e1} 
+bool Csv\+File\+::write\+Header (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_csv_file_aa860c404764e0213bd92f1d523910fd4}\index{CsvFile@{CsvFile}!CATEGORYTEXT@{CATEGORYTEXT}}
+\index{CATEGORYTEXT@{CATEGORYTEXT}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{CATEGORYTEXT}{CATEGORYTEXT}}
+{\footnotesize\ttfamily \label{class_csv_file_aa860c404764e0213bd92f1d523910fd4} 
+const QString Csv\+File\+::\+CATEGORYTEXT = QObject\+::tr("{}Category"{})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a8fc1a0931ef23e96b7293ee9168d13bd}\index{CsvFile@{CsvFile}!delimiter@{delimiter}}
+\index{delimiter@{delimiter}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{delimiter}{delimiter}}
+{\footnotesize\ttfamily \label{class_csv_file_a8fc1a0931ef23e96b7293ee9168d13bd} 
+char Csv\+File\+::delimiter = \textquotesingle{},\textquotesingle{}\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a5436076d72ef8513a48da7f9a53bef58}\index{CsvFile@{CsvFile}!DIALOGHEIGHT@{DIALOGHEIGHT}}
+\index{DIALOGHEIGHT@{DIALOGHEIGHT}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{DIALOGHEIGHT}{DIALOGHEIGHT}}
+{\footnotesize\ttfamily \label{class_csv_file_a5436076d72ef8513a48da7f9a53bef58} 
+const int Csv\+File\+::\+DIALOGHEIGHT = 300\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a295da3fe236dbd85565d2068775ff6f2}\index{CsvFile@{CsvFile}!DIALOGWIDTH@{DIALOGWIDTH}}
+\index{DIALOGWIDTH@{DIALOGWIDTH}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{DIALOGWIDTH}{DIALOGWIDTH}}
+{\footnotesize\ttfamily \label{class_csv_file_a295da3fe236dbd85565d2068775ff6f2} 
+const int Csv\+File\+::\+DIALOGWIDTH = 500\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a4cdfb0129ea6d8cfa223d87befa368e8}\index{CsvFile@{CsvFile}!estimatedNumberRows@{estimatedNumberRows}}
+\index{estimatedNumberRows@{estimatedNumberRows}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{estimatedNumberRows}{estimatedNumberRows}}
+{\footnotesize\ttfamily \label{class_csv_file_a4cdfb0129ea6d8cfa223d87befa368e8} 
+int Csv\+File\+::estimated\+Number\+Rows = 0}
+
+\Hypertarget{class_csv_file_aabb428e07c7820657a1d5f65961ed8f9}\index{CsvFile@{CsvFile}!fieldMeanings@{fieldMeanings}}
+\index{fieldMeanings@{fieldMeanings}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{fieldMeanings}{fieldMeanings}}
+{\footnotesize\ttfamily \label{class_csv_file_aabb428e07c7820657a1d5f65961ed8f9} 
+QString\+List Csv\+File\+::field\+Meanings}
+
+\Hypertarget{class_csv_file_aaef8530ad1c3d21662b39a24e9f7ffb6}\index{CsvFile@{CsvFile}!fieldsToBeIgnored@{fieldsToBeIgnored}}
+\index{fieldsToBeIgnored@{fieldsToBeIgnored}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{fieldsToBeIgnored}{fieldsToBeIgnored}}
+{\footnotesize\ttfamily \label{class_csv_file_aaef8530ad1c3d21662b39a24e9f7ffb6} 
+QString\+List Csv\+File\+::fields\+To\+Be\+Ignored}
+
+\Hypertarget{class_csv_file_a83cf1186a71b6cbdb9df0f18ec8ced1f}\index{CsvFile@{CsvFile}!fieldValues@{fieldValues}}
+\index{fieldValues@{fieldValues}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{fieldValues}{fieldValues}}
+{\footnotesize\ttfamily \label{class_csv_file_a83cf1186a71b6cbdb9df0f18ec8ced1f} 
+QString\+List Csv\+File\+::field\+Values}
+
+\Hypertarget{class_csv_file_a4d52566da6bf21c8ae98c41438f843ab}\index{CsvFile@{CsvFile}!file@{file}}
+\index{file@{file}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{file}{file}}
+{\footnotesize\ttfamily \label{class_csv_file_a4d52566da6bf21c8ae98c41438f843ab} 
+QFile\texorpdfstring{$\ast$}{*} Csv\+File\+::file = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a4a34f01fe7b4dc46af2c836625f75b51}\index{CsvFile@{CsvFile}!hasHeaderRow@{hasHeaderRow}}
+\index{hasHeaderRow@{hasHeaderRow}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{hasHeaderRow}{hasHeaderRow}}
+{\footnotesize\ttfamily \label{class_csv_file_a4a34f01fe7b4dc46af2c836625f75b51} 
+bool Csv\+File\+::has\+Header\+Row = true}
+
+\Hypertarget{class_csv_file_aadd5923632573a600fe4c1c9f717511f}\index{CsvFile@{CsvFile}!HEADERTEXT@{HEADERTEXT}}
+\index{HEADERTEXT@{HEADERTEXT}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{HEADERTEXT}{HEADERTEXT}}
+{\footnotesize\ttfamily \label{class_csv_file_aadd5923632573a600fe4c1c9f717511f} 
+const QString Csv\+File\+::\+HEADERTEXT = QObject\+::tr("{}Column Headers"{})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a22010665d01d561d52e740e251a487cb}\index{CsvFile@{CsvFile}!headerValues@{headerValues}}
+\index{headerValues@{headerValues}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{headerValues}{headerValues}}
+{\footnotesize\ttfamily \label{class_csv_file_a22010665d01d561d52e740e251a487cb} 
+QString\+List Csv\+File\+::header\+Values}
+
+\Hypertarget{class_csv_file_ab96a50756453c73d66b8ead4990445b7}\index{CsvFile@{CsvFile}!numFields@{numFields}}
+\index{numFields@{numFields}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{numFields}{numFields}}
+{\footnotesize\ttfamily \label{class_csv_file_ab96a50756453c73d66b8ead4990445b7} 
+int Csv\+File\+::num\+Fields = 0}
+
+\Hypertarget{class_csv_file_a6ba023933e6dda10213e3cd4a8f1d964}\index{CsvFile@{CsvFile}!ROW1TEXT@{ROW1TEXT}}
+\index{ROW1TEXT@{ROW1TEXT}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{ROW1TEXT}{ROW1TEXT}}
+{\footnotesize\ttfamily \label{class_csv_file_a6ba023933e6dda10213e3cd4a8f1d964} 
+const QString Csv\+File\+::\+ROW1\+TEXT = QObject\+::tr("{}First Row of Data"{})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_ae13433e2a4fd30f299dd0b6aa636aabe}\index{CsvFile@{CsvFile}!stream@{stream}}
+\index{stream@{stream}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{stream}{stream}}
+{\footnotesize\ttfamily \label{class_csv_file_ae13433e2a4fd30f299dd0b6aa636aabe} 
+QText\+Stream\texorpdfstring{$\ast$}{*} Csv\+File\+::stream = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a40c669a5a686dcc2e80c76b613c61211}\index{CsvFile@{CsvFile}!UNUSEDTEXT@{UNUSEDTEXT}}
+\index{UNUSEDTEXT@{UNUSEDTEXT}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{UNUSEDTEXT}{UNUSEDTEXT}}
+{\footnotesize\ttfamily \label{class_csv_file_a40c669a5a686dcc2e80c76b613c61211} 
+const QString Csv\+File\+::\+UNUSEDTEXT = QObject\+::tr("{}Unused"{})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_csv_file_a3517ee1a44b3892fb68d3d6854706335}\index{CsvFile@{CsvFile}!window@{window}}
+\index{window@{window}!CsvFile@{CsvFile}}
+\doxysubsubsection{\texorpdfstring{window}{window}}
+{\footnotesize\ttfamily \label{class_csv_file_a3517ee1a44b3892fb68d3d6854706335} 
+\mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}\texorpdfstring{$\ast$}{*} Csv\+File\+::window = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{csvfile_8h}{csvfile.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{csvfile_8cpp}{csvfile.\+cpp}}\end{DoxyCompactItemize}

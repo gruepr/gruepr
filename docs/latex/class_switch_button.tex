@@ -1,0 +1,266 @@
+\doxysection{Switch\+Button Class Reference}
+\hypertarget{class_switch_button}{}\label{class_switch_button}\index{SwitchButton@{SwitchButton}}
+
+
+{\ttfamily \#include $<$switch\+Button.\+h$>$}
+
+Inheritance diagram for Switch\+Button\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_switch_button}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{class_switch_button_1_1_switch_background}{Switch\+Background}}
+\item 
+class \mbox{\hyperlink{class_switch_button_1_1_switch_circle}{Switch\+Circle}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}{Style}} \{ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3ab65fb774a8fa1be0cb90703ba26c95b5}{YESNO}}
+, \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3a56bb4a0d6f80963b8625fb039071dd62}{ONOFF}}
+, \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3aa97b2c144243b2b9d2c593ec268b62f5}{BOOL}}
+, \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3aba2b45bdc11e2a4a6e86aab2ac693cbb}{EMPTY}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_switch_button_ab286732844aa8fc9614ba0e25cc63f5a}{value\+Changed}} (bool newvalue)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_switch_button_ad896866a231296de39dfd16823e72c45}{Switch\+Button}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr, bool starting\+Value=false, \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}{Style}} style=\mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3ab65fb774a8fa1be0cb90703ba26c95b5}{Style\+::\+YESNO}})
+\item 
+\mbox{\hyperlink{class_switch_button_a99be4045aaab62c68fd9a8f72723521d}{Switch\+Button}} (bool starting\+Value=false)
+\item 
+\mbox{\hyperlink{class_switch_button_ad73235bdc80d002ab86748eeeb0193c8}{\texorpdfstring{$\sim$}{\string~}\+Switch\+Button}} () override
+\item 
+\mbox{\hyperlink{class_switch_button_a60e4cd5acd81fc07b033f4f225662bfd}{Switch\+Button}} (const \mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&)=delete
+\item 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \mbox{\hyperlink{class_switch_button_a86c7f95edd735f79e195a776d00ad877}{operator=}} (const \mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&)=delete
+\item 
+\mbox{\hyperlink{class_switch_button_a411d80b2b4266e7dc2b752b4fa45f2f5}{Switch\+Button}} (\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&\&)=delete
+\item 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \& \mbox{\hyperlink{class_switch_button_a717c6e257bc24e1b382aaf27ad430836}{operator=}} (\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&\&)=delete
+\item 
+void \mbox{\hyperlink{class_switch_button_a01041c9a93a7698ae240c89797033119}{mouse\+Press\+Event}} (QMouse\+Event \texorpdfstring{$\ast$}{*}event=nullptr) override
+\item 
+void \mbox{\hyperlink{class_switch_button_a535c3a1076c73e6956c38b2417327e1e}{paint\+Event}} (QPaint\+Event \texorpdfstring{$\ast$}{*}event=nullptr) override
+\item 
+void \mbox{\hyperlink{class_switch_button_a0bde46fddf0f957d00e88b525106b0e9}{set\+Enabled}} (bool)
+\item 
+void \mbox{\hyperlink{class_switch_button_a4e34f71a73f1b5cb74380a1885e1a5f6}{set\+Value}} (bool)
+\item 
+bool \mbox{\hyperlink{class_switch_button_aed35032468242e154aeac35d2fa97598}{value}} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_switch_button_a5acc97ad3555fac0761c933cad8a9401}{\+\_\+update}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_switch_button_ab0002fcafa030e8a356720eb4351f791}{\+\_\+value}}
+\item 
+int \mbox{\hyperlink{class_switch_button_a8dd50be1d6cbe7abdbaf71a2b4e8a71a}{\+\_\+duration}}
+\item 
+QColor \mbox{\hyperlink{class_switch_button_a8edec04f19ee21f562c19ed28edfb5d6}{\+\_\+bordercolor}}
+\item 
+int \mbox{\hyperlink{class_switch_button_a2c469098e65dcc8bd9196df0035feb97}{\+\_\+tol}}
+\item 
+\mbox{\hyperlink{class_switch_button_1_1_switch_background}{Switch\+Background}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_switch_button_a00adf8c31e7371c9dd44b04bf3773622}{\+\_\+background}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_switch_button_a9538e07d7085499ed95e6953defbe4b1}{\+\_\+labeloff}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_switch_button_a4127a1ce2bffc40ed33462f7e873ca56}{\+\_\+labelon}} = nullptr
+\item 
+\mbox{\hyperlink{class_switch_button_1_1_switch_circle}{Switch\+Circle}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_switch_button_a0be2b988a82b99da54ae3365241a1468}{\+\_\+circle}} = nullptr
+\item 
+bool \mbox{\hyperlink{class_switch_button_a7f93b3ebf9ec2c5bfadd4a5c00cee79e}{\+\_\+enabled}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}\index{SwitchButton@{SwitchButton}!Style@{Style}}
+\index{Style@{Style}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{Style}{Style}}
+{\footnotesize\ttfamily \label{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3} 
+enum class \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}{Switch\+Button\+::\+Style}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{YESNO@{YESNO}!SwitchButton@{SwitchButton}}\index{SwitchButton@{SwitchButton}!YESNO@{YESNO}}}\Hypertarget{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3ab65fb774a8fa1be0cb90703ba26c95b5}\label{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3} 
+YESNO&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ONOFF@{ONOFF}!SwitchButton@{SwitchButton}}\index{SwitchButton@{SwitchButton}!ONOFF@{ONOFF}}}\Hypertarget{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3a56bb4a0d6f80963b8625fb039071dd62}\label{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3} 
+ONOFF&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{BOOL@{BOOL}!SwitchButton@{SwitchButton}}\index{SwitchButton@{SwitchButton}!BOOL@{BOOL}}}\Hypertarget{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3aa97b2c144243b2b9d2c593ec268b62f5}\label{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3} 
+BOOL&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{EMPTY@{EMPTY}!SwitchButton@{SwitchButton}}\index{SwitchButton@{SwitchButton}!EMPTY@{EMPTY}}}\Hypertarget{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3aba2b45bdc11e2a4a6e86aab2ac693cbb}\label{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3} 
+EMPTY&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_switch_button_ad896866a231296de39dfd16823e72c45}\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{SwitchButton()}{SwitchButton()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily \label{class_switch_button_ad896866a231296de39dfd16823e72c45} 
+Switch\+Button\+::\+Switch\+Button (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}, }\item[{bool}]{starting\+Value}{ = {\ttfamily false}, }\item[{\mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}{Style}}}]{style}{ = {\ttfamily \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3ab65fb774a8fa1be0cb90703ba26c95b5}{Style\+::\+YESNO}}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\Hypertarget{class_switch_button_a99be4045aaab62c68fd9a8f72723521d}\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{SwitchButton()}{SwitchButton()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily \label{class_switch_button_a99be4045aaab62c68fd9a8f72723521d} 
+Switch\+Button\+::\+Switch\+Button (\begin{DoxyParamCaption}\item[{bool}]{starting\+Value}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{class_switch_button_ad73235bdc80d002ab86748eeeb0193c8}\index{SwitchButton@{SwitchButton}!````~SwitchButton@{\texorpdfstring{$\sim$}{\string~}SwitchButton}}
+\index{````~SwitchButton@{\texorpdfstring{$\sim$}{\string~}SwitchButton}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}SwitchButton()}{\string~SwitchButton()}}
+{\footnotesize\ttfamily \label{class_switch_button_ad73235bdc80d002ab86748eeeb0193c8} 
+Switch\+Button\+::\texorpdfstring{$\sim$}{\string~}\+Switch\+Button (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_switch_button_a60e4cd5acd81fc07b033f4f225662bfd}\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{SwitchButton()}{SwitchButton()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily \label{class_switch_button_a60e4cd5acd81fc07b033f4f225662bfd} 
+Switch\+Button\+::\+Switch\+Button (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_switch_button_a411d80b2b4266e7dc2b752b4fa45f2f5}\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\index{SwitchButton@{SwitchButton}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{SwitchButton()}{SwitchButton()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily \label{class_switch_button_a411d80b2b4266e7dc2b752b4fa45f2f5} 
+Switch\+Button\+::\+Switch\+Button (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_switch_button_a5acc97ad3555fac0761c933cad8a9401}\index{SwitchButton@{SwitchButton}!\_update@{\_update}}
+\index{\_update@{\_update}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_update()}{\_update()}}
+{\footnotesize\ttfamily \label{class_switch_button_a5acc97ad3555fac0761c933cad8a9401} 
+void Switch\+Button\+::\+\_\+update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a01041c9a93a7698ae240c89797033119}\index{SwitchButton@{SwitchButton}!mousePressEvent@{mousePressEvent}}
+\index{mousePressEvent@{mousePressEvent}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{mousePressEvent()}{mousePressEvent()}}
+{\footnotesize\ttfamily \label{class_switch_button_a01041c9a93a7698ae240c89797033119} 
+void Switch\+Button\+::mouse\+Press\+Event (\begin{DoxyParamCaption}\item[{QMouse\+Event \texorpdfstring{$\ast$}{*}}]{event}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_switch_button_a86c7f95edd735f79e195a776d00ad877}\index{SwitchButton@{SwitchButton}!operator=@{operator=}}
+\index{operator=@{operator=}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_switch_button_a86c7f95edd735f79e195a776d00ad877} 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} Switch\+Button\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_switch_button_a717c6e257bc24e1b382aaf27ad430836}\index{SwitchButton@{SwitchButton}!operator=@{operator=}}
+\index{operator=@{operator=}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_switch_button_a717c6e257bc24e1b382aaf27ad430836} 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \& Switch\+Button\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_switch_button_a535c3a1076c73e6956c38b2417327e1e}\index{SwitchButton@{SwitchButton}!paintEvent@{paintEvent}}
+\index{paintEvent@{paintEvent}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{paintEvent()}{paintEvent()}}
+{\footnotesize\ttfamily \label{class_switch_button_a535c3a1076c73e6956c38b2417327e1e} 
+void Switch\+Button\+::paint\+Event (\begin{DoxyParamCaption}\item[{QPaint\+Event \texorpdfstring{$\ast$}{*}}]{event}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_switch_button_a0bde46fddf0f957d00e88b525106b0e9}\index{SwitchButton@{SwitchButton}!setEnabled@{setEnabled}}
+\index{setEnabled@{setEnabled}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{setEnabled()}{setEnabled()}}
+{\footnotesize\ttfamily \label{class_switch_button_a0bde46fddf0f957d00e88b525106b0e9} 
+void Switch\+Button\+::set\+Enabled (\begin{DoxyParamCaption}\item[{bool}]{flag}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_switch_button_a4e34f71a73f1b5cb74380a1885e1a5f6}\index{SwitchButton@{SwitchButton}!setValue@{setValue}}
+\index{setValue@{setValue}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{setValue()}{setValue()}}
+{\footnotesize\ttfamily \label{class_switch_button_a4e34f71a73f1b5cb74380a1885e1a5f6} 
+void Switch\+Button\+::set\+Value (\begin{DoxyParamCaption}\item[{bool}]{flag}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_switch_button_aed35032468242e154aeac35d2fa97598}\index{SwitchButton@{SwitchButton}!value@{value}}
+\index{value@{value}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{value()}{value()}}
+{\footnotesize\ttfamily \label{class_switch_button_aed35032468242e154aeac35d2fa97598} 
+bool Switch\+Button\+::value (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_switch_button_ab286732844aa8fc9614ba0e25cc63f5a}\index{SwitchButton@{SwitchButton}!valueChanged@{valueChanged}}
+\index{valueChanged@{valueChanged}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{valueChanged}{valueChanged}}
+{\footnotesize\ttfamily \label{class_switch_button_ab286732844aa8fc9614ba0e25cc63f5a} 
+void Switch\+Button\+::value\+Changed (\begin{DoxyParamCaption}\item[{bool}]{newvalue}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_switch_button_a00adf8c31e7371c9dd44b04bf3773622}\index{SwitchButton@{SwitchButton}!\_background@{\_background}}
+\index{\_background@{\_background}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_background}{\_background}}
+{\footnotesize\ttfamily \label{class_switch_button_a00adf8c31e7371c9dd44b04bf3773622} 
+\mbox{\hyperlink{class_switch_button_1_1_switch_background}{Switch\+Background}}\texorpdfstring{$\ast$}{*} Switch\+Button\+::\+\_\+background = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a8edec04f19ee21f562c19ed28edfb5d6}\index{SwitchButton@{SwitchButton}!\_bordercolor@{\_bordercolor}}
+\index{\_bordercolor@{\_bordercolor}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_bordercolor}{\_bordercolor}}
+{\footnotesize\ttfamily \label{class_switch_button_a8edec04f19ee21f562c19ed28edfb5d6} 
+QColor Switch\+Button\+::\+\_\+bordercolor\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a0be2b988a82b99da54ae3365241a1468}\index{SwitchButton@{SwitchButton}!\_circle@{\_circle}}
+\index{\_circle@{\_circle}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_circle}{\_circle}}
+{\footnotesize\ttfamily \label{class_switch_button_a0be2b988a82b99da54ae3365241a1468} 
+\mbox{\hyperlink{class_switch_button_1_1_switch_circle}{Switch\+Circle}}\texorpdfstring{$\ast$}{*} Switch\+Button\+::\+\_\+circle = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a8dd50be1d6cbe7abdbaf71a2b4e8a71a}\index{SwitchButton@{SwitchButton}!\_duration@{\_duration}}
+\index{\_duration@{\_duration}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_duration}{\_duration}}
+{\footnotesize\ttfamily \label{class_switch_button_a8dd50be1d6cbe7abdbaf71a2b4e8a71a} 
+int Switch\+Button\+::\+\_\+duration\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a7f93b3ebf9ec2c5bfadd4a5c00cee79e}\index{SwitchButton@{SwitchButton}!\_enabled@{\_enabled}}
+\index{\_enabled@{\_enabled}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_enabled}{\_enabled}}
+{\footnotesize\ttfamily \label{class_switch_button_a7f93b3ebf9ec2c5bfadd4a5c00cee79e} 
+bool Switch\+Button\+::\+\_\+enabled\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a9538e07d7085499ed95e6953defbe4b1}\index{SwitchButton@{SwitchButton}!\_labeloff@{\_labeloff}}
+\index{\_labeloff@{\_labeloff}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_labeloff}{\_labeloff}}
+{\footnotesize\ttfamily \label{class_switch_button_a9538e07d7085499ed95e6953defbe4b1} 
+QLabel\texorpdfstring{$\ast$}{*} Switch\+Button\+::\+\_\+labeloff = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a4127a1ce2bffc40ed33462f7e873ca56}\index{SwitchButton@{SwitchButton}!\_labelon@{\_labelon}}
+\index{\_labelon@{\_labelon}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_labelon}{\_labelon}}
+{\footnotesize\ttfamily \label{class_switch_button_a4127a1ce2bffc40ed33462f7e873ca56} 
+QLabel\texorpdfstring{$\ast$}{*} Switch\+Button\+::\+\_\+labelon = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_a2c469098e65dcc8bd9196df0035feb97}\index{SwitchButton@{SwitchButton}!\_tol@{\_tol}}
+\index{\_tol@{\_tol}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_tol}{\_tol}}
+{\footnotesize\ttfamily \label{class_switch_button_a2c469098e65dcc8bd9196df0035feb97} 
+int Switch\+Button\+::\+\_\+tol\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_switch_button_ab0002fcafa030e8a356720eb4351f791}\index{SwitchButton@{SwitchButton}!\_value@{\_value}}
+\index{\_value@{\_value}!SwitchButton@{SwitchButton}}
+\doxysubsubsection{\texorpdfstring{\_value}{\_value}}
+{\footnotesize\ttfamily \label{class_switch_button_ab0002fcafa030e8a356720eb4351f791} 
+bool Switch\+Button\+::\+\_\+value\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{switch_button_8h}{switch\+Button.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{switch_button_8cpp}{switch\+Button.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,143 @@
+\doxysection{Survey\+Maker\+Preview\+Section Class Reference}
+\hypertarget{class_survey_maker_preview_section}{}\label{class_survey_maker_preview_section}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+
+
+{\ttfamily \#include $<$survey\+Maker\+Question.\+h$>$}
+
+Inheritance diagram for Survey\+Maker\+Preview\+Section\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_survey_maker_preview_section}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_survey_maker_preview_section_a2d2432406ff73fc6bc2cea315e024b07}{edit\+Requested}} (const int page\+Num)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_preview_section_a0435fe181416fcda2a866a0e223ee2a1}{Survey\+Maker\+Preview\+Section}} (const int page\+Num, const QString \&title\+Text, const int num\+Questions, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_survey_maker_preview_section_a8640c23a7e4eeaf9afcfab701707ceb0}{add\+Widget}} (QWidget \texorpdfstring{$\ast$}{*}widget)
+\item 
+void \mbox{\hyperlink{class_survey_maker_preview_section_a36a82c4bf65621d722cd4c5c5c858d5b}{set\+Title}} (const QString \&new\+Title)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QList$<$ QSpacer\+Item \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_preview_section_a04e6a0e0d531eda5773d5d6ebf791da7}{pre\+Question\+Spacer}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_preview_section_a3353ae177a8c7e04849fd211df513a61}{question\+Label}}
+\item 
+QList$<$ QLine\+Edit \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_preview_section_a46c084d33259ac6d71b0021f62180fa6}{question\+Line\+Edit}}
+\item 
+QList$<$ QCombo\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_preview_section_a7d93a5a815de8878c157b653af0aeb9a}{question\+Combo\+Box}}
+\item 
+QList$<$ QGroup\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_preview_section_aa9426f11544822169e0e36e4894d8f3d}{question\+Group\+Box}}
+\item 
+QList$<$ QVBox\+Layout \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_preview_section_ae985760eb7799161ab4861fa1bc0ef6c}{question\+Group\+Layout}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{class_survey_maker_preview_section_ac04f43cdebdc93b68e6e5c7174e986a8}{row}} = 0
+\item 
+QGrid\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_preview_section_aae0cf994ebad5448dae8f49e20cb03ab}{layout}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_preview_section_aab2d6e3925de1c1041150c1d0a59eb3e}{title}} = nullptr
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_survey_maker_preview_section_a0435fe181416fcda2a866a0e223ee2a1}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{SurveyMakerPreviewSection()}{SurveyMakerPreviewSection()}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a0435fe181416fcda2a866a0e223ee2a1} 
+Survey\+Maker\+Preview\+Section\+::\+Survey\+Maker\+Preview\+Section (\begin{DoxyParamCaption}\item[{const int}]{page\+Num}{, }\item[{const QString \&}]{title\+Text}{, }\item[{const int}]{num\+Questions}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_survey_maker_preview_section_a8640c23a7e4eeaf9afcfab701707ceb0}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!addWidget@{addWidget}}
+\index{addWidget@{addWidget}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{addWidget()}{addWidget()}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a8640c23a7e4eeaf9afcfab701707ceb0} 
+void Survey\+Maker\+Preview\+Section\+::add\+Widget (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{widget}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_preview_section_a2d2432406ff73fc6bc2cea315e024b07}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!editRequested@{editRequested}}
+\index{editRequested@{editRequested}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{editRequested}{editRequested}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a2d2432406ff73fc6bc2cea315e024b07} 
+void Survey\+Maker\+Preview\+Section\+::edit\+Requested (\begin{DoxyParamCaption}\item[{const int}]{page\+Num}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_survey_maker_preview_section_a36a82c4bf65621d722cd4c5c5c858d5b}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!setTitle@{setTitle}}
+\index{setTitle@{setTitle}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{setTitle()}{setTitle()}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a36a82c4bf65621d722cd4c5c5c858d5b} 
+void Survey\+Maker\+Preview\+Section\+::set\+Title (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Title}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_survey_maker_preview_section_aae0cf994ebad5448dae8f49e20cb03ab}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!layout@{layout}}
+\index{layout@{layout}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{layout}{layout}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_aae0cf994ebad5448dae8f49e20cb03ab} 
+QGrid\+Layout\texorpdfstring{$\ast$}{*} Survey\+Maker\+Preview\+Section\+::layout = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_survey_maker_preview_section_a04e6a0e0d531eda5773d5d6ebf791da7}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!preQuestionSpacer@{preQuestionSpacer}}
+\index{preQuestionSpacer@{preQuestionSpacer}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{preQuestionSpacer}{preQuestionSpacer}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a04e6a0e0d531eda5773d5d6ebf791da7} 
+QList$<$QSpacer\+Item \texorpdfstring{$\ast$}{*}$>$ Survey\+Maker\+Preview\+Section\+::pre\+Question\+Spacer}
+
+\Hypertarget{class_survey_maker_preview_section_a7d93a5a815de8878c157b653af0aeb9a}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!questionComboBox@{questionComboBox}}
+\index{questionComboBox@{questionComboBox}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{questionComboBox}{questionComboBox}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a7d93a5a815de8878c157b653af0aeb9a} 
+QList$<$QCombo\+Box \texorpdfstring{$\ast$}{*}$>$ Survey\+Maker\+Preview\+Section\+::question\+Combo\+Box}
+
+\Hypertarget{class_survey_maker_preview_section_aa9426f11544822169e0e36e4894d8f3d}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!questionGroupBox@{questionGroupBox}}
+\index{questionGroupBox@{questionGroupBox}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{questionGroupBox}{questionGroupBox}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_aa9426f11544822169e0e36e4894d8f3d} 
+QList$<$QGroup\+Box \texorpdfstring{$\ast$}{*}$>$ Survey\+Maker\+Preview\+Section\+::question\+Group\+Box}
+
+\Hypertarget{class_survey_maker_preview_section_ae985760eb7799161ab4861fa1bc0ef6c}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!questionGroupLayout@{questionGroupLayout}}
+\index{questionGroupLayout@{questionGroupLayout}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{questionGroupLayout}{questionGroupLayout}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_ae985760eb7799161ab4861fa1bc0ef6c} 
+QList$<$QVBox\+Layout \texorpdfstring{$\ast$}{*}$>$ Survey\+Maker\+Preview\+Section\+::question\+Group\+Layout}
+
+\Hypertarget{class_survey_maker_preview_section_a3353ae177a8c7e04849fd211df513a61}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!questionLabel@{questionLabel}}
+\index{questionLabel@{questionLabel}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{questionLabel}{questionLabel}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a3353ae177a8c7e04849fd211df513a61} 
+QList$<$QLabel \texorpdfstring{$\ast$}{*}$>$ Survey\+Maker\+Preview\+Section\+::question\+Label}
+
+\Hypertarget{class_survey_maker_preview_section_a46c084d33259ac6d71b0021f62180fa6}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!questionLineEdit@{questionLineEdit}}
+\index{questionLineEdit@{questionLineEdit}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{questionLineEdit}{questionLineEdit}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_a46c084d33259ac6d71b0021f62180fa6} 
+QList$<$QLine\+Edit \texorpdfstring{$\ast$}{*}$>$ Survey\+Maker\+Preview\+Section\+::question\+Line\+Edit}
+
+\Hypertarget{class_survey_maker_preview_section_ac04f43cdebdc93b68e6e5c7174e986a8}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!row@{row}}
+\index{row@{row}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{row}{row}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_ac04f43cdebdc93b68e6e5c7174e986a8} 
+int Survey\+Maker\+Preview\+Section\+::row = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_survey_maker_preview_section_aab2d6e3925de1c1041150c1d0a59eb3e}\index{SurveyMakerPreviewSection@{SurveyMakerPreviewSection}!title@{title}}
+\index{title@{title}!SurveyMakerPreviewSection@{SurveyMakerPreviewSection}}
+\doxysubsubsection{\texorpdfstring{title}{title}}
+{\footnotesize\ttfamily \label{class_survey_maker_preview_section_aab2d6e3925de1c1041150c1d0a59eb3e} 
+QLabel\texorpdfstring{$\ast$}{*} Survey\+Maker\+Preview\+Section\+::title = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{survey_maker_question_8h}{survey\+Maker\+Question.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{survey_maker_question_8cpp}{survey\+Maker\+Question.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,133 @@
+\doxysection{gather\+URMResponses\+Dialog Class Reference}
+\hypertarget{classgather_u_r_m_responses_dialog}{}\label{classgather_u_r_m_responses_dialog}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+
+
+{\ttfamily \#include $<$gather\+URMResponses\+Dialog.\+h$>$}
+
+Inheritance diagram for gather\+URMResponses\+Dialog\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classgather_u_r_m_responses_dialog}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog_a9359130866d512dd6c0d48a4126b8673}{gather\+URMResponses\+Dialog}} (const QString\+List \&URMResponses, const QString\+List \&curr\+URMResponses\+Considered\+UR, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog_af4e04bb29ef977c652dcc9cd0871ed2a}{\texorpdfstring{$\sim$}{\string~}gather\+URMResponses\+Dialog}} () override=default
+\item 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog_a8a121c08282d0098c4681a76476cb544}{gather\+URMResponses\+Dialog}} (const \mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \mbox{\hyperlink{classgather_u_r_m_responses_dialog_a0f0dad0ea9868b06ad06e94cc98d8c67}{operator=}} (const \mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog_a1b2fe1fe2067ece1e8521c441c68d5fc}{gather\+URMResponses\+Dialog}} (\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&\&)=delete
+\item 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \& \mbox{\hyperlink{classgather_u_r_m_responses_dialog_ac55e9f6cd36563e04275904a1dea00dc}{operator=}} (\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&\&)=delete
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classlist_table_dialog_ac549d6aa57a2a438066ad2804314a6b0}{list\+Table\+Dialog}} (const QString \&title="{}"{}, bool hide\+Col\+Headers=true, bool stretch\+Last\+Column=true, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{classlist_table_dialog_af1083d9df31473c5d17cd265585250cb}{add\+Spacer\+Row}} (int row)
+\item 
+void \mbox{\hyperlink{classlist_table_dialog_aed52adb21f91568e781be341e4963079}{add\+Button}} (QPush\+Button \texorpdfstring{$\ast$}{*}new\+Button)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{classgather_u_r_m_responses_dialog_ac8ad91a1ab676bf83c409c6f2ff35b96}{URMResponses\+Considered\+UR}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+QGrid\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a52c540e34e8a9ca3115a2ee91d0bb786}{the\+Grid}} = nullptr
+\item 
+QTable\+Widget \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a79db1c9f7f65abc8bbff81f0f4ecd066}{the\+Table}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QList$<$ QPush\+Button \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{classgather_u_r_m_responses_dialog_a02d61a60441c14ff36f242208ca67643}{responses}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+QHBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a2e972c1da20c51728a06767f2443b62f}{button\+Layout}} = nullptr
+\item 
+QDialog\+Button\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_ad1f831af21a5ec2d9d8ec53ee83e348c}{button\+Box}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Protected Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{classlist_table_dialog_abf2f1703aac6a02c43c590ecf35236cc}{TABLEROWINGRID}} = 5
+\item 
+static const int \mbox{\hyperlink{classlist_table_dialog_a96bc700b6d7b914385e58d1823599de4}{BUTTONBOXROWINGRID}} = 9
+\item 
+static const float \mbox{\hyperlink{classlist_table_dialog_a11d6961626ff7c00209f2271359fe9be}{TABLEOVERSIZE}} = 1.\+2f
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classgather_u_r_m_responses_dialog_a9359130866d512dd6c0d48a4126b8673}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{gatherURMResponsesDialog()}{gatherURMResponsesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_a9359130866d512dd6c0d48a4126b8673} 
+gather\+URMResponses\+Dialog\+::gather\+URMResponses\+Dialog (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{URMResponses}{, }\item[{const QString\+List \&}]{curr\+URMResponses\+Considered\+UR}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+\Hypertarget{classgather_u_r_m_responses_dialog_af4e04bb29ef977c652dcc9cd0871ed2a}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!````~gatherURMResponsesDialog@{\texorpdfstring{$\sim$}{\string~}gatherURMResponsesDialog}}
+\index{````~gatherURMResponsesDialog@{\texorpdfstring{$\sim$}{\string~}gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}gatherURMResponsesDialog()}{\string~gatherURMResponsesDialog()}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_af4e04bb29ef977c652dcc9cd0871ed2a} 
+gather\+URMResponses\+Dialog\+::\texorpdfstring{$\sim$}{\string~}gather\+URMResponses\+Dialog (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [default]}}
+
+\Hypertarget{classgather_u_r_m_responses_dialog_a8a121c08282d0098c4681a76476cb544}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{gatherURMResponsesDialog()}{gatherURMResponsesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_a8a121c08282d0098c4681a76476cb544} 
+gather\+URMResponses\+Dialog\+::gather\+URMResponses\+Dialog (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classgather_u_r_m_responses_dialog_a1b2fe1fe2067ece1e8521c441c68d5fc}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{gatherURMResponsesDialog()}{gatherURMResponsesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_a1b2fe1fe2067ece1e8521c441c68d5fc} 
+gather\+URMResponses\+Dialog\+::gather\+URMResponses\+Dialog (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classgather_u_r_m_responses_dialog_a0f0dad0ea9868b06ad06e94cc98d8c67}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_a0f0dad0ea9868b06ad06e94cc98d8c67} 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} gather\+URMResponses\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classgather_u_r_m_responses_dialog_ac55e9f6cd36563e04275904a1dea00dc}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_ac55e9f6cd36563e04275904a1dea00dc} 
+\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \& gather\+URMResponses\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classgather_u_r_m_responses_dialog}{gather\+URMResponses\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classgather_u_r_m_responses_dialog_a02d61a60441c14ff36f242208ca67643}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!responses@{responses}}
+\index{responses@{responses}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{responses}{responses}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_a02d61a60441c14ff36f242208ca67643} 
+QList$<$QPush\+Button\texorpdfstring{$\ast$}{*}$>$ gather\+URMResponses\+Dialog\+::responses\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgather_u_r_m_responses_dialog_ac8ad91a1ab676bf83c409c6f2ff35b96}\index{gatherURMResponsesDialog@{gatherURMResponsesDialog}!URMResponsesConsideredUR@{URMResponsesConsideredUR}}
+\index{URMResponsesConsideredUR@{URMResponsesConsideredUR}!gatherURMResponsesDialog@{gatherURMResponsesDialog}}
+\doxysubsubsection{\texorpdfstring{URMResponsesConsideredUR}{URMResponsesConsideredUR}}
+{\footnotesize\ttfamily \label{classgather_u_r_m_responses_dialog_ac8ad91a1ab676bf83c409c6f2ff35b96} 
+QString\+List gather\+URMResponses\+Dialog\+::\+URMResponses\+Considered\+UR}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{gather_u_r_m_responses_dialog_8h}{gather\+URMResponses\+Dialog.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{gather_u_r_m_responses_dialog_8cpp}{gather\+URMResponses\+Dialog.\+cpp}}\end{DoxyCompactItemize}

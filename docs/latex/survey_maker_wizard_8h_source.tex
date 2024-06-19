@@ -1,0 +1,386 @@
+\doxysection{/\+Users/johnnyassad/\+Desktop/gruepr/survey\+Maker\+Wizard.h}
+\hypertarget{survey_maker_wizard_8h_source}{}\label{survey_maker_wizard_8h_source}\mbox{\hyperlink{survey_maker_wizard_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ SURVEYMAKERWIZARD\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ SURVEYMAKERWIZARD\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <QWizard>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <QWizardPage>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{gruepr__globals_8h}{gruepr\_globals.h}}"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{survey_8h}{survey.h}}"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{day_names_dialog_8h}{dialogs/dayNamesDialog.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{sample_questions_dialog_8h}{dialogs/sampleQuestionsDialog.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{combo_box_with_elided_contents_8h}{widgets/comboBoxWithElidedContents.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{label_that_forwards_mouse_clicks_8h}{widgets/labelThatForwardsMouseClicks.h}}"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{survey_maker_question_8h}{widgets/surveyMakerQuestion.h}}"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <QCheckBox>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <QComboBox>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <QDate>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <QFileInfo>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <QLineEdit>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <QRadioButton>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <QScrollArea>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <QSpinBox>}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\ :\ \textcolor{keyword}{public}\ QWizard}
+\DoxyCodeLine{00026\ \{}
+\DoxyCodeLine{00027\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_a07490d87a34e89f9e2bab4b93403f419}{SurveyMakerWizard}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00031\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_a7f48439ab88bf4958a2a97d4ef97a410}{\string~SurveyMakerWizard}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_a2ec99abea484d137827e8fd7e759eff4}{SurveyMakerWizard}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\ \mbox{\hyperlink{class_survey_maker_wizard_a795a8015ea4a9984de8f2642668f426d}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00034\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ad28f5b1c32c094cfda13507920e5a9d9}{SurveyMakerWizard}}(\mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00035\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\&\ \mbox{\hyperlink{class_survey_maker_wizard_a795a8015ea4a9984de8f2642668f426d}{operator=\ }}(\mbox{\hyperlink{class_survey_maker_wizard}{SurveyMakerWizard}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_survey_maker_wizard_a8de9e52674ee52058b51c69ac67a9ec0}{numPages}}\ =\ 6;}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{enum}\ \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Page}}\{\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca9b589b6763657e8cab7411b20f3dd006}{introtitle}},\ \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca8655b57e84ca1808f35bc32ea04ec3ef}{demographics}},\ \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9cab9716090d157fd900addca367f177a45}{multichoice}},\ \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca3bb20ca2e7c3dd31d0b5b43a4e3f5e72}{schedule}},\ \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca5919aad0b755bb721b4ab94c04b4719c}{courseinfo}},\ \mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9ca167d441fa467359f295ad718fede26dd}{previewexport}}\};}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QList<int>\ \mbox{\hyperlink{class_survey_maker_wizard_ae7ac3c3f719c454b7100437546f6bf60}{numOfQuestionsInPage}}\ =\ \{0,\ 5,\ \mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\_ATTRIBUTES}},\ 2,\ 3,\ 0\};}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QStringList\ \mbox{\hyperlink{class_survey_maker_wizard_a772963bf6d2edb937dd3cd7208aa0a5f}{pageNames}}\ =\ \{QObject::tr(\textcolor{stringliteral}{"{}Survey\ Name"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Demographics"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Multiple\ Choice"{}}),}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QObject::tr(\textcolor{stringliteral}{"{}Scheduling"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Course\ Info"{}}),\ QObject::tr(\textcolor{stringliteral}{"{}Preview\ \&\ Export"{}})\};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{sundayMidnight}}\ =\ QDateTime(QDate(2017,\ 1,\ 1),\ QTime(0,\ 0));}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}\ =\ QLocale::system();}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QStringList\ \mbox{\hyperlink{class_survey_maker_wizard_a4306843655f02dbe34521502ab569b67}{defaultDayNames}}\ =\ \{\mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(0),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(1),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(2),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(3),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(4),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(5),\ \textcolor{stringliteral}{"{}dddd"{}}),}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_survey_maker_wizard_ac17cbd2b890832e4bce3b237bd8bd514}{locale}}.toString(\mbox{\hyperlink{class_survey_maker_wizard_a1b5cac9dfb047022059c3cdcd47ca1ed}{SurveyMakerWizard::sundayMidnight}}.addDays(6),\ \textcolor{stringliteral}{"{}dddd"{}})\};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QStringList\ \mbox{\hyperlink{class_survey_maker_wizard_a8917efad8781c7b18bc14d634afc7c85}{timezoneNames}}\ =\ []()\{QStringList\ names\ =\ QString(\mbox{\hyperlink{gruepr__globals_8h_a7aa431c40d38e55f5b741990c24b3d74}{TIMEZONENAMES}}).split(\textcolor{stringliteral}{"{};"{}});}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keyword}{auto}\ \&name\ :\ names)\{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ name\ =\ name.remove(\textcolor{charliteral}{'"{}'}).trimmed();}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ names;\}();}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//RegEx\ for\ punctuation\ not\ allowed\ within\ a\ URL,\ and\ a\ function\ to\ handle\ problem\ cases}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QRegularExpressionValidator\ \mbox{\hyperlink{class_survey_maker_wizard_af5d6747c33be7918b83f44cfa87bd435}{noInvalidPunctuation}}\ =\ QRegularExpressionValidator(QRegularExpression(\textcolor{stringliteral}{"{}[\string^,\&<>/]*"{}}));}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_survey_maker_wizard_aa7afe0f011cfd5c35f0b72f3e8d8e4b1}{invalidExpression}}(QWidget\ *textWidget,\ QString\ \&currText,\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ QFileInfo\ \mbox{\hyperlink{class_survey_maker_wizard_a58d222c19bd117a18ef44c54980b8127}{saveFileLocation}};}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_survey_maker_wizard_aabdc7b1dcb9db9ede00c84f8462ee428}{previewPageVisited}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{public}\ slots:}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_survey_maker_wizard_a00f72d37f0707f342079da9f334409ea}{loadSurvey}}(\textcolor{keywordtype}{int}\ customButton);}
+\DoxyCodeLine{00068\ \};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_survey_maker_page}{SurveyMakerPage}}\ :\ \textcolor{keyword}{public}\ QWizardPage}
+\DoxyCodeLine{00072\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00074\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00075\ \ \ \ \ \mbox{\hyperlink{class_survey_maker_page_aaf5bff1c1f1b93444b81535c9797b8e5}{SurveyMakerPage}}(\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{SurveyMakerWizard::Page}}\ page,\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00078\ \ \ \ \ QVBoxLayout\ *\mbox{\hyperlink{class_survey_maker_page_a4b146c11ee08575c6dc5510c38da0da0}{questionLayout}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00079\ \ \ \ \ QList<SurveyMakerQuestionWithSwitch\ *>\ \mbox{\hyperlink{class_survey_maker_page_a4ea29f32f822c17c59f65efc32d42fd4}{questions}};}
+\DoxyCodeLine{00080\ \ \ \ \ QVBoxLayout\ *\mbox{\hyperlink{class_survey_maker_page_a0af53f935c042754af1fd94372541534}{previewLayout}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00081\ \ \ \ \ QList<QWidget\ *>\ \mbox{\hyperlink{class_survey_maker_page_af9319294d06e0ed468986e792514e79c}{questionPreviews}};}
+\DoxyCodeLine{00082\ \ \ \ \ QList<QVBoxLayout\ *>\ \mbox{\hyperlink{class_survey_maker_page_aa0b0ea52e25f3e81bfd86f803ff090e4}{questionPreviewLayouts}};}
+\DoxyCodeLine{00083\ \ \ \ \ QList<QLabel\ *>\ \mbox{\hyperlink{class_survey_maker_page_a928b87017580196a3744cf776533238a}{questionPreviewTopLabels}};}
+\DoxyCodeLine{00084\ \ \ \ \ QList<QLabel\ *>\ \mbox{\hyperlink{class_survey_maker_page_aa2a2b6325d3da6e41b7fc89e9894d5b3}{questionPreviewBottomLabels}};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_survey_maker_page_a922a6e5f13cf94e6133ba7525bcbcdc9}{numQuestions}};}
+\DoxyCodeLine{00088\ \ \ \ \ QGridLayout\ *\mbox{\hyperlink{class_survey_maker_page_a830735f2079c97730d211c5d778ed722}{layout}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00089\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_survey_maker_page_a5a6f690d1d0662617334b87b2ba699cb}{pageTitle}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00090\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_survey_maker_page_a4408ce2aa512fc256002d6a408a92b7a}{topLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00091\ \ \ \ \ QWidget\ *\mbox{\hyperlink{class_survey_maker_page_aa3ecd0e4724b9aae32fb8b3966f8ccd6}{questionWidget}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00092\ \ \ \ \ QScrollArea\ *\mbox{\hyperlink{class_survey_maker_page_a5d5ff73ff381a3e8e7bf34b177c31709}{questionArea}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00093\ \ \ \ \ QWidget\ *\mbox{\hyperlink{class_survey_maker_page_aa38281a291ec5b5a4cc437e4cadef884}{previewWidget}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00094\ \ \ \ \ QScrollArea\ *\mbox{\hyperlink{class_survey_maker_page_a8f48ad8f8513578546f81182e155de44}{previewArea}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00095\ \};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_intro_page}{IntroPage}}\ :\ \textcolor{keyword}{public}\ QWizardPage}
+\DoxyCodeLine{00099\ \{}
+\DoxyCodeLine{00100\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00103\ \ \ \ \ \mbox{\hyperlink{class_intro_page_af6352b014748872d39836ddd4b8c88b7}{IntroPage}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_intro_page_acb0ae419133ccd399973d290b6c2460e}{initializePage}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00108\ \ \ \ \ QGridLayout\ *\mbox{\hyperlink{class_intro_page_a308a83a8a52b6ba7f282e8ab5dae6a4c}{layout}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00109\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_intro_page_ab24457a8aca972b44b4701ded49c5add}{pageTitle}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00110\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_intro_page_a461250181129523a5fcc29cf11aec9ad}{bannerLeft}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00111\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_intro_page_a169a4a0c1700b5d481f8d3842ee240f8}{banner}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00112\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_intro_page_a975295a24fdf6b3683e1735bf98770c2}{bannerRight}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00113\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_intro_page_a8371c5393195a4f92e13961335be812a}{topLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00114\ \ \ \ \ QLineEdit\ *\mbox{\hyperlink{class_intro_page_a1989abbd28d5bba8f2ace90eb56bebdf}{surveyTitle}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00115\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_intro_page_ad28803e1a0a2d56fa5e13e79326d931a}{bottomLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00116\ \ \ \ \ QPushButton\ *\mbox{\hyperlink{class_intro_page_ac2e9ee1c4281467b9358c7b8e86d7653}{getStartedButton}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00117\ \};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_demographics_page}{DemographicsPage}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_survey_maker_page}{SurveyMakerPage}}}
+\DoxyCodeLine{00121\ \{}
+\DoxyCodeLine{00122\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00125\ \ \ \ \ \mbox{\hyperlink{class_demographics_page_a5ccf40d0259c1b3b0c87f3709fc27e10}{DemographicsPage}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8}{initializePage}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_demographics_page_a8b309d687e60ec10a750b57098c81dff}{cleanupPage}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keyword}{enum}\ \{\mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8afce227fc0693fd6fb67b8e0ba703de5b}{firstname}},\ \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8aaa9085f2eaf1d671adde70a32a9415b7}{lastname}},\ \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8a70364fdfb60c4de507c5827e396a069c}{email}},\ \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8adc88b6a73b652060074e779306c40969}{gender}},\ \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8a18923f26e2fd8bd95a940738a40e348b}{urm}}\};\ \textcolor{comment}{//\ questions\ in\ order}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ QLineEdit\ *\mbox{\hyperlink{class_demographics_page_aebfb1a2bf7c91f09ad8b504b08936134}{fn}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00134\ \ \ \ \ QLineEdit\ *\mbox{\hyperlink{class_demographics_page_a04b8e1f009b52acd7c0d0d7f3b0be05d}{ln}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00135\ \ \ \ \ QLineEdit\ *\mbox{\hyperlink{class_demographics_page_a16acc393b48285578ad676ec2f897589}{em}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00136\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_demographics_page_a0232b3890925bfc48b093d8a5ba2072c}{genderResponsesLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00137\ \ \ \ \ QComboBox\ *\mbox{\hyperlink{class_demographics_page_a2bf566a98d3878d52933685ea784f524}{genderResponsesComboBox}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00138\ \ \ \ \ QList<QRadioButton\ *>\ \mbox{\hyperlink{class_demographics_page_a47ce4b02a52b4ebf7af2c5841432d04e}{ge}};}
+\DoxyCodeLine{00139\ \ \ \ \ QLineEdit\ *\mbox{\hyperlink{class_demographics_page_a24c128e899c98f43000cdf1ba27f9df2}{re}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_demographics_page_ab11c40a592579d93fc0fa03b94239117}{update}}();}
+\DoxyCodeLine{00142\ \};}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_multiple_choice_page}{MultipleChoicePage}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_survey_maker_page}{SurveyMakerPage}}}
+\DoxyCodeLine{00146\ \{}
+\DoxyCodeLine{00147\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00148\ \ \ \ \ Q\_PROPERTY(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_multiple_choice_page_aef374e07bfd1f248332a3c72509b74f2}{numQuestions}}\ READ\ \mbox{\hyperlink{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8}{getNumQuestions}}\ WRITE\ \mbox{\hyperlink{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65}{setNumQuestions}}\ NOTIFY\ \mbox{\hyperlink{class_multiple_choice_page_ae7c23f772707b99448b61316bf3c51f0}{numQuestionsChanged}})}
+\DoxyCodeLine{00149\ \ \ \ \ Q\_PROPERTY(QList<QString>\ \mbox{\hyperlink{class_multiple_choice_page_a532c96fbc6a75f80c9b15e7787544d5f}{questionTexts}}\ READ\ \mbox{\hyperlink{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae}{getQuestionTexts}}\ WRITE\ \mbox{\hyperlink{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458}{setQuestionTexts}}\ NOTIFY\ \mbox{\hyperlink{class_multiple_choice_page_acd8da0c434b1e0f627b3f93d5dcf48d4}{questionTextsChanged}})}
+\DoxyCodeLine{00150\ \ \ \ \ Q\_PROPERTY(QList<QList<QString>>\ \mbox{\hyperlink{class_multiple_choice_page_aa11f1c723d3df22cc7c37afc7a605216}{questionResponses}}\ READ\ \mbox{\hyperlink{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0}{getQuestionResponses}}\ WRITE\ \mbox{\hyperlink{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53}{setQuestionResponses}}\ NOTIFY\ \mbox{\hyperlink{class_multiple_choice_page_a57f1177fefeef5d0a8636a001f4652eb}{questionResponsesChanged}})}
+\DoxyCodeLine{00151\ \ \ \ \ Q\_PROPERTY(QList<\textcolor{keywordtype}{bool}>\ \mbox{\hyperlink{class_multiple_choice_page_ae10676671581319caa056e3ad2354e3c}{questionMultis}}\ READ\ \mbox{\hyperlink{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d}{getQuestionMultis}}\ WRITE\ \mbox{\hyperlink{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd}{setQuestionMultis}}\ NOTIFY\ \mbox{\hyperlink{class_multiple_choice_page_a41b72bacf44f5ba188de2a25bc351b31}{questionMultisChanged}})}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ public:}
+\DoxyCodeLine{00154\ \ \ \ \ \mbox{\hyperlink{class_multiple_choice_page}{MultipleChoicePage}}(QWidget\ *parent\ =\ \textcolor{keywordtype}{nullptr});}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc}{initializePage}}()\ override;}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c}{cleanupPage}}()\ override;}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d}{validatePage}}()\ override;}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65}{setNumQuestions}}(const\ \textcolor{keywordtype}{int}\ newNumQuestions);}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8}{getNumQuestions}}()\ const;}
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458}{setQuestionTexts}}(const\ QList<QString>\ \&newQuestionTexts);}
+\DoxyCodeLine{00163\ \ \ \ \ QList<QString>\ \mbox{\hyperlink{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae}{getQuestionTexts}}()\ const;}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53}{setQuestionResponses}}(const\ QList<QList<QString>>\ \&newQuestionResponses);}
+\DoxyCodeLine{00165\ \ \ \ \ QList<QList<QString>>\ \mbox{\hyperlink{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0}{getQuestionResponses}}()\ const;}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd}{setQuestionMultis}}(const\ QList<\textcolor{keywordtype}{bool}>\ \&newQuestionMultis);}
+\DoxyCodeLine{00167\ \ \ \ \ QList<\textcolor{keywordtype}{bool}>\ \mbox{\hyperlink{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d}{getQuestionMultis}}()\ const;}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ signals:}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_ae7c23f772707b99448b61316bf3c51f0}{numQuestionsChanged}}(\textcolor{keywordtype}{int}\ newNumQuestions);}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_acd8da0c434b1e0f627b3f93d5dcf48d4}{questionTextsChanged}}(QList<QString>\ \&newQuestionTexts);}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a57f1177fefeef5d0a8636a001f4652eb}{questionResponsesChanged}}(QList<QList<QString>>\ \&newQuestionResponses);}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a41b72bacf44f5ba188de2a25bc351b31}{questionMultisChanged}}(QList<\textcolor{keywordtype}{bool}>\ \&newQuestionMultis);}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ private:}
+\DoxyCodeLine{00176\ \ \ \ \ QFrame\ *\mbox{\hyperlink{class_multiple_choice_page_a3f74f5ecdba27ed3dd33ffff1ff602a3}{sampleQuestionsFrame}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00177\ \ \ \ \ QHBoxLayout\ *\mbox{\hyperlink{class_multiple_choice_page_ae30d44872be4b7a0c0972fc1b5013339}{sampleQuestionsLayout}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00178\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_multiple_choice_page_a45a2888d5293c8b400a66112483082d4}{sampleQuestionsIcon}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00179\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_multiple_choice_page_af268eae9602f0ce40fb55492f9061229}{sampleQuestionsLabel}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00180\ \ \ \ \ QPushButton\ *\mbox{\hyperlink{class_multiple_choice_page_a4ae7d95ca96ddebde4daf2b690cd164b}{sampleQuestionsButton}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00181\ \ \ \ \ \mbox{\hyperlink{class_sample_questions_dialog}{SampleQuestionsDialog}}\ *\mbox{\hyperlink{class_multiple_choice_page_ac7a48b343055d35d2e565e7022e8c685}{sampleQuestionsDialog}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00182\ \ \ \ \ QList<\mbox{\hyperlink{class_survey_maker_multichoice_question}{SurveyMakerMultichoiceQuestion}}\ *>\ \mbox{\hyperlink{class_multiple_choice_page_abcf5636b9f564f2f485002c3d07f2600}{multichoiceQuestions}};}
+\DoxyCodeLine{00183\ \ \ \ \ QList<QSpacerItem\ *>\ \mbox{\hyperlink{class_multiple_choice_page_a64c8f219aa3cd9834442c971a2fe2c7b}{spacers}};}
+\DoxyCodeLine{00184\ \ \ \ \ QList<QFrame\ *>\ \mbox{\hyperlink{class_multiple_choice_page_ae7c0c246b69bdb1daa8ef69109599d1b}{previewSeparators}};}
+\DoxyCodeLine{00185\ \ \ \ \ QFrame\ *\mbox{\hyperlink{class_multiple_choice_page_a6fdc3dccfbba04f711386ace03413a7a}{addQuestionButtonFrame}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00186\ \ \ \ \ QHBoxLayout\ *\mbox{\hyperlink{class_multiple_choice_page_a4a4cb9b5248bc79cf1b0ddb3ac994a52}{addQuestionButtonLayout}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00187\ \ \ \ \ QPushButton\ *\mbox{\hyperlink{class_multiple_choice_page_a3c4653f20fa5f4e12f8f5cb8874813e9}{addQuestionButton}}\ =\ \textcolor{keywordtype}{nullptr};}
+\DoxyCodeLine{00188\ \ \ \ \ QStringList\ \mbox{\hyperlink{class_multiple_choice_page_a532c96fbc6a75f80c9b15e7787544d5f}{questionTexts}};}
+\DoxyCodeLine{00189\ \ \ \ \ QList<QList<QString>>\ \mbox{\hyperlink{class_multiple_choice_page_aa11f1c723d3df22cc7c37afc7a605216}{questionResponses}};}
+\DoxyCodeLine{00190\ \ \ \ \ QList<\textcolor{keywordtype}{bool}>\ \mbox{\hyperlink{class_multiple_choice_page_ae10676671581319caa056e3ad2354e3c}{questionMultis}};}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_multiple_choice_page_aef374e07bfd1f248332a3c72509b74f2}{numQuestions}}\ =\ 0;}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a76663c5928d73c145aa910fddc23d193}{addQuestion}}();}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_a9214b52542b55785d34f063fbdb671d1}{deleteAQuestion}}(\textcolor{keywordtype}{int}\ questionNum);}
+\DoxyCodeLine{00195\ \};}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ class\ \mbox{\hyperlink{class_schedule_page}{SchedulePage}}\ :\ public\ \mbox{\hyperlink{class_survey_maker_page}{SurveyMakerPage}}}
+\DoxyCodeLine{00199\ \{}
+\DoxyCodeLine{00200\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00201\ \ \ \ \ Q\_PROPERTY(QStringList\ dayNames\ READ\ getDayNames\ WRITE\ setDayNames\ NOTIFY\ dayNamesChanged)}
+\DoxyCodeLine{00202\ \ \ \ \ Q\_PROPERTY(QString\ baseTimezone\ READ\ getBaseTimezone\ WRITE\ setBaseTimezone\ NOTIFY\ baseTimezoneChanged)}
+\DoxyCodeLine{00203\ \ \ \ \ Q\_PROPERTY(QString\ scheduleQuestion\ READ\ getScheduleQuestion\ WRITE\ setScheduleQuestion\ NOTIFY\ scheduleQuestionChanged)}
+\DoxyCodeLine{00204\ \ \ \ \ Q\_PROPERTY(\textcolor{keywordtype}{float}\ scheduleFrom\ READ\ getScheduleFrom\ WRITE\ setScheduleFrom\ NOTIFY\ scheduleFromChanged)}
+\DoxyCodeLine{00205\ \ \ \ \ Q\_PROPERTY(\textcolor{keywordtype}{float}\ scheduleTo\ READ\ getScheduleTo\ WRITE\ setScheduleTo\ NOTIFY\ scheduleToChanged)}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ public:}
+\DoxyCodeLine{00208\ \ \ \ \ \mbox{\hyperlink{class_schedule_page}{SchedulePage}}(QWidget\ *parent\ =\ \textcolor{keywordtype}{nullptr});}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c}{cleanupPage}}()\ override;}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordtype}{void}\ setDayNames(const\ QStringList\ \&newDayNames);}
+\DoxyCodeLine{00213\ \ \ \ \ QStringList\ getDayNames()\ const;}
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{keywordtype}{void}\ setBaseTimezone(const\ QString\ \&newBaseTimezone);}
+\DoxyCodeLine{00215\ \ \ \ \ QString\ getBaseTimezone()\ const;}
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{keywordtype}{void}\ setScheduleQuestion(const\ QString\ \&newScheduleQuestion);}
+\DoxyCodeLine{00217\ \ \ \ \ QString\ getScheduleQuestion()\ const;}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keywordtype}{void}\ setScheduleFrom(const\ \textcolor{keywordtype}{float}\ newScheduleFrom);}
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordtype}{float}\ getScheduleFrom()\ const;}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordtype}{void}\ setScheduleTo(const\ \textcolor{keywordtype}{float}\ newScheduleTo);}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keywordtype}{float}\ getScheduleTo()\ const;}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ enum\ \mbox{\hyperlink{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e}{scheduleType}}\ \{\mbox{\hyperlink{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2ea101da87645fa61bb9ab38455bb3b6868}{busy}},\ free\};}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QList<QPair<QString,\ int>>\ resolutionValues\ =\ \{\{QObject::tr(\textcolor{stringliteral}{"{}2\ hr"{}}),\ 120/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\},}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{QObject::tr(\textcolor{stringliteral}{"{}1\ hr"{}}),\ 60/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\},}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{QObject::tr(\textcolor{stringliteral}{"{}30\ min"{}}),\ 30/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\},}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{QObject::tr(\textcolor{stringliteral}{"{}15\ min"{}}),\ 15/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\}\};\ \ \textcolor{comment}{//\ int\ value\ is\ \#\ of\ time\ blocks}}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ QList<QPair<QString,\ QString>>\ timeFormats\ =\ []()\{\textcolor{keyword}{const}\ QStringList\ formats\ =\ QString(\mbox{\hyperlink{gruepr__globals_8h_accb77374938c928676d972eb99c3b528}{TIMEFORMATS}}).split(\textcolor{charliteral}{';'});}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QStringList\ examples\ =\ QString(\mbox{\hyperlink{gruepr__globals_8h_ab1d1578f4fb14dccacd72865ed90fd93}{TIMEFORMATEXAMPLES}}).split(\textcolor{charliteral}{';'});}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QList<QPair<QString,\ QString>>\ x;}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x.reserve(formats.size());}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ formats.size();\ i++)\ \{}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x\ <<\ qMakePair(formats.at(i),\ examples.at(i));}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(x);\}();}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{keyword}{static}\ QString\ generateScheduleQuestion(\textcolor{keywordtype}{bool}\ scheduleAsBusy,\ \textcolor{keywordtype}{bool}\ timezoneOn,\ \textcolor{keyword}{const}\ QString\ \&baseTimezone);}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ signals:}
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_schedule_page_a621b7e1f9fd75946316d59ef2e5fbdcc}{dayNamesChanged}}(\textcolor{keyword}{const}\ QStringList\ \&newDayNames);}
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_schedule_page_a2583cb8dd0cbee4bf1d62715bbeb678d}{baseTimezoneChanged}}(\textcolor{keyword}{const}\ QString\ \&newBaseTimezone);}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_schedule_page_afea34ca68cbfa29f153f50e8ae684226}{scheduleQuestionChanged}}(\textcolor{keyword}{const}\ QString\ \&newScheduleQuestion);}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_schedule_page_a706efea84cc01cd963619e86da563fbc}{scheduleFromChanged}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ newScheduleFrom);}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_schedule_page_a92c22a28dd41eaf374b1543420830e05}{scheduleToChanged}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ newScheduleTo);}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{00248\ \ \ \ \ \textcolor{keywordtype}{void}\ daysComboBox\_activated(\textcolor{keywordtype}{int}\ index);}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordtype}{void}\ day\_CheckBox\_toggled(\textcolor{keywordtype}{bool}\ checked,\ QLineEdit\ *dayLineEdit,\ \textcolor{keyword}{const}\ QString\ \&dayname);}
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{keywordtype}{void}\ day\_LineEdit\_textChanged(\textcolor{keyword}{const}\ QString\ \&text,\ QLineEdit\ *dayLineEdit,\ QString\ \&dayname);}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keyword}{enum}\ \{timezone,\ schedule\};\ \textcolor{comment}{//\ questions\ in\ order}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \ \ \ \ QComboBox\ *tz\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00256\ \ \ \ \ QWidget\ *sc\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00257\ \ \ \ \ QGridLayout\ *scLayout\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00258\ \ \ \ \ QString\ scheduleQuestion;}
+\DoxyCodeLine{00259\ \ \ \ \ QLabel\ *busyOrFreeLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00260\ \ \ \ \ QComboBox\ *busyOrFreeComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00261\ \ \ \ \ QString\ baseTimezone\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{00262\ \ \ \ \ QLabel\ *baseTimezoneLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00263\ \ \ \ \ QLineEdit\ *customBaseTimezone\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00264\ \ \ \ \ \mbox{\hyperlink{class_combo_box_with_elided_contents}{ComboBoxWithElidedContents}}\ *baseTimezoneComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00265\ \ \ \ \ QStringList\ dayNames;}
+\DoxyCodeLine{00266\ \ \ \ \ \mbox{\hyperlink{classday_names_dialog}{dayNamesDialog}}\ *daysWindow\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00267\ \ \ \ \ QList<QLineEdit\ *>\ \mbox{\hyperlink{class_schedule_page_ac4c099dea2f96478204c69fcd5177169}{dayLineEdits}};}
+\DoxyCodeLine{00268\ \ \ \ \ QList<QCheckBox\ *>\ \mbox{\hyperlink{class_schedule_page_aa1ef944773b4627f6e957582d8e6556e}{dayCheckBoxes}};}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keywordtype}{void}\ checkDays();}
+\DoxyCodeLine{00270\ \ \ \ \ QLabel\ *timespanLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00271\ \ \ \ \ QComboBox\ *daysComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00272\ \ \ \ \ QLabel\ *fromLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00273\ \ \ \ \ QComboBox\ *fromComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00274\ \ \ \ \ QLabel\ *toLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00275\ \ \ \ \ QComboBox\ *toComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00276\ \ \ \ \ QLabel\ *resolutionLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00277\ \ \ \ \ QComboBox\ *resolutionComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00278\ \ \ \ \ QLabel\ *formatLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00279\ \ \ \ \ QComboBox\ *formatComboBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ DEFAULTTIMEFORMAT\ =\ 7;}
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ DEFAULTSCHEDSTARTTIME\ =\ 10;\ \ \textcolor{comment}{//10\ am}}
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ DEFAULTSCHEDENDTIME\ =\ 17;\ \ \textcolor{comment}{//5\ pm}}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ DEFAULTSCHEDRESOLUTION\ =\ 60;\ \ \textcolor{comment}{//1\ hr}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordtype}{void}\ update();}
+\DoxyCodeLine{00287\ \};}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_course_info_page}{CourseInfoPage}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_survey_maker_page}{SurveyMakerPage}}}
+\DoxyCodeLine{00291\ \{}
+\DoxyCodeLine{00292\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00293\ \ \ \ \ Q\_PROPERTY(QStringList\ sectionNames\ READ\ getSectionNames\ WRITE\ setSectionNames\ NOTIFY\ sectionNamesChanged)}
+\DoxyCodeLine{00294\ \ \ \ \ Q\_PROPERTY(QStringList\ studentNames\ READ\ getStudentNames\ WRITE\ setStudentNames\ NOTIFY\ studentNamesChanged)}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ public:}
+\DoxyCodeLine{00297\ \ \ \ \ \mbox{\hyperlink{class_course_info_page}{CourseInfoPage}}(QWidget\ *parent\ =\ \textcolor{keywordtype}{nullptr});}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keywordtype}{void}\ initializePage()\ override;}
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{keywordtype}{void}\ cleanupPage()\ override;}
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{keywordtype}{bool}\ validatePage()\ override;}
+\DoxyCodeLine{00302\ \ \ \ \ \textcolor{keywordtype}{void}\ resizeEvent(QResizeEvent\ *event)\ override;}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keywordtype}{void}\ setSectionNames(const\ QStringList\ \&newSectionNames);}
+\DoxyCodeLine{00305\ \ \ \ \ QStringList\ getSectionNames()\ const;}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordtype}{void}\ setStudentNames(const\ QStringList\ \&newStudentNames);}
+\DoxyCodeLine{00307\ \ \ \ \ QStringList\ getStudentNames()\ const;}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \ \ static\ QString\ generateTeammateQuestion(\textcolor{keywordtype}{bool}\ wantToWorkWith,\ \textcolor{keywordtype}{bool}\ typingNames,\ \textcolor{keywordtype}{int}\ numClassmates);}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ signals:}
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{keywordtype}{void}\ sectionNamesChanged(const\ QStringList\ \&newSectionNames);}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordtype}{void}\ studentNamesChanged(const\ QStringList\ \&newStudentNames);}
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ private:}
+\DoxyCodeLine{00316\ \ \ \ \ enum\ \{\mbox{\hyperlink{class_course_info_page_ae33866181248627b1b9741f8126a6463a280169cbc740189063c491693b842ad3}{section}},\ wantToWorkWith,\ wantToAvoid\};\ \textcolor{comment}{//\ questions\ in\ order}}
+\DoxyCodeLine{00317\ \ \ \ \ QList<QLineEdit\ *>\ \mbox{\hyperlink{class_course_info_page_afe8aafeed332f1d5d23fa61e1dc639e2}{sectionLineEdits}};}
+\DoxyCodeLine{00318\ \ \ \ \ QList<int>\ \mbox{\hyperlink{class_course_info_page_a140b68e9f6c3e6e9d47416fc4aab713d}{visibleSectionLineEdits}};}
+\DoxyCodeLine{00319\ \ \ \ \ QVBoxLayout\ *sectionsPreviewLayout\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00320\ \ \ \ \ QList<QRadioButton\ *>\ \mbox{\hyperlink{class_course_info_page_ae16666fab27135fb2fc5b79cb5facb2a}{sc}};}
+\DoxyCodeLine{00321\ \ \ \ \ QList<QPushButton\ *>\ \mbox{\hyperlink{class_course_info_page_ac20a6900273760e18e7026f5a2c546a2}{deleteSectionButtons}};}
+\DoxyCodeLine{00322\ \ \ \ \ QPushButton\ *addSectionButton\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ MAX\_SECTIONSEXPECTED\ =\ 10;}
+\DoxyCodeLine{00324\ \ \ \ \ QStringList\ sectionNames;}
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordtype}{int}\ numSectionsEntered\ =\ 0;}
+\DoxyCodeLine{00326\ \ \ \ \ QPlainTextEdit\ *ww\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00327\ \ \ \ \ QList<QComboBox\ *>\ \mbox{\hyperlink{class_course_info_page_a32153361600812baa9fd8233faccb849}{wwc}};}
+\DoxyCodeLine{00328\ \ \ \ \ QPlainTextEdit\ *wa\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00329\ \ \ \ \ QList<QComboBox\ *>\ \mbox{\hyperlink{class_course_info_page_a8dea50c446a290dc46c9a02963648b2f}{wac}};}
+\DoxyCodeLine{00330\ \ \ \ \ QLabel\ *numPrefTeammatesExplainer\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00331\ \ \ \ \ QSpinBox\ *numPrefTeammatesSpinBox\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordtype}{int}\ numPrefTeammates\ =\ 1;}
+\DoxyCodeLine{00333\ \ \ \ \ \mbox{\hyperlink{class_label_that_forwards_mouse_clicks}{LabelThatForwardsMouseClicks}}\ *selectFromRosterLabel\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00334\ \ \ \ \ \mbox{\hyperlink{class_switch_button}{SwitchButton}}\ *selectFromRosterSwitch\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00335\ \ \ \ \ QLabel\ *uploadExplainer\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00336\ \ \ \ \ QPushButton\ *uploadButton\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00337\ \ \ \ \ QStringList\ studentNames;}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keywordtype}{void}\ update();}
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{keywordtype}{void}\ resizeQuestionPlainTextEdit(QPlainTextEdit\ *\textcolor{keyword}{const}\ questionPlainTextEdit);}
+\DoxyCodeLine{00341\ \ \ \ \ \textcolor{keywordtype}{void}\ deleteASection(\textcolor{keywordtype}{int}\ sectionNum,\ \textcolor{keywordtype}{bool}\ pauseVisualUpdate\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00342\ \ \ \ \ \textcolor{keywordtype}{void}\ addASection(\textcolor{keywordtype}{bool}\ pauseVisualUpdate\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordtype}{bool}\ uploadRoster();}
+\DoxyCodeLine{00344\ \};}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_preview_and_export_page}{PreviewAndExportPage}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_survey_maker_page}{SurveyMakerPage}}}
+\DoxyCodeLine{00348\ \{}
+\DoxyCodeLine{00349\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00352\ \ \ \ \ \mbox{\hyperlink{class_preview_and_export_page}{PreviewAndExportPage}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \ \ \ \ \textcolor{keywordtype}{void}\ initializePage()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00355\ \ \ \ \ \textcolor{keywordtype}{void}\ cleanupPage()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{00358\ \ \ \ \ \textcolor{keywordtype}{void}\ exportSurvey();}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \ \ \ \ \textcolor{comment}{//\ Helpers\ created\ to\ make\ exportSurvey()\ method\ more\ readable:}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \ \ \textcolor{keywordtype}{void}\ exportSurveyDestinationGrueprFile();}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keywordtype}{void}\ exportSurveyDestinationTextFile();}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordtype}{void}\ exportSurveyDestinationGoogle();}
+\DoxyCodeLine{00365\ \ \ \ \ \textcolor{keywordtype}{void}\ exportSurveyDestinationCanvas();}
+\DoxyCodeLine{00366\ }
+\DoxyCodeLine{00367\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00368\ \ \ \ \ QList<SurveyMakerPreviewSection\ *>\ \mbox{\hyperlink{class_preview_and_export_page_ad3f4b9b1343be6ec3215f5c07f0734e0}{section}};}
+\DoxyCodeLine{00369\ \ \ \ \ QList<QSpacerItem\ *>\ \mbox{\hyperlink{class_preview_and_export_page_a1d449dee172a5766d05bc6982050c9b3}{preSectionSpacer}};}
+\DoxyCodeLine{00370\ \ \ \ \ QWidget\ *schedGrid\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00371\ \ \ \ \ QGridLayout\ *schedGridLayout\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00372\ \ \ \ \ \mbox{\hyperlink{class_survey}{Survey}}\ *survey\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00373\ \ \ \ \ QRadioButton\ *destinationGoogle\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00374\ \ \ \ \ QRadioButton\ *destinationCanvas\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00375\ \ \ \ \ QRadioButton\ *destinationTextFiles\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00376\ \ \ \ \ QRadioButton\ *destinationGrueprFile\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keywordtype}{bool}\ surveyHasBeenExported\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00378\ \};}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ SURVEYMAKERWIZARD\_H}}
+
+\end{DoxyCode}

@@ -1,0 +1,46 @@
+\doxysection{attribute\+Widget.\+h}
+\hypertarget{attribute_widget_8h_source}{}\label{attribute_widget_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/widgets/attributeWidget.h@{/Users/johnnyassad/Desktop/gruepr/widgets/attributeWidget.h}}
+\mbox{\hyperlink{attribute_widget_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ ATTRIBUTEWIDGET\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ ATTRIBUTEWIDGET\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{data_options_8h}{dataOptions.h}}"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{teaming_options_8h}{teamingOptions.h}}"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{switch_button_8h}{widgets/switchButton.h}}"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <QDoubleSpinBox>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_attribute_widget}{AttributeWidget}}\ :\ \textcolor{keyword}{public}\ QWidget}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ Q\_OBJECT}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_attribute_widget_ab3f4217daa4c17f2904f10897d133f94}{AttributeWidget}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_attribute_widget_aa99e10fe04a979252974ba1fecf2adca}{setValues}}(\textcolor{keywordtype}{int}\ attribute,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_data_options}{DataOptions}}\ *\textcolor{keyword}{const}\ dataOptions,\ \mbox{\hyperlink{class_teaming_options}{TeamingOptions}}\ *teamingOptions);}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_attribute_widget_a63754c583ccd872a435ef57b886f7e00}{updateQuestionAndResponses}}(\textcolor{keywordtype}{int}\ attribute,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_data_options}{DataOptions}}\ *\textcolor{keyword}{const}\ dataOptions,\ \textcolor{keyword}{const}\ std::map<QString,\ int>\ \&responseCounts=\{\});}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_attribute_widget_a91ec2b239a5fa449383bb5e81317322d}{questionLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00022\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_attribute_widget_ad7b42cc2c2b17357bbbcff33ff48305b}{responsesLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00023\ \ \ \ \ QDoubleSpinBox\ *\mbox{\hyperlink{class_attribute_widget_ac3aea4d491a9510a46fe60f231f602d8}{weight}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00024\ \ \ \ \ \mbox{\hyperlink{class_switch_button}{SwitchButton}}\ *\mbox{\hyperlink{class_attribute_widget_a9966f0e3522a5dec6bd78315c45df1c8}{homogeneous}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00025\ \ \ \ \ QPushButton\ *\mbox{\hyperlink{class_attribute_widget_a406212246289e01cb5d631bf9ccfd909}{requiredIncompatsButton}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_attribute_widget_a000e55ac9e0da72347c2fb8d436dfe65}{HOMOGENTOOLTIP}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}If\ selected,\ all\ of\ the\ students\ on\ a\ team\ will\ have\ a\ similar\ response\ to\ this\ question.\(\backslash\)n"{}}}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}If\ unselected,\ the\ students\ on\ a\ team\ will\ have\ a\ wide\ range\ of\ responses\ to\ this\ question."{}});}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_attribute_widget_a3ddc4f875be3c48f3681c9df22606bce}{REQUIREDINCOMPATTOOLTIP}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}<html>Create\ rules\ for\ required\ responses\ (each\ team\ must\ have\ at\ least\ one\ student\ with\ that\ response)<br>"{}}}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}or\ incompatible\ responses\ (values\ that\ should\ prevent\ two\ students\ from\ being\ on\ the\ same\ team).\ <br><br>"{}}}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:<ui><li>Every\ team\ should\ have\ (at\ least)\ one\ student\ who\ is\ trained\ to\ use\ the\ library\ database.</li>"{}}}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<li>Every\ team\ should\ have\ (at\ least)\ one\ student\ who\ said\ they\ want\ to\ be\ a\ team\ leader.</li>"{}}}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<li>No\ team\ should\ have\ an\ English\ major\ with\ a\ History\ major.</li>"{}}}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<li>No\ team\ should\ have\ two\ (or\ more)\ students\ who\ said\ they\ want\ to\ be\ a\ team\ leader.</li></ul></html>"{}});}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_attribute_widget_a47fdcca93725ed1b36b8f596eca4c713}{ONLYONETOOLTIP}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}With\ only\ one\ response\ value,\ this\ attribute\ cannot\ be\ used\ for\ teaming"{}});}
+\DoxyCodeLine{00038\ \};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ ATTRIBUTEWIDGET\_H}}
+
+\end{DoxyCode}

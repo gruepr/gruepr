@@ -1,0 +1,398 @@
+\doxysection{Teaming\+Options Class Reference}
+\hypertarget{class_teaming_options}{}\label{class_teaming_options}\index{TeamingOptions@{TeamingOptions}}
+
+
+{\ttfamily \#include $<$teaming\+Options.\+h$>$}
+
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7}{Section\+Type}} \{ \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7aeaa6df84a8e235a63daf4dde3b330c2f}{no\+Sections}}
+, \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7a8037634de8ddbd205bca487e1b8ebd75}{all\+Together}}
+, \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7ad0f8ed09611366b27a324150db139524}{all\+Separately}}
+, \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7a0051a10e2bac2b636723850e02f44352}{one\+Section}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_teaming_options_ab4bb81b1dcddf206e23b2a2bf6e1bc8f}{Teaming\+Options}} ()
+\item 
+\mbox{\hyperlink{class_teaming_options_aafd706c06041dbf41e30ada07951b952}{Teaming\+Options}} (const QJson\+Object \&json\+Teaming\+Options)
+\item 
+void \mbox{\hyperlink{class_teaming_options_aef30783b5aef90b2ac4a91fbd641e516}{reset}} ()
+\item 
+QJson\+Object \mbox{\hyperlink{class_teaming_options_a6fc5856ff4d0c62362aaf6fbc92b6cb6}{to\+Json}} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_teaming_options_ae1aed2503374e20a0650450664f69f68}{isolated\+Women\+Prevented}} = false
+\item 
+bool \mbox{\hyperlink{class_teaming_options_af518407b5da48123072aebe541592d45}{isolated\+Men\+Prevented}} = false
+\item 
+bool \mbox{\hyperlink{class_teaming_options_a97b57a90855c0ff68f49903b1d845264}{isolated\+Nonbinary\+Prevented}} = false
+\item 
+bool \mbox{\hyperlink{class_teaming_options_adc345587fe5ee2ee6558a1df1f0662db}{single\+Gender\+Prevented}} = false
+\item 
+bool \mbox{\hyperlink{class_teaming_options_a8306e726bf53912e4206b9252652a78f}{isolated\+URMPrevented}} = false
+\item 
+QString\+List \mbox{\hyperlink{class_teaming_options_a58e8c0279b6cda8d76958096ff970d0b}{URMResponses\+Considered\+UR}}
+\item 
+int \mbox{\hyperlink{class_teaming_options_aa3026600ac8d8685e479647bb90d89f8}{desired\+Time\+Blocks\+Overlap}} = 8
+\item 
+int \mbox{\hyperlink{class_teaming_options_a64c5aea77e615c02778ea3bfcd022bab}{min\+Time\+Blocks\+Overlap}} = 4
+\item 
+float \mbox{\hyperlink{class_teaming_options_ac3fc3c28c2bbd3750b8175cbf26bd1dc}{meeting\+Block\+Size}} = 1
+\item 
+int \mbox{\hyperlink{class_teaming_options_a64915c1165cd8e3de72b1f9cb96c34de}{real\+Meeting\+Block\+Size}} = 1
+\item 
+bool \mbox{\hyperlink{class_teaming_options_af10e365adde4f4cae09b238094f6fff6}{desire\+Homogeneous}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+float \mbox{\hyperlink{class_teaming_options_ad70ca48759f3cb5a7a95b3e6b0748e40}{attribute\+Weights}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+float \mbox{\hyperlink{class_teaming_options_a159147e9b022389c90fffc3d9b4e29bc}{real\+Attribute\+Weights}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+bool \mbox{\hyperlink{class_teaming_options_aa9cde9296c087d307bc7f35a36fc5a60}{have\+Any\+Required\+Attributes}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+QList$<$ int $>$ \mbox{\hyperlink{class_teaming_options_adc233ab9bd3c1310a958d643909541fe}{required\+Attribute\+Values}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+bool \mbox{\hyperlink{class_teaming_options_afa9a763fcf3820c5480e47dbe486233b}{have\+Any\+Incompatible\+Attributes}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+QList$<$ QPair$<$ int, int $>$ $>$ \mbox{\hyperlink{class_teaming_options_a23f5145b9f077448f819f86d1cddc4b0}{incompatible\+Attribute\+Values}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+float \mbox{\hyperlink{class_teaming_options_a261f5384b852584d48311c9e398ee231}{schedule\+Weight}} = 1
+\item 
+float \mbox{\hyperlink{class_teaming_options_ad30b8263bf7b43e782a8a749e02a3e7f}{real\+Schedule\+Weight}} = 1
+\item 
+int \mbox{\hyperlink{class_teaming_options_aeb7e3c79fdc9188d23b5727789a858f3}{real\+Num\+Scoring\+Factors}} = 1
+\item 
+bool \mbox{\hyperlink{class_teaming_options_ae43d3f018aa61747644317f2f43c442e}{have\+Any\+Required\+Teammates}} = false
+\item 
+bool \mbox{\hyperlink{class_teaming_options_a2a9e4e040466bebe3bd12cc0d9386d4f}{have\+Any\+Prevented\+Teammates}} = false
+\item 
+bool \mbox{\hyperlink{class_teaming_options_acfc584e5adc07689358ee3b40f124b13}{have\+Any\+Requested\+Teammates}} = false
+\item 
+int \mbox{\hyperlink{class_teaming_options_ae455c1264496f15301be6fa57209934f}{number\+Requested\+Teammates\+Given}} = 1
+\item 
+int \mbox{\hyperlink{class_teaming_options_a604e1790b35600251844ca3249046393}{smaller\+Teams\+Sizes}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\mbox{]} = \{0\}
+\item 
+int \mbox{\hyperlink{class_teaming_options_ae3e9b9acdece1b37de2913ae60870175}{smaller\+Teams\+Num\+Teams}} = 1
+\item 
+int \mbox{\hyperlink{class_teaming_options_a6590307e3360783dd64076187a994215}{larger\+Teams\+Sizes}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\mbox{]} = \{0\}
+\item 
+int \mbox{\hyperlink{class_teaming_options_a8aabb19e65047acb83751ccb76892c72}{larger\+Teams\+Num\+Teams}} = 1
+\item 
+int \mbox{\hyperlink{class_teaming_options_aca555f15b0cf0120a607d00ca9371352}{num\+Teams\+Desired}} = 1
+\item 
+int \mbox{\hyperlink{class_teaming_options_a88455bb84e2fcee5d6ce517597c41f0c}{team\+Sizes\+Desired}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\mbox{]} = \{0\}
+\item 
+QString \mbox{\hyperlink{class_teaming_options_ab7c8fa05db75f662a901cfcb96445a17}{section\+Name}}
+\item 
+enum \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7}{Teaming\+Options\+::\+Section\+Type}} \mbox{\hyperlink{class_teaming_options_ab83440e46405babd719b40993faf3e89}{section\+Type}} = \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7aeaa6df84a8e235a63daf4dde3b330c2f}{Section\+Type\+::no\+Sections}}
+\item 
+int \mbox{\hyperlink{class_teaming_options_ab2c45f564ccdae59a90ed9aef094d87e}{teamset\+Number}} = 1
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{class_teaming_options_afe8de61159be9368903fb1775a89f8b0}{MAXWEIGHT}} = 10
+\item 
+static const QString \mbox{\hyperlink{class_teaming_options_ab5703a9d4f25eddecde2517fd2b45c9d}{WEIGHTTOOLTIP}}
+\item 
+static const QString \mbox{\hyperlink{class_teaming_options_a01bfcf2cb3a9104cc3c78b1b82e8fd62}{SCHEDULEWEIGHTTOOLTIP}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_teaming_options_a729cc156ea664c40405872c0199421c7}\index{TeamingOptions@{TeamingOptions}!SectionType@{SectionType}}
+\index{SectionType@{SectionType}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{SectionType}{SectionType}}
+{\footnotesize\ttfamily \label{class_teaming_options_a729cc156ea664c40405872c0199421c7} 
+enum class \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7}{Teaming\+Options\+::\+Section\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{noSections@{noSections}!TeamingOptions@{TeamingOptions}}\index{TeamingOptions@{TeamingOptions}!noSections@{noSections}}}\Hypertarget{class_teaming_options_a729cc156ea664c40405872c0199421c7aeaa6df84a8e235a63daf4dde3b330c2f}\label{class_teaming_options_a729cc156ea664c40405872c0199421c7} 
+no\+Sections&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{allTogether@{allTogether}!TeamingOptions@{TeamingOptions}}\index{TeamingOptions@{TeamingOptions}!allTogether@{allTogether}}}\Hypertarget{class_teaming_options_a729cc156ea664c40405872c0199421c7a8037634de8ddbd205bca487e1b8ebd75}\label{class_teaming_options_a729cc156ea664c40405872c0199421c7} 
+all\+Together&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{allSeparately@{allSeparately}!TeamingOptions@{TeamingOptions}}\index{TeamingOptions@{TeamingOptions}!allSeparately@{allSeparately}}}\Hypertarget{class_teaming_options_a729cc156ea664c40405872c0199421c7ad0f8ed09611366b27a324150db139524}\label{class_teaming_options_a729cc156ea664c40405872c0199421c7} 
+all\+Separately&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{oneSection@{oneSection}!TeamingOptions@{TeamingOptions}}\index{TeamingOptions@{TeamingOptions}!oneSection@{oneSection}}}\Hypertarget{class_teaming_options_a729cc156ea664c40405872c0199421c7a0051a10e2bac2b636723850e02f44352}\label{class_teaming_options_a729cc156ea664c40405872c0199421c7} 
+one\+Section&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_teaming_options_ab4bb81b1dcddf206e23b2a2bf6e1bc8f}\index{TeamingOptions@{TeamingOptions}!TeamingOptions@{TeamingOptions}}
+\index{TeamingOptions@{TeamingOptions}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{TeamingOptions()}{TeamingOptions()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_teaming_options_ab4bb81b1dcddf206e23b2a2bf6e1bc8f} 
+Teaming\+Options\+::\+Teaming\+Options (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_teaming_options_aafd706c06041dbf41e30ada07951b952}\index{TeamingOptions@{TeamingOptions}!TeamingOptions@{TeamingOptions}}
+\index{TeamingOptions@{TeamingOptions}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{TeamingOptions()}{TeamingOptions()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_teaming_options_aafd706c06041dbf41e30ada07951b952} 
+Teaming\+Options\+::\+Teaming\+Options (\begin{DoxyParamCaption}\item[{const QJson\+Object \&}]{json\+Teaming\+Options}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_teaming_options_aef30783b5aef90b2ac4a91fbd641e516}\index{TeamingOptions@{TeamingOptions}!reset@{reset}}
+\index{reset@{reset}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{reset()}{reset()}}
+{\footnotesize\ttfamily \label{class_teaming_options_aef30783b5aef90b2ac4a91fbd641e516} 
+void Teaming\+Options\+::reset (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_teaming_options_a6fc5856ff4d0c62362aaf6fbc92b6cb6}\index{TeamingOptions@{TeamingOptions}!toJson@{toJson}}
+\index{toJson@{toJson}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{toJson()}{toJson()}}
+{\footnotesize\ttfamily \label{class_teaming_options_a6fc5856ff4d0c62362aaf6fbc92b6cb6} 
+QJson\+Object Teaming\+Options\+::to\+Json (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_teaming_options_ad70ca48759f3cb5a7a95b3e6b0748e40}\index{TeamingOptions@{TeamingOptions}!attributeWeights@{attributeWeights}}
+\index{attributeWeights@{attributeWeights}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{attributeWeights}{attributeWeights}}
+{\footnotesize\ttfamily \label{class_teaming_options_ad70ca48759f3cb5a7a95b3e6b0748e40} 
+float Teaming\+Options\+::attribute\+Weights\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_aa3026600ac8d8685e479647bb90d89f8}\index{TeamingOptions@{TeamingOptions}!desiredTimeBlocksOverlap@{desiredTimeBlocksOverlap}}
+\index{desiredTimeBlocksOverlap@{desiredTimeBlocksOverlap}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{desiredTimeBlocksOverlap}{desiredTimeBlocksOverlap}}
+{\footnotesize\ttfamily \label{class_teaming_options_aa3026600ac8d8685e479647bb90d89f8} 
+int Teaming\+Options\+::desired\+Time\+Blocks\+Overlap = 8}
+
+\Hypertarget{class_teaming_options_af10e365adde4f4cae09b238094f6fff6}\index{TeamingOptions@{TeamingOptions}!desireHomogeneous@{desireHomogeneous}}
+\index{desireHomogeneous@{desireHomogeneous}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{desireHomogeneous}{desireHomogeneous}}
+{\footnotesize\ttfamily \label{class_teaming_options_af10e365adde4f4cae09b238094f6fff6} 
+bool Teaming\+Options\+::desire\+Homogeneous\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_afa9a763fcf3820c5480e47dbe486233b}\index{TeamingOptions@{TeamingOptions}!haveAnyIncompatibleAttributes@{haveAnyIncompatibleAttributes}}
+\index{haveAnyIncompatibleAttributes@{haveAnyIncompatibleAttributes}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{haveAnyIncompatibleAttributes}{haveAnyIncompatibleAttributes}}
+{\footnotesize\ttfamily \label{class_teaming_options_afa9a763fcf3820c5480e47dbe486233b} 
+bool Teaming\+Options\+::have\+Any\+Incompatible\+Attributes\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_a2a9e4e040466bebe3bd12cc0d9386d4f}\index{TeamingOptions@{TeamingOptions}!haveAnyPreventedTeammates@{haveAnyPreventedTeammates}}
+\index{haveAnyPreventedTeammates@{haveAnyPreventedTeammates}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{haveAnyPreventedTeammates}{haveAnyPreventedTeammates}}
+{\footnotesize\ttfamily \label{class_teaming_options_a2a9e4e040466bebe3bd12cc0d9386d4f} 
+bool Teaming\+Options\+::have\+Any\+Prevented\+Teammates = false}
+
+\Hypertarget{class_teaming_options_acfc584e5adc07689358ee3b40f124b13}\index{TeamingOptions@{TeamingOptions}!haveAnyRequestedTeammates@{haveAnyRequestedTeammates}}
+\index{haveAnyRequestedTeammates@{haveAnyRequestedTeammates}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{haveAnyRequestedTeammates}{haveAnyRequestedTeammates}}
+{\footnotesize\ttfamily \label{class_teaming_options_acfc584e5adc07689358ee3b40f124b13} 
+bool Teaming\+Options\+::have\+Any\+Requested\+Teammates = false}
+
+\Hypertarget{class_teaming_options_aa9cde9296c087d307bc7f35a36fc5a60}\index{TeamingOptions@{TeamingOptions}!haveAnyRequiredAttributes@{haveAnyRequiredAttributes}}
+\index{haveAnyRequiredAttributes@{haveAnyRequiredAttributes}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{haveAnyRequiredAttributes}{haveAnyRequiredAttributes}}
+{\footnotesize\ttfamily \label{class_teaming_options_aa9cde9296c087d307bc7f35a36fc5a60} 
+bool Teaming\+Options\+::have\+Any\+Required\+Attributes\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_ae43d3f018aa61747644317f2f43c442e}\index{TeamingOptions@{TeamingOptions}!haveAnyRequiredTeammates@{haveAnyRequiredTeammates}}
+\index{haveAnyRequiredTeammates@{haveAnyRequiredTeammates}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{haveAnyRequiredTeammates}{haveAnyRequiredTeammates}}
+{\footnotesize\ttfamily \label{class_teaming_options_ae43d3f018aa61747644317f2f43c442e} 
+bool Teaming\+Options\+::have\+Any\+Required\+Teammates = false}
+
+\Hypertarget{class_teaming_options_a23f5145b9f077448f819f86d1cddc4b0}\index{TeamingOptions@{TeamingOptions}!incompatibleAttributeValues@{incompatibleAttributeValues}}
+\index{incompatibleAttributeValues@{incompatibleAttributeValues}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{incompatibleAttributeValues}{incompatibleAttributeValues}}
+{\footnotesize\ttfamily \label{class_teaming_options_a23f5145b9f077448f819f86d1cddc4b0} 
+QList$<$ QPair$<$int,int$>$ $>$ Teaming\+Options\+::incompatible\+Attribute\+Values\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_af518407b5da48123072aebe541592d45}\index{TeamingOptions@{TeamingOptions}!isolatedMenPrevented@{isolatedMenPrevented}}
+\index{isolatedMenPrevented@{isolatedMenPrevented}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{isolatedMenPrevented}{isolatedMenPrevented}}
+{\footnotesize\ttfamily \label{class_teaming_options_af518407b5da48123072aebe541592d45} 
+bool Teaming\+Options\+::isolated\+Men\+Prevented = false}
+
+\Hypertarget{class_teaming_options_a97b57a90855c0ff68f49903b1d845264}\index{TeamingOptions@{TeamingOptions}!isolatedNonbinaryPrevented@{isolatedNonbinaryPrevented}}
+\index{isolatedNonbinaryPrevented@{isolatedNonbinaryPrevented}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{isolatedNonbinaryPrevented}{isolatedNonbinaryPrevented}}
+{\footnotesize\ttfamily \label{class_teaming_options_a97b57a90855c0ff68f49903b1d845264} 
+bool Teaming\+Options\+::isolated\+Nonbinary\+Prevented = false}
+
+\Hypertarget{class_teaming_options_a8306e726bf53912e4206b9252652a78f}\index{TeamingOptions@{TeamingOptions}!isolatedURMPrevented@{isolatedURMPrevented}}
+\index{isolatedURMPrevented@{isolatedURMPrevented}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{isolatedURMPrevented}{isolatedURMPrevented}}
+{\footnotesize\ttfamily \label{class_teaming_options_a8306e726bf53912e4206b9252652a78f} 
+bool Teaming\+Options\+::isolated\+URMPrevented = false}
+
+\Hypertarget{class_teaming_options_ae1aed2503374e20a0650450664f69f68}\index{TeamingOptions@{TeamingOptions}!isolatedWomenPrevented@{isolatedWomenPrevented}}
+\index{isolatedWomenPrevented@{isolatedWomenPrevented}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{isolatedWomenPrevented}{isolatedWomenPrevented}}
+{\footnotesize\ttfamily \label{class_teaming_options_ae1aed2503374e20a0650450664f69f68} 
+bool Teaming\+Options\+::isolated\+Women\+Prevented = false}
+
+\Hypertarget{class_teaming_options_a8aabb19e65047acb83751ccb76892c72}\index{TeamingOptions@{TeamingOptions}!largerTeamsNumTeams@{largerTeamsNumTeams}}
+\index{largerTeamsNumTeams@{largerTeamsNumTeams}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{largerTeamsNumTeams}{largerTeamsNumTeams}}
+{\footnotesize\ttfamily \label{class_teaming_options_a8aabb19e65047acb83751ccb76892c72} 
+int Teaming\+Options\+::larger\+Teams\+Num\+Teams = 1}
+
+\Hypertarget{class_teaming_options_a6590307e3360783dd64076187a994215}\index{TeamingOptions@{TeamingOptions}!largerTeamsSizes@{largerTeamsSizes}}
+\index{largerTeamsSizes@{largerTeamsSizes}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{largerTeamsSizes}{largerTeamsSizes}}
+{\footnotesize\ttfamily \label{class_teaming_options_a6590307e3360783dd64076187a994215} 
+int Teaming\+Options\+::larger\+Teams\+Sizes\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\mbox{]} = \{0\}}
+
+\Hypertarget{class_teaming_options_afe8de61159be9368903fb1775a89f8b0}\index{TeamingOptions@{TeamingOptions}!MAXWEIGHT@{MAXWEIGHT}}
+\index{MAXWEIGHT@{MAXWEIGHT}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{MAXWEIGHT}{MAXWEIGHT}}
+{\footnotesize\ttfamily \label{class_teaming_options_afe8de61159be9368903fb1775a89f8b0} 
+const int Teaming\+Options\+::\+MAXWEIGHT = 10\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_teaming_options_ac3fc3c28c2bbd3750b8175cbf26bd1dc}\index{TeamingOptions@{TeamingOptions}!meetingBlockSize@{meetingBlockSize}}
+\index{meetingBlockSize@{meetingBlockSize}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{meetingBlockSize}{meetingBlockSize}}
+{\footnotesize\ttfamily \label{class_teaming_options_ac3fc3c28c2bbd3750b8175cbf26bd1dc} 
+float Teaming\+Options\+::meeting\+Block\+Size = 1}
+
+\Hypertarget{class_teaming_options_a64c5aea77e615c02778ea3bfcd022bab}\index{TeamingOptions@{TeamingOptions}!minTimeBlocksOverlap@{minTimeBlocksOverlap}}
+\index{minTimeBlocksOverlap@{minTimeBlocksOverlap}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{minTimeBlocksOverlap}{minTimeBlocksOverlap}}
+{\footnotesize\ttfamily \label{class_teaming_options_a64c5aea77e615c02778ea3bfcd022bab} 
+int Teaming\+Options\+::min\+Time\+Blocks\+Overlap = 4}
+
+\Hypertarget{class_teaming_options_ae455c1264496f15301be6fa57209934f}\index{TeamingOptions@{TeamingOptions}!numberRequestedTeammatesGiven@{numberRequestedTeammatesGiven}}
+\index{numberRequestedTeammatesGiven@{numberRequestedTeammatesGiven}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{numberRequestedTeammatesGiven}{numberRequestedTeammatesGiven}}
+{\footnotesize\ttfamily \label{class_teaming_options_ae455c1264496f15301be6fa57209934f} 
+int Teaming\+Options\+::number\+Requested\+Teammates\+Given = 1}
+
+\Hypertarget{class_teaming_options_aca555f15b0cf0120a607d00ca9371352}\index{TeamingOptions@{TeamingOptions}!numTeamsDesired@{numTeamsDesired}}
+\index{numTeamsDesired@{numTeamsDesired}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{numTeamsDesired}{numTeamsDesired}}
+{\footnotesize\ttfamily \label{class_teaming_options_aca555f15b0cf0120a607d00ca9371352} 
+int Teaming\+Options\+::num\+Teams\+Desired = 1}
+
+\Hypertarget{class_teaming_options_a159147e9b022389c90fffc3d9b4e29bc}\index{TeamingOptions@{TeamingOptions}!realAttributeWeights@{realAttributeWeights}}
+\index{realAttributeWeights@{realAttributeWeights}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{realAttributeWeights}{realAttributeWeights}}
+{\footnotesize\ttfamily \label{class_teaming_options_a159147e9b022389c90fffc3d9b4e29bc} 
+float Teaming\+Options\+::real\+Attribute\+Weights\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_a64915c1165cd8e3de72b1f9cb96c34de}\index{TeamingOptions@{TeamingOptions}!realMeetingBlockSize@{realMeetingBlockSize}}
+\index{realMeetingBlockSize@{realMeetingBlockSize}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{realMeetingBlockSize}{realMeetingBlockSize}}
+{\footnotesize\ttfamily \label{class_teaming_options_a64915c1165cd8e3de72b1f9cb96c34de} 
+int Teaming\+Options\+::real\+Meeting\+Block\+Size = 1}
+
+\Hypertarget{class_teaming_options_aeb7e3c79fdc9188d23b5727789a858f3}\index{TeamingOptions@{TeamingOptions}!realNumScoringFactors@{realNumScoringFactors}}
+\index{realNumScoringFactors@{realNumScoringFactors}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{realNumScoringFactors}{realNumScoringFactors}}
+{\footnotesize\ttfamily \label{class_teaming_options_aeb7e3c79fdc9188d23b5727789a858f3} 
+int Teaming\+Options\+::real\+Num\+Scoring\+Factors = 1}
+
+\Hypertarget{class_teaming_options_ad30b8263bf7b43e782a8a749e02a3e7f}\index{TeamingOptions@{TeamingOptions}!realScheduleWeight@{realScheduleWeight}}
+\index{realScheduleWeight@{realScheduleWeight}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{realScheduleWeight}{realScheduleWeight}}
+{\footnotesize\ttfamily \label{class_teaming_options_ad30b8263bf7b43e782a8a749e02a3e7f} 
+float Teaming\+Options\+::real\+Schedule\+Weight = 1}
+
+\Hypertarget{class_teaming_options_adc233ab9bd3c1310a958d643909541fe}\index{TeamingOptions@{TeamingOptions}!requiredAttributeValues@{requiredAttributeValues}}
+\index{requiredAttributeValues@{requiredAttributeValues}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{requiredAttributeValues}{requiredAttributeValues}}
+{\footnotesize\ttfamily \label{class_teaming_options_adc233ab9bd3c1310a958d643909541fe} 
+QList$<$int$>$ Teaming\+Options\+::required\+Attribute\+Values\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_teaming_options_a261f5384b852584d48311c9e398ee231}\index{TeamingOptions@{TeamingOptions}!scheduleWeight@{scheduleWeight}}
+\index{scheduleWeight@{scheduleWeight}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{scheduleWeight}{scheduleWeight}}
+{\footnotesize\ttfamily \label{class_teaming_options_a261f5384b852584d48311c9e398ee231} 
+float Teaming\+Options\+::schedule\+Weight = 1}
+
+\Hypertarget{class_teaming_options_a01bfcf2cb3a9104cc3c78b1b82e8fd62}\index{TeamingOptions@{TeamingOptions}!SCHEDULEWEIGHTTOOLTIP@{SCHEDULEWEIGHTTOOLTIP}}
+\index{SCHEDULEWEIGHTTOOLTIP@{SCHEDULEWEIGHTTOOLTIP}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{SCHEDULEWEIGHTTOOLTIP}{SCHEDULEWEIGHTTOOLTIP}}
+{\footnotesize\ttfamily \label{class_teaming_options_a01bfcf2cb3a9104cc3c78b1b82e8fd62} 
+const QString Teaming\+Options\+::\+SCHEDULEWEIGHTTOOLTIP\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \textcolor{stringliteral}{"{}<html>"{}}\ +\ QObject::tr(\textcolor{stringliteral}{"{}The\ relative\ importance\ of\ the\ schedule\ in\ forming\ the\ teams.\ The\ range\ is\ from\ 0\ to\ "{}})\ +}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QString::number(\mbox{\hyperlink{class_teaming_options_afe8de61159be9368903fb1775a89f8b0}{TeamingOptions::MAXWEIGHT}})\ +\ \textcolor{stringliteral}{"{}.</html>"{}}}
+
+\end{DoxyCode}
+\Hypertarget{class_teaming_options_ab7c8fa05db75f662a901cfcb96445a17}\index{TeamingOptions@{TeamingOptions}!sectionName@{sectionName}}
+\index{sectionName@{sectionName}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{sectionName}{sectionName}}
+{\footnotesize\ttfamily \label{class_teaming_options_ab7c8fa05db75f662a901cfcb96445a17} 
+QString Teaming\+Options\+::section\+Name}
+
+\Hypertarget{class_teaming_options_ab83440e46405babd719b40993faf3e89}\index{TeamingOptions@{TeamingOptions}!sectionType@{sectionType}}
+\index{sectionType@{sectionType}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{sectionType}{sectionType}}
+{\footnotesize\ttfamily \label{class_teaming_options_ab83440e46405babd719b40993faf3e89} 
+enum \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7}{Teaming\+Options\+::\+Section\+Type}} Teaming\+Options\+::section\+Type = \mbox{\hyperlink{class_teaming_options_a729cc156ea664c40405872c0199421c7aeaa6df84a8e235a63daf4dde3b330c2f}{Section\+Type\+::no\+Sections}}}
+
+\Hypertarget{class_teaming_options_adc345587fe5ee2ee6558a1df1f0662db}\index{TeamingOptions@{TeamingOptions}!singleGenderPrevented@{singleGenderPrevented}}
+\index{singleGenderPrevented@{singleGenderPrevented}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{singleGenderPrevented}{singleGenderPrevented}}
+{\footnotesize\ttfamily \label{class_teaming_options_adc345587fe5ee2ee6558a1df1f0662db} 
+bool Teaming\+Options\+::single\+Gender\+Prevented = false}
+
+\Hypertarget{class_teaming_options_ae3e9b9acdece1b37de2913ae60870175}\index{TeamingOptions@{TeamingOptions}!smallerTeamsNumTeams@{smallerTeamsNumTeams}}
+\index{smallerTeamsNumTeams@{smallerTeamsNumTeams}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{smallerTeamsNumTeams}{smallerTeamsNumTeams}}
+{\footnotesize\ttfamily \label{class_teaming_options_ae3e9b9acdece1b37de2913ae60870175} 
+int Teaming\+Options\+::smaller\+Teams\+Num\+Teams = 1}
+
+\Hypertarget{class_teaming_options_a604e1790b35600251844ca3249046393}\index{TeamingOptions@{TeamingOptions}!smallerTeamsSizes@{smallerTeamsSizes}}
+\index{smallerTeamsSizes@{smallerTeamsSizes}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{smallerTeamsSizes}{smallerTeamsSizes}}
+{\footnotesize\ttfamily \label{class_teaming_options_a604e1790b35600251844ca3249046393} 
+int Teaming\+Options\+::smaller\+Teams\+Sizes\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\mbox{]} = \{0\}}
+
+\Hypertarget{class_teaming_options_ab2c45f564ccdae59a90ed9aef094d87e}\index{TeamingOptions@{TeamingOptions}!teamsetNumber@{teamsetNumber}}
+\index{teamsetNumber@{teamsetNumber}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{teamsetNumber}{teamsetNumber}}
+{\footnotesize\ttfamily \label{class_teaming_options_ab2c45f564ccdae59a90ed9aef094d87e} 
+int Teaming\+Options\+::teamset\+Number = 1}
+
+\Hypertarget{class_teaming_options_a88455bb84e2fcee5d6ce517597c41f0c}\index{TeamingOptions@{TeamingOptions}!teamSizesDesired@{teamSizesDesired}}
+\index{teamSizesDesired@{teamSizesDesired}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{teamSizesDesired}{teamSizesDesired}}
+{\footnotesize\ttfamily \label{class_teaming_options_a88455bb84e2fcee5d6ce517597c41f0c} 
+int Teaming\+Options\+::team\+Sizes\+Desired\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\mbox{]} = \{0\}}
+
+\Hypertarget{class_teaming_options_a58e8c0279b6cda8d76958096ff970d0b}\index{TeamingOptions@{TeamingOptions}!URMResponsesConsideredUR@{URMResponsesConsideredUR}}
+\index{URMResponsesConsideredUR@{URMResponsesConsideredUR}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{URMResponsesConsideredUR}{URMResponsesConsideredUR}}
+{\footnotesize\ttfamily \label{class_teaming_options_a58e8c0279b6cda8d76958096ff970d0b} 
+QString\+List Teaming\+Options\+::\+URMResponses\+Considered\+UR}
+
+\Hypertarget{class_teaming_options_ab5703a9d4f25eddecde2517fd2b45c9d}\index{TeamingOptions@{TeamingOptions}!WEIGHTTOOLTIP@{WEIGHTTOOLTIP}}
+\index{WEIGHTTOOLTIP@{WEIGHTTOOLTIP}!TeamingOptions@{TeamingOptions}}
+\doxysubsubsection{\texorpdfstring{WEIGHTTOOLTIP}{WEIGHTTOOLTIP}}
+{\footnotesize\ttfamily \label{class_teaming_options_ab5703a9d4f25eddecde2517fd2b45c9d} 
+const QString Teaming\+Options\+::\+WEIGHTTOOLTIP\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \textcolor{stringliteral}{"{}<html>"{}}\ +\ QObject::tr(\textcolor{stringliteral}{"{}The\ relative\ importance\ of\ this\ question\ in\ forming\ the\ teams.\ The\ range\ is\ from\ 0\ to\ "{}})\ +}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QString::number(\mbox{\hyperlink{class_teaming_options_afe8de61159be9368903fb1775a89f8b0}{TeamingOptions::MAXWEIGHT}})\ +\ \textcolor{stringliteral}{"{}.</html>"{}}}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{teaming_options_8h}{teaming\+Options.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{teaming_options_8cpp}{teaming\+Options.\+cpp}}\end{DoxyCompactItemize}

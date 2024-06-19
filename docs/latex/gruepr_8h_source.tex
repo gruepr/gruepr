@@ -1,0 +1,126 @@
+\doxysection{/\+Users/johnnyassad/\+Desktop/gruepr/gruepr.h}
+\hypertarget{gruepr_8h_source}{}\label{gruepr_8h_source}\mbox{\hyperlink{gruepr_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ GRUEPR\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ GRUEPR\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <QMainWindow>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{csvfile_8h}{csvfile.h}}"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{data_options_8h}{dataOptions.h}}"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{progress_dialog_8h}{dialogs/progressDialog.h}}"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{gruepr__globals_8h}{gruepr\_globals.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{student_record_8h}{studentRecord.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{team_record_8h}{teamRecord.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{teaming_options_8h}{teamingOptions.h}}"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{attribute_widget_8h}{widgets/attributeWidget.h}}"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{boxwhiskerplot_8h}{widgets/boxwhiskerplot.h}}"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <QFuture>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <QFutureWatcher>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <QPrinter>}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespace_ui}{Ui}}\ \{\textcolor{keyword}{class\ }\mbox{\hyperlink{classgruepr}{gruepr}};\}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classgruepr}{gruepr}}\ :\ \textcolor{keyword}{public}\ QMainWindow}
+\DoxyCodeLine{00023\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classgruepr_aa32d5bae94ad32f2290e0cc4a904727a}{gruepr}}(\mbox{\hyperlink{class_data_options}{DataOptions}}\ \&\mbox{\hyperlink{classgruepr_a3b4765af8bf76d64bad7fbd8edab5548}{dataOptions}},\ QList<StudentRecord>\ \&\mbox{\hyperlink{classgruepr_a9a1d08b204bc773359378efdaeb94b9a}{students}},\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00028\ \ \ \ \ \mbox{\hyperlink{classgruepr_a9dedf820b19325d0ffed5011980b8038}{\string~gruepr}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00029\ \ \ \ \ \mbox{\hyperlink{classgruepr_a80bb883a42213414f2f2523d99e73dc1}{gruepr}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgruepr}{gruepr}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{classgruepr}{gruepr}}\ \mbox{\hyperlink{classgruepr_a0d34435057ffe16fa5a4845b06774127}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgruepr}{gruepr}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00031\ \ \ \ \ \mbox{\hyperlink{classgruepr_a63dcb22f111311f740ed32b00bae6011}{gruepr}}(\mbox{\hyperlink{classgruepr}{gruepr}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{classgruepr}{gruepr}}\&\ \mbox{\hyperlink{classgruepr_a0d34435057ffe16fa5a4845b06774127}{operator=\ }}(\mbox{\hyperlink{classgruepr}{gruepr}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_acac8cd1e648f7c93aa622a012a599212}{calcTeamScores}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_student_record}{StudentRecord}}\ *\textcolor{keyword}{const}\ \_student,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \_numStudents,\ \mbox{\hyperlink{class_team_record}{TeamRecord}}\ *\textcolor{keyword}{const}\ \_teams,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \_numTeams,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_teaming_options}{TeamingOptions}}\ *\textcolor{keyword}{const}\ \_teamingOptions,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_data_options}{DataOptions}}\ *\textcolor{keyword}{const}\ \_dataOptions);}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classgruepr_a86b04497b9a913d1f391e3a324e56eac}{restartRequested}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_aa9dcace6268738db8d5e9ea3c3c251fd}{MAINWINDOWPADDING}}\ =\ 20;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ pixels\ of\ padding\ in\ buttons\ and\ above\ status\ message}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_aec4ec5797042432e64741770041be493}{MAINWINDOWFONT}}\ =\ 8;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ increase\ in\ font\ size\ for\ main\ window\ text}}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_a7d06e1c5675df150ce985ddf6a316247}{MAINWINDOWBUTTONFONT}}\ =\ 4;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ increase\ in\ font\ size\ for\ main\ window\ button\ text}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ signals:}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a38bd084bb910f1b6683c1a69d389042a}{closed}}();}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a6771d0949cf1c5ecbaec2c395750f8d3}{generationComplete}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ *\textcolor{keyword}{const}\ allScores,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ *\textcolor{keyword}{const}\ orderedIndex,}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ generation,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ scoreStability,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ unpenalizedGenomePresent);}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a2f1a5e5b3e75fd02d1b3b93b55ab505f}{sectionOptimizationFullyComplete}}();}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a296836a4b612ee7e88d4d8e0e999789c}{turnOffBusyCursor}}();}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a327a28e4c1977ddba71cf5b11bc94ea5}{closeEvent}}(QCloseEvent\ *event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_ac27f0da94335c8951620f93eee5852bf}{restartWithNewData}}();}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a32e6de6e8fb9377853ab2ff09d16bf2a}{changeSection}}(\textcolor{keywordtype}{int}\ index);}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a2404c1a2a5035b7f10da2ffbad0f45a8}{editAStudent}}();}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_aec91794a099aed8755ab66b58a1830c6}{removeAStudent}}(\textcolor{keyword}{const}\ QString\ \&name,\ \textcolor{keywordtype}{bool}\ delayVisualUpdate);}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_aec91794a099aed8755ab66b58a1830c6}{removeAStudent}}(\textcolor{keywordtype}{int}\ index,\ \textcolor{keywordtype}{bool}\ delayVisualUpdate);}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a9ad55c4aca7f009ae8c50ebd3f248fe2}{addAStudent}}();}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a8c543b665e3fbd4ce6716d4a2eccfbd6}{compareStudentsToRoster}}();}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a19a513e5e6f199f46f6458d678481523}{rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable}}();}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a93914b18a09b7758aea526c01e18674e}{simpleUIItemUpdate}}(QObject\ *sender\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a3350bc51cd54d37c5617d63ae4785ed2}{selectURMResponses}}();}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a68178ff187051f60aee795a4ec71f66a}{responsesRulesButton\_clicked}}();}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_af01022dbb8f00339c7070a12e3398c0b}{changeIdealTeamSize}}();}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a84794fa7956d6b041d024f6b12c26071}{chooseTeamSizes}}(\textcolor{keywordtype}{int}\ index);}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a7975209f94ace8557d8c083b81a33e9d}{makeTeammatesRules}}();}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a95de4288b021d7383bb79c00e64f7e76}{startOptimization}}();}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a6620c27ac5081efa8e82dd539e2d0c6f}{updateOptimizationProgress}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ *\textcolor{keyword}{const}\ allScores,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ *\textcolor{keyword}{const}\ orderedIndex,}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ generation,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ scoreStability,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ unpenalizedGenomePresent);}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a8c0a463bf673364d32814233d6e1ef59}{optimizationComplete}}();}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a4807638bf649701a6802f3809ffa4c59}{dataDisplayTabClose}}(\textcolor{keywordtype}{int}\ closingTabIndex);}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a4912ed723ea49027cc0a83160a9ff6f8}{editDataDisplayTabName}}(\textcolor{keywordtype}{int}\ tabIndex);}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_ab917902d6433054bb8b8cf440f512db4}{saveState}}();}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ setup}}
+\DoxyCodeLine{00078\ \ \ \ \ Ui::gruepr\ *\mbox{\hyperlink{classgruepr_a2c0d984df63ed58b975ebaf8fa3e72bc}{ui}};}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_ac5d255c35a1c51d7eda5cc11023f3209}{loadDefaultSettings}}();}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a304c4e4d73d8abad98248144394047b5}{loadUI}}();}
+\DoxyCodeLine{00081\ \ \ \ \ \mbox{\hyperlink{class_data_options}{DataOptions}}\ *\mbox{\hyperlink{classgruepr_a3b4765af8bf76d64bad7fbd8edab5548}{dataOptions}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00082\ \ \ \ \ \mbox{\hyperlink{class_teaming_options}{TeamingOptions}}\ *\mbox{\hyperlink{classgruepr_a09f12d8703bcdc04b625cffc02f28293}{teamingOptions}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_aba32bc577e27b2260c919b71a1044776}{numTeams}}\ =\ 1;}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a31cc538f1a1bfc69c82e4393b24028e4}{setTeamSizes}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ teamSizes[]);}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_a31cc538f1a1bfc69c82e4393b24028e4}{setTeamSizes}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ singleSize);}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{inline}\ QString\ \mbox{\hyperlink{classgruepr_afde825335a9d0001fd1ecc5d5a8c567c}{writeTeamSizeOption}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ numTeamsA,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ teamsizeA,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ numTeamsB,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ teamsizeB);}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ reading\ survey\ data}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_ad233ac0e5b68631eb0b4bb11e58e1e97}{numActiveStudents}}\ =\ \mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\_STUDENTS}};}
+\DoxyCodeLine{00090\ \ \ \ \ QList<StudentRecord>\ \mbox{\hyperlink{classgruepr_a9a1d08b204bc773359378efdaeb94b9a}{students}};}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classgruepr_aed49894e05ffc55591b5e1788b4b6c03}{loadRosterData}}(\mbox{\hyperlink{class_csv_file}{CsvFile}}\ \&rosterFile,\ QStringList\ \&names,\ QStringList\ \&emails);\ \ \ \textcolor{comment}{//\ returns\ false\ if\ file\ is\ invalid;\ checks\ survey\ names\ and\ emails\ against\ roster}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_aa2b56492f7727827ce2388c94d4333af}{refreshStudentDisplay}}();}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_abb0fd9166bb16b688474d83f981c4548}{prevSortColumn}}\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ column\ sorting\ the\ student\ table,\ used\ when\ trying\ to\ sort\ by\ edit\ info\ or\ remove\ student\ column}}
+\DoxyCodeLine{00094\ \ \ \ \ Qt::SortOrder\ \mbox{\hyperlink{classgruepr_a0def414b02a25a79a4b570b0a20a7ca5}{prevSortOrder}}\ =\ Qt::AscendingOrder;\ \ \ \textcolor{comment}{//\ order\ of\ sorting\ the\ student\ table,\ used\ when\ trying\ to\ sort\ by\ edit\ info\ or\ remove\ student\ column}}
+\DoxyCodeLine{00095\ \ \ \ \ QList<QPushButton\ *>\ \mbox{\hyperlink{classgruepr_a217297ddc5d8e91320aac79a736d06b0}{attributeSelectorButtons}};}
+\DoxyCodeLine{00096\ \ \ \ \ QList<AttributeWidget\ *>\ \mbox{\hyperlink{classgruepr_acd0474bfc3a6b086a289b22a83c09adf}{attributeWidgets}};}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ team\ set\ optimization}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{int}\ *\mbox{\hyperlink{classgruepr_a0bab885b14c8479788003d1ac6172abd}{studentIndexes}}\ =\ \textcolor{keyword}{nullptr};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ array\ of\ the\ indexes\ of\ students\ to\ be\ placed\ on\ teams}}
+\DoxyCodeLine{00100\ \ \ \ \ QList<int>\ \mbox{\hyperlink{classgruepr_a1387f629c2411d2c0edb8ab7bcda0f26}{optimizeTeams}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ *\textcolor{keyword}{const}\ \mbox{\hyperlink{classgruepr_a0bab885b14c8479788003d1ac6172abd}{studentIndexes}});\ \ \ \ \textcolor{comment}{//\ return\ value\ is\ a\ single\ permutation-\/of-\/indexes}}
+\DoxyCodeLine{00101\ \ \ \ \ QFuture<\ QList<int>\ >\ \mbox{\hyperlink{classgruepr_a6e4d61928cb8fbbb4bd3300cb6cdf861}{future}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ needed\ so\ that\ optimization\ can\ happen\ in\ a\ separate\ thread}}
+\DoxyCodeLine{00102\ \ \ \ \ QFutureWatcher<\ QList<int>\ >\ \mbox{\hyperlink{classgruepr_a51d265b51c29f5b28ba751ed46fc72b0}{futureWatcher}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ used\ for\ signaling\ of\ optimization\ completion}}
+\DoxyCodeLine{00103\ \ \ \ \ \mbox{\hyperlink{class_box_whisker_plot}{BoxWhiskerPlot}}\ *\mbox{\hyperlink{classgruepr_aa61046797c97959be6003ae0cab1f2cc}{progressChart}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00104\ \ \ \ \ \mbox{\hyperlink{classprogress_dialog}{progressDialog}}\ *\mbox{\hyperlink{classgruepr_a35ecbda62a2ecc1d3ac3fa7d8084a056}{progressWindow}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{classgruepr_a9086302c8f1b399c2cd99c12e72034b4}{getGenomeScore}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_student_record}{StudentRecord}}\ *\textcolor{keyword}{const}\ \_student,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \_teammates[],\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \_numTeams,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \_teamSizes[],}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_teaming_options}{TeamingOptions}}\ *\textcolor{keyword}{const}\ \_teamingOptions,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{class_data_options}{DataOptions}}\ *\textcolor{keyword}{const}\ \_dataOptions,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ \_teamScores[],\ \textcolor{keywordtype}{float}\ **\_attributeScore,\ \textcolor{keywordtype}{float}\ *\_schedScore,\ \textcolor{keywordtype}{bool}\ **\_availabilityChart,\ \textcolor{keywordtype}{int}\ *\_penaltyPoints);}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{classgruepr_a683f560bca038c4643d415e30134c594}{teamSetScore}}\ =\ 0;}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classgruepr_a61d1e2d7c313c1fa637ef4e60b32d37a}{finalGeneration}}\ =\ 1;}
+\DoxyCodeLine{00110\ \ \ \ \ QMutex\ \mbox{\hyperlink{classgruepr_ad0a566d20d9e0efcee342538dd86e9d0}{optimizationStoppedmutex}};}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classgruepr_a9b3e5ed6a7fbd56430363c44bb7844cb}{multipleSectionsInProgress}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classgruepr_aff23428092fb4424908daed3b24b4f55}{optimizationStopped}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classgruepr_a7f3d3ff938882bfa1f67abe637bc5a76}{keepOptimizing}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ reporting\ results}}
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{class_team_set}{TeamSet}}\ \mbox{\hyperlink{classgruepr_ae2573d5ddb9ec879d09f54fac5e19dea}{teams}};}
+\DoxyCodeLine{00117\ \ \ \ \ QList<int>\ \mbox{\hyperlink{classgruepr_ab7fa946b1d852bdd29e69c55e1b7626b}{bestTeamSet}};}
+\DoxyCodeLine{00118\ \ \ \ \ \mbox{\hyperlink{class_team_set}{TeamSet}}\ \mbox{\hyperlink{classgruepr_ab2794f9188b15ec47f9b626cdb6de0ef}{finalTeams}};}
+\DoxyCodeLine{00119\ \};}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ GRUEPR\_H}}
+
+\end{DoxyCode}

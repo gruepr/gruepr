@@ -1,0 +1,118 @@
+\doxysection{switch\+Button.\+h}
+\hypertarget{switch_button_8h_source}{}\label{switch_button_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/widgets/switchButton.h@{/Users/johnnyassad/Desktop/gruepr/widgets/switchButton.h}}
+\mbox{\hyperlink{switch_button_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ SWITCHBUTTON\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ SWITCHBUTTON\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#if\ (defined\ (Q\_OS\_WIN)\ ||\ defined\ (Q\_OS\_WIN32)\ ||\ defined\ (Q\_OS\_WIN64))}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <QParallelAnimationGroup>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <QPropertyAnimation>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <QWidget>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_switch_button}{SwitchButton}}\ :\ \textcolor{keyword}{public}\ QWidget}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keyword}{enum\ class}\ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}{Style}}\ \{\mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3ab65fb774a8fa1be0cb90703ba26c95b5}{YESNO}},\ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3a56bb4a0d6f80963b8625fb039071dd62}{ONOFF}},\ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3aa97b2c144243b2b9d2c593ec268b62f5}{BOOL}},\ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3aba2b45bdc11e2a4a6e86aab2ac693cbb}{EMPTY}}\};}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_switch_button_ad896866a231296de39dfd16823e72c45}{SwitchButton}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr},\ \textcolor{keywordtype}{bool}\ startingValue\ =\ \textcolor{keyword}{false},\ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3}{Style}}\ style\ =\ \mbox{\hyperlink{class_switch_button_a9d3cd8cfd493836e8dbfc14ebe3165c3ab65fb774a8fa1be0cb90703ba26c95b5}{Style::YESNO}});}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_switch_button_a99be4045aaab62c68fd9a8f72723521d}{SwitchButton}}(\textcolor{keywordtype}{bool}\ startingValue\ =\ \textcolor{keyword}{false})\ :\ \mbox{\hyperlink{class_switch_button}{SwitchButton}}(nullptr,\ startingValue)\ \{\};}
+\DoxyCodeLine{00019\ \ \ \ \ \mbox{\hyperlink{class_switch_button_ad73235bdc80d002ab86748eeeb0193c8}{\string~SwitchButton}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00020\ \ \ \ \ \mbox{\hyperlink{class_switch_button_a60e4cd5acd81fc07b033f4f225662bfd}{SwitchButton}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_switch_button}{SwitchButton}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00021\ \ \ \ \ \mbox{\hyperlink{class_switch_button}{SwitchButton}}\ \mbox{\hyperlink{class_switch_button_a86c7f95edd735f79e195a776d00ad877}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_switch_button}{SwitchButton}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00022\ \ \ \ \ \mbox{\hyperlink{class_switch_button_a411d80b2b4266e7dc2b752b4fa45f2f5}{SwitchButton}}(\mbox{\hyperlink{class_switch_button}{SwitchButton}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{class_switch_button}{SwitchButton}}\&\ \mbox{\hyperlink{class_switch_button_a86c7f95edd735f79e195a776d00ad877}{operator=\ }}(\mbox{\hyperlink{class_switch_button}{SwitchButton}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{comment}{//-\/-\/\ QWidget\ methods}}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_a01041c9a93a7698ae240c89797033119}{mousePressEvent}}(QMouseEvent*\ event\ =\ \textcolor{keyword}{nullptr})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_a535c3a1076c73e6956c38b2417327e1e}{paintEvent}}(QPaintEvent*\ event\ =\ \textcolor{keyword}{nullptr})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_a0bde46fddf0f957d00e88b525106b0e9}{setEnabled}}(\textcolor{keywordtype}{bool});}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{comment}{//-\/-\/\ Setters}}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_a4e34f71a73f1b5cb74380a1885e1a5f6}{setValue}}(\textcolor{keywordtype}{bool});}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{comment}{//-\/-\/\ Getters}}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_switch_button_aed35032468242e154aeac35d2fa97598}{value}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ signals:}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_ab286732844aa8fc9614ba0e25cc63f5a}{valueChanged}}(\textcolor{keywordtype}{bool}\ newvalue);}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}};}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}};}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_a5acc97ad3555fac0761c933cad8a9401}{\_update}}();}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_switch_button_ab0002fcafa030e8a356720eb4351f791}{\_value}};}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \mbox{\hyperlink{class_switch_button_a8dd50be1d6cbe7abdbaf71a2b4e8a71a}{\_duration}};}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ QColor\ \mbox{\hyperlink{class_switch_button_a8edec04f19ee21f562c19ed28edfb5d6}{\_bordercolor}};}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \mbox{\hyperlink{class_switch_button_a2c469098e65dcc8bd9196df0035feb97}{\_tol}};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ This\ order\ for\ definition\ is\ important\ (these\ widgets\ overlap)}}
+\DoxyCodeLine{00052\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}*\ \mbox{\hyperlink{class_switch_button_a00adf8c31e7371c9dd44b04bf3773622}{\_background}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00053\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_a9538e07d7085499ed95e6953defbe4b1}{\_labeloff}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00054\ \ \ \ \ QLabel*\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_a4127a1ce2bffc40ed33462f7e873ca56}{\_labelon}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}*\ \ \ \ \ \mbox{\hyperlink{class_switch_button_a0be2b988a82b99da54ae3365241a1468}{\_circle}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_switch_button_a7f93b3ebf9ec2c5bfadd4a5c00cee79e}{\_enabled}};}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#if\ (defined\ (Q\_OS\_WIN)\ ||\ defined\ (Q\_OS\_WIN32)\ ||\ defined\ (Q\_OS\_WIN64))}}
+\DoxyCodeLine{00060\ \ \ \ \ QPropertyAnimation*\ \_\_btn\_move\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00061\ \ \ \ \ QPropertyAnimation*\ \_\_back\_resize\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00062\ \ \ \ \ QParallelAnimationGroup\ *\_\_animationGroup\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00064\ \};}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchButton::SwitchBackground}}\ :\ \textcolor{keyword}{public}\ QWidget}
+\DoxyCodeLine{00067\ \{}
+\DoxyCodeLine{00068\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background_a345d357e82b9dacfccd0a15907131b7d}{SwitchBackground}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00072\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background_abcfe90f93ef87b0525f781aa49c56c64}{\string~SwitchBackground}}()\ \textcolor{keyword}{override}\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00073\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background_af170c42400da2d2e4acc894579344156}{SwitchBackground}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00074\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background_a138fa461c0c05eeb28d9641aa32c7f0a}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00075\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background_addd32f260a38dea05c89b8e0ac42151b}{SwitchBackground}}(\mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00076\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}\&\ \mbox{\hyperlink{class_switch_button_1_1_switch_background_a138fa461c0c05eeb28d9641aa32c7f0a}{operator=\ }}(\mbox{\hyperlink{class_switch_button_1_1_switch_background}{SwitchBackground}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{comment}{//-\/-\/\ QWidget\ methods}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background_aa04871fa25357664ac096b066e6329eb}{paintEvent}}(QPaintEvent*\ event\ =\ \textcolor{keyword}{nullptr})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background_a7eae7c05b0deaa861662ac3c7acb24f1}{setEnabled}}(\textcolor{keywordtype}{bool});}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00083\ \ \ \ \ QColor\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background_ad2ed2efa09cf9053698270907efb7625}{\_bluebrush}};}
+\DoxyCodeLine{00084\ \ \ \ \ QColor\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_background_a044afcce0ac409f533b5ffdcfbdf4ae0}{\_graybrush}};}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_switch_button_1_1_switch_background_a36863268161413c70b8182f941ae9ee4}{\_enabled}};}
+\DoxyCodeLine{00086\ \};}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchButton::SwitchCircle}}\ :\ \textcolor{keyword}{public}\ QWidget}
+\DoxyCodeLine{00090\ \{}
+\DoxyCodeLine{00091\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a046c1a6588cd3cbf5ce7b890e19ef1bc}{SwitchCircle}}(QWidget*\ parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a010d403305ac5406cf8448b536b48b96}{\string~SwitchCircle}}()\ \textcolor{keyword}{override}\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a0ae04e6c6bf7c1a34802757b51c73682}{SwitchCircle}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_ad4c5baf58cb099a10f663aa3d6d295f2}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00098\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_ad3c9958f55e06ab209dc3aabee1c6a1c}{SwitchCircle}}(\mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00099\ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}\&\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_ad4c5baf58cb099a10f663aa3d6d295f2}{operator=\ }}(\mbox{\hyperlink{class_switch_button_1_1_switch_circle}{SwitchCircle}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{comment}{//-\/-\/\ QWidget\ methods}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a727e40d03b66585ac8dd040dbf4d5fc6}{paintEvent}}(QPaintEvent*\ event\ =\ \textcolor{keyword}{nullptr})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a96504f5babe5598ad046feb30225bbef}{setEnabled}}(\textcolor{keywordtype}{bool});}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00106\ \ \ \ \ QColor\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a703bf112fd9bb8709ba8189bbba43064}{\_bluebrush}};}
+\DoxyCodeLine{00107\ \ \ \ \ QColor\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_a15f7cf894e1dd702c570c3203a9c664b}{\_whitebrush}};}
+\DoxyCodeLine{00108\ \ \ \ \ QColor\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_ace8789963827dc6a49456ce6de4f3b62}{\_graybrush}};}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_switch_button_1_1_switch_circle_af1df14926f185d7a489720e7493aa1ac}{\_enabled}};}
+\DoxyCodeLine{00110\ \};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ SWITCHBUTTON\_H}}
+
+\end{DoxyCode}

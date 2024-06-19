@@ -1,0 +1,140 @@
+\doxysection{Attribute\+Widget Class Reference}
+\hypertarget{class_attribute_widget}{}\label{class_attribute_widget}\index{AttributeWidget@{AttributeWidget}}
+
+
+{\ttfamily \#include $<$attribute\+Widget.\+h$>$}
+
+Inheritance diagram for Attribute\+Widget\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_attribute_widget}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_attribute_widget_ab3f4217daa4c17f2904f10897d133f94}{Attribute\+Widget}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_attribute_widget_aa99e10fe04a979252974ba1fecf2adca}{set\+Values}} (int attribute, const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const data\+Options, \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*}teaming\+Options)
+\item 
+void \mbox{\hyperlink{class_attribute_widget_a63754c583ccd872a435ef57b886f7e00}{update\+Question\+And\+Responses}} (int attribute, const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const data\+Options, const std\+::map$<$ QString, int $>$ \&response\+Counts=\{\})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_attribute_widget_a91ec2b239a5fa449383bb5e81317322d}{question\+Label}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_attribute_widget_ad7b42cc2c2b17357bbbcff33ff48305b}{responses\+Label}} = nullptr
+\item 
+QDouble\+Spin\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_attribute_widget_ac3aea4d491a9510a46fe60f231f602d8}{weight}} = nullptr
+\item 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_attribute_widget_a9966f0e3522a5dec6bd78315c45df1c8}{homogeneous}} = nullptr
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_attribute_widget_a406212246289e01cb5d631bf9ccfd909}{required\+Incompats\+Button}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const QString \mbox{\hyperlink{class_attribute_widget_a000e55ac9e0da72347c2fb8d436dfe65}{HOMOGENTOOLTIP}}
+\item 
+static const QString \mbox{\hyperlink{class_attribute_widget_a3ddc4f875be3c48f3681c9df22606bce}{REQUIREDINCOMPATTOOLTIP}}
+\item 
+static const QString \mbox{\hyperlink{class_attribute_widget_a47fdcca93725ed1b36b8f596eca4c713}{ONLYONETOOLTIP}} = QObject\+::tr("{}With only one response value, this attribute cannot be used \mbox{\hyperlink{googlehandler_8cpp_a2e0cd065577ff2a8182ae5e9a859107f}{for}} teaming"{})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_attribute_widget_ab3f4217daa4c17f2904f10897d133f94}\index{AttributeWidget@{AttributeWidget}!AttributeWidget@{AttributeWidget}}
+\index{AttributeWidget@{AttributeWidget}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{AttributeWidget()}{AttributeWidget()}}
+{\footnotesize\ttfamily \label{class_attribute_widget_ab3f4217daa4c17f2904f10897d133f94} 
+Attribute\+Widget\+::\+Attribute\+Widget (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_attribute_widget_aa99e10fe04a979252974ba1fecf2adca}\index{AttributeWidget@{AttributeWidget}!setValues@{setValues}}
+\index{setValues@{setValues}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{setValues()}{setValues()}}
+{\footnotesize\ttfamily \label{class_attribute_widget_aa99e10fe04a979252974ba1fecf2adca} 
+void Attribute\+Widget\+::set\+Values (\begin{DoxyParamCaption}\item[{int}]{attribute}{, }\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const}]{data\+Options}{, }\item[{\mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*}}]{teaming\+Options}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_attribute_widget_a63754c583ccd872a435ef57b886f7e00}\index{AttributeWidget@{AttributeWidget}!updateQuestionAndResponses@{updateQuestionAndResponses}}
+\index{updateQuestionAndResponses@{updateQuestionAndResponses}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{updateQuestionAndResponses()}{updateQuestionAndResponses()}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a63754c583ccd872a435ef57b886f7e00} 
+void Attribute\+Widget\+::update\+Question\+And\+Responses (\begin{DoxyParamCaption}\item[{int}]{attribute}{, }\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const}]{data\+Options}{, }\item[{const std\+::map$<$ QString, int $>$ \&}]{response\+Counts}{ = {\ttfamily \{\}}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_attribute_widget_a9966f0e3522a5dec6bd78315c45df1c8}\index{AttributeWidget@{AttributeWidget}!homogeneous@{homogeneous}}
+\index{homogeneous@{homogeneous}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{homogeneous}{homogeneous}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a9966f0e3522a5dec6bd78315c45df1c8} 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}}\texorpdfstring{$\ast$}{*} Attribute\+Widget\+::homogeneous = nullptr}
+
+\Hypertarget{class_attribute_widget_a000e55ac9e0da72347c2fb8d436dfe65}\index{AttributeWidget@{AttributeWidget}!HOMOGENTOOLTIP@{HOMOGENTOOLTIP}}
+\index{HOMOGENTOOLTIP@{HOMOGENTOOLTIP}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{HOMOGENTOOLTIP}{HOMOGENTOOLTIP}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a000e55ac9e0da72347c2fb8d436dfe65} 
+const QString Attribute\+Widget\+::\+HOMOGENTOOLTIP\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ QObject::tr(\textcolor{stringliteral}{"{}If\ selected,\ all\ of\ the\ students\ on\ a\ team\ will\ have\ a\ similar\ response\ to\ this\ question.\(\backslash\)n"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}If\ unselected,\ the\ students\ on\ a\ team\ will\ have\ a\ wide\ range\ of\ responses\ to\ this\ question."{}})}
+
+\end{DoxyCode}
+\Hypertarget{class_attribute_widget_a47fdcca93725ed1b36b8f596eca4c713}\index{AttributeWidget@{AttributeWidget}!ONLYONETOOLTIP@{ONLYONETOOLTIP}}
+\index{ONLYONETOOLTIP@{ONLYONETOOLTIP}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{ONLYONETOOLTIP}{ONLYONETOOLTIP}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a47fdcca93725ed1b36b8f596eca4c713} 
+const QString Attribute\+Widget\+::\+ONLYONETOOLTIP = QObject\+::tr("{}With only one response value, this attribute cannot be used \mbox{\hyperlink{googlehandler_8cpp_a2e0cd065577ff2a8182ae5e9a859107f}{for}} teaming"{})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_attribute_widget_a91ec2b239a5fa449383bb5e81317322d}\index{AttributeWidget@{AttributeWidget}!questionLabel@{questionLabel}}
+\index{questionLabel@{questionLabel}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{questionLabel}{questionLabel}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a91ec2b239a5fa449383bb5e81317322d} 
+QLabel\texorpdfstring{$\ast$}{*} Attribute\+Widget\+::question\+Label = nullptr}
+
+\Hypertarget{class_attribute_widget_a406212246289e01cb5d631bf9ccfd909}\index{AttributeWidget@{AttributeWidget}!requiredIncompatsButton@{requiredIncompatsButton}}
+\index{requiredIncompatsButton@{requiredIncompatsButton}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{requiredIncompatsButton}{requiredIncompatsButton}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a406212246289e01cb5d631bf9ccfd909} 
+QPush\+Button\texorpdfstring{$\ast$}{*} Attribute\+Widget\+::required\+Incompats\+Button = nullptr}
+
+\Hypertarget{class_attribute_widget_a3ddc4f875be3c48f3681c9df22606bce}\index{AttributeWidget@{AttributeWidget}!REQUIREDINCOMPATTOOLTIP@{REQUIREDINCOMPATTOOLTIP}}
+\index{REQUIREDINCOMPATTOOLTIP@{REQUIREDINCOMPATTOOLTIP}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{REQUIREDINCOMPATTOOLTIP}{REQUIREDINCOMPATTOOLTIP}}
+{\footnotesize\ttfamily \label{class_attribute_widget_a3ddc4f875be3c48f3681c9df22606bce} 
+const QString Attribute\+Widget\+::\+REQUIREDINCOMPATTOOLTIP\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ QObject::tr(\textcolor{stringliteral}{"{}<html>Create\ rules\ for\ required\ responses\ (each\ team\ must\ have\ at\ least\ one\ student\ with\ that\ response)<br>"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}or\ incompatible\ responses\ (values\ that\ should\ prevent\ two\ students\ from\ being\ on\ the\ same\ team).\ <br><br>"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Examples:<ui><li>Every\ team\ should\ have\ (at\ least)\ one\ student\ who\ is\ trained\ to\ use\ the\ library\ database.</li>"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<li>Every\ team\ should\ have\ (at\ least)\ one\ student\ who\ said\ they\ want\ to\ be\ a\ team\ leader.</li>"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<li>No\ team\ should\ have\ an\ English\ major\ with\ a\ History\ major.</li>"{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}<li>No\ team\ should\ have\ two\ (or\ more)\ students\ who\ said\ they\ want\ to\ be\ a\ team\ leader.</li></ul></html>"{}})}
+
+\end{DoxyCode}
+\Hypertarget{class_attribute_widget_ad7b42cc2c2b17357bbbcff33ff48305b}\index{AttributeWidget@{AttributeWidget}!responsesLabel@{responsesLabel}}
+\index{responsesLabel@{responsesLabel}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{responsesLabel}{responsesLabel}}
+{\footnotesize\ttfamily \label{class_attribute_widget_ad7b42cc2c2b17357bbbcff33ff48305b} 
+QLabel\texorpdfstring{$\ast$}{*} Attribute\+Widget\+::responses\+Label = nullptr}
+
+\Hypertarget{class_attribute_widget_ac3aea4d491a9510a46fe60f231f602d8}\index{AttributeWidget@{AttributeWidget}!weight@{weight}}
+\index{weight@{weight}!AttributeWidget@{AttributeWidget}}
+\doxysubsubsection{\texorpdfstring{weight}{weight}}
+{\footnotesize\ttfamily \label{class_attribute_widget_ac3aea4d491a9510a46fe60f231f602d8} 
+QDouble\+Spin\+Box\texorpdfstring{$\ast$}{*} Attribute\+Widget\+::weight = nullptr}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{attribute_widget_8h}{attribute\+Widget.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{attribute_widget_8cpp}{attribute\+Widget.\+cpp}}\end{DoxyCompactItemize}

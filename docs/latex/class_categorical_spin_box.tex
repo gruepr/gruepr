@@ -1,0 +1,134 @@
+\doxysection{Categorical\+Spin\+Box Class Reference}
+\hypertarget{class_categorical_spin_box}{}\label{class_categorical_spin_box}\index{CategoricalSpinBox@{CategoricalSpinBox}}
+
+
+{\ttfamily \#include $<$categorical\+Spin\+Box.\+h$>$}
+
+Inheritance diagram for Categorical\+Spin\+Box\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_categorical_spin_box}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}{type\+Of\+Value}} \{ \mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974ae66bc0f01715822f3248b8c4153ea594}{letter}}
+, \mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974a4039abd002f72292ff30cd7899acca8d}{numerical}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_categorical_spin_box_a785f4f18c72fabfe62b1a65902503457}{Categorical\+Spin\+Box}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_categorical_spin_box_a59011a630bccefd912a3a955fefea681}{set\+What\+Type\+Of\+Value}} (\mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}{type\+Of\+Value}} t\+OV)
+\item 
+void \mbox{\hyperlink{class_categorical_spin_box_a46e0ff68ce7cc64653b160bcb104ef04}{set\+Categorical\+Values}} (const QString\+List \&\mbox{\hyperlink{class_categorical_spin_box_ae91611e8d45207bd03f469ff7bf9463a}{categorical\+Values}})
+\item 
+QString \mbox{\hyperlink{class_categorical_spin_box_a57a6dbae954592f53f8966222bccfc6c}{text\+From\+Value}} (int value) const
+\item 
+int \mbox{\hyperlink{class_categorical_spin_box_a43aa1c53e464ed226eee9905704eb445}{value\+From\+Text}} (const QString \&text) const
+\item 
+QValidator\+::\+State \mbox{\hyperlink{class_categorical_spin_box_a125537a71e9390e920aaaf3ec02ee6b5}{validate}} (QString \&input, int \&pos) const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_categorical_spin_box_a99a6a703d815104e4745d8c2d8dd416c}{step\+By}} (int steps)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{class_categorical_spin_box_ae91611e8d45207bd03f469ff7bf9463a}{categorical\+Values}}
+\item 
+\mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}{type\+Of\+Value}} \mbox{\hyperlink{class_categorical_spin_box_a0e82cbacd85b535a859626d6a1e01c46}{what\+Type\+Of\+Value}} = \mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974ae66bc0f01715822f3248b8c4153ea594}{letter}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}\index{CategoricalSpinBox@{CategoricalSpinBox}!typeOfValue@{typeOfValue}}
+\index{typeOfValue@{typeOfValue}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{typeOfValue}{typeOfValue}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974} 
+enum \mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}{Categorical\+Spin\+Box\+::type\+Of\+Value}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{letter@{letter}!CategoricalSpinBox@{CategoricalSpinBox}}\index{CategoricalSpinBox@{CategoricalSpinBox}!letter@{letter}}}\Hypertarget{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974ae66bc0f01715822f3248b8c4153ea594}\label{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974} 
+letter&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{numerical@{numerical}!CategoricalSpinBox@{CategoricalSpinBox}}\index{CategoricalSpinBox@{CategoricalSpinBox}!numerical@{numerical}}}\Hypertarget{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974a4039abd002f72292ff30cd7899acca8d}\label{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974} 
+numerical&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_categorical_spin_box_a785f4f18c72fabfe62b1a65902503457}\index{CategoricalSpinBox@{CategoricalSpinBox}!CategoricalSpinBox@{CategoricalSpinBox}}
+\index{CategoricalSpinBox@{CategoricalSpinBox}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{CategoricalSpinBox()}{CategoricalSpinBox()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a785f4f18c72fabfe62b1a65902503457} 
+Categorical\+Spin\+Box\+::\+Categorical\+Spin\+Box (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_categorical_spin_box_a46e0ff68ce7cc64653b160bcb104ef04}\index{CategoricalSpinBox@{CategoricalSpinBox}!setCategoricalValues@{setCategoricalValues}}
+\index{setCategoricalValues@{setCategoricalValues}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{setCategoricalValues()}{setCategoricalValues()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a46e0ff68ce7cc64653b160bcb104ef04} 
+void Categorical\+Spin\+Box\+::set\+Categorical\+Values (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{categorical\+Values}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_categorical_spin_box_a59011a630bccefd912a3a955fefea681}\index{CategoricalSpinBox@{CategoricalSpinBox}!setWhatTypeOfValue@{setWhatTypeOfValue}}
+\index{setWhatTypeOfValue@{setWhatTypeOfValue}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{setWhatTypeOfValue()}{setWhatTypeOfValue()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a59011a630bccefd912a3a955fefea681} 
+void Categorical\+Spin\+Box\+::set\+What\+Type\+Of\+Value (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}{type\+Of\+Value}}}]{t\+OV}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{class_categorical_spin_box_a99a6a703d815104e4745d8c2d8dd416c}\index{CategoricalSpinBox@{CategoricalSpinBox}!stepBy@{stepBy}}
+\index{stepBy@{stepBy}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{stepBy()}{stepBy()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a99a6a703d815104e4745d8c2d8dd416c} 
+void Categorical\+Spin\+Box\+::step\+By (\begin{DoxyParamCaption}\item[{int}]{steps}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_categorical_spin_box_a57a6dbae954592f53f8966222bccfc6c}\index{CategoricalSpinBox@{CategoricalSpinBox}!textFromValue@{textFromValue}}
+\index{textFromValue@{textFromValue}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{textFromValue()}{textFromValue()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a57a6dbae954592f53f8966222bccfc6c} 
+QString Categorical\+Spin\+Box\+::text\+From\+Value (\begin{DoxyParamCaption}\item[{int}]{value}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_categorical_spin_box_a125537a71e9390e920aaaf3ec02ee6b5}\index{CategoricalSpinBox@{CategoricalSpinBox}!validate@{validate}}
+\index{validate@{validate}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{validate()}{validate()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a125537a71e9390e920aaaf3ec02ee6b5} 
+QValidator\+::\+State Categorical\+Spin\+Box\+::validate (\begin{DoxyParamCaption}\item[{QString \&}]{input}{, }\item[{int \&}]{pos}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_categorical_spin_box_a43aa1c53e464ed226eee9905704eb445}\index{CategoricalSpinBox@{CategoricalSpinBox}!valueFromText@{valueFromText}}
+\index{valueFromText@{valueFromText}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{valueFromText()}{valueFromText()}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a43aa1c53e464ed226eee9905704eb445} 
+int Categorical\+Spin\+Box\+::value\+From\+Text (\begin{DoxyParamCaption}\item[{const QString \&}]{text}{}\end{DoxyParamCaption}) const}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_categorical_spin_box_ae91611e8d45207bd03f469ff7bf9463a}\index{CategoricalSpinBox@{CategoricalSpinBox}!categoricalValues@{categoricalValues}}
+\index{categoricalValues@{categoricalValues}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{categoricalValues}{categoricalValues}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_ae91611e8d45207bd03f469ff7bf9463a} 
+QString\+List Categorical\+Spin\+Box\+::categorical\+Values\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_categorical_spin_box_a0e82cbacd85b535a859626d6a1e01c46}\index{CategoricalSpinBox@{CategoricalSpinBox}!whatTypeOfValue@{whatTypeOfValue}}
+\index{whatTypeOfValue@{whatTypeOfValue}!CategoricalSpinBox@{CategoricalSpinBox}}
+\doxysubsubsection{\texorpdfstring{whatTypeOfValue}{whatTypeOfValue}}
+{\footnotesize\ttfamily \label{class_categorical_spin_box_a0e82cbacd85b535a859626d6a1e01c46} 
+\mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974}{type\+Of\+Value}} Categorical\+Spin\+Box\+::what\+Type\+Of\+Value = \mbox{\hyperlink{class_categorical_spin_box_a8923f0932ac8f73d04578d44f772a974ae66bc0f01715822f3248b8c4153ea594}{letter}}\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{categorical_spin_box_8h}{categorical\+Spin\+Box.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{categorical_spin_box_8cpp}{categorical\+Spin\+Box.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,131 @@
+\doxysection{Sortable\+Table\+Widget\+Item Class Reference}
+\hypertarget{class_sortable_table_widget_item}{}\label{class_sortable_table_widget_item}\index{SortableTableWidgetItem@{SortableTableWidgetItem}}
+
+
+{\ttfamily \#include $<$sortable\+Table\+Widget\+Item.\+h$>$}
+
+Inheritance diagram for Sortable\+Table\+Widget\+Item\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_sortable_table_widget_item}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}{Sort\+Type}} \{ \mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16adfeaaeb4316477bd556ea5e8c3295887}{datetime}}
+, \mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16aee424cbeb821c9331ceec38995106e5c}{alphanumeric}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item_a9954ed3ff1e8cfcaf77278ee0f57993e}{Sortable\+Table\+Widget\+Item}} (const \mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}{Sort\+Type}} \mbox{\hyperlink{class_sortable_table_widget_item_ad8546e3ddf93734a677581ba4492df5e}{sort\+Type}}, const QString \&txt="{}"{})
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item_a66caa5ffdde59ba60ef2b01101b4a650}{\texorpdfstring{$\sim$}{\string~}\+Sortable\+Table\+Widget\+Item}} () override=default
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item_a637568d4c4e50096070a1640305bfb46}{Sortable\+Table\+Widget\+Item}} (const \mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&)=delete
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \mbox{\hyperlink{class_sortable_table_widget_item_a02a54bcb30659cc94dbaba42f3f684e9}{operator=}} (const \mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&)=delete
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item_aef3d78b93a31553e13c7809e1826e2ea}{Sortable\+Table\+Widget\+Item}} (\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&\&)=delete
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \& \mbox{\hyperlink{class_sortable_table_widget_item_a45339011effc41cf63ae7e7eba26fbb0}{operator=}} (\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&\&)=delete
+\item 
+bool \mbox{\hyperlink{class_sortable_table_widget_item_aafbae047611daf6fd998620e4da3692f}{operator$<$}} (const QTable\+Widget\+Item \&other) const override
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}{Sort\+Type}} \mbox{\hyperlink{class_sortable_table_widget_item_ad8546e3ddf93734a677581ba4492df5e}{sort\+Type}}
+\item 
+QCollator \mbox{\hyperlink{class_sortable_table_widget_item_a2d80669705b4315df34ed26e784ededf}{sort\+Alphanumerically}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortType@{SortType}}
+\index{SortType@{SortType}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{SortType}{SortType}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16} 
+enum class \mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}{Sortable\+Table\+Widget\+Item\+::\+Sort\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{datetime@{datetime}!SortableTableWidgetItem@{SortableTableWidgetItem}}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!datetime@{datetime}}}\Hypertarget{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16adfeaaeb4316477bd556ea5e8c3295887}\label{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16} 
+datetime&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{alphanumeric@{alphanumeric}!SortableTableWidgetItem@{SortableTableWidgetItem}}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!alphanumeric@{alphanumeric}}}\Hypertarget{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16aee424cbeb821c9331ceec38995106e5c}\label{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16} 
+alphanumeric&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_sortable_table_widget_item_a9954ed3ff1e8cfcaf77278ee0f57993e}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{SortableTableWidgetItem()}{SortableTableWidgetItem()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_a9954ed3ff1e8cfcaf77278ee0f57993e} 
+Sortable\+Table\+Widget\+Item\+::\+Sortable\+Table\+Widget\+Item (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}{Sort\+Type}}}]{sort\+Type}{, }\item[{const QString \&}]{txt}{ = {\ttfamily "{}"{}}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\Hypertarget{class_sortable_table_widget_item_a66caa5ffdde59ba60ef2b01101b4a650}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!````~SortableTableWidgetItem@{\texorpdfstring{$\sim$}{\string~}SortableTableWidgetItem}}
+\index{````~SortableTableWidgetItem@{\texorpdfstring{$\sim$}{\string~}SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}SortableTableWidgetItem()}{\string~SortableTableWidgetItem()}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_a66caa5ffdde59ba60ef2b01101b4a650} 
+Sortable\+Table\+Widget\+Item\+::\texorpdfstring{$\sim$}{\string~}\+Sortable\+Table\+Widget\+Item (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [default]}}
+
+\Hypertarget{class_sortable_table_widget_item_a637568d4c4e50096070a1640305bfb46}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{SortableTableWidgetItem()}{SortableTableWidgetItem()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_a637568d4c4e50096070a1640305bfb46} 
+Sortable\+Table\+Widget\+Item\+::\+Sortable\+Table\+Widget\+Item (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_sortable_table_widget_item_aef3d78b93a31553e13c7809e1826e2ea}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\index{SortableTableWidgetItem@{SortableTableWidgetItem}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{SortableTableWidgetItem()}{SortableTableWidgetItem()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_aef3d78b93a31553e13c7809e1826e2ea} 
+Sortable\+Table\+Widget\+Item\+::\+Sortable\+Table\+Widget\+Item (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_sortable_table_widget_item_aafbae047611daf6fd998620e4da3692f}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!operator$<$@{operator$<$}}
+\index{operator$<$@{operator$<$}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{operator$<$()}{operator<()}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_aafbae047611daf6fd998620e4da3692f} 
+bool Sortable\+Table\+Widget\+Item\+::operator$<$ (\begin{DoxyParamCaption}\item[{const QTable\+Widget\+Item \&}]{other}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_sortable_table_widget_item_a02a54bcb30659cc94dbaba42f3f684e9}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!operator=@{operator=}}
+\index{operator=@{operator=}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_a02a54bcb30659cc94dbaba42f3f684e9} 
+\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} Sortable\+Table\+Widget\+Item\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_sortable_table_widget_item_a45339011effc41cf63ae7e7eba26fbb0}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!operator=@{operator=}}
+\index{operator=@{operator=}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_a45339011effc41cf63ae7e7eba26fbb0} 
+\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \& Sortable\+Table\+Widget\+Item\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_sortable_table_widget_item}{Sortable\+Table\+Widget\+Item}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_sortable_table_widget_item_a2d80669705b4315df34ed26e784ededf}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!sortAlphanumerically@{sortAlphanumerically}}
+\index{sortAlphanumerically@{sortAlphanumerically}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{sortAlphanumerically}{sortAlphanumerically}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_a2d80669705b4315df34ed26e784ededf} 
+QCollator Sortable\+Table\+Widget\+Item\+::sort\+Alphanumerically\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_sortable_table_widget_item_ad8546e3ddf93734a677581ba4492df5e}\index{SortableTableWidgetItem@{SortableTableWidgetItem}!sortType@{sortType}}
+\index{sortType@{sortType}!SortableTableWidgetItem@{SortableTableWidgetItem}}
+\doxysubsubsection{\texorpdfstring{sortType}{sortType}}
+{\footnotesize\ttfamily \label{class_sortable_table_widget_item_ad8546e3ddf93734a677581ba4492df5e} 
+\mbox{\hyperlink{class_sortable_table_widget_item_aca8af458778c1efd385baa521de76c16}{Sort\+Type}} Sortable\+Table\+Widget\+Item\+::sort\+Type\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{sortable_table_widget_item_8h}{sortable\+Table\+Widget\+Item.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{sortable_table_widget_item_8cpp}{sortable\+Table\+Widget\+Item.\+cpp}}\end{DoxyCompactItemize}

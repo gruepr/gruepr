@@ -1,0 +1,404 @@
+\doxysection{Course\+Info\+Page Class Reference}
+\hypertarget{class_course_info_page}{}\label{class_course_info_page}\index{CourseInfoPage@{CourseInfoPage}}
+
+
+{\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
+
+Inheritance diagram for Course\+Info\+Page\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_course_info_page}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_course_info_page_ad6e81af8361bcafb2c820a48cb87c110}{section\+Names\+Changed}} (const QString\+List \&new\+Section\+Names)
+\item 
+void \mbox{\hyperlink{class_course_info_page_a359624a5b497d07463b39aed96623844}{student\+Names\+Changed}} (const QString\+List \&new\+Student\+Names)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_course_info_page_aa3cdcf417c3ec5139d5a2ab6ef947b86}{Course\+Info\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_course_info_page_a25aa93f53c1433810fa2634910b78cc8}{initialize\+Page}} () override
+\item 
+void \mbox{\hyperlink{class_course_info_page_a87473a1886432266846fa82fcac8ff80}{cleanup\+Page}} () override
+\item 
+bool \mbox{\hyperlink{class_course_info_page_a253db25d435fc08a8f36135cf9e76d70}{validate\+Page}} () override
+\item 
+void \mbox{\hyperlink{class_course_info_page_a1adba3ba58e03ea8b3ebbdc451e3a7c2}{resize\+Event}} (QResize\+Event \texorpdfstring{$\ast$}{*}event) override
+\item 
+void \mbox{\hyperlink{class_course_info_page_a95deb93d568a030d8908111110b8c1be}{set\+Section\+Names}} (const QString\+List \&new\+Section\+Names)
+\item 
+QString\+List \mbox{\hyperlink{class_course_info_page_ade8b128a95f4db6b995c0ec57bd62e8c}{get\+Section\+Names}} () const
+\item 
+void \mbox{\hyperlink{class_course_info_page_a86f5888dce47ec97b1a5ef6eb76ab7f6}{set\+Student\+Names}} (const QString\+List \&new\+Student\+Names)
+\item 
+QString\+List \mbox{\hyperlink{class_course_info_page_aefafe5306d11e1e89d31cae297f2436e}{get\+Student\+Names}} () const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_page_aaf5bff1c1f1b93444b81535c9797b8e5}{Survey\+Maker\+Page}} (\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Survey\+Maker\+Wizard\+::\+Page}} page, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static QString \mbox{\hyperlink{class_course_info_page_a988740846b48e2a86a071374e56cc2da}{generate\+Teammate\+Question}} (bool \mbox{\hyperlink{class_course_info_page_ae33866181248627b1b9741f8126a6463afb667c7d7e83899b3c1b73967f26d40c}{want\+To\+Work\+With}}, bool typing\+Names, int num\+Classmates)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{class_course_info_page_a2aaed11563dc8678c895576789ec70c4}{section\+Names}}
+\item 
+QString\+List \mbox{\hyperlink{class_course_info_page_a6b391c77a46866284a991623d222b189}{student\+Names}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ \mbox{\hyperlink{class_course_info_page_ae33866181248627b1b9741f8126a6463a280169cbc740189063c491693b842ad3}{section}}
+, \mbox{\hyperlink{class_course_info_page_ae33866181248627b1b9741f8126a6463afb667c7d7e83899b3c1b73967f26d40c}{want\+To\+Work\+With}}
+, \mbox{\hyperlink{class_course_info_page_ae33866181248627b1b9741f8126a6463ab1bc619f552848828b7e8f42bef7ad06}{want\+To\+Avoid}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_course_info_page_af5b77f8023614820f573ba556bec1996}{update}} ()
+\item 
+void \mbox{\hyperlink{class_course_info_page_ab4037d204ab34cb714370995ec87ff45}{resize\+Question\+Plain\+Text\+Edit}} (QPlain\+Text\+Edit \texorpdfstring{$\ast$}{*}const question\+Plain\+Text\+Edit)
+\item 
+void \mbox{\hyperlink{class_course_info_page_aac24f77a4dcc3baae87d250419bfc7c2}{delete\+ASection}} (int section\+Num, bool pause\+Visual\+Update=false)
+\item 
+void \mbox{\hyperlink{class_course_info_page_aa51139fbca5e551dddf4361f75fce957}{add\+ASection}} (bool pause\+Visual\+Update=false)
+\item 
+bool \mbox{\hyperlink{class_course_info_page_a1caa61733136845d8c4fcea400f0e3b3}{upload\+Roster}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QList$<$ QLine\+Edit \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_course_info_page_afe8aafeed332f1d5d23fa61e1dc639e2}{section\+Line\+Edits}}
+\item 
+QList$<$ int $>$ \mbox{\hyperlink{class_course_info_page_a140b68e9f6c3e6e9d47416fc4aab713d}{visible\+Section\+Line\+Edits}}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a6c283a70b70f3fadd8f43390b0362117}{sections\+Preview\+Layout}} = nullptr
+\item 
+QList$<$ QRadio\+Button \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_course_info_page_ae16666fab27135fb2fc5b79cb5facb2a}{sc}}
+\item 
+QList$<$ QPush\+Button \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_course_info_page_ac20a6900273760e18e7026f5a2c546a2}{delete\+Section\+Buttons}}
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a289b0665a49a4cc223ec5a5c0dff7404}{add\+Section\+Button}} = nullptr
+\item 
+const int \mbox{\hyperlink{class_course_info_page_a321f32a61e1f44ad5419a44ebb422ba9}{MAX\+\_\+\+SECTIONSEXPECTED}} = 10
+\item 
+int \mbox{\hyperlink{class_course_info_page_af4da61bf95b3e332f3429c6e0e6a2abe}{num\+Sections\+Entered}} = 0
+\item 
+QPlain\+Text\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a2de6c758c2261f17044de3f1227c54b4}{ww}} = nullptr
+\item 
+QList$<$ QCombo\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_course_info_page_a32153361600812baa9fd8233faccb849}{wwc}}
+\item 
+QPlain\+Text\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a0f0b56102cf98e3cf5c0201f743858d6}{wa}} = nullptr
+\item 
+QList$<$ QCombo\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_course_info_page_a8dea50c446a290dc46c9a02963648b2f}{wac}}
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a842fb65907725884100f2fa32ecdf152}{num\+Pref\+Teammates\+Explainer}} = nullptr
+\item 
+QSpin\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a95790ff59ed4059fcd7317a200cc49c5}{num\+Pref\+Teammates\+Spin\+Box}} = nullptr
+\item 
+int \mbox{\hyperlink{class_course_info_page_a558437f4d419973e82308e838f24b279}{num\+Pref\+Teammates}} = 1
+\item 
+\mbox{\hyperlink{class_label_that_forwards_mouse_clicks}{Label\+That\+Forwards\+Mouse\+Clicks}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_af9b342499a68653dfabdf6f483a21903}{select\+From\+Roster\+Label}} = nullptr
+\item 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a0fb1e5996b90ea56a9e39634633afa45}{select\+From\+Roster\+Switch}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_a083535c3946c3c52495cc76c0dd064c1}{upload\+Explainer}} = nullptr
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_course_info_page_ad79cd7e8e4968dd96f3c4219864e4574}{upload\+Button}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a4b146c11ee08575c6dc5510c38da0da0}{question\+Layout}} = nullptr
+\item 
+QList$<$ \mbox{\hyperlink{class_survey_maker_question_with_switch}{Survey\+Maker\+Question\+With\+Switch}} \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a4ea29f32f822c17c59f65efc32d42fd4}{questions}}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a0af53f935c042754af1fd94372541534}{preview\+Layout}} = nullptr
+\item 
+QList$<$ QWidget \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_af9319294d06e0ed468986e792514e79c}{question\+Previews}}
+\item 
+QList$<$ QVBox\+Layout \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa0b0ea52e25f3e81bfd86f803ff090e4}{question\+Preview\+Layouts}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a928b87017580196a3744cf776533238a}{question\+Preview\+Top\+Labels}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa2a2b6325d3da6e41b7fc89e9894d5b3}{question\+Preview\+Bottom\+Labels}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_course_info_page_ae33866181248627b1b9741f8126a6463}\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
+{\footnotesize\ttfamily \label{class_course_info_page_ae33866181248627b1b9741f8126a6463} 
+anonymous enum\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{section@{section}!CourseInfoPage@{CourseInfoPage}}\index{CourseInfoPage@{CourseInfoPage}!section@{section}}}\Hypertarget{class_course_info_page_ae33866181248627b1b9741f8126a6463a280169cbc740189063c491693b842ad3}\label{class_course_info_page_ae33866181248627b1b9741f8126a6463} 
+section&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{wantToWorkWith@{wantToWorkWith}!CourseInfoPage@{CourseInfoPage}}\index{CourseInfoPage@{CourseInfoPage}!wantToWorkWith@{wantToWorkWith}}}\Hypertarget{class_course_info_page_ae33866181248627b1b9741f8126a6463afb667c7d7e83899b3c1b73967f26d40c}\label{class_course_info_page_ae33866181248627b1b9741f8126a6463} 
+want\+To\+Work\+With&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{wantToAvoid@{wantToAvoid}!CourseInfoPage@{CourseInfoPage}}\index{CourseInfoPage@{CourseInfoPage}!wantToAvoid@{wantToAvoid}}}\Hypertarget{class_course_info_page_ae33866181248627b1b9741f8126a6463ab1bc619f552848828b7e8f42bef7ad06}\label{class_course_info_page_ae33866181248627b1b9741f8126a6463} 
+want\+To\+Avoid&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_course_info_page_aa3cdcf417c3ec5139d5a2ab6ef947b86}\index{CourseInfoPage@{CourseInfoPage}!CourseInfoPage@{CourseInfoPage}}
+\index{CourseInfoPage@{CourseInfoPage}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{CourseInfoPage()}{CourseInfoPage()}}
+{\footnotesize\ttfamily \label{class_course_info_page_aa3cdcf417c3ec5139d5a2ab6ef947b86} 
+Course\+Info\+Page\+::\+Course\+Info\+Page (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_course_info_page_aa51139fbca5e551dddf4361f75fce957}\index{CourseInfoPage@{CourseInfoPage}!addASection@{addASection}}
+\index{addASection@{addASection}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{addASection()}{addASection()}}
+{\footnotesize\ttfamily \label{class_course_info_page_aa51139fbca5e551dddf4361f75fce957} 
+void Course\+Info\+Page\+::add\+ASection (\begin{DoxyParamCaption}\item[{bool}]{pause\+Visual\+Update}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a87473a1886432266846fa82fcac8ff80}\index{CourseInfoPage@{CourseInfoPage}!cleanupPage@{cleanupPage}}
+\index{cleanupPage@{cleanupPage}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{cleanupPage()}{cleanupPage()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a87473a1886432266846fa82fcac8ff80} 
+void Course\+Info\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_course_info_page_aac24f77a4dcc3baae87d250419bfc7c2}\index{CourseInfoPage@{CourseInfoPage}!deleteASection@{deleteASection}}
+\index{deleteASection@{deleteASection}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{deleteASection()}{deleteASection()}}
+{\footnotesize\ttfamily \label{class_course_info_page_aac24f77a4dcc3baae87d250419bfc7c2} 
+void Course\+Info\+Page\+::delete\+ASection (\begin{DoxyParamCaption}\item[{int}]{section\+Num}{, }\item[{bool}]{pause\+Visual\+Update}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a988740846b48e2a86a071374e56cc2da}\index{CourseInfoPage@{CourseInfoPage}!generateTeammateQuestion@{generateTeammateQuestion}}
+\index{generateTeammateQuestion@{generateTeammateQuestion}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{generateTeammateQuestion()}{generateTeammateQuestion()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a988740846b48e2a86a071374e56cc2da} 
+QString Course\+Info\+Page\+::generate\+Teammate\+Question (\begin{DoxyParamCaption}\item[{bool}]{want\+To\+Work\+With}{, }\item[{bool}]{typing\+Names}{, }\item[{int}]{num\+Classmates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{class_course_info_page_ade8b128a95f4db6b995c0ec57bd62e8c}\index{CourseInfoPage@{CourseInfoPage}!getSectionNames@{getSectionNames}}
+\index{getSectionNames@{getSectionNames}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{getSectionNames()}{getSectionNames()}}
+{\footnotesize\ttfamily \label{class_course_info_page_ade8b128a95f4db6b995c0ec57bd62e8c} 
+QString\+List Course\+Info\+Page\+::get\+Section\+Names (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_course_info_page_aefafe5306d11e1e89d31cae297f2436e}\index{CourseInfoPage@{CourseInfoPage}!getStudentNames@{getStudentNames}}
+\index{getStudentNames@{getStudentNames}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{getStudentNames()}{getStudentNames()}}
+{\footnotesize\ttfamily \label{class_course_info_page_aefafe5306d11e1e89d31cae297f2436e} 
+QString\+List Course\+Info\+Page\+::get\+Student\+Names (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_course_info_page_a25aa93f53c1433810fa2634910b78cc8}\index{CourseInfoPage@{CourseInfoPage}!initializePage@{initializePage}}
+\index{initializePage@{initializePage}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{initializePage()}{initializePage()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a25aa93f53c1433810fa2634910b78cc8} 
+void Course\+Info\+Page\+::initialize\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_course_info_page_a1adba3ba58e03ea8b3ebbdc451e3a7c2}\index{CourseInfoPage@{CourseInfoPage}!resizeEvent@{resizeEvent}}
+\index{resizeEvent@{resizeEvent}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{resizeEvent()}{resizeEvent()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a1adba3ba58e03ea8b3ebbdc451e3a7c2} 
+void Course\+Info\+Page\+::resize\+Event (\begin{DoxyParamCaption}\item[{QResize\+Event \texorpdfstring{$\ast$}{*}}]{event}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_course_info_page_ab4037d204ab34cb714370995ec87ff45}\index{CourseInfoPage@{CourseInfoPage}!resizeQuestionPlainTextEdit@{resizeQuestionPlainTextEdit}}
+\index{resizeQuestionPlainTextEdit@{resizeQuestionPlainTextEdit}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{resizeQuestionPlainTextEdit()}{resizeQuestionPlainTextEdit()}}
+{\footnotesize\ttfamily \label{class_course_info_page_ab4037d204ab34cb714370995ec87ff45} 
+void Course\+Info\+Page\+::resize\+Question\+Plain\+Text\+Edit (\begin{DoxyParamCaption}\item[{QPlain\+Text\+Edit \texorpdfstring{$\ast$}{*}const}]{question\+Plain\+Text\+Edit}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_ad6e81af8361bcafb2c820a48cb87c110}\index{CourseInfoPage@{CourseInfoPage}!sectionNamesChanged@{sectionNamesChanged}}
+\index{sectionNamesChanged@{sectionNamesChanged}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{sectionNamesChanged}{sectionNamesChanged}}
+{\footnotesize\ttfamily \label{class_course_info_page_ad6e81af8361bcafb2c820a48cb87c110} 
+void Course\+Info\+Page\+::section\+Names\+Changed (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Section\+Names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_course_info_page_a95deb93d568a030d8908111110b8c1be}\index{CourseInfoPage@{CourseInfoPage}!setSectionNames@{setSectionNames}}
+\index{setSectionNames@{setSectionNames}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{setSectionNames()}{setSectionNames()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a95deb93d568a030d8908111110b8c1be} 
+void Course\+Info\+Page\+::set\+Section\+Names (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Section\+Names}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_course_info_page_a86f5888dce47ec97b1a5ef6eb76ab7f6}\index{CourseInfoPage@{CourseInfoPage}!setStudentNames@{setStudentNames}}
+\index{setStudentNames@{setStudentNames}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{setStudentNames()}{setStudentNames()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a86f5888dce47ec97b1a5ef6eb76ab7f6} 
+void Course\+Info\+Page\+::set\+Student\+Names (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Student\+Names}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_course_info_page_a359624a5b497d07463b39aed96623844}\index{CourseInfoPage@{CourseInfoPage}!studentNamesChanged@{studentNamesChanged}}
+\index{studentNamesChanged@{studentNamesChanged}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{studentNamesChanged}{studentNamesChanged}}
+{\footnotesize\ttfamily \label{class_course_info_page_a359624a5b497d07463b39aed96623844} 
+void Course\+Info\+Page\+::student\+Names\+Changed (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Student\+Names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_course_info_page_af5b77f8023614820f573ba556bec1996}\index{CourseInfoPage@{CourseInfoPage}!update@{update}}
+\index{update@{update}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily \label{class_course_info_page_af5b77f8023614820f573ba556bec1996} 
+void Course\+Info\+Page\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a1caa61733136845d8c4fcea400f0e3b3}\index{CourseInfoPage@{CourseInfoPage}!uploadRoster@{uploadRoster}}
+\index{uploadRoster@{uploadRoster}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{uploadRoster()}{uploadRoster()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a1caa61733136845d8c4fcea400f0e3b3} 
+bool Course\+Info\+Page\+::upload\+Roster (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a253db25d435fc08a8f36135cf9e76d70}\index{CourseInfoPage@{CourseInfoPage}!validatePage@{validatePage}}
+\index{validatePage@{validatePage}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{validatePage()}{validatePage()}}
+{\footnotesize\ttfamily \label{class_course_info_page_a253db25d435fc08a8f36135cf9e76d70} 
+bool Course\+Info\+Page\+::validate\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_course_info_page_a289b0665a49a4cc223ec5a5c0dff7404}\index{CourseInfoPage@{CourseInfoPage}!addSectionButton@{addSectionButton}}
+\index{addSectionButton@{addSectionButton}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{addSectionButton}{addSectionButton}}
+{\footnotesize\ttfamily \label{class_course_info_page_a289b0665a49a4cc223ec5a5c0dff7404} 
+QPush\+Button\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::add\+Section\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_ac20a6900273760e18e7026f5a2c546a2}\index{CourseInfoPage@{CourseInfoPage}!deleteSectionButtons@{deleteSectionButtons}}
+\index{deleteSectionButtons@{deleteSectionButtons}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{deleteSectionButtons}{deleteSectionButtons}}
+{\footnotesize\ttfamily \label{class_course_info_page_ac20a6900273760e18e7026f5a2c546a2} 
+QList$<$QPush\+Button \texorpdfstring{$\ast$}{*}$>$ Course\+Info\+Page\+::delete\+Section\+Buttons\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a321f32a61e1f44ad5419a44ebb422ba9}\index{CourseInfoPage@{CourseInfoPage}!MAX\_SECTIONSEXPECTED@{MAX\_SECTIONSEXPECTED}}
+\index{MAX\_SECTIONSEXPECTED@{MAX\_SECTIONSEXPECTED}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{MAX\_SECTIONSEXPECTED}{MAX\_SECTIONSEXPECTED}}
+{\footnotesize\ttfamily \label{class_course_info_page_a321f32a61e1f44ad5419a44ebb422ba9} 
+const int Course\+Info\+Page\+::\+MAX\+\_\+\+SECTIONSEXPECTED = 10\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a558437f4d419973e82308e838f24b279}\index{CourseInfoPage@{CourseInfoPage}!numPrefTeammates@{numPrefTeammates}}
+\index{numPrefTeammates@{numPrefTeammates}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{numPrefTeammates}{numPrefTeammates}}
+{\footnotesize\ttfamily \label{class_course_info_page_a558437f4d419973e82308e838f24b279} 
+int Course\+Info\+Page\+::num\+Pref\+Teammates = 1\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a842fb65907725884100f2fa32ecdf152}\index{CourseInfoPage@{CourseInfoPage}!numPrefTeammatesExplainer@{numPrefTeammatesExplainer}}
+\index{numPrefTeammatesExplainer@{numPrefTeammatesExplainer}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{numPrefTeammatesExplainer}{numPrefTeammatesExplainer}}
+{\footnotesize\ttfamily \label{class_course_info_page_a842fb65907725884100f2fa32ecdf152} 
+QLabel\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::num\+Pref\+Teammates\+Explainer = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a95790ff59ed4059fcd7317a200cc49c5}\index{CourseInfoPage@{CourseInfoPage}!numPrefTeammatesSpinBox@{numPrefTeammatesSpinBox}}
+\index{numPrefTeammatesSpinBox@{numPrefTeammatesSpinBox}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{numPrefTeammatesSpinBox}{numPrefTeammatesSpinBox}}
+{\footnotesize\ttfamily \label{class_course_info_page_a95790ff59ed4059fcd7317a200cc49c5} 
+QSpin\+Box\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::num\+Pref\+Teammates\+Spin\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_af4da61bf95b3e332f3429c6e0e6a2abe}\index{CourseInfoPage@{CourseInfoPage}!numSectionsEntered@{numSectionsEntered}}
+\index{numSectionsEntered@{numSectionsEntered}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{numSectionsEntered}{numSectionsEntered}}
+{\footnotesize\ttfamily \label{class_course_info_page_af4da61bf95b3e332f3429c6e0e6a2abe} 
+int Course\+Info\+Page\+::num\+Sections\+Entered = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_ae16666fab27135fb2fc5b79cb5facb2a}\index{CourseInfoPage@{CourseInfoPage}!sc@{sc}}
+\index{sc@{sc}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{sc}{sc}}
+{\footnotesize\ttfamily \label{class_course_info_page_ae16666fab27135fb2fc5b79cb5facb2a} 
+QList$<$QRadio\+Button \texorpdfstring{$\ast$}{*}$>$ Course\+Info\+Page\+::sc\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_afe8aafeed332f1d5d23fa61e1dc639e2}\index{CourseInfoPage@{CourseInfoPage}!sectionLineEdits@{sectionLineEdits}}
+\index{sectionLineEdits@{sectionLineEdits}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{sectionLineEdits}{sectionLineEdits}}
+{\footnotesize\ttfamily \label{class_course_info_page_afe8aafeed332f1d5d23fa61e1dc639e2} 
+QList$<$QLine\+Edit \texorpdfstring{$\ast$}{*}$>$ Course\+Info\+Page\+::section\+Line\+Edits\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a6c283a70b70f3fadd8f43390b0362117}\index{CourseInfoPage@{CourseInfoPage}!sectionsPreviewLayout@{sectionsPreviewLayout}}
+\index{sectionsPreviewLayout@{sectionsPreviewLayout}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{sectionsPreviewLayout}{sectionsPreviewLayout}}
+{\footnotesize\ttfamily \label{class_course_info_page_a6c283a70b70f3fadd8f43390b0362117} 
+QVBox\+Layout\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::sections\+Preview\+Layout = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_af9b342499a68653dfabdf6f483a21903}\index{CourseInfoPage@{CourseInfoPage}!selectFromRosterLabel@{selectFromRosterLabel}}
+\index{selectFromRosterLabel@{selectFromRosterLabel}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{selectFromRosterLabel}{selectFromRosterLabel}}
+{\footnotesize\ttfamily \label{class_course_info_page_af9b342499a68653dfabdf6f483a21903} 
+\mbox{\hyperlink{class_label_that_forwards_mouse_clicks}{Label\+That\+Forwards\+Mouse\+Clicks}}\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::select\+From\+Roster\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a0fb1e5996b90ea56a9e39634633afa45}\index{CourseInfoPage@{CourseInfoPage}!selectFromRosterSwitch@{selectFromRosterSwitch}}
+\index{selectFromRosterSwitch@{selectFromRosterSwitch}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{selectFromRosterSwitch}{selectFromRosterSwitch}}
+{\footnotesize\ttfamily \label{class_course_info_page_a0fb1e5996b90ea56a9e39634633afa45} 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}}\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::select\+From\+Roster\+Switch = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_ad79cd7e8e4968dd96f3c4219864e4574}\index{CourseInfoPage@{CourseInfoPage}!uploadButton@{uploadButton}}
+\index{uploadButton@{uploadButton}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{uploadButton}{uploadButton}}
+{\footnotesize\ttfamily \label{class_course_info_page_ad79cd7e8e4968dd96f3c4219864e4574} 
+QPush\+Button\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::upload\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a083535c3946c3c52495cc76c0dd064c1}\index{CourseInfoPage@{CourseInfoPage}!uploadExplainer@{uploadExplainer}}
+\index{uploadExplainer@{uploadExplainer}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{uploadExplainer}{uploadExplainer}}
+{\footnotesize\ttfamily \label{class_course_info_page_a083535c3946c3c52495cc76c0dd064c1} 
+QLabel\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::upload\+Explainer = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a140b68e9f6c3e6e9d47416fc4aab713d}\index{CourseInfoPage@{CourseInfoPage}!visibleSectionLineEdits@{visibleSectionLineEdits}}
+\index{visibleSectionLineEdits@{visibleSectionLineEdits}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{visibleSectionLineEdits}{visibleSectionLineEdits}}
+{\footnotesize\ttfamily \label{class_course_info_page_a140b68e9f6c3e6e9d47416fc4aab713d} 
+QList$<$int$>$ Course\+Info\+Page\+::visible\+Section\+Line\+Edits\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a0f0b56102cf98e3cf5c0201f743858d6}\index{CourseInfoPage@{CourseInfoPage}!wa@{wa}}
+\index{wa@{wa}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{wa}{wa}}
+{\footnotesize\ttfamily \label{class_course_info_page_a0f0b56102cf98e3cf5c0201f743858d6} 
+QPlain\+Text\+Edit\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::wa = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a8dea50c446a290dc46c9a02963648b2f}\index{CourseInfoPage@{CourseInfoPage}!wac@{wac}}
+\index{wac@{wac}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{wac}{wac}}
+{\footnotesize\ttfamily \label{class_course_info_page_a8dea50c446a290dc46c9a02963648b2f} 
+QList$<$QCombo\+Box \texorpdfstring{$\ast$}{*}$>$ Course\+Info\+Page\+::wac\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a2de6c758c2261f17044de3f1227c54b4}\index{CourseInfoPage@{CourseInfoPage}!ww@{ww}}
+\index{ww@{ww}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{ww}{ww}}
+{\footnotesize\ttfamily \label{class_course_info_page_a2de6c758c2261f17044de3f1227c54b4} 
+QPlain\+Text\+Edit\texorpdfstring{$\ast$}{*} Course\+Info\+Page\+::ww = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_course_info_page_a32153361600812baa9fd8233faccb849}\index{CourseInfoPage@{CourseInfoPage}!wwc@{wwc}}
+\index{wwc@{wwc}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{wwc}{wwc}}
+{\footnotesize\ttfamily \label{class_course_info_page_a32153361600812baa9fd8233faccb849} 
+QList$<$QCombo\+Box \texorpdfstring{$\ast$}{*}$>$ Course\+Info\+Page\+::wwc\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Property Documentation}
+\Hypertarget{class_course_info_page_a2aaed11563dc8678c895576789ec70c4}\index{CourseInfoPage@{CourseInfoPage}!sectionNames@{sectionNames}}
+\index{sectionNames@{sectionNames}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{sectionNames}{sectionNames}}
+{\footnotesize\ttfamily \label{class_course_info_page_a2aaed11563dc8678c895576789ec70c4} 
+QString\+List Course\+Info\+Page\+::section\+Names\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_course_info_page_a6b391c77a46866284a991623d222b189}\index{CourseInfoPage@{CourseInfoPage}!studentNames@{studentNames}}
+\index{studentNames@{studentNames}!CourseInfoPage@{CourseInfoPage}}
+\doxysubsubsection{\texorpdfstring{studentNames}{studentNames}}
+{\footnotesize\ttfamily \label{class_course_info_page_a6b391c77a46866284a991623d222b189} 
+QString\+List Course\+Info\+Page\+::student\+Names\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8h}{survey\+Maker\+Wizard.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8cpp}{survey\+Maker\+Wizard.\+cpp}}\end{DoxyCompactItemize}

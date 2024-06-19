@@ -1,0 +1,188 @@
+\doxysection{Demographics\+Page Class Reference}
+\hypertarget{class_demographics_page}{}\label{class_demographics_page}\index{DemographicsPage@{DemographicsPage}}
+
+
+{\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
+
+Inheritance diagram for Demographics\+Page\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_demographics_page}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_demographics_page_a5ccf40d0259c1b3b0c87f3709fc27e10}{Demographics\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8}{initialize\+Page}} () override
+\item 
+void \mbox{\hyperlink{class_demographics_page_a8b309d687e60ec10a750b57098c81dff}{cleanup\+Page}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_page_aaf5bff1c1f1b93444b81535c9797b8e5}{Survey\+Maker\+Page}} (\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Survey\+Maker\+Wizard\+::\+Page}} page, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ \newline
+\mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8afce227fc0693fd6fb67b8e0ba703de5b}{firstname}}
+, \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8aaa9085f2eaf1d671adde70a32a9415b7}{lastname}}
+, \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8a70364fdfb60c4de507c5827e396a069c}{email}}
+, \mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8adc88b6a73b652060074e779306c40969}{gender}}
+, \newline
+\mbox{\hyperlink{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8a18923f26e2fd8bd95a940738a40e348b}{urm}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_demographics_page_ab11c40a592579d93fc0fa03b94239117}{update}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QLine\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_demographics_page_aebfb1a2bf7c91f09ad8b504b08936134}{fn}} = nullptr
+\item 
+QLine\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_demographics_page_a04b8e1f009b52acd7c0d0d7f3b0be05d}{ln}} = nullptr
+\item 
+QLine\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_demographics_page_a16acc393b48285578ad676ec2f897589}{em}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_demographics_page_a0232b3890925bfc48b093d8a5ba2072c}{gender\+Responses\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_demographics_page_a2bf566a98d3878d52933685ea784f524}{gender\+Responses\+Combo\+Box}} = nullptr
+\item 
+QList$<$ QRadio\+Button \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_demographics_page_a47ce4b02a52b4ebf7af2c5841432d04e}{ge}}
+\item 
+QLine\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_demographics_page_a24c128e899c98f43000cdf1ba27f9df2}{re}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a4b146c11ee08575c6dc5510c38da0da0}{question\+Layout}} = nullptr
+\item 
+QList$<$ \mbox{\hyperlink{class_survey_maker_question_with_switch}{Survey\+Maker\+Question\+With\+Switch}} \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a4ea29f32f822c17c59f65efc32d42fd4}{questions}}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a0af53f935c042754af1fd94372541534}{preview\+Layout}} = nullptr
+\item 
+QList$<$ QWidget \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_af9319294d06e0ed468986e792514e79c}{question\+Previews}}
+\item 
+QList$<$ QVBox\+Layout \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa0b0ea52e25f3e81bfd86f803ff090e4}{question\+Preview\+Layouts}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a928b87017580196a3744cf776533238a}{question\+Preview\+Top\+Labels}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa2a2b6325d3da6e41b7fc89e9894d5b3}{question\+Preview\+Bottom\+Labels}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8}\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
+{\footnotesize\ttfamily \label{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8} 
+anonymous enum\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{firstname@{firstname}!DemographicsPage@{DemographicsPage}}\index{DemographicsPage@{DemographicsPage}!firstname@{firstname}}}\Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8afce227fc0693fd6fb67b8e0ba703de5b}\label{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8} 
+firstname&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{lastname@{lastname}!DemographicsPage@{DemographicsPage}}\index{DemographicsPage@{DemographicsPage}!lastname@{lastname}}}\Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8aaa9085f2eaf1d671adde70a32a9415b7}\label{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8} 
+lastname&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{email@{email}!DemographicsPage@{DemographicsPage}}\index{DemographicsPage@{DemographicsPage}!email@{email}}}\Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8a70364fdfb60c4de507c5827e396a069c}\label{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8} 
+email&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{gender@{gender}!DemographicsPage@{DemographicsPage}}\index{DemographicsPage@{DemographicsPage}!gender@{gender}}}\Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8adc88b6a73b652060074e779306c40969}\label{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8} 
+gender&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{urm@{urm}!DemographicsPage@{DemographicsPage}}\index{DemographicsPage@{DemographicsPage}!urm@{urm}}}\Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8a18923f26e2fd8bd95a940738a40e348b}\label{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8} 
+urm&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_demographics_page_a5ccf40d0259c1b3b0c87f3709fc27e10}\index{DemographicsPage@{DemographicsPage}!DemographicsPage@{DemographicsPage}}
+\index{DemographicsPage@{DemographicsPage}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{DemographicsPage()}{DemographicsPage()}}
+{\footnotesize\ttfamily \label{class_demographics_page_a5ccf40d0259c1b3b0c87f3709fc27e10} 
+Demographics\+Page\+::\+Demographics\+Page (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_demographics_page_a8b309d687e60ec10a750b57098c81dff}\index{DemographicsPage@{DemographicsPage}!cleanupPage@{cleanupPage}}
+\index{cleanupPage@{cleanupPage}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{cleanupPage()}{cleanupPage()}}
+{\footnotesize\ttfamily \label{class_demographics_page_a8b309d687e60ec10a750b57098c81dff} 
+void Demographics\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8}\index{DemographicsPage@{DemographicsPage}!initializePage@{initializePage}}
+\index{initializePage@{initializePage}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{initializePage()}{initializePage()}}
+{\footnotesize\ttfamily \label{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8} 
+void Demographics\+Page\+::initialize\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_demographics_page_ab11c40a592579d93fc0fa03b94239117}\index{DemographicsPage@{DemographicsPage}!update@{update}}
+\index{update@{update}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily \label{class_demographics_page_ab11c40a592579d93fc0fa03b94239117} 
+void Demographics\+Page\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_demographics_page_a16acc393b48285578ad676ec2f897589}\index{DemographicsPage@{DemographicsPage}!em@{em}}
+\index{em@{em}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{em}{em}}
+{\footnotesize\ttfamily \label{class_demographics_page_a16acc393b48285578ad676ec2f897589} 
+QLine\+Edit\texorpdfstring{$\ast$}{*} Demographics\+Page\+::em = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_demographics_page_aebfb1a2bf7c91f09ad8b504b08936134}\index{DemographicsPage@{DemographicsPage}!fn@{fn}}
+\index{fn@{fn}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{fn}{fn}}
+{\footnotesize\ttfamily \label{class_demographics_page_aebfb1a2bf7c91f09ad8b504b08936134} 
+QLine\+Edit\texorpdfstring{$\ast$}{*} Demographics\+Page\+::fn = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_demographics_page_a47ce4b02a52b4ebf7af2c5841432d04e}\index{DemographicsPage@{DemographicsPage}!ge@{ge}}
+\index{ge@{ge}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{ge}{ge}}
+{\footnotesize\ttfamily \label{class_demographics_page_a47ce4b02a52b4ebf7af2c5841432d04e} 
+QList$<$QRadio\+Button \texorpdfstring{$\ast$}{*}$>$ Demographics\+Page\+::ge\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_demographics_page_a2bf566a98d3878d52933685ea784f524}\index{DemographicsPage@{DemographicsPage}!genderResponsesComboBox@{genderResponsesComboBox}}
+\index{genderResponsesComboBox@{genderResponsesComboBox}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{genderResponsesComboBox}{genderResponsesComboBox}}
+{\footnotesize\ttfamily \label{class_demographics_page_a2bf566a98d3878d52933685ea784f524} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Demographics\+Page\+::gender\+Responses\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_demographics_page_a0232b3890925bfc48b093d8a5ba2072c}\index{DemographicsPage@{DemographicsPage}!genderResponsesLabel@{genderResponsesLabel}}
+\index{genderResponsesLabel@{genderResponsesLabel}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{genderResponsesLabel}{genderResponsesLabel}}
+{\footnotesize\ttfamily \label{class_demographics_page_a0232b3890925bfc48b093d8a5ba2072c} 
+QLabel\texorpdfstring{$\ast$}{*} Demographics\+Page\+::gender\+Responses\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_demographics_page_a04b8e1f009b52acd7c0d0d7f3b0be05d}\index{DemographicsPage@{DemographicsPage}!ln@{ln}}
+\index{ln@{ln}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{ln}{ln}}
+{\footnotesize\ttfamily \label{class_demographics_page_a04b8e1f009b52acd7c0d0d7f3b0be05d} 
+QLine\+Edit\texorpdfstring{$\ast$}{*} Demographics\+Page\+::ln = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_demographics_page_a24c128e899c98f43000cdf1ba27f9df2}\index{DemographicsPage@{DemographicsPage}!re@{re}}
+\index{re@{re}!DemographicsPage@{DemographicsPage}}
+\doxysubsubsection{\texorpdfstring{re}{re}}
+{\footnotesize\ttfamily \label{class_demographics_page_a24c128e899c98f43000cdf1ba27f9df2} 
+QLine\+Edit\texorpdfstring{$\ast$}{*} Demographics\+Page\+::re = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8h}{survey\+Maker\+Wizard.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8cpp}{survey\+Maker\+Wizard.\+cpp}}\end{DoxyCompactItemize}

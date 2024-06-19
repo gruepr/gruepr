@@ -1,0 +1,184 @@
+\doxysection{custom\+Teamsizes\+Dialog Class Reference}
+\hypertarget{classcustom_teamsizes_dialog}{}\label{classcustom_teamsizes_dialog}\index{customTeamsizesDialog@{customTeamsizesDialog}}
+
+
+{\ttfamily \#include $<$custom\+Teamsizes\+Dialog.\+h$>$}
+
+Inheritance diagram for custom\+Teamsizes\+Dialog\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classcustom_teamsizes_dialog}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classcustom_teamsizes_dialog_adb5be3d7543466affa9cf0f9e0d3d27b}{custom\+Teamsizes\+Dialog}} (int \mbox{\hyperlink{classcustom_teamsizes_dialog_a7f87a422d252ec28c0b12be7d31f6d23}{num\+Students}}, int ideal\+Teamsize, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{classcustom_teamsizes_dialog_a8eb72474d259459fffc7c3d400db5ea0}{\texorpdfstring{$\sim$}{\string~}custom\+Teamsizes\+Dialog}} () override=default
+\item 
+\mbox{\hyperlink{classcustom_teamsizes_dialog_a9b68bec86ee545c85ebc259844eb1f2e}{custom\+Teamsizes\+Dialog}} (const \mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \mbox{\hyperlink{classcustom_teamsizes_dialog_ae7104177e6531fbb7870b81fd2a656a2}{operator=}} (const \mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classcustom_teamsizes_dialog_a276574c462bffc2ddc8615870f1af988}{custom\+Teamsizes\+Dialog}} (\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&\&)=delete
+\item 
+\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \& \mbox{\hyperlink{classcustom_teamsizes_dialog_a924e55d11d64e4c55de31097379f3cf6}{operator=}} (\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&\&)=delete
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classlist_table_dialog_ac549d6aa57a2a438066ad2804314a6b0}{list\+Table\+Dialog}} (const QString \&title="{}"{}, bool hide\+Col\+Headers=true, bool stretch\+Last\+Column=true, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{classlist_table_dialog_af1083d9df31473c5d17cd265585250cb}{add\+Spacer\+Row}} (int row)
+\item 
+void \mbox{\hyperlink{classlist_table_dialog_aed52adb21f91568e781be341e4963079}{add\+Button}} (QPush\+Button \texorpdfstring{$\ast$}{*}new\+Button)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QList$<$ int $>$ \mbox{\hyperlink{classcustom_teamsizes_dialog_a878be644eeb3fe7c89fd1417c984c07e}{teamsizes}}
+\item 
+int \mbox{\hyperlink{classcustom_teamsizes_dialog_a21d696e1951cd2d2b0605d6dccfc0391}{num\+Teams}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+QGrid\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a52c540e34e8a9ca3115a2ee91d0bb786}{the\+Grid}} = nullptr
+\item 
+QTable\+Widget \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a79db1c9f7f65abc8bbff81f0f4ecd066}{the\+Table}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classcustom_teamsizes_dialog_a4bcdf217c986fb1033120ea8b8959c57}{refresh\+Display}} ()
+\item 
+void \mbox{\hyperlink{classcustom_teamsizes_dialog_aa73c7f99565fa084a4e15cb9c3cd4e7b}{teamsize\+Changed}} (int)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{classcustom_teamsizes_dialog_a7f87a422d252ec28c0b12be7d31f6d23}{num\+Students}}
+\item 
+QSpin\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classcustom_teamsizes_dialog_ae9d1dcabe0473837efc6992062b330f1}{num\+Teams\+Box}} = nullptr
+\item 
+QList$<$ QSpin\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{classcustom_teamsizes_dialog_ac594a79bdba048919d1d684339056f42}{teamsize\+Box}}
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classcustom_teamsizes_dialog_a7d43ff8a081124f2dd9a184aecd6e4ba}{remaining\+Students}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+QHBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a2e972c1da20c51728a06767f2443b62f}{button\+Layout}} = nullptr
+\item 
+QDialog\+Button\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_ad1f831af21a5ec2d9d8ec53ee83e348c}{button\+Box}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Protected Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{classlist_table_dialog_abf2f1703aac6a02c43c590ecf35236cc}{TABLEROWINGRID}} = 5
+\item 
+static const int \mbox{\hyperlink{classlist_table_dialog_a96bc700b6d7b914385e58d1823599de4}{BUTTONBOXROWINGRID}} = 9
+\item 
+static const float \mbox{\hyperlink{classlist_table_dialog_a11d6961626ff7c00209f2271359fe9be}{TABLEOVERSIZE}} = 1.\+2f
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classcustom_teamsizes_dialog_adb5be3d7543466affa9cf0f9e0d3d27b}\index{customTeamsizesDialog@{customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\index{customTeamsizesDialog@{customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{customTeamsizesDialog()}{customTeamsizesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_adb5be3d7543466affa9cf0f9e0d3d27b} 
+custom\+Teamsizes\+Dialog\+::custom\+Teamsizes\+Dialog (\begin{DoxyParamCaption}\item[{int}]{num\+Students}{, }\item[{int}]{ideal\+Teamsize}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+\Hypertarget{classcustom_teamsizes_dialog_a8eb72474d259459fffc7c3d400db5ea0}\index{customTeamsizesDialog@{customTeamsizesDialog}!````~customTeamsizesDialog@{\texorpdfstring{$\sim$}{\string~}customTeamsizesDialog}}
+\index{````~customTeamsizesDialog@{\texorpdfstring{$\sim$}{\string~}customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}customTeamsizesDialog()}{\string~customTeamsizesDialog()}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a8eb72474d259459fffc7c3d400db5ea0} 
+custom\+Teamsizes\+Dialog\+::\texorpdfstring{$\sim$}{\string~}custom\+Teamsizes\+Dialog (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [default]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a9b68bec86ee545c85ebc259844eb1f2e}\index{customTeamsizesDialog@{customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\index{customTeamsizesDialog@{customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{customTeamsizesDialog()}{customTeamsizesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a9b68bec86ee545c85ebc259844eb1f2e} 
+custom\+Teamsizes\+Dialog\+::custom\+Teamsizes\+Dialog (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a276574c462bffc2ddc8615870f1af988}\index{customTeamsizesDialog@{customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\index{customTeamsizesDialog@{customTeamsizesDialog}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{customTeamsizesDialog()}{customTeamsizesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a276574c462bffc2ddc8615870f1af988} 
+custom\+Teamsizes\+Dialog\+::custom\+Teamsizes\+Dialog (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classcustom_teamsizes_dialog_ae7104177e6531fbb7870b81fd2a656a2}\index{customTeamsizesDialog@{customTeamsizesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_ae7104177e6531fbb7870b81fd2a656a2} 
+\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} custom\+Teamsizes\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a924e55d11d64e4c55de31097379f3cf6}\index{customTeamsizesDialog@{customTeamsizesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a924e55d11d64e4c55de31097379f3cf6} 
+\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \& custom\+Teamsizes\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classcustom_teamsizes_dialog}{custom\+Teamsizes\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a4bcdf217c986fb1033120ea8b8959c57}\index{customTeamsizesDialog@{customTeamsizesDialog}!refreshDisplay@{refreshDisplay}}
+\index{refreshDisplay@{refreshDisplay}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{refreshDisplay}{refreshDisplay}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a4bcdf217c986fb1033120ea8b8959c57} 
+void custom\+Teamsizes\+Dialog\+::refresh\+Display (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_aa73c7f99565fa084a4e15cb9c3cd4e7b}\index{customTeamsizesDialog@{customTeamsizesDialog}!teamsizeChanged@{teamsizeChanged}}
+\index{teamsizeChanged@{teamsizeChanged}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{teamsizeChanged}{teamsizeChanged}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_aa73c7f99565fa084a4e15cb9c3cd4e7b} 
+void custom\+Teamsizes\+Dialog\+::teamsize\+Changed (\begin{DoxyParamCaption}\item[{int}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classcustom_teamsizes_dialog_a7f87a422d252ec28c0b12be7d31f6d23}\index{customTeamsizesDialog@{customTeamsizesDialog}!numStudents@{numStudents}}
+\index{numStudents@{numStudents}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{numStudents}{numStudents}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a7f87a422d252ec28c0b12be7d31f6d23} 
+int custom\+Teamsizes\+Dialog\+::num\+Students\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a21d696e1951cd2d2b0605d6dccfc0391}\index{customTeamsizesDialog@{customTeamsizesDialog}!numTeams@{numTeams}}
+\index{numTeams@{numTeams}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{numTeams}{numTeams}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a21d696e1951cd2d2b0605d6dccfc0391} 
+int custom\+Teamsizes\+Dialog\+::num\+Teams}
+
+\Hypertarget{classcustom_teamsizes_dialog_ae9d1dcabe0473837efc6992062b330f1}\index{customTeamsizesDialog@{customTeamsizesDialog}!numTeamsBox@{numTeamsBox}}
+\index{numTeamsBox@{numTeamsBox}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{numTeamsBox}{numTeamsBox}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_ae9d1dcabe0473837efc6992062b330f1} 
+QSpin\+Box\texorpdfstring{$\ast$}{*} custom\+Teamsizes\+Dialog\+::num\+Teams\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a7d43ff8a081124f2dd9a184aecd6e4ba}\index{customTeamsizesDialog@{customTeamsizesDialog}!remainingStudents@{remainingStudents}}
+\index{remainingStudents@{remainingStudents}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{remainingStudents}{remainingStudents}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a7d43ff8a081124f2dd9a184aecd6e4ba} 
+QLabel\texorpdfstring{$\ast$}{*} custom\+Teamsizes\+Dialog\+::remaining\+Students = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_ac594a79bdba048919d1d684339056f42}\index{customTeamsizesDialog@{customTeamsizesDialog}!teamsizeBox@{teamsizeBox}}
+\index{teamsizeBox@{teamsizeBox}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{teamsizeBox}{teamsizeBox}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_ac594a79bdba048919d1d684339056f42} 
+QList$<$QSpin\+Box\texorpdfstring{$\ast$}{*}$>$ custom\+Teamsizes\+Dialog\+::teamsize\+Box\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classcustom_teamsizes_dialog_a878be644eeb3fe7c89fd1417c984c07e}\index{customTeamsizesDialog@{customTeamsizesDialog}!teamsizes@{teamsizes}}
+\index{teamsizes@{teamsizes}!customTeamsizesDialog@{customTeamsizesDialog}}
+\doxysubsubsection{\texorpdfstring{teamsizes}{teamsizes}}
+{\footnotesize\ttfamily \label{classcustom_teamsizes_dialog_a878be644eeb3fe7c89fd1417c984c07e} 
+QList$<$int$>$ custom\+Teamsizes\+Dialog\+::teamsizes}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{custom_teamsizes_dialog_8h}{custom\+Teamsizes\+Dialog.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{custom_teamsizes_dialog_8cpp}{custom\+Teamsizes\+Dialog.\+cpp}}\end{DoxyCompactItemize}

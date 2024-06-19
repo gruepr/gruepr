@@ -1,0 +1,37 @@
+\doxysection{list\+Table\+Dialog.\+h}
+\hypertarget{list_table_dialog_8h_source}{}\label{list_table_dialog_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/dialogs/listTableDialog.h@{/Users/johnnyassad/Desktop/gruepr/dialogs/listTableDialog.h}}
+\mbox{\hyperlink{list_table_dialog_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ LISTTABLEDIALOG\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ LISTTABLEDIALOG\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <QDialog>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <QDialogButtonBox>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <QGridLayout>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <QHBoxLayout>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <QTableWidget>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classlist_table_dialog}{listTableDialog}}\ :\ \textcolor{keyword}{public}\ QDialog}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00016\ \ \ \ \ \mbox{\hyperlink{classlist_table_dialog_ac549d6aa57a2a438066ad2804314a6b0}{listTableDialog}}(\textcolor{keyword}{const}\ QString\ \&title\ =\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{keywordtype}{bool}\ hideColHeaders\ =\ \textcolor{keyword}{true},\ \textcolor{keywordtype}{bool}\ stretchLastColumn\ =\ \textcolor{keyword}{true},\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00017\ \ \ \ \ QGridLayout\ *\mbox{\hyperlink{classlist_table_dialog_a52c540e34e8a9ca3115a2ee91d0bb786}{theGrid}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00018\ \ \ \ \ QTableWidget\ *\mbox{\hyperlink{classlist_table_dialog_a79db1c9f7f65abc8bbff81f0f4ecd066}{theTable}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classlist_table_dialog_af1083d9df31473c5d17cd265585250cb}{addSpacerRow}}(\textcolor{keywordtype}{int}\ row);}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classlist_table_dialog_aed52adb21f91568e781be341e4963079}{addButton}}(QPushButton\ *newButton);}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00023\ \ \ \ \ QHBoxLayout\ *\mbox{\hyperlink{classlist_table_dialog_a2e972c1da20c51728a06767f2443b62f}{buttonLayout}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00024\ \ \ \ \ QDialogButtonBox\ *\mbox{\hyperlink{classlist_table_dialog_ad1f831af21a5ec2d9d8ec53ee83e348c}{buttonBox}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classlist_table_dialog_abf2f1703aac6a02c43c590ecf35236cc}{TABLEROWINGRID}}\ =\ 5;}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classlist_table_dialog_a96bc700b6d7b914385e58d1823599de4}{BUTTONBOXROWINGRID}}\ =\ 9;}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{classlist_table_dialog_a11d6961626ff7c00209f2271359fe9be}{TABLEOVERSIZE}}\ =\ 1.2f;\ \ \ \textcolor{comment}{//\ factor\ to\ exapnd\ the\ first\ column\ and\ every\ row\ of\ the\ table,\ as\ they\ often\ seems\ to\ be\ too\ small}}
+\DoxyCodeLine{00028\ \};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ LISTTABLEDIALOG\_H}}
+
+\end{DoxyCode}

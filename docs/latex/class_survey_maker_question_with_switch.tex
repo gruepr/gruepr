@@ -1,0 +1,157 @@
+\doxysection{Survey\+Maker\+Question\+With\+Switch Class Reference}
+\hypertarget{class_survey_maker_question_with_switch}{}\label{class_survey_maker_question_with_switch}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+
+
+{\ttfamily \#include $<$survey\+Maker\+Question.\+h$>$}
+
+Inheritance diagram for Survey\+Maker\+Question\+With\+Switch\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_survey_maker_question_with_switch}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_a5e4e82ad34adb4bcc3bcb631b107f235}{value\+Changed}} (bool newvalue)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_question_with_switch_a8888a64bbd903c4f48717b1c4cf7c0de}{Survey\+Maker\+Question\+With\+Switch}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr, const QString \&text\+Label="{}"{}, bool starting\+Value=false)
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_a8ffd715261efe7d5cc1d74a02be05486}{set\+Label}} (const QString \&text)
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_a4eb4d342ee9e4d67a0bb52a74ea01de9}{set\+Value}} (bool \mbox{\hyperlink{class_survey_maker_question_with_switch_a3ba5871d6e42b1007e412802c5045859}{value}})
+\item 
+bool \mbox{\hyperlink{class_survey_maker_question_with_switch_af0b3d18e48ea74bd48ef6b4d1e5d20f5}{get\+Value}} () const
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_a7a000fcaa74c930b3e582218dac7c7f6}{add\+Widget}} (QWidget \texorpdfstring{$\ast$}{*}widget, int row, int column, bool expand\+To\+Rest\+Of\+Row, Qt\+::\+Alignment horizontal\+Alignment=Qt\+::\+Alignment())
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_af3b29615f139e33b171f3d5a8585c2f0}{move\+Widget}} (QWidget \texorpdfstring{$\ast$}{*}widget, int new\+Row, int new\+Column, bool expand\+To\+Rest\+Of\+Row, Qt\+::\+Alignment horizontal\+Alignment=Qt\+::\+Alignment())
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_ac54dcead266142ba42ff24b3ce6eb710}{mouse\+Press\+Event}} (QMouse\+Event \texorpdfstring{$\ast$}{*}event) override
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_a5076c17c7989f084c1c9f9a09551c806}{set\+Enabled}} (bool)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_survey_maker_question_with_switch_a3ba5871d6e42b1007e412802c5045859}{value}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_survey_maker_question_with_switch_af644ddc4160f6226d861de4921449616}{value\+Change}} (bool newvalue)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_question_with_switch_a21ae83e47c4076baf6b03b3df29a574d}{label}} = nullptr
+\item 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_question_with_switch_a08ca953f7404995df64db34b9b175812}{switch\+Button}} = nullptr
+\item 
+QGrid\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_question_with_switch_a92cec88fa841aa04ed0e223bfbf71df7}{layout}} = nullptr
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_survey_maker_question_with_switch_a8888a64bbd903c4f48717b1c4cf7c0de}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{SurveyMakerQuestionWithSwitch()}{SurveyMakerQuestionWithSwitch()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a8888a64bbd903c4f48717b1c4cf7c0de} 
+Survey\+Maker\+Question\+With\+Switch\+::\+Survey\+Maker\+Question\+With\+Switch (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}, }\item[{const QString \&}]{text\+Label}{ = {\ttfamily "{}"{}}, }\item[{bool}]{starting\+Value}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_survey_maker_question_with_switch_a7a000fcaa74c930b3e582218dac7c7f6}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!addWidget@{addWidget}}
+\index{addWidget@{addWidget}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{addWidget()}{addWidget()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a7a000fcaa74c930b3e582218dac7c7f6} 
+void Survey\+Maker\+Question\+With\+Switch\+::add\+Widget (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{widget}{, }\item[{int}]{row}{, }\item[{int}]{column}{, }\item[{bool}]{expand\+To\+Rest\+Of\+Row}{, }\item[{Qt\+::\+Alignment}]{horizontal\+Alignment}{ = {\ttfamily Qt\+:\+:Alignment()}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_question_with_switch_af0b3d18e48ea74bd48ef6b4d1e5d20f5}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!getValue@{getValue}}
+\index{getValue@{getValue}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{getValue()}{getValue()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_af0b3d18e48ea74bd48ef6b4d1e5d20f5} 
+bool Survey\+Maker\+Question\+With\+Switch\+::get\+Value (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_survey_maker_question_with_switch_ac54dcead266142ba42ff24b3ce6eb710}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!mousePressEvent@{mousePressEvent}}
+\index{mousePressEvent@{mousePressEvent}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{mousePressEvent()}{mousePressEvent()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_ac54dcead266142ba42ff24b3ce6eb710} 
+void Survey\+Maker\+Question\+With\+Switch\+::mouse\+Press\+Event (\begin{DoxyParamCaption}\item[{QMouse\+Event \texorpdfstring{$\ast$}{*}}]{event}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_survey_maker_question_with_switch_af3b29615f139e33b171f3d5a8585c2f0}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!moveWidget@{moveWidget}}
+\index{moveWidget@{moveWidget}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{moveWidget()}{moveWidget()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_af3b29615f139e33b171f3d5a8585c2f0} 
+void Survey\+Maker\+Question\+With\+Switch\+::move\+Widget (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{widget}{, }\item[{int}]{new\+Row}{, }\item[{int}]{new\+Column}{, }\item[{bool}]{expand\+To\+Rest\+Of\+Row}{, }\item[{Qt\+::\+Alignment}]{horizontal\+Alignment}{ = {\ttfamily Qt\+:\+:Alignment()}}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_question_with_switch_a5076c17c7989f084c1c9f9a09551c806}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!setEnabled@{setEnabled}}
+\index{setEnabled@{setEnabled}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{setEnabled()}{setEnabled()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a5076c17c7989f084c1c9f9a09551c806} 
+void Survey\+Maker\+Question\+With\+Switch\+::set\+Enabled (\begin{DoxyParamCaption}\item[{bool}]{flag}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_question_with_switch_a8ffd715261efe7d5cc1d74a02be05486}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!setLabel@{setLabel}}
+\index{setLabel@{setLabel}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{setLabel()}{setLabel()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a8ffd715261efe7d5cc1d74a02be05486} 
+void Survey\+Maker\+Question\+With\+Switch\+::set\+Label (\begin{DoxyParamCaption}\item[{const QString \&}]{text}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_question_with_switch_a4eb4d342ee9e4d67a0bb52a74ea01de9}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!setValue@{setValue}}
+\index{setValue@{setValue}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{setValue()}{setValue()}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a4eb4d342ee9e4d67a0bb52a74ea01de9} 
+void Survey\+Maker\+Question\+With\+Switch\+::set\+Value (\begin{DoxyParamCaption}\item[{bool}]{value}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_survey_maker_question_with_switch_af644ddc4160f6226d861de4921449616}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!valueChange@{valueChange}}
+\index{valueChange@{valueChange}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{valueChange}{valueChange}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_af644ddc4160f6226d861de4921449616} 
+void Survey\+Maker\+Question\+With\+Switch\+::value\+Change (\begin{DoxyParamCaption}\item[{bool}]{newvalue}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{class_survey_maker_question_with_switch_a5e4e82ad34adb4bcc3bcb631b107f235}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!valueChanged@{valueChanged}}
+\index{valueChanged@{valueChanged}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{valueChanged}{valueChanged}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a5e4e82ad34adb4bcc3bcb631b107f235} 
+void Survey\+Maker\+Question\+With\+Switch\+::value\+Changed (\begin{DoxyParamCaption}\item[{bool}]{newvalue}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_survey_maker_question_with_switch_a21ae83e47c4076baf6b03b3df29a574d}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!label@{label}}
+\index{label@{label}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{label}{label}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a21ae83e47c4076baf6b03b3df29a574d} 
+QLabel\texorpdfstring{$\ast$}{*} Survey\+Maker\+Question\+With\+Switch\+::label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_survey_maker_question_with_switch_a92cec88fa841aa04ed0e223bfbf71df7}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!layout@{layout}}
+\index{layout@{layout}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{layout}{layout}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a92cec88fa841aa04ed0e223bfbf71df7} 
+QGrid\+Layout\texorpdfstring{$\ast$}{*} Survey\+Maker\+Question\+With\+Switch\+::layout = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_survey_maker_question_with_switch_a08ca953f7404995df64db34b9b175812}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!switchButton@{switchButton}}
+\index{switchButton@{switchButton}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{switchButton}{switchButton}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a08ca953f7404995df64db34b9b175812} 
+\mbox{\hyperlink{class_switch_button}{Switch\+Button}}\texorpdfstring{$\ast$}{*} Survey\+Maker\+Question\+With\+Switch\+::switch\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Property Documentation}
+\Hypertarget{class_survey_maker_question_with_switch_a3ba5871d6e42b1007e412802c5045859}\index{SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}!value@{value}}
+\index{value@{value}!SurveyMakerQuestionWithSwitch@{SurveyMakerQuestionWithSwitch}}
+\doxysubsubsection{\texorpdfstring{value}{value}}
+{\footnotesize\ttfamily \label{class_survey_maker_question_with_switch_a3ba5871d6e42b1007e412802c5045859} 
+bool Survey\+Maker\+Question\+With\+Switch\+::value\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{survey_maker_question_8h}{survey\+Maker\+Question.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{survey_maker_question_8cpp}{survey\+Maker\+Question.\+cpp}}\end{DoxyCompactItemize}

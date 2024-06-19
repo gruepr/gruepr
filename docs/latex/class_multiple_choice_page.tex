@@ -1,0 +1,356 @@
+\doxysection{Multiple\+Choice\+Page Class Reference}
+\hypertarget{class_multiple_choice_page}{}\label{class_multiple_choice_page}\index{MultipleChoicePage@{MultipleChoicePage}}
+
+
+{\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
+
+Inheritance diagram for Multiple\+Choice\+Page\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_multiple_choice_page}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_ae7c23f772707b99448b61316bf3c51f0}{num\+Questions\+Changed}} (int new\+Num\+Questions)
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_acd8da0c434b1e0f627b3f93d5dcf48d4}{question\+Texts\+Changed}} (QList$<$ QString $>$ \&new\+Question\+Texts)
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a57f1177fefeef5d0a8636a001f4652eb}{question\+Responses\+Changed}} (QList$<$ QList$<$ QString $>$ $>$ \&new\+Question\+Responses)
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a41b72bacf44f5ba188de2a25bc351b31}{question\+Multis\+Changed}} (QList$<$ bool $>$ \&new\+Question\+Multis)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_multiple_choice_page_aca2e48faf43901b57aa2eb4a43553c39}{Multiple\+Choice\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc}{initialize\+Page}} () override
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c}{cleanup\+Page}} () override
+\item 
+bool \mbox{\hyperlink{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d}{validate\+Page}} () override
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65}{set\+Num\+Questions}} (const int new\+Num\+Questions)
+\item 
+int \mbox{\hyperlink{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8}{get\+Num\+Questions}} () const
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458}{set\+Question\+Texts}} (const QList$<$ QString $>$ \&new\+Question\+Texts)
+\item 
+QList$<$ QString $>$ \mbox{\hyperlink{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae}{get\+Question\+Texts}} () const
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53}{set\+Question\+Responses}} (const QList$<$ QList$<$ QString $>$ $>$ \&new\+Question\+Responses)
+\item 
+QList$<$ QList$<$ QString $>$ $>$ \mbox{\hyperlink{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0}{get\+Question\+Responses}} () const
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd}{set\+Question\+Multis}} (const QList$<$ bool $>$ \&new\+Question\+Multis)
+\item 
+QList$<$ bool $>$ \mbox{\hyperlink{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d}{get\+Question\+Multis}} () const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_page_aaf5bff1c1f1b93444b81535c9797b8e5}{Survey\+Maker\+Page}} (\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Survey\+Maker\+Wizard\+::\+Page}} page, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{class_multiple_choice_page_aef374e07bfd1f248332a3c72509b74f2}{num\+Questions}} = 0
+\item 
+QList$<$ QString $>$ \mbox{\hyperlink{class_multiple_choice_page_a532c96fbc6a75f80c9b15e7787544d5f}{question\+Texts}}
+\item 
+QList\+QList$<$ QString $>$ \mbox{\hyperlink{class_multiple_choice_page_aa11f1c723d3df22cc7c37afc7a605216}{question\+Responses}}
+\item 
+QList$<$ bool $>$ \mbox{\hyperlink{class_multiple_choice_page_ae10676671581319caa056e3ad2354e3c}{question\+Multis}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a76663c5928d73c145aa910fddc23d193}{add\+Question}} ()
+\item 
+void \mbox{\hyperlink{class_multiple_choice_page_a9214b52542b55785d34f063fbdb671d1}{delete\+AQuestion}} (int question\+Num)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QFrame \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_a3f74f5ecdba27ed3dd33ffff1ff602a3}{sample\+Questions\+Frame}} = nullptr
+\item 
+QHBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_ae30d44872be4b7a0c0972fc1b5013339}{sample\+Questions\+Layout}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_a45a2888d5293c8b400a66112483082d4}{sample\+Questions\+Icon}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_af268eae9602f0ce40fb55492f9061229}{sample\+Questions\+Label}} = nullptr
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_a4ae7d95ca96ddebde4daf2b690cd164b}{sample\+Questions\+Button}} = nullptr
+\item 
+\mbox{\hyperlink{class_sample_questions_dialog}{Sample\+Questions\+Dialog}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_ac7a48b343055d35d2e565e7022e8c685}{sample\+Questions\+Dialog}} = nullptr
+\item 
+QList$<$ \mbox{\hyperlink{class_survey_maker_multichoice_question}{Survey\+Maker\+Multichoice\+Question}} \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_multiple_choice_page_abcf5636b9f564f2f485002c3d07f2600}{multichoice\+Questions}}
+\item 
+QList$<$ QSpacer\+Item \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_multiple_choice_page_a64c8f219aa3cd9834442c971a2fe2c7b}{spacers}}
+\item 
+QList$<$ QFrame \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_multiple_choice_page_ae7c0c246b69bdb1daa8ef69109599d1b}{preview\+Separators}}
+\item 
+QFrame \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_a6fdc3dccfbba04f711386ace03413a7a}{add\+Question\+Button\+Frame}} = nullptr
+\item 
+QHBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_a4a4cb9b5248bc79cf1b0ddb3ac994a52}{add\+Question\+Button\+Layout}} = nullptr
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_multiple_choice_page_a3c4653f20fa5f4e12f8f5cb8874813e9}{add\+Question\+Button}} = nullptr
+\item 
+QString\+List \mbox{\hyperlink{class_multiple_choice_page_a5e48f7adadd60dcca4e5b5a7592d8575}{question\+Texts}}
+\item 
+QList$<$ QList$<$ QString $>$ $>$ \mbox{\hyperlink{class_multiple_choice_page_a265f84ba6d4e45b6f07c05b5dbf27206}{question\+Responses}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a4b146c11ee08575c6dc5510c38da0da0}{question\+Layout}} = nullptr
+\item 
+QList$<$ \mbox{\hyperlink{class_survey_maker_question_with_switch}{Survey\+Maker\+Question\+With\+Switch}} \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a4ea29f32f822c17c59f65efc32d42fd4}{questions}}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a0af53f935c042754af1fd94372541534}{preview\+Layout}} = nullptr
+\item 
+QList$<$ QWidget \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_af9319294d06e0ed468986e792514e79c}{question\+Previews}}
+\item 
+QList$<$ QVBox\+Layout \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa0b0ea52e25f3e81bfd86f803ff090e4}{question\+Preview\+Layouts}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a928b87017580196a3744cf776533238a}{question\+Preview\+Top\+Labels}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa2a2b6325d3da6e41b7fc89e9894d5b3}{question\+Preview\+Bottom\+Labels}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_multiple_choice_page_aca2e48faf43901b57aa2eb4a43553c39}\index{MultipleChoicePage@{MultipleChoicePage}!MultipleChoicePage@{MultipleChoicePage}}
+\index{MultipleChoicePage@{MultipleChoicePage}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{MultipleChoicePage()}{MultipleChoicePage()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_aca2e48faf43901b57aa2eb4a43553c39} 
+Multiple\+Choice\+Page\+::\+Multiple\+Choice\+Page (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_multiple_choice_page_a76663c5928d73c145aa910fddc23d193}\index{MultipleChoicePage@{MultipleChoicePage}!addQuestion@{addQuestion}}
+\index{addQuestion@{addQuestion}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{addQuestion()}{addQuestion()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a76663c5928d73c145aa910fddc23d193} 
+void Multiple\+Choice\+Page\+::add\+Question (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c}\index{MultipleChoicePage@{MultipleChoicePage}!cleanupPage@{cleanupPage}}
+\index{cleanupPage@{cleanupPage}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{cleanupPage()}{cleanupPage()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c} 
+void Multiple\+Choice\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_multiple_choice_page_a9214b52542b55785d34f063fbdb671d1}\index{MultipleChoicePage@{MultipleChoicePage}!deleteAQuestion@{deleteAQuestion}}
+\index{deleteAQuestion@{deleteAQuestion}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{deleteAQuestion()}{deleteAQuestion()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a9214b52542b55785d34f063fbdb671d1} 
+void Multiple\+Choice\+Page\+::delete\+AQuestion (\begin{DoxyParamCaption}\item[{int}]{question\+Num}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8}\index{MultipleChoicePage@{MultipleChoicePage}!getNumQuestions@{getNumQuestions}}
+\index{getNumQuestions@{getNumQuestions}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{getNumQuestions()}{getNumQuestions()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8} 
+int Multiple\+Choice\+Page\+::get\+Num\+Questions (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d}\index{MultipleChoicePage@{MultipleChoicePage}!getQuestionMultis@{getQuestionMultis}}
+\index{getQuestionMultis@{getQuestionMultis}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{getQuestionMultis()}{getQuestionMultis()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d} 
+QList$<$ bool $>$ Multiple\+Choice\+Page\+::get\+Question\+Multis (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0}\index{MultipleChoicePage@{MultipleChoicePage}!getQuestionResponses@{getQuestionResponses}}
+\index{getQuestionResponses@{getQuestionResponses}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{getQuestionResponses()}{getQuestionResponses()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0} 
+QList$<$ QList$<$ QString $>$ $>$ Multiple\+Choice\+Page\+::get\+Question\+Responses (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae}\index{MultipleChoicePage@{MultipleChoicePage}!getQuestionTexts@{getQuestionTexts}}
+\index{getQuestionTexts@{getQuestionTexts}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{getQuestionTexts()}{getQuestionTexts()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae} 
+QList$<$ QString $>$ Multiple\+Choice\+Page\+::get\+Question\+Texts (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+\Hypertarget{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc}\index{MultipleChoicePage@{MultipleChoicePage}!initializePage@{initializePage}}
+\index{initializePage@{initializePage}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{initializePage()}{initializePage()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc} 
+void Multiple\+Choice\+Page\+::initialize\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_multiple_choice_page_ae7c23f772707b99448b61316bf3c51f0}\index{MultipleChoicePage@{MultipleChoicePage}!numQuestionsChanged@{numQuestionsChanged}}
+\index{numQuestionsChanged@{numQuestionsChanged}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{numQuestionsChanged}{numQuestionsChanged}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ae7c23f772707b99448b61316bf3c51f0} 
+void Multiple\+Choice\+Page\+::num\+Questions\+Changed (\begin{DoxyParamCaption}\item[{int}]{new\+Num\+Questions}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_multiple_choice_page_a41b72bacf44f5ba188de2a25bc351b31}\index{MultipleChoicePage@{MultipleChoicePage}!questionMultisChanged@{questionMultisChanged}}
+\index{questionMultisChanged@{questionMultisChanged}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionMultisChanged}{questionMultisChanged}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a41b72bacf44f5ba188de2a25bc351b31} 
+void Multiple\+Choice\+Page\+::question\+Multis\+Changed (\begin{DoxyParamCaption}\item[{QList$<$ bool $>$ \&}]{new\+Question\+Multis}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_multiple_choice_page_a57f1177fefeef5d0a8636a001f4652eb}\index{MultipleChoicePage@{MultipleChoicePage}!questionResponsesChanged@{questionResponsesChanged}}
+\index{questionResponsesChanged@{questionResponsesChanged}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionResponsesChanged}{questionResponsesChanged}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a57f1177fefeef5d0a8636a001f4652eb} 
+void Multiple\+Choice\+Page\+::question\+Responses\+Changed (\begin{DoxyParamCaption}\item[{QList$<$ QList$<$ QString $>$ $>$ \&}]{new\+Question\+Responses}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_multiple_choice_page_acd8da0c434b1e0f627b3f93d5dcf48d4}\index{MultipleChoicePage@{MultipleChoicePage}!questionTextsChanged@{questionTextsChanged}}
+\index{questionTextsChanged@{questionTextsChanged}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionTextsChanged}{questionTextsChanged}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_acd8da0c434b1e0f627b3f93d5dcf48d4} 
+void Multiple\+Choice\+Page\+::question\+Texts\+Changed (\begin{DoxyParamCaption}\item[{QList$<$ QString $>$ \&}]{new\+Question\+Texts}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65}\index{MultipleChoicePage@{MultipleChoicePage}!setNumQuestions@{setNumQuestions}}
+\index{setNumQuestions@{setNumQuestions}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{setNumQuestions()}{setNumQuestions()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65} 
+void Multiple\+Choice\+Page\+::set\+Num\+Questions (\begin{DoxyParamCaption}\item[{const int}]{new\+Num\+Questions}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd}\index{MultipleChoicePage@{MultipleChoicePage}!setQuestionMultis@{setQuestionMultis}}
+\index{setQuestionMultis@{setQuestionMultis}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{setQuestionMultis()}{setQuestionMultis()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd} 
+void Multiple\+Choice\+Page\+::set\+Question\+Multis (\begin{DoxyParamCaption}\item[{const QList$<$ bool $>$ \&}]{new\+Question\+Multis}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53}\index{MultipleChoicePage@{MultipleChoicePage}!setQuestionResponses@{setQuestionResponses}}
+\index{setQuestionResponses@{setQuestionResponses}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{setQuestionResponses()}{setQuestionResponses()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53} 
+void Multiple\+Choice\+Page\+::set\+Question\+Responses (\begin{DoxyParamCaption}\item[{const QList$<$ QList$<$ QString $>$ $>$ \&}]{new\+Question\+Responses}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458}\index{MultipleChoicePage@{MultipleChoicePage}!setQuestionTexts@{setQuestionTexts}}
+\index{setQuestionTexts@{setQuestionTexts}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{setQuestionTexts()}{setQuestionTexts()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458} 
+void Multiple\+Choice\+Page\+::set\+Question\+Texts (\begin{DoxyParamCaption}\item[{const QList$<$ QString $>$ \&}]{new\+Question\+Texts}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d}\index{MultipleChoicePage@{MultipleChoicePage}!validatePage@{validatePage}}
+\index{validatePage@{validatePage}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{validatePage()}{validatePage()}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d} 
+bool Multiple\+Choice\+Page\+::validate\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_multiple_choice_page_a3c4653f20fa5f4e12f8f5cb8874813e9}\index{MultipleChoicePage@{MultipleChoicePage}!addQuestionButton@{addQuestionButton}}
+\index{addQuestionButton@{addQuestionButton}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{addQuestionButton}{addQuestionButton}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a3c4653f20fa5f4e12f8f5cb8874813e9} 
+QPush\+Button\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::add\+Question\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a6fdc3dccfbba04f711386ace03413a7a}\index{MultipleChoicePage@{MultipleChoicePage}!addQuestionButtonFrame@{addQuestionButtonFrame}}
+\index{addQuestionButtonFrame@{addQuestionButtonFrame}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{addQuestionButtonFrame}{addQuestionButtonFrame}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a6fdc3dccfbba04f711386ace03413a7a} 
+QFrame\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::add\+Question\+Button\+Frame = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a4a4cb9b5248bc79cf1b0ddb3ac994a52}\index{MultipleChoicePage@{MultipleChoicePage}!addQuestionButtonLayout@{addQuestionButtonLayout}}
+\index{addQuestionButtonLayout@{addQuestionButtonLayout}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{addQuestionButtonLayout}{addQuestionButtonLayout}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a4a4cb9b5248bc79cf1b0ddb3ac994a52} 
+QHBox\+Layout\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::add\+Question\+Button\+Layout = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_abcf5636b9f564f2f485002c3d07f2600}\index{MultipleChoicePage@{MultipleChoicePage}!multichoiceQuestions@{multichoiceQuestions}}
+\index{multichoiceQuestions@{multichoiceQuestions}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{multichoiceQuestions}{multichoiceQuestions}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_abcf5636b9f564f2f485002c3d07f2600} 
+QList$<$\mbox{\hyperlink{class_survey_maker_multichoice_question}{Survey\+Maker\+Multichoice\+Question}} \texorpdfstring{$\ast$}{*}$>$ Multiple\+Choice\+Page\+::multichoice\+Questions\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_ae7c0c246b69bdb1daa8ef69109599d1b}\index{MultipleChoicePage@{MultipleChoicePage}!previewSeparators@{previewSeparators}}
+\index{previewSeparators@{previewSeparators}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{previewSeparators}{previewSeparators}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ae7c0c246b69bdb1daa8ef69109599d1b} 
+QList$<$QFrame \texorpdfstring{$\ast$}{*}$>$ Multiple\+Choice\+Page\+::preview\+Separators\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a265f84ba6d4e45b6f07c05b5dbf27206}\index{MultipleChoicePage@{MultipleChoicePage}!questionResponses@{questionResponses}}
+\index{questionResponses@{questionResponses}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionResponses}{questionResponses}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a265f84ba6d4e45b6f07c05b5dbf27206} 
+QList$<$QList$<$QString$>$ $>$ Multiple\+Choice\+Page\+::question\+Responses\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a5e48f7adadd60dcca4e5b5a7592d8575}\index{MultipleChoicePage@{MultipleChoicePage}!questionTexts@{questionTexts}}
+\index{questionTexts@{questionTexts}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionTexts}{questionTexts}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a5e48f7adadd60dcca4e5b5a7592d8575} 
+QString\+List Multiple\+Choice\+Page\+::question\+Texts\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a4ae7d95ca96ddebde4daf2b690cd164b}\index{MultipleChoicePage@{MultipleChoicePage}!sampleQuestionsButton@{sampleQuestionsButton}}
+\index{sampleQuestionsButton@{sampleQuestionsButton}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{sampleQuestionsButton}{sampleQuestionsButton}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a4ae7d95ca96ddebde4daf2b690cd164b} 
+QPush\+Button\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::sample\+Questions\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_ac7a48b343055d35d2e565e7022e8c685}\index{MultipleChoicePage@{MultipleChoicePage}!sampleQuestionsDialog@{sampleQuestionsDialog}}
+\index{sampleQuestionsDialog@{sampleQuestionsDialog}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{sampleQuestionsDialog}{sampleQuestionsDialog}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ac7a48b343055d35d2e565e7022e8c685} 
+\mbox{\hyperlink{class_sample_questions_dialog}{Sample\+Questions\+Dialog}}\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::sample\+Questions\+Dialog = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a3f74f5ecdba27ed3dd33ffff1ff602a3}\index{MultipleChoicePage@{MultipleChoicePage}!sampleQuestionsFrame@{sampleQuestionsFrame}}
+\index{sampleQuestionsFrame@{sampleQuestionsFrame}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{sampleQuestionsFrame}{sampleQuestionsFrame}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a3f74f5ecdba27ed3dd33ffff1ff602a3} 
+QFrame\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::sample\+Questions\+Frame = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a45a2888d5293c8b400a66112483082d4}\index{MultipleChoicePage@{MultipleChoicePage}!sampleQuestionsIcon@{sampleQuestionsIcon}}
+\index{sampleQuestionsIcon@{sampleQuestionsIcon}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{sampleQuestionsIcon}{sampleQuestionsIcon}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a45a2888d5293c8b400a66112483082d4} 
+QLabel\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::sample\+Questions\+Icon = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_af268eae9602f0ce40fb55492f9061229}\index{MultipleChoicePage@{MultipleChoicePage}!sampleQuestionsLabel@{sampleQuestionsLabel}}
+\index{sampleQuestionsLabel@{sampleQuestionsLabel}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{sampleQuestionsLabel}{sampleQuestionsLabel}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_af268eae9602f0ce40fb55492f9061229} 
+QLabel\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::sample\+Questions\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_ae30d44872be4b7a0c0972fc1b5013339}\index{MultipleChoicePage@{MultipleChoicePage}!sampleQuestionsLayout@{sampleQuestionsLayout}}
+\index{sampleQuestionsLayout@{sampleQuestionsLayout}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{sampleQuestionsLayout}{sampleQuestionsLayout}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ae30d44872be4b7a0c0972fc1b5013339} 
+QHBox\+Layout\texorpdfstring{$\ast$}{*} Multiple\+Choice\+Page\+::sample\+Questions\+Layout = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_multiple_choice_page_a64c8f219aa3cd9834442c971a2fe2c7b}\index{MultipleChoicePage@{MultipleChoicePage}!spacers@{spacers}}
+\index{spacers@{spacers}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{spacers}{spacers}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a64c8f219aa3cd9834442c971a2fe2c7b} 
+QList$<$QSpacer\+Item \texorpdfstring{$\ast$}{*}$>$ Multiple\+Choice\+Page\+::spacers\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Property Documentation}
+\Hypertarget{class_multiple_choice_page_aef374e07bfd1f248332a3c72509b74f2}\index{MultipleChoicePage@{MultipleChoicePage}!numQuestions@{numQuestions}}
+\index{numQuestions@{numQuestions}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{numQuestions}{numQuestions}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_aef374e07bfd1f248332a3c72509b74f2} 
+int Multiple\+Choice\+Page\+::num\+Questions = 0\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_multiple_choice_page_ae10676671581319caa056e3ad2354e3c}\index{MultipleChoicePage@{MultipleChoicePage}!questionMultis@{questionMultis}}
+\index{questionMultis@{questionMultis}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionMultis}{questionMultis}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_ae10676671581319caa056e3ad2354e3c} 
+QList$<$ bool $>$ Multiple\+Choice\+Page\+::question\+Multis\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_multiple_choice_page_aa11f1c723d3df22cc7c37afc7a605216}\index{MultipleChoicePage@{MultipleChoicePage}!questionResponses@{questionResponses}}
+\index{questionResponses@{questionResponses}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionResponses}{questionResponses}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_aa11f1c723d3df22cc7c37afc7a605216} 
+QList\+QList$<$QString$>$ Multiple\+Choice\+Page\+::question\+Responses\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_multiple_choice_page_a532c96fbc6a75f80c9b15e7787544d5f}\index{MultipleChoicePage@{MultipleChoicePage}!questionTexts@{questionTexts}}
+\index{questionTexts@{questionTexts}!MultipleChoicePage@{MultipleChoicePage}}
+\doxysubsubsection{\texorpdfstring{questionTexts}{questionTexts}}
+{\footnotesize\ttfamily \label{class_multiple_choice_page_a532c96fbc6a75f80c9b15e7787544d5f} 
+QList$<$QString$>$ Multiple\+Choice\+Page\+::question\+Texts\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8h}{survey\+Maker\+Wizard.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8cpp}{survey\+Maker\+Wizard.\+cpp}}\end{DoxyCompactItemize}

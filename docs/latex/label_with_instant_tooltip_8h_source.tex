@@ -1,0 +1,32 @@
+\doxysection{label\+With\+Instant\+Tooltip.\+h}
+\hypertarget{label_with_instant_tooltip_8h_source}{}\label{label_with_instant_tooltip_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/widgets/labelWithInstantTooltip.h@{/Users/johnnyassad/Desktop/gruepr/widgets/labelWithInstantTooltip.h}}
+\mbox{\hyperlink{label_with_instant_tooltip_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ LABELWITHINSTANTTOOLTIP\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ LABELWITHINSTANTTOOLTIP\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_label_with_instant_tooltip}{LabelWithInstantTooltip}}\ :\ \textcolor{keyword}{public}\ QLabel}
+\DoxyCodeLine{00007\ \{}
+\DoxyCodeLine{00008\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00009\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00010\ \ \ \ \ \mbox{\hyperlink{class_label_with_instant_tooltip_adc8bc75ef85b4bb866b780820d66270c}{LabelWithInstantTooltip}}(\textcolor{keyword}{const}\ QString\ \&labelText\ =\ \textcolor{stringliteral}{"{}"{}},\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr})\ :\ QLabel(labelText,\ parent)\ \{\};}
+\DoxyCodeLine{00011\ \ \ \ \ \mbox{\hyperlink{class_label_with_instant_tooltip_a54aba26270260f35a0f8c57fc45ed774}{LabelWithInstantTooltip}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr})\ :\ QLabel(parent)\ \{\};}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_label_with_instant_tooltip_af69d1f609205d13b52f6849664971a10}{setToolTipText}}(\textcolor{keyword}{const}\ QString\ \&text);}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_label_with_instant_tooltip_a629194099811749359b8f784e9bbfaa5}{enterEvent}}(QEnterEvent\ *event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_label_with_instant_tooltip_a6f0451d5a918669d15c9f7ca96eaf884}{leaveEvent}}(QEvent\ *event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_label_with_instant_tooltip_a957c11d56007502dda6c3eb7489ac95b}{mouseReleaseEvent}}(QMouseEvent\ *event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00021\ \ \ \ \ QString\ \mbox{\hyperlink{class_label_with_instant_tooltip_a9677d694677b66f39db44fdf57f6f97c}{toolTipText}};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_label_with_instant_tooltip_a1a6d03489a2c8d2fcc245738071ca856}{DISPLAYTIME}}\ =\ 60000;\ \ \ \ \textcolor{comment}{//amount\ of\ time\ to\ show\ the\ tooltip\ (in\ ms)}}
+\DoxyCodeLine{00024\ \};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ LABELWITHINSTANTTOOLTIP\_H}}
+
+\end{DoxyCode}
