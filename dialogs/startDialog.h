@@ -18,12 +18,29 @@ public:
     StartDialog& operator= (StartDialog&&) = delete;
 
 signals:
+
+    /**
+     * @brief closeDataDialogProgressBar Creates a progress bar for the "close data dialog".
+     */
     void closeDataDialogProgressBar();
 
 private:
+
+    /**
+     * @brief openRegisterDialog Opens the dialog responsible for registering this version of Gruepr to the user.
+     */
     void openRegisterDialog();
+
+    /**
+     * @brief openSurveyMaker Opens the GUI responsible for creating a new survey.
+     */
     void openSurveyMaker();
+
+    /**
+     * @brief openGruepr Opens the survey importing page (other option on the introductory Gruepr window).
+     */
     void openGruepr();
+
     enum class GrueprVersion{unknown, old, current, beta};
     GrueprVersion getLatestVersionFromGithub();
 

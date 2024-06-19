@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QObject>
 
+// constants
 
 inline static const int MIN_STUDENTS = 4;
 inline static const int MAX_STUDENTS = GA::MAX_RECORDS;               // each student is a "record" in the genetic algorithm
@@ -313,6 +314,9 @@ inline static const char TIMEFORMATEXAMPLES[] {"8:00;"
                                                "8:00:00am;"
                                                "8:00:00 am"};
 
+/**
+ * Namespace for Gruepr global variables.
+ */
 namespace grueprGlobal {
     float timeStringToHours(const QString &timeStr);
 }
@@ -533,15 +537,46 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Superlative,Prime,Pick of the litter,Best of the bunch,Head of the line,Superior,Tip-top,Peak,First class,Flawless,"
                                  "Preeminent,Ultimate"};
 
+/**
+ * The namespace with methods used throughout Gruepr.
+ */
 namespace grueprGlobal {
+
+    /**
+     * @brief internetIsGood Checks the connection between the client and Google.com
+     * @return True if the connection is successful, and False otherwise.
+     */
     bool internetIsGood();
 
-    // includes only OK button, and blocks until clicked
-    void errorMessage(QWidget *parent, const QString &windowTitle = "", const QString &message = "");
-    // includes OK & Cancel (unless cancelText is blank); returns true if OK was clicked, false if cancel was clicked
-    bool warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText = "");
+    /**
+     * @brief errorMessage Creates and displays an error message.
+     * @param parent The parent window to display the error message.
+     * @param windowTitle The title of the error message window.
+     * @param message Specifics about why this error message is being displayed.
+     */
+    void errorMessage(QWidget *parent, const QString &windowTitle = "", const QString &message = ""); // includes only OK button, and blocks until clicked
 
+    /**
+     * @brief warningMessage Displays a warning message, from which a user can cancel an action or proceed.
+     * @param parent The parent window to display the warning message.
+     * @param windowTitle The title of the warning message window.
+     * @param message The message relating to why the user is doing something that is deserving of a warning.
+     * @param OKtext If the user clicks the button with OKtext, they are OK with the outlined consequences in the error message.
+     * @param cancelText If the user clicks the button with cancelText, they are not proceeding with the action they previously took.
+     * @return True if the user would like to click the OKtext button; false otherwise.
+     */
+    bool warningMessage(QWidget *parent, const QString &windowTitle, const QString &message, const QString &OKtext, const QString &cancelText = ""); // includes OK & Cancel (unless cancelText is blank); returns true if OK was clicked, false if cancel was clicked
+
+    /**
+     * @brief aboutWindow Displays the window containing "about" information such as the user to whom this version of Gruepr is registered to.
+     * @param parent The parent window to display the about window.
+     */
     void aboutWindow(QWidget *parent);
+
+    /**
+     * @brief helpWindow Displays the window associated with helping the user.
+     * @param parent The parent window to display the help window.
+     */
     void helpWindow(QWidget *parent);
 }
 
@@ -555,7 +590,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
                                                "<br><br>gruepr incorporates:"
                                                "<ul style=\"margin-top: 2px; margin-bottom: 0px; margin-left: 15px; margin-right: 0px; -qt-list-indent: 0;\">"
                                                  "<li>UI and UX designs by <a href=\"https://scout.camd.northeastern.edu/\">Scout</a></li>"
-                                                 "<li>Code libraries from <a href=\"http://qt.io\">Qt, v 6.7</a>, released under the GNU General Public License version 3</li>"
+                                                 "<li>Code libraries from <a href=\"http://qt.io\">Qt, v 6.5</a>, released under the GNU General Public License version 3</li>"
                                                  "<li>Icons from <a href=\"https://icons8.com\">Icons8</a>, released under Creative Commons license "
                                                       "\"Attribution-NoDerivs 3.0 Unported\"</li>"
                                                  "<li>The following fonts, all released under SIL OPEN FONT LICENSE V1.1:"

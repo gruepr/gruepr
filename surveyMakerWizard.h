@@ -357,6 +357,13 @@ public:
 private slots:
     void exportSurvey();
 
+    // Helpers created to make exportSurvey() method more readable:
+
+    void exportSurveyDestinationGrueprFile();
+    void exportSurveyDestinationTextFile();
+    void exportSurveyDestinationGoogle();
+    void exportSurveyDestinationCanvas();
+
 private:
     QList<SurveyMakerPreviewSection *> section;
     QList<QSpacerItem *> preSectionSpacer;
