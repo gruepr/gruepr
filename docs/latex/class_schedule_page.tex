@@ -2,6 +2,11 @@
 \hypertarget{class_schedule_page}{}\label{class_schedule_page}\index{SchedulePage@{SchedulePage}}
 
 
+The \doxylink{class_schedule_page}{Schedule\+Page} class is a GUI page responsible for creating questions relating to students\textquotesingle{} schedule for the survey that the user wants to create.  
+
+
+
+
 {\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
 
 Inheritance diagram for Schedule\+Page\+:\begin{figure}[H]
@@ -36,27 +41,27 @@ void \mbox{\hyperlink{class_schedule_page_a92c22a28dd41eaf374b1543420830e05}{sch
 \mbox{\hyperlink{class_schedule_page_a3cbb7ecd47d3da2c38aeaac22e2ac0ca}{Schedule\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
 \item 
 void \mbox{\hyperlink{class_schedule_page_a88a66bc38f1b0bea07cdb0be14246275}{cleanup\+Page}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em cleanup\+Page CURRENTLY AN EMPTY METHOD. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_schedule_page_a42e0dee06f9e9b1e92c9aa1bd8d1b878}{set\+Day\+Names}} (const QString\+List \&new\+Day\+Names)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Day\+Names Responsible for the weekdays the user wants on this page of their survey. \end{DoxyCompactList}\item 
 QString\+List \mbox{\hyperlink{class_schedule_page_a4d3ff01a3ebd01b827c5dc0ce6644d19}{get\+Day\+Names}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Day\+Names Getter for day\+Names field of this schedule page. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_schedule_page_a0171c98b211f8d04183926eb183dc626}{set\+Base\+Timezone}} (const QString \&new\+Base\+Timezone)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Base\+Timezone Sets the timezone for the survey the user wants to create based on what timezone the user wants. \end{DoxyCompactList}\item 
 QString \mbox{\hyperlink{class_schedule_page_a47eff40763a2875e01efd489724d15d0}{get\+Base\+Timezone}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Base\+Timezone Getter for the base\+Timezone field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_schedule_page_a0abad6aab2ee5dc546180d643ecaac55}{set\+Schedule\+Question}} (const QString \&new\+Schedule\+Question)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Schedule\+Question Sets the schedule questions for the \doxylink{class_schedule_page}{Schedule\+Page} section of this new survey. \end{DoxyCompactList}\item 
 QString \mbox{\hyperlink{class_schedule_page_ab5c6dbb23051efdb75678c4d59a244e3}{get\+Schedule\+Question}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Schedule\+Question Getter for the schedule\+Question field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_schedule_page_a0939dd03748f18ecbc6bff4d82327014}{set\+Schedule\+From}} (const float new\+Schedule\+From)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Schedule\+From Set the schedule\+From field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
 float \mbox{\hyperlink{class_schedule_page_a6aa7340421b564d010d4c0b2d3de5f94}{get\+Schedule\+From}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Schedule\+From Getter for the from\+Combo\+Box field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_schedule_page_a6569277b90ed7ed1632cb0167ac0f3d2}{set\+Schedule\+To}} (const float new\+Schedule\+To)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Schedule\+To Setter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
 float \mbox{\hyperlink{class_schedule_page_a46ea802c727176ccdee9dfd32e18edee}{get\+Schedule\+To}} () const
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em get\+Schedule\+To Getter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
 \begin{DoxyCompactItemize}
 \item 
@@ -109,7 +114,7 @@ void \mbox{\hyperlink{class_schedule_page_a8b7390e1c49b1d631cf46ff398016f50}{day
 void \mbox{\hyperlink{class_schedule_page_a2432df78871cfb7dab51896fd6c18c43}{check\+Days}} ()
 \item 
 void \mbox{\hyperlink{class_schedule_page_ad1c17e8c290dcb7ed9e320032c02f38a}{update}} ()
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em update the schedule grid of the update page of the \doxylink{class_schedule_page}{Schedule\+Page} based on the demands of the user creating the survey. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Private Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -183,6 +188,9 @@ QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_mak
 \end{DoxyCompactItemize}
 
 
+\doxysubsection{Detailed Description}
+The \doxylink{class_schedule_page}{Schedule\+Page} class is a GUI page responsible for creating questions relating to students\textquotesingle{} schedule for the survey that the user wants to create. 
+
 \doxysubsection{Member Enumeration Documentation}
 \Hypertarget{class_schedule_page_a49d047058e2339a23fc7940517f11678}\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
 {\footnotesize\ttfamily \label{class_schedule_page_a49d047058e2339a23fc7940517f11678} 
@@ -244,6 +252,10 @@ void Schedule\+Page\+::check\+Days (\begin{DoxyParamCaption}{}{}\end{DoxyParamCa
 {\footnotesize\ttfamily \label{class_schedule_page_a88a66bc38f1b0bea07cdb0be14246275} 
 void Schedule\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
+
+
+cleanup\+Page CURRENTLY AN EMPTY METHOD. 
+
 \Hypertarget{class_schedule_page_aea1c790dacb3c8a3263b41ec5efb7e80}\index{SchedulePage@{SchedulePage}!day\_CheckBox\_toggled@{day\_CheckBox\_toggled}}
 \index{day\_CheckBox\_toggled@{day\_CheckBox\_toggled}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{day\_CheckBox\_toggled}{day\_CheckBox\_toggled}}
@@ -280,30 +292,65 @@ QString Schedule\+Page\+::generate\+Schedule\+Question (\begin{DoxyParamCaption}
 {\footnotesize\ttfamily \label{class_schedule_page_a47eff40763a2875e01efd489724d15d0} 
 QString Schedule\+Page\+::get\+Base\+Timezone (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Base\+Timezone Getter for the base\+Timezone field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+base\+Timezone field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+\end{DoxyReturn}
 \Hypertarget{class_schedule_page_a4d3ff01a3ebd01b827c5dc0ce6644d19}\index{SchedulePage@{SchedulePage}!getDayNames@{getDayNames}}
 \index{getDayNames@{getDayNames}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{getDayNames()}{getDayNames()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a4d3ff01a3ebd01b827c5dc0ce6644d19} 
 QString\+List Schedule\+Page\+::get\+Day\+Names (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Day\+Names Getter for day\+Names field of this schedule page. 
+
+\begin{DoxyReturn}{Returns}
+day\+Names field of this schedule page. 
+\end{DoxyReturn}
 \Hypertarget{class_schedule_page_a6aa7340421b564d010d4c0b2d3de5f94}\index{SchedulePage@{SchedulePage}!getScheduleFrom@{getScheduleFrom}}
 \index{getScheduleFrom@{getScheduleFrom}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{getScheduleFrom()}{getScheduleFrom()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a6aa7340421b564d010d4c0b2d3de5f94} 
 float Schedule\+Page\+::get\+Schedule\+From (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Schedule\+From Getter for the from\+Combo\+Box field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+from\+Combo\+Box field of \doxylink{class_schedule_page}{Schedule\+Page} class, converted to a float. 
+\end{DoxyReturn}
 \Hypertarget{class_schedule_page_ab5c6dbb23051efdb75678c4d59a244e3}\index{SchedulePage@{SchedulePage}!getScheduleQuestion@{getScheduleQuestion}}
 \index{getScheduleQuestion@{getScheduleQuestion}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{getScheduleQuestion()}{getScheduleQuestion()}}
 {\footnotesize\ttfamily \label{class_schedule_page_ab5c6dbb23051efdb75678c4d59a244e3} 
 QString Schedule\+Page\+::get\+Schedule\+Question (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Schedule\+Question Getter for the schedule\+Question field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+schedule\+Question field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+\end{DoxyReturn}
 \Hypertarget{class_schedule_page_a46ea802c727176ccdee9dfd32e18edee}\index{SchedulePage@{SchedulePage}!getScheduleTo@{getScheduleTo}}
 \index{getScheduleTo@{getScheduleTo}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{getScheduleTo()}{getScheduleTo()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a46ea802c727176ccdee9dfd32e18edee} 
 float Schedule\+Page\+::get\+Schedule\+To (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Schedule\+To Getter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. 
+\end{DoxyReturn}
 \Hypertarget{class_schedule_page_a706efea84cc01cd963619e86da563fbc}\index{SchedulePage@{SchedulePage}!scheduleFromChanged@{scheduleFromChanged}}
 \index{scheduleFromChanged@{scheduleFromChanged}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{scheduleFromChanged}{scheduleFromChanged}}
@@ -328,35 +375,84 @@ void Schedule\+Page\+::schedule\+To\+Changed (\begin{DoxyParamCaption}\item[{con
 {\footnotesize\ttfamily \label{class_schedule_page_a0171c98b211f8d04183926eb183dc626} 
 void Schedule\+Page\+::set\+Base\+Timezone (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Base\+Timezone}{}\end{DoxyParamCaption})}
 
+
+
+set\+Base\+Timezone Sets the timezone for the survey the user wants to create based on what timezone the user wants. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Base\+Timezone} & The timezone the user wants to change the survey to. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_schedule_page_a42e0dee06f9e9b1e92c9aa1bd8d1b878}\index{SchedulePage@{SchedulePage}!setDayNames@{setDayNames}}
 \index{setDayNames@{setDayNames}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{setDayNames()}{setDayNames()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a42e0dee06f9e9b1e92c9aa1bd8d1b878} 
 void Schedule\+Page\+::set\+Day\+Names (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Day\+Names}{}\end{DoxyParamCaption})}
 
+
+
+set\+Day\+Names Responsible for the weekdays the user wants on this page of their survey. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Day\+Names} & A list of strings corresponding to weekday names. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_schedule_page_a0939dd03748f18ecbc6bff4d82327014}\index{SchedulePage@{SchedulePage}!setScheduleFrom@{setScheduleFrom}}
 \index{setScheduleFrom@{setScheduleFrom}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{setScheduleFrom()}{setScheduleFrom()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a0939dd03748f18ecbc6bff4d82327014} 
 void Schedule\+Page\+::set\+Schedule\+From (\begin{DoxyParamCaption}\item[{const float}]{new\+Schedule\+From}{}\end{DoxyParamCaption})}
 
+
+
+set\+Schedule\+From Set the schedule\+From field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Schedule\+From} & The schedule\+From value the user wants. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_schedule_page_a0abad6aab2ee5dc546180d643ecaac55}\index{SchedulePage@{SchedulePage}!setScheduleQuestion@{setScheduleQuestion}}
 \index{setScheduleQuestion@{setScheduleQuestion}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{setScheduleQuestion()}{setScheduleQuestion()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a0abad6aab2ee5dc546180d643ecaac55} 
 void Schedule\+Page\+::set\+Schedule\+Question (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Schedule\+Question}{}\end{DoxyParamCaption})}
 
+
+
+set\+Schedule\+Question Sets the schedule questions for the \doxylink{class_schedule_page}{Schedule\+Page} section of this new survey. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Schedule\+Question} & The new schedule question the user wants to include. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_schedule_page_a6569277b90ed7ed1632cb0167ac0f3d2}\index{SchedulePage@{SchedulePage}!setScheduleTo@{setScheduleTo}}
 \index{setScheduleTo@{setScheduleTo}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{setScheduleTo()}{setScheduleTo()}}
 {\footnotesize\ttfamily \label{class_schedule_page_a6569277b90ed7ed1632cb0167ac0f3d2} 
 void Schedule\+Page\+::set\+Schedule\+To (\begin{DoxyParamCaption}\item[{const float}]{new\+Schedule\+To}{}\end{DoxyParamCaption})}
 
+
+
+set\+Schedule\+To Setter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\+Combo\+Box} & field of the \doxylink{class_schedule_page}{Schedule\+Page} class that the user creating the survey wants. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_schedule_page_ad1c17e8c290dcb7ed9e320032c02f38a}\index{SchedulePage@{SchedulePage}!update@{update}}
 \index{update@{update}!SchedulePage@{SchedulePage}}
 \doxysubsubsection{\texorpdfstring{update()}{update()}}
 {\footnotesize\ttfamily \label{class_schedule_page_ad1c17e8c290dcb7ed9e320032c02f38a} 
 void Schedule\+Page\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+update the schedule grid of the update page of the \doxylink{class_schedule_page}{Schedule\+Page} based on the demands of the user creating the survey. 
 
 
 

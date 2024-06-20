@@ -2,6 +2,11 @@
 \hypertarget{class_preview_and_export_page}{}\label{class_preview_and_export_page}\index{PreviewAndExportPage@{PreviewAndExportPage}}
 
 
+The \doxylink{class_preview_and_export_page}{Preview\+And\+Export\+Page} class represents the page responsible for previewing and exporting the survey after its creation by the user.  
+
+
+
+
 {\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
 
 Inheritance diagram for Preview\+And\+Export\+Page\+:\begin{figure}[H]
@@ -28,15 +33,15 @@ void \mbox{\hyperlink{class_preview_and_export_page_af92350d97d79263afd5e7edc660
 \begin{DoxyCompactItemize}
 \item 
 void \mbox{\hyperlink{class_preview_and_export_page_a6b30f056c506418922deb479b088ca9e}{export\+Survey}} ()
-\item 
+\begin{DoxyCompactList}\small\item\em export\+Survey A general helper used to export the survey to a variety of destinations. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_preview_and_export_page_a2b19984bea7681250d533adda52a6162}{export\+Survey\+Destination\+Gruepr\+File}} ()
-\begin{DoxyCompactList}\small\item\em SURVEY EXPORTING FUNCTIONALITY. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em export\+Survey\+Destination\+Gruepr\+File exports the newly created survey to a Gruepr file. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_preview_and_export_page_a688efac5e91e5618457ac952c45e55e6}{export\+Survey\+Destination\+Text\+File}} ()
-\item 
+\begin{DoxyCompactList}\small\item\em export\+Survey\+Destination\+Text\+File exports the newly created survey to a text file. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_preview_and_export_page_a2c9d9c3cdc7b548ae368471b5f5c36cf}{export\+Survey\+Destination\+Google}} ()
-\item 
+\begin{DoxyCompactList}\small\item\em export\+Survey\+Destination\+Google exports the newly created survey to a Google forms. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_preview_and_export_page_aee4584dc5c9463a077ad4e6e35326419}{export\+Survey\+Destination\+Canvas}} ()
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em export\+Survey\+Destination\+Canvas exports the newly created survey to a Canvas quiz within a canvsas class (mao maintenance). \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Private Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -80,6 +85,9 @@ QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_mak
 \end{DoxyCompactItemize}
 
 
+\doxysubsection{Detailed Description}
+The \doxylink{class_preview_and_export_page}{Preview\+And\+Export\+Page} class represents the page responsible for previewing and exporting the survey after its creation by the user. 
+
 \doxysubsection{Constructor \& Destructor Documentation}
 \Hypertarget{class_preview_and_export_page_a00f4ca75320a6f272bddc8fe4d1e0a92}\index{PreviewAndExportPage@{PreviewAndExportPage}!PreviewAndExportPage@{PreviewAndExportPage}}
 \index{PreviewAndExportPage@{PreviewAndExportPage}!PreviewAndExportPage@{PreviewAndExportPage}}
@@ -102,17 +110,29 @@ void Preview\+And\+Export\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\e
 {\footnotesize\ttfamily \label{class_preview_and_export_page_a6b30f056c506418922deb479b088ca9e} 
 void Preview\+And\+Export\+Page\+::export\+Survey (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
 
+
+
+export\+Survey A general helper used to export the survey to a variety of destinations. 
+
 \Hypertarget{class_preview_and_export_page_aee4584dc5c9463a077ad4e6e35326419}\index{PreviewAndExportPage@{PreviewAndExportPage}!exportSurveyDestinationCanvas@{exportSurveyDestinationCanvas}}
 \index{exportSurveyDestinationCanvas@{exportSurveyDestinationCanvas}!PreviewAndExportPage@{PreviewAndExportPage}}
 \doxysubsubsection{\texorpdfstring{exportSurveyDestinationCanvas}{exportSurveyDestinationCanvas}}
 {\footnotesize\ttfamily \label{class_preview_and_export_page_aee4584dc5c9463a077ad4e6e35326419} 
 void Preview\+And\+Export\+Page\+::export\+Survey\+Destination\+Canvas (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
 
+
+
+export\+Survey\+Destination\+Canvas exports the newly created survey to a Canvas quiz within a canvsas class (mao maintenance). 
+
 \Hypertarget{class_preview_and_export_page_a2c9d9c3cdc7b548ae368471b5f5c36cf}\index{PreviewAndExportPage@{PreviewAndExportPage}!exportSurveyDestinationGoogle@{exportSurveyDestinationGoogle}}
 \index{exportSurveyDestinationGoogle@{exportSurveyDestinationGoogle}!PreviewAndExportPage@{PreviewAndExportPage}}
 \doxysubsubsection{\texorpdfstring{exportSurveyDestinationGoogle}{exportSurveyDestinationGoogle}}
 {\footnotesize\ttfamily \label{class_preview_and_export_page_a2c9d9c3cdc7b548ae368471b5f5c36cf} 
 void Preview\+And\+Export\+Page\+::export\+Survey\+Destination\+Google (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+
+
+export\+Survey\+Destination\+Google exports the newly created survey to a Google forms. 
 
 \Hypertarget{class_preview_and_export_page_a2b19984bea7681250d533adda52a6162}\index{PreviewAndExportPage@{PreviewAndExportPage}!exportSurveyDestinationGrueprFile@{exportSurveyDestinationGrueprFile}}
 \index{exportSurveyDestinationGrueprFile@{exportSurveyDestinationGrueprFile}!PreviewAndExportPage@{PreviewAndExportPage}}
@@ -122,13 +142,17 @@ void Preview\+And\+Export\+Page\+::export\+Survey\+Destination\+Gruepr\+File (\b
 
 
 
-SURVEY EXPORTING FUNCTIONALITY. 
+export\+Survey\+Destination\+Gruepr\+File exports the newly created survey to a Gruepr file. 
 
-\Hypertarget{class_preview_and_export_page_a688efac5e91e5618457ac952c45e55e6}\index{PreviewAndExportPage@{PreviewAndExportPage}!exportSurveyDestinationTextFile@{exportSurveyDestinationTextFile}}
+SURVEY EXPORTING FUNCTIONALITY. \Hypertarget{class_preview_and_export_page_a688efac5e91e5618457ac952c45e55e6}\index{PreviewAndExportPage@{PreviewAndExportPage}!exportSurveyDestinationTextFile@{exportSurveyDestinationTextFile}}
 \index{exportSurveyDestinationTextFile@{exportSurveyDestinationTextFile}!PreviewAndExportPage@{PreviewAndExportPage}}
 \doxysubsubsection{\texorpdfstring{exportSurveyDestinationTextFile}{exportSurveyDestinationTextFile}}
 {\footnotesize\ttfamily \label{class_preview_and_export_page_a688efac5e91e5618457ac952c45e55e6} 
 void Preview\+And\+Export\+Page\+::export\+Survey\+Destination\+Text\+File (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+
+
+export\+Survey\+Destination\+Text\+File exports the newly created survey to a text file. 
 
 \Hypertarget{class_preview_and_export_page_a1c1cc173a62b208e858086966d282ff8}\index{PreviewAndExportPage@{PreviewAndExportPage}!initializePage@{initializePage}}
 \index{initializePage@{initializePage}!PreviewAndExportPage@{PreviewAndExportPage}}

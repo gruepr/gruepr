@@ -2,6 +2,11 @@
 \hypertarget{class_multiple_choice_page}{}\label{class_multiple_choice_page}\index{MultipleChoicePage@{MultipleChoicePage}}
 
 
+The \doxylink{class_multiple_choice_page}{Multiple\+Choice\+Page} class responsible for.  
+
+
+
+
 {\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
 
 Inheritance diagram for Multiple\+Choice\+Page\+:\begin{figure}[H]
@@ -27,27 +32,27 @@ void \mbox{\hyperlink{class_multiple_choice_page_a41b72bacf44f5ba188de2a25bc351b
 \mbox{\hyperlink{class_multiple_choice_page_aca2e48faf43901b57aa2eb4a43553c39}{Multiple\+Choice\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
 \item 
 void \mbox{\hyperlink{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc}{initialize\+Page}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em initialize\+Page CURRENTLY AN EMPTY METHOD. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c}{cleanup\+Page}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em cleanup\+Page CURRENTLY AN EMPTY METHOD. \end{DoxyCompactList}\item 
 bool \mbox{\hyperlink{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d}{validate\+Page}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em validate\+Page Makes sure that the user is aware of the current state of a multiple choice page for their survey. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65}{set\+Num\+Questions}} (const int new\+Num\+Questions)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Num\+Questions \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8}{get\+Num\+Questions}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Num\+Questions is a getter that returns the number of questions for the current multiple choice page. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458}{set\+Question\+Texts}} (const QList$<$ QString $>$ \&new\+Question\+Texts)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Question\+Texts Adds question text boxes based on the nubmer of questions the user wants on this multiple choice page. \end{DoxyCompactList}\item 
 QList$<$ QString $>$ \mbox{\hyperlink{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae}{get\+Question\+Texts}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Question\+Texts Returns the list of questions the user wants for this multiple choice page (getter for field of this class). \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53}{set\+Question\+Responses}} (const QList$<$ QList$<$ QString $>$ $>$ \&new\+Question\+Responses)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Question\+Responses Sets the responses to user\textquotesingle{}s desired questions for this multiple choice page. \end{DoxyCompactList}\item 
 QList$<$ QList$<$ QString $>$ $>$ \mbox{\hyperlink{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0}{get\+Question\+Responses}} () const
-\item 
+\begin{DoxyCompactList}\small\item\em get\+Question\+Responses Getter for the question responses field of this multiple choice page. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd}{set\+Question\+Multis}} (const QList$<$ bool $>$ \&new\+Question\+Multis)
-\item 
+\begin{DoxyCompactList}\small\item\em set\+Question\+Multis Set the number of multiple choice questions on this multiple choice page. \end{DoxyCompactList}\item 
 QList$<$ bool $>$ \mbox{\hyperlink{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d}{get\+Question\+Multis}} () const
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em get\+Question\+Multis Getter for the question\+Multis field of this multiple choice page. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
 \begin{DoxyCompactItemize}
 \item 
@@ -122,6 +127,9 @@ QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_mak
 \end{DoxyCompactItemize}
 
 
+\doxysubsection{Detailed Description}
+The \doxylink{class_multiple_choice_page}{Multiple\+Choice\+Page} class responsible for. 
+
 \doxysubsection{Constructor \& Destructor Documentation}
 \Hypertarget{class_multiple_choice_page_aca2e48faf43901b57aa2eb4a43553c39}\index{MultipleChoicePage@{MultipleChoicePage}!MultipleChoicePage@{MultipleChoicePage}}
 \index{MultipleChoicePage@{MultipleChoicePage}!MultipleChoicePage@{MultipleChoicePage}}
@@ -144,6 +152,10 @@ void Multiple\+Choice\+Page\+::add\+Question (\begin{DoxyParamCaption}{}{}\end{D
 {\footnotesize\ttfamily \label{class_multiple_choice_page_aeed782f8eae33d0a7c4a94304434466c} 
 void Multiple\+Choice\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
+
+
+cleanup\+Page CURRENTLY AN EMPTY METHOD. 
+
 \Hypertarget{class_multiple_choice_page_a9214b52542b55785d34f063fbdb671d1}\index{MultipleChoicePage@{MultipleChoicePage}!deleteAQuestion@{deleteAQuestion}}
 \index{deleteAQuestion@{deleteAQuestion}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{deleteAQuestion()}{deleteAQuestion()}}
@@ -156,29 +168,61 @@ void Multiple\+Choice\+Page\+::delete\+AQuestion (\begin{DoxyParamCaption}\item[
 {\footnotesize\ttfamily \label{class_multiple_choice_page_afddc464ccff91c9738b8ce0759b570a8} 
 int Multiple\+Choice\+Page\+::get\+Num\+Questions (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Num\+Questions is a getter that returns the number of questions for the current multiple choice page. 
+
+\begin{DoxyReturn}{Returns}
+The number of questions on this multiple choice page. 
+\end{DoxyReturn}
 \Hypertarget{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d}\index{MultipleChoicePage@{MultipleChoicePage}!getQuestionMultis@{getQuestionMultis}}
 \index{getQuestionMultis@{getQuestionMultis}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{getQuestionMultis()}{getQuestionMultis()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_ab9565befce43a64581d10c8db3ceec8d} 
 QList$<$ bool $>$ Multiple\+Choice\+Page\+::get\+Question\+Multis (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Question\+Multis Getter for the question\+Multis field of this multiple choice page. 
+
+\begin{DoxyReturn}{Returns}
+The question\+Multis field of this multiple choice page. 
+\end{DoxyReturn}
 \Hypertarget{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0}\index{MultipleChoicePage@{MultipleChoicePage}!getQuestionResponses@{getQuestionResponses}}
 \index{getQuestionResponses@{getQuestionResponses}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{getQuestionResponses()}{getQuestionResponses()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_adc79ebf9608408ade11c8aa09f1d27d0} 
 QList$<$ QList$<$ QString $>$ $>$ Multiple\+Choice\+Page\+::get\+Question\+Responses (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Question\+Responses Getter for the question responses field of this multiple choice page. 
+
+\begin{DoxyReturn}{Returns}
+The question\+Responses field. 
+\end{DoxyReturn}
 \Hypertarget{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae}\index{MultipleChoicePage@{MultipleChoicePage}!getQuestionTexts@{getQuestionTexts}}
 \index{getQuestionTexts@{getQuestionTexts}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{getQuestionTexts()}{getQuestionTexts()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_ae3980ea4509955245d6119ff271bddae} 
 QList$<$ QString $>$ Multiple\+Choice\+Page\+::get\+Question\+Texts (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
 
+
+
+get\+Question\+Texts Returns the list of questions the user wants for this multiple choice page (getter for field of this class). 
+
+\begin{DoxyReturn}{Returns}
+The list of strings corresponding to questions the user wants on this multiple choice page. 
+\end{DoxyReturn}
 \Hypertarget{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc}\index{MultipleChoicePage@{MultipleChoicePage}!initializePage@{initializePage}}
 \index{initializePage@{initializePage}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{initializePage()}{initializePage()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_a0f6ac8d15cbed352cdd9a3b342aeaccc} 
 void Multiple\+Choice\+Page\+::initialize\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+initialize\+Page CURRENTLY AN EMPTY METHOD. 
 
 \Hypertarget{class_multiple_choice_page_ae7c23f772707b99448b61316bf3c51f0}\index{MultipleChoicePage@{MultipleChoicePage}!numQuestionsChanged@{numQuestionsChanged}}
 \index{numQuestionsChanged@{numQuestionsChanged}!MultipleChoicePage@{MultipleChoicePage}}
@@ -210,30 +254,73 @@ void Multiple\+Choice\+Page\+::question\+Texts\+Changed (\begin{DoxyParamCaption
 {\footnotesize\ttfamily \label{class_multiple_choice_page_a3c02803fe1c88ba94ce8299b00955c65} 
 void Multiple\+Choice\+Page\+::set\+Num\+Questions (\begin{DoxyParamCaption}\item[{const int}]{new\+Num\+Questions}{}\end{DoxyParamCaption})}
 
+
+
+set\+Num\+Questions 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Num\+Questions} & \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd}\index{MultipleChoicePage@{MultipleChoicePage}!setQuestionMultis@{setQuestionMultis}}
 \index{setQuestionMultis@{setQuestionMultis}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{setQuestionMultis()}{setQuestionMultis()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_a314d8dfb3c235901ba6500931c6c3dcd} 
 void Multiple\+Choice\+Page\+::set\+Question\+Multis (\begin{DoxyParamCaption}\item[{const QList$<$ bool $>$ \&}]{new\+Question\+Multis}{}\end{DoxyParamCaption})}
 
+
+
+set\+Question\+Multis Set the number of multiple choice questions on this multiple choice page. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Question\+Multis} & How many new multiple choice questions does the user want? \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53}\index{MultipleChoicePage@{MultipleChoicePage}!setQuestionResponses@{setQuestionResponses}}
 \index{setQuestionResponses@{setQuestionResponses}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{setQuestionResponses()}{setQuestionResponses()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_a145be1d57d45beb25fccbb917d8fcc53} 
 void Multiple\+Choice\+Page\+::set\+Question\+Responses (\begin{DoxyParamCaption}\item[{const QList$<$ QList$<$ QString $>$ $>$ \&}]{new\+Question\+Responses}{}\end{DoxyParamCaption})}
 
+
+
+set\+Question\+Responses Sets the responses to user\textquotesingle{}s desired questions for this multiple choice page. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Question\+Responses} & The new question responses the user wants for this multiple choice page. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458}\index{MultipleChoicePage@{MultipleChoicePage}!setQuestionTexts@{setQuestionTexts}}
 \index{setQuestionTexts@{setQuestionTexts}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{setQuestionTexts()}{setQuestionTexts()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_a28d9b19341efaaf8874d1cec61a76458} 
 void Multiple\+Choice\+Page\+::set\+Question\+Texts (\begin{DoxyParamCaption}\item[{const QList$<$ QString $>$ \&}]{new\+Question\+Texts}{}\end{DoxyParamCaption})}
 
+
+
+set\+Question\+Texts Adds question text boxes based on the nubmer of questions the user wants on this multiple choice page. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Question\+Texts} & A list of questions that the user wants on this multiple choice page. \\
+\hline
+\end{DoxyParams}
 \Hypertarget{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d}\index{MultipleChoicePage@{MultipleChoicePage}!validatePage@{validatePage}}
 \index{validatePage@{validatePage}!MultipleChoicePage@{MultipleChoicePage}}
 \doxysubsubsection{\texorpdfstring{validatePage()}{validatePage()}}
 {\footnotesize\ttfamily \label{class_multiple_choice_page_a9b35ee86bfefcb1792db930aefad4e6d} 
 bool Multiple\+Choice\+Page\+::validate\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
+
+
+validate\+Page Makes sure that the user is aware of the current state of a multiple choice page for their survey. 
+
+\begin{DoxyReturn}{Returns}
+True or false depending on what the user wants after double checking thanks to warning displayed by this method. 
+\end{DoxyReturn}
 
 
 \doxysubsection{Member Data Documentation}

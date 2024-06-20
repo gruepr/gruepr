@@ -2,6 +2,11 @@
 \hypertarget{class_demographics_page}{}\label{class_demographics_page}\index{DemographicsPage@{DemographicsPage}}
 
 
+The \doxylink{class_demographics_page}{Demographics\+Page} class is responsible for displaying the demographics page portion of the survey maker part of Gruepr.  
+
+
+
+
 {\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
 
 Inheritance diagram for Demographics\+Page\+:\begin{figure}[H]
@@ -16,9 +21,9 @@ Inheritance diagram for Demographics\+Page\+:\begin{figure}[H]
 \mbox{\hyperlink{class_demographics_page_a5ccf40d0259c1b3b0c87f3709fc27e10}{Demographics\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
 \item 
 void \mbox{\hyperlink{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8}{initialize\+Page}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em initialize\+Page Initializes the demographics page of the Gruepr survey maker portion. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_demographics_page_a8b309d687e60ec10a750b57098c81dff}{cleanup\+Page}} () override
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em cleanup\+Page \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
 \begin{DoxyCompactItemize}
 \item 
@@ -40,7 +45,7 @@ enum \{ \newline
 \begin{DoxyCompactItemize}
 \item 
 void \mbox{\hyperlink{class_demographics_page_ab11c40a592579d93fc0fa03b94239117}{update}} ()
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em update method is used to change the fields associated with what the user wants for the demographics page of the survey they want to create. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Private Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -77,6 +82,9 @@ QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_mak
 QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa2a2b6325d3da6e41b7fc89e9894d5b3}{question\+Preview\+Bottom\+Labels}}
 \end{DoxyCompactItemize}
 
+
+\doxysubsection{Detailed Description}
+The \doxylink{class_demographics_page}{Demographics\+Page} class is responsible for displaying the demographics page portion of the survey maker part of Gruepr. 
 
 \doxysubsection{Member Enumeration Documentation}
 \Hypertarget{class_demographics_page_a7358bc5bf2baddb38f97678d06398ec8}\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
@@ -123,17 +131,29 @@ Demographics\+Page\+::\+Demographics\+Page (\begin{DoxyParamCaption}\item[{QWidg
 {\footnotesize\ttfamily \label{class_demographics_page_a8b309d687e60ec10a750b57098c81dff} 
 void Demographics\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
+
+
+cleanup\+Page 
+
 \Hypertarget{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8}\index{DemographicsPage@{DemographicsPage}!initializePage@{initializePage}}
 \index{initializePage@{initializePage}!DemographicsPage@{DemographicsPage}}
 \doxysubsubsection{\texorpdfstring{initializePage()}{initializePage()}}
 {\footnotesize\ttfamily \label{class_demographics_page_adc38ad1e4e2f9f0154e2f20f3bc0e6d8} 
 void Demographics\+Page\+::initialize\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
+
+
+initialize\+Page Initializes the demographics page of the Gruepr survey maker portion. 
+
 \Hypertarget{class_demographics_page_ab11c40a592579d93fc0fa03b94239117}\index{DemographicsPage@{DemographicsPage}!update@{update}}
 \index{update@{update}!DemographicsPage@{DemographicsPage}}
 \doxysubsubsection{\texorpdfstring{update()}{update()}}
 {\footnotesize\ttfamily \label{class_demographics_page_ab11c40a592579d93fc0fa03b94239117} 
 void Demographics\+Page\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+update method is used to change the fields associated with what the user wants for the demographics page of the survey they want to create. 
 
 
 
