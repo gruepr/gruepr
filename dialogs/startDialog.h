@@ -27,7 +27,7 @@ signals:
 private:
 
     /**
-     * @brief openRegisterDialog Opens the dialog responsible for registering this version of Gruepr to the user.
+     * @brief openRegisterDialog Opens the dialog responsible for registering this version of Gruepr to the user. METHOD STRUCTURE UNCHANGED.
      */
     void openRegisterDialog();
 
@@ -41,13 +41,20 @@ private:
      */
     void openGruepr();
 
+    /**
+     * @brief The GrueprVersion enum are the different versions for Gruepr software.
+     */
     enum class GrueprVersion{unknown, old, current, beta};
+
+    /**
+     * @brief getLatestVersionFromGithub Obtains the latest version of the Gruepr software from its Github page.
+     * @return An enumeration of which version this Gruepr copy corresponds to (GrueprVersion enumeration).
+     */
     GrueprVersion getLatestVersionFromGithub();
 
     QLabel *registerLabel = nullptr;
     QLabel *upgradeLabel = nullptr;
     QProgressDialog *loadingBar = nullptr;
-
     QList<QAction *> helpActions;
 
     inline static const int BASEWINDOWWIDTH = 800;

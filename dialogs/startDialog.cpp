@@ -254,10 +254,10 @@ void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form
     QString registeredUser;
     if(grueprGlobal::internetIsGood()) {
-        //we can connect, so gather name, institution, and email address for submission
+        // we can connect, so gather name, institution, and email address for submission
         auto *registerWin = new registerDialog(this);
         if(registerWin->exec() == QDialog::Accepted) {
-            //If user clicks OK, add to saved settings
+            // if user clicks OK, add to saved settings
             registerWin->show();
             registerWin->raise();
             auto *box = new QHBoxLayout;
@@ -285,7 +285,7 @@ void StartDialog::openRegisterDialog() {
             loop.exec();
             const QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
             reply->deleteLater();
-            if(replyBody.contains("Registration successful")) {
+            if (replyBody.contains("Registration successful")) {
                 registeredUser = registerWin->name;
                 QSettings savedSettings;
                 savedSettings.setValue("registeredUser", registeredUser);

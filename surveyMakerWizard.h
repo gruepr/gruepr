@@ -22,6 +22,9 @@
 #include <QSpinBox>
 
 
+/**
+ * @brief The SurveyMakerWizard class is responsible for the creation and exportation of a new Gruepr survey.
+ */
 class SurveyMakerWizard : public QWizard
 {
     Q_OBJECT
@@ -67,7 +70,9 @@ public slots:
     void loadSurvey(int customButton);
 };
 
-
+/**
+ * @brief The SurveyMakerPage class is responsible for representing the fields associated with a page for the survey maker GUI.
+ */
 class SurveyMakerPage : public QWizardPage
 {
     Q_OBJECT
@@ -94,7 +99,9 @@ private:
     QScrollArea *previewArea = nullptr;
 };
 
-
+/**
+ * @brief The IntroPage class is responsible for displaying the intropage when it comes to survey creation.
+ */
 class IntroPage : public QWizardPage
 {
     Q_OBJECT
@@ -102,6 +109,9 @@ class IntroPage : public QWizardPage
 public:
     IntroPage(QWidget *parent = nullptr);
 
+    /**
+     * @brief initializePage THe first page for the intro page; concerns the survey maker part of Gruepr.
+     */
     void initializePage() override;
 
 private:
@@ -116,7 +126,9 @@ private:
     QPushButton *getStartedButton = nullptr;
 };
 
-
+/**
+ * @brief The DemographicsPage class is responsible for displaying the demographics page portion of the survey maker part of Gruepr.
+ */
 class DemographicsPage : public SurveyMakerPage
 {
     Q_OBJECT
@@ -124,7 +136,14 @@ class DemographicsPage : public SurveyMakerPage
 public:
     DemographicsPage(QWidget *parent = nullptr);
 
+    /**
+     * @brief initializePage Initializes the demographics page of the Gruepr survey maker portion.
+     */
     void initializePage() override;
+
+    /**
+     * @brief cleanupPage
+     */
     void cleanupPage() override;
 
 private:
@@ -138,10 +157,15 @@ private:
     QList<QRadioButton *> ge;
     QLineEdit *re = nullptr;
 
+    /**
+     * @brief update method is used to change the fields associated with what the user wants for the demographics page of the survey they want to create.
+     */
     void update();
 };
 
-
+/**
+ * @brief The MultipleChoicePage class responsible for
+ */
 class MultipleChoicePage : public SurveyMakerPage
 {
     Q_OBJECT
@@ -153,17 +177,68 @@ class MultipleChoicePage : public SurveyMakerPage
 public:
     MultipleChoicePage(QWidget *parent = nullptr);
 
+    /**
+     * @brief initializePage CURRENTLY AN EMPTY METHOD.
+     */
     void initializePage() override;
+
+    /**
+     * @brief cleanupPage CURRENTLY AN EMPTY METHOD.
+     */
     void cleanupPage() override;
+
+    /**
+     * @brief validatePage Makes sure that the user is aware of the current state of a multiple choice page for their survey.
+     * @return True or false depending on what the user wants after double checking thanks to warning displayed by this method.
+     */
     bool validatePage() override;
 
+    /**
+     * @brief setNumQuestions
+     * @param newNumQuestions
+     */
     void setNumQuestions(const int newNumQuestions);
+
+    /**
+     * @brief getNumQuestions is a getter that returns the number of questions for the current multiple choice page.
+     * @return The number of questions on this multiple choice page.
+     */
     int getNumQuestions() const;
+
+    /**
+     * @brief setQuestionTexts Adds question text boxes based on the nubmer of questions the user wants on this multiple choice page.
+     * @param newQuestionTexts A list of questions that the user wants on this multiple choice page.
+     */
     void setQuestionTexts(const QList<QString> &newQuestionTexts);
+
+    /**
+     * @brief getQuestionTexts Returns the list of questions the user wants for this multiple choice page (getter for field of this class).
+     * @return The list of strings corresponding to questions the user wants on this multiple choice page.
+     */
     QList<QString> getQuestionTexts() const;
+
+    /**
+     * @brief setQuestionResponses Sets the responses to user's desired questions for this multiple choice page.
+     * @param newQuestionResponses The new question responses the user wants for this multiple choice page.
+     */
     void setQuestionResponses(const QList<QList<QString>> &newQuestionResponses);
+
+    /**
+     * @brief getQuestionResponses Getter for the question responses field of this multiple choice page.
+     * @return The questionResponses field.
+     */
     QList<QList<QString>> getQuestionResponses() const;
+
+    /**
+     * @brief setQuestionMultis Set the number of multiple choice questions on this multiple choice page.
+     * @param newQuestionMultis How many new multiple choice questions does the user want?
+     */
     void setQuestionMultis(const QList<bool> &newQuestionMultis);
+
+    /**
+     * @brief getQuestionMultis Getter for the questionMultis field of this multiple choice page.
+     * @return The questionMultis field of this multiple choice page.
+     */
     QList<bool> getQuestionMultis() const;
 
 signals:
@@ -194,7 +269,9 @@ private:
     void deleteAQuestion(int questionNum);
 };
 
-
+/**
+ * @brief The SchedulePage class is a GUI page responsible for creating questions relating to students' schedule for the survey that the user wants to create.
+ */
 class SchedulePage : public SurveyMakerPage
 {
     Q_OBJECT
@@ -207,17 +284,69 @@ class SchedulePage : public SurveyMakerPage
 public:
     SchedulePage(QWidget *parent = nullptr);
 
+    /**
+     * @brief cleanupPage CURRENTLY AN EMPTY METHOD.
+     */
     void cleanupPage() override;
 
+    /**
+     * @brief setDayNames Responsible for the weekdays the user wants on this page of their survey.
+     * @param newDayNames A list of strings corresponding to weekday names.
+     */
     void setDayNames(const QStringList &newDayNames);
+
+    /**
+     * @brief getDayNames Getter for dayNames field of this schedule page.
+     * @return dayNames field of this schedule page.
+     */
     QStringList getDayNames() const;
+
+    /**
+     * @brief setBaseTimezone Sets the timezone for the survey the user wants to create based on what timezone the user wants.
+     * @param newBaseTimezone The timezone the user wants to change the survey to.
+     */
     void setBaseTimezone(const QString &newBaseTimezone);
+
+    /**
+     * @brief getBaseTimezone Getter for the baseTimezone field of SchedulePage class.
+     * @return baseTimezone field of SchedulePage class.
+     */
     QString getBaseTimezone() const;
+
+    /**
+     * @brief setScheduleQuestion Sets the schedule questions for the SchedulePage section of this new survey.
+     * @param newScheduleQuestion The new schedule question the user wants to include.
+     */
     void setScheduleQuestion(const QString &newScheduleQuestion);
+
+    /**
+     * @brief getScheduleQuestion Getter for the scheduleQuestion field of SchedulePage class.
+     * @return scheduleQuestion field of SchedulePage class.
+     */
     QString getScheduleQuestion() const;
+
+    /**
+     * @brief setScheduleFrom Set the scheduleFrom field of SchedulePage class.
+     * @param newScheduleFrom The scheduleFrom value the user wants.
+     */
     void setScheduleFrom(const float newScheduleFrom);
+
+    /**
+     * @brief getScheduleFrom Getter for the fromComboBox field of SchedulePage class.
+     * @return fromComboBox field of SchedulePage class, converted to a float.
+     */
     float getScheduleFrom() const;
+
+    /**
+     * @brief setScheduleTo Setter for the toComboBox field of the SchedulePage class.
+     * @param toComboBox field of the SchedulePage class that the user creating the survey wants.
+     */
     void setScheduleTo(const float newScheduleTo);
+
+    /**
+     * @brief getScheduleTo Getter for the toComboBox field of the SchedulePage class.
+     * @return toComboBox field of the SchedulePage class.
+     */
     float getScheduleTo() const;
 
     enum scheduleType {busy, free};
@@ -282,11 +411,15 @@ private:
     const int DEFAULTSCHEDENDTIME = 17;  //5 pm
     const int DEFAULTSCHEDRESOLUTION = 60;  //1 hr
 
-
+    /**
+     * @brief update the schedule grid of the update page of the SchedulePage based on the demands of the user creating the survey.
+     */
     void update();
 };
 
-
+/**
+ * @brief The CourseInfoPage class A CourseInfoPage for the survey creation section of Gruepr.
+ */
 class CourseInfoPage : public SurveyMakerPage
 {
     Q_OBJECT
@@ -343,7 +476,9 @@ private:
     bool uploadRoster();
 };
 
-
+/**
+ * @brief The PreviewAndExportPage class represents the page responsible for previewing and exporting the survey after its creation by the user.
+ */
 class PreviewAndExportPage : public SurveyMakerPage
 {
     Q_OBJECT
@@ -355,13 +490,31 @@ public:
     void cleanupPage() override;
 
 private slots:
+    /**
+     * @brief exportSurvey A general helper used to export the survey to a variety of destinations.
+     */
     void exportSurvey();
 
     // Helpers created to make exportSurvey() method more readable:
 
+    /**
+     * @brief exportSurveyDestinationGrueprFile exports the newly created survey to a Gruepr file.
+     */
     void exportSurveyDestinationGrueprFile();
+
+    /**
+     * @brief exportSurveyDestinationTextFile exports the newly created survey to a text file.
+     */
     void exportSurveyDestinationTextFile();
+
+    /**
+     * @brief exportSurveyDestinationGoogle exports the newly created survey to a Google forms.
+     */
     void exportSurveyDestinationGoogle();
+
+    /**
+     * @brief exportSurveyDestinationCanvas exports the newly created survey to a Canvas quiz within a canvsas class (mao maintenance).
+     */
     void exportSurveyDestinationCanvas();
 
 private:

@@ -1147,10 +1147,10 @@ void SchedulePage::cleanupPage()
 void SchedulePage::setDayNames(const QStringList &newDayNames)
 {
     dayNames = newDayNames;
-    while(dayNames.size() < MAX_DAYS) {
+    while (dayNames.size() < MAX_DAYS) {
         dayNames << "";
     }
-    for(int i = 0; i < MAX_DAYS; i++) {
+    for (int i = 0; i < MAX_DAYS; i++) {
         dayLineEdits[i]->setText(dayNames[i]);
         dayCheckBoxes[i]->setChecked(!dayNames[i].isEmpty());
     }
