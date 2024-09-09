@@ -277,6 +277,11 @@ void StartDialog::openRegisterDialog() {
             data["name"] = registerWin->name;
             data["institution"] = registerWin->institution;
             data["email"] = registerWin->email;
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+            data["os"] = "Windows";
+#else
+            data["os"] = "macOS";
+#endif
             const QJsonDocument doc(data);
             const QByteArray postData = doc.toJson();
             auto *reply = manager->post(*request, postData);

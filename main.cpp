@@ -36,6 +36,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - updated Qt base to 6.7.0
+//  - Windows installer now also installs VC redistributable
+//
+// INPROG:
+//  - add OS indicator to registration
 //
 // TO DO:
 //    BUGFIX:
