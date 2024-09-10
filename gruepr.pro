@@ -19,7 +19,7 @@ DEFINES += NUMBER_VERSION_FIELDS=4  # Allowing for version numbers 4 levels deep
 DEFINES += NUMBER_VERSION_PRECISION=100 # Allowing for version values up to but not including 100 (i.e., 0.0.0.0 -> 99.99.99.99)
 
 DEFINES += VERSION_CHECK_URL='\\"https://api.github.com/repos/gruepr/gruepr/releases/latest\\"'
-DEFINES += USER_REGISTRATION_URL='\\"https://script.google.com/macros/s/AKfycbwRyI2PjgSGjMWJbhoAZIcz4K0BVx3yvbISY6pCg6cV8NVshUw-F6s1Qjg5LLU_qa4H/exec\\"'
+DEFINES += USER_REGISTRATION_URL='\\"https://script.google.com/macros/s/AKfycbzuMivfe02aRIf6hLJQAuhAvaunOOmAK8RAaUyySFOBOKYI9LXNemFbt_uMrunoNVmq/exec\\"'
 DEFINES += GRUEPRHOMEPAGE='\\"gruepr.com\\"'
 DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between homepage and this, but cannot include "#" in the define here
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'
@@ -57,9 +57,7 @@ win32: QMAKE_CXXFLAGS += -openmp #use -fopenmp for mingw, -openmp for msvc
 win32: LIBS += -L"C:\msys64\home\jhertz\openssl-1.1.1d\dist\bin"
 macx: QMAKE_CXXFLAGS += -Xpreprocessor -fopenmp -I/usr/local/include
 macx: LIBS += -L /usr/local/lib
-macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib # commented this out because I don't have this directory # Josh's path
-
-# macx: LIBS += -L /opt/homebrew/Cellar/llvm/18.1.4/lib/libomp.dylib # Johnny's path for llvm // COMMENTED OUT
+macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
         LMS/LMS.cpp \
@@ -168,6 +166,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    macOS/MyAppInfo.plist \
-    docs/Doxyfile
-
+    macOS/MyAppInfo.plist

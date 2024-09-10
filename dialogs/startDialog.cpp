@@ -94,7 +94,7 @@ StartDialog::StartDialog(QWidget *parent)
     const bool registered = !registeredUser.isEmpty() &&
                             (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
     const QString registerMessage = (registered? (tr("Thank you for being a registered user.")) :
-                                                 (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
+                                         (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
     registerLabel->setText(registerMessage);
     registerLabel->setAlignment(Qt::AlignLeft);
     upgradeLabel = new QLabel(this);
@@ -254,15 +254,16 @@ void StartDialog::openRegisterDialog() {
     // open dialog window to allow the user to submit registration info to the Google Form
     QString registeredUser;
     if(grueprGlobal::internetIsGood()) {
-        // we can connect, so gather name, institution, and email address for submission
+        //we can connect, so gather name, institution, and email address for submission
         auto *registerWin = new registerDialog(this);
         if(registerWin->exec() == QDialog::Accepted) {
-            // if user clicks OK, add to saved settings
+            //If user clicks OK, add to saved settings
             registerWin->show();
             registerWin->raise();
             auto *box = new QHBoxLayout;
             auto *icon = new QLabel(registerWin);
             auto *message = new QLabel(registerWin);
+            message->setStyleSheet(LABEL10PTSTYLE);
             box->addWidget(icon);
             box->addWidget(message, 0, Qt::AlignLeft);
             (qobject_cast<QBoxLayout *>(registerWin->layout()))->addLayout(box);
@@ -277,15 +278,21 @@ void StartDialog::openRegisterDialog() {
             data["name"] = registerWin->name;
             data["institution"] = registerWin->institution;
             data["email"] = registerWin->email;
+#if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+            data["os"] = QString("Windows");
+#else
+            data["os"] = QString("macOS");
+#endif
             const QJsonDocument doc(data);
             const QByteArray postData = doc.toJson();
+            qDebug() << postData;
             auto *reply = manager->post(*request, postData);
             QEventLoop loop;
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
             const QString replyBody = (reply->bytesAvailable() == 0 ? "" : QString(reply->readAll()));
             reply->deleteLater();
-            if (replyBody.contains("Registration successful")) {
+            if(replyBody.contains("Registration successful")) {
                 registeredUser = registerWin->name;
                 QSettings savedSettings;
                 savedSettings.setValue("registeredUser", registeredUser);
