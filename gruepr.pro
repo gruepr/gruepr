@@ -19,7 +19,7 @@ DEFINES += NUMBER_VERSION_FIELDS=4  # Allowing for version numbers 4 levels deep
 DEFINES += NUMBER_VERSION_PRECISION=100 # Allowing for version values up to but not including 100 (i.e., 0.0.0.0 -> 99.99.99.99)
 
 DEFINES += VERSION_CHECK_URL='\\"https://api.github.com/repos/gruepr/gruepr/releases/latest\\"'
-DEFINES += USER_REGISTRATION_URL='\\"https://script.google.com/macros/s/AKfycbwRyI2PjgSGjMWJbhoAZIcz4K0BVx3yvbISY6pCg6cV8NVshUw-F6s1Qjg5LLU_qa4H/exec\\"'
+DEFINES += USER_REGISTRATION_URL='\\"https://script.google.com/macros/s/AKfycbzuMivfe02aRIf6hLJQAuhAvaunOOmAK8RAaUyySFOBOKYI9LXNemFbt_uMrunoNVmq/exec\\"'
 DEFINES += GRUEPRHOMEPAGE='\\"gruepr.com\\"'
 DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between homepage and this, but cannot include "#" in the define here
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'

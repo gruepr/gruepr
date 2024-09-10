@@ -43,6 +43,8 @@ function doPost(e) {
   var name = dataAll.name;
   var institution = dataAll.institution;
   var email = dataAll.email;
+  var os = dataAll.os;
+
   
   if(name != undefined)
   {
@@ -53,7 +55,7 @@ function doPost(e) {
       if (file.getName() == 'gruepr Users')
       {
         var sheet = SpreadsheetApp.open(file).getSheets()[0];
-        sheet.appendRow([date, name, institution, email]);
+        sheet.appendRow([date, name, institution, email, os]);
       }
     }
 

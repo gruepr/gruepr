@@ -263,6 +263,7 @@ void StartDialog::openRegisterDialog() {
             auto *box = new QHBoxLayout;
             auto *icon = new QLabel(registerWin);
             auto *message = new QLabel(registerWin);
+            message->setStyleSheet(LABEL10PTSTYLE);
             box->addWidget(icon);
             box->addWidget(message, 0, Qt::AlignLeft);
             (qobject_cast<QBoxLayout *>(registerWin->layout()))->addLayout(box);
@@ -278,12 +279,13 @@ void StartDialog::openRegisterDialog() {
             data["institution"] = registerWin->institution;
             data["email"] = registerWin->email;
 #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
-            data["os"] = "Windows";
+            data["os"] = QString("Windows");
 #else
-            data["os"] = "macOS";
+            data["os"] = QString("macOS");
 #endif
             const QJsonDocument doc(data);
             const QByteArray postData = doc.toJson();
+            qDebug() << postData;
             auto *reply = manager->post(*request, postData);
             QEventLoop loop;
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
