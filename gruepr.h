@@ -18,7 +18,9 @@
 
 namespace Ui {class gruepr;}
 
-
+/**
+ * @brief Responsible for main Gruepr functionality
+ */
 class gruepr : public QMainWindow
 {
     Q_OBJECT

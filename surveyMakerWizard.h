@@ -429,16 +429,59 @@ class CourseInfoPage : public SurveyMakerPage
 public:
     CourseInfoPage(QWidget *parent = nullptr);
 
+    /**
+     * @brief initializePage EMPTY METHOD
+     */
     void initializePage() override;
+
+    /**
+     * @brief cleanupPage EMPTY METHOD
+     */
     void cleanupPage() override;
+
+    /**
+     * @brief validatePage makes sure the user is aware of the changes they are making within the course info page of the survey creation.
+     * @return True if the user is ok with the changes they are making, false otherwise.
+     */
     bool validatePage() override;
+
+    /**
+     * @brief resizeEvent is used to resize the given QResizeEvent object.
+     * @param event is the object to be resized.
+     */
     void resizeEvent(QResizeEvent *event) override;
 
+    /**
+     * @brief setSectionNames Allows the user to set the name of the different sections they want in their survey.
+     * @param newSectionNames A list of the strings corresponding to the names of the new sections the user wants to add to their survey.
+     */
     void setSectionNames(const QStringList &newSectionNames);
+
+    /**
+     * @brief getSectionNames Getter for sectionNames field of CourseInfoPage class.
+     * @return QStringList, list of section names.
+     */
     QStringList getSectionNames() const;
+
+    /**
+     * @brief setStudentNames Sets the student names string list field to the given one.
+     * @param newStudentNames is the new list of student names.
+     */
     void setStudentNames(const QStringList &newStudentNames);
+
+    /**
+     * @brief getStudentNames Getter for studentNames field.
+     * @return studentNames field within CourseInfoPage class.
+     */
     QStringList getStudentNames() const;
 
+    /**
+     * @brief generateTeammateQuestion is responsible with automatic teammate question generation based upon a few different factors.
+     * @param wantToWorkWith True or false depending on whether or not the preference to work with/not work with a specific student is set.
+     * @param typingNames Boolean that determines whether or not the student can select or type another student's name.
+     * @param numClassmates The number of classmates that
+     * @return
+     */
     static QString generateTeammateQuestion(bool wantToWorkWith, bool typingNames, int numClassmates);
 
 signals:
@@ -491,7 +534,7 @@ public:
 
 private slots:
     /**
-     * @brief exportSurvey A general helper used to export the survey to a variety of destinations.
+     * @brief exportSurvey A general helper used to export the created survey to a variety of destinations.
      */
     void exportSurvey();
 
@@ -513,7 +556,7 @@ private slots:
     void exportSurveyDestinationGoogle();
 
     /**
-     * @brief exportSurveyDestinationCanvas exports the newly created survey to a Canvas quiz within a canvsas class (mao maintenance).
+     * @brief exportSurveyDestinationCanvas exports the newly created survey to a Canvas quiz within a canvas class.
      */
     void exportSurveyDestinationCanvas();
 
