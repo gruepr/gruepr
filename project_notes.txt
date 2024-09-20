@@ -1,8 +1,0 @@
-Gruepr notes 02/26/2024:
-- Figure out how to properly abstract API communication within code
-- API communication includes:
-	- export survey page after survey creation
-	- import survey page to import and create groups
-	- create "canvas teams" (only for canvas API)
-- Where to create .h and .cpp files for API communication abstraction?
-- Bring these things up with Josh tomorrow (27th) at 12...
