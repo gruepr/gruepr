@@ -35,9 +35,6 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - updated Qt base to 6.7.0
-//  - Windows installer now also installs VC redistributable
-//  - added OS indicator to registration info
 //
 // TO DO:
 //    BUGFIX:

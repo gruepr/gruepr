@@ -216,7 +216,7 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
         static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
         const QRegularExpressionMatch match = versionNum.match(reply->readAll());
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available for download"));
+        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
     }
     reply->deleteLater();
     delete request;
