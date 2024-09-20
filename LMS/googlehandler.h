@@ -55,7 +55,7 @@ private:
     QString getClientAccessTokenUrl() const override;
     QString getActionDialogIcon() const override;
     QString getActionDialogLabel() const override;
-    QAbstractOAuth::ModifyParametersFunction getModifyParametersFunction() const override;
+    std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const override;
 
     inline static const char AUTHENTICATEURL[]{"https://accounts.google.com/o/oauth2/auth"};
     inline static const char ACCESSTOKENURL[]{"https://oauth2.googleapis.com/token"};

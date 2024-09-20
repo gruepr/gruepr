@@ -18,19 +18,43 @@ public:
     StartDialog& operator= (StartDialog&&) = delete;
 
 signals:
+
+    /**
+     * @brief closeDataDialogProgressBar Creates a progress bar for the "close data dialog".
+     */
     void closeDataDialogProgressBar();
 
 private:
+
+    /**
+     * @brief openRegisterDialog Opens the dialog responsible for registering this version of Gruepr to the user. METHOD STRUCTURE UNCHANGED.
+     */
     void openRegisterDialog();
+
+    /**
+     * @brief openSurveyMaker Opens the GUI responsible for creating a new survey.
+     */
     void openSurveyMaker();
+
+    /**
+     * @brief openGruepr Opens the survey importing page (other option on the introductory Gruepr window).
+     */
     void openGruepr();
+
+    /**
+     * @brief The GrueprVersion enum are the different versions for Gruepr software.
+     */
     enum class GrueprVersion{unknown, old, current, beta};
+
+    /**
+     * @brief getLatestVersionFromGithub Obtains the latest version of the Gruepr software from its Github page.
+     * @return An enumeration of which version this Gruepr copy corresponds to (GrueprVersion enumeration).
+     */
     GrueprVersion getLatestVersionFromGithub();
 
     QLabel *registerLabel = nullptr;
     QLabel *upgradeLabel = nullptr;
     QProgressDialog *loadingBar = nullptr;
-
     QList<QAction *> helpActions;
 
     inline static const int BASEWINDOWWIDTH = 800;

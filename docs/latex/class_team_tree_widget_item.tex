@@ -1,0 +1,131 @@
+\doxysection{Team\+Tree\+Widget\+Item Class Reference}
+\hypertarget{class_team_tree_widget_item}{}\label{class_team_tree_widget_item}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+
+
+{\ttfamily \#include $<$team\+Tree\+Widget.\+h$>$}
+
+Inheritance diagram for Team\+Tree\+Widget\+Item\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_team_tree_widget_item}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97}{Tree\+Item\+Type}} \{ \mbox{\hyperlink{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f}{team}}
+, \mbox{\hyperlink{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97acd73502828457d15655bbd7a63fb0bc8}{student}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_team_tree_widget_item_a104bc8829fc83fd88d3990c616f8e653}{Team\+Tree\+Widget\+Item}} (\mbox{\hyperlink{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97}{Tree\+Item\+Type}} type, int columns=0, float team\+Score=1)
+\item 
+\mbox{\hyperlink{class_team_tree_widget_item_a0e0d6fd94646ae10690fa0011bfca442}{\texorpdfstring{$\sim$}{\string~}\+Team\+Tree\+Widget\+Item}} () override=default
+\item 
+\mbox{\hyperlink{class_team_tree_widget_item_a79fe86eb6e03169a1f87487d1ed1395a}{Team\+Tree\+Widget\+Item}} (const \mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&)=delete
+\item 
+\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \mbox{\hyperlink{class_team_tree_widget_item_a256bd2e38693500c7ed4f8a027225297}{operator=}} (const \mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&)=delete
+\item 
+\mbox{\hyperlink{class_team_tree_widget_item_ab20d0ab20ba40a292c31581b58f90502}{Team\+Tree\+Widget\+Item}} (\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&\&)=delete
+\item 
+\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \& \mbox{\hyperlink{class_team_tree_widget_item_a3dea14fe2ed9a944850750d16a0027df}{operator=}} (\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&\&)=delete
+\item 
+void \mbox{\hyperlink{class_team_tree_widget_item_af64f7d2633c42284d7a5bfa96f709275}{set\+Score\+Color}} (float team\+Score)
+\item 
+bool \mbox{\hyperlink{class_team_tree_widget_item_a3dd8b271af1065cb97ff2a9a2ad785da}{operator$<$}} (const QTree\+Widget\+Item \&other) const override
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{class_team_tree_widget_item_af2168ca71a6b14c0daa08e79100fb120}{num\+Columns}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TreeItemType@{TreeItemType}}
+\index{TreeItemType@{TreeItemType}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{TreeItemType}{TreeItemType}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97} 
+enum class \mbox{\hyperlink{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97}{Team\+Tree\+Widget\+Item\+::\+Tree\+Item\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{team@{team}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!team@{team}}}\Hypertarget{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f}\label{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97} 
+team&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{student@{student}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!student@{student}}}\Hypertarget{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97acd73502828457d15655bbd7a63fb0bc8}\label{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97} 
+student&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_team_tree_widget_item_a104bc8829fc83fd88d3990c616f8e653}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{TeamTreeWidgetItem()}{TeamTreeWidgetItem()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a104bc8829fc83fd88d3990c616f8e653} 
+Team\+Tree\+Widget\+Item\+::\+Team\+Tree\+Widget\+Item (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_team_tree_widget_item_a91f581cd8a7e92576f536e8549e96f97}{Tree\+Item\+Type}}}]{type}{, }\item[{int}]{columns}{ = {\ttfamily 0}, }\item[{float}]{team\+Score}{ = {\ttfamily 1}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\Hypertarget{class_team_tree_widget_item_a0e0d6fd94646ae10690fa0011bfca442}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!````~TeamTreeWidgetItem@{\texorpdfstring{$\sim$}{\string~}TeamTreeWidgetItem}}
+\index{````~TeamTreeWidgetItem@{\texorpdfstring{$\sim$}{\string~}TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}TeamTreeWidgetItem()}{\string~TeamTreeWidgetItem()}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a0e0d6fd94646ae10690fa0011bfca442} 
+Team\+Tree\+Widget\+Item\+::\texorpdfstring{$\sim$}{\string~}\+Team\+Tree\+Widget\+Item (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [default]}}
+
+\Hypertarget{class_team_tree_widget_item_a79fe86eb6e03169a1f87487d1ed1395a}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{TeamTreeWidgetItem()}{TeamTreeWidgetItem()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a79fe86eb6e03169a1f87487d1ed1395a} 
+Team\+Tree\+Widget\+Item\+::\+Team\+Tree\+Widget\+Item (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_team_tree_widget_item_ab20d0ab20ba40a292c31581b58f90502}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{TeamTreeWidgetItem()}{TeamTreeWidgetItem()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_ab20d0ab20ba40a292c31581b58f90502} 
+Team\+Tree\+Widget\+Item\+::\+Team\+Tree\+Widget\+Item (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_team_tree_widget_item_a3dd8b271af1065cb97ff2a9a2ad785da}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!operator$<$@{operator$<$}}
+\index{operator$<$@{operator$<$}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{operator$<$()}{operator<()}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a3dd8b271af1065cb97ff2a9a2ad785da} 
+bool Team\+Tree\+Widget\+Item\+::operator$<$ (\begin{DoxyParamCaption}\item[{const QTree\+Widget\+Item \&}]{other}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_team_tree_widget_item_a256bd2e38693500c7ed4f8a027225297}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!operator=@{operator=}}
+\index{operator=@{operator=}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a256bd2e38693500c7ed4f8a027225297} 
+\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} Team\+Tree\+Widget\+Item\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_team_tree_widget_item_a3dea14fe2ed9a944850750d16a0027df}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!operator=@{operator=}}
+\index{operator=@{operator=}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_a3dea14fe2ed9a944850750d16a0027df} 
+\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \& Team\+Tree\+Widget\+Item\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_team_tree_widget_item}{Team\+Tree\+Widget\+Item}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_team_tree_widget_item_af64f7d2633c42284d7a5bfa96f709275}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!setScoreColor@{setScoreColor}}
+\index{setScoreColor@{setScoreColor}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{setScoreColor()}{setScoreColor()}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_af64f7d2633c42284d7a5bfa96f709275} 
+void Team\+Tree\+Widget\+Item\+::set\+Score\+Color (\begin{DoxyParamCaption}\item[{float}]{team\+Score}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_team_tree_widget_item_af2168ca71a6b14c0daa08e79100fb120}\index{TeamTreeWidgetItem@{TeamTreeWidgetItem}!numColumns@{numColumns}}
+\index{numColumns@{numColumns}!TeamTreeWidgetItem@{TeamTreeWidgetItem}}
+\doxysubsubsection{\texorpdfstring{numColumns}{numColumns}}
+{\footnotesize\ttfamily \label{class_team_tree_widget_item_af2168ca71a6b14c0daa08e79100fb120} 
+int Team\+Tree\+Widget\+Item\+::num\+Columns\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{team_tree_widget_8h}{team\+Tree\+Widget.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{team_tree_widget_8cpp}{team\+Tree\+Widget.\+cpp}}\end{DoxyCompactItemize}

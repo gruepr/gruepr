@@ -1,0 +1,83 @@
+\doxysection{LMS.\+h}
+\hypertarget{_l_m_s_8h_source}{}\label{_l_m_s_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/LMS/LMS.h@{/Users/johnnyassad/Desktop/gruepr/LMS/LMS.h}}
+\mbox{\hyperlink{_l_m_s_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ LMS\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ LMS\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{gruepr__globals_8h}{gruepr\_globals.h}}"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <QDialog>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <QDialogButtonBox>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <QOAuth2AuthorizationCodeFlow>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <QOAuthHttpServerReplyHandler>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <QtNetwork>}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classgruepr_o_auth_http_server_reply_handler}{grueprOAuthHttpServerReplyHandler}}\ :\ \textcolor{keyword}{public}\ QOAuthHttpServerReplyHandler}
+\DoxyCodeLine{00014\ \{}
+\DoxyCodeLine{00015\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00018\ \ \ \ \ \mbox{\hyperlink{classgruepr_o_auth_http_server_reply_handler_a2b4e9bf252edf39fb58a1ba846966858}{grueprOAuthHttpServerReplyHandler}}(quint16\ port,\ QObject\ *parent\ =\ \textcolor{keyword}{nullptr})\ :\ QOAuthHttpServerReplyHandler(port,\ parent)\ \{\}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ signals:}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_o_auth_http_server_reply_handler_a28181c32181bf5e451cf40f9abb25f7b}{error}}(\textcolor{keyword}{const}\ QString\ \&errorString);}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classgruepr_o_auth_http_server_reply_handler_ad4017501c7f8e626a62514ced1c857a2}{networkReplyFinished}}(QNetworkReply\ *reply)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00025\ \};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_l_m_s}{LMS}}\ :\ \textcolor{keyword}{public}\ QObject}
+\DoxyCodeLine{00029\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{class_l_m_s_a7d7ba09595e8616e4b9ca482862e0a75}{LMS}}(QObject\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{comment}{//"{}Please\ wait,\ still\ communicating"{}\ dialog}}
+\DoxyCodeLine{00036\ \ \ \ \ QDialog*\ \mbox{\hyperlink{class_l_m_s_abd62f858d16315da2b4b3dd9c85922ad}{actionDialog}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00037\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_l_m_s_a2873beff30956884cca02df236f75322}{actionDialogIcon}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00038\ \ \ \ \ QLabel\ *\mbox{\hyperlink{class_l_m_s_a50c7ea9b94fd8270413e9325439d5718}{actionDialogLabel}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00039\ \ \ \ \ QDialogButtonBox\ *\mbox{\hyperlink{class_l_m_s_ab673acf31c5e692c4edc445cbbceed73}{actionDialogButtons}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_l_m_s_ae671db8a602bc20f97c3acaf5444c205}{actionComplete}}(QDialog\ *busyDialog);}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_l_m_s_a964876b78733299df6ebc40d75b3b980}{NUM\_RETRIES\_BEFORE\_ABORT}}\ =\ 5;\ \ \ \textcolor{comment}{//number\ of\ times\ we\ will\ retry\ a\ GET\ or\ POST\ before\ fully\ giving\ up}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ signals:}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_l_m_s_ae3290e26d2b6faabbb6f85ce82146ebc}{retrying}}(\textcolor{keywordtype}{int}\ attemptNum);}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_l_m_s_ab540a605dbf89cb480b5c4c75a9ba634}{requestFailed}}(QNetworkReply::NetworkError);}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_l_m_s_a4ca7875e3d7b6089fd9b2f560df0d7b6}{initOAuth2}}();}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_l_m_s_aac8e867c260c63e92373d8592bfbf23c}{authenticate}}();}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_l_m_s_a40b9ca582628f16e873067e177b56e82}{authenticated}}();}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{enum\ class}\ \mbox{\hyperlink{class_l_m_s_acc46be15bf1e82c965039453e12beb88}{Method}}\{\mbox{\hyperlink{class_l_m_s_acc46be15bf1e82c965039453e12beb88ab5eda0a74558a342cf659187f06f746f}{get}},\ \mbox{\hyperlink{class_l_m_s_acc46be15bf1e82c965039453e12beb88a42b90196b487c54069097a68fe98ab6f}{post}}\};}
+\DoxyCodeLine{00052\ \ \ \ \ QByteArray\ \mbox{\hyperlink{class_l_m_s_a82739d94d49ee1ea16d03a2ba1a70006}{httpRequest}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_l_m_s_acc46be15bf1e82c965039453e12beb88}{Method}}\ method,\ \textcolor{keyword}{const}\ QUrl\ \&url,\ \textcolor{keyword}{const}\ QByteArray\ \&data\ =\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ QOAuth2AuthorizationCodeFlow\ *\mbox{\hyperlink{class_l_m_s_af4c6fdaa7bf2e2703af0fa36a99812f8}{OAuthFlow}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00055\ \ \ \ \ QNetworkAccessManager\ *\mbox{\hyperlink{class_l_m_s_a1edaac95f172c53a20d13d0d189dcd87}{manager}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00056\ \ \ \ \ \mbox{\hyperlink{classgruepr_o_auth_http_server_reply_handler}{grueprOAuthHttpServerReplyHandler}}\ *\mbox{\hyperlink{class_l_m_s_a519723b753b270ead4d756503a2d15fd}{replyHandler}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00057\ \ \ \ \ QUrl\ \mbox{\hyperlink{class_l_m_s_a0832abe9dd25d8c261a52000baa90567}{redirectUri}};}
+\DoxyCodeLine{00058\ \ \ \ \ quint16\ \mbox{\hyperlink{class_l_m_s_a6e359bcf1dad6a9a0572d089f915f660}{port}};}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_a6ede987e88d084b5a019815915ef3a00}{getScopes}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_af898982b7a0beb3872a937d5e09024eb}{getClientID}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_a5d5db145c3cca2c9de3e0d1f7c8c687c}{getClientSecret}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_a4449c6a2a02d5eb9e61465bbe17012e6}{getClientAuthorizationUrl}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_aa63a8c025d16399be70681a4b37702c1}{getClientAccessTokenUrl}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_a633314c81c7c7a53f7398f5d46284da7}{getActionDialogIcon}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{virtual}\ QString\ \mbox{\hyperlink{class_l_m_s_aa95ead122414cbe14aea465546aca3a9}{getActionDialogLabel}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{virtual}\ std::function<void(QAbstractOAuth::Stage\ stage,\ QMultiMap<QString,\ QVariant>\ *parameters)>\ \mbox{\hyperlink{class_l_m_s_a2b02a71b1dd1fa7354536c5485627fe5}{getModifyParametersFunction}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QSize\ \mbox{\hyperlink{class_l_m_s_a435f6dcfe7567cd21907f812f71b7029}{ICONSIZE}}\{\mbox{\hyperlink{gruepr__globals_8h_abec03bce1b5ca6854a4b8ef90ef13388}{MSGBOX\_ICON\_SIZE}},\mbox{\hyperlink{gruepr__globals_8h_abec03bce1b5ca6854a4b8ef90ef13388}{MSGBOX\_ICON\_SIZE}}\};}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_l_m_s_a1f8ef9fa962110bc78cd178bd26a4892}{RELOAD\_DELAY\_TIME}}\ =\ 2000;\ \ \ \textcolor{comment}{//msec}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_l_m_s_a5a6ed4d37f6eaf39ae42f8ef3b80f1ca}{TIMEOUT\_TIME}}\ =\ 5000;\ \ \ \textcolor{comment}{//msec}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_l_m_s_a96710ad5bcdce997fe089d7191e518e2}{RETRY\_DELAY\_TIME}}\ =\ 100;\ \ \textcolor{comment}{//msec,\ delay\ time\ before\ retrying\ a\ GET\ or\ POST\ following\ an\ error\ returned}}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_l_m_s_a475b7447e87b474b83b2d2459e15bd95}{REDIRECT\_URI\_PORT}}\ =\ 6174;\ \ \ \textcolor{comment}{//Kaprekar's\ number}}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_l_m_s_a2138b545cf8be1e2f41f73c145202709}{REDIRECT\_URI}}\{\textcolor{stringliteral}{"{}https://127.0.0.1:"{}}\ +\ QString::number(\mbox{\hyperlink{class_l_m_s_a475b7447e87b474b83b2d2459e15bd95}{REDIRECT\_URI\_PORT}})\ +\ \textcolor{stringliteral}{"{}/"{}}\};}
+\DoxyCodeLine{00075\ \};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ LMS\_H}}
+
+\end{DoxyCode}

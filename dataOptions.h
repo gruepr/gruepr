@@ -8,8 +8,9 @@
 #include <map>
 #include <set>
 
-//defines the options set by what is found in the survey data file
-
+/**
+ * @brief The DataOptions class defines the options set by what is found in the survey data file.
+ */
 class DataOptions
 {
 public:

@@ -1,0 +1,321 @@
+\doxysection{Teammates\+Rules\+Dialog Class Reference}
+\hypertarget{class_teammates_rules_dialog}{}\label{class_teammates_rules_dialog}\index{TeammatesRulesDialog@{TeammatesRulesDialog}}
+
+
+{\ttfamily \#include $<$teammates\+Rules\+Dialog.\+h$>$}
+
+Inheritance diagram for Teammates\+Rules\+Dialog\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_teammates_rules_dialog}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} \{ \mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0aac67ede5a84eb5a1add7ff4440e9a485}{required}}
+, \mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0a84a903e97f203580c143b0c300a2e8c9}{prevented}}
+, \mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0a67a14a21bd1cb0326455e74bae077912}{requested}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_teammates_rules_dialog_a8b0eadb105a44f2502c01e1b0faf2f4c}{Teammates\+Rules\+Dialog}} (const QList$<$ \mbox{\hyperlink{class_student_record}{Student\+Record}} $>$ \&incoming\+Students, const \mbox{\hyperlink{class_data_options}{Data\+Options}} \&data\+Options, const \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \&teaming\+Options, const QString \&sectionname, const QString\+List \&curr\+Team\+Sets, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr, bool auto\+Load\+Required=false, bool auto\+Load\+Prevented=false, bool auto\+Load\+Requested=false)
+\item 
+\mbox{\hyperlink{class_teammates_rules_dialog_a267cc00ea28959d5801ba6860967339a}{\texorpdfstring{$\sim$}{\string~}\+Teammates\+Rules\+Dialog}} () override
+\item 
+\mbox{\hyperlink{class_teammates_rules_dialog_a37ac70a7970a9bf22ad226e19ca76057}{Teammates\+Rules\+Dialog}} (const \mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \mbox{\hyperlink{class_teammates_rules_dialog_a2059e2edc798150c4225f3bbacecc3bb}{operator=}} (const \mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{class_teammates_rules_dialog_a47dbc5c5ce0fc2244d7a671352476ca2}{Teammates\+Rules\+Dialog}} (\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&\&)=delete
+\item 
+\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \& \mbox{\hyperlink{class_teammates_rules_dialog_a3e2721b465ff071036b9f1cd5181fc3c}{operator=}} (\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&\&)=delete
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QList$<$ \mbox{\hyperlink{class_student_record}{Student\+Record}} $>$ \mbox{\hyperlink{class_teammates_rules_dialog_aa45365a9bee960b8ba4827924666cdb8}{students}}
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_a6b7372969c94f5a987ab2bdeab540b9c}{required\+\_\+teammates\+Specified}} = false
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_afa8752261d67c39b482e6055a642218b}{prevented\+\_\+teammates\+Specified}} = false
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_abbd4ea5fff4405f657c42dff42fe383b}{requested\+\_\+teammates\+Specified}} = false
+\item 
+int \mbox{\hyperlink{class_teammates_rules_dialog_ae89c3d5e49493a564162003484250efb}{number\+Requested\+Teammates\+Given}} = 1
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_teammates_rules_dialog_af53630e2e3b3e1cdd20e7d30816132e2}{clear\+All\+Values}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_teammates_rules_dialog_a83cc43578f9ee9940e1bd3bc55f09690}{add\+Teammate\+Selector}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\item 
+void \mbox{\hyperlink{class_teammates_rules_dialog_a7cad3058fd3f35a11c2989fb2a8401a4}{refresh\+Display}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\item 
+void \mbox{\hyperlink{class_teammates_rules_dialog_a40837a43f978d253bd2d1191d323d7d6}{add\+One\+Teammate\+Set}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\item 
+void \mbox{\hyperlink{class_teammates_rules_dialog_ade407753f7373a11ae1e447396a049b8}{clear\+Values}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates, bool verify=true)
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_aebd6d4b3526da37430707ea43ac667db}{load\+CSVFile}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_afc57237c0f03b95061f7519f58c751b4}{load\+Student\+Prefs}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_a2a385d876ee8a93bd84cf7b32bb38e03}{load\+Spreadsheet\+File}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_ae09df560d6ca5cf0f378e672fcbcfa6d}{load\+Existing\+Teamset}} (\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}} type\+Of\+Teammates)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Ui\+::\+Teammates\+Rules\+Dialog \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_teammates_rules_dialog_a2fb9f97b3131a88656fd6e6a0368f70d}{ui}}
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_teammates_rules_dialog_a66dab69db50dbdbcbd8af6aafc3d96d9}{clear\+All\+Values\+Button}} = nullptr
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_a2b169ba06085c06456bfab0d1c4d707a}{positiverequests\+In\+Survey}} = false
+\item 
+bool \mbox{\hyperlink{class_teammates_rules_dialog_a2ecdab5a25105a7bddcc1f035bd18230}{negativerequests\+In\+Survey}} = false
+\item 
+const int \mbox{\hyperlink{class_teammates_rules_dialog_a4fcb4c41c4ff3cfcc53e3640ff7b9620}{num\+Students}}
+\item 
+QString \mbox{\hyperlink{class_teammates_rules_dialog_a506887a4ced3e4dbbdde65dfc6c6920c}{section\+Name}}
+\item 
+QString\+List \mbox{\hyperlink{class_teammates_rules_dialog_aaa004ae0ace48c98c9713265ba31307c}{team\+Sets}}
+\item 
+QList$<$ QCombo\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_teammates_rules_dialog_aea45d1306ffce06c46d278e51e4abb13}{possible\+Required\+Teammates}}
+\item 
+QList$<$ QCombo\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_teammates_rules_dialog_a3abacf56f065d70980194aa2afcc6098}{possible\+Prevented\+Teammates}}
+\item 
+QList$<$ QCombo\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_teammates_rules_dialog_a8fb5116fd863909487083a2f73aeff39}{possible\+Requested\+Teammates}}
+\item 
+const QSize \mbox{\hyperlink{class_teammates_rules_dialog_aff4b8bc22b01a7718924888d87c53012}{ICONSIZE}} = QSize(15,15)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TypeOfTeammates@{TypeOfTeammates}}
+\index{TypeOfTeammates@{TypeOfTeammates}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{TypeOfTeammates}{TypeOfTeammates}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0} 
+enum class \mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Teammates\+Rules\+Dialog\+::\+Type\+Of\+Teammates}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{required@{required}!TeammatesRulesDialog@{TeammatesRulesDialog}}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!required@{required}}}\Hypertarget{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0aac67ede5a84eb5a1add7ff4440e9a485}\label{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0} 
+required&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{prevented@{prevented}!TeammatesRulesDialog@{TeammatesRulesDialog}}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!prevented@{prevented}}}\Hypertarget{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0a84a903e97f203580c143b0c300a2e8c9}\label{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0} 
+prevented&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{requested@{requested}!TeammatesRulesDialog@{TeammatesRulesDialog}}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!requested@{requested}}}\Hypertarget{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0a67a14a21bd1cb0326455e74bae077912}\label{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0} 
+requested&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_teammates_rules_dialog_a8b0eadb105a44f2502c01e1b0faf2f4c}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{TeammatesRulesDialog()}{TeammatesRulesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a8b0eadb105a44f2502c01e1b0faf2f4c} 
+Teammates\+Rules\+Dialog\+::\+Teammates\+Rules\+Dialog (\begin{DoxyParamCaption}\item[{const QList$<$ \mbox{\hyperlink{class_student_record}{Student\+Record}} $>$ \&}]{incoming\+Students}{, }\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \&}]{data\+Options}{, }\item[{const \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \&}]{teaming\+Options}{, }\item[{const QString \&}]{sectionname}{, }\item[{const QString\+List \&}]{curr\+Team\+Sets}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}, }\item[{bool}]{auto\+Load\+Required}{ = {\ttfamily false}, }\item[{bool}]{auto\+Load\+Prevented}{ = {\ttfamily false}, }\item[{bool}]{auto\+Load\+Requested}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\Hypertarget{class_teammates_rules_dialog_a267cc00ea28959d5801ba6860967339a}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!````~TeammatesRulesDialog@{\texorpdfstring{$\sim$}{\string~}TeammatesRulesDialog}}
+\index{````~TeammatesRulesDialog@{\texorpdfstring{$\sim$}{\string~}TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}TeammatesRulesDialog()}{\string~TeammatesRulesDialog()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a267cc00ea28959d5801ba6860967339a} 
+Teammates\+Rules\+Dialog\+::\texorpdfstring{$\sim$}{\string~}\+Teammates\+Rules\+Dialog (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{class_teammates_rules_dialog_a37ac70a7970a9bf22ad226e19ca76057}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{TeammatesRulesDialog()}{TeammatesRulesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a37ac70a7970a9bf22ad226e19ca76057} 
+Teammates\+Rules\+Dialog\+::\+Teammates\+Rules\+Dialog (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_teammates_rules_dialog_a47dbc5c5ce0fc2244d7a671352476ca2}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\index{TeammatesRulesDialog@{TeammatesRulesDialog}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{TeammatesRulesDialog()}{TeammatesRulesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a47dbc5c5ce0fc2244d7a671352476ca2} 
+Teammates\+Rules\+Dialog\+::\+Teammates\+Rules\+Dialog (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_teammates_rules_dialog_a40837a43f978d253bd2d1191d323d7d6}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!addOneTeammateSet@{addOneTeammateSet}}
+\index{addOneTeammateSet@{addOneTeammateSet}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{addOneTeammateSet()}{addOneTeammateSet()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a40837a43f978d253bd2d1191d323d7d6} 
+void Teammates\+Rules\+Dialog\+::add\+One\+Teammate\+Set (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a83cc43578f9ee9940e1bd3bc55f09690}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!addTeammateSelector@{addTeammateSelector}}
+\index{addTeammateSelector@{addTeammateSelector}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{addTeammateSelector()}{addTeammateSelector()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a83cc43578f9ee9940e1bd3bc55f09690} 
+void Teammates\+Rules\+Dialog\+::add\+Teammate\+Selector (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_af53630e2e3b3e1cdd20e7d30816132e2}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!clearAllValues@{clearAllValues}}
+\index{clearAllValues@{clearAllValues}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{clearAllValues}{clearAllValues}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_af53630e2e3b3e1cdd20e7d30816132e2} 
+void Teammates\+Rules\+Dialog\+::clear\+All\+Values (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{class_teammates_rules_dialog_ade407753f7373a11ae1e447396a049b8}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!clearValues@{clearValues}}
+\index{clearValues@{clearValues}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{clearValues()}{clearValues()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_ade407753f7373a11ae1e447396a049b8} 
+void Teammates\+Rules\+Dialog\+::clear\+Values (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{, }\item[{bool}]{verify}{ = {\ttfamily true}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_aebd6d4b3526da37430707ea43ac667db}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!loadCSVFile@{loadCSVFile}}
+\index{loadCSVFile@{loadCSVFile}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{loadCSVFile()}{loadCSVFile()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_aebd6d4b3526da37430707ea43ac667db} 
+bool Teammates\+Rules\+Dialog\+::load\+CSVFile (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_ae09df560d6ca5cf0f378e672fcbcfa6d}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!loadExistingTeamset@{loadExistingTeamset}}
+\index{loadExistingTeamset@{loadExistingTeamset}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{loadExistingTeamset()}{loadExistingTeamset()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_ae09df560d6ca5cf0f378e672fcbcfa6d} 
+bool Teammates\+Rules\+Dialog\+::load\+Existing\+Teamset (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a2a385d876ee8a93bd84cf7b32bb38e03}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!loadSpreadsheetFile@{loadSpreadsheetFile}}
+\index{loadSpreadsheetFile@{loadSpreadsheetFile}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{loadSpreadsheetFile()}{loadSpreadsheetFile()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a2a385d876ee8a93bd84cf7b32bb38e03} 
+bool Teammates\+Rules\+Dialog\+::load\+Spreadsheet\+File (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_afc57237c0f03b95061f7519f58c751b4}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!loadStudentPrefs@{loadStudentPrefs}}
+\index{loadStudentPrefs@{loadStudentPrefs}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{loadStudentPrefs()}{loadStudentPrefs()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_afc57237c0f03b95061f7519f58c751b4} 
+bool Teammates\+Rules\+Dialog\+::load\+Student\+Prefs (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a2059e2edc798150c4225f3bbacecc3bb}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a2059e2edc798150c4225f3bbacecc3bb} 
+\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} Teammates\+Rules\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_teammates_rules_dialog_a3e2721b465ff071036b9f1cd5181fc3c}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a3e2721b465ff071036b9f1cd5181fc3c} 
+\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \& Teammates\+Rules\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog}{Teammates\+Rules\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{class_teammates_rules_dialog_a7cad3058fd3f35a11c2989fb2a8401a4}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!refreshDisplay@{refreshDisplay}}
+\index{refreshDisplay@{refreshDisplay}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{refreshDisplay()}{refreshDisplay()}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a7cad3058fd3f35a11c2989fb2a8401a4} 
+void Teammates\+Rules\+Dialog\+::refresh\+Display (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_teammates_rules_dialog_aed6510dab231d1397aa1d62fe1d141c0}{Type\+Of\+Teammates}}}]{type\+Of\+Teammates}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_teammates_rules_dialog_a66dab69db50dbdbcbd8af6aafc3d96d9}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!clearAllValuesButton@{clearAllValuesButton}}
+\index{clearAllValuesButton@{clearAllValuesButton}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{clearAllValuesButton}{clearAllValuesButton}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a66dab69db50dbdbcbd8af6aafc3d96d9} 
+QPush\+Button\texorpdfstring{$\ast$}{*} Teammates\+Rules\+Dialog\+::clear\+All\+Values\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_aff4b8bc22b01a7718924888d87c53012}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!ICONSIZE@{ICONSIZE}}
+\index{ICONSIZE@{ICONSIZE}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{ICONSIZE}{ICONSIZE}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_aff4b8bc22b01a7718924888d87c53012} 
+const QSize Teammates\+Rules\+Dialog\+::\+ICONSIZE = QSize(15,15)\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a2ecdab5a25105a7bddcc1f035bd18230}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!negativerequestsInSurvey@{negativerequestsInSurvey}}
+\index{negativerequestsInSurvey@{negativerequestsInSurvey}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{negativerequestsInSurvey}{negativerequestsInSurvey}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a2ecdab5a25105a7bddcc1f035bd18230} 
+bool Teammates\+Rules\+Dialog\+::negativerequests\+In\+Survey = false\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_ae89c3d5e49493a564162003484250efb}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!numberRequestedTeammatesGiven@{numberRequestedTeammatesGiven}}
+\index{numberRequestedTeammatesGiven@{numberRequestedTeammatesGiven}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{numberRequestedTeammatesGiven}{numberRequestedTeammatesGiven}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_ae89c3d5e49493a564162003484250efb} 
+int Teammates\+Rules\+Dialog\+::number\+Requested\+Teammates\+Given = 1}
+
+\Hypertarget{class_teammates_rules_dialog_a4fcb4c41c4ff3cfcc53e3640ff7b9620}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!numStudents@{numStudents}}
+\index{numStudents@{numStudents}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{numStudents}{numStudents}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a4fcb4c41c4ff3cfcc53e3640ff7b9620} 
+const int Teammates\+Rules\+Dialog\+::num\+Students\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a2b169ba06085c06456bfab0d1c4d707a}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!positiverequestsInSurvey@{positiverequestsInSurvey}}
+\index{positiverequestsInSurvey@{positiverequestsInSurvey}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{positiverequestsInSurvey}{positiverequestsInSurvey}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a2b169ba06085c06456bfab0d1c4d707a} 
+bool Teammates\+Rules\+Dialog\+::positiverequests\+In\+Survey = false\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a3abacf56f065d70980194aa2afcc6098}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!possiblePreventedTeammates@{possiblePreventedTeammates}}
+\index{possiblePreventedTeammates@{possiblePreventedTeammates}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{possiblePreventedTeammates}{possiblePreventedTeammates}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a3abacf56f065d70980194aa2afcc6098} 
+QList$<$QCombo\+Box \texorpdfstring{$\ast$}{*}$>$ Teammates\+Rules\+Dialog\+::possible\+Prevented\+Teammates\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a8fb5116fd863909487083a2f73aeff39}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!possibleRequestedTeammates@{possibleRequestedTeammates}}
+\index{possibleRequestedTeammates@{possibleRequestedTeammates}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{possibleRequestedTeammates}{possibleRequestedTeammates}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a8fb5116fd863909487083a2f73aeff39} 
+QList$<$QCombo\+Box \texorpdfstring{$\ast$}{*}$>$ Teammates\+Rules\+Dialog\+::possible\+Requested\+Teammates\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_aea45d1306ffce06c46d278e51e4abb13}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!possibleRequiredTeammates@{possibleRequiredTeammates}}
+\index{possibleRequiredTeammates@{possibleRequiredTeammates}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{possibleRequiredTeammates}{possibleRequiredTeammates}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_aea45d1306ffce06c46d278e51e4abb13} 
+QList$<$QCombo\+Box \texorpdfstring{$\ast$}{*}$>$ Teammates\+Rules\+Dialog\+::possible\+Required\+Teammates\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_afa8752261d67c39b482e6055a642218b}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!prevented\_teammatesSpecified@{prevented\_teammatesSpecified}}
+\index{prevented\_teammatesSpecified@{prevented\_teammatesSpecified}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{prevented\_teammatesSpecified}{prevented\_teammatesSpecified}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_afa8752261d67c39b482e6055a642218b} 
+bool Teammates\+Rules\+Dialog\+::prevented\+\_\+teammates\+Specified = false}
+
+\Hypertarget{class_teammates_rules_dialog_abbd4ea5fff4405f657c42dff42fe383b}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!requested\_teammatesSpecified@{requested\_teammatesSpecified}}
+\index{requested\_teammatesSpecified@{requested\_teammatesSpecified}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{requested\_teammatesSpecified}{requested\_teammatesSpecified}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_abbd4ea5fff4405f657c42dff42fe383b} 
+bool Teammates\+Rules\+Dialog\+::requested\+\_\+teammates\+Specified = false}
+
+\Hypertarget{class_teammates_rules_dialog_a6b7372969c94f5a987ab2bdeab540b9c}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!required\_teammatesSpecified@{required\_teammatesSpecified}}
+\index{required\_teammatesSpecified@{required\_teammatesSpecified}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{required\_teammatesSpecified}{required\_teammatesSpecified}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a6b7372969c94f5a987ab2bdeab540b9c} 
+bool Teammates\+Rules\+Dialog\+::required\+\_\+teammates\+Specified = false}
+
+\Hypertarget{class_teammates_rules_dialog_a506887a4ced3e4dbbdde65dfc6c6920c}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!sectionName@{sectionName}}
+\index{sectionName@{sectionName}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{sectionName}{sectionName}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a506887a4ced3e4dbbdde65dfc6c6920c} 
+QString Teammates\+Rules\+Dialog\+::section\+Name\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_aa45365a9bee960b8ba4827924666cdb8}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!students@{students}}
+\index{students@{students}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{students}{students}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_aa45365a9bee960b8ba4827924666cdb8} 
+QList$<$\mbox{\hyperlink{class_student_record}{Student\+Record}}$>$ Teammates\+Rules\+Dialog\+::students}
+
+\Hypertarget{class_teammates_rules_dialog_aaa004ae0ace48c98c9713265ba31307c}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!teamSets@{teamSets}}
+\index{teamSets@{teamSets}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{teamSets}{teamSets}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_aaa004ae0ace48c98c9713265ba31307c} 
+QString\+List Teammates\+Rules\+Dialog\+::team\+Sets\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_teammates_rules_dialog_a2fb9f97b3131a88656fd6e6a0368f70d}\index{TeammatesRulesDialog@{TeammatesRulesDialog}!ui@{ui}}
+\index{ui@{ui}!TeammatesRulesDialog@{TeammatesRulesDialog}}
+\doxysubsubsection{\texorpdfstring{ui}{ui}}
+{\footnotesize\ttfamily \label{class_teammates_rules_dialog_a2fb9f97b3131a88656fd6e6a0368f70d} 
+Ui\+::\+Teammates\+Rules\+Dialog\texorpdfstring{$\ast$}{*} Teammates\+Rules\+Dialog\+::ui\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{teammates_rules_dialog_8h}{teammates\+Rules\+Dialog.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{teammates_rules_dialog_8cpp}{teammates\+Rules\+Dialog.\+cpp}}\end{DoxyCompactItemize}

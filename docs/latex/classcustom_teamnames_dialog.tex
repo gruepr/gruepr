@@ -1,0 +1,144 @@
+\doxysection{custom\+Teamnames\+Dialog Class Reference}
+\hypertarget{classcustom_teamnames_dialog}{}\label{classcustom_teamnames_dialog}\index{customTeamnamesDialog@{customTeamnamesDialog}}
+
+
+{\ttfamily \#include $<$custom\+Teamnames\+Dialog.\+h$>$}
+
+Inheritance diagram for custom\+Teamnames\+Dialog\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classcustom_teamnames_dialog}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classcustom_teamnames_dialog_a764d4519d09ec07d465bdea7cbec93a2}{custom\+Teamnames\+Dialog}} (int num\+Teams=1, const QString\+List \&incoming\+Team\+Names=\{\}, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{classcustom_teamnames_dialog_a73401390cd75871ae159a7e5fdb0cb20}{\texorpdfstring{$\sim$}{\string~}custom\+Teamnames\+Dialog}} () override=default
+\item 
+\mbox{\hyperlink{classcustom_teamnames_dialog_abf3b3e174620e40f2b9b30bc28408af9}{custom\+Teamnames\+Dialog}} (const \mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \mbox{\hyperlink{classcustom_teamnames_dialog_add6b4d66ce2f3b5148b11342ea14a271}{operator=}} (const \mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classcustom_teamnames_dialog_ab0fa812c72e7d4e8a74ba16422a7b05f}{custom\+Teamnames\+Dialog}} (\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&\&)=delete
+\item 
+\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \& \mbox{\hyperlink{classcustom_teamnames_dialog_a4b297f3f009895ef26b33f9e0c5e4dcd}{operator=}} (\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&\&)=delete
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classlist_table_dialog_ac549d6aa57a2a438066ad2804314a6b0}{list\+Table\+Dialog}} (const QString \&title="{}"{}, bool hide\+Col\+Headers=true, bool stretch\+Last\+Column=true, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{classlist_table_dialog_af1083d9df31473c5d17cd265585250cb}{add\+Spacer\+Row}} (int row)
+\item 
+void \mbox{\hyperlink{classlist_table_dialog_aed52adb21f91568e781be341e4963079}{add\+Button}} (QPush\+Button \texorpdfstring{$\ast$}{*}new\+Button)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{classcustom_teamnames_dialog_ae62b05abb886cf0a376484d4ba48a165}{team\+Names}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+QGrid\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a52c540e34e8a9ca3115a2ee91d0bb786}{the\+Grid}} = nullptr
+\item 
+QTable\+Widget \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a79db1c9f7f65abc8bbff81f0f4ecd066}{the\+Table}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classcustom_teamnames_dialog_ac542b7acacbccfbe2a273666c2bc96a4}{clear\+All\+Names}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QList$<$ QLine\+Edit \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{classcustom_teamnames_dialog_acd7b35c2b783c5d1cd0d73fa27b1e635}{team\+Name\+Line\+Edits}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+QHBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_a2e972c1da20c51728a06767f2443b62f}{button\+Layout}} = nullptr
+\item 
+QDialog\+Button\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classlist_table_dialog_ad1f831af21a5ec2d9d8ec53ee83e348c}{button\+Box}} = nullptr
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Protected Attributes inherited from \mbox{\hyperlink{classlist_table_dialog}{list\+Table\+Dialog}}}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{classlist_table_dialog_abf2f1703aac6a02c43c590ecf35236cc}{TABLEROWINGRID}} = 5
+\item 
+static const int \mbox{\hyperlink{classlist_table_dialog_a96bc700b6d7b914385e58d1823599de4}{BUTTONBOXROWINGRID}} = 9
+\item 
+static const float \mbox{\hyperlink{classlist_table_dialog_a11d6961626ff7c00209f2271359fe9be}{TABLEOVERSIZE}} = 1.\+2f
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classcustom_teamnames_dialog_a764d4519d09ec07d465bdea7cbec93a2}\index{customTeamnamesDialog@{customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\index{customTeamnamesDialog@{customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{customTeamnamesDialog()}{customTeamnamesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_a764d4519d09ec07d465bdea7cbec93a2} 
+custom\+Teamnames\+Dialog\+::custom\+Teamnames\+Dialog (\begin{DoxyParamCaption}\item[{int}]{num\+Teams}{ = {\ttfamily 1}, }\item[{const QString\+List \&}]{incoming\+Team\+Names}{ = {\ttfamily \{\}}, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+\Hypertarget{classcustom_teamnames_dialog_a73401390cd75871ae159a7e5fdb0cb20}\index{customTeamnamesDialog@{customTeamnamesDialog}!````~customTeamnamesDialog@{\texorpdfstring{$\sim$}{\string~}customTeamnamesDialog}}
+\index{````~customTeamnamesDialog@{\texorpdfstring{$\sim$}{\string~}customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}customTeamnamesDialog()}{\string~customTeamnamesDialog()}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_a73401390cd75871ae159a7e5fdb0cb20} 
+custom\+Teamnames\+Dialog\+::\texorpdfstring{$\sim$}{\string~}custom\+Teamnames\+Dialog (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [default]}}
+
+\Hypertarget{classcustom_teamnames_dialog_abf3b3e174620e40f2b9b30bc28408af9}\index{customTeamnamesDialog@{customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\index{customTeamnamesDialog@{customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{customTeamnamesDialog()}{customTeamnamesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_abf3b3e174620e40f2b9b30bc28408af9} 
+custom\+Teamnames\+Dialog\+::custom\+Teamnames\+Dialog (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classcustom_teamnames_dialog_ab0fa812c72e7d4e8a74ba16422a7b05f}\index{customTeamnamesDialog@{customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\index{customTeamnamesDialog@{customTeamnamesDialog}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{customTeamnamesDialog()}{customTeamnamesDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_ab0fa812c72e7d4e8a74ba16422a7b05f} 
+custom\+Teamnames\+Dialog\+::custom\+Teamnames\+Dialog (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classcustom_teamnames_dialog_ac542b7acacbccfbe2a273666c2bc96a4}\index{customTeamnamesDialog@{customTeamnamesDialog}!clearAllNames@{clearAllNames}}
+\index{clearAllNames@{clearAllNames}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{clearAllNames}{clearAllNames}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_ac542b7acacbccfbe2a273666c2bc96a4} 
+void custom\+Teamnames\+Dialog\+::clear\+All\+Names (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classcustom_teamnames_dialog_add6b4d66ce2f3b5148b11342ea14a271}\index{customTeamnamesDialog@{customTeamnamesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_add6b4d66ce2f3b5148b11342ea14a271} 
+\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} custom\+Teamnames\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classcustom_teamnames_dialog_a4b297f3f009895ef26b33f9e0c5e4dcd}\index{customTeamnamesDialog@{customTeamnamesDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_a4b297f3f009895ef26b33f9e0c5e4dcd} 
+\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \& custom\+Teamnames\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classcustom_teamnames_dialog}{custom\+Teamnames\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classcustom_teamnames_dialog_acd7b35c2b783c5d1cd0d73fa27b1e635}\index{customTeamnamesDialog@{customTeamnamesDialog}!teamNameLineEdits@{teamNameLineEdits}}
+\index{teamNameLineEdits@{teamNameLineEdits}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{teamNameLineEdits}{teamNameLineEdits}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_acd7b35c2b783c5d1cd0d73fa27b1e635} 
+QList$<$QLine\+Edit \texorpdfstring{$\ast$}{*}$>$ custom\+Teamnames\+Dialog\+::team\+Name\+Line\+Edits\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classcustom_teamnames_dialog_ae62b05abb886cf0a376484d4ba48a165}\index{customTeamnamesDialog@{customTeamnamesDialog}!teamNames@{teamNames}}
+\index{teamNames@{teamNames}!customTeamnamesDialog@{customTeamnamesDialog}}
+\doxysubsubsection{\texorpdfstring{teamNames}{teamNames}}
+{\footnotesize\ttfamily \label{classcustom_teamnames_dialog_ae62b05abb886cf0a376484d4ba48a165} 
+QString\+List custom\+Teamnames\+Dialog\+::team\+Names}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{custom_teamnames_dialog_8h}{custom\+Teamnames\+Dialog.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{custom_teamnames_dialog_8cpp}{custom\+Teamnames\+Dialog.\+cpp}}\end{DoxyCompactItemize}

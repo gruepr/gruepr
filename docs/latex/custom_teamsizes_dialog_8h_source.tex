@@ -1,0 +1,41 @@
+\doxysection{custom\+Teamsizes\+Dialog.\+h}
+\hypertarget{custom_teamsizes_dialog_8h_source}{}\label{custom_teamsizes_dialog_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/dialogs/customTeamsizesDialog.h@{/Users/johnnyassad/Desktop/gruepr/dialogs/customTeamsizesDialog.h}}
+\mbox{\hyperlink{custom_teamsizes_dialog_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ CUSTOMTEAMSIZESDIALOG\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ CUSTOMTEAMSIZESDIALOG\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{list_table_dialog_8h}{listTableDialog.h}}"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <QLabel>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <QSpinBox>}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classlist_table_dialog}{listTableDialog}}}
+\DoxyCodeLine{00009\ \{}
+\DoxyCodeLine{00010\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00013\ \ \ \ \ \mbox{\hyperlink{classcustom_teamsizes_dialog_adb5be3d7543466affa9cf0f9e0d3d27b}{customTeamsizesDialog}}(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{classcustom_teamsizes_dialog_a7f87a422d252ec28c0b12be7d31f6d23}{numStudents}},\ \textcolor{keywordtype}{int}\ idealTeamsize,\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00014\ \ \ \ \ \mbox{\hyperlink{classcustom_teamsizes_dialog_a8eb72474d259459fffc7c3d400db5ea0}{\string~customTeamsizesDialog}}()\ \textcolor{keyword}{override}\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00015\ \ \ \ \ \mbox{\hyperlink{classcustom_teamsizes_dialog_a9b68bec86ee545c85ebc259844eb1f2e}{customTeamsizesDialog}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00016\ \ \ \ \ \mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\ \mbox{\hyperlink{classcustom_teamsizes_dialog_ae7104177e6531fbb7870b81fd2a656a2}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00017\ \ \ \ \ \mbox{\hyperlink{classcustom_teamsizes_dialog_a276574c462bffc2ddc8615870f1af988}{customTeamsizesDialog}}(\mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00018\ \ \ \ \ \mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\&\ \mbox{\hyperlink{classcustom_teamsizes_dialog_ae7104177e6531fbb7870b81fd2a656a2}{operator=\ }}(\mbox{\hyperlink{classcustom_teamsizes_dialog}{customTeamsizesDialog}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \ \ \ \ QList<int>\ \mbox{\hyperlink{classcustom_teamsizes_dialog_a878be644eeb3fe7c89fd1417c984c07e}{teamsizes}};}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classcustom_teamsizes_dialog_a21d696e1951cd2d2b0605d6dccfc0391}{numTeams}};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{private}\ slots:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classcustom_teamsizes_dialog_a4bcdf217c986fb1033120ea8b8959c57}{refreshDisplay}}();}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classcustom_teamsizes_dialog_aa73c7f99565fa084a4e15cb9c3cd4e7b}{teamsizeChanged}}(\textcolor{keywordtype}{int});}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classcustom_teamsizes_dialog_a7f87a422d252ec28c0b12be7d31f6d23}{numStudents}};}
+\DoxyCodeLine{00029\ \ \ \ \ QSpinBox\ *\mbox{\hyperlink{classcustom_teamsizes_dialog_ae9d1dcabe0473837efc6992062b330f1}{numTeamsBox}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00030\ \ \ \ \ QList<QSpinBox*>\ \mbox{\hyperlink{classcustom_teamsizes_dialog_ac594a79bdba048919d1d684339056f42}{teamsizeBox}};}
+\DoxyCodeLine{00031\ \ \ \ \ QLabel\ *\mbox{\hyperlink{classcustom_teamsizes_dialog_a7d43ff8a081124f2dd9a184aecd6e4ba}{remainingStudents}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00032\ \};}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ CUSTOMTEAMSIZESDIALOG\_H}}
+
+\end{DoxyCode}

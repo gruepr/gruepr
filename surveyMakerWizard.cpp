@@ -1147,10 +1147,10 @@ void SchedulePage::cleanupPage()
 void SchedulePage::setDayNames(const QStringList &newDayNames)
 {
     dayNames = newDayNames;
-    while(dayNames.size() < MAX_DAYS) {
+    while (dayNames.size() < MAX_DAYS) {
         dayNames << "";
     }
-    for(int i = 0; i < MAX_DAYS; i++) {
+    for (int i = 0; i < MAX_DAYS; i++) {
         dayLineEdits[i]->setText(dayNames[i]);
         dayCheckBoxes[i]->setChecked(!dayNames[i].isEmpty());
     }
@@ -2389,298 +2389,354 @@ void PreviewAndExportPage::cleanupPage()
             {if(customButton == QWizard::CustomButton2) {while(wizard()->currentId() != SurveyMakerWizard::Page::previewexport) {wizard()->next();}}});
 }
 
-void PreviewAndExportPage::exportSurvey()
+//////////////////////////////////
+/// SURVEY EXPORTING FUNCTIONALITY
+//////////////////////////////////
+
+/*
+ * HELPER METHOD FOR 'exportSurvey()': Handles survey exporting to a gruepr file
+ */
+void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
 {
-    if(destinationGrueprFile->isChecked()) {
-        QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
-        //save all options to a text file
-        const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
-        if( !(fileName.isEmpty()) ) {
-            QFile saveFile(fileName);
-            if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                saveFileLocation->setFile(QFileInfo(fileName).canonicalFilePath());
-                QJsonObject saveObject;
-                saveObject["Title"] = field("SurveyTitle").toString();
+    QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
+    //save all options to a text file
+    const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalPath(), tr("gruepr survey File (*.gru);;All Files (*)"));
+    if( !(fileName.isEmpty()) ) {
+        QFile saveFile(fileName);
+        if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            saveFileLocation->setFile(QFileInfo(fileName).canonicalFilePath());
+            QJsonObject saveObject;
+            saveObject["Title"] = field("SurveyTitle").toString();
 
-                saveObject["FirstName"] = field("FirstName").toBool();
-                saveObject["LastName"] = field("LastName").toBool();
-                saveObject["Email"] = field("Email").toBool();
-                saveObject["Gender"] = field("Gender").toBool();
-                saveObject["GenderType"] = field("genderOptions").toInt();
-                saveObject["URM"] = field("RaceEthnicity").toBool();
+            saveObject["FirstName"] = field("FirstName").toBool();
+            saveObject["LastName"] = field("LastName").toBool();
+            saveObject["Email"] = field("Email").toBool();
+            saveObject["Gender"] = field("Gender").toBool();
+            saveObject["GenderType"] = field("genderOptions").toInt();
+            saveObject["URM"] = field("RaceEthnicity").toBool();
 
-                const int numMultiChoiceQuestions = field("multiChoiceNumQuestions").toInt();
-                saveObject["numAttributes"] = numMultiChoiceQuestions;
-                QList<QString> multiQuestionTexts = field("multiChoiceQuestionTexts").toStringList();
-                auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
-                auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
-                auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
-                for(int question = 0; question < numMultiChoiceQuestions; question++) {
-                    saveObject["Attribute" + QString::number(question+1)+"Question"] = multiQuestionTexts[question];
-                    const int responseOptionNum = responseOptions.indexOf(multiQuestionResponses[question].toStringList().join(" / "));
-                    saveObject["Attribute" + QString::number(question+1)+"Response"] = responseOptionNum + 1;
-                    saveObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"] = multiQuestionMultis[question].toBool();
-                    if(responseOptionNum == -1) { // custom options being used
-                        saveObject["Attribute" + QString::number(question+1)+"Options"] = multiQuestionResponses[question].toStringList().join(" / ");
-                    }
+            const int numMultiChoiceQuestions = field("multiChoiceNumQuestions").toInt();
+            saveObject["numAttributes"] = numMultiChoiceQuestions;
+            QList<QString> multiQuestionTexts = field("multiChoiceQuestionTexts").toStringList();
+            auto multiQuestionResponses = field("multiChoiceQuestionResponses").toList();
+            auto multiQuestionMultis = field("multiChoiceQuestionMultis").toList();
+            auto responseOptions = QString(RESPONSE_OPTIONS).split(';');
+            for(int question = 0; question < numMultiChoiceQuestions; question++) {
+                saveObject["Attribute" + QString::number(question+1)+"Question"] = multiQuestionTexts[question];
+                const int responseOptionNum = responseOptions.indexOf(multiQuestionResponses[question].toStringList().join(" / "));
+                saveObject["Attribute" + QString::number(question+1)+"Response"] = responseOptionNum + 1;
+                saveObject["Attribute" + QString::number(question+1)+"AllowMultiResponse"] = multiQuestionMultis[question].toBool();
+                if(responseOptionNum == -1) { // custom options being used
+                    saveObject["Attribute" + QString::number(question+1)+"Options"] = multiQuestionResponses[question].toStringList().join(" / ");
                 }
-                saveObject["Schedule"] = field("Schedule").toBool();
-                saveObject["ScheduleAsBusy"] = (field("scheduleBusyOrFree").toInt() == SchedulePage::busy);
-                saveObject["Timezone"] = field("Timezone").toBool();
-                saveObject["baseTimezone"] = field("baseTimezone").toString();
-                saveObject["scheduleQuestion"] = field("ScheduleQuestion").toString();
-                QList<QString> dayNames = field("scheduleDayNames").toStringList();
-                for(int day = 0; day < MAX_DAYS; day++) {
-                    const QString dayString1 = "scheduleDay" + QString::number(day+1);
-                    const QString dayString2 = dayString1 + "Name";
-                    saveObject[dayString1] = !dayNames[day].isEmpty();
-                    saveObject[dayString2] = dayNames[day];
-                }
-                saveObject["scheduleStartHour"] = field("scheduleFrom").toInt();
-                saveObject["scheduleEndHour"] = field("scheduleTo").toInt();
-                saveObject["scheduleResolution"] = field("scheduleResolution").toInt();
-                saveObject["scheduleTimeFormat"] = field("scheduleTimeFormat").toInt();
-                saveObject["Section"] = field("Section").toBool();
-                saveObject["SectionNames"] = field("SectionNames").toStringList().join(',');
-                saveObject["PreferredTeammates"] = field("PrefTeammate").toBool();
-                saveObject["PreferredNonTeammates"] = field("PrefNonTeammate").toBool();
-                saveObject["numPrefTeammates"] = field("numPrefTeammates").toInt();
-                saveObject["StudentNames"] = field("StudentNames").toStringList().join(',');
-
-                const QJsonDocument saveDoc(saveObject);
-                saveFile.write(saveDoc.toJson());
-                saveFile.close();
-                surveyHasBeenExported = true;
             }
-            else {
-                grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
+            saveObject["Schedule"] = field("Schedule").toBool();
+            saveObject["ScheduleAsBusy"] = (field("scheduleBusyOrFree").toInt() == SchedulePage::busy);
+            saveObject["Timezone"] = field("Timezone").toBool();
+            saveObject["baseTimezone"] = field("baseTimezone").toString();
+            saveObject["scheduleQuestion"] = field("ScheduleQuestion").toString();
+            QList<QString> dayNames = field("scheduleDayNames").toStringList();
+            for(int day = 0; day < MAX_DAYS; day++) {
+                const QString dayString1 = "scheduleDay" + QString::number(day+1);
+                const QString dayString2 = dayString1 + "Name";
+                saveObject[dayString1] = !dayNames[day].isEmpty();
+                saveObject[dayString2] = dayNames[day];
+            }
+            saveObject["scheduleStartHour"] = field("scheduleFrom").toInt();
+            saveObject["scheduleEndHour"] = field("scheduleTo").toInt();
+            saveObject["scheduleResolution"] = field("scheduleResolution").toInt();
+            saveObject["scheduleTimeFormat"] = field("scheduleTimeFormat").toInt();
+            saveObject["Section"] = field("Section").toBool();
+            saveObject["SectionNames"] = field("SectionNames").toStringList().join(',');
+            saveObject["PreferredTeammates"] = field("PrefTeammate").toBool();
+            saveObject["PreferredNonTeammates"] = field("PrefNonTeammate").toBool();
+            saveObject["numPrefTeammates"] = field("numPrefTeammates").toInt();
+            saveObject["StudentNames"] = field("StudentNames").toStringList().join(',');
+
+            const QJsonDocument saveDoc(saveObject);
+            saveFile.write(saveDoc.toJson());
+            saveFile.close();
+            surveyHasBeenExported = true;
+        }
+        else {
+            grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
+        }
+    }
+}
+
+/*
+ * HELPER METHOD FOR 'exportSurvey()': Handles survey exporting to text files
+ */
+void PreviewAndExportPage::exportSurveyDestinationTextFile()
+{
+    QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
+    //give instructions about how this option works
+    QMessageBox createSurvey;
+    createSurvey.setIcon(QMessageBox::Information);
+    createSurvey.setWindowTitle(tr("Survey Creation"));
+    createSurvey.setText(tr("The next step will save two files to your computer:\n\n"
+                            "  » A text file that lists the questions you should include in your survey.\n\n"
+                            "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
+    createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+    if(createSurvey.exec() == QMessageBox::Cancel) {
+        return;
+    }
+
+    //get the filenames and location
+    const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
+    if(fileName.isEmpty()) {
+        grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+        return;
+    }
+    //create the files
+    QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
+    if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
+        return;
+    }
+    saveFileLocation->setFile(QFileInfo(fileName).canonicalPath());
+
+    QString textFileContents, csvFileContents = "Timestamp";
+    int questionNumber = 0;
+    if(!survey->title.isEmpty()) {
+        textFileContents += survey->title + "\n\n";
+    }
+
+    textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
+    for(const auto &question : qAsConst(survey->questions)) {
+        textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
+        if(question.type == Question::QuestionType::schedule) {
+            textFileContents += "\n                 ";
+            for(const auto &timeName : survey->schedTimeNames) {
+                textFileContents += timeName + "    ";
+            }
+            textFileContents += "\n";
+            for(const auto &dayName : qAsConst(survey->schedDayNames)) {
+                if(!(dayName.isEmpty())) {
+                    textFileContents += "\n      " + dayName + "\n";
+                    csvFileContents +=  "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text) + "[" + dayName + "]";
+                }
+            }
+        }
+        else {
+            csvFileContents += "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text);
+            if((question.type == Question::QuestionType::dropdown) ||
+                (question.type == Question::QuestionType::radiobutton) ||
+                (question.type == Question::QuestionType::checkbox)) {
+                textFileContents += "\n     " + tr("choices") + ": [" + question.options.join(" | ") + "]";
+                if(question.type == Question::QuestionType::checkbox) {
+                    textFileContents += "\n     (" + tr("Select one or more") + ")";
+                }
             }
         }
     }
-    else if(destinationTextFiles->isChecked()) {
-        QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
-        //give instructions about how this option works
-        QMessageBox createSurvey;
-        createSurvey.setIcon(QMessageBox::Information);
-        createSurvey.setWindowTitle(tr("Survey Creation"));
-        createSurvey.setText(tr("The next step will save two files to your computer:\n\n"
-                                "  » A text file that lists the questions you should include in your survey.\n\n"
-                                "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
-        createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-        if(createSurvey.exec() == QMessageBox::Cancel) {
-            return;
-        }
 
-        //get the filenames and location
-        const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
-        if(fileName.isEmpty()) {
-            grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
-            return;
-        }
-        //create the files
-        QFile saveFile(fileName + ".txt"), saveFile2(fileName + ".csv");
-        if(!saveFile.open(QIODevice::WriteOnly | QIODevice::Text) || !saveFile2.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the files to disk."));
-            return;
-        }
-        saveFileLocation->setFile(QFileInfo(fileName).canonicalPath());
+    //write the files
+    QTextStream output(&saveFile), output2(&saveFile2);
+    output << textFileContents;
+    output2 << csvFileContents;
+    saveFile.close();
+    saveFile2.close();
+    surveyHasBeenExported = true;
+}
 
-        QString textFileContents, csvFileContents = "Timestamp";
-        int questionNumber = 0;
-        if(!survey->title.isEmpty()) {
-            textFileContents += survey->title + "\n\n";
-        }
-
-        textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
-        for(const auto &question : qAsConst(survey->questions)) {
-            textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
-            if(question.type == Question::QuestionType::schedule) {
-                textFileContents += "\n                 ";
-                for(const auto &timeName : survey->schedTimeNames) {
-                    textFileContents += timeName + "    ";
-                }
-                textFileContents += "\n";
-                for(const auto &dayName : qAsConst(survey->schedDayNames)) {
-                    if(!(dayName.isEmpty())) {
-                        textFileContents += "\n      " + dayName + "\n";
-                        csvFileContents +=  "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text) + "[" + dayName + "]";
-                    }
-                }
-            }
-            else {
-                csvFileContents += "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text);
-                if((question.type == Question::QuestionType::dropdown) ||
-                   (question.type == Question::QuestionType::radiobutton) ||
-                   (question.type == Question::QuestionType::checkbox)) {
-                    textFileContents += "\n     " + tr("choices") + ": [" + question.options.join(" | ") + "]";
-                    if(question.type == Question::QuestionType::checkbox) {
-                        textFileContents += "\n     (" + tr("Select one or more") + ")";
-                    }
-                }
-            }
-        }
-
-        //write the files
-        QTextStream output(&saveFile), output2(&saveFile2);
-        output << textFileContents;
-        output2 << csvFileContents;
-        saveFile.close();
-        saveFile2.close();
-        surveyHasBeenExported = true;
+/*
+ * HELPER METHOD FOR 'exportSurvey()': Handles survey exporting to a Google Forms
+ */
+void PreviewAndExportPage::exportSurveyDestinationGoogle()
+{
+    if(!grueprGlobal::internetIsGood()) {
+        return;
     }
-    else if(destinationGoogle->isChecked()) {
-        if(!grueprGlobal::internetIsGood()) {
-            return;
-        }
 
-        //create googleHandler and authenticate
-        auto *google = new GoogleHandler(this);
-        if(!google->authenticate()) {
-            google->deleteLater();
-            return;
-        }
-
-        //upload the survey as a form
-        auto *busyBox = google->actionDialog(this);
-        const auto form = google->createSurvey(survey);
-        const bool fail = form.name.isEmpty();
-
-        const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
-        const QSize iconSize = google->actionDialogIcon->size();
-        google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        const QString resultText = (fail? tr("Error. Survey not created.") : tr("Survey created"));
-        google->actionDialogLabel->setText(resultText);
-        QEventLoop loop;
-        busyBox->adjustSize();
-        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-        loop.exec();
-        google->actionComplete(busyBox);
+    //create googleHandler and authenticate
+    auto *google = new GoogleHandler(this);
+    if(!google->authenticate()) {
         google->deleteLater();
+        return;
+    }
 
-        if(fail) {
-            return;
-        }
+    //upload the survey as a form
+    auto *busyBox = google->actionDialog(this);
+    const auto form = google->createSurvey(survey);
+    const bool fail = form.name.isEmpty();
 
-        auto *successDialog = new QMessageBox(this);
-        successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
-        successDialog->setTextFormat(Qt::RichText);
-        successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
-        const QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
-        successDialog->setText(tr("Success! Survey created.<br><br>"
-                                  "If you'd like to preview or edit the survey, find it in your")
-                               + " <a href='https://drive.google.com'>Google Drive</a> "
-                                 "<img height=\""
-                               + textheight + "\" width=\"" + textheight
-                               + R"(" src=":/icons_new/external-link.png">. )"
-                               + tr("If you wish, you can modify:"
-                                    "<ul>"
-                                    "<li>the survey title</li>"
-                                    "<li>the instructions shown at the top of the survey</li>"
-                                    "<li>the \"description text\" shown with any of the questions</li>"
-                                    "</ul>"
-                                    "Changing the order of the questions or the wording of a question in any "
-                                    "other way is not recommended.<br><br>"
-                                    "Students should fill out the survey by going to the following "
-                                    "URL:<br><strong>")
-                               + form.responderURL.toEncoded()
-                               + tr("</strong><br>You can copy this URL to your clipboard with the button below."));
-        successDialog->setStandardButtons(QMessageBox::Ok);
-        auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
-        copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace("background-color: white;", "background-color: green;"));
-        copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
-        connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
+    const QPixmap resultIcon(fail? ":/icons_new/error.png" : ":/icons_new/ok.png");
+    const QSize iconSize = google->actionDialogIcon->size();
+    google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    const QString resultText = (fail? tr("Error. Survey not created.") : tr("Survey created"));
+    google->actionDialogLabel->setText(resultText);
+    QEventLoop loop;
+    busyBox->adjustSize();
+    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+    loop.exec();
+    google->actionComplete(busyBox);
+    google->deleteLater();
+
+    if(fail) {
+        return;
+    }
+
+    auto *successDialog = new QMessageBox(this);
+    successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
+    successDialog->setTextFormat(Qt::RichText);
+    successDialog->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    const QString textheight = QString::number(successDialog->fontMetrics().boundingRect('G').height() * 2);
+    successDialog->setText(tr("Success! Survey created.<br><br>"
+                              "If you'd like to preview or edit the survey, find it in your")
+                           + " <a href='https://drive.google.com'>Google Drive</a> "
+                             "<img height=\""
+                           + textheight + "\" width=\"" + textheight
+                           + R"(" src=":/icons_new/external-link.png">. )"
+                           + tr("If you wish, you can modify:"
+                                "<ul>"
+                                "<li>the survey title</li>"
+                                "<li>the instructions shown at the top of the survey</li>"
+                                "<li>the \"description text\" shown with any of the questions</li>"
+                                "</ul>"
+                                "Changing the order of the questions or the wording of a question in any "
+                                "other way is not recommended.<br><br>"
+                                "Students should fill out the survey by going to the following "
+                                "URL:<br><strong>")
+                           + form.responderURL.toEncoded()
+                           + tr("</strong><br>You can copy this URL to your clipboard with the button below."));
+    successDialog->setStandardButtons(QMessageBox::Ok);
+    auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
+    copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace("background-color: white;", "background-color: green;"));
+    copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
+    connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
                                                                                              clipboard->setText(form.responderURL.toEncoded());
                                                                                              QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
                                                                                                                 tr("URL copied"), copyButton, QRect(),
                                                                                                                 UI_DISPLAY_DELAYTIME);});
-        successDialog->exec();
-        successDialog->deleteLater();
-        surveyHasBeenExported = true;
+    successDialog->exec();
+    successDialog->deleteLater();
+    surveyHasBeenExported = true;
+}
+
+/*
+ * HELPER METHOD FOR 'exportSurvey()': Handles survey exporting to Canvas
+ */
+void PreviewAndExportPage::exportSurveyDestinationCanvas()
+{
+    if(!grueprGlobal::internetIsGood()) {
+        return;
     }
-    else if(destinationCanvas->isChecked()) {
-        if(!grueprGlobal::internetIsGood()) {
-            return;
-        }
 
-        //create canvasHandler and authenticate
-        auto *canvas = new CanvasHandler(this);
-        if(!canvas->authenticate()) {
-            canvas->deleteLater();
-            return;
-        }
-
-        //ask the user in which course we're creating the survey
-        auto *busyBox = canvas->actionDialog(this);
-        QStringList courseNames = canvas->getCourses();
-        canvas->actionComplete(busyBox);
-
-        auto *canvasCourses = new QDialog(this);
-        canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-        canvasCourses->setWindowIcon(CanvasHandler::icon());
-        canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-        auto *vLayout = new QVBoxLayout;
-        int i = 1;
-        auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCourses);
-        label->setStyleSheet(LABEL10PTSTYLE);
-        auto *coursesComboBox = new QComboBox(canvasCourses);
-        for(const auto &courseName : qAsConst(courseNames)) {
-            coursesComboBox->addItem(courseName);
-            coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole); // Not working??
-        }
-        auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
-        buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
-        buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        vLayout->addWidget(label);
-        vLayout->addWidget(coursesComboBox);
-        vLayout->addWidget(buttonBox);
-        canvasCourses->setLayout(vLayout);
-        connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
-        connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
-        if((canvasCourses->exec() == QDialog::Rejected)) {
-            canvasCourses->deleteLater();
-            canvas->deleteLater();
-            return;
-        }
-        const QString course = coursesComboBox->currentText();
-        canvasCourses->deleteLater();
-
-        //upload the survey as a quiz
-        busyBox = canvas->actionDialog(this);
-        const bool success = canvas->createSurvey(course, survey);
-
-        const QPixmap resultIcon(success? ":/icons_new/ok.png" : ":/icons_new/error.png");
-        const QSize iconSize = canvas->actionDialogIcon->size();
-        canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        const QString resultText = (success? tr("Survey created") : tr("Error. Survey not created."));
-        canvas->actionDialogLabel->setText(resultText);
-        QEventLoop loop;
-        busyBox->adjustSize();
-        QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
-        loop.exec();
-        canvas->actionComplete(busyBox);
+    //create canvasHandler and authenticate
+    auto *canvas = new CanvasHandler(this);
+    if(!canvas->authenticate()) {
         canvas->deleteLater();
+        return;
+    }
 
-        if(!success) {
-            return;
-        }
+    //ask the user in which course we're creating the survey
+    auto *busyBox = canvas->actionDialog(this);
+    QStringList courseNames = canvas->getCourses();
+    canvas->actionComplete(busyBox);
 
-        auto *successDialog = new QMessageBox(this);
-        successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
-        successDialog->setTextFormat(Qt::RichText);
-        successDialog->setText(tr("Success! Survey created.<br><br>"
-                                   "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site. "
-                                   "If you wish, you can modify:"
-                                   "<ul>"
-                                   "<li>the survey title</li>"
-                                   "<li>the Quiz Instructions shown at the start of the survey</li>"
-                                   "</ul>"
-                                   "Changing the order or the wording of the questions is not recommended.<br><br>"
-                                   "<strong>The survey is currently \"Unpublished\".</strong><br>"
-                                   "When you are ready for students to fill out the survey, you must log in to your course Canvas site, \"Publish\" it, and ensure it "
-                                   "is in a Module or other location accessible to the students."));
-        successDialog->setStandardButtons(QMessageBox::Ok);
-        successDialog->exec();
-        successDialog->deleteLater();
-        surveyHasBeenExported = true;
+    auto *canvasCourses = new QDialog(this);
+    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
+    canvasCourses->setWindowIcon(CanvasHandler::icon());
+    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *vLayout = new QVBoxLayout;
+    int i = 1;
+    auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCourses);
+    label->setStyleSheet(LABEL10PTSTYLE);
+    auto *coursesComboBox = new QComboBox(canvasCourses);
+    for(const auto &courseName : qAsConst(courseNames)) {
+        coursesComboBox->addItem(courseName);
+        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole); // Not working??
+    }
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
+    buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    vLayout->addWidget(label);
+    vLayout->addWidget(coursesComboBox);
+    vLayout->addWidget(buttonBox);
+    canvasCourses->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
+    if((canvasCourses->exec() == QDialog::Rejected)) {
+        canvasCourses->deleteLater();
+        canvas->deleteLater();
+        return;
+    }
+    const QString course = coursesComboBox->currentText();
+    canvasCourses->deleteLater();
+
+    //upload the survey as a quiz
+    busyBox = canvas->actionDialog(this);
+    const bool success = canvas->createSurvey(course, survey);
+
+    const QPixmap resultIcon(success? ":/icons_new/ok.png" : ":/icons_new/error.png");
+    const QSize iconSize = canvas->actionDialogIcon->size();
+    canvas->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    const QString resultText = (success? tr("Survey created") : tr("Error. Survey not created."));
+    canvas->actionDialogLabel->setText(resultText);
+    QEventLoop loop;
+    busyBox->adjustSize();
+    QTimer::singleShot(UI_DISPLAY_DELAYTIME, &loop, &QEventLoop::quit);
+    loop.exec();
+    canvas->actionComplete(busyBox);
+    canvas->deleteLater();
+
+    if(!success) {
+        return;
+    }
+
+    auto *successDialog = new QMessageBox(this);
+    successDialog->setStyleSheet(QString(LABEL10PTSTYLE) + SMALLBUTTONSTYLE);
+    successDialog->setTextFormat(Qt::RichText);
+    successDialog->setText(tr("Success! Survey created.<br><br>"
+                              "If you'd like to preview or edit the survey, find it under the \"Quizzes\" navigation item in your course Canvas site. "
+                              "If you wish, you can modify:"
+                              "<ul>"
+                              "<li>the survey title</li>"
+                              "<li>the Quiz Instructions shown at the start of the survey</li>"
+                              "</ul>"
+                              "Changing the order or the wording of the questions is not recommended.<br><br>"
+                              "<strong>The survey is currently \"Unpublished\".</strong><br>"
+                              "When you are ready for students to fill out the survey, you must log in to your course Canvas site, \"Publish\" it, and ensure it "
+                              "is in a Module or other location accessible to the students."));
+    successDialog->setStandardButtons(QMessageBox::Ok);
+    successDialog->exec();
+    successDialog->deleteLater();
+    surveyHasBeenExported = true;
+}
+
+/*
+ * Handles the exporting of the created survey into different options:
+ * - Google Forms
+ * - Canvas
+ * - Text file
+ * - gruepr file
+ *
+ * Param:
+ * Return: void
+ */
+void PreviewAndExportPage::exportSurvey()
+{
+
+    if (destinationGrueprFile->isChecked()) {
+
+        // Handle exporting survey to gruepr file
+        PreviewAndExportPage::exportSurveyDestinationGrueprFile();
+
+    } else if (destinationTextFiles->isChecked()) {
+
+        // Handle exporting survey to text files
+        PreviewAndExportPage::exportSurveyDestinationTextFile();
+
+    } else if (destinationGoogle->isChecked()) {
+
+        // Handle exporting survey to google forms
+        PreviewAndExportPage::exportSurveyDestinationGoogle();
+
+    } else if (destinationCanvas->isChecked()) {
+
+        // Handle exporting survey to canvas
+        PreviewAndExportPage::exportSurveyDestinationCanvas();
+
     }
 }

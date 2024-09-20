@@ -64,7 +64,7 @@ protected:
     virtual QString getClientAccessTokenUrl() const = 0;
     virtual QString getActionDialogIcon() const = 0;
     virtual QString getActionDialogLabel() const = 0;
-    virtual QAbstractOAuth::ModifyParametersFunction getModifyParametersFunction() const = 0;
+    virtual std::function<void(QAbstractOAuth::Stage stage, QMultiMap<QString, QVariant> *parameters)> getModifyParametersFunction() const = 0;
 
     inline static const QSize ICONSIZE{MSGBOX_ICON_SIZE,MSGBOX_ICON_SIZE};
     inline static const int RELOAD_DELAY_TIME = 2000;   //msec

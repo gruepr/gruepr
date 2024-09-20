@@ -1,0 +1,162 @@
+\doxysection{Box\+Whisker\+Plot Class Reference}
+\hypertarget{class_box_whisker_plot}{}\label{class_box_whisker_plot}\index{BoxWhiskerPlot@{BoxWhiskerPlot}}
+
+
+{\ttfamily \#include $<$boxwhiskerplot.\+h$>$}
+
+Inheritance diagram for Box\+Whisker\+Plot\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_box_whisker_plot}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_box_whisker_plot_a84f467eb9de6a44619bb0ad167a2b14c}{Box\+Whisker\+Plot}} (const QString \&title="{}"{}, const QString \&x\+Axis\+Title="{}"{}, const QString \&y\+Axis\+Title="{}"{}, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_box_whisker_plot_a1399bf6a4fbc14ffb9b9ebd504e12c61}{load\+Next\+Vals}} (const float \texorpdfstring{$\ast$}{*}const vals, const int \texorpdfstring{$\ast$}{*}const ordered\+Index, int count, const bool unpenalized\+Genome\+Present)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{class_box_whisker_plot_a4606575163be0b4e5b7bbbf20fa6fb9e}{PLOTFREQUENCY}} = 5
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ \mbox{\hyperlink{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081a7a6364a789f7f92a050dc39b3e240b4b}{axismin}}
+, \mbox{\hyperlink{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081a7478b8b03601065f381282e09afceae1}{axismax}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+float \mbox{\hyperlink{class_box_whisker_plot_aeb03ef0c38217d7f1a366be988b0ef2e}{median}} (const float \texorpdfstring{$\ast$}{*}const vals, const int \texorpdfstring{$\ast$}{*}const ordered\+Index, const int begin, const int end)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QBox\+Plot\+Series \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_box_whisker_plot_ac1b4bb6bff777d8c931932f642263491}{data\+Series}}
+\item 
+QCategory\+Axis \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_box_whisker_plot_aa49137bef36a13f5779b1dc2b9f45e58}{axisX}}
+\item 
+QValue\+Axis \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_box_whisker_plot_a53d4d56b72dcf9307850e73a715d7e49}{axisY}}
+\item 
+float \mbox{\hyperlink{class_box_whisker_plot_ab2ed6b0baf453c8b0c4640baaba494d9}{next\+Vals}} \mbox{[}5\mbox{]} = \{0,0,0,0,0\}
+\item 
+int \mbox{\hyperlink{class_box_whisker_plot_a66b26189cc21d05efc6362ae75d1b5e3}{x\+Axis\+Range}} \mbox{[}2\mbox{]} = \{0, 1\}
+\item 
+float \mbox{\hyperlink{class_box_whisker_plot_a4ce073f09809f98de110eb480f458686}{y\+Axis\+Range}} \mbox{[}2\mbox{]} = \{0, 1\}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{class_box_whisker_plot_a53ff9e549822b3b288a4cdd7a17af9ca}{DATAWIDTH}} = 60
+\item 
+static const int \mbox{\hyperlink{class_box_whisker_plot_a33d46b72f7a4bd77151873785ce99881}{UPDATECHUNKSIZE}} = 20
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081}\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081} 
+anonymous enum\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{axismin@{axismin}!BoxWhiskerPlot@{BoxWhiskerPlot}}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!axismin@{axismin}}}\Hypertarget{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081a7a6364a789f7f92a050dc39b3e240b4b}\label{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081} 
+axismin&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{axismax@{axismax}!BoxWhiskerPlot@{BoxWhiskerPlot}}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!axismax@{axismax}}}\Hypertarget{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081a7478b8b03601065f381282e09afceae1}\label{class_box_whisker_plot_aa060a6f6813a37389e42aef21d7c4081} 
+axismax&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_box_whisker_plot_a84f467eb9de6a44619bb0ad167a2b14c}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\index{BoxWhiskerPlot@{BoxWhiskerPlot}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{BoxWhiskerPlot()}{BoxWhiskerPlot()}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a84f467eb9de6a44619bb0ad167a2b14c} 
+Box\+Whisker\+Plot\+::\+Box\+Whisker\+Plot (\begin{DoxyParamCaption}\item[{const QString \&}]{title}{ = {\ttfamily "{}"{}}, }\item[{const QString \&}]{x\+Axis\+Title}{ = {\ttfamily "{}"{}}, }\item[{const QString \&}]{y\+Axis\+Title}{ = {\ttfamily "{}"{}}, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_box_whisker_plot_a1399bf6a4fbc14ffb9b9ebd504e12c61}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!loadNextVals@{loadNextVals}}
+\index{loadNextVals@{loadNextVals}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{loadNextVals()}{loadNextVals()}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a1399bf6a4fbc14ffb9b9ebd504e12c61} 
+void Box\+Whisker\+Plot\+::load\+Next\+Vals (\begin{DoxyParamCaption}\item[{const float \texorpdfstring{$\ast$}{*}const}]{vals}{, }\item[{const int \texorpdfstring{$\ast$}{*}const}]{ordered\+Index}{, }\item[{int}]{count}{, }\item[{const bool}]{unpenalized\+Genome\+Present}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_box_whisker_plot_aeb03ef0c38217d7f1a366be988b0ef2e}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!median@{median}}
+\index{median@{median}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{median()}{median()}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_aeb03ef0c38217d7f1a366be988b0ef2e} 
+float Box\+Whisker\+Plot\+::median (\begin{DoxyParamCaption}\item[{const float \texorpdfstring{$\ast$}{*}const}]{vals}{, }\item[{const int \texorpdfstring{$\ast$}{*}const}]{ordered\+Index}{, }\item[{const int}]{begin}{, }\item[{const int}]{end}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_box_whisker_plot_aa49137bef36a13f5779b1dc2b9f45e58}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!axisX@{axisX}}
+\index{axisX@{axisX}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{axisX}{axisX}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_aa49137bef36a13f5779b1dc2b9f45e58} 
+QCategory\+Axis\texorpdfstring{$\ast$}{*} Box\+Whisker\+Plot\+::axisX\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_a53d4d56b72dcf9307850e73a715d7e49}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!axisY@{axisY}}
+\index{axisY@{axisY}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{axisY}{axisY}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a53d4d56b72dcf9307850e73a715d7e49} 
+QValue\+Axis\texorpdfstring{$\ast$}{*} Box\+Whisker\+Plot\+::axisY\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_ac1b4bb6bff777d8c931932f642263491}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!dataSeries@{dataSeries}}
+\index{dataSeries@{dataSeries}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{dataSeries}{dataSeries}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_ac1b4bb6bff777d8c931932f642263491} 
+QBox\+Plot\+Series\texorpdfstring{$\ast$}{*} Box\+Whisker\+Plot\+::data\+Series\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_a53ff9e549822b3b288a4cdd7a17af9ca}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!DATAWIDTH@{DATAWIDTH}}
+\index{DATAWIDTH@{DATAWIDTH}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{DATAWIDTH}{DATAWIDTH}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a53ff9e549822b3b288a4cdd7a17af9ca} 
+const int Box\+Whisker\+Plot\+::\+DATAWIDTH = 60\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_ab2ed6b0baf453c8b0c4640baaba494d9}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!nextVals@{nextVals}}
+\index{nextVals@{nextVals}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{nextVals}{nextVals}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_ab2ed6b0baf453c8b0c4640baaba494d9} 
+float Box\+Whisker\+Plot\+::next\+Vals\mbox{[}5\mbox{]} = \{0,0,0,0,0\}\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_a4606575163be0b4e5b7bbbf20fa6fb9e}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!PLOTFREQUENCY@{PLOTFREQUENCY}}
+\index{PLOTFREQUENCY@{PLOTFREQUENCY}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{PLOTFREQUENCY}{PLOTFREQUENCY}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a4606575163be0b4e5b7bbbf20fa6fb9e} 
+const int Box\+Whisker\+Plot\+::\+PLOTFREQUENCY = 5\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{class_box_whisker_plot_a33d46b72f7a4bd77151873785ce99881}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!UPDATECHUNKSIZE@{UPDATECHUNKSIZE}}
+\index{UPDATECHUNKSIZE@{UPDATECHUNKSIZE}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{UPDATECHUNKSIZE}{UPDATECHUNKSIZE}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a33d46b72f7a4bd77151873785ce99881} 
+const int Box\+Whisker\+Plot\+::\+UPDATECHUNKSIZE = 20\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_a66b26189cc21d05efc6362ae75d1b5e3}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!xAxisRange@{xAxisRange}}
+\index{xAxisRange@{xAxisRange}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{xAxisRange}{xAxisRange}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a66b26189cc21d05efc6362ae75d1b5e3} 
+int Box\+Whisker\+Plot\+::x\+Axis\+Range\mbox{[}2\mbox{]} = \{0, 1\}\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_box_whisker_plot_a4ce073f09809f98de110eb480f458686}\index{BoxWhiskerPlot@{BoxWhiskerPlot}!yAxisRange@{yAxisRange}}
+\index{yAxisRange@{yAxisRange}!BoxWhiskerPlot@{BoxWhiskerPlot}}
+\doxysubsubsection{\texorpdfstring{yAxisRange}{yAxisRange}}
+{\footnotesize\ttfamily \label{class_box_whisker_plot_a4ce073f09809f98de110eb480f458686} 
+float Box\+Whisker\+Plot\+::y\+Axis\+Range\mbox{[}2\mbox{]} = \{0, 1\}\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{boxwhiskerplot_8h}{boxwhiskerplot.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/widgets/\mbox{\hyperlink{boxwhiskerplot_8cpp}{boxwhiskerplot.\+cpp}}\end{DoxyCompactItemize}

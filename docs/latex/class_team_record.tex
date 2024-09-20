@@ -1,0 +1,214 @@
+\doxysection{Team\+Record Class Reference}
+\hypertarget{class_team_record}{}\label{class_team_record}\index{TeamRecord@{TeamRecord}}
+
+
+{\ttfamily \#include $<$team\+Record.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_team_record_a0c644ef69e89b8ebec511571fb691931}{Team\+Record}} (const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const \mbox{\hyperlink{class_team_record_a82afa17b31e9036cbc97cde08bf46d79}{team\+Set\+Data\+Options}}, int team\+Size)
+\item 
+\mbox{\hyperlink{class_team_record_a2bc3b87c2c603f6231aa39f388fbe298}{Team\+Record}} (const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const \mbox{\hyperlink{class_team_record_a82afa17b31e9036cbc97cde08bf46d79}{team\+Set\+Data\+Options}}, const QJson\+Object \&json\+Team\+Record)
+\item 
+void \mbox{\hyperlink{class_team_record_a0d4e08ee6398dfbbc1169e6910cac6d7}{create\+Tooltip}} ()
+\item 
+void \mbox{\hyperlink{class_team_record_a72347610899ce64fd02b54b22b1737ee}{refresh\+Team\+Info}} (const \mbox{\hyperlink{class_student_record}{Student\+Record}} \texorpdfstring{$\ast$}{*}const student, const int meeting\+Block\+Size)
+\item 
+QJson\+Object \mbox{\hyperlink{class_team_record_ac42b89ed962ce24bc08a9c1641764765}{to\+Json}} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{class_team_record_a7c83b888d5f488ba4d77c237b1b8707e}{LMSID}} = -\/1
+\item 
+float \mbox{\hyperlink{class_team_record_a988ab0211185572eb752c0534901ca91}{score}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_a69ae33a973c9fb555ff1d1edcd9fef38}{size}} = 1
+\item 
+int \mbox{\hyperlink{class_team_record_ad651f3779e16b8932db1393669292ed3}{num\+Sections}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_afc8992b1cf25088974caff3e0a60289c}{num\+Women}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_a7c5a439e4f3257edae1052966373e23f}{num\+Men}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_abff174751175e3891d25a4f5e4456988}{num\+Nonbinary}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_a9f45a595de6ce7ea782a3ba32fa3370d}{num\+Unknown}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_a333287420ed282f050965a9484a5fb35}{num\+URM}} = 0
+\item 
+std\+::set$<$ int $>$ \mbox{\hyperlink{class_team_record_add6747f0a9742bd5cb2d72967f1aa871}{attribute\+Vals}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}
+\item 
+std\+::set$<$ float $>$ \mbox{\hyperlink{class_team_record_aa74f3f763dae37ed7de5885a9311527e}{timezone\+Vals}}
+\item 
+int \mbox{\hyperlink{class_team_record_a481b8d92c781841c9058e3934670dbb6}{num\+Students\+Available}} \mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a6874bc8f68379c0b837c3b95e9b75d04}{MAX\+\_\+\+DAYS}}\mbox{]}\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a410056f71365c3d69b7df8c54ab51c0d}{MAX\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+DAY}}\mbox{]} = \{\{0\}\}
+\item 
+int \mbox{\hyperlink{class_team_record_adfa0065510e443f02385879e4969f952}{num\+Students\+With\+Ambiguous\+Schedules}} = 0
+\item 
+int \mbox{\hyperlink{class_team_record_a75d438e1eca1f279214edb0c82ecf219}{num\+Meeting\+Times}} = 0
+\item 
+QList$<$ int $>$ \mbox{\hyperlink{class_team_record_aa077d8a8f7e6df47988f9a040aee3806}{student\+Indexes}}
+\item 
+QString \mbox{\hyperlink{class_team_record_aab0237ecdfa818abedf3d8de1f961732}{name}}
+\item 
+QString \mbox{\hyperlink{class_team_record_a60d9c969ffee7961571add002ecb2910}{tooltip}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_team_record_a82afa17b31e9036cbc97cde08bf46d79}{team\+Set\+Data\+Options}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_team_record_a0c644ef69e89b8ebec511571fb691931}\index{TeamRecord@{TeamRecord}!TeamRecord@{TeamRecord}}
+\index{TeamRecord@{TeamRecord}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{TeamRecord()}{TeamRecord()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_team_record_a0c644ef69e89b8ebec511571fb691931} 
+Team\+Record\+::\+Team\+Record (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const}]{team\+Set\+Data\+Options}{, }\item[{int}]{team\+Size}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+\Hypertarget{class_team_record_a2bc3b87c2c603f6231aa39f388fbe298}\index{TeamRecord@{TeamRecord}!TeamRecord@{TeamRecord}}
+\index{TeamRecord@{TeamRecord}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{TeamRecord()}{TeamRecord()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_team_record_a2bc3b87c2c603f6231aa39f388fbe298} 
+Team\+Record\+::\+Team\+Record (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const}]{team\+Set\+Data\+Options}{, }\item[{const QJson\+Object \&}]{json\+Team\+Record}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_team_record_a0d4e08ee6398dfbbc1169e6910cac6d7}\index{TeamRecord@{TeamRecord}!createTooltip@{createTooltip}}
+\index{createTooltip@{createTooltip}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{createTooltip()}{createTooltip()}}
+{\footnotesize\ttfamily \label{class_team_record_a0d4e08ee6398dfbbc1169e6910cac6d7} 
+void Team\+Record\+::create\+Tooltip (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_team_record_a72347610899ce64fd02b54b22b1737ee}\index{TeamRecord@{TeamRecord}!refreshTeamInfo@{refreshTeamInfo}}
+\index{refreshTeamInfo@{refreshTeamInfo}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{refreshTeamInfo()}{refreshTeamInfo()}}
+{\footnotesize\ttfamily \label{class_team_record_a72347610899ce64fd02b54b22b1737ee} 
+void Team\+Record\+::refresh\+Team\+Info (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_student_record}{Student\+Record}} \texorpdfstring{$\ast$}{*}const}]{student}{, }\item[{const int}]{meeting\+Block\+Size}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_team_record_ac42b89ed962ce24bc08a9c1641764765}\index{TeamRecord@{TeamRecord}!toJson@{toJson}}
+\index{toJson@{toJson}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{toJson()}{toJson()}}
+{\footnotesize\ttfamily \label{class_team_record_ac42b89ed962ce24bc08a9c1641764765} 
+QJson\+Object Team\+Record\+::to\+Json (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_team_record_add6747f0a9742bd5cb2d72967f1aa871}\index{TeamRecord@{TeamRecord}!attributeVals@{attributeVals}}
+\index{attributeVals@{attributeVals}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{attributeVals}{attributeVals}}
+{\footnotesize\ttfamily \label{class_team_record_add6747f0a9742bd5cb2d72967f1aa871} 
+std\+::set$<$int$>$ Team\+Record\+::attribute\+Vals\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_ae977c12458c05887092e2395f7c406cf}{MAX\+\_\+\+ATTRIBUTES}}\mbox{]}}
+
+\Hypertarget{class_team_record_a7c83b888d5f488ba4d77c237b1b8707e}\index{TeamRecord@{TeamRecord}!LMSID@{LMSID}}
+\index{LMSID@{LMSID}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{LMSID}{LMSID}}
+{\footnotesize\ttfamily \label{class_team_record_a7c83b888d5f488ba4d77c237b1b8707e} 
+int Team\+Record\+::\+LMSID = -\/1}
+
+\Hypertarget{class_team_record_aab0237ecdfa818abedf3d8de1f961732}\index{TeamRecord@{TeamRecord}!name@{name}}
+\index{name@{name}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily \label{class_team_record_aab0237ecdfa818abedf3d8de1f961732} 
+QString Team\+Record\+::name}
+
+\Hypertarget{class_team_record_a75d438e1eca1f279214edb0c82ecf219}\index{TeamRecord@{TeamRecord}!numMeetingTimes@{numMeetingTimes}}
+\index{numMeetingTimes@{numMeetingTimes}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numMeetingTimes}{numMeetingTimes}}
+{\footnotesize\ttfamily \label{class_team_record_a75d438e1eca1f279214edb0c82ecf219} 
+int Team\+Record\+::num\+Meeting\+Times = 0}
+
+\Hypertarget{class_team_record_a7c5a439e4f3257edae1052966373e23f}\index{TeamRecord@{TeamRecord}!numMen@{numMen}}
+\index{numMen@{numMen}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numMen}{numMen}}
+{\footnotesize\ttfamily \label{class_team_record_a7c5a439e4f3257edae1052966373e23f} 
+int Team\+Record\+::num\+Men = 0}
+
+\Hypertarget{class_team_record_abff174751175e3891d25a4f5e4456988}\index{TeamRecord@{TeamRecord}!numNonbinary@{numNonbinary}}
+\index{numNonbinary@{numNonbinary}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numNonbinary}{numNonbinary}}
+{\footnotesize\ttfamily \label{class_team_record_abff174751175e3891d25a4f5e4456988} 
+int Team\+Record\+::num\+Nonbinary = 0}
+
+\Hypertarget{class_team_record_ad651f3779e16b8932db1393669292ed3}\index{TeamRecord@{TeamRecord}!numSections@{numSections}}
+\index{numSections@{numSections}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numSections}{numSections}}
+{\footnotesize\ttfamily \label{class_team_record_ad651f3779e16b8932db1393669292ed3} 
+int Team\+Record\+::num\+Sections = 0}
+
+\Hypertarget{class_team_record_a481b8d92c781841c9058e3934670dbb6}\index{TeamRecord@{TeamRecord}!numStudentsAvailable@{numStudentsAvailable}}
+\index{numStudentsAvailable@{numStudentsAvailable}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numStudentsAvailable}{numStudentsAvailable}}
+{\footnotesize\ttfamily \label{class_team_record_a481b8d92c781841c9058e3934670dbb6} 
+int Team\+Record\+::num\+Students\+Available\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a6874bc8f68379c0b837c3b95e9b75d04}{MAX\+\_\+\+DAYS}}\mbox{]}\mbox{[}\mbox{\hyperlink{gruepr__globals_8h_a410056f71365c3d69b7df8c54ab51c0d}{MAX\+\_\+\+BLOCKS\+\_\+\+PER\+\_\+\+DAY}}\mbox{]} = \{\{0\}\}}
+
+\Hypertarget{class_team_record_adfa0065510e443f02385879e4969f952}\index{TeamRecord@{TeamRecord}!numStudentsWithAmbiguousSchedules@{numStudentsWithAmbiguousSchedules}}
+\index{numStudentsWithAmbiguousSchedules@{numStudentsWithAmbiguousSchedules}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numStudentsWithAmbiguousSchedules}{numStudentsWithAmbiguousSchedules}}
+{\footnotesize\ttfamily \label{class_team_record_adfa0065510e443f02385879e4969f952} 
+int Team\+Record\+::num\+Students\+With\+Ambiguous\+Schedules = 0}
+
+\Hypertarget{class_team_record_a9f45a595de6ce7ea782a3ba32fa3370d}\index{TeamRecord@{TeamRecord}!numUnknown@{numUnknown}}
+\index{numUnknown@{numUnknown}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numUnknown}{numUnknown}}
+{\footnotesize\ttfamily \label{class_team_record_a9f45a595de6ce7ea782a3ba32fa3370d} 
+int Team\+Record\+::num\+Unknown = 0}
+
+\Hypertarget{class_team_record_a333287420ed282f050965a9484a5fb35}\index{TeamRecord@{TeamRecord}!numURM@{numURM}}
+\index{numURM@{numURM}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numURM}{numURM}}
+{\footnotesize\ttfamily \label{class_team_record_a333287420ed282f050965a9484a5fb35} 
+int Team\+Record\+::num\+URM = 0}
+
+\Hypertarget{class_team_record_afc8992b1cf25088974caff3e0a60289c}\index{TeamRecord@{TeamRecord}!numWomen@{numWomen}}
+\index{numWomen@{numWomen}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{numWomen}{numWomen}}
+{\footnotesize\ttfamily \label{class_team_record_afc8992b1cf25088974caff3e0a60289c} 
+int Team\+Record\+::num\+Women = 0}
+
+\Hypertarget{class_team_record_a988ab0211185572eb752c0534901ca91}\index{TeamRecord@{TeamRecord}!score@{score}}
+\index{score@{score}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{score}{score}}
+{\footnotesize\ttfamily \label{class_team_record_a988ab0211185572eb752c0534901ca91} 
+float Team\+Record\+::score = 0}
+
+\Hypertarget{class_team_record_a69ae33a973c9fb555ff1d1edcd9fef38}\index{TeamRecord@{TeamRecord}!size@{size}}
+\index{size@{size}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{size}{size}}
+{\footnotesize\ttfamily \label{class_team_record_a69ae33a973c9fb555ff1d1edcd9fef38} 
+int Team\+Record\+::size = 1}
+
+\Hypertarget{class_team_record_aa077d8a8f7e6df47988f9a040aee3806}\index{TeamRecord@{TeamRecord}!studentIndexes@{studentIndexes}}
+\index{studentIndexes@{studentIndexes}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{studentIndexes}{studentIndexes}}
+{\footnotesize\ttfamily \label{class_team_record_aa077d8a8f7e6df47988f9a040aee3806} 
+QList$<$int$>$ Team\+Record\+::student\+Indexes}
+
+\Hypertarget{class_team_record_a82afa17b31e9036cbc97cde08bf46d79}\index{TeamRecord@{TeamRecord}!teamSetDataOptions@{teamSetDataOptions}}
+\index{teamSetDataOptions@{teamSetDataOptions}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{teamSetDataOptions}{teamSetDataOptions}}
+{\footnotesize\ttfamily \label{class_team_record_a82afa17b31e9036cbc97cde08bf46d79} 
+const \mbox{\hyperlink{class_data_options}{Data\+Options}}\texorpdfstring{$\ast$}{*} Team\+Record\+::team\+Set\+Data\+Options\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_team_record_aa74f3f763dae37ed7de5885a9311527e}\index{TeamRecord@{TeamRecord}!timezoneVals@{timezoneVals}}
+\index{timezoneVals@{timezoneVals}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{timezoneVals}{timezoneVals}}
+{\footnotesize\ttfamily \label{class_team_record_aa74f3f763dae37ed7de5885a9311527e} 
+std\+::set$<$float$>$ Team\+Record\+::timezone\+Vals}
+
+\Hypertarget{class_team_record_a60d9c969ffee7961571add002ecb2910}\index{TeamRecord@{TeamRecord}!tooltip@{tooltip}}
+\index{tooltip@{tooltip}!TeamRecord@{TeamRecord}}
+\doxysubsubsection{\texorpdfstring{tooltip}{tooltip}}
+{\footnotesize\ttfamily \label{class_team_record_a60d9c969ffee7961571add002ecb2910} 
+QString Team\+Record\+::tooltip}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{team_record_8h}{team\+Record.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{team_record_8cpp}{team\+Record.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,35 @@
+\doxysection{push\+Button\+With\+Mouse\+Enter.\+h}
+\hypertarget{push_button_with_mouse_enter_8h_source}{}\label{push_button_with_mouse_enter_8h_source}\index{/Users/johnnyassad/Desktop/gruepr/widgets/pushButtonWithMouseEnter.h@{/Users/johnnyassad/Desktop/gruepr/widgets/pushButtonWithMouseEnter.h}}
+\mbox{\hyperlink{push_button_with_mouse_enter_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ PUSHBUTTONWITHMOUSEENTER}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ PUSHBUTTONWITHMOUSEENTER}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ a\ subclassed\ QPushButton\ that\ passes\ mouse\ enter\ events\ to\ its\ parent}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <QPushButton>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <QEnterEvent>}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_push_button_with_mouse_enter}{PushButtonWithMouseEnter}}\ :\ \textcolor{keyword}{public}\ QPushButton}
+\DoxyCodeLine{00011\ \{}
+\DoxyCodeLine{00012\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00015\ \ \ \ \ \mbox{\hyperlink{class_push_button_with_mouse_enter_a8079d6aab84dba6ce76e4f5edcfd9aa0}{PushButtonWithMouseEnter}}(\textcolor{keyword}{const}\ QIcon\ \&icon,\ \textcolor{keyword}{const}\ QString\ \&text,\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_push_button_with_mouse_enter_a93dba09ca1bbf3b8d0af5a44149d4021}{enterEvent}}(QEnterEvent\ *event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_push_button_with_mouse_enter_ae472f09add0945a8090a7ba1220abd4a}{leaveEvent}}(QEvent\ *event)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ signals:}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_push_button_with_mouse_enter_a9f1c1422288458b2ed8abd8af9a2e956}{mouseEntered}}();}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_push_button_with_mouse_enter_a1f4abbb73b0d05a7b6ceb8d1dfb8f9ff}{mouseLeft}}();}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QSize\ \mbox{\hyperlink{class_push_button_with_mouse_enter_a2564099e5381adb6caf22b5c596f018d}{ICONSIZE}}\ =\ QSize(20,20);}
+\DoxyCodeLine{00027\ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ PUSHBUTTONWITHMOUSEENTER}}
+
+\end{DoxyCode}

@@ -1,0 +1,609 @@
+\doxysection{gruepr Class Reference}
+\hypertarget{classgruepr}{}\label{classgruepr}\index{gruepr@{gruepr}}
+
+
+{\ttfamily \#include $<$gruepr.\+h$>$}
+
+Inheritance diagram for gruepr\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classgruepr}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classgruepr_a38bd084bb910f1b6683c1a69d389042a}{closed}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a6771d0949cf1c5ecbaec2c395750f8d3}{generation\+Complete}} (const float \texorpdfstring{$\ast$}{*}const all\+Scores, const int \texorpdfstring{$\ast$}{*}const ordered\+Index, const int generation, const float score\+Stability, const bool unpenalized\+Genome\+Present)
+\item 
+void \mbox{\hyperlink{classgruepr_a2f1a5e5b3e75fd02d1b3b93b55ab505f}{section\+Optimization\+Fully\+Complete}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a296836a4b612ee7e88d4d8e0e999789c}{turn\+Off\+Busy\+Cursor}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classgruepr_aa32d5bae94ad32f2290e0cc4a904727a}{gruepr}} (\mbox{\hyperlink{class_data_options}{Data\+Options}} \&\mbox{\hyperlink{classgruepr_a3b4765af8bf76d64bad7fbd8edab5548}{data\+Options}}, QList$<$ \mbox{\hyperlink{class_student_record}{Student\+Record}} $>$ \&\mbox{\hyperlink{classgruepr_a9a1d08b204bc773359378efdaeb94b9a}{students}}, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{classgruepr_a9dedf820b19325d0ffed5011980b8038}{\texorpdfstring{$\sim$}{\string~}gruepr}} () override
+\item 
+\mbox{\hyperlink{classgruepr_a80bb883a42213414f2f2523d99e73dc1}{gruepr}} (const \mbox{\hyperlink{classgruepr}{gruepr}} \&)=delete
+\item 
+\mbox{\hyperlink{classgruepr}{gruepr}} \mbox{\hyperlink{classgruepr_a0d34435057ffe16fa5a4845b06774127}{operator=}} (const \mbox{\hyperlink{classgruepr}{gruepr}} \&)=delete
+\item 
+\mbox{\hyperlink{classgruepr_a63dcb22f111311f740ed32b00bae6011}{gruepr}} (\mbox{\hyperlink{classgruepr}{gruepr}} \&\&)=delete
+\item 
+\mbox{\hyperlink{classgruepr}{gruepr}} \& \mbox{\hyperlink{classgruepr_a2f251dee16a86840811cb097a0f89028}{operator=}} (\mbox{\hyperlink{classgruepr}{gruepr}} \&\&)=delete
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{classgruepr_acac8cd1e648f7c93aa622a012a599212}{calc\+Team\+Scores}} (const \mbox{\hyperlink{class_student_record}{Student\+Record}} \texorpdfstring{$\ast$}{*}const \+\_\+student, const int \+\_\+num\+Students, \mbox{\hyperlink{class_team_record}{Team\+Record}} \texorpdfstring{$\ast$}{*}const \+\_\+teams, const int \+\_\+num\+Teams, const \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*}const \+\_\+teaming\+Options, const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const \+\_\+data\+Options)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classgruepr_a86b04497b9a913d1f391e3a324e56eac}{restart\+Requested}} = false
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{classgruepr_aa9dcace6268738db8d5e9ea3c3c251fd}{MAINWINDOWPADDING}} = 20
+\item 
+static const int \mbox{\hyperlink{classgruepr_aec4ec5797042432e64741770041be493}{MAINWINDOWFONT}} = 8
+\item 
+static const int \mbox{\hyperlink{classgruepr_a7d06e1c5675df150ce985ddf6a316247}{MAINWINDOWBUTTONFONT}} = 4
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classgruepr_a327a28e4c1977ddba71cf5b11bc94ea5}{close\+Event}} (QClose\+Event \texorpdfstring{$\ast$}{*}event) override
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classgruepr_ac27f0da94335c8951620f93eee5852bf}{restart\+With\+New\+Data}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a32e6de6e8fb9377853ab2ff09d16bf2a}{change\+Section}} (int index)
+\item 
+void \mbox{\hyperlink{classgruepr_a2404c1a2a5035b7f10da2ffbad0f45a8}{edit\+AStudent}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_aec91794a099aed8755ab66b58a1830c6}{remove\+AStudent}} (const QString \&name, bool delay\+Visual\+Update)
+\item 
+void \mbox{\hyperlink{classgruepr_a4c297a82012df97262dda534aae02890}{remove\+AStudent}} (int index, bool delay\+Visual\+Update)
+\item 
+void \mbox{\hyperlink{classgruepr_a9ad55c4aca7f009ae8c50ebd3f248fe2}{add\+AStudent}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a8c543b665e3fbd4ce6716d4a2eccfbd6}{compare\+Students\+To\+Roster}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a19a513e5e6f199f46f6458d678481523}{rebuild\+Duplicates\+Teamsize\+URMAnd\+Section\+Data\+And\+Refresh\+Student\+Table}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a93914b18a09b7758aea526c01e18674e}{simple\+UIItem\+Update}} (QObject \texorpdfstring{$\ast$}{*}sender=nullptr)
+\item 
+void \mbox{\hyperlink{classgruepr_a3350bc51cd54d37c5617d63ae4785ed2}{select\+URMResponses}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a68178ff187051f60aee795a4ec71f66a}{responses\+Rules\+Button\+\_\+clicked}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_af01022dbb8f00339c7070a12e3398c0b}{change\+Ideal\+Team\+Size}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a84794fa7956d6b041d024f6b12c26071}{choose\+Team\+Sizes}} (int index)
+\item 
+void \mbox{\hyperlink{classgruepr_a7975209f94ace8557d8c083b81a33e9d}{make\+Teammates\+Rules}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a95de4288b021d7383bb79c00e64f7e76}{start\+Optimization}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a6620c27ac5081efa8e82dd539e2d0c6f}{update\+Optimization\+Progress}} (const float \texorpdfstring{$\ast$}{*}const all\+Scores, const int \texorpdfstring{$\ast$}{*}const ordered\+Index, const int generation, const float score\+Stability, const bool unpenalized\+Genome\+Present)
+\item 
+void \mbox{\hyperlink{classgruepr_a8c0a463bf673364d32814233d6e1ef59}{optimization\+Complete}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a4807638bf649701a6802f3809ffa4c59}{data\+Display\+Tab\+Close}} (int closing\+Tab\+Index)
+\item 
+void \mbox{\hyperlink{classgruepr_a4912ed723ea49027cc0a83160a9ff6f8}{edit\+Data\+Display\+Tab\+Name}} (int tab\+Index)
+\item 
+void \mbox{\hyperlink{classgruepr_ab917902d6433054bb8b8cf440f512db4}{save\+State}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classgruepr_ac5d255c35a1c51d7eda5cc11023f3209}{load\+Default\+Settings}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a304c4e4d73d8abad98248144394047b5}{load\+UI}} ()
+\item 
+void \mbox{\hyperlink{classgruepr_a31cc538f1a1bfc69c82e4393b24028e4}{set\+Team\+Sizes}} (const int team\+Sizes\mbox{[}$\,$\mbox{]})
+\item 
+void \mbox{\hyperlink{classgruepr_aad01562b44a200683fc14e5090b2796f}{set\+Team\+Sizes}} (const int single\+Size)
+\item 
+QString \mbox{\hyperlink{classgruepr_afde825335a9d0001fd1ecc5d5a8c567c}{write\+Team\+Size\+Option}} (const int num\+TeamsA, const int teamsizeA, const int num\+TeamsB, const int teamsizeB)
+\item 
+bool \mbox{\hyperlink{classgruepr_aed49894e05ffc55591b5e1788b4b6c03}{load\+Roster\+Data}} (\mbox{\hyperlink{class_csv_file}{Csv\+File}} \&roster\+File, QString\+List \&names, QString\+List \&emails)
+\item 
+void \mbox{\hyperlink{classgruepr_aa2b56492f7727827ce2388c94d4333af}{refresh\+Student\+Display}} ()
+\item 
+QList$<$ int $>$ \mbox{\hyperlink{classgruepr_a1387f629c2411d2c0edb8ab7bcda0f26}{optimize\+Teams}} (const int \texorpdfstring{$\ast$}{*}const \mbox{\hyperlink{classgruepr_a0bab885b14c8479788003d1ac6172abd}{student\+Indexes}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static float \mbox{\hyperlink{classgruepr_a9086302c8f1b399c2cd99c12e72034b4}{get\+Genome\+Score}} (const \mbox{\hyperlink{class_student_record}{Student\+Record}} \texorpdfstring{$\ast$}{*}const \+\_\+student, const int \+\_\+teammates\mbox{[}$\,$\mbox{]}, const int \+\_\+num\+Teams, const int \+\_\+team\+Sizes\mbox{[}$\,$\mbox{]}, const \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*}const \+\_\+teaming\+Options, const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const \+\_\+data\+Options, float \+\_\+team\+Scores\mbox{[}$\,$\mbox{]}, float \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+\_\+attribute\+Score, float \texorpdfstring{$\ast$}{*}\+\_\+sched\+Score, bool \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}\+\_\+availability\+Chart, int \texorpdfstring{$\ast$}{*}\+\_\+penalty\+Points)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Ui\+::gruepr \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classgruepr_a2c0d984df63ed58b975ebaf8fa3e72bc}{ui}}
+\item 
+\mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classgruepr_a3b4765af8bf76d64bad7fbd8edab5548}{data\+Options}} = nullptr
+\item 
+\mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classgruepr_a09f12d8703bcdc04b625cffc02f28293}{teaming\+Options}} = nullptr
+\item 
+int \mbox{\hyperlink{classgruepr_aba32bc577e27b2260c919b71a1044776}{num\+Teams}} = 1
+\item 
+int \mbox{\hyperlink{classgruepr_ad233ac0e5b68631eb0b4bb11e58e1e97}{num\+Active\+Students}} = \mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}
+\item 
+QList$<$ \mbox{\hyperlink{class_student_record}{Student\+Record}} $>$ \mbox{\hyperlink{classgruepr_a9a1d08b204bc773359378efdaeb94b9a}{students}}
+\item 
+int \mbox{\hyperlink{classgruepr_abb0fd9166bb16b688474d83f981c4548}{prev\+Sort\+Column}} = 0
+\item 
+Qt\+::\+Sort\+Order \mbox{\hyperlink{classgruepr_a0def414b02a25a79a4b570b0a20a7ca5}{prev\+Sort\+Order}} = Qt\+::\+Ascending\+Order
+\item 
+QList$<$ QPush\+Button \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{classgruepr_a217297ddc5d8e91320aac79a736d06b0}{attribute\+Selector\+Buttons}}
+\item 
+QList$<$ \mbox{\hyperlink{class_attribute_widget}{Attribute\+Widget}} \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{classgruepr_acd0474bfc3a6b086a289b22a83c09adf}{attribute\+Widgets}}
+\item 
+int \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classgruepr_a0bab885b14c8479788003d1ac6172abd}{student\+Indexes}} = nullptr
+\item 
+QFuture$<$ QList$<$ int $>$ $>$ \mbox{\hyperlink{classgruepr_a6e4d61928cb8fbbb4bd3300cb6cdf861}{future}}
+\item 
+QFuture\+Watcher$<$ QList$<$ int $>$ $>$ \mbox{\hyperlink{classgruepr_a51d265b51c29f5b28ba751ed46fc72b0}{future\+Watcher}}
+\item 
+\mbox{\hyperlink{class_box_whisker_plot}{Box\+Whisker\+Plot}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classgruepr_aa61046797c97959be6003ae0cab1f2cc}{progress\+Chart}} = nullptr
+\item 
+\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classgruepr_a35ecbda62a2ecc1d3ac3fa7d8084a056}{progress\+Window}} = nullptr
+\item 
+float \mbox{\hyperlink{classgruepr_a683f560bca038c4643d415e30134c594}{team\+Set\+Score}} = 0
+\item 
+int \mbox{\hyperlink{classgruepr_a61d1e2d7c313c1fa637ef4e60b32d37a}{final\+Generation}} = 1
+\item 
+QMutex \mbox{\hyperlink{classgruepr_ad0a566d20d9e0efcee342538dd86e9d0}{optimization\+Stoppedmutex}}
+\item 
+bool \mbox{\hyperlink{classgruepr_a9b3e5ed6a7fbd56430363c44bb7844cb}{multiple\+Sections\+In\+Progress}} = false
+\item 
+bool \mbox{\hyperlink{classgruepr_aff23428092fb4424908daed3b24b4f55}{optimization\+Stopped}} = false
+\item 
+bool \mbox{\hyperlink{classgruepr_a7f3d3ff938882bfa1f67abe637bc5a76}{keep\+Optimizing}} = false
+\item 
+\mbox{\hyperlink{class_team_set}{Team\+Set}} \mbox{\hyperlink{classgruepr_ae2573d5ddb9ec879d09f54fac5e19dea}{teams}}
+\item 
+QList$<$ int $>$ \mbox{\hyperlink{classgruepr_ab7fa946b1d852bdd29e69c55e1b7626b}{best\+Team\+Set}}
+\item 
+\mbox{\hyperlink{class_team_set}{Team\+Set}} \mbox{\hyperlink{classgruepr_ab2794f9188b15ec47f9b626cdb6de0ef}{final\+Teams}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classgruepr_aa32d5bae94ad32f2290e0cc4a904727a}\index{gruepr@{gruepr}!gruepr@{gruepr}}
+\index{gruepr@{gruepr}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{gruepr()}{gruepr()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{classgruepr_aa32d5bae94ad32f2290e0cc4a904727a} 
+gruepr\+::gruepr (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_data_options}{Data\+Options}} \&}]{data\+Options}{, }\item[{QList$<$ \mbox{\hyperlink{class_student_record}{Student\+Record}} $>$ \&}]{students}{, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\Hypertarget{classgruepr_a9dedf820b19325d0ffed5011980b8038}\index{gruepr@{gruepr}!````~gruepr@{\texorpdfstring{$\sim$}{\string~}gruepr}}
+\index{````~gruepr@{\texorpdfstring{$\sim$}{\string~}gruepr}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}gruepr()}{\string~gruepr()}}
+{\footnotesize\ttfamily \label{classgruepr_a9dedf820b19325d0ffed5011980b8038} 
+gruepr\+::\texorpdfstring{$\sim$}{\string~}gruepr (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{classgruepr_a80bb883a42213414f2f2523d99e73dc1}\index{gruepr@{gruepr}!gruepr@{gruepr}}
+\index{gruepr@{gruepr}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{gruepr()}{gruepr()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{classgruepr_a80bb883a42213414f2f2523d99e73dc1} 
+gruepr\+::gruepr (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classgruepr}{gruepr}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classgruepr_a63dcb22f111311f740ed32b00bae6011}\index{gruepr@{gruepr}!gruepr@{gruepr}}
+\index{gruepr@{gruepr}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{gruepr()}{gruepr()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{classgruepr_a63dcb22f111311f740ed32b00bae6011} 
+gruepr\+::gruepr (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classgruepr}{gruepr}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classgruepr_a9ad55c4aca7f009ae8c50ebd3f248fe2}\index{gruepr@{gruepr}!addAStudent@{addAStudent}}
+\index{addAStudent@{addAStudent}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{addAStudent}{addAStudent}}
+{\footnotesize\ttfamily \label{classgruepr_a9ad55c4aca7f009ae8c50ebd3f248fe2} 
+void gruepr\+::add\+AStudent (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_acac8cd1e648f7c93aa622a012a599212}\index{gruepr@{gruepr}!calcTeamScores@{calcTeamScores}}
+\index{calcTeamScores@{calcTeamScores}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{calcTeamScores()}{calcTeamScores()}}
+{\footnotesize\ttfamily \label{classgruepr_acac8cd1e648f7c93aa622a012a599212} 
+void gruepr\+::calc\+Team\+Scores (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_student_record}{Student\+Record}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+student}{, }\item[{const int}]{\+\_\+num\+Students}{, }\item[{\mbox{\hyperlink{class_team_record}{Team\+Record}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+teams}{, }\item[{const int}]{\+\_\+num\+Teams}{, }\item[{const \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+teaming\+Options}{, }\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+data\+Options}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{classgruepr_af01022dbb8f00339c7070a12e3398c0b}\index{gruepr@{gruepr}!changeIdealTeamSize@{changeIdealTeamSize}}
+\index{changeIdealTeamSize@{changeIdealTeamSize}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{changeIdealTeamSize}{changeIdealTeamSize}}
+{\footnotesize\ttfamily \label{classgruepr_af01022dbb8f00339c7070a12e3398c0b} 
+void gruepr\+::change\+Ideal\+Team\+Size (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a32e6de6e8fb9377853ab2ff09d16bf2a}\index{gruepr@{gruepr}!changeSection@{changeSection}}
+\index{changeSection@{changeSection}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{changeSection}{changeSection}}
+{\footnotesize\ttfamily \label{classgruepr_a32e6de6e8fb9377853ab2ff09d16bf2a} 
+void gruepr\+::change\+Section (\begin{DoxyParamCaption}\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a84794fa7956d6b041d024f6b12c26071}\index{gruepr@{gruepr}!chooseTeamSizes@{chooseTeamSizes}}
+\index{chooseTeamSizes@{chooseTeamSizes}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{chooseTeamSizes}{chooseTeamSizes}}
+{\footnotesize\ttfamily \label{classgruepr_a84794fa7956d6b041d024f6b12c26071} 
+void gruepr\+::choose\+Team\+Sizes (\begin{DoxyParamCaption}\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a38bd084bb910f1b6683c1a69d389042a}\index{gruepr@{gruepr}!closed@{closed}}
+\index{closed@{closed}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{closed}{closed}}
+{\footnotesize\ttfamily \label{classgruepr_a38bd084bb910f1b6683c1a69d389042a} 
+void gruepr\+::closed (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{classgruepr_a327a28e4c1977ddba71cf5b11bc94ea5}\index{gruepr@{gruepr}!closeEvent@{closeEvent}}
+\index{closeEvent@{closeEvent}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{closeEvent()}{closeEvent()}}
+{\footnotesize\ttfamily \label{classgruepr_a327a28e4c1977ddba71cf5b11bc94ea5} 
+void gruepr\+::close\+Event (\begin{DoxyParamCaption}\item[{QClose\+Event \texorpdfstring{$\ast$}{*}}]{event}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [protected]}}
+
+\Hypertarget{classgruepr_a8c543b665e3fbd4ce6716d4a2eccfbd6}\index{gruepr@{gruepr}!compareStudentsToRoster@{compareStudentsToRoster}}
+\index{compareStudentsToRoster@{compareStudentsToRoster}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{compareStudentsToRoster}{compareStudentsToRoster}}
+{\footnotesize\ttfamily \label{classgruepr_a8c543b665e3fbd4ce6716d4a2eccfbd6} 
+void gruepr\+::compare\+Students\+To\+Roster (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a4807638bf649701a6802f3809ffa4c59}\index{gruepr@{gruepr}!dataDisplayTabClose@{dataDisplayTabClose}}
+\index{dataDisplayTabClose@{dataDisplayTabClose}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{dataDisplayTabClose}{dataDisplayTabClose}}
+{\footnotesize\ttfamily \label{classgruepr_a4807638bf649701a6802f3809ffa4c59} 
+void gruepr\+::data\+Display\+Tab\+Close (\begin{DoxyParamCaption}\item[{int}]{closing\+Tab\+Index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a2404c1a2a5035b7f10da2ffbad0f45a8}\index{gruepr@{gruepr}!editAStudent@{editAStudent}}
+\index{editAStudent@{editAStudent}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{editAStudent}{editAStudent}}
+{\footnotesize\ttfamily \label{classgruepr_a2404c1a2a5035b7f10da2ffbad0f45a8} 
+void gruepr\+::edit\+AStudent (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a4912ed723ea49027cc0a83160a9ff6f8}\index{gruepr@{gruepr}!editDataDisplayTabName@{editDataDisplayTabName}}
+\index{editDataDisplayTabName@{editDataDisplayTabName}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{editDataDisplayTabName}{editDataDisplayTabName}}
+{\footnotesize\ttfamily \label{classgruepr_a4912ed723ea49027cc0a83160a9ff6f8} 
+void gruepr\+::edit\+Data\+Display\+Tab\+Name (\begin{DoxyParamCaption}\item[{int}]{tab\+Index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a6771d0949cf1c5ecbaec2c395750f8d3}\index{gruepr@{gruepr}!generationComplete@{generationComplete}}
+\index{generationComplete@{generationComplete}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{generationComplete}{generationComplete}}
+{\footnotesize\ttfamily \label{classgruepr_a6771d0949cf1c5ecbaec2c395750f8d3} 
+void gruepr\+::generation\+Complete (\begin{DoxyParamCaption}\item[{const float \texorpdfstring{$\ast$}{*}const}]{all\+Scores}{, }\item[{const int \texorpdfstring{$\ast$}{*}const}]{ordered\+Index}{, }\item[{const int}]{generation}{, }\item[{const float}]{score\+Stability}{, }\item[{const bool}]{unpenalized\+Genome\+Present}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{classgruepr_a9086302c8f1b399c2cd99c12e72034b4}\index{gruepr@{gruepr}!getGenomeScore@{getGenomeScore}}
+\index{getGenomeScore@{getGenomeScore}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{getGenomeScore()}{getGenomeScore()}}
+{\footnotesize\ttfamily \label{classgruepr_a9086302c8f1b399c2cd99c12e72034b4} 
+float gruepr\+::get\+Genome\+Score (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_student_record}{Student\+Record}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+student}{, }\item[{const int}]{\+\_\+teammates}{\mbox{[}$\,$\mbox{]}, }\item[{const int}]{\+\_\+num\+Teams}{, }\item[{const int}]{\+\_\+team\+Sizes}{\mbox{[}$\,$\mbox{]}, }\item[{const \mbox{\hyperlink{class_teaming_options}{Teaming\+Options}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+teaming\+Options}{, }\item[{const \mbox{\hyperlink{class_data_options}{Data\+Options}} \texorpdfstring{$\ast$}{*}const}]{\+\_\+data\+Options}{, }\item[{float}]{\+\_\+team\+Scores}{\mbox{[}$\,$\mbox{]}, }\item[{float \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}}]{\+\_\+attribute\+Score}{, }\item[{float \texorpdfstring{$\ast$}{*}}]{\+\_\+sched\+Score}{, }\item[{bool \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}}]{\+\_\+availability\+Chart}{, }\item[{int \texorpdfstring{$\ast$}{*}}]{\+\_\+penalty\+Points}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classgruepr_ac5d255c35a1c51d7eda5cc11023f3209}\index{gruepr@{gruepr}!loadDefaultSettings@{loadDefaultSettings}}
+\index{loadDefaultSettings@{loadDefaultSettings}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{loadDefaultSettings()}{loadDefaultSettings()}}
+{\footnotesize\ttfamily \label{classgruepr_ac5d255c35a1c51d7eda5cc11023f3209} 
+void gruepr\+::load\+Default\+Settings (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_aed49894e05ffc55591b5e1788b4b6c03}\index{gruepr@{gruepr}!loadRosterData@{loadRosterData}}
+\index{loadRosterData@{loadRosterData}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{loadRosterData()}{loadRosterData()}}
+{\footnotesize\ttfamily \label{classgruepr_aed49894e05ffc55591b5e1788b4b6c03} 
+bool gruepr\+::load\+Roster\+Data (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_csv_file}{Csv\+File}} \&}]{roster\+File}{, }\item[{QString\+List \&}]{names}{, }\item[{QString\+List \&}]{emails}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a304c4e4d73d8abad98248144394047b5}\index{gruepr@{gruepr}!loadUI@{loadUI}}
+\index{loadUI@{loadUI}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{loadUI()}{loadUI()}}
+{\footnotesize\ttfamily \label{classgruepr_a304c4e4d73d8abad98248144394047b5} 
+void gruepr\+::load\+UI (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a7975209f94ace8557d8c083b81a33e9d}\index{gruepr@{gruepr}!makeTeammatesRules@{makeTeammatesRules}}
+\index{makeTeammatesRules@{makeTeammatesRules}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{makeTeammatesRules}{makeTeammatesRules}}
+{\footnotesize\ttfamily \label{classgruepr_a7975209f94ace8557d8c083b81a33e9d} 
+void gruepr\+::make\+Teammates\+Rules (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a0d34435057ffe16fa5a4845b06774127}\index{gruepr@{gruepr}!operator=@{operator=}}
+\index{operator=@{operator=}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classgruepr_a0d34435057ffe16fa5a4845b06774127} 
+\mbox{\hyperlink{classgruepr}{gruepr}} gruepr\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classgruepr}{gruepr}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classgruepr_a2f251dee16a86840811cb097a0f89028}\index{gruepr@{gruepr}!operator=@{operator=}}
+\index{operator=@{operator=}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classgruepr_a2f251dee16a86840811cb097a0f89028} 
+\mbox{\hyperlink{classgruepr}{gruepr}} \& gruepr\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classgruepr}{gruepr}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classgruepr_a8c0a463bf673364d32814233d6e1ef59}\index{gruepr@{gruepr}!optimizationComplete@{optimizationComplete}}
+\index{optimizationComplete@{optimizationComplete}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{optimizationComplete}{optimizationComplete}}
+{\footnotesize\ttfamily \label{classgruepr_a8c0a463bf673364d32814233d6e1ef59} 
+void gruepr\+::optimization\+Complete (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a1387f629c2411d2c0edb8ab7bcda0f26}\index{gruepr@{gruepr}!optimizeTeams@{optimizeTeams}}
+\index{optimizeTeams@{optimizeTeams}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{optimizeTeams()}{optimizeTeams()}}
+{\footnotesize\ttfamily \label{classgruepr_a1387f629c2411d2c0edb8ab7bcda0f26} 
+QList$<$ int $>$ gruepr\+::optimize\+Teams (\begin{DoxyParamCaption}\item[{const int \texorpdfstring{$\ast$}{*}const}]{student\+Indexes}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a19a513e5e6f199f46f6458d678481523}\index{gruepr@{gruepr}!rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable@{rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable}}
+\index{rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable@{rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable}{rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable}}
+{\footnotesize\ttfamily \label{classgruepr_a19a513e5e6f199f46f6458d678481523} 
+void gruepr\+::rebuild\+Duplicates\+Teamsize\+URMAnd\+Section\+Data\+And\+Refresh\+Student\+Table (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_aa2b56492f7727827ce2388c94d4333af}\index{gruepr@{gruepr}!refreshStudentDisplay@{refreshStudentDisplay}}
+\index{refreshStudentDisplay@{refreshStudentDisplay}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{refreshStudentDisplay()}{refreshStudentDisplay()}}
+{\footnotesize\ttfamily \label{classgruepr_aa2b56492f7727827ce2388c94d4333af} 
+void gruepr\+::refresh\+Student\+Display (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_aec91794a099aed8755ab66b58a1830c6}\index{gruepr@{gruepr}!removeAStudent@{removeAStudent}}
+\index{removeAStudent@{removeAStudent}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{removeAStudent}{removeAStudent}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classgruepr_aec91794a099aed8755ab66b58a1830c6} 
+void gruepr\+::remove\+AStudent (\begin{DoxyParamCaption}\item[{const QString \&}]{name}{, }\item[{bool}]{delay\+Visual\+Update}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a4c297a82012df97262dda534aae02890}\index{gruepr@{gruepr}!removeAStudent@{removeAStudent}}
+\index{removeAStudent@{removeAStudent}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{removeAStudent}{removeAStudent}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classgruepr_a4c297a82012df97262dda534aae02890} 
+void gruepr\+::remove\+AStudent (\begin{DoxyParamCaption}\item[{int}]{index}{, }\item[{bool}]{delay\+Visual\+Update}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a68178ff187051f60aee795a4ec71f66a}\index{gruepr@{gruepr}!responsesRulesButton\_clicked@{responsesRulesButton\_clicked}}
+\index{responsesRulesButton\_clicked@{responsesRulesButton\_clicked}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{responsesRulesButton\_clicked}{responsesRulesButton\_clicked}}
+{\footnotesize\ttfamily \label{classgruepr_a68178ff187051f60aee795a4ec71f66a} 
+void gruepr\+::responses\+Rules\+Button\+\_\+clicked (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_ac27f0da94335c8951620f93eee5852bf}\index{gruepr@{gruepr}!restartWithNewData@{restartWithNewData}}
+\index{restartWithNewData@{restartWithNewData}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{restartWithNewData}{restartWithNewData}}
+{\footnotesize\ttfamily \label{classgruepr_ac27f0da94335c8951620f93eee5852bf} 
+void gruepr\+::restart\+With\+New\+Data (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_ab917902d6433054bb8b8cf440f512db4}\index{gruepr@{gruepr}!saveState@{saveState}}
+\index{saveState@{saveState}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{saveState}{saveState}}
+{\footnotesize\ttfamily \label{classgruepr_ab917902d6433054bb8b8cf440f512db4} 
+void gruepr\+::save\+State (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a2f1a5e5b3e75fd02d1b3b93b55ab505f}\index{gruepr@{gruepr}!sectionOptimizationFullyComplete@{sectionOptimizationFullyComplete}}
+\index{sectionOptimizationFullyComplete@{sectionOptimizationFullyComplete}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{sectionOptimizationFullyComplete}{sectionOptimizationFullyComplete}}
+{\footnotesize\ttfamily \label{classgruepr_a2f1a5e5b3e75fd02d1b3b93b55ab505f} 
+void gruepr\+::section\+Optimization\+Fully\+Complete (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{classgruepr_a3350bc51cd54d37c5617d63ae4785ed2}\index{gruepr@{gruepr}!selectURMResponses@{selectURMResponses}}
+\index{selectURMResponses@{selectURMResponses}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{selectURMResponses}{selectURMResponses}}
+{\footnotesize\ttfamily \label{classgruepr_a3350bc51cd54d37c5617d63ae4785ed2} 
+void gruepr\+::select\+URMResponses (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_aad01562b44a200683fc14e5090b2796f}\index{gruepr@{gruepr}!setTeamSizes@{setTeamSizes}}
+\index{setTeamSizes@{setTeamSizes}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{setTeamSizes()}{setTeamSizes()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classgruepr_aad01562b44a200683fc14e5090b2796f} 
+void gruepr\+::set\+Team\+Sizes (\begin{DoxyParamCaption}\item[{const int}]{single\+Size}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a31cc538f1a1bfc69c82e4393b24028e4}\index{gruepr@{gruepr}!setTeamSizes@{setTeamSizes}}
+\index{setTeamSizes@{setTeamSizes}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{setTeamSizes()}{setTeamSizes()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classgruepr_a31cc538f1a1bfc69c82e4393b24028e4} 
+void gruepr\+::set\+Team\+Sizes (\begin{DoxyParamCaption}\item[{const int}]{team\+Sizes}{\mbox{[}$\,$\mbox{]}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a93914b18a09b7758aea526c01e18674e}\index{gruepr@{gruepr}!simpleUIItemUpdate@{simpleUIItemUpdate}}
+\index{simpleUIItemUpdate@{simpleUIItemUpdate}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{simpleUIItemUpdate}{simpleUIItemUpdate}}
+{\footnotesize\ttfamily \label{classgruepr_a93914b18a09b7758aea526c01e18674e} 
+void gruepr\+::simple\+UIItem\+Update (\begin{DoxyParamCaption}\item[{QObject \texorpdfstring{$\ast$}{*}}]{sender}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a95de4288b021d7383bb79c00e64f7e76}\index{gruepr@{gruepr}!startOptimization@{startOptimization}}
+\index{startOptimization@{startOptimization}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{startOptimization}{startOptimization}}
+{\footnotesize\ttfamily \label{classgruepr_a95de4288b021d7383bb79c00e64f7e76} 
+void gruepr\+::start\+Optimization (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_a296836a4b612ee7e88d4d8e0e999789c}\index{gruepr@{gruepr}!turnOffBusyCursor@{turnOffBusyCursor}}
+\index{turnOffBusyCursor@{turnOffBusyCursor}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{turnOffBusyCursor}{turnOffBusyCursor}}
+{\footnotesize\ttfamily \label{classgruepr_a296836a4b612ee7e88d4d8e0e999789c} 
+void gruepr\+::turn\+Off\+Busy\+Cursor (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{classgruepr_a6620c27ac5081efa8e82dd539e2d0c6f}\index{gruepr@{gruepr}!updateOptimizationProgress@{updateOptimizationProgress}}
+\index{updateOptimizationProgress@{updateOptimizationProgress}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{updateOptimizationProgress}{updateOptimizationProgress}}
+{\footnotesize\ttfamily \label{classgruepr_a6620c27ac5081efa8e82dd539e2d0c6f} 
+void gruepr\+::update\+Optimization\+Progress (\begin{DoxyParamCaption}\item[{const float \texorpdfstring{$\ast$}{*}const}]{all\+Scores}{, }\item[{const int \texorpdfstring{$\ast$}{*}const}]{ordered\+Index}{, }\item[{const int}]{generation}{, }\item[{const float}]{score\+Stability}{, }\item[{const bool}]{unpenalized\+Genome\+Present}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classgruepr_afde825335a9d0001fd1ecc5d5a8c567c}\index{gruepr@{gruepr}!writeTeamSizeOption@{writeTeamSizeOption}}
+\index{writeTeamSizeOption@{writeTeamSizeOption}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{writeTeamSizeOption()}{writeTeamSizeOption()}}
+{\footnotesize\ttfamily \label{classgruepr_afde825335a9d0001fd1ecc5d5a8c567c} 
+QString gruepr\+::write\+Team\+Size\+Option (\begin{DoxyParamCaption}\item[{const int}]{num\+TeamsA}{, }\item[{const int}]{teamsizeA}{, }\item[{const int}]{num\+TeamsB}{, }\item[{const int}]{teamsizeB}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [private]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classgruepr_a217297ddc5d8e91320aac79a736d06b0}\index{gruepr@{gruepr}!attributeSelectorButtons@{attributeSelectorButtons}}
+\index{attributeSelectorButtons@{attributeSelectorButtons}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{attributeSelectorButtons}{attributeSelectorButtons}}
+{\footnotesize\ttfamily \label{classgruepr_a217297ddc5d8e91320aac79a736d06b0} 
+QList$<$QPush\+Button \texorpdfstring{$\ast$}{*}$>$ gruepr\+::attribute\+Selector\+Buttons\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_acd0474bfc3a6b086a289b22a83c09adf}\index{gruepr@{gruepr}!attributeWidgets@{attributeWidgets}}
+\index{attributeWidgets@{attributeWidgets}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{attributeWidgets}{attributeWidgets}}
+{\footnotesize\ttfamily \label{classgruepr_acd0474bfc3a6b086a289b22a83c09adf} 
+QList$<$\mbox{\hyperlink{class_attribute_widget}{Attribute\+Widget}} \texorpdfstring{$\ast$}{*}$>$ gruepr\+::attribute\+Widgets\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_ab7fa946b1d852bdd29e69c55e1b7626b}\index{gruepr@{gruepr}!bestTeamSet@{bestTeamSet}}
+\index{bestTeamSet@{bestTeamSet}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{bestTeamSet}{bestTeamSet}}
+{\footnotesize\ttfamily \label{classgruepr_ab7fa946b1d852bdd29e69c55e1b7626b} 
+QList$<$int$>$ gruepr\+::best\+Team\+Set\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a3b4765af8bf76d64bad7fbd8edab5548}\index{gruepr@{gruepr}!dataOptions@{dataOptions}}
+\index{dataOptions@{dataOptions}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{dataOptions}{dataOptions}}
+{\footnotesize\ttfamily \label{classgruepr_a3b4765af8bf76d64bad7fbd8edab5548} 
+\mbox{\hyperlink{class_data_options}{Data\+Options}}\texorpdfstring{$\ast$}{*} gruepr\+::data\+Options = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a61d1e2d7c313c1fa637ef4e60b32d37a}\index{gruepr@{gruepr}!finalGeneration@{finalGeneration}}
+\index{finalGeneration@{finalGeneration}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{finalGeneration}{finalGeneration}}
+{\footnotesize\ttfamily \label{classgruepr_a61d1e2d7c313c1fa637ef4e60b32d37a} 
+int gruepr\+::final\+Generation = 1\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_ab2794f9188b15ec47f9b626cdb6de0ef}\index{gruepr@{gruepr}!finalTeams@{finalTeams}}
+\index{finalTeams@{finalTeams}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{finalTeams}{finalTeams}}
+{\footnotesize\ttfamily \label{classgruepr_ab2794f9188b15ec47f9b626cdb6de0ef} 
+\mbox{\hyperlink{class_team_set}{Team\+Set}} gruepr\+::final\+Teams\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a6e4d61928cb8fbbb4bd3300cb6cdf861}\index{gruepr@{gruepr}!future@{future}}
+\index{future@{future}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{future}{future}}
+{\footnotesize\ttfamily \label{classgruepr_a6e4d61928cb8fbbb4bd3300cb6cdf861} 
+QFuture$<$ QList$<$int$>$ $>$ gruepr\+::future\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a51d265b51c29f5b28ba751ed46fc72b0}\index{gruepr@{gruepr}!futureWatcher@{futureWatcher}}
+\index{futureWatcher@{futureWatcher}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{futureWatcher}{futureWatcher}}
+{\footnotesize\ttfamily \label{classgruepr_a51d265b51c29f5b28ba751ed46fc72b0} 
+QFuture\+Watcher$<$ QList$<$int$>$ $>$ gruepr\+::future\+Watcher\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a7f3d3ff938882bfa1f67abe637bc5a76}\index{gruepr@{gruepr}!keepOptimizing@{keepOptimizing}}
+\index{keepOptimizing@{keepOptimizing}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{keepOptimizing}{keepOptimizing}}
+{\footnotesize\ttfamily \label{classgruepr_a7f3d3ff938882bfa1f67abe637bc5a76} 
+bool gruepr\+::keep\+Optimizing = false\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a7d06e1c5675df150ce985ddf6a316247}\index{gruepr@{gruepr}!MAINWINDOWBUTTONFONT@{MAINWINDOWBUTTONFONT}}
+\index{MAINWINDOWBUTTONFONT@{MAINWINDOWBUTTONFONT}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{MAINWINDOWBUTTONFONT}{MAINWINDOWBUTTONFONT}}
+{\footnotesize\ttfamily \label{classgruepr_a7d06e1c5675df150ce985ddf6a316247} 
+const int gruepr\+::\+MAINWINDOWBUTTONFONT = 4\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{classgruepr_aec4ec5797042432e64741770041be493}\index{gruepr@{gruepr}!MAINWINDOWFONT@{MAINWINDOWFONT}}
+\index{MAINWINDOWFONT@{MAINWINDOWFONT}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{MAINWINDOWFONT}{MAINWINDOWFONT}}
+{\footnotesize\ttfamily \label{classgruepr_aec4ec5797042432e64741770041be493} 
+const int gruepr\+::\+MAINWINDOWFONT = 8\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{classgruepr_aa9dcace6268738db8d5e9ea3c3c251fd}\index{gruepr@{gruepr}!MAINWINDOWPADDING@{MAINWINDOWPADDING}}
+\index{MAINWINDOWPADDING@{MAINWINDOWPADDING}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{MAINWINDOWPADDING}{MAINWINDOWPADDING}}
+{\footnotesize\ttfamily \label{classgruepr_aa9dcace6268738db8d5e9ea3c3c251fd} 
+const int gruepr\+::\+MAINWINDOWPADDING = 20\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{classgruepr_a9b3e5ed6a7fbd56430363c44bb7844cb}\index{gruepr@{gruepr}!multipleSectionsInProgress@{multipleSectionsInProgress}}
+\index{multipleSectionsInProgress@{multipleSectionsInProgress}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{multipleSectionsInProgress}{multipleSectionsInProgress}}
+{\footnotesize\ttfamily \label{classgruepr_a9b3e5ed6a7fbd56430363c44bb7844cb} 
+bool gruepr\+::multiple\+Sections\+In\+Progress = false\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_ad233ac0e5b68631eb0b4bb11e58e1e97}\index{gruepr@{gruepr}!numActiveStudents@{numActiveStudents}}
+\index{numActiveStudents@{numActiveStudents}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{numActiveStudents}{numActiveStudents}}
+{\footnotesize\ttfamily \label{classgruepr_ad233ac0e5b68631eb0b4bb11e58e1e97} 
+int gruepr\+::num\+Active\+Students = \mbox{\hyperlink{gruepr__globals_8h_a79e20fbd6b7e339450e8cfa08c32844d}{MAX\+\_\+\+STUDENTS}}\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_aba32bc577e27b2260c919b71a1044776}\index{gruepr@{gruepr}!numTeams@{numTeams}}
+\index{numTeams@{numTeams}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{numTeams}{numTeams}}
+{\footnotesize\ttfamily \label{classgruepr_aba32bc577e27b2260c919b71a1044776} 
+int gruepr\+::num\+Teams = 1\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_aff23428092fb4424908daed3b24b4f55}\index{gruepr@{gruepr}!optimizationStopped@{optimizationStopped}}
+\index{optimizationStopped@{optimizationStopped}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{optimizationStopped}{optimizationStopped}}
+{\footnotesize\ttfamily \label{classgruepr_aff23428092fb4424908daed3b24b4f55} 
+bool gruepr\+::optimization\+Stopped = false\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_ad0a566d20d9e0efcee342538dd86e9d0}\index{gruepr@{gruepr}!optimizationStoppedmutex@{optimizationStoppedmutex}}
+\index{optimizationStoppedmutex@{optimizationStoppedmutex}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{optimizationStoppedmutex}{optimizationStoppedmutex}}
+{\footnotesize\ttfamily \label{classgruepr_ad0a566d20d9e0efcee342538dd86e9d0} 
+QMutex gruepr\+::optimization\+Stoppedmutex\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_abb0fd9166bb16b688474d83f981c4548}\index{gruepr@{gruepr}!prevSortColumn@{prevSortColumn}}
+\index{prevSortColumn@{prevSortColumn}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{prevSortColumn}{prevSortColumn}}
+{\footnotesize\ttfamily \label{classgruepr_abb0fd9166bb16b688474d83f981c4548} 
+int gruepr\+::prev\+Sort\+Column = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a0def414b02a25a79a4b570b0a20a7ca5}\index{gruepr@{gruepr}!prevSortOrder@{prevSortOrder}}
+\index{prevSortOrder@{prevSortOrder}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{prevSortOrder}{prevSortOrder}}
+{\footnotesize\ttfamily \label{classgruepr_a0def414b02a25a79a4b570b0a20a7ca5} 
+Qt\+::\+Sort\+Order gruepr\+::prev\+Sort\+Order = Qt\+::\+Ascending\+Order\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_aa61046797c97959be6003ae0cab1f2cc}\index{gruepr@{gruepr}!progressChart@{progressChart}}
+\index{progressChart@{progressChart}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{progressChart}{progressChart}}
+{\footnotesize\ttfamily \label{classgruepr_aa61046797c97959be6003ae0cab1f2cc} 
+\mbox{\hyperlink{class_box_whisker_plot}{Box\+Whisker\+Plot}}\texorpdfstring{$\ast$}{*} gruepr\+::progress\+Chart = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a35ecbda62a2ecc1d3ac3fa7d8084a056}\index{gruepr@{gruepr}!progressWindow@{progressWindow}}
+\index{progressWindow@{progressWindow}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{progressWindow}{progressWindow}}
+{\footnotesize\ttfamily \label{classgruepr_a35ecbda62a2ecc1d3ac3fa7d8084a056} 
+\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}}\texorpdfstring{$\ast$}{*} gruepr\+::progress\+Window = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a86b04497b9a913d1f391e3a324e56eac}\index{gruepr@{gruepr}!restartRequested@{restartRequested}}
+\index{restartRequested@{restartRequested}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{restartRequested}{restartRequested}}
+{\footnotesize\ttfamily \label{classgruepr_a86b04497b9a913d1f391e3a324e56eac} 
+bool gruepr\+::restart\+Requested = false}
+
+\Hypertarget{classgruepr_a0bab885b14c8479788003d1ac6172abd}\index{gruepr@{gruepr}!studentIndexes@{studentIndexes}}
+\index{studentIndexes@{studentIndexes}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{studentIndexes}{studentIndexes}}
+{\footnotesize\ttfamily \label{classgruepr_a0bab885b14c8479788003d1ac6172abd} 
+int\texorpdfstring{$\ast$}{*} gruepr\+::student\+Indexes = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a9a1d08b204bc773359378efdaeb94b9a}\index{gruepr@{gruepr}!students@{students}}
+\index{students@{students}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{students}{students}}
+{\footnotesize\ttfamily \label{classgruepr_a9a1d08b204bc773359378efdaeb94b9a} 
+QList$<$\mbox{\hyperlink{class_student_record}{Student\+Record}}$>$ gruepr\+::students\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a09f12d8703bcdc04b625cffc02f28293}\index{gruepr@{gruepr}!teamingOptions@{teamingOptions}}
+\index{teamingOptions@{teamingOptions}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{teamingOptions}{teamingOptions}}
+{\footnotesize\ttfamily \label{classgruepr_a09f12d8703bcdc04b625cffc02f28293} 
+\mbox{\hyperlink{class_teaming_options}{Teaming\+Options}}\texorpdfstring{$\ast$}{*} gruepr\+::teaming\+Options = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_ae2573d5ddb9ec879d09f54fac5e19dea}\index{gruepr@{gruepr}!teams@{teams}}
+\index{teams@{teams}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{teams}{teams}}
+{\footnotesize\ttfamily \label{classgruepr_ae2573d5ddb9ec879d09f54fac5e19dea} 
+\mbox{\hyperlink{class_team_set}{Team\+Set}} gruepr\+::teams\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a683f560bca038c4643d415e30134c594}\index{gruepr@{gruepr}!teamSetScore@{teamSetScore}}
+\index{teamSetScore@{teamSetScore}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{teamSetScore}{teamSetScore}}
+{\footnotesize\ttfamily \label{classgruepr_a683f560bca038c4643d415e30134c594} 
+float gruepr\+::team\+Set\+Score = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classgruepr_a2c0d984df63ed58b975ebaf8fa3e72bc}\index{gruepr@{gruepr}!ui@{ui}}
+\index{ui@{ui}!gruepr@{gruepr}}
+\doxysubsubsection{\texorpdfstring{ui}{ui}}
+{\footnotesize\ttfamily \label{classgruepr_a2c0d984df63ed58b975ebaf8fa3e72bc} 
+Ui\+::gruepr\texorpdfstring{$\ast$}{*} gruepr\+::ui\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{gruepr_8h}{gruepr.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{gruepr_8cpp}{gruepr.\+cpp}}\end{DoxyCompactItemize}

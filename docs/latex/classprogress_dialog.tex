@@ -1,0 +1,250 @@
+\doxysection{progress\+Dialog Class Reference}
+\hypertarget{classprogress_dialog}{}\label{classprogress_dialog}\index{progressDialog@{progressDialog}}
+
+
+{\ttfamily \#include $<$progress\+Dialog.\+h$>$}
+
+Inheritance diagram for progress\+Dialog\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classprogress_dialog}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classprogress_dialog_a54e4dec9df88316aa3c1c31cfc025de5}{lets\+Stop}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classprogress_dialog_af19d4b26500137309b1a038ece094156}{progress\+Dialog}} (const QString \&curr\+Section="{}"{}, QChart\+View \texorpdfstring{$\ast$}{*}chart=nullptr, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+\mbox{\hyperlink{classprogress_dialog_a2cf4f3fe4ba4c4ae0099ab8a84e78002}{\texorpdfstring{$\sim$}{\string~}progress\+Dialog}} () override
+\item 
+\mbox{\hyperlink{classprogress_dialog_afc855568216444f287f5ddf42cca226a}{progress\+Dialog}} (const \mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \mbox{\hyperlink{classprogress_dialog_a91939b5aa7a840f3f0d78023acec4117}{operator=}} (const \mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&)=delete
+\item 
+\mbox{\hyperlink{classprogress_dialog_a6f756795f68daa899090a1039ae83e84}{progress\+Dialog}} (\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&\&)=delete
+\item 
+\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \& \mbox{\hyperlink{classprogress_dialog_aefee2557be0330a4e5abb736f2826643}{operator=}} (\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&\&)=delete
+\item 
+void \mbox{\hyperlink{classprogress_dialog_a93684967764716031486f626477dd011}{set\+Text}} (const QString \&text="{}"{}, int generation=0, float score=0, bool autostop\+In\+Progress=false)
+\item 
+void \mbox{\hyperlink{classprogress_dialog_a7af96521797bdedbde5871a330feb3fd}{highlight\+Stop\+Button}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classprogress_dialog_a40f7a810a7c7698b07cd48300ae50628}{stats\+Button\+Pushed}} (QChart\+View \texorpdfstring{$\ast$}{*}chart)
+\item 
+void \mbox{\hyperlink{classprogress_dialog_ac85eba9b8fc007da6001bc4887c92cef}{update\+Countdown}} ()
+\item 
+void \mbox{\hyperlink{classprogress_dialog_ac6b97d5e5edf7e7a25302cb1d8625037}{reject}} () override
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classprogress_dialog_a20c6421b1231fb8c204cc5b39cde7e1d}{graph\+Shown}}
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_a6fc7ef64e8c558e9cfc05b8b6106296d}{status\+Text}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_a18b739236c404535430fb9a3ffd25c5b}{explanation\+Text}} = nullptr
+\item 
+QProgress\+Bar \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_a5b492bc99e5aa3590662363310306b50}{progress\+Bar}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_ab17423a6e018462597a17f9d99e14274}{action\+Text}} = nullptr
+\item 
+QCheck\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_aa64d107cad3325d03e32cc4275267bd7}{only\+Stop\+Manually}} = nullptr
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_a7d4c0555ab0c83050570cd840d7aa08e}{stop\+Here}} = nullptr
+\item 
+QPush\+Button \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_a590cd6e48379202fc5c08ae459d303da}{show\+Stats\+Button}} = nullptr
+\item 
+QTimer \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classprogress_dialog_a7fee3e27f123d644b2584afd737f5026}{countdown\+To\+Close}} = nullptr
+\item 
+int \mbox{\hyperlink{classprogress_dialog_a750b623f6fe76f8f5094770969ba2bd9}{secs\+Left\+To\+Close}} = \mbox{\hyperlink{classprogress_dialog_a8a9fab56e494ca5b36e87f67c697eb6e}{SECSINCOUNTDOWNTIMER}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \mbox{\hyperlink{classprogress_dialog_a8a9fab56e494ca5b36e87f67c697eb6e}{SECSINCOUNTDOWNTIMER}} = 6
+\item 
+static const int \mbox{\hyperlink{classprogress_dialog_a1b223ba21caa430538713ff7b61c184b}{CHARTHEIGHT}} = 400
+\item 
+static const QSize \mbox{\hyperlink{classprogress_dialog_af6aa98a1bbdcfdcbfb0391d1d907cb0d}{ICONSIZE}} = QSize(30,30)
+\item 
+static const int \mbox{\hyperlink{classprogress_dialog_affd6485fb961cc78ba9b9432f72cf23b}{PROGRESSBARMAX}} = 125
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classprogress_dialog_af19d4b26500137309b1a038ece094156}\index{progressDialog@{progressDialog}!progressDialog@{progressDialog}}
+\index{progressDialog@{progressDialog}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{progressDialog()}{progressDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily \label{classprogress_dialog_af19d4b26500137309b1a038ece094156} 
+progress\+Dialog\+::progress\+Dialog (\begin{DoxyParamCaption}\item[{const QString \&}]{curr\+Section}{ = {\ttfamily "{}"{}}, }\item[{QChart\+View \texorpdfstring{$\ast$}{*}}]{chart}{ = {\ttfamily nullptr}, }\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\Hypertarget{classprogress_dialog_a2cf4f3fe4ba4c4ae0099ab8a84e78002}\index{progressDialog@{progressDialog}!````~progressDialog@{\texorpdfstring{$\sim$}{\string~}progressDialog}}
+\index{````~progressDialog@{\texorpdfstring{$\sim$}{\string~}progressDialog}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}progressDialog()}{\string~progressDialog()}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a2cf4f3fe4ba4c4ae0099ab8a84e78002} 
+progress\+Dialog\+::\texorpdfstring{$\sim$}{\string~}progress\+Dialog (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\Hypertarget{classprogress_dialog_afc855568216444f287f5ddf42cca226a}\index{progressDialog@{progressDialog}!progressDialog@{progressDialog}}
+\index{progressDialog@{progressDialog}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{progressDialog()}{progressDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily \label{classprogress_dialog_afc855568216444f287f5ddf42cca226a} 
+progress\+Dialog\+::progress\+Dialog (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classprogress_dialog_a6f756795f68daa899090a1039ae83e84}\index{progressDialog@{progressDialog}!progressDialog@{progressDialog}}
+\index{progressDialog@{progressDialog}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{progressDialog()}{progressDialog()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a6f756795f68daa899090a1039ae83e84} 
+progress\+Dialog\+::progress\+Dialog (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classprogress_dialog_a7af96521797bdedbde5871a330feb3fd}\index{progressDialog@{progressDialog}!highlightStopButton@{highlightStopButton}}
+\index{highlightStopButton@{highlightStopButton}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{highlightStopButton()}{highlightStopButton()}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a7af96521797bdedbde5871a330feb3fd} 
+void progress\+Dialog\+::highlight\+Stop\+Button (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{classprogress_dialog_a54e4dec9df88316aa3c1c31cfc025de5}\index{progressDialog@{progressDialog}!letsStop@{letsStop}}
+\index{letsStop@{letsStop}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{letsStop}{letsStop}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a54e4dec9df88316aa3c1c31cfc025de5} 
+void progress\+Dialog\+::lets\+Stop (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{classprogress_dialog_a91939b5aa7a840f3f0d78023acec4117}\index{progressDialog@{progressDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a91939b5aa7a840f3f0d78023acec4117} 
+\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} progress\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classprogress_dialog_aefee2557be0330a4e5abb736f2826643}\index{progressDialog@{progressDialog}!operator=@{operator=}}
+\index{operator=@{operator=}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{operator=()}{operator=()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{classprogress_dialog_aefee2557be0330a4e5abb736f2826643} 
+\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \& progress\+Dialog\+::operator= (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classprogress_dialog}{progress\+Dialog}} \&\&}]{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [delete]}}
+
+\Hypertarget{classprogress_dialog_ac6b97d5e5edf7e7a25302cb1d8625037}\index{progressDialog@{progressDialog}!reject@{reject}}
+\index{reject@{reject}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{reject}{reject}}
+{\footnotesize\ttfamily \label{classprogress_dialog_ac6b97d5e5edf7e7a25302cb1d8625037} 
+void progress\+Dialog\+::reject (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classprogress_dialog_a93684967764716031486f626477dd011}\index{progressDialog@{progressDialog}!setText@{setText}}
+\index{setText@{setText}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{setText()}{setText()}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a93684967764716031486f626477dd011} 
+void progress\+Dialog\+::set\+Text (\begin{DoxyParamCaption}\item[{const QString \&}]{text}{ = {\ttfamily "{}"{}}, }\item[{int}]{generation}{ = {\ttfamily 0}, }\item[{float}]{score}{ = {\ttfamily 0}, }\item[{bool}]{autostop\+In\+Progress}{ = {\ttfamily false}}\end{DoxyParamCaption})}
+
+\Hypertarget{classprogress_dialog_a40f7a810a7c7698b07cd48300ae50628}\index{progressDialog@{progressDialog}!statsButtonPushed@{statsButtonPushed}}
+\index{statsButtonPushed@{statsButtonPushed}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{statsButtonPushed}{statsButtonPushed}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a40f7a810a7c7698b07cd48300ae50628} 
+void progress\+Dialog\+::stats\+Button\+Pushed (\begin{DoxyParamCaption}\item[{QChart\+View \texorpdfstring{$\ast$}{*}}]{chart}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{classprogress_dialog_ac85eba9b8fc007da6001bc4887c92cef}\index{progressDialog@{progressDialog}!updateCountdown@{updateCountdown}}
+\index{updateCountdown@{updateCountdown}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{updateCountdown}{updateCountdown}}
+{\footnotesize\ttfamily \label{classprogress_dialog_ac85eba9b8fc007da6001bc4887c92cef} 
+void progress\+Dialog\+::update\+Countdown (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classprogress_dialog_ab17423a6e018462597a17f9d99e14274}\index{progressDialog@{progressDialog}!actionText@{actionText}}
+\index{actionText@{actionText}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{actionText}{actionText}}
+{\footnotesize\ttfamily \label{classprogress_dialog_ab17423a6e018462597a17f9d99e14274} 
+QLabel\texorpdfstring{$\ast$}{*} progress\+Dialog\+::action\+Text = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a1b223ba21caa430538713ff7b61c184b}\index{progressDialog@{progressDialog}!CHARTHEIGHT@{CHARTHEIGHT}}
+\index{CHARTHEIGHT@{CHARTHEIGHT}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{CHARTHEIGHT}{CHARTHEIGHT}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a1b223ba21caa430538713ff7b61c184b} 
+const int progress\+Dialog\+::\+CHARTHEIGHT = 400\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a7fee3e27f123d644b2584afd737f5026}\index{progressDialog@{progressDialog}!countdownToClose@{countdownToClose}}
+\index{countdownToClose@{countdownToClose}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{countdownToClose}{countdownToClose}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a7fee3e27f123d644b2584afd737f5026} 
+QTimer\texorpdfstring{$\ast$}{*} progress\+Dialog\+::countdown\+To\+Close = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a18b739236c404535430fb9a3ffd25c5b}\index{progressDialog@{progressDialog}!explanationText@{explanationText}}
+\index{explanationText@{explanationText}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{explanationText}{explanationText}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a18b739236c404535430fb9a3ffd25c5b} 
+QLabel\texorpdfstring{$\ast$}{*} progress\+Dialog\+::explanation\+Text = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a20c6421b1231fb8c204cc5b39cde7e1d}\index{progressDialog@{progressDialog}!graphShown@{graphShown}}
+\index{graphShown@{graphShown}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{graphShown}{graphShown}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a20c6421b1231fb8c204cc5b39cde7e1d} 
+bool progress\+Dialog\+::graph\+Shown\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_af6aa98a1bbdcfdcbfb0391d1d907cb0d}\index{progressDialog@{progressDialog}!ICONSIZE@{ICONSIZE}}
+\index{ICONSIZE@{ICONSIZE}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{ICONSIZE}{ICONSIZE}}
+{\footnotesize\ttfamily \label{classprogress_dialog_af6aa98a1bbdcfdcbfb0391d1d907cb0d} 
+const QSize progress\+Dialog\+::\+ICONSIZE = QSize(30,30)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_aa64d107cad3325d03e32cc4275267bd7}\index{progressDialog@{progressDialog}!onlyStopManually@{onlyStopManually}}
+\index{onlyStopManually@{onlyStopManually}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{onlyStopManually}{onlyStopManually}}
+{\footnotesize\ttfamily \label{classprogress_dialog_aa64d107cad3325d03e32cc4275267bd7} 
+QCheck\+Box\texorpdfstring{$\ast$}{*} progress\+Dialog\+::only\+Stop\+Manually = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a5b492bc99e5aa3590662363310306b50}\index{progressDialog@{progressDialog}!progressBar@{progressBar}}
+\index{progressBar@{progressBar}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{progressBar}{progressBar}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a5b492bc99e5aa3590662363310306b50} 
+QProgress\+Bar\texorpdfstring{$\ast$}{*} progress\+Dialog\+::progress\+Bar = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_affd6485fb961cc78ba9b9432f72cf23b}\index{progressDialog@{progressDialog}!PROGRESSBARMAX@{PROGRESSBARMAX}}
+\index{PROGRESSBARMAX@{PROGRESSBARMAX}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{PROGRESSBARMAX}{PROGRESSBARMAX}}
+{\footnotesize\ttfamily \label{classprogress_dialog_affd6485fb961cc78ba9b9432f72cf23b} 
+const int progress\+Dialog\+::\+PROGRESSBARMAX = 125\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a8a9fab56e494ca5b36e87f67c697eb6e}\index{progressDialog@{progressDialog}!SECSINCOUNTDOWNTIMER@{SECSINCOUNTDOWNTIMER}}
+\index{SECSINCOUNTDOWNTIMER@{SECSINCOUNTDOWNTIMER}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{SECSINCOUNTDOWNTIMER}{SECSINCOUNTDOWNTIMER}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a8a9fab56e494ca5b36e87f67c697eb6e} 
+const int progress\+Dialog\+::\+SECSINCOUNTDOWNTIMER = 6\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}, {\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a750b623f6fe76f8f5094770969ba2bd9}\index{progressDialog@{progressDialog}!secsLeftToClose@{secsLeftToClose}}
+\index{secsLeftToClose@{secsLeftToClose}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{secsLeftToClose}{secsLeftToClose}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a750b623f6fe76f8f5094770969ba2bd9} 
+int progress\+Dialog\+::secs\+Left\+To\+Close = \mbox{\hyperlink{classprogress_dialog_a8a9fab56e494ca5b36e87f67c697eb6e}{SECSINCOUNTDOWNTIMER}}\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a590cd6e48379202fc5c08ae459d303da}\index{progressDialog@{progressDialog}!showStatsButton@{showStatsButton}}
+\index{showStatsButton@{showStatsButton}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{showStatsButton}{showStatsButton}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a590cd6e48379202fc5c08ae459d303da} 
+QPush\+Button\texorpdfstring{$\ast$}{*} progress\+Dialog\+::show\+Stats\+Button = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a6fc7ef64e8c558e9cfc05b8b6106296d}\index{progressDialog@{progressDialog}!statusText@{statusText}}
+\index{statusText@{statusText}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{statusText}{statusText}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a6fc7ef64e8c558e9cfc05b8b6106296d} 
+QLabel\texorpdfstring{$\ast$}{*} progress\+Dialog\+::status\+Text = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{classprogress_dialog_a7d4c0555ab0c83050570cd840d7aa08e}\index{progressDialog@{progressDialog}!stopHere@{stopHere}}
+\index{stopHere@{stopHere}!progressDialog@{progressDialog}}
+\doxysubsubsection{\texorpdfstring{stopHere}{stopHere}}
+{\footnotesize\ttfamily \label{classprogress_dialog_a7d4c0555ab0c83050570cd840d7aa08e} 
+QPush\+Button\texorpdfstring{$\ast$}{*} progress\+Dialog\+::stop\+Here = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{progress_dialog_8h}{progress\+Dialog.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/dialogs/\mbox{\hyperlink{progress_dialog_8cpp}{progress\+Dialog.\+cpp}}\end{DoxyCompactItemize}

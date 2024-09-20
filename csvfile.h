@@ -8,13 +8,27 @@
 #include <QTableWidget>
 #include <QTextStream>
 
-struct possFieldMeaning      // 1) name of field shown to user, 2) RegEx search string, 3) number of fields that are allowed to have this meaning
+struct possFieldMeaning
 {
+    /**
+     * @brief nameShownToUser Is the name of the field shown to the user.
+     */
     QString nameShownToUser;
+
+    /**
+     * @brief regExSearchString The RegEx search string.
+     */
     QString regExSearchString;
+
+    /**
+     * @brief maxNumOfFields The number of fields that are allowed to have this meaning.
+     */
     int maxNumOfFields;
 };
 
+/**
+ * @brief The CsvFile class corresponding to a CSV file. This class can represent a CSV file that needs to be accessed by Gruepr.
+ */
 class CsvFile : public QObject
 {
     Q_OBJECT

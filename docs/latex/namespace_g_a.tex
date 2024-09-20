@@ -1,0 +1,150 @@
+\doxysection{GA Namespace Reference}
+\hypertarget{namespace_g_a}{}\label{namespace_g_a}\index{GA@{GA}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{namespace_g_a_aaec1d7e7f86bb01401c6ac324fdb8571}{tournament\+Select\+Parents}} (int \texorpdfstring{$\ast$}{*}const \texorpdfstring{$\ast$}{*}const gene\+Pool, const int \texorpdfstring{$\ast$}{*}const ordered\+Index, int \texorpdfstring{$\ast$}{*}const \texorpdfstring{$\ast$}{*}const ancestors, int \texorpdfstring{$\ast$}{*}\&mom, int \texorpdfstring{$\ast$}{*}\&dad, int parentage\mbox{[}$\,$\mbox{]}, std\+::mt19937 \&p\+RNG)
+\item 
+void \mbox{\hyperlink{namespace_g_a_ad44a6c2b0508ebbfa6b6497dea388d76}{mate}} (const int \texorpdfstring{$\ast$}{*}const mom, const int \texorpdfstring{$\ast$}{*}const dad, const int team\+Size\mbox{[}$\,$\mbox{]}, const int num\+Teams, int \mbox{\hyperlink{gruepr__globals_8h_a013773d4ef09ef87014b6580a71bf51ba1b7d5726533ab525a8760351e9b5e415}{child}}\mbox{[}$\,$\mbox{]}, const int genome\+Size, std\+::mt19937 \&p\+RNG)
+\item 
+void \mbox{\hyperlink{namespace_g_a_a9f3802330b5b8f802dce0a629db8235e}{mutate}} (int genome\mbox{[}$\,$\mbox{]}, const int genome\+Size, std\+::mt19937 \&p\+RNG)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+unsigned int \mbox{\hyperlink{namespace_g_a_a2acafbd381fe483373a6f0c56f081697}{topgenomelikelihood}} = 100
+\item 
+int \mbox{\hyperlink{namespace_g_a_a891ba29d522fc537520e81ca7fd41053}{populationsize}} = 8000
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_aebe4d80f7144ee0742ccf2504f7807d1}{MAX\+\_\+\+RECORDS}} = 500
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_aa039f58301878e5ba886e025e8ade720}{NUMGENERATIONSOFANCESTORS}} = 3
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_a53c78d8e761077924cc8f171b7c2b8ac}{NUM\+\_\+\+ELITES}} = 3
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_ae0786353e241f9de60a3d87e76a1cb47}{TOURNAMENTSIZE}} = 60
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_ab8da665d99b30b3824e49523ebbd7594}{POPULATIONSIZE}} \mbox{[}$\,$\mbox{]} = \{60000, 30000, 8000\}
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_a049d27024fd3f87e6cfc920eebe99ca2}{TOPGENOMELIKELIHOOD}} \mbox{[}$\,$\mbox{]} = \{10, 33, 66\}
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_abf5f4730c4025e54cb0975c0961decbf}{GENOMESIZETHRESHOLD}} \mbox{[}$\,$\mbox{]} = \{25, 75\}
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_a699e97710a6f80d045e91f76e7bade2a}{MUTATIONLIKELIHOOD}} = 50
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_a4852f1f4e0da10c24082bc9a57e7ba44}{MIN\+\_\+\+GENERATIONS}} = 40
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_a29bafdd7c22f08c55a205f9ac918a966}{MAX\+\_\+\+GENERATIONS}} = 500
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_af942de8681184493002d8ff5050ad75f}{GENERATIONS\+\_\+\+OF\+\_\+\+STABILITY}} = 25
+\item 
+static const int \mbox{\hyperlink{namespace_g_a_abc4edaab21495b31e9fb2132139d24df}{MIN\+\_\+\+SCORE\+\_\+\+STABILITY}} = 100
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespace_g_a_ad44a6c2b0508ebbfa6b6497dea388d76}\index{GA@{GA}!mate@{mate}}
+\index{mate@{mate}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{mate()}{mate()}}
+{\footnotesize\ttfamily \label{namespace_g_a_ad44a6c2b0508ebbfa6b6497dea388d76} 
+void GA\+::mate (\begin{DoxyParamCaption}\item[{const int \texorpdfstring{$\ast$}{*}const}]{mom}{, }\item[{const int \texorpdfstring{$\ast$}{*}const}]{dad}{, }\item[{const int}]{team\+Size}{\mbox{[}$\,$\mbox{]}, }\item[{const int}]{num\+Teams}{, }\item[{int}]{child}{\mbox{[}$\,$\mbox{]}, }\item[{const int}]{genome\+Size}{, }\item[{std\+::mt19937 \&}]{p\+RNG}{}\end{DoxyParamCaption})}
+
+\Hypertarget{namespace_g_a_a9f3802330b5b8f802dce0a629db8235e}\index{GA@{GA}!mutate@{mutate}}
+\index{mutate@{mutate}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{mutate()}{mutate()}}
+{\footnotesize\ttfamily \label{namespace_g_a_a9f3802330b5b8f802dce0a629db8235e} 
+void GA\+::mutate (\begin{DoxyParamCaption}\item[{int}]{genome}{\mbox{[}$\,$\mbox{]}, }\item[{const int}]{genome\+Size}{, }\item[{std\+::mt19937 \&}]{p\+RNG}{}\end{DoxyParamCaption})}
+
+\Hypertarget{namespace_g_a_aaec1d7e7f86bb01401c6ac324fdb8571}\index{GA@{GA}!tournamentSelectParents@{tournamentSelectParents}}
+\index{tournamentSelectParents@{tournamentSelectParents}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{tournamentSelectParents()}{tournamentSelectParents()}}
+{\footnotesize\ttfamily \label{namespace_g_a_aaec1d7e7f86bb01401c6ac324fdb8571} 
+void GA\+::tournament\+Select\+Parents (\begin{DoxyParamCaption}\item[{int \texorpdfstring{$\ast$}{*}const \texorpdfstring{$\ast$}{*}const}]{gene\+Pool}{, }\item[{const int \texorpdfstring{$\ast$}{*}const}]{ordered\+Index}{, }\item[{int \texorpdfstring{$\ast$}{*}const \texorpdfstring{$\ast$}{*}const}]{ancestors}{, }\item[{int \texorpdfstring{$\ast$}{*}\&}]{mom}{, }\item[{int \texorpdfstring{$\ast$}{*}\&}]{dad}{, }\item[{int}]{parentage}{\mbox{[}$\,$\mbox{]}, }\item[{std\+::mt19937 \&}]{p\+RNG}{}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespace_g_a_af942de8681184493002d8ff5050ad75f}\index{GA@{GA}!GENERATIONS\_OF\_STABILITY@{GENERATIONS\_OF\_STABILITY}}
+\index{GENERATIONS\_OF\_STABILITY@{GENERATIONS\_OF\_STABILITY}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{GENERATIONS\_OF\_STABILITY}{GENERATIONS\_OF\_STABILITY}}
+{\footnotesize\ttfamily \label{namespace_g_a_af942de8681184493002d8ff5050ad75f} 
+const int GA\+::\+GENERATIONS\+\_\+\+OF\+\_\+\+STABILITY = 25\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_abf5f4730c4025e54cb0975c0961decbf}\index{GA@{GA}!GENOMESIZETHRESHOLD@{GENOMESIZETHRESHOLD}}
+\index{GENOMESIZETHRESHOLD@{GENOMESIZETHRESHOLD}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{GENOMESIZETHRESHOLD}{GENOMESIZETHRESHOLD}}
+{\footnotesize\ttfamily \label{namespace_g_a_abf5f4730c4025e54cb0975c0961decbf} 
+const int GA\+::\+GENOMESIZETHRESHOLD\mbox{[}$\,$\mbox{]} = \{25, 75\}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_a29bafdd7c22f08c55a205f9ac918a966}\index{GA@{GA}!MAX\_GENERATIONS@{MAX\_GENERATIONS}}
+\index{MAX\_GENERATIONS@{MAX\_GENERATIONS}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{MAX\_GENERATIONS}{MAX\_GENERATIONS}}
+{\footnotesize\ttfamily \label{namespace_g_a_a29bafdd7c22f08c55a205f9ac918a966} 
+const int GA\+::\+MAX\+\_\+\+GENERATIONS = 500\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_aebe4d80f7144ee0742ccf2504f7807d1}\index{GA@{GA}!MAX\_RECORDS@{MAX\_RECORDS}}
+\index{MAX\_RECORDS@{MAX\_RECORDS}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{MAX\_RECORDS}{MAX\_RECORDS}}
+{\footnotesize\ttfamily \label{namespace_g_a_aebe4d80f7144ee0742ccf2504f7807d1} 
+const int GA\+::\+MAX\+\_\+\+RECORDS = 500\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_a4852f1f4e0da10c24082bc9a57e7ba44}\index{GA@{GA}!MIN\_GENERATIONS@{MIN\_GENERATIONS}}
+\index{MIN\_GENERATIONS@{MIN\_GENERATIONS}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{MIN\_GENERATIONS}{MIN\_GENERATIONS}}
+{\footnotesize\ttfamily \label{namespace_g_a_a4852f1f4e0da10c24082bc9a57e7ba44} 
+const int GA\+::\+MIN\+\_\+\+GENERATIONS = 40\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_abc4edaab21495b31e9fb2132139d24df}\index{GA@{GA}!MIN\_SCORE\_STABILITY@{MIN\_SCORE\_STABILITY}}
+\index{MIN\_SCORE\_STABILITY@{MIN\_SCORE\_STABILITY}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{MIN\_SCORE\_STABILITY}{MIN\_SCORE\_STABILITY}}
+{\footnotesize\ttfamily \label{namespace_g_a_abc4edaab21495b31e9fb2132139d24df} 
+const int GA\+::\+MIN\+\_\+\+SCORE\+\_\+\+STABILITY = 100\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_a699e97710a6f80d045e91f76e7bade2a}\index{GA@{GA}!MUTATIONLIKELIHOOD@{MUTATIONLIKELIHOOD}}
+\index{MUTATIONLIKELIHOOD@{MUTATIONLIKELIHOOD}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{MUTATIONLIKELIHOOD}{MUTATIONLIKELIHOOD}}
+{\footnotesize\ttfamily \label{namespace_g_a_a699e97710a6f80d045e91f76e7bade2a} 
+const int GA\+::\+MUTATIONLIKELIHOOD = 50\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_a53c78d8e761077924cc8f171b7c2b8ac}\index{GA@{GA}!NUM\_ELITES@{NUM\_ELITES}}
+\index{NUM\_ELITES@{NUM\_ELITES}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{NUM\_ELITES}{NUM\_ELITES}}
+{\footnotesize\ttfamily \label{namespace_g_a_a53c78d8e761077924cc8f171b7c2b8ac} 
+const int GA\+::\+NUM\+\_\+\+ELITES = 3\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_aa039f58301878e5ba886e025e8ade720}\index{GA@{GA}!NUMGENERATIONSOFANCESTORS@{NUMGENERATIONSOFANCESTORS}}
+\index{NUMGENERATIONSOFANCESTORS@{NUMGENERATIONSOFANCESTORS}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{NUMGENERATIONSOFANCESTORS}{NUMGENERATIONSOFANCESTORS}}
+{\footnotesize\ttfamily \label{namespace_g_a_aa039f58301878e5ba886e025e8ade720} 
+const int GA\+::\+NUMGENERATIONSOFANCESTORS = 3\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_ab8da665d99b30b3824e49523ebbd7594}\index{GA@{GA}!POPULATIONSIZE@{POPULATIONSIZE}}
+\index{POPULATIONSIZE@{POPULATIONSIZE}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{POPULATIONSIZE}{POPULATIONSIZE}}
+{\footnotesize\ttfamily \label{namespace_g_a_ab8da665d99b30b3824e49523ebbd7594} 
+const int GA\+::\+POPULATIONSIZE\mbox{[}$\,$\mbox{]} = \{60000, 30000, 8000\}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_a891ba29d522fc537520e81ca7fd41053}\index{GA@{GA}!populationsize@{populationsize}}
+\index{populationsize@{populationsize}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{populationsize}{populationsize}}
+{\footnotesize\ttfamily \label{namespace_g_a_a891ba29d522fc537520e81ca7fd41053} 
+int GA\+::populationsize = 8000}
+
+\Hypertarget{namespace_g_a_a049d27024fd3f87e6cfc920eebe99ca2}\index{GA@{GA}!TOPGENOMELIKELIHOOD@{TOPGENOMELIKELIHOOD}}
+\index{TOPGENOMELIKELIHOOD@{TOPGENOMELIKELIHOOD}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{TOPGENOMELIKELIHOOD}{TOPGENOMELIKELIHOOD}}
+{\footnotesize\ttfamily \label{namespace_g_a_a049d27024fd3f87e6cfc920eebe99ca2} 
+const int GA\+::\+TOPGENOMELIKELIHOOD\mbox{[}$\,$\mbox{]} = \{10, 33, 66\}\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\Hypertarget{namespace_g_a_a2acafbd381fe483373a6f0c56f081697}\index{GA@{GA}!topgenomelikelihood@{topgenomelikelihood}}
+\index{topgenomelikelihood@{topgenomelikelihood}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{topgenomelikelihood}{topgenomelikelihood}}
+{\footnotesize\ttfamily \label{namespace_g_a_a2acafbd381fe483373a6f0c56f081697} 
+unsigned int GA\+::topgenomelikelihood = 100}
+
+\Hypertarget{namespace_g_a_ae0786353e241f9de60a3d87e76a1cb47}\index{GA@{GA}!TOURNAMENTSIZE@{TOURNAMENTSIZE}}
+\index{TOURNAMENTSIZE@{TOURNAMENTSIZE}!GA@{GA}}
+\doxysubsubsection{\texorpdfstring{TOURNAMENTSIZE}{TOURNAMENTSIZE}}
+{\footnotesize\ttfamily \label{namespace_g_a_ae0786353e241f9de60a3d87e76a1cb47} 
+const int GA\+::\+TOURNAMENTSIZE = 60\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+

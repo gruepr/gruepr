@@ -1,0 +1,79 @@
+\doxysection{/\+Users/johnnyassad/\+Desktop/gruepr/csvfile.h}
+\hypertarget{csvfile_8h_source}{}\label{csvfile_8h_source}\mbox{\hyperlink{csvfile_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ CSVFILE\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ CSVFILE\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{list_table_dialog_8h}{dialogs/listTableDialog.h}}"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <QFile>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <QFileInfo>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <QString>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <QTableWidget>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <QTextStream>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structposs_field_meaning}{possFieldMeaning}}}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00016\ \ \ \ \ QString\ \mbox{\hyperlink{structposs_field_meaning_a6531313a2657dd6b8de80004a9f3e5e4}{nameShownToUser}};}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00021\ \ \ \ \ QString\ \mbox{\hyperlink{structposs_field_meaning_af85d5ded05af363ac7c82a5193d8745c}{regExSearchString}};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structposs_field_meaning_a4378ce629bd313363dd146adcca9a235}{maxNumOfFields}};}
+\DoxyCodeLine{00027\ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_csv_file}{CsvFile}}\ :\ \textcolor{keyword}{public}\ QObject}
+\DoxyCodeLine{00033\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ Q\_OBJECT}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{enum\ class}\ \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}{Delimiter}}\ \{\mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ab6d00dc1ba038e5901cd6c06b2daa192}{comma}},\ \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ae7f8cbd87d347be881cba92dad128518}{tab}}\};}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{enum\ class}\ \mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87}{Source}}\ \{\mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87a7d3f4cdfa456ea96667d07d21ec83c5e}{fileOnly}},\ \mbox{\hyperlink{class_csv_file_aba611ab135ee3161e23fc2c5ccf71a87a1dc5bf111d7d8ebc20fa4814616d6ed3}{fileOrOnline}}\};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \mbox{\hyperlink{class_csv_file_ae4940b6e7521b11ad34014c8b4fbb0b5}{CsvFile}}(\mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6}{Delimiter}}\ dlmtr\ =\ \mbox{\hyperlink{class_csv_file_a7abbdcf0d959aeedb99fd8eb3346a6a6ab6d00dc1ba038e5901cd6c06b2daa192}{Delimiter::comma}},\ QObject\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00041\ \ \ \ \ \mbox{\hyperlink{class_csv_file_abf0c0890107ec1f3157934fe7324809c}{\string~CsvFile}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00042\ \ \ \ \ \mbox{\hyperlink{class_csv_file_aa21ffb3ba00c84d47758d3fc19078f5c}{CsvFile}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_csv_file}{CsvFile}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{class_csv_file}{CsvFile}}\ \mbox{\hyperlink{class_csv_file_a89cfd176c8dcf5b0e9fa4e8575c5f625}{operator=\ }}(\textcolor{keyword}{const}\ \mbox{\hyperlink{class_csv_file}{CsvFile}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00044\ \ \ \ \ \mbox{\hyperlink{class_csv_file_a72e8f727a39a03952182253aad49180e}{CsvFile}}(\mbox{\hyperlink{class_csv_file}{CsvFile}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{class_csv_file}{CsvFile}}\&\ \mbox{\hyperlink{class_csv_file_a89cfd176c8dcf5b0e9fa4e8575c5f625}{operator=\ }}(\mbox{\hyperlink{class_csv_file}{CsvFile}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{enum\ class}\ \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0}{Operation}}\ \{\mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e}{read}},\ \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aefb2a684e4afb7d55e6147fbe5a332ee}{write}}\};}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_a695735b336bb41a7fa1fbfa348a00689}{open}}(QWidget\ *parent\ =\ \textcolor{keyword}{nullptr},\ \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0}{Operation}}\ operation\ =\ \mbox{\hyperlink{class_csv_file_a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e}{Operation::read}},\ \textcolor{keyword}{const}\ QString\ \&caption\ =\ tr(\textcolor{stringliteral}{"{}Open\ csv\ File"{}}),}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QString\ \&filepath\ =\ \textcolor{stringliteral}{"{}"{}},\ \textcolor{keyword}{const}\ QString\ \&filetypeDescriptor\ =\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_a5974c669635239e024d851caa989e4a8}{openExistingFile}}(\textcolor{keyword}{const}\ QString\ \&filepath);}
+\DoxyCodeLine{00051\ \ \ \ \ QFileInfo\ \mbox{\hyperlink{class_csv_file_adf67cb0d8e8b45400288e274dc3f664d}{fileInfo}}();}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_a666fac23959f5d30e691b6b14ce8d32a}{isOpen}}();}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_csv_file_a843260cab19bb3fe5ad2b69b08b44203}{close}}(\textcolor{keywordtype}{bool}\ deleteFile\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_aa79b5b88711b2193e1fe284f9dc1e4c3}{readHeader}}();}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{comment}{//void\ setFieldMeanings();}}
+\DoxyCodeLine{00056\ \ \ \ \ QDialog*\ \mbox{\hyperlink{class_csv_file_a371c259af47a72b1ae3c107ec6c75faf}{chooseFieldMeaningsDialog}}(\textcolor{keyword}{const}\ QList<possFieldMeaning>\ \&possibleFieldMeanings\ =\ \{\},\ QWidget\ *parent\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_a94996a6ed562b35ae46c92162046f66e}{readDataRow}}(\textcolor{keywordtype}{bool}\ resetToStart\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_ae49e33940a633a6728b27f97c93843e1}{writeHeader}}();}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_csv_file_aeb8738d6aad8b450885c802386e64c06}{writeDataRow}}();}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{static}\ QStringList\ \mbox{\hyperlink{class_csv_file_a9ee888a463387db2bc116a1c15fb9797}{getLine}}(QTextStream\ \&externalStream,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ minFields\ =\ -\/1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{class_csv_file_a8fc1a0931ef23e96b7293ee9168d13bd}{delimiter}}\ =\ \textcolor{charliteral}{','});}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ QStringList\ \mbox{\hyperlink{class_csv_file_a22010665d01d561d52e740e251a487cb}{headerValues}};}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_csv_file_a4a34f01fe7b4dc46af2c836625f75b51}{hasHeaderRow}}\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_csv_file_ab96a50756453c73d66b8ead4990445b7}{numFields}}\ =\ 0;}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_csv_file_a4cdfb0129ea6d8cfa223d87befa368e8}{estimatedNumberRows}}\ =\ 0;\ \ \ \ \textcolor{comment}{//\ estimated\ because\ only\ based\ on\ number\ of\ newlines\ (doesn't\ account\ for\ blank\ lines\ or\ other\ unused\ rows)}}
+\DoxyCodeLine{00067\ \ \ \ \ QStringList\ \mbox{\hyperlink{class_csv_file_aabb428e07c7820657a1d5f65961ed8f9}{fieldMeanings}};}
+\DoxyCodeLine{00068\ \ \ \ \ QStringList\ \mbox{\hyperlink{class_csv_file_a83cf1186a71b6cbdb9df0f18ec8ced1f}{fieldValues}};}
+\DoxyCodeLine{00069\ \ \ \ \ QStringList\ \mbox{\hyperlink{class_csv_file_aaef8530ad1c3d21662b39a24e9f7ffb6}{fieldsToBeIgnored}};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00072\ \ \ \ \ QFile\ *\mbox{\hyperlink{class_csv_file_a4d52566da6bf21c8ae98c41438f843ab}{file}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00073\ \ \ \ \ QTextStream\ *\mbox{\hyperlink{class_csv_file_ae13433e2a4fd30f299dd0b6aa636aabe}{stream}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{class_csv_file_a8fc1a0931ef23e96b7293ee9168d13bd}{delimiter}}\ =\ \textcolor{charliteral}{','};}
+\DoxyCodeLine{00075\ \ \ \ \ \mbox{\hyperlink{classlist_table_dialog}{listTableDialog}}\ *\mbox{\hyperlink{class_csv_file_a3517ee1a44b3892fb68d3d6854706335}{window}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00076\ \ \ \ \ QStringList\ \mbox{\hyperlink{class_csv_file_a9ee888a463387db2bc116a1c15fb9797}{getLine}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ minFields\ =\ -\/1);}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_csv_file_a2ce4fe145b700a5c2b9f99e40dbdb43c}{validateFieldSelectorBoxes}}(\textcolor{keywordtype}{int}\ callingRow\ =\ -\/1);}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_csv_file_aadd5923632573a600fe4c1c9f717511f}{HEADERTEXT}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}Column\ Headers"{}});}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_csv_file_aa860c404764e0213bd92f1d523910fd4}{CATEGORYTEXT}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}Category"{}});}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_csv_file_a6ba023933e6dda10213e3cd4a8f1d964}{ROW1TEXT}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}First\ Row\ of\ Data"{}});}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ QString\ \mbox{\hyperlink{class_csv_file_a40c669a5a686dcc2e80c76b613c61211}{UNUSEDTEXT}}\ =\ QObject::tr(\textcolor{stringliteral}{"{}Unused"{}});}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_csv_file_a295da3fe236dbd85565d2068775ff6f2}{DIALOGWIDTH}}\ =\ 500;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_csv_file_a5436076d72ef8513a48da7f9a53bef58}{DIALOGHEIGHT}}\ =\ 300;}
+\DoxyCodeLine{00084\ \};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ CSVFILE\_H}}
+
+\end{DoxyCode}

@@ -44,7 +44,6 @@ function doPost(e) {
   var institution = dataAll.institution;
   var email = dataAll.email;
   var os = dataAll.os;
-
   
   if(name != undefined)
   {

@@ -94,7 +94,7 @@ StartDialog::StartDialog(QWidget *parent)
     const bool registered = !registeredUser.isEmpty() &&
                             (UserID == QString(QCryptographicHash::hash((registeredUser.toUtf8()), QCryptographicHash::Md5).toHex()));
     const QString registerMessage = (registered? (tr("Thank you for being a registered user.")) :
-                                                 (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
+                                         (tr("Just downloaded? <a href = \"register\">Register now</a>.")));
     registerLabel->setText(registerMessage);
     registerLabel->setAlignment(Qt::AlignLeft);
     upgradeLabel = new QLabel(this);

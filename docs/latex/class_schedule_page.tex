@@ -1,0 +1,680 @@
+\doxysection{Schedule\+Page Class Reference}
+\hypertarget{class_schedule_page}{}\label{class_schedule_page}\index{SchedulePage@{SchedulePage}}
+
+
+The \doxylink{class_schedule_page}{Schedule\+Page} class is a GUI page responsible for creating questions relating to students\textquotesingle{} schedule for the survey that the user wants to create.  
+
+
+
+
+{\ttfamily \#include $<$survey\+Maker\+Wizard.\+h$>$}
+
+Inheritance diagram for Schedule\+Page\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_schedule_page}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e}{schedule\+Type}} \{ \mbox{\hyperlink{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2ea101da87645fa61bb9ab38455bb3b6868}{busy}}
+, \mbox{\hyperlink{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2eab0af1440ea66ecd3aee2dacfe2b8b99e}{free}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_schedule_page_a621b7e1f9fd75946316d59ef2e5fbdcc}{day\+Names\+Changed}} (const QString\+List \&new\+Day\+Names)
+\item 
+void \mbox{\hyperlink{class_schedule_page_a2583cb8dd0cbee4bf1d62715bbeb678d}{base\+Timezone\+Changed}} (const QString \&new\+Base\+Timezone)
+\item 
+void \mbox{\hyperlink{class_schedule_page_afea34ca68cbfa29f153f50e8ae684226}{schedule\+Question\+Changed}} (const QString \&new\+Schedule\+Question)
+\item 
+void \mbox{\hyperlink{class_schedule_page_a706efea84cc01cd963619e86da563fbc}{schedule\+From\+Changed}} (const float new\+Schedule\+From)
+\item 
+void \mbox{\hyperlink{class_schedule_page_a92c22a28dd41eaf374b1543420830e05}{schedule\+To\+Changed}} (const float new\+Schedule\+To)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_schedule_page_a3cbb7ecd47d3da2c38aeaac22e2ac0ca}{Schedule\+Page}} (QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\item 
+void \mbox{\hyperlink{class_schedule_page_a88a66bc38f1b0bea07cdb0be14246275}{cleanup\+Page}} () override
+\begin{DoxyCompactList}\small\item\em cleanup\+Page CURRENTLY AN EMPTY METHOD. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_schedule_page_a42e0dee06f9e9b1e92c9aa1bd8d1b878}{set\+Day\+Names}} (const QString\+List \&new\+Day\+Names)
+\begin{DoxyCompactList}\small\item\em set\+Day\+Names Responsible for the weekdays the user wants on this page of their survey. \end{DoxyCompactList}\item 
+QString\+List \mbox{\hyperlink{class_schedule_page_a4d3ff01a3ebd01b827c5dc0ce6644d19}{get\+Day\+Names}} () const
+\begin{DoxyCompactList}\small\item\em get\+Day\+Names Getter for day\+Names field of this schedule page. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_schedule_page_a0171c98b211f8d04183926eb183dc626}{set\+Base\+Timezone}} (const QString \&new\+Base\+Timezone)
+\begin{DoxyCompactList}\small\item\em set\+Base\+Timezone Sets the timezone for the survey the user wants to create based on what timezone the user wants. \end{DoxyCompactList}\item 
+QString \mbox{\hyperlink{class_schedule_page_a47eff40763a2875e01efd489724d15d0}{get\+Base\+Timezone}} () const
+\begin{DoxyCompactList}\small\item\em get\+Base\+Timezone Getter for the base\+Timezone field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_schedule_page_a0abad6aab2ee5dc546180d643ecaac55}{set\+Schedule\+Question}} (const QString \&new\+Schedule\+Question)
+\begin{DoxyCompactList}\small\item\em set\+Schedule\+Question Sets the schedule questions for the \doxylink{class_schedule_page}{Schedule\+Page} section of this new survey. \end{DoxyCompactList}\item 
+QString \mbox{\hyperlink{class_schedule_page_ab5c6dbb23051efdb75678c4d59a244e3}{get\+Schedule\+Question}} () const
+\begin{DoxyCompactList}\small\item\em get\+Schedule\+Question Getter for the schedule\+Question field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_schedule_page_a0939dd03748f18ecbc6bff4d82327014}{set\+Schedule\+From}} (const float new\+Schedule\+From)
+\begin{DoxyCompactList}\small\item\em set\+Schedule\+From Set the schedule\+From field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_schedule_page_a6aa7340421b564d010d4c0b2d3de5f94}{get\+Schedule\+From}} () const
+\begin{DoxyCompactList}\small\item\em get\+Schedule\+From Getter for the from\+Combo\+Box field of \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_schedule_page_a6569277b90ed7ed1632cb0167ac0f3d2}{set\+Schedule\+To}} (const float new\+Schedule\+To)
+\begin{DoxyCompactList}\small\item\em set\+Schedule\+To Setter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_schedule_page_a46ea802c727176ccdee9dfd32e18edee}{get\+Schedule\+To}} () const
+\begin{DoxyCompactList}\small\item\em get\+Schedule\+To Getter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_survey_maker_page_aaf5bff1c1f1b93444b81535c9797b8e5}{Survey\+Maker\+Page}} (\mbox{\hyperlink{class_survey_maker_wizard_afc37ed6c8fe10dc20ce532fbd4239c9c}{Survey\+Maker\+Wizard\+::\+Page}} page, QWidget \texorpdfstring{$\ast$}{*}parent=nullptr)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static QString \mbox{\hyperlink{class_schedule_page_af8e462f2561c3d62ea749445c29a8878}{generate\+Schedule\+Question}} (bool schedule\+As\+Busy, bool timezone\+On, const QString \&\mbox{\hyperlink{class_schedule_page_ae2139b24c2b6268eabb3dabbce77c418}{base\+Timezone}})
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const QList$<$ QPair$<$ QString, int $>$ $>$ \mbox{\hyperlink{class_schedule_page_a2d6484a71eb762c78a8bfd9d3a445d13}{resolution\+Values}}
+\item 
+static const QList$<$ QPair$<$ QString, QString $>$ $>$ \mbox{\hyperlink{class_schedule_page_abfed24cb1717a1551a84789c62ce85fc}{time\+Formats}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Properties}
+\begin{DoxyCompactItemize}
+\item 
+QString\+List \mbox{\hyperlink{class_schedule_page_ad65d4847eba6f986dfced6ca751e0259}{day\+Names}}
+\item 
+QString \mbox{\hyperlink{class_schedule_page_ae2139b24c2b6268eabb3dabbce77c418}{base\+Timezone}} = "{}"{}
+\item 
+QString \mbox{\hyperlink{class_schedule_page_afbb762effef39e8d9418aeb9612a4bb5}{schedule\+Question}}
+\item 
+float \mbox{\hyperlink{class_schedule_page_ae217f6ad57d3bc5647baaa39916aeb40}{schedule\+From}}
+\item 
+float \mbox{\hyperlink{class_schedule_page_af16ff8301df01595db8f14f036c3dcb3}{schedule\+To}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ \mbox{\hyperlink{class_schedule_page_a49d047058e2339a23fc7940517f11678a23bf3a8bbedecd3cf360edd9c28bb775}{timezone}}
+, \mbox{\hyperlink{class_schedule_page_a49d047058e2339a23fc7940517f11678a96c2b231e313d059a29a3809ef6deeea}{schedule}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Slots}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_schedule_page_ae73703b11a62109403f55031eb6c2eae}{days\+Combo\+Box\+\_\+activated}} (int index)
+\item 
+void \mbox{\hyperlink{class_schedule_page_aea1c790dacb3c8a3263b41ec5efb7e80}{day\+\_\+\+Check\+Box\+\_\+toggled}} (bool checked, QLine\+Edit \texorpdfstring{$\ast$}{*}day\+Line\+Edit, const QString \&dayname)
+\item 
+void \mbox{\hyperlink{class_schedule_page_a8b7390e1c49b1d631cf46ff398016f50}{day\+\_\+\+Line\+Edit\+\_\+text\+Changed}} (const QString \&text, QLine\+Edit \texorpdfstring{$\ast$}{*}day\+Line\+Edit, QString \&dayname)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_schedule_page_a2432df78871cfb7dab51896fd6c18c43}{check\+Days}} ()
+\item 
+void \mbox{\hyperlink{class_schedule_page_ad1c17e8c290dcb7ed9e320032c02f38a}{update}} ()
+\begin{DoxyCompactList}\small\item\em update the schedule grid of the update page of the \doxylink{class_schedule_page}{Schedule\+Page} based on the demands of the user creating the survey. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a7f89cb3250f0029dcb3265a28eab23fc}{tz}} = nullptr
+\item 
+QWidget \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_adde0457c13ac0ad016fc91365713f1a5}{sc}} = nullptr
+\item 
+QGrid\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_ac3ca9eacc35f8be59ce05df7456fdfe4}{sc\+Layout}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a92b1ad17fe7b9e85462b2148e666d106}{busy\+Or\+Free\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a96f8f81b498d098c37a45dd95d414a8a}{busy\+Or\+Free\+Combo\+Box}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_aa20f8f26a45d7a823f95c0cd6dca7b18}{base\+Timezone\+Label}} = nullptr
+\item 
+QLine\+Edit \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_aaf41cedacdf5c957a6d055c6c9255a74}{custom\+Base\+Timezone}} = nullptr
+\item 
+\mbox{\hyperlink{class_combo_box_with_elided_contents}{Combo\+Box\+With\+Elided\+Contents}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_aacfae63661d87747683147c51404d5a0}{base\+Timezone\+Combo\+Box}} = nullptr
+\item 
+\mbox{\hyperlink{classday_names_dialog}{day\+Names\+Dialog}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_ade04270baa81fae85e317e872fc74307}{days\+Window}} = nullptr
+\item 
+QList$<$ QLine\+Edit \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_schedule_page_ac4c099dea2f96478204c69fcd5177169}{day\+Line\+Edits}}
+\item 
+QList$<$ QCheck\+Box \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_schedule_page_aa1ef944773b4627f6e957582d8e6556e}{day\+Check\+Boxes}}
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_ae42f41355800fceef6566fd08a48678e}{timespan\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a17c292bc9c7096bc4fb0155e0eab41be}{days\+Combo\+Box}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a941123fead09ca62c78459ee31885796}{from\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a5f0c81bf97b05ecc7fd0bd84d6bbcfc6}{from\+Combo\+Box}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a305550775d190204b4f96b697b5b723a}{to\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a02eef2abb186ebaa1796f17dae1e931f}{to\+Combo\+Box}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a7d3e8cb8e3fd1103ee5f0e631ecdd310}{resolution\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a0383d4286155cf4b7ffc3c84eef6f69d}{resolution\+Combo\+Box}} = nullptr
+\item 
+QLabel \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_a97a76a4d2f9a36d9e0bb9b20e0c7b217}{format\+Label}} = nullptr
+\item 
+QCombo\+Box \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_schedule_page_acaa18ce0a94c0126ba256809b33f6f03}{format\+Combo\+Box}} = nullptr
+\item 
+const int \mbox{\hyperlink{class_schedule_page_aa29d091d4bb925291bcf0e8b418fd788}{DEFAULTTIMEFORMAT}} = 7
+\item 
+const int \mbox{\hyperlink{class_schedule_page_ab71d373a1cedf709e34fe436e152f2bb}{DEFAULTSCHEDSTARTTIME}} = 10
+\item 
+const int \mbox{\hyperlink{class_schedule_page_aaa9ecac2509d17b11cba802f21fec061}{DEFAULTSCHEDENDTIME}} = 17
+\item 
+const int \mbox{\hyperlink{class_schedule_page_a865b2786e3735de870750125104dcff1}{DEFAULTSCHEDRESOLUTION}} = 60
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{class_survey_maker_page}{Survey\+Maker\+Page}}}
+\begin{DoxyCompactItemize}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a4b146c11ee08575c6dc5510c38da0da0}{question\+Layout}} = nullptr
+\item 
+QList$<$ \mbox{\hyperlink{class_survey_maker_question_with_switch}{Survey\+Maker\+Question\+With\+Switch}} \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a4ea29f32f822c17c59f65efc32d42fd4}{questions}}
+\item 
+QVBox\+Layout \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_survey_maker_page_a0af53f935c042754af1fd94372541534}{preview\+Layout}} = nullptr
+\item 
+QList$<$ QWidget \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_af9319294d06e0ed468986e792514e79c}{question\+Previews}}
+\item 
+QList$<$ QVBox\+Layout \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa0b0ea52e25f3e81bfd86f803ff090e4}{question\+Preview\+Layouts}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_a928b87017580196a3744cf776533238a}{question\+Preview\+Top\+Labels}}
+\item 
+QList$<$ QLabel \texorpdfstring{$\ast$}{*} $>$ \mbox{\hyperlink{class_survey_maker_page_aa2a2b6325d3da6e41b7fc89e9894d5b3}{question\+Preview\+Bottom\+Labels}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The \doxylink{class_schedule_page}{Schedule\+Page} class is a GUI page responsible for creating questions relating to students\textquotesingle{} schedule for the survey that the user wants to create. 
+
+\doxysubsection{Member Enumeration Documentation}
+\Hypertarget{class_schedule_page_a49d047058e2339a23fc7940517f11678}\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
+{\footnotesize\ttfamily \label{class_schedule_page_a49d047058e2339a23fc7940517f11678} 
+anonymous enum\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{timezone@{timezone}!SchedulePage@{SchedulePage}}\index{SchedulePage@{SchedulePage}!timezone@{timezone}}}\Hypertarget{class_schedule_page_a49d047058e2339a23fc7940517f11678a23bf3a8bbedecd3cf360edd9c28bb775}\label{class_schedule_page_a49d047058e2339a23fc7940517f11678} 
+timezone&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{schedule@{schedule}!SchedulePage@{SchedulePage}}\index{SchedulePage@{SchedulePage}!schedule@{schedule}}}\Hypertarget{class_schedule_page_a49d047058e2339a23fc7940517f11678a96c2b231e313d059a29a3809ef6deeea}\label{class_schedule_page_a49d047058e2339a23fc7940517f11678} 
+schedule&\\
+\hline
+
+\end{DoxyEnumFields}
+\Hypertarget{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e}\index{SchedulePage@{SchedulePage}!scheduleType@{scheduleType}}
+\index{scheduleType@{scheduleType}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleType}{scheduleType}}
+{\footnotesize\ttfamily \label{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e} 
+enum \mbox{\hyperlink{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e}{Schedule\+Page\+::schedule\+Type}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{busy@{busy}!SchedulePage@{SchedulePage}}\index{SchedulePage@{SchedulePage}!busy@{busy}}}\Hypertarget{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2ea101da87645fa61bb9ab38455bb3b6868}\label{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e} 
+busy&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{free@{free}!SchedulePage@{SchedulePage}}\index{SchedulePage@{SchedulePage}!free@{free}}}\Hypertarget{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2eab0af1440ea66ecd3aee2dacfe2b8b99e}\label{class_schedule_page_af5b841c66d4df5253d3fae8f2d648a2e} 
+free&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_schedule_page_a3cbb7ecd47d3da2c38aeaac22e2ac0ca}\index{SchedulePage@{SchedulePage}!SchedulePage@{SchedulePage}}
+\index{SchedulePage@{SchedulePage}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{SchedulePage()}{SchedulePage()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a3cbb7ecd47d3da2c38aeaac22e2ac0ca} 
+Schedule\+Page\+::\+Schedule\+Page (\begin{DoxyParamCaption}\item[{QWidget \texorpdfstring{$\ast$}{*}}]{parent}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_schedule_page_a2583cb8dd0cbee4bf1d62715bbeb678d}\index{SchedulePage@{SchedulePage}!baseTimezoneChanged@{baseTimezoneChanged}}
+\index{baseTimezoneChanged@{baseTimezoneChanged}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{baseTimezoneChanged}{baseTimezoneChanged}}
+{\footnotesize\ttfamily \label{class_schedule_page_a2583cb8dd0cbee4bf1d62715bbeb678d} 
+void Schedule\+Page\+::base\+Timezone\+Changed (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Base\+Timezone}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_schedule_page_a2432df78871cfb7dab51896fd6c18c43}\index{SchedulePage@{SchedulePage}!checkDays@{checkDays}}
+\index{checkDays@{checkDays}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{checkDays()}{checkDays()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a2432df78871cfb7dab51896fd6c18c43} 
+void Schedule\+Page\+::check\+Days (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a88a66bc38f1b0bea07cdb0be14246275}\index{SchedulePage@{SchedulePage}!cleanupPage@{cleanupPage}}
+\index{cleanupPage@{cleanupPage}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{cleanupPage()}{cleanupPage()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a88a66bc38f1b0bea07cdb0be14246275} 
+void Schedule\+Page\+::cleanup\+Page (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+
+
+cleanup\+Page CURRENTLY AN EMPTY METHOD. 
+
+\Hypertarget{class_schedule_page_aea1c790dacb3c8a3263b41ec5efb7e80}\index{SchedulePage@{SchedulePage}!day\_CheckBox\_toggled@{day\_CheckBox\_toggled}}
+\index{day\_CheckBox\_toggled@{day\_CheckBox\_toggled}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{day\_CheckBox\_toggled}{day\_CheckBox\_toggled}}
+{\footnotesize\ttfamily \label{class_schedule_page_aea1c790dacb3c8a3263b41ec5efb7e80} 
+void Schedule\+Page\+::day\+\_\+\+Check\+Box\+\_\+toggled (\begin{DoxyParamCaption}\item[{bool}]{checked}{, }\item[{QLine\+Edit \texorpdfstring{$\ast$}{*}}]{day\+Line\+Edit}{, }\item[{const QString \&}]{dayname}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{class_schedule_page_a8b7390e1c49b1d631cf46ff398016f50}\index{SchedulePage@{SchedulePage}!day\_LineEdit\_textChanged@{day\_LineEdit\_textChanged}}
+\index{day\_LineEdit\_textChanged@{day\_LineEdit\_textChanged}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{day\_LineEdit\_textChanged}{day\_LineEdit\_textChanged}}
+{\footnotesize\ttfamily \label{class_schedule_page_a8b7390e1c49b1d631cf46ff398016f50} 
+void Schedule\+Page\+::day\+\_\+\+Line\+Edit\+\_\+text\+Changed (\begin{DoxyParamCaption}\item[{const QString \&}]{text}{, }\item[{QLine\+Edit \texorpdfstring{$\ast$}{*}}]{day\+Line\+Edit}{, }\item[{QString \&}]{dayname}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{class_schedule_page_a621b7e1f9fd75946316d59ef2e5fbdcc}\index{SchedulePage@{SchedulePage}!dayNamesChanged@{dayNamesChanged}}
+\index{dayNamesChanged@{dayNamesChanged}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{dayNamesChanged}{dayNamesChanged}}
+{\footnotesize\ttfamily \label{class_schedule_page_a621b7e1f9fd75946316d59ef2e5fbdcc} 
+void Schedule\+Page\+::day\+Names\+Changed (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Day\+Names}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_schedule_page_ae73703b11a62109403f55031eb6c2eae}\index{SchedulePage@{SchedulePage}!daysComboBox\_activated@{daysComboBox\_activated}}
+\index{daysComboBox\_activated@{daysComboBox\_activated}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{daysComboBox\_activated}{daysComboBox\_activated}}
+{\footnotesize\ttfamily \label{class_schedule_page_ae73703b11a62109403f55031eb6c2eae} 
+void Schedule\+Page\+::days\+Combo\+Box\+\_\+activated (\begin{DoxyParamCaption}\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}, {\ttfamily [slot]}}
+
+\Hypertarget{class_schedule_page_af8e462f2561c3d62ea749445c29a8878}\index{SchedulePage@{SchedulePage}!generateScheduleQuestion@{generateScheduleQuestion}}
+\index{generateScheduleQuestion@{generateScheduleQuestion}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{generateScheduleQuestion()}{generateScheduleQuestion()}}
+{\footnotesize\ttfamily \label{class_schedule_page_af8e462f2561c3d62ea749445c29a8878} 
+QString Schedule\+Page\+::generate\+Schedule\+Question (\begin{DoxyParamCaption}\item[{bool}]{schedule\+As\+Busy}{, }\item[{bool}]{timezone\+On}{, }\item[{const QString \&}]{base\+Timezone}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{class_schedule_page_a47eff40763a2875e01efd489724d15d0}\index{SchedulePage@{SchedulePage}!getBaseTimezone@{getBaseTimezone}}
+\index{getBaseTimezone@{getBaseTimezone}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{getBaseTimezone()}{getBaseTimezone()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a47eff40763a2875e01efd489724d15d0} 
+QString Schedule\+Page\+::get\+Base\+Timezone (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+get\+Base\+Timezone Getter for the base\+Timezone field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+base\+Timezone field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+\end{DoxyReturn}
+\Hypertarget{class_schedule_page_a4d3ff01a3ebd01b827c5dc0ce6644d19}\index{SchedulePage@{SchedulePage}!getDayNames@{getDayNames}}
+\index{getDayNames@{getDayNames}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{getDayNames()}{getDayNames()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a4d3ff01a3ebd01b827c5dc0ce6644d19} 
+QString\+List Schedule\+Page\+::get\+Day\+Names (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+get\+Day\+Names Getter for day\+Names field of this schedule page. 
+
+\begin{DoxyReturn}{Returns}
+day\+Names field of this schedule page. 
+\end{DoxyReturn}
+\Hypertarget{class_schedule_page_a6aa7340421b564d010d4c0b2d3de5f94}\index{SchedulePage@{SchedulePage}!getScheduleFrom@{getScheduleFrom}}
+\index{getScheduleFrom@{getScheduleFrom}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{getScheduleFrom()}{getScheduleFrom()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a6aa7340421b564d010d4c0b2d3de5f94} 
+float Schedule\+Page\+::get\+Schedule\+From (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+get\+Schedule\+From Getter for the from\+Combo\+Box field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+from\+Combo\+Box field of \doxylink{class_schedule_page}{Schedule\+Page} class, converted to a float. 
+\end{DoxyReturn}
+\Hypertarget{class_schedule_page_ab5c6dbb23051efdb75678c4d59a244e3}\index{SchedulePage@{SchedulePage}!getScheduleQuestion@{getScheduleQuestion}}
+\index{getScheduleQuestion@{getScheduleQuestion}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{getScheduleQuestion()}{getScheduleQuestion()}}
+{\footnotesize\ttfamily \label{class_schedule_page_ab5c6dbb23051efdb75678c4d59a244e3} 
+QString Schedule\+Page\+::get\+Schedule\+Question (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+get\+Schedule\+Question Getter for the schedule\+Question field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+schedule\+Question field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+\end{DoxyReturn}
+\Hypertarget{class_schedule_page_a46ea802c727176ccdee9dfd32e18edee}\index{SchedulePage@{SchedulePage}!getScheduleTo@{getScheduleTo}}
+\index{getScheduleTo@{getScheduleTo}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{getScheduleTo()}{getScheduleTo()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a46ea802c727176ccdee9dfd32e18edee} 
+float Schedule\+Page\+::get\+Schedule\+To (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+get\+Schedule\+To Getter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+\begin{DoxyReturn}{Returns}
+to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. 
+\end{DoxyReturn}
+\Hypertarget{class_schedule_page_a706efea84cc01cd963619e86da563fbc}\index{SchedulePage@{SchedulePage}!scheduleFromChanged@{scheduleFromChanged}}
+\index{scheduleFromChanged@{scheduleFromChanged}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleFromChanged}{scheduleFromChanged}}
+{\footnotesize\ttfamily \label{class_schedule_page_a706efea84cc01cd963619e86da563fbc} 
+void Schedule\+Page\+::schedule\+From\+Changed (\begin{DoxyParamCaption}\item[{const float}]{new\+Schedule\+From}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_schedule_page_afea34ca68cbfa29f153f50e8ae684226}\index{SchedulePage@{SchedulePage}!scheduleQuestionChanged@{scheduleQuestionChanged}}
+\index{scheduleQuestionChanged@{scheduleQuestionChanged}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleQuestionChanged}{scheduleQuestionChanged}}
+{\footnotesize\ttfamily \label{class_schedule_page_afea34ca68cbfa29f153f50e8ae684226} 
+void Schedule\+Page\+::schedule\+Question\+Changed (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Schedule\+Question}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_schedule_page_a92c22a28dd41eaf374b1543420830e05}\index{SchedulePage@{SchedulePage}!scheduleToChanged@{scheduleToChanged}}
+\index{scheduleToChanged@{scheduleToChanged}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleToChanged}{scheduleToChanged}}
+{\footnotesize\ttfamily \label{class_schedule_page_a92c22a28dd41eaf374b1543420830e05} 
+void Schedule\+Page\+::schedule\+To\+Changed (\begin{DoxyParamCaption}\item[{const float}]{new\+Schedule\+To}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+\Hypertarget{class_schedule_page_a0171c98b211f8d04183926eb183dc626}\index{SchedulePage@{SchedulePage}!setBaseTimezone@{setBaseTimezone}}
+\index{setBaseTimezone@{setBaseTimezone}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{setBaseTimezone()}{setBaseTimezone()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a0171c98b211f8d04183926eb183dc626} 
+void Schedule\+Page\+::set\+Base\+Timezone (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Base\+Timezone}{}\end{DoxyParamCaption})}
+
+
+
+set\+Base\+Timezone Sets the timezone for the survey the user wants to create based on what timezone the user wants. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Base\+Timezone} & The timezone the user wants to change the survey to. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_schedule_page_a42e0dee06f9e9b1e92c9aa1bd8d1b878}\index{SchedulePage@{SchedulePage}!setDayNames@{setDayNames}}
+\index{setDayNames@{setDayNames}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{setDayNames()}{setDayNames()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a42e0dee06f9e9b1e92c9aa1bd8d1b878} 
+void Schedule\+Page\+::set\+Day\+Names (\begin{DoxyParamCaption}\item[{const QString\+List \&}]{new\+Day\+Names}{}\end{DoxyParamCaption})}
+
+
+
+set\+Day\+Names Responsible for the weekdays the user wants on this page of their survey. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Day\+Names} & A list of strings corresponding to weekday names. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_schedule_page_a0939dd03748f18ecbc6bff4d82327014}\index{SchedulePage@{SchedulePage}!setScheduleFrom@{setScheduleFrom}}
+\index{setScheduleFrom@{setScheduleFrom}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{setScheduleFrom()}{setScheduleFrom()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a0939dd03748f18ecbc6bff4d82327014} 
+void Schedule\+Page\+::set\+Schedule\+From (\begin{DoxyParamCaption}\item[{const float}]{new\+Schedule\+From}{}\end{DoxyParamCaption})}
+
+
+
+set\+Schedule\+From Set the schedule\+From field of \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Schedule\+From} & The schedule\+From value the user wants. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_schedule_page_a0abad6aab2ee5dc546180d643ecaac55}\index{SchedulePage@{SchedulePage}!setScheduleQuestion@{setScheduleQuestion}}
+\index{setScheduleQuestion@{setScheduleQuestion}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{setScheduleQuestion()}{setScheduleQuestion()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a0abad6aab2ee5dc546180d643ecaac55} 
+void Schedule\+Page\+::set\+Schedule\+Question (\begin{DoxyParamCaption}\item[{const QString \&}]{new\+Schedule\+Question}{}\end{DoxyParamCaption})}
+
+
+
+set\+Schedule\+Question Sets the schedule questions for the \doxylink{class_schedule_page}{Schedule\+Page} section of this new survey. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+Schedule\+Question} & The new schedule question the user wants to include. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_schedule_page_a6569277b90ed7ed1632cb0167ac0f3d2}\index{SchedulePage@{SchedulePage}!setScheduleTo@{setScheduleTo}}
+\index{setScheduleTo@{setScheduleTo}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{setScheduleTo()}{setScheduleTo()}}
+{\footnotesize\ttfamily \label{class_schedule_page_a6569277b90ed7ed1632cb0167ac0f3d2} 
+void Schedule\+Page\+::set\+Schedule\+To (\begin{DoxyParamCaption}\item[{const float}]{new\+Schedule\+To}{}\end{DoxyParamCaption})}
+
+
+
+set\+Schedule\+To Setter for the to\+Combo\+Box field of the \doxylink{class_schedule_page}{Schedule\+Page} class. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\+Combo\+Box} & field of the \doxylink{class_schedule_page}{Schedule\+Page} class that the user creating the survey wants. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_schedule_page_ad1c17e8c290dcb7ed9e320032c02f38a}\index{SchedulePage@{SchedulePage}!update@{update}}
+\index{update@{update}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily \label{class_schedule_page_ad1c17e8c290dcb7ed9e320032c02f38a} 
+void Schedule\+Page\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+update the schedule grid of the update page of the \doxylink{class_schedule_page}{Schedule\+Page} based on the demands of the user creating the survey. 
+
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_schedule_page_aacfae63661d87747683147c51404d5a0}\index{SchedulePage@{SchedulePage}!baseTimezoneComboBox@{baseTimezoneComboBox}}
+\index{baseTimezoneComboBox@{baseTimezoneComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{baseTimezoneComboBox}{baseTimezoneComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_aacfae63661d87747683147c51404d5a0} 
+\mbox{\hyperlink{class_combo_box_with_elided_contents}{Combo\+Box\+With\+Elided\+Contents}}\texorpdfstring{$\ast$}{*} Schedule\+Page\+::base\+Timezone\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_aa20f8f26a45d7a823f95c0cd6dca7b18}\index{SchedulePage@{SchedulePage}!baseTimezoneLabel@{baseTimezoneLabel}}
+\index{baseTimezoneLabel@{baseTimezoneLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{baseTimezoneLabel}{baseTimezoneLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_aa20f8f26a45d7a823f95c0cd6dca7b18} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::base\+Timezone\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a96f8f81b498d098c37a45dd95d414a8a}\index{SchedulePage@{SchedulePage}!busyOrFreeComboBox@{busyOrFreeComboBox}}
+\index{busyOrFreeComboBox@{busyOrFreeComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{busyOrFreeComboBox}{busyOrFreeComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_a96f8f81b498d098c37a45dd95d414a8a} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::busy\+Or\+Free\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a92b1ad17fe7b9e85462b2148e666d106}\index{SchedulePage@{SchedulePage}!busyOrFreeLabel@{busyOrFreeLabel}}
+\index{busyOrFreeLabel@{busyOrFreeLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{busyOrFreeLabel}{busyOrFreeLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_a92b1ad17fe7b9e85462b2148e666d106} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::busy\+Or\+Free\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_aaf41cedacdf5c957a6d055c6c9255a74}\index{SchedulePage@{SchedulePage}!customBaseTimezone@{customBaseTimezone}}
+\index{customBaseTimezone@{customBaseTimezone}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{customBaseTimezone}{customBaseTimezone}}
+{\footnotesize\ttfamily \label{class_schedule_page_aaf41cedacdf5c957a6d055c6c9255a74} 
+QLine\+Edit\texorpdfstring{$\ast$}{*} Schedule\+Page\+::custom\+Base\+Timezone = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_aa1ef944773b4627f6e957582d8e6556e}\index{SchedulePage@{SchedulePage}!dayCheckBoxes@{dayCheckBoxes}}
+\index{dayCheckBoxes@{dayCheckBoxes}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{dayCheckBoxes}{dayCheckBoxes}}
+{\footnotesize\ttfamily \label{class_schedule_page_aa1ef944773b4627f6e957582d8e6556e} 
+QList$<$QCheck\+Box \texorpdfstring{$\ast$}{*}$>$ Schedule\+Page\+::day\+Check\+Boxes\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_ac4c099dea2f96478204c69fcd5177169}\index{SchedulePage@{SchedulePage}!dayLineEdits@{dayLineEdits}}
+\index{dayLineEdits@{dayLineEdits}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{dayLineEdits}{dayLineEdits}}
+{\footnotesize\ttfamily \label{class_schedule_page_ac4c099dea2f96478204c69fcd5177169} 
+QList$<$QLine\+Edit \texorpdfstring{$\ast$}{*}$>$ Schedule\+Page\+::day\+Line\+Edits\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a17c292bc9c7096bc4fb0155e0eab41be}\index{SchedulePage@{SchedulePage}!daysComboBox@{daysComboBox}}
+\index{daysComboBox@{daysComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{daysComboBox}{daysComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_a17c292bc9c7096bc4fb0155e0eab41be} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::days\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_ade04270baa81fae85e317e872fc74307}\index{SchedulePage@{SchedulePage}!daysWindow@{daysWindow}}
+\index{daysWindow@{daysWindow}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{daysWindow}{daysWindow}}
+{\footnotesize\ttfamily \label{class_schedule_page_ade04270baa81fae85e317e872fc74307} 
+\mbox{\hyperlink{classday_names_dialog}{day\+Names\+Dialog}}\texorpdfstring{$\ast$}{*} Schedule\+Page\+::days\+Window = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_aaa9ecac2509d17b11cba802f21fec061}\index{SchedulePage@{SchedulePage}!DEFAULTSCHEDENDTIME@{DEFAULTSCHEDENDTIME}}
+\index{DEFAULTSCHEDENDTIME@{DEFAULTSCHEDENDTIME}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{DEFAULTSCHEDENDTIME}{DEFAULTSCHEDENDTIME}}
+{\footnotesize\ttfamily \label{class_schedule_page_aaa9ecac2509d17b11cba802f21fec061} 
+const int Schedule\+Page\+::\+DEFAULTSCHEDENDTIME = 17\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a865b2786e3735de870750125104dcff1}\index{SchedulePage@{SchedulePage}!DEFAULTSCHEDRESOLUTION@{DEFAULTSCHEDRESOLUTION}}
+\index{DEFAULTSCHEDRESOLUTION@{DEFAULTSCHEDRESOLUTION}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{DEFAULTSCHEDRESOLUTION}{DEFAULTSCHEDRESOLUTION}}
+{\footnotesize\ttfamily \label{class_schedule_page_a865b2786e3735de870750125104dcff1} 
+const int Schedule\+Page\+::\+DEFAULTSCHEDRESOLUTION = 60\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_ab71d373a1cedf709e34fe436e152f2bb}\index{SchedulePage@{SchedulePage}!DEFAULTSCHEDSTARTTIME@{DEFAULTSCHEDSTARTTIME}}
+\index{DEFAULTSCHEDSTARTTIME@{DEFAULTSCHEDSTARTTIME}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{DEFAULTSCHEDSTARTTIME}{DEFAULTSCHEDSTARTTIME}}
+{\footnotesize\ttfamily \label{class_schedule_page_ab71d373a1cedf709e34fe436e152f2bb} 
+const int Schedule\+Page\+::\+DEFAULTSCHEDSTARTTIME = 10\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_aa29d091d4bb925291bcf0e8b418fd788}\index{SchedulePage@{SchedulePage}!DEFAULTTIMEFORMAT@{DEFAULTTIMEFORMAT}}
+\index{DEFAULTTIMEFORMAT@{DEFAULTTIMEFORMAT}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{DEFAULTTIMEFORMAT}{DEFAULTTIMEFORMAT}}
+{\footnotesize\ttfamily \label{class_schedule_page_aa29d091d4bb925291bcf0e8b418fd788} 
+const int Schedule\+Page\+::\+DEFAULTTIMEFORMAT = 7\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_acaa18ce0a94c0126ba256809b33f6f03}\index{SchedulePage@{SchedulePage}!formatComboBox@{formatComboBox}}
+\index{formatComboBox@{formatComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{formatComboBox}{formatComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_acaa18ce0a94c0126ba256809b33f6f03} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::format\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a97a76a4d2f9a36d9e0bb9b20e0c7b217}\index{SchedulePage@{SchedulePage}!formatLabel@{formatLabel}}
+\index{formatLabel@{formatLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{formatLabel}{formatLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_a97a76a4d2f9a36d9e0bb9b20e0c7b217} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::format\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a5f0c81bf97b05ecc7fd0bd84d6bbcfc6}\index{SchedulePage@{SchedulePage}!fromComboBox@{fromComboBox}}
+\index{fromComboBox@{fromComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{fromComboBox}{fromComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_a5f0c81bf97b05ecc7fd0bd84d6bbcfc6} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::from\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a941123fead09ca62c78459ee31885796}\index{SchedulePage@{SchedulePage}!fromLabel@{fromLabel}}
+\index{fromLabel@{fromLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{fromLabel}{fromLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_a941123fead09ca62c78459ee31885796} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::from\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a0383d4286155cf4b7ffc3c84eef6f69d}\index{SchedulePage@{SchedulePage}!resolutionComboBox@{resolutionComboBox}}
+\index{resolutionComboBox@{resolutionComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{resolutionComboBox}{resolutionComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_a0383d4286155cf4b7ffc3c84eef6f69d} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::resolution\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a7d3e8cb8e3fd1103ee5f0e631ecdd310}\index{SchedulePage@{SchedulePage}!resolutionLabel@{resolutionLabel}}
+\index{resolutionLabel@{resolutionLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{resolutionLabel}{resolutionLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_a7d3e8cb8e3fd1103ee5f0e631ecdd310} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::resolution\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a2d6484a71eb762c78a8bfd9d3a445d13}\index{SchedulePage@{SchedulePage}!resolutionValues@{resolutionValues}}
+\index{resolutionValues@{resolutionValues}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{resolutionValues}{resolutionValues}}
+{\footnotesize\ttfamily \label{class_schedule_page_a2d6484a71eb762c78a8bfd9d3a445d13} 
+const QList$<$QPair$<$QString, int$>$ $>$ Schedule\+Page\+::resolution\+Values\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{\{QObject::tr(\textcolor{stringliteral}{"{}2\ hr"{}}),\ 120/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{QObject::tr(\textcolor{stringliteral}{"{}1\ hr"{}}),\ 60/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{QObject::tr(\textcolor{stringliteral}{"{}30\ min"{}}),\ 30/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{QObject::tr(\textcolor{stringliteral}{"{}15\ min"{}}),\ 15/\mbox{\hyperlink{gruepr__globals_8h_a4f1874351d10938372c22285d1c93c7d}{MIN\_SCHEDULE\_RESOLUTION}}\}\}}
+
+\end{DoxyCode}
+\Hypertarget{class_schedule_page_adde0457c13ac0ad016fc91365713f1a5}\index{SchedulePage@{SchedulePage}!sc@{sc}}
+\index{sc@{sc}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{sc}{sc}}
+{\footnotesize\ttfamily \label{class_schedule_page_adde0457c13ac0ad016fc91365713f1a5} 
+QWidget\texorpdfstring{$\ast$}{*} Schedule\+Page\+::sc = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_ac3ca9eacc35f8be59ce05df7456fdfe4}\index{SchedulePage@{SchedulePage}!scLayout@{scLayout}}
+\index{scLayout@{scLayout}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scLayout}{scLayout}}
+{\footnotesize\ttfamily \label{class_schedule_page_ac3ca9eacc35f8be59ce05df7456fdfe4} 
+QGrid\+Layout\texorpdfstring{$\ast$}{*} Schedule\+Page\+::sc\+Layout = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_abfed24cb1717a1551a84789c62ce85fc}\index{SchedulePage@{SchedulePage}!timeFormats@{timeFormats}}
+\index{timeFormats@{timeFormats}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{timeFormats}{timeFormats}}
+{\footnotesize\ttfamily \label{class_schedule_page_abfed24cb1717a1551a84789c62ce85fc} 
+const QList$<$QPair$<$QString, QString$>$ $>$ Schedule\+Page\+::time\+Formats\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ []()\{\textcolor{keyword}{const}\ QStringList\ formats\ =\ QString(\mbox{\hyperlink{gruepr__globals_8h_accb77374938c928676d972eb99c3b528}{TIMEFORMATS}}).split(\textcolor{charliteral}{';'});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ QStringList\ examples\ =\ QString(\mbox{\hyperlink{gruepr__globals_8h_ab1d1578f4fb14dccacd72865ed90fd93}{TIMEFORMATEXAMPLES}}).split(\textcolor{charliteral}{';'});}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ QList<QPair<QString,\ QString>>\ x;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x.reserve(formats.size());}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ formats.size();\ i++)\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x\ <<\ qMakePair(formats.at(i),\ examples.at(i));}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(x);\}()}
+
+\end{DoxyCode}
+\Hypertarget{class_schedule_page_ae42f41355800fceef6566fd08a48678e}\index{SchedulePage@{SchedulePage}!timespanLabel@{timespanLabel}}
+\index{timespanLabel@{timespanLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{timespanLabel}{timespanLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_ae42f41355800fceef6566fd08a48678e} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::timespan\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a02eef2abb186ebaa1796f17dae1e931f}\index{SchedulePage@{SchedulePage}!toComboBox@{toComboBox}}
+\index{toComboBox@{toComboBox}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{toComboBox}{toComboBox}}
+{\footnotesize\ttfamily \label{class_schedule_page_a02eef2abb186ebaa1796f17dae1e931f} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::to\+Combo\+Box = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a305550775d190204b4f96b697b5b723a}\index{SchedulePage@{SchedulePage}!toLabel@{toLabel}}
+\index{toLabel@{toLabel}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{toLabel}{toLabel}}
+{\footnotesize\ttfamily \label{class_schedule_page_a305550775d190204b4f96b697b5b723a} 
+QLabel\texorpdfstring{$\ast$}{*} Schedule\+Page\+::to\+Label = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+\Hypertarget{class_schedule_page_a7f89cb3250f0029dcb3265a28eab23fc}\index{SchedulePage@{SchedulePage}!tz@{tz}}
+\index{tz@{tz}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{tz}{tz}}
+{\footnotesize\ttfamily \label{class_schedule_page_a7f89cb3250f0029dcb3265a28eab23fc} 
+QCombo\+Box\texorpdfstring{$\ast$}{*} Schedule\+Page\+::tz = nullptr\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+\doxysubsection{Property Documentation}
+\Hypertarget{class_schedule_page_ae2139b24c2b6268eabb3dabbce77c418}\index{SchedulePage@{SchedulePage}!baseTimezone@{baseTimezone}}
+\index{baseTimezone@{baseTimezone}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{baseTimezone}{baseTimezone}}
+{\footnotesize\ttfamily \label{class_schedule_page_ae2139b24c2b6268eabb3dabbce77c418} 
+QString Schedule\+Page\+::base\+Timezone = "{}"{}\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_schedule_page_ad65d4847eba6f986dfced6ca751e0259}\index{SchedulePage@{SchedulePage}!dayNames@{dayNames}}
+\index{dayNames@{dayNames}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{dayNames}{dayNames}}
+{\footnotesize\ttfamily \label{class_schedule_page_ad65d4847eba6f986dfced6ca751e0259} 
+QString\+List Schedule\+Page\+::day\+Names\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_schedule_page_ae217f6ad57d3bc5647baaa39916aeb40}\index{SchedulePage@{SchedulePage}!scheduleFrom@{scheduleFrom}}
+\index{scheduleFrom@{scheduleFrom}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleFrom}{scheduleFrom}}
+{\footnotesize\ttfamily \label{class_schedule_page_ae217f6ad57d3bc5647baaa39916aeb40} 
+float Schedule\+Page\+::schedule\+From\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_schedule_page_afbb762effef39e8d9418aeb9612a4bb5}\index{SchedulePage@{SchedulePage}!scheduleQuestion@{scheduleQuestion}}
+\index{scheduleQuestion@{scheduleQuestion}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleQuestion}{scheduleQuestion}}
+{\footnotesize\ttfamily \label{class_schedule_page_afbb762effef39e8d9418aeb9612a4bb5} 
+QString Schedule\+Page\+::schedule\+Question\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+\Hypertarget{class_schedule_page_af16ff8301df01595db8f14f036c3dcb3}\index{SchedulePage@{SchedulePage}!scheduleTo@{scheduleTo}}
+\index{scheduleTo@{scheduleTo}!SchedulePage@{SchedulePage}}
+\doxysubsubsection{\texorpdfstring{scheduleTo}{scheduleTo}}
+{\footnotesize\ttfamily \label{class_schedule_page_af16ff8301df01595db8f14f036c3dcb3} 
+float Schedule\+Page\+::schedule\+To\hspace{0.3cm}{\ttfamily [read]}, {\ttfamily [write]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8h}{survey\+Maker\+Wizard.\+h}}\item 
+/\+Users/johnnyassad/\+Desktop/gruepr/\mbox{\hyperlink{survey_maker_wizard_8cpp}{survey\+Maker\+Wizard.\+cpp}}\end{DoxyCompactItemize}
