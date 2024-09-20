@@ -590,7 +590,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
                                                "<br><br>gruepr incorporates:"
                                                "<ul style=\"margin-top: 2px; margin-bottom: 0px; margin-left: 15px; margin-right: 0px; -qt-list-indent: 0;\">"
                                                  "<li>UI and UX designs by <a href=\"https://scout.camd.northeastern.edu/\">Scout</a></li>"
-                                                 "<li>Code libraries from <a href=\"http://qt.io\">Qt, v 6.5</a>, released under the GNU General Public License version 3</li>"
+                                                 "<li>Code libraries from <a href=\"http://qt.io\">Qt, v 6.7</a>, released under the GNU General Public License version 3</li>"
                                                  "<li>Icons from <a href=\"https://icons8.com\">Icons8</a>, released under Creative Commons license "
                                                       "\"Attribution-NoDerivs 3.0 Unported\"</li>"
                                                  "<li>The following fonts, all released under SIL OPEN FONT LICENSE V1.1:"
