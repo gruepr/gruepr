@@ -339,13 +339,13 @@ public:
 
     /**
      * @brief setScheduleTo Setter for the toComboBox field of the SchedulePage class.
-     * @param toComboBox field of the SchedulePage class that the user creating the survey wants.
+     * @param newScheduleTo The scheduleTo value the user wants.
      */
     void setScheduleTo(const float newScheduleTo);
 
     /**
      * @brief getScheduleTo Getter for the toComboBox field of the SchedulePage class.
-     * @return toComboBox field of the SchedulePage class.
+     * @return toComboBox field of the SchedulePage class, converted to a float.
      */
     float getScheduleTo() const;
 
