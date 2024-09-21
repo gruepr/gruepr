@@ -1,4 +1,5 @@
 .gitignore
+.DS_Store
 gruepr.pro.user
 gruepr.pro.user*
 test_surveys/*
