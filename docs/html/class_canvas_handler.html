@@ -175,8 +175,8 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:ab782e6f1bf79231b2b0c21ca3a8c0549"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2de4418a37c98f2fb0286412c5a10514" id="r_a2de4418a37c98f2fb0286412c5a10514"><td class="memItemLeft" align="right" valign="top">QUrl&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2de4418a37c98f2fb0286412c5a10514">getQuizResultsURL</a> (const int courseID, const int quizID)</td></tr>
 <tr class="separator:a2de4418a37c98f2fb0286412c5a10514"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7954100f9556af8bb387d2f0cb110c2e" id="r_a7954100f9556af8bb387d2f0cb110c2e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7954100f9556af8bb387d2f0cb110c2e">getPaginatedCanvasResults</a> (const QString &amp;initialURL, const QStringList &amp;stringParams, QList&lt; QStringList * &gt; &amp;stringVals, const QStringList &amp;intParams, QList&lt; QList&lt; int &gt; * &gt; &amp;intVals, const QStringList &amp;stringInSubobjectParams, QList&lt; QStringList * &gt; &amp;stringInSubobjectVals)</td></tr>
-<tr class="separator:a7954100f9556af8bb387d2f0cb110c2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdab43d245da7aa2971b0bf905fb03de" id="r_abdab43d245da7aa2971b0bf905fb03de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdab43d245da7aa2971b0bf905fb03de">getPaginatedCanvasResults</a> (const QString &amp;initialURL, const QStringList &amp;stringParams, QList&lt; QStringList * &gt; &amp;stringVals, const QStringList &amp;intParams, QList&lt; QList&lt; int &gt; * &gt; &amp;intVals, const QStringList &amp;stringInSubobjectParams, QList&lt; QStringList * &gt; &amp;stringInSubobjectVals, const QStringList &amp;intInSubArrayParams, QList&lt; QList&lt; int &gt; * &gt; &amp;intInSubArrayVals)</td></tr>
+<tr class="separator:abdab43d245da7aa2971b0bf905fb03de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6514d3995619fff04fbe579aa55015b4" id="r_a6514d3995619fff04fbe579aa55015b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6514d3995619fff04fbe579aa55015b4">postToCanvasGetSingleResult</a> (const QString &amp;URL, const QByteArray &amp;postData, const QStringList &amp;stringParams, QList&lt; QStringList * &gt; &amp;stringVals, const QStringList &amp;intParams, QList&lt; QList&lt; int &gt; * &gt; &amp;intVals, const QStringList &amp;stringInSubobjectParams, QList&lt; QStringList * &gt; &amp;stringInSubobjectVals)</td></tr>
 <tr class="separator:a6514d3995619fff04fbe579aa55015b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb173eaed21a9d06da6313df0c2a87b1" id="r_acb173eaed21a9d06da6313df0c2a87b1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb173eaed21a9d06da6313df0c2a87b1">downloadFile</a> (const QUrl &amp;URL, const QString &amp;filepath)</td></tr>
@@ -789,8 +789,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a7954100f9556af8bb387d2f0cb110c2e" name="a7954100f9556af8bb387d2f0cb110c2e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7954100f9556af8bb387d2f0cb110c2e">&#9670;&#160;</a></span>getPaginatedCanvasResults()</h2>
+<a id="abdab43d245da7aa2971b0bf905fb03de" name="abdab43d245da7aa2971b0bf905fb03de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdab43d245da7aa2971b0bf905fb03de">&#9670;&#160;</a></span>getPaginatedCanvasResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -831,7 +831,17 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QList&lt; QStringList * &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>stringInSubobjectVals</em></span>&#160;)</td>
+          <td class="paramtype">QList&lt; QStringList * &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>stringInSubobjectVals</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>intInSubArrayParams</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QList&lt; QList&lt; int &gt; * &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>intInSubArrayVals</em></span>&#160;)</td>
         </tr>
       </table>
   </td>

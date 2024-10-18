@@ -5,26 +5,26 @@
 DataOptions::DataOptions()
 {
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeField[i] = -1;
+        attributeField[i] = FIELDNOTPRESENT;
         attributeVals[i].clear();
         attributeQuestionResponseCounts[i].clear();
         attributeType[i] = AttributeType::categorical;
     }
 
     for(int &field : notesField) {
-        field = -1;
+        field = FIELDNOTPRESENT;
     }
 
     for(int &field : prefTeammatesField) {
-        field = -1;
+        field = FIELDNOTPRESENT;
     }
 
     for(int &field : prefNonTeammatesField) {
-        field = -1;
+        field = FIELDNOTPRESENT;
     }
 
     for(int &field : scheduleField) {
-        field = -1;
+        field = FIELDNOTPRESENT;
     }
 }
 
@@ -68,7 +68,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         i++;
     }
     for(int j = i; j < MAX_NOTES_FIELDS; j++) {
-        notesField[i] = -1;
+        notesField[i] = FIELDNOTPRESENT;
     }
 
     const QJsonArray scheduleFieldArray = jsonDataOptions["scheduleField"].toArray();
@@ -78,7 +78,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         i++;
     }
     for(int j = i; j < MAX_DAYS; j++) {
-        scheduleField[i] = -1;
+        scheduleField[i] = FIELDNOTPRESENT;
     }
 
     const QJsonArray attributeFieldArray = jsonDataOptions["attributeField"].toArray();
@@ -88,7 +88,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         i++;
     }
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeField[j] = -1;
+        attributeField[j] = FIELDNOTPRESENT;
     }
 
     const QJsonArray attributeTypeArray = jsonDataOptions["attributeType"].toArray();
@@ -108,7 +108,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         i++;
     }
     for(int j = i; j < MAX_PREFTEAMMATES; j++) {
-        prefTeammatesField[j] = -1;
+        prefTeammatesField[j] = FIELDNOTPRESENT;
     }
 
     const QJsonArray prefNonTeammatesFieldArray = jsonDataOptions["prefNonTeammatesField"].toArray();
@@ -118,7 +118,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         i++;
     }
     for(int j = i; j < MAX_PREFTEAMMATES; j++) {
-        prefNonTeammatesField[j] = -1;
+        prefNonTeammatesField[j] = FIELDNOTPRESENT;
     }
 
     const QJsonArray sectionNamesArray = jsonDataOptions["sectionNames"].toArray();

@@ -19,8 +19,8 @@ public:
 
     QJsonObject toJson() const;
 
-    int ID = -1;                                        // ID is assigned in order of appearance in the data file
-    int LMSID = -1;                                     // student ID number according to the learning management system
+    long long ID = -1;                                  // ID is assigned in order of appearance in the data file
+    long long LMSID = -1;                               // student ID number according to the learning management system
     bool duplicateRecord = false;                       // another record exists with the same firstname+lastname or email address
     Gender gender = Gender::unknown;
     bool URM = false;                                   // true if this student is from an underrepresented minority group

@@ -18,6 +18,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
 {
     ui->setupUi(this);
     setWindowTitle(tr("gruepr - Form teams"));
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
 
     QSettings savedSettings;
     const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
@@ -452,11 +453,11 @@ bool GetGrueprDataDialog::getFromPrevWork()
     }
 
     auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, 100, nullptr, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    loadingProgressDialog->setWindowModality(Qt::ApplicationModal);
     loadingProgressDialog->setAutoReset(false);
     connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
     loadingProgressDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     loadingProgressDialog->setMinimumDuration(0);
-    loadingProgressDialog->setWindowModality(Qt::WindowModal);
     loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE);
 
     const QJsonDocument doc = QJsonDocument::fromJson(savedFile.readAll());
@@ -729,20 +730,20 @@ bool GetGrueprDataDialog::readData()
     loadingProgressDialog->setWindowModality(Qt::WindowModal);
     loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE);
 
-    // set field values now according to user's selection of field meanings (defaulting to -1 if not chosen)
+    // set field values now according to user's selection of field meanings (defaulting to FIELDNOTPRESENT if not chosen)
     dataOptions->timestampField = int(surveyFile->fieldMeanings.indexOf("Timestamp"));
     dataOptions->LMSIDField = int(surveyFile->fieldMeanings.indexOf("**LMSID**"));
     dataOptions->firstNameField = int(surveyFile->fieldMeanings.indexOf("First Name"));
     dataOptions->lastNameField = int(surveyFile->fieldMeanings.indexOf("Last Name"));
     dataOptions->emailField = int(surveyFile->fieldMeanings.indexOf("Email Address"));
     dataOptions->genderField = int(surveyFile->fieldMeanings.indexOf("Gender"));
-    dataOptions->genderIncluded = (dataOptions->genderField != -1);
+    dataOptions->genderIncluded = (dataOptions->genderField != DataOptions::FIELDNOTPRESENT);
     dataOptions->URMField = int(surveyFile->fieldMeanings.indexOf("Racial/ethnic identity"));
-    dataOptions->URMIncluded = (dataOptions->URMField != -1);
+    dataOptions->URMIncluded = (dataOptions->URMField != DataOptions::FIELDNOTPRESENT);
     dataOptions->sectionField = int(surveyFile->fieldMeanings.indexOf("Section"));
-    dataOptions->sectionIncluded = (dataOptions->sectionField != -1);
+    dataOptions->sectionIncluded = (dataOptions->sectionField != DataOptions::FIELDNOTPRESENT);
     dataOptions->timezoneField = int(surveyFile->fieldMeanings.indexOf("Timezone"));
-    dataOptions->timezoneIncluded = (dataOptions->timezoneField != -1);
+    dataOptions->timezoneIncluded = (dataOptions->timezoneField != DataOptions::FIELDNOTPRESENT);
     // pref teammates fields
     int lastFoundIndex = 0;
     dataOptions->numPrefTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
@@ -943,12 +944,14 @@ bool GetGrueprDataDialog::readData()
         return false;
     }
 
-    // if there's a (separately-sourced) roster of students, compare against the list of submissions and add the info of any non-submitters now
+    // if there's a (separately-sourced) roster of students, compare against the list of submissions
+    // add the name, section and email data if available in roster and blank in survey data,
+    // and add the info of any non-submitters now
     if(!roster.isEmpty()) {
         int numNonSubmitters = 0;
-        for(const auto &student : roster) {
+        for(const auto &studentOnRoster : roster) {
             int index = 0;
-            const int LMSid = student.LMSID;
+            const long long LMSid = studentOnRoster.LMSID;
             while((index < numStudents) && (LMSid != students.at(index).LMSID)) {
                 index++;
             }
@@ -959,11 +962,12 @@ bool GetGrueprDataDialog::readData()
                 students.emplaceBack();
                 auto &currStudent = students.last();
                 currStudent.surveyTimestamp = QDateTime();
+                currStudent.LMSID = LMSid;
                 currStudent.ID = students.size();
-                currStudent.firstname = student.firstname;
-                currStudent.lastname = student.lastname;
-                currStudent.LMSID = student.LMSID;
-                currStudent.email = student.email;
+                currStudent.firstname = studentOnRoster.firstname;
+                currStudent.lastname = studentOnRoster.lastname;
+                currStudent.email = studentOnRoster.email;
+                currStudent.section = studentOnRoster.section;
                 for(auto &day : currStudent.unavailable) {
                     for(auto &time : day) {
                         time = false;
@@ -972,14 +976,26 @@ bool GetGrueprDataDialog::readData()
                 currStudent.ambiguousSchedule = true;
                 numStudents++;
             }
-            else if(students.at(index).email.isEmpty() && !student.email.isEmpty()) {
-                // Match found, but student doesn't have an email address yet, so copy it from roster info
-                students[index].email = student.email;
+            else {
+                // Match found, but student doesn't have a name, email address, or section yet, so copy it from roster info
+                if(students.at(index).firstname.isEmpty() && !studentOnRoster.firstname.isEmpty()) {
+                    students[index].firstname = studentOnRoster.firstname;
+                    dataOptions->firstNameField = DataOptions::DATAFROMOTHERSOURCE;
+                }
+                if(students.at(index).lastname.isEmpty() && !studentOnRoster.lastname.isEmpty()) {
+                    students[index].lastname = studentOnRoster.lastname;
+                    dataOptions->lastNameField = DataOptions::DATAFROMOTHERSOURCE;
+                }
+                if(students.at(index).email.isEmpty() && !studentOnRoster.email.isEmpty()) {
+                    students[index].email = studentOnRoster.email;
+                    dataOptions->emailField = DataOptions::DATAFROMOTHERSOURCE;
+                }
+                if(students.at(index).section.isEmpty() && !studentOnRoster.section.isEmpty()) {
+                    students[index].section = studentOnRoster.section;
+                    dataOptions->sectionField = DataOptions::DATAFROMOTHERSOURCE;
+                    dataOptions->sectionIncluded = true;
+                }
             }
-        }
-
-        if(dataOptions->emailField == -1 && std::any_of(students.constBegin(), students.constEnd(), [](const StudentRecord &i){return !i.email.isEmpty();})) {
-            dataOptions->emailField = 1;    // emails added from the roster, so update dataOptions to reflect
         }
 
         if(numNonSubmitters > 0) {
@@ -1000,7 +1016,7 @@ bool GetGrueprDataDialog::readData()
 
     // Set the attribute question options and numerical values for each student
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
-        if(dataOptions->attributeField[attribute] != -1) {
+        if(dataOptions->attributeField[attribute] != DataOptions::FIELDNOTPRESENT) {
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];
             // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses

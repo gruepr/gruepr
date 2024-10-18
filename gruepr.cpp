@@ -1767,17 +1767,17 @@ void gruepr::refreshStudentDisplay()
     ui->studentTable->clear();
     ui->studentTable->setSortingEnabled(false);
 
-    ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != -1? 1 : 0) + (dataOptions->firstNameField != -1? 1 : 0) +
-                                     (dataOptions->lastNameField != -1? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
+    ui->studentTable->setColumnCount(2 + (dataOptions->timestampField != DataOptions::FIELDNOTPRESENT? 1 : 0) + (dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT? 1 : 0) +
+                                     (dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT? 1 : 0) + (dataOptions->sectionIncluded? 1 : 0));
     const QIcon unsortedIcon(":/icons_new/upDownButton_white.png");
     int column = 0;
-    if(dataOptions->timestampField != -1) {
+    if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Survey  \n  Timestamp  ")));
     }
-    if(dataOptions->firstNameField != -1) {
+    if(dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  First  \n  Name  ")));
     }
-    if(dataOptions->lastNameField != -1) {
+    if(dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT) {
         ui->studentTable->setHorizontalHeaderItem(column++, new QTableWidgetItem(unsortedIcon, tr("  Last  \n  Name  ")));
     }
     if(dataOptions->sectionIncluded) {
@@ -1798,15 +1798,15 @@ void gruepr::refreshStudentDisplay()
 
             auto *timestamp = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::datetime,
                                                           QLocale::system().toString(student.surveyTimestamp, QLocale::ShortFormat));
-            if(dataOptions->timestampField != -1) {
+            if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
                 ui->studentTable->setItem(numActiveStudents, column++, timestamp);
             }
             auto *firstName = new QTableWidgetItem(student.firstname);
-            if(dataOptions->firstNameField != -1) {
+            if(dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT) {
                 ui->studentTable->setItem(numActiveStudents, column++, firstName);
             }
             auto *lastName = new QTableWidgetItem(student.lastname);
-            if(dataOptions->lastNameField != -1) {
+            if(dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT) {
                 ui->studentTable->setItem(numActiveStudents, column++, lastName);
             }
             auto *section = new SortableTableWidgetItem(SortableTableWidgetItem::SortType::alphanumeric, student.section);

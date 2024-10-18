@@ -36,7 +36,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 
     QList<QLabel*> explanation;
 
-    if(dataOptions->timestampField != -1) {
+    if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Survey timestamp"));
@@ -54,7 +54,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                             {thisLineEdit->setStyleSheet(QString(LINEEDITSTYLE).replace("color: " DEEPWATERHEX ";", "color: red;"));}});
     }
 
-    if(dataOptions->firstNameField != -1) {
+    if(dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("First name"));
@@ -66,7 +66,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datatext.last(), 0);
     }
 
-    if(dataOptions->lastNameField != -1) {
+    if(dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Last name"));
@@ -78,7 +78,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datatext.last(), 0);
     }
 
-    if(dataOptions->emailField != -1) {
+    if(dataOptions->emailField != DataOptions::FIELDNOTPRESENT) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Email address"));
@@ -435,16 +435,16 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
 void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOptions *const dataOptions)
 {
     int textfield = 0, boxfield = 0, multilinefield = 0;
-    if(dataOptions->timestampField != -1) {
+    if(dataOptions->timestampField != DataOptions::FIELDNOTPRESENT) {
         student.surveyTimestamp = QDateTime::fromString(datatext[textfield++]->text(), QLocale::system().dateTimeFormat(QLocale::ShortFormat));
     }
-    if(dataOptions->firstNameField != -1) {
+    if(dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT) {
         student.firstname = datatext[textfield++]->text();
     }
-    if(dataOptions->lastNameField != -1) {
+    if(dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT) {
         student.lastname = datatext[textfield++]->text();
     }
-    if(dataOptions->emailField != -1) {
+    if(dataOptions->emailField != DataOptions::FIELDNOTPRESENT) {
         student.email = datatext[textfield++]->text();
     }
     if(dataOptions->genderIncluded) {

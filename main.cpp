@@ -40,6 +40,8 @@
 //    BUGFIX:
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
+//  - edit buttons get confused when a student's section is switched and a single section is selected
+//  - make "Loading Data" window top and blocking (modal), on macOS if not also on Windows
 //
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)

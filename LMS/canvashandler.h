@@ -56,7 +56,8 @@ private:
 
     void getPaginatedCanvasResults(const QString &initialURL, const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                               const QStringList &intParams, QList<QList<int>*> &intVals,
-                                                              const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals);
+                                                              const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals,
+                                                              const QStringList &intInSubArrayParams, QList<QList<int>*> &intInSubArrayVals);
     void postToCanvasGetSingleResult(const QString &URL, const QByteArray &postData, const QStringList &stringParams, QList<QStringList*> &stringVals,
                                                                                      const QStringList &intParams, QList<QList<int>*> &intVals,
                                                                                      const QStringList &stringInSubobjectParams, QList<QStringList*> &stringInSubobjectVals);

@@ -25,7 +25,7 @@ var searchData=
   ['getmodifyparametersfunction_22',['getModifyParametersFunction',['../class_canvas_handler.html#a08d8f7e986659aa24fadfcd5a769bcc7',1,'CanvasHandler::getModifyParametersFunction()'],['../class_google_handler.html#ac2cfbf59c3c070c093abe46302050184',1,'GoogleHandler::getModifyParametersFunction()'],['../class_l_m_s.html#a2b02a71b1dd1fa7354536c5485627fe5',1,'LMS::getModifyParametersFunction()']]],
   ['getmulti_23',['getMulti',['../class_survey_maker_multichoice_question.html#aaad5da4ccf8cde0e6cb603770a075406',1,'SurveyMakerMultichoiceQuestion']]],
   ['getnumquestions_24',['getNumQuestions',['../class_multiple_choice_page.html#afddc464ccff91c9738b8ce0759b570a8',1,'MultipleChoicePage']]],
-  ['getpaginatedcanvasresults_25',['getPaginatedCanvasResults',['../class_canvas_handler.html#a7954100f9556af8bb387d2f0cb110c2e',1,'CanvasHandler']]],
+  ['getpaginatedcanvasresults_25',['getPaginatedCanvasResults',['../class_canvas_handler.html#abdab43d245da7aa2971b0bf905fb03de',1,'CanvasHandler']]],
   ['getquestion_26',['getQuestion',['../class_survey_maker_multichoice_question.html#a86818856747002b119d932a4035c0ab8',1,'SurveyMakerMultichoiceQuestion']]],
   ['getquestionmultis_27',['getQuestionMultis',['../class_multiple_choice_page.html#ab9565befce43a64581d10c8db3ceec8d',1,'MultipleChoicePage']]],
   ['getquestionresponses_28',['getQuestionResponses',['../class_multiple_choice_page.html#adc79ebf9608408ade11c8aa09f1d27d0',1,'MultipleChoicePage']]],

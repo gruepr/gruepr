@@ -216,7 +216,6 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
         static const QRegularExpression versionNum(R"(\"tag_name\":\"v([\d*.]{1,})\")");
         const QRegularExpressionMatch match = versionNum.match(reply->readAll());
         latestVersionString = (match.hasMatch() ? match.captured(1) : ("0"));
-        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
     }
     reply->deleteLater();
     delete request;
@@ -239,14 +238,18 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
     }
 
     if(latestVersionAsInt == 0) {
+        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
         return GrueprVersion::unknown;
     }
     if(latestVersionAsInt > thisVersionAsInt) {
+        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is available to download"));
         return GrueprVersion::old;
     }
     if(thisVersionAsInt > latestVersionAsInt) {
+        upgradeLabel->setToolTip(tr("Version ") + latestVersionString + tr(" is the latest available version"));
         return GrueprVersion::beta;
     }
+    upgradeLabel->setToolTip(tr("Your version is up-to-date"));
     return GrueprVersion::current;
 }
 
