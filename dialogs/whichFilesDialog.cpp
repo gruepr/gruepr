@@ -96,7 +96,7 @@ whichFilesDialog::whichFilesDialog(const Action saveOrPrint, const QStringList &
     instructorFileLabel->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(instructorFileLabel, &QPushButton::clicked, instructorFiletxtCheckBox, &QCheckBox::animateClick);
     instructorFileLabel->setText(tr("Instructor's file:\nFile data, teaming options, optimization data,\n"
-                                    "names, email addresses, demographic and attribute data, and team availability schedule."));
+                                    "names, email addresses, demographic and survey data, and team availability schedule."));
     theGrid->addWidget(instructorFileLabel, row, 3);
     if(saveDialog) {
         instructorFilepdfCheckBox = new QCheckBox(this);

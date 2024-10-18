@@ -1057,13 +1057,13 @@ QStringList TeamsTabItem::createFileContents()
         instructorsFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
     }
     for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
-        instructorsFileContents += "\n" + tr("Attribute ") + QString::number(attrib+1) + ": "
+        instructorsFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
                 + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib])) +
                 + ", " + (teamingOptions->desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
     }
     instructorsFileContents += "\n\n\n";
     for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
-        QString questionWithResponses = tr("Attribute ") + QString::number(attrib+1) + "\n" +
+        QString questionWithResponses = tr("Multiple choice Q") + QString::number(attrib+1) + "\n" +
                                         teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
         for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
             if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||

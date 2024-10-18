@@ -34,7 +34,7 @@ private:
                                                                       "<li>Every team should have (at least) one student who said they want to be a team leader.</li>"
                                                                       "<li>No team should have an English major with a History major.</li>"
                                                                       "<li>No team should have two (or more) students who said they want to be a team leader.</li></ul></html>");
-    inline static const QString ONLYONETOOLTIP = QObject::tr("With only one response value, this attribute cannot be used for teaming");
+    inline static const QString ONLYONETOOLTIP = QObject::tr("With only one response value, this question cannot be used for teaming");
 };
 
 #endif // ATTRIBUTEWIDGET_H

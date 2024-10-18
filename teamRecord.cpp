@@ -101,7 +101,7 @@ void TeamRecord::createTooltip()
     }
     const int numAttributesWOTimezone = teamSetDataOptions->numAttributes - (teamSetDataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
-        toolTipText += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+        toolTipText += "<br>" + QObject::tr("Multiple choice Q") + QString::number(attribute + 1) + ":  ";
         auto teamVals = attributeVals[attribute].cbegin();
         auto lastVal = attributeVals[attribute].cend();
         if((teamSetDataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||

@@ -441,7 +441,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 {
     // read up to a newline
     QString line = externalStream.readLine();
-    // if there's a newline within a field, the number of " characters will be odd, so appeand to next newline and check again
+    // if there's a newline within a field, the number of " characters will be odd, so append to next newline and check again
     while(line.count('"')%2 == 1) {
         line.append(externalStream.readLine());
     }

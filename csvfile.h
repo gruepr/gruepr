@@ -8,6 +8,9 @@
 #include <QTableWidget>
 #include <QTextStream>
 
+/**
+     * @brief possFieldMeaning represents what kind of data might be stored in a CSV file
+     */
 struct possFieldMeaning
 {
     /**
@@ -27,7 +30,7 @@ struct possFieldMeaning
 };
 
 /**
- * @brief The CsvFile class corresponding to a CSV file. This class can represent a CSV file that needs to be accessed by Gruepr.
+ * @brief The CsvFile class corresponding to a CSV file. This class can represent a CSV file that needs to be read or written by gruepr.
  */
 class CsvFile : public QObject
 {

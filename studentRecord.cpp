@@ -399,7 +399,7 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
         if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
             continue;
         }
-        toolTip += "<br>" + QObject::tr("Attribute ") + QString::number(attribute + 1) + ":  ";
+        toolTip += "<br>" + QObject::tr("Multiple choice Q") + QString::number(attribute + 1) + ":  ";
         auto value = attributeVals[attribute].constBegin();
         if(*value != -1) {
             if(dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
