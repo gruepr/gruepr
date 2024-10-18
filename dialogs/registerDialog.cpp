@@ -16,6 +16,8 @@ registerDialog::registerDialog(QWidget *parent)
     //Set up window with a grid layout
     setWindowTitle(tr("Register your copy of gruepr"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
+
     auto *theBox = new QVBoxLayout(this);
     setStyleSheet("background-color: white");
 

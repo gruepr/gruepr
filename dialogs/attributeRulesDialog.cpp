@@ -11,6 +11,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
+
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE) + LABEL10PTSTYLE);
     ui->reqScrollArea->setStyleSheet(QString("QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "

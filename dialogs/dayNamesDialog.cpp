@@ -13,6 +13,7 @@ dayNamesDialog::dayNamesDialog(QList<QCheckBox *> dayselectors, QList<QLineEdit 
     //Set up window with a grid layout
     setWindowTitle(tr("Schedule days"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     auto *theGrid = new QGridLayout(this);
 
     for(int day = 0; day < MAX_DAYS; day++) {

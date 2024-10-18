@@ -288,7 +288,6 @@ void StartDialog::openRegisterDialog() {
 #endif
             const QJsonDocument doc(data);
             const QByteArray postData = doc.toJson();
-            qDebug() << postData;
             auto *reply = manager->post(*request, postData);
             QEventLoop loop;
             connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);

@@ -10,6 +10,7 @@ SampleQuestionsDialog::SampleQuestionsDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     ui->tabWidget->tabBar()->setDocumentMode(true);
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE) + CHECKBOXSTYLE + RADIOBUTTONSTYLE + LABEL10PTSTYLE);

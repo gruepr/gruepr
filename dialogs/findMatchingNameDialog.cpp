@@ -14,6 +14,8 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
                                                const QString &nameOfStudentWhoAsked, const bool addStudentOption, const QString &searchEmail)
     :QDialog(parent)
 {
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
+
     // create list of names (map is <Key = Levenshtein distance, Value = name & index in student array>)
     QMultiMap<int, QString> possibleStudents;
     for(int knownStudent = 0; knownStudent < numStudents; knownStudent++) {

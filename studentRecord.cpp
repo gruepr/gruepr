@@ -367,7 +367,7 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
                    "</b></td></tr></table><br>";
     }
     toolTip += firstname + " " + lastname;
-    if(dataOptions.emailField != -1) {
+    if(dataOptions.emailField != DataOptions::FIELDNOTPRESENT) {
         toolTip += "<br>" + email;
     }
     if(dataOptions.genderIncluded) {

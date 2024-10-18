@@ -17,6 +17,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     //Set up window with a grid layout
     setWindowTitle(tr("Class timezone"));
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     auto *theGrid = new QGridLayout(this);
 
     //explanation and a spacer row

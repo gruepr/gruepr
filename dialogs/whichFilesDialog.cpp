@@ -16,6 +16,7 @@ whichFilesDialog::whichFilesDialog(const Action saveOrPrint, const QStringList &
     //Set up window with a grid layout
     setWindowTitle(tr("Choose files to ") + saveOrPrintString);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     auto *theGrid = new QGridLayout(this);
     const int totNumOptionAreaRows = 6; // 1 each for the text/pdf labels, the student, the instructor & the spreadsheet options, and horiz. lines between
     int row = 0;
