@@ -10,20 +10,17 @@
 #include <QtNetwork>
 
 float grueprGlobal::timeStringToHours(const QString &timeStr) {
-    static QStringList formats = QString(TIMEFORMATS).split(';');
-    int i = 0;
-    for (const auto &format : formats) {
-        const QTime time = QTime::fromString(timeStr, format);
+    QTime time = QTime::fromString(timeStr, mostRecentTimeFormat);
+    if(time.isValid()) {
+        return time.hour() + (time.minute() / 60.0f) + (time.second()/3600.0f);
+    }
+
+    for (const auto &timeFormat : timeFormats) {
+        time = QTime::fromString(timeStr, timeFormat);
         if(time.isValid()) {
-            if(i != 0) {
-                // move this format to be first, since most likely all others will be same
-                const QString currFormat = format;
-                formats.removeOne(currFormat);
-                formats.prepend(currFormat);
-            }
+            mostRecentTimeFormat = timeFormat;
             return time.hour() + (time.minute() / 60.0f) + (time.second()/3600.0f);
         }
-        i++;
     }
 
     if(timeStr.compare(QObject::tr("noon"), Qt::CaseInsensitive) == 0) {

@@ -60,6 +60,40 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     }
 }
 
+void StudentRecord::clear() {
+    ID = -1;
+    LMSID = -1;
+    duplicateRecord = false;
+    gender = Gender::unknown;
+    URM = false;
+    for(auto &day : unavailable) {
+        for(auto &time : day) {
+            time = true;
+        }
+    }
+    timezone = 0;
+    ambiguousSchedule = false;
+    for(int i = 0; i < MAX_IDS; i++) {
+        preventedWith[i] = {false};
+        requiredWith[i] = {false};
+        requestedWith[i] = {false};
+    }
+    for(int i = 0; i < MAX_ATTRIBUTES; i++) {
+        attributeVals[i].clear();
+        attributeResponse[i].clear();
+    }
+    surveyTimestamp = QDateTime::currentDateTime();
+    firstname.clear();
+    lastname.clear();
+    email.clear();
+    section.clear();
+    prefTeammates.clear();
+    prefNonTeammates.clear();
+    notes.clear();
+    URMResponse.clear();
+    availabilityChart.clear();
+    tooltip.clear();
+}
 
 ////////////////////////////////////////////
 // Move fields read from file into student record values
@@ -67,6 +101,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions)
 {
     const int numFields = fields.size();
+
     // Timestamp
     int fieldnum = dataOptions.timestampField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
@@ -137,7 +172,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     if(dataOptions.genderIncluded) {
         fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString field = fields.at(fieldnum);
+            const QString &field = fields.at(fieldnum);
             if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) ||
                 field.contains(QObject::tr("woman"), Qt::CaseInsensitive) ||
                 field.contains(QObject::tr("girl"), Qt::CaseInsensitive) ||
@@ -150,7 +185,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                      field.contains(QObject::tr("they"), Qt::CaseInsensitive)) {
                 gender = Gender::nonbinary;
             }
-            else if(field.contains(QObject::tr("male"), Qt::CaseInsensitive) ||
+            else if(field.contains(QObject::tr("male"), Qt::CaseInsensitive) ||    // need this last, as "she" and "they" contain "he" and "female" contains "male"
                      field.contains(QObject::tr("man"), Qt::CaseInsensitive) ||
                      field.contains(QObject::tr("boy"), Qt::CaseInsensitive) ||
                      field.contains(QObject::tr("he"), Qt::CaseInsensitive)) {
@@ -200,9 +235,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     float timezoneOffset = 0;
     fieldnum = dataOptions.timezoneField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
-        const QString timezoneText = fields.at(fieldnum);
         QString timezoneName;
-        if(DataOptions::parseTimezoneInfoFromText(timezoneText, timezoneName, timezone)) {
+        if(DataOptions::parseTimezoneInfoFromText(fields.at(fieldnum), timezoneName, timezone)) {
             if(dataOptions.homeTimezoneUsed) {
                 timezoneOffset = dataOptions.baseTimezone - timezone;
             }
@@ -213,7 +247,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(int day = 0; day < numDays; day++) {
         fieldnum = dataOptions.scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString field = fields.at(fieldnum);
+            const QString &field = fields.at(fieldnum);
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
             for(const auto &timeName : dataOptions.timeNames) {
                 const float time = grueprGlobal::timeStringToHours(timeName);
@@ -249,10 +283,10 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     }
                 }
                 int timeindex = 0;
-                while((grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex)) != -1) &&
-                      (actualtime > grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex))) &&
-                      timeindex < numTimes) {
+                float hourVal = grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex));
+                while((hourVal != -1) && (actualtime > hourVal) && (timeindex < numTimes)) {
                     timeindex++;
+                    hourVal = grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex));
                 }
 
                 if((actualday < 0) || (actualday > MAX_DAYS) || (timeindex < 0) || (timeindex > MAX_BLOCKS_PER_DAY)) {

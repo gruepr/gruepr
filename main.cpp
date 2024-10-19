@@ -35,15 +35,16 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - make "Loading Data" window blocking and add cancel button
+//  - edit buttons get confused when a student's section is switched and a single section is selected
 //
 // TO DO:
 //    BUGFIX:
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
-//  - edit buttons get confused when a student's section is switched and a single section is selected
-//  - make "Loading Data" window top and blocking (modal), on macOS if not also on Windows
 //
 //    NEW FEATURES:
+//  - speed up loading data--lag seems to be in parsing studentRecord from string->repeatedly using grueprGlobal::timeStringToHours, line 253
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action

@@ -27,9 +27,10 @@ var searchData=
   ['min_5fstudents_24',['MIN_STUDENTS',['../gruepr__globals_8h.html#a990bba5d999a940a3f96e8b89258d0d1',1,'gruepr_globals.h']]],
   ['mintext_25',['minText',['../class_combo_box_with_elided_contents.html#af394c74ecad17bb007339c0e5733d044',1,'ComboBoxWithElidedContents']]],
   ['mintimeblocksoverlap_26',['minTimeBlocksOverlap',['../class_teaming_options.html#a64c5aea77e615c02778ea3bfcd022bab',1,'TeamingOptions']]],
-  ['msgbox_5ficon_5fsize_27',['MSGBOX_ICON_SIZE',['../gruepr__globals_8h.html#abec03bce1b5ca6854a4b8ef90ef13388',1,'gruepr_globals.h']]],
-  ['multiallowed_28',['multiAllowed',['../class_survey_maker_multichoice_question.html#a3e9effe9a19596c5aae0dc4deed92a90',1,'SurveyMakerMultichoiceQuestion']]],
-  ['multichoicequestions_29',['multichoiceQuestions',['../class_multiple_choice_page.html#abcf5636b9f564f2f485002c3d07f2600',1,'MultipleChoicePage']]],
-  ['multiplesectionsinprogress_30',['multipleSectionsInProgress',['../classgruepr.html#a9b3e5ed6a7fbd56430363c44bb7844cb',1,'gruepr']]],
-  ['mutationlikelihood_31',['MUTATIONLIKELIHOOD',['../namespace_g_a.html#a699e97710a6f80d045e91f76e7bade2a',1,'GA']]]
+  ['mostrecenttimeformat_27',['mostRecentTimeFormat',['../namespacegruepr_global.html#a8326678e93eb34edd49e658869343d0f',1,'grueprGlobal']]],
+  ['msgbox_5ficon_5fsize_28',['MSGBOX_ICON_SIZE',['../gruepr__globals_8h.html#abec03bce1b5ca6854a4b8ef90ef13388',1,'gruepr_globals.h']]],
+  ['multiallowed_29',['multiAllowed',['../class_survey_maker_multichoice_question.html#a3e9effe9a19596c5aae0dc4deed92a90',1,'SurveyMakerMultichoiceQuestion']]],
+  ['multichoicequestions_30',['multichoiceQuestions',['../class_multiple_choice_page.html#abcf5636b9f564f2f485002c3d07f2600',1,'MultipleChoicePage']]],
+  ['multiplesectionsinprogress_31',['multipleSectionsInProgress',['../classgruepr.html#a9b3e5ed6a7fbd56430363c44bb7844cb',1,'gruepr']]],
+  ['mutationlikelihood_32',['MUTATIONLIKELIHOOD',['../namespace_g_a.html#a699e97710a6f80d045e91f76e7bade2a',1,'GA']]]
 ];

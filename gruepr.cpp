@@ -294,11 +294,22 @@ void gruepr::changeSection(int index)
 
 void gruepr::editAStudent()
 {
-    const int indexBeingEdited = sender()->property("StudentIndex").toInt();
+    // first, find the student, using the ID property of this edit button
+    StudentRecord *studentBeingEdited = nullptr;
+    for(auto &student : students) {
+        if(student.ID == sender()->property("StudentID").toInt()) {
+            studentBeingEdited = &student;
+            break;
+        }
+    }
+    if(studentBeingEdited == nullptr) {
+        // student not found, somehow
+        return;
+    }
 
     // remove this student's current attribute responses from the counts in dataOptions
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
-        const QString &currentStudentResponse = students.at(indexBeingEdited).attributeResponse[attribute];
+        const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
@@ -315,20 +326,20 @@ void gruepr::editAStudent()
     }
 
     //Open window with the student record in it
-    auto *win = new editOrAddStudentDialog(students[indexBeingEdited], dataOptions, this, false);
+    auto *win = new editOrAddStudentDialog(*studentBeingEdited, dataOptions, this, false);
 
     //If user clicks OK, replace student in the database with edited copy
     const int reply = win->exec();
     if(reply == QDialog::Accepted) {
-        students[indexBeingEdited].createTooltip(*dataOptions);
-        students[indexBeingEdited].URM = teamingOptions->URMResponsesConsideredUR.contains(students.at(indexBeingEdited).URMResponse);
+        studentBeingEdited->createTooltip(*dataOptions);
+        studentBeingEdited->URM = teamingOptions->URMResponsesConsideredUR.contains(studentBeingEdited->URMResponse);
 
         rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     }
 
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
-        const QString &currentStudentResponse = students.at(indexBeingEdited).attributeResponse[attribute];
+        const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
@@ -1826,7 +1837,7 @@ void gruepr::refreshStudentDisplay()
 
             auto *editButton = new PushButtonWithMouseEnter(QIcon(":/icons_new/edit.png"), "", this);
             editButton->setToolTip("<html>" + tr("Edit") + " " + student.firstname + " " + student.lastname + tr("'s data.") + "</html>");
-            editButton->setProperty("StudentIndex", numActiveStudents);
+            editButton->setProperty("StudentID", student.ID);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate) {
                 editButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");

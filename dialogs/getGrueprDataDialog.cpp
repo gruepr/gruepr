@@ -138,6 +138,7 @@ void GetGrueprDataDialog::accept() {
             ui->fieldsExplainer->setEnabled(false);
             ui->headerRowCheckBox->setEnabled(false);
             ui->tableWidget->setEnabled(false);
+            students.clear();
             return;
         }
     }
@@ -452,7 +453,7 @@ bool GetGrueprDataDialog::getFromPrevWork()
         return false;
     }
 
-    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, 100, nullptr, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, 100, this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     loadingProgressDialog->setWindowModality(Qt::ApplicationModal);
     loadingProgressDialog->setAutoReset(false);
     connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
@@ -721,14 +722,14 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
 
 bool GetGrueprDataDialog::readData()
 {
-    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), QString(), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
-                                                      nullptr, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), tr("Cancel"), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
+                                                      this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     loadingProgressDialog->setAutoReset(false);
     connect(parent, &StartDialog::closeDataDialogProgressBar, loadingProgressDialog, &QProgressDialog::reset);
     loadingProgressDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     loadingProgressDialog->setMinimumDuration(0);
-    loadingProgressDialog->setWindowModality(Qt::WindowModal);
-    loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE);
+    loadingProgressDialog->setWindowModality(Qt::ApplicationModal);
+    loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE + SMALLBUTTONSTYLEINVERTED);
 
     // set field values now according to user's selection of field meanings (defaulting to FIELDNOTPRESENT if not chosen)
     dataOptions->timestampField = int(surveyFile->fieldMeanings.indexOf("Timestamp"));
@@ -898,20 +899,26 @@ bool GetGrueprDataDialog::readData()
         surveyFile->readDataRow();
     }
 
+    students.reserve(surveyFile->estimatedNumberRows);
     int numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    StudentRecord currStudent;
     do {
-        students.emplaceBack();
-        auto &currStudent = students.last();
+        if(loadingProgressDialog->wasCanceled()) {
+            surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+            return false;
+        }
+
+        currStudent.clear();
         currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions);
         currStudent.ID = students.size();
 
         // see if this record is a duplicate; assume it isn't and then check
         currStudent.duplicateRecord = false;
-        for(int index = 0; index < numStudents; index++) {
-            if(((currStudent.firstname + currStudent.lastname).compare(students[index].firstname + students[index].lastname, Qt::CaseInsensitive) == 0) ||
-                ((currStudent.email.compare(students.at(index).email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty())) {
+        for(auto &student : students) {
+            if(((currStudent.firstname + currStudent.lastname).compare(student.firstname + student.lastname, Qt::CaseInsensitive) == 0) ||
+                ((currStudent.email.compare(student.email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty())) {
                 currStudent.duplicateRecord = true;
-                students[index].duplicateRecord = true;
+                student.duplicateRecord = true;
             }
         }
 
@@ -934,6 +941,7 @@ bool GetGrueprDataDialog::readData()
         }
 
         numStudents++;
+        students << currStudent;
         loadingProgressDialog->setValue(2 + numStudents);
     } while(surveyFile->readDataRow() && numStudents < MAX_STUDENTS);
 
@@ -948,6 +956,7 @@ bool GetGrueprDataDialog::readData()
     // add the name, section and email data if available in roster and blank in survey data,
     // and add the info of any non-submitters now
     if(!roster.isEmpty()) {
+        students.reserve(roster.size());
         int numNonSubmitters = 0;
         for(const auto &studentOnRoster : roster) {
             int index = 0;
@@ -959,8 +968,7 @@ bool GetGrueprDataDialog::readData()
             if(index == numStudents && numStudents < MAX_STUDENTS) {
                 // Match not found -- student did not submit a survey -- so add a record with their name
                 numNonSubmitters++;
-                students.emplaceBack();
-                auto &currStudent = students.last();
+                currStudent.clear();
                 currStudent.surveyTimestamp = QDateTime();
                 currStudent.LMSID = LMSid;
                 currStudent.ID = students.size();
@@ -974,6 +982,7 @@ bool GetGrueprDataDialog::readData()
                     }
                 }
                 currStudent.ambiguousSchedule = true;
+                students << currStudent;
                 numStudents++;
             }
             else {
@@ -1016,6 +1025,11 @@ bool GetGrueprDataDialog::readData()
 
     // Set the attribute question options and numerical values for each student
     for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
+        if(loadingProgressDialog->wasCanceled()) {
+            surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+            return false;
+        }
+
         if(dataOptions->attributeField[attribute] != DataOptions::FIELDNOTPRESENT) {
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];

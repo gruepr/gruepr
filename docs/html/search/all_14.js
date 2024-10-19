@@ -57,7 +57,7 @@ var searchData=
   ['thu_54',['Thu',['../gruepr__globals_8h.html#a06fc87d81c62e9abb8790b6e5713c55bad13ae165fa735bda381d73ad40b4311c',1,'gruepr_globals.h']]],
   ['timeformatexamples_55',['TIMEFORMATEXAMPLES',['../gruepr__globals_8h.html#ab1d1578f4fb14dccacd72865ed90fd93',1,'gruepr_globals.h']]],
   ['timeformats_56',['TIMEFORMATS',['../gruepr__globals_8h.html#accb77374938c928676d972eb99c3b528',1,'gruepr_globals.h']]],
-  ['timeformats_57',['timeFormats',['../class_schedule_page.html#abfed24cb1717a1551a84789c62ce85fc',1,'SchedulePage']]],
+  ['timeformats_57',['timeFormats',['../class_schedule_page.html#abfed24cb1717a1551a84789c62ce85fc',1,'SchedulePage::timeFormats'],['../namespacegruepr_global.html#aa0a7931a4f8f7eca66eb2aa835b43020',1,'grueprGlobal::timeFormats']]],
   ['timenames_58',['timeNames',['../class_data_options.html#a4feafc8493b4340b21031e8542f12b97',1,'DataOptions']]],
   ['timeout_5ftime_59',['TIMEOUT_TIME',['../class_l_m_s.html#a5a6ed4d37f6eaf39ae42f8ef3b80f1ca',1,'LMS']]],
   ['timespanlabel_60',['timespanLabel',['../class_schedule_page.html#ae42f41355800fceef6566fd08a48678e',1,'SchedulePage']]],

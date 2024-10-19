@@ -319,6 +319,8 @@ inline static const char TIMEFORMATEXAMPLES[] {"8:00;"
  */
 namespace grueprGlobal {
     float timeStringToHours(const QString &timeStr);
+    static const QStringList timeFormats = QString(TIMEFORMATS).split(';');
+    static QString mostRecentTimeFormat = timeFormats[0];
 }
 
 inline static const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
