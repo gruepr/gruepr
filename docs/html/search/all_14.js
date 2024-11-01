@@ -27,7 +27,7 @@ var searchData=
   ['teamnamescombobox_24',['teamnamesComboBox',['../class_teams_tab_item.html#a7f75f4cc349a9c12c52814360cc38232',1,'TeamsTabItem']]],
   ['teamnametype_25',['TeamNameType',['../gruepr__globals_8h.html#ad1b1cab2565f0f0222ebeb93a1bc982d',1,'gruepr_globals.h']]],
   ['teamnametypes_26',['TEAMNAMETYPES',['../gruepr__globals_8h.html#a7487f3ae79f91d15d8c27824e3924cf0',1,'gruepr_globals.h']]],
-  ['teamrecord_27',['TeamRecord',['../class_team_record.html',1,'TeamRecord'],['../class_team_record.html#a0c644ef69e89b8ebec511571fb691931',1,'TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, int teamSize)'],['../class_team_record.html#a2bc3b87c2c603f6231aa39f388fbe298',1,'TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &amp;jsonTeamRecord)']]],
+  ['teamrecord_27',['TeamRecord',['../class_team_record.html',1,'TeamRecord'],['../class_team_record.html#a0c644ef69e89b8ebec511571fb691931',1,'TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, int teamSize)'],['../class_team_record.html#a5b9a082fecbaf6283f782d2867fe4bda',1,'TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &amp;jsonTeamRecord, const QList&lt; StudentRecord &gt; &amp;students)']]],
   ['teamrecord_2ecpp_28',['teamRecord.cpp',['../team_record_8cpp.html',1,'']]],
   ['teamrecord_2eh_29',['teamRecord.h',['../team_record_8h.html',1,'']]],
   ['teams_30',['teams',['../classgruepr.html#ae2573d5ddb9ec879d09f54fac5e19dea',1,'gruepr::teams'],['../class_teams_tab_item.html#ae9a9faae7b32670aa9dcc87a9eb70ac5',1,'TeamsTabItem::teams']]],

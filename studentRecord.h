@@ -21,6 +21,7 @@ public:
 
     QJsonObject toJson() const;
 
+    bool deleted = false;                               // set true when user 'deletes' the student; no longer shows in lists
     long long ID = -1;                                  // ID is assigned in order of appearance in the data file
     long long LMSID = -1;                               // student ID number according to the learning management system
     bool duplicateRecord = false;                       // another record exists with the same firstname+lastname or email address

@@ -16,6 +16,7 @@ StudentRecord::StudentRecord()
 
 StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 {
+    deleted = jsonStudentRecord["deleted"].toBool();
     ID = jsonStudentRecord["ID"].toInt();
     LMSID = jsonStudentRecord["LMSID"].toInt();
     duplicateRecord = jsonStudentRecord["duplicateRecord"].toBool();
@@ -61,6 +62,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
 }
 
 void StudentRecord::clear() {
+    deleted = false;
     ID = -1;
     LMSID = -1;
     duplicateRecord = false;
@@ -534,6 +536,7 @@ QJsonObject StudentRecord::toJson() const
     }
 
     QJsonObject content {
+        {"deleted", deleted},
         {"ID", ID},
         {"LMSID", LMSID},
         {"duplicateRecord", duplicateRecord},

@@ -36,7 +36,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - make "Loading Data" window blocking and add cancel button
-//  - edit buttons get confused when a student's section is switched and a single section is selected
+//  - edit buttons no longer get confused when a single section is selected
+//
+// INPROG:
+//  - outside of optimization process, replace all use of indexes in student array to refer to a specific student--use ID instead
+//      - remove studentIndexes from teamRecord
+//        - test all aspects of team tab
+//        - crash / bug in renaming teams and swapping/moving students
+//  - do the same for index into teams array
 //
 // TO DO:
 //    BUGFIX:

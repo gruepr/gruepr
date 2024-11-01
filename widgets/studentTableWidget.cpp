@@ -99,6 +99,7 @@ void StudentTableWidget::cellLeft(const int row)
     else {
         cellWidget(row, numCols-1)->setStyleSheet("");
         cellWidget(row, numCols-2)->setStyleSheet("");
+
     }
 }
 
@@ -120,7 +121,7 @@ void StudentTableWidget::cellEntered(const int row)
     const int numRows = rowCount();
     if(prevID != -1) {
         int prevRow = 0;
-        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentIndex").toInt())) {
+        while((prevRow < numRows) && (prevID != cellWidget(prevRow, numCols-1)->property("StudentID").toInt())) {
             prevRow++;
         }
         if(prevRow < numRows) {
@@ -134,7 +135,7 @@ void StudentTableWidget::cellEntered(const int row)
             }
         }
     }
-    prevID = cellWidget(row, numCols-1)->property("StudentIndex").toInt();
+    prevID = cellWidget(row, numCols-1)->property("StudentID").toInt();
     cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " BUBBLYHEX "; border: none;}");
     cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " BUBBLYHEX "; border: none;}");
 }

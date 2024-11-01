@@ -33,7 +33,7 @@ public:
     gruepr(gruepr&&) = delete;
     gruepr& operator= (gruepr&&) = delete;
 
-    static void calcTeamScores(const StudentRecord *const _student, const int _numStudents, TeamRecord *const _teams, const int _numTeams,
+    static void calcTeamScores(const QList<StudentRecord> &_students, const int _numStudents, QList<TeamRecord> &_teams, const int _numTeams,
                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
 
     bool restartRequested = false;
@@ -56,8 +56,8 @@ private slots:
     void restartWithNewData();
     void changeSection(int index);
     void editAStudent();
-    void removeAStudent(const QString &name, bool delayVisualUpdate);
-    void removeAStudent(int index, bool delayVisualUpdate);
+    void removeAStudentByName(const QString &name);
+    void removeAStudent(const long long ID, const bool delayVisualUpdate = false);
     void addAStudent();
     void compareStudentsToRoster();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
@@ -86,6 +86,7 @@ private:
     inline void setTeamSizes(const int teamSizes[]);
     inline void setTeamSizes(const int singleSize);
     inline QString writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB);
+    inline StudentRecord* findStudentFromID(const int ID);
 
         // reading survey data
     int numActiveStudents = MAX_STUDENTS;

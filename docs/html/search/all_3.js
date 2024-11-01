@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['calcteamscores_0',['calcTeamScores',['../classgruepr.html#acac8cd1e648f7c93aa622a012a599212',1,'gruepr']]],
+  ['calcteamscores_0',['calcTeamScores',['../classgruepr.html#ac3a96cdde488f8d14db6abd103b51342',1,'gruepr']]],
   ['canvascourse_1',['CanvasCourse',['../struct_canvas_course.html',1,'']]],
   ['canvascourses_2',['canvasCourses',['../class_canvas_handler.html#a043c323975fda50250feaa36717efa0a',1,'CanvasHandler']]],
   ['canvashandler_3',['CanvasHandler',['../class_canvas_handler.html',1,'CanvasHandler'],['../class_canvas_handler.html#ab0069ba8fd6e8a2b8c2636d2454519a2',1,'CanvasHandler::CanvasHandler(QWidget *parent=nullptr)'],['../class_canvas_handler.html#a73a6e72508f2d89fb61d5093ec18bd17',1,'CanvasHandler::CanvasHandler(const CanvasHandler &amp;)=delete'],['../class_canvas_handler.html#ae6aa6a9f8042a3945f27b021136b06e9',1,'CanvasHandler::CanvasHandler(CanvasHandler &amp;&amp;)=delete']]],

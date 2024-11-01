@@ -38,7 +38,7 @@ var searchData=
   ['lms_35',['LMS',['../class_l_m_s.html',1,'LMS'],['../class_l_m_s.html#a7d7ba09595e8616e4b9ca482862e0a75',1,'LMS::LMS()']]],
   ['lms_2ecpp_36',['LMS.cpp',['../_l_m_s_8cpp.html',1,'']]],
   ['lms_2eh_37',['LMS.h',['../_l_m_s_8h.html',1,'']]],
-  ['lmsid_38',['LMSID',['../class_student_record.html#a4ab9f346c08bc42f4a6db8b52dd312d0',1,'StudentRecord::LMSID'],['../class_team_record.html#a7c83b888d5f488ba4d77c237b1b8707e',1,'TeamRecord::LMSID']]],
+  ['lmsid_38',['LMSID',['../class_student_record.html#a4ab9f346c08bc42f4a6db8b52dd312d0',1,'StudentRecord::LMSID'],['../class_team_record.html#ae517880fd821e28711abb94ae639d441',1,'TeamRecord::LMSID']]],
   ['lmsidfield_39',['LMSIDField',['../class_data_options.html#abb099d61aa2195bda3e67892f3d12d77',1,'DataOptions']]],
   ['ln_40',['ln',['../class_demographics_page.html#a04b8e1f009b52acd7c0d0d7f3b0be05d',1,'DemographicsPage']]],
   ['loadcsvfile_41',['loadCSVFile',['../class_teammates_rules_dialog.html#aebd6d4b3526da37430707ea43ac667db',1,'TeammatesRulesDialog']]],

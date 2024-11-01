@@ -2,7 +2,8 @@
 #include <QJsonArray>
 
 
-TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord) : teamSetDataOptions(teamSetDataOptions)
+TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord, const QList<StudentRecord> &students) :
+    teamSetDataOptions(teamSetDataOptions)
 {
     LMSID = jsonTeamRecord["LMSID"].toInt();
     score = jsonTeamRecord["score"].toDouble();
@@ -39,9 +40,19 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
         }
     }
 
-    const QJsonArray studentIndexesArray = jsonTeamRecord["studentIndexes"].toArray();
-    for (const auto &val : studentIndexesArray) {
-        studentIndexes << val.toInt();
+    if(jsonTeamRecord["studentIDs"].type() != QJsonValue::Undefined) {
+        const QJsonArray studentIDsArray = jsonTeamRecord["studentIDs"].toArray();
+        for (const auto &val : studentIDsArray) {
+            studentIDs << val.toInt();
+        }
+    }
+    else {
+        // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the students array rather than IDs
+        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+        const QJsonArray studentIndexesArray = jsonTeamRecord["studentIndexes"].toArray();
+        for (const auto &val : studentIndexesArray) {
+            studentIDs << students.at(val.toInt()).ID;
+        }
     }
 }
 
@@ -187,7 +198,7 @@ void TeamRecord::createTooltip()
 }
 
 
-void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int meetingBlockSize)
+void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int meetingBlockSize)
 {
     //re-zero values
     numSections = 0;
@@ -212,19 +223,28 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
 
     //set values
     for(int teammate = 0; teammate < size; teammate++) {
-        const StudentRecord &stu = student[studentIndexes.at(teammate)];
-        if(!sections.contains(stu.section)) {
-            sections << stu.section;
+        const StudentRecord* stu = nullptr;
+        for(auto &student : qAsConst(students)) {
+            if(student.ID == studentIDs.at(teammate)) {
+                stu = &student;
+            }
+        }
+        if(stu == nullptr) {
+            continue;
+        }
+
+        if(!sections.contains(stu->section)) {
+            sections << stu->section;
             numSections++;
         }
         if(teamSetDataOptions->genderIncluded) {
-            if(stu.gender == Gender::woman) {
+            if(stu->gender == Gender::woman) {
                 numWomen++;
             }
-            else if(stu.gender == Gender::man) {
+            else if(stu->gender == Gender::man) {
                 numMen++;
             }
-            else if(stu.gender == Gender::nonbinary) {
+            else if(stu->gender == Gender::nonbinary) {
                 numNonbinary++;
             }
             else {
@@ -232,17 +252,17 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
             }
         }
         if(teamSetDataOptions->URMIncluded) {
-            if(stu.URM) {
+            if(stu->URM) {
                 numURM++;
             }
         }
         for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
-            attributeVals[attribute].insert(stu.attributeVals[attribute].constBegin(), stu.attributeVals[attribute].constEnd());
+            attributeVals[attribute].insert(stu->attributeVals[attribute].constBegin(), stu->attributeVals[attribute].constEnd());
         }
-        if(!stu.ambiguousSchedule) {
+        if(!stu->ambiguousSchedule) {
             for(int day = 0; day < numDays; day++) {
                 for(int time = 0; time < numTimes; time++) {
-                    if(!stu.unavailable[day][time]) {
+                    if(!stu->unavailable[day][time]) {
                         numStudentsAvailable[day][time]++;
                     }
                 }
@@ -252,7 +272,7 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
             numStudentsWithAmbiguousSchedules++;
         }
         if(teamSetDataOptions->timezoneIncluded) {
-            timezoneVals.insert(stu.timezone);
+            timezoneVals.insert(stu->timezone);
         }
     }
 
@@ -277,7 +297,7 @@ void TeamRecord::refreshTeamInfo(const StudentRecord* const student, const int m
 
 QJsonObject TeamRecord::toJson() const
 {
-    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, studentIndexesArray;
+    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, studentIDsArray;
     for(const auto &attributeVal : attributeVals) {
         QJsonArray attributeValsArraySubArray;
         for (const auto &val : attributeVal) {
@@ -295,8 +315,8 @@ QJsonObject TeamRecord::toJson() const
         }
         numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);
     }
-    for(const auto &studentIndex : studentIndexes) {
-        studentIndexesArray.append(studentIndex);
+    for(const auto &studentID : studentIDs) {
+        studentIDsArray.append(studentID);
     }
 
     QJsonObject content {
@@ -314,7 +334,7 @@ QJsonObject TeamRecord::toJson() const
         {"numStudentsAvailable", numStudentsAvailableArray},
         {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
         {"numMeetingTimes", numMeetingTimes},
-        {"studentIndexes", studentIndexesArray},
+        {"studentIDs", studentIDsArray},
         {"name", name},
         {"tooltip", tooltip},
         {"dataOptions", teamSetDataOptions->toJson()}

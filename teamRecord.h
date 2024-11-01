@@ -14,14 +14,14 @@ class TeamRecord
 {
 public:
     explicit TeamRecord(const DataOptions *const teamSetDataOptions, int teamSize) : size(teamSize), teamSetDataOptions(teamSetDataOptions) {};
-    explicit TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord);
+    explicit TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonObject &jsonTeamRecord, const QList<StudentRecord> &students);
 
     void createTooltip();
-    void refreshTeamInfo(const StudentRecord* const student, const int meetingBlockSize);
+    void refreshTeamInfo(const QList<StudentRecord> &students, const int meetingBlockSize);
 
     QJsonObject toJson() const;
 
-    int LMSID = -1;         // ID number for this team according to the learning management system
+    long long LMSID = -1;           // team ID number according to the learning management system
     float score = 0;
     int size = 1;
     int numSections = 0;
@@ -35,7 +35,7 @@ public:
     int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     int numMeetingTimes = 0;
-    QList<int> studentIndexes;
+    QList<int> studentIDs;
     QString name;
     QString tooltip;
 

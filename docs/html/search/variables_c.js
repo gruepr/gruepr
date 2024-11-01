@@ -20,7 +20,7 @@ var searchData=
   ['lineediterrorstyle_17',['LINEEDITERRORSTYLE',['../gruepr__globals_8h.html#a8f6432454b8183f2801bab96f13f117c',1,'gruepr_globals.h']]],
   ['lineeditstyle_18',['LINEEDITSTYLE',['../gruepr__globals_8h.html#aff5f959eb7042b2ca56156becbb622d2',1,'gruepr_globals.h']]],
   ['littlefontsize_19',['LITTLEFONTSIZE',['../class_start_dialog.html#a230430d8a6ae190557f419f522c2eff2',1,'StartDialog']]],
-  ['lmsid_20',['LMSID',['../class_student_record.html#a4ab9f346c08bc42f4a6db8b52dd312d0',1,'StudentRecord::LMSID'],['../class_team_record.html#a7c83b888d5f488ba4d77c237b1b8707e',1,'TeamRecord::LMSID']]],
+  ['lmsid_20',['LMSID',['../class_student_record.html#a4ab9f346c08bc42f4a6db8b52dd312d0',1,'StudentRecord::LMSID'],['../class_team_record.html#ae517880fd821e28711abb94ae639d441',1,'TeamRecord::LMSID']]],
   ['lmsidfield_21',['LMSIDField',['../class_data_options.html#abb099d61aa2195bda3e67892f3d12d77',1,'DataOptions']]],
   ['ln_22',['ln',['../class_demographics_page.html#a04b8e1f009b52acd7c0d0d7f3b0be05d',1,'DemographicsPage']]],
   ['loadingbar_23',['loadingBar',['../class_start_dialog.html#a0ae2a1ddd2cec0c2f8ff555b1bee7680',1,'StartDialog']]],
