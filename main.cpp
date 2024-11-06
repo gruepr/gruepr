@@ -39,11 +39,12 @@
 //  - edit buttons no longer get confused when a single section is selected
 //
 // INPROG:
-//  - outside of optimization process, replace all use of indexes in student array to refer to a specific student--use ID instead
-//      - remove studentIndexes from teamRecord
-//        - test all aspects of team tab
-//        - crash / bug in renaming teams and swapping/moving students
-//  - do the same for index into teams array
+//  - "deleting" a student no longer removes them from the QList, just marks them as deleted and makes them not be displayed anywhere
+//  - remove c-style arrays except in intensive optimization steps; update where applicable to range-based for-loops
+//    - outside of optimization process, replace all use of a C-style student array and indexes into it to refer to a specific student--use ID instead
+//        - remove studentIndexes from teamRecord
+//          - crash / bug in renaming teams and swapping/moving students?
+//    - use QList, not array, for IDs of req/prev/reques teammates (currently working in teammates rules dialog)
 //
 // TO DO:
 //    BUGFIX:
@@ -51,6 +52,7 @@
 //  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
 //
 //    NEW FEATURES:
+//  - remove c-style arrays for teams/teamsets
 //  - speed up loading data--lag seems to be in parsing studentRecord from string->repeatedly using grueprGlobal::timeStringToHours, line 253
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type
@@ -60,7 +62,6 @@
 //
 //    INTERNAL:
 //  - modernize pointers throughout to smart pointers
-//  - remove c-style arrays except in intensive optimization steps and update to range-based for-loops
 //  - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
 //

@@ -16,7 +16,8 @@
 #include <QtNetwork>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// A dialog to register the software
+// A dialog to choose whether to create a survey or use survey results to form teams;
+// also offers the ability to register an unregistered copy of the program and to download a new version
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 StartDialog::StartDialog(QWidget *parent)
@@ -231,7 +232,7 @@ StartDialog::GrueprVersion StartDialog::getLatestVersionFromGithub() {
         thisVersion << "0";
     }
     // convert to single integer
-    unsigned long long int latestVersionAsInt = 0, thisVersionAsInt = 0;
+    unsigned long long latestVersionAsInt = 0, thisVersionAsInt = 0;
     for(int field = 0; field < NUMBER_VERSION_FIELDS; field++) {
         latestVersionAsInt = (latestVersionAsInt*NUMBER_VERSION_PRECISION) + latestVersion.at(field).toInt();
         thisVersionAsInt = (thisVersionAsInt*NUMBER_VERSION_PRECISION) + thisVersion.at(field).toInt();

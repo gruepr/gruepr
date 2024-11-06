@@ -396,10 +396,10 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
 
     if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
         // remove this student from all other students who might have them as required/prevented/requested
-        for(int otherIndex = 0; otherIndex < dataOptions->numStudentsInSystem; otherIndex++) {
-            students[otherIndex].requiredWith[ID] = false;
-            students[otherIndex].preventedWith[ID] = false;
-            students[otherIndex].requestedWith[ID] = false;
+        for(auto &student : students) {
+            student.requiredWith.remove(ID);
+            student.preventedWith.remove(ID);
+            student.requestedWith.remove(ID);
         }
     }
 
@@ -2471,9 +2471,9 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
 
     // Determine penalties for required teammates NOT on team, prevented teammates on team, and insufficient number of requested teammates on team
     if(_teamingOptions->haveAnyRequiredTeammates || _teamingOptions->haveAnyPreventedTeammates || _teamingOptions->haveAnyRequestedTeammates) {
-        std::set<int> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
-        std::multiset<int> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
-        std::vector< std::set<int> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
+        std::set<long long> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
+        std::multiset<long long> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
+        std::vector< std::set<long long> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
 
         // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
         studentNum = 0;
@@ -2498,13 +2498,13 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
                 IDsOnTeam.insert(currStudent->ID);
                 requestedIDsByStudent.clear();
                 for(const auto ID : IDsBeingTeamed) {
-                    if(currStudent->requiredWith[ID]) {
+                    if(currStudent->requiredWith.contains(ID)) {
                         requiredIDsOnTeam.insert(ID);
                     }
-                    if(currStudent->preventedWith[ID]) {
+                    if(currStudent->preventedWith.contains(ID)) {
                         preventedIDsOnTeam.insert(ID);
                     }
-                    if(currStudent->requestedWith[ID]) {
+                    if(currStudent->requestedWith.contains(ID)) {
                         requestedIDsByStudent.insert(ID);
                     }
                 }

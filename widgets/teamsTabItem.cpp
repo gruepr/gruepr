@@ -388,10 +388,8 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
                                                             tr("Yes"), tr("No"));
         if(yesDoIt) {
             for(auto &student : *externalStudents) {
-                for(int i = 0; i < MAX_IDS; i++) {
-                    student.requiredWith[i] = false;
-                    student.requestedWith[i] = false;
-                }
+                student.requiredWith.clear();
+                student.requestedWith.clear();
             }
         }
         else {
@@ -412,7 +410,7 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
                     if(stu == nullptr) {
                         continue;
                     }
-                    stu->preventedWith[ID2] = true;
+                    stu->preventedWith << ID2;
                 }
             }
         }

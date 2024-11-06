@@ -42,14 +42,59 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
             unavailable[i][j] = unavailableArraySubArray[j].toBool();
         }
     }
-    QJsonArray preventedWithArray = jsonStudentRecord["preventedWith"].toArray();
-    QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
-    QJsonArray requestedWithArray = jsonStudentRecord["requestedWith"].toArray();
-    for(int i = 0; i < MAX_IDS; i++) {
-        preventedWith[i] = preventedWithArray[i].toBool();
-        requiredWith[i] = requiredWithArray[i].toBool();
-        requestedWith[i] = requestedWithArray[i].toBool();
+
+    if(jsonStudentRecord["preventedWithIDs"].type() != QJsonValue::Undefined) {
+        const QJsonArray preventedWithIDsArray = jsonStudentRecord["preventedWithIDs"].toArray();
+        for (const auto &val : preventedWithIDsArray) {
+            preventedWith << val.toInteger();
+        }
     }
+    else {
+        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs
+        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+        const QJsonArray preventedWithArray = jsonStudentRecord["preventedWith"].toArray();
+        for(int i = 0; i < MAX_IDS; i++) {
+            if(preventedWithArray[i].toBool()) {
+                preventedWith << i;
+            }
+        }
+    }
+
+    if(jsonStudentRecord["requiredWithIDs"].type() != QJsonValue::Undefined) {
+        const QJsonArray requiredWithIDsArray = jsonStudentRecord["requiredWithIDs"].toArray();
+        for (const auto &val : requiredWithIDsArray) {
+            requiredWith << val.toInteger();
+        }
+    }
+    else {
+        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs
+        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+        const QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
+        for(int i = 0; i < MAX_IDS; i++) {
+            if(requiredWithArray[i].toBool()) {
+                requiredWith << i;
+            }
+        }
+    }
+
+    QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
+    if(jsonStudentRecord["requestedWithIDs"].type() != QJsonValue::Undefined) {
+        const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
+        for (const auto &val : requestedWithIDsArray) {
+            requestedWith << val.toInteger();
+        }
+    }
+    else {
+        // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the students array rather than IDs
+        // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
+        const QJsonArray requestedWithArray = jsonStudentRecord["requestedWith"].toArray();
+        for(int i = 0; i < MAX_IDS; i++) {
+            if(requestedWithArray[i].toBool()) {
+                requestedWith << i;
+            }
+        }
+    }
+
     QJsonArray attributeValsArray = jsonStudentRecord["attributeVals"].toArray();
     QJsonArray attributeResponseArray = jsonStudentRecord["attributeResponse"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
@@ -75,11 +120,9 @@ void StudentRecord::clear() {
     }
     timezone = 0;
     ambiguousSchedule = false;
-    for(int i = 0; i < MAX_IDS; i++) {
-        preventedWith[i] = {false};
-        requiredWith[i] = {false};
-        requestedWith[i] = {false};
-    }
+    preventedWith.clear();
+    requiredWith.clear();
+    requestedWith.clear();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeVals[i].clear();
         attributeResponse[i].clear();
@@ -521,10 +564,14 @@ QJsonObject StudentRecord::toJson() const
         }
         unavailableArray.append(unavailableArraySubArray);
     }
-    for(int i = 0; i < MAX_IDS; i++) {
-        preventedWithArray.append(preventedWith[i]);
-        requiredWithArray.append(requiredWith[i]);
-        requestedWithArray.append(requestedWith[i]);
+    for(const auto id : preventedWith) {
+        preventedWithArray.append(id);
+    }
+    for(const auto id : requiredWith) {
+        requiredWithArray.append(id);
+    }
+        for(const auto id : requestedWith) {
+        requestedWithArray.append(id);
     }
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeResponseArray.append(attributeResponse[i]);
@@ -545,9 +592,9 @@ QJsonObject StudentRecord::toJson() const
         {"unavailable", unavailableArray},
         {"timezone", timezone},
         {"ambiguousSchedule", ambiguousSchedule},
-        {"preventedWith", preventedWithArray},
-        {"requiredWith", requiredWithArray},
-        {"requestedWith", requestedWithArray},
+        {"preventedWithIDs", preventedWithArray},
+        {"requiredWithIDs", requiredWithArray},
+        {"requestedWithIDs", requestedWithArray},
         {"attributeVals", attributeValsArray},
         {"surveyTimestamp", surveyTimestamp.toString(Qt::ISODate)},
         {"firstname", firstname},

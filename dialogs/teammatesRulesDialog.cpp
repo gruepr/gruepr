@@ -73,7 +73,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     for(auto &studentcombobox : studentcomboboxes) {
         studentcombobox->setStyleSheet(COMBOBOXSTYLE);
         for(const auto &student : students) {
-            if((sectionName == "") || (sectionName == student.section)) {
+            if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
                 studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
             }
         }
@@ -257,7 +257,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
 
     QList<StudentRecord *> baseStudents;
     for(auto &student : students) {
-        if((sectionName == "") || (sectionName == student.section)) {
+        if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             baseStudents << &student;
         }
     }
@@ -286,15 +286,15 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
         }
 
         bool printStudent;
-        for(int studentBID = 0; studentBID < MAX_IDS; studentBID++) {
+        for(long long studentBID = 0; studentBID < MAX_IDS; studentBID++) {
             if(typeOfTeammates == TypeOfTeammates::required) {
-                printStudent = baseStudent->requiredWith[studentBID];
+                printStudent = baseStudent->requiredWith.contains(studentBID);
             }
             else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                printStudent = baseStudent->preventedWith[studentBID];
+                printStudent = baseStudent->preventedWith.contains(studentBID);
             }
             else {
-                printStudent = baseStudent->requestedWith[studentBID];
+                printStudent = baseStudent->requestedWith.contains(studentBID);
             }
             if(printStudent) {
                 atLeastOneTeammate = true;
@@ -302,14 +302,12 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
 
                 // find studentB from their ID
                 StudentRecord *studentB = nullptr;
-                int index = 0;
-                while((students.at(index).ID != studentBID) && (index < numStudents)) {
-                    index++;
+                for(auto &stu : students) {
+                    if((stu.ID == studentBID) && !stu.deleted) {
+                        studentB = &stu;
+                    }
                 }
-                if(index < numStudents) {
-                    studentB = &students[index];
-                }
-                else {
+                if(studentB == nullptr) {
                     continue;
                 }
                 if(table->columnCount() < column+1) {
@@ -325,19 +323,19 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
                 remover->setIconSize(ICONSIZE);
                 if(typeOfTeammates == TypeOfTeammates::required) {
                     connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
-                                                            {baseStudent->requiredWith[studentB->ID] = false;
-                                                             studentB->requiredWith[baseStudent->ID] = false;
+                                                            {baseStudent->requiredWith.remove(studentB->ID);
+                                                             studentB->requiredWith.remove(baseStudent->ID);
                                                              refreshDisplay(TypeOfTeammates::required);});
                 }
                 else if(typeOfTeammates == TypeOfTeammates::prevented) {
                     connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
-                                                            {baseStudent->preventedWith[studentB->ID] = false;
-                                                             studentB->preventedWith[baseStudent->ID] = false;
+                                                            {baseStudent->preventedWith.remove(studentB->ID);
+                                                             studentB->preventedWith.remove(baseStudent->ID);
                                                              refreshDisplay(TypeOfTeammates::prevented);});
                 }
                 else {
                     connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
-                                                            {baseStudent->requestedWith[studentB->ID] = false;
+                                                            {baseStudent->requestedWith.remove(studentB->ID);
                                                              refreshDisplay(TypeOfTeammates::requested);});
                 }
                 box->addWidget(label);
@@ -385,7 +383,7 @@ void TeammatesRulesDialog::addTeammateSelector(TypeOfTeammates typeOfTeammates)
     studentcombobox->setStyleSheet(COMBOBOXSTYLE);
     for(const auto &student : students) {
         studentcombobox->setPlaceholderText(comboBoxes->first()->placeholderText());
-        if((sectionName == "") || (sectionName == student.section)) {
+        if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
         }
     }
@@ -450,12 +448,12 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
 
                     //we have at least one required/prevented teammate pair!
                     if(typeOfTeammates == TypeOfTeammates::required) {
-                        student1->requiredWith[IDs[ID2]] = true;
-                        student2->requiredWith[IDs[ID1]] = true;
+                        student1->requiredWith << IDs[ID2];
+                        student2->requiredWith << IDs[ID1];
                     }
                     else {
-                        student1->preventedWith[IDs[ID2]] = true;
-                        student2->preventedWith[IDs[ID1]] = true;
+                        student1->preventedWith << IDs[ID2];
+                        student2->preventedWith << IDs[ID1];
                     }
                 }
             }
@@ -475,7 +473,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
             for(const int ID : IDs) {
                 if(baseStudentID != ID) {
                     //we have at least one requested teammate pair!
-                    baseStudent->requestedWith[ID] = true;
+                    baseStudent->requestedWith << ID;
                 }
             }
         }
@@ -533,13 +531,13 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
         if((sectionName == "") || (sectionName == student.section)) {
             for(int index2 = 0; index2 < numStudents; index2++) {
                 if(typeOfTeammates == TypeOfTeammates::required) {
-                    student.requiredWith[index2] = false;
+                    student.requiredWith.remove(index2);
                 }
                 else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                    student.preventedWith[index2] = false;
+                    student.preventedWith.remove(index2);
                 }
                 else {
-                    student.requestedWith[index2] = false;
+                    student.requestedWith.remove(index2);
                 }
             }
         }
@@ -683,15 +681,15 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
 
                 //we have at least one specified teammate pair!
                 if(typeOfTeammates == TypeOfTeammates::required) {
-                    baseStudent->requiredWith[IDs[ID2]] = true;
-                    student2->requiredWith[IDs[0]] = true;
+                    baseStudent->requiredWith << IDs[ID2];
+                    student2->requiredWith << IDs[0];
                 }
                 else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                    baseStudent->preventedWith[IDs[ID2]] = true;
-                    student2->preventedWith[IDs[0]] = true;
+                    baseStudent->preventedWith << IDs[ID2];
+                    student2->preventedWith << IDs[0];
                 }
                 else {  //whatType == requested
-                    baseStudent->requestedWith[IDs[ID2]] = true;
+                    baseStudent->requestedWith << IDs[ID2];
                 }
             }
         }
@@ -769,15 +767,15 @@ bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
 
                         //we have at least one specified teammate pair!
                         if(typeOfTeammates == TypeOfTeammates::required) {
-                            baseStudent->requiredWith[IDs[ID2]] = true;
-                            student2->requiredWith[IDs[0]] = true;
+                            baseStudent->requiredWith << IDs[ID2];
+                            student2->requiredWith << IDs[0];
                         }
                         else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                            baseStudent->preventedWith[IDs[ID2]] = true;
-                            student2->preventedWith[IDs[0]] = true;
+                            baseStudent->preventedWith << IDs[ID2];
+                            student2->preventedWith << IDs[0];
                         }
                         else {  //whatType == requested
-                            baseStudent->requestedWith[IDs[ID2]] = true;
+                            baseStudent->requestedWith << IDs[ID2];
                         }
                     }
                 }
@@ -897,16 +895,16 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
 
                     //we have at least one required/prevented teammate pair!
                     if(typeOfTeammates == TypeOfTeammates::required) {
-                        student1->requiredWith[IDs[ID2]] = true;
-                        student2->requiredWith[IDs[ID1]] = true;
+                        student1->requiredWith << IDs[ID2];
+                        student2->requiredWith << IDs[ID1];
                     }
                     else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                        student1->preventedWith[IDs[ID2]] = true;
-                        student2->preventedWith[IDs[ID1]] = true;
+                        student1->preventedWith << IDs[ID2];
+                        student2->preventedWith << IDs[ID1];
                     }
                     else {  //whatType == requested
-                        student1->requestedWith[IDs[ID2]] = true;
-                        student2->requestedWith[IDs[ID1]] = true;
+                        student1->requestedWith << IDs[ID2];
+                        student2->requestedWith << IDs[ID1];
                     }
                 }
             }
