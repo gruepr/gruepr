@@ -43,7 +43,7 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
     if(jsonTeamRecord["studentIDs"].type() != QJsonValue::Undefined) {
         const QJsonArray studentIDsArray = jsonTeamRecord["studentIDs"].toArray();
         for (const auto &val : studentIDsArray) {
-            studentIDs << val.toInt();
+            studentIDs << val.toInteger();
         }
     }
     else {

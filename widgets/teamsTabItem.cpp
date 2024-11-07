@@ -29,7 +29,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet
     teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made to use in print/save
     teams = incomingTeamSet;
     students = incomingStudents;
-    numStudents = teams.dataOptions.numStudentsInSystem;
+    numStudents = students.size();
     tabName = incomingTabName;
 
     init(incomingTeamingOptions, incomingStudents, letsDoItButton);
@@ -1074,8 +1074,8 @@ void TeamsTabItem::refreshTeamDisplay()
     childItems.reserve(numStudents);
 
     //iterate through teams to update the tree of teams and students
+    int teamNum = 0;
     for(const auto &team : teams) {
-        static int teamNum = 0;
         parentItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
         const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
         const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;

@@ -35,7 +35,7 @@ public:
     int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     int numMeetingTimes = 0;
-    QList<int> studentIDs;
+    QList<long long> studentIDs;
     QString name;
     QString tooltip;
 

@@ -10,7 +10,7 @@
 // A dialog to select a name from a list when a perfect match is not found
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<StudentRecord> &students, const QString &searchName, QWidget *parent,
+findMatchingNameDialog::findMatchingNameDialog(const QList<StudentRecord> &students, const QString &searchName, QWidget *parent,
                                                const QString &nameOfStudentWhoAsked, const bool addStudentOption, const QString &searchEmail)
     :QDialog(parent)
 {
@@ -18,7 +18,7 @@ findMatchingNameDialog::findMatchingNameDialog(int numStudents, const QList<Stud
 
     // create list of names (map is <Key = Levenshtein distance, Value = name & index in student array>)
     QMultiMap<int, QString> possibleStudents;
-    for(int knownStudent = 0; knownStudent < numStudents; knownStudent++) {
+    for(int knownStudent = 0; knownStudent < students.size(); knownStudent++) {
         int rank = levenshtein::distance(searchName, students[knownStudent].firstname + " " + students[knownStudent].lastname);
         if(!searchEmail.isEmpty() && searchEmail.compare(students[knownStudent].email, Qt::CaseInsensitive) == 0) {
             rank = 0;

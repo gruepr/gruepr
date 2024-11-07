@@ -76,7 +76,7 @@ var searchData=
   ['studentfilepdfcheckbox_73',['studentFilepdfCheckBox',['../classwhich_files_dialog.html#a90680c76c32bf680a7ba97343cfcfb41',1,'whichFilesDialog']]],
   ['studentfiletxt_74',['studentFiletxt',['../classwhich_files_dialog.html#a5460ccf85886bb647c02cc52fe2d49f2',1,'whichFilesDialog']]],
   ['studentfiletxtcheckbox_75',['studentFiletxtCheckBox',['../classwhich_files_dialog.html#a699b6f8d31a74f4579354cdbb6976055',1,'whichFilesDialog']]],
-  ['studentids_76',['studentIDs',['../class_team_record.html#a1e03c564c414c438cd951f4b4b0bc0be',1,'TeamRecord']]],
+  ['studentids_76',['studentIDs',['../class_team_record.html#a2c37a49526149a6d0a11089eecaaa133',1,'TeamRecord']]],
   ['studentindexes_77',['studentIndexes',['../classgruepr.html#a0bab885b14c8479788003d1ac6172abd',1,'gruepr']]],
   ['students_78',['students',['../class_get_gruepr_data_dialog.html#a64a041bdb5840df7238b1ecc0d606ba2',1,'GetGrueprDataDialog::students'],['../class_teammates_rules_dialog.html#aa45365a9bee960b8ba4827924666cdb8',1,'TeammatesRulesDialog::students'],['../classgruepr.html#a9a1d08b204bc773359378efdaeb94b9a',1,'gruepr::students'],['../class_teams_tab_item.html#a261c6d5760c4b74a94c0f2a20cd112fa',1,'TeamsTabItem::students']]],
   ['sundaymidnight_79',['sundayMidnight',['../class_survey_maker_wizard.html#a1b5cac9dfb047022059c3cdcd47ca1ed',1,'SurveyMakerWizard']]],

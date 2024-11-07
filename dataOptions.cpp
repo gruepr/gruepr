@@ -56,7 +56,6 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     numPrefTeammateQuestions = jsonDataOptions["numPrefTeammateQuestions"].toInt();
     prefNonTeammatesIncluded = jsonDataOptions["prefNonTeammatesIncluded"].toBool();
     numPrefNonTeammateQuestions = jsonDataOptions["numPrefNonTeammateQuestions"].toInt();
-    numStudentsInSystem = jsonDataOptions["numStudentsInSystem"].toInt();
     dataSourceName = jsonDataOptions["dataSourceName"].toString();
     dataSource = static_cast<DataSource>(jsonDataOptions["dataSource"].toInt());
     saveStateFileName = jsonDataOptions["saveStateFileName"].toString();
@@ -279,7 +278,6 @@ QJsonObject DataOptions::toJson() const
         {"prefNonTeammatesIncluded", prefNonTeammatesIncluded},
         {"numPrefNonTeammateQuestions", numPrefNonTeammateQuestions},
         {"prefNonTeammatesField", prefNonTeammatesFieldArray},
-        {"numStudentsInSystem", numStudentsInSystem},
         {"sectionNames", QJsonArray::fromStringList(sectionNames)},
         {"attributeQuestionText", QJsonArray::fromStringList(attributeQuestionText)},
         {"attributeQuestionResponses", attributeQuestionResponsesArray},

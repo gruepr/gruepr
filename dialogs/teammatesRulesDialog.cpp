@@ -256,8 +256,10 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
     *teammatesSpecified = false;     // assume no teammates specified until we find one
 
     QList<StudentRecord *> baseStudents;
+    QList<long long> allIDs;
     for(auto &student : students) {
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
+            allIDs << student.ID;
             baseStudents << &student;
         }
     }
@@ -286,7 +288,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
         }
 
         bool printStudent;
-        for(long long studentBID = 0; studentBID < MAX_IDS; studentBID++) {
+        for(const auto studentBID : allIDs) {
             if(typeOfTeammates == TypeOfTeammates::required) {
                 printStudent = baseStudent->requiredWith.contains(studentBID);
             }
@@ -643,7 +645,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
             }
             else {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, students, searchStudent, this);
+                auto *choiceWindow = new findMatchingNameDialog(students, searchStudent, this);
                 if(choiceWindow->exec() == QDialog::Accepted) {
                     IDs << choiceWindow->currSurveyID;
                 }
@@ -730,7 +732,7 @@ bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
                 }
                 else {
                     // No exact match, so list possible matches sorted by Levenshtein distance
-                    auto *choiceWindow = new findMatchingNameDialog(numStudents, students, prefs.at(searchStudent), this, prefs.at(0));
+                    auto *choiceWindow = new findMatchingNameDialog(students, prefs.at(searchStudent), this, prefs.at(0));
                     if(choiceWindow->exec() == QDialog::Accepted) {
                         IDs << choiceWindow->currSurveyID;
                     }
@@ -856,7 +858,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
             }
             else {
                 // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, students, searchStudent, this);
+                auto *choiceWindow = new findMatchingNameDialog(students, searchStudent, this);
                 if(choiceWindow->exec() == QDialog::Accepted) {
                     IDs << choiceWindow->currSurveyID;
                 }

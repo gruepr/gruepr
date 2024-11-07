@@ -56,7 +56,6 @@ public:
     bool prefNonTeammatesIncluded = false;          // did students get to include preferred non-teammates?
     int numPrefNonTeammateQuestions = 0;
     int prefNonTeammatesField[MAX_PREFTEAMMATES];   // which field(s) in surveyFile has the preferred non-teammates info?
-    int numStudentsInSystem = 0;                    // total number of students in the file
     QStringList sectionNames;                       // all of the section names
     QStringList attributeQuestionText;              // the actual attribute questions asked of the students
     QStringList attributeQuestionResponses[MAX_ATTRIBUTES];         // the list of responses to each of the attribute questions

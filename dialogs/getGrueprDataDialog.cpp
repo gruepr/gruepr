@@ -1015,8 +1015,6 @@ bool GetGrueprDataDialog::readData()
         }
     }
 
-    dataOptions->numStudentsInSystem = numStudents;
-
     if(numStudents == MAX_STUDENTS) {
         grueprGlobal::errorMessage(this, tr("Reached maximum number of students."),
                                    tr("The maximum number of students have been read."
@@ -1034,9 +1032,9 @@ bool GetGrueprDataDialog::readData()
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];
             // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
-            for(int index = 0; index < dataOptions->numStudentsInSystem; index++) {
-                if(!responses.contains(students[index].attributeResponse[attribute])) {
-                    responses << students[index].attributeResponse[attribute];
+            for(const auto &student : students) {
+                if(!responses.contains(student.attributeResponse[attribute])) {
+                    responses << student.attributeResponse[attribute];
                 }
             }
             if(responses.size() > 1) {

@@ -46,12 +46,11 @@ var searchData=
   ['numsectionsentered_43',['numSectionsEntered',['../class_course_info_page.html#af4da61bf95b3e332f3429c6e0e6a2abe',1,'CourseInfoPage']]],
   ['numstudents_44',['numStudents',['../classcustom_teamsizes_dialog.html#a7f87a422d252ec28c0b12be7d31f6d23',1,'customTeamsizesDialog::numStudents'],['../class_teammates_rules_dialog.html#a4fcb4c41c4ff3cfcc53e3640ff7b9620',1,'TeammatesRulesDialog::numStudents'],['../struct_canvas_course.html#a89e538a19792d3c9f89fef5dce79b820',1,'CanvasCourse::numStudents'],['../class_teams_tab_item.html#a4f25cf9b585946fe58f9945d44776eb7',1,'TeamsTabItem::numStudents']]],
   ['numstudentsavailable_45',['numStudentsAvailable',['../class_team_record.html#a481b8d92c781841c9058e3934670dbb6',1,'TeamRecord']]],
-  ['numstudentsinsystem_46',['numStudentsInSystem',['../class_data_options.html#ab232cd5c0d18eec88a732a0090d6bdb4',1,'DataOptions']]],
-  ['numstudentswithambiguousschedules_47',['numStudentsWithAmbiguousSchedules',['../class_team_record.html#adfa0065510e443f02385879e4969f952',1,'TeamRecord']]],
-  ['numteams_48',['numTeams',['../classcustom_teamsizes_dialog.html#a21d696e1951cd2d2b0605d6dccfc0391',1,'customTeamsizesDialog::numTeams'],['../classgruepr.html#aba32bc577e27b2260c919b71a1044776',1,'gruepr::numTeams']]],
-  ['numteamsbox_49',['numTeamsBox',['../classcustom_teamsizes_dialog.html#ae9d1dcabe0473837efc6992062b330f1',1,'customTeamsizesDialog']]],
-  ['numteamsdesired_50',['numTeamsDesired',['../class_teaming_options.html#aca555f15b0cf0120a607d00ca9371352',1,'TeamingOptions']]],
-  ['numunknown_51',['numUnknown',['../class_team_record.html#a9f45a595de6ce7ea782a3ba32fa3370d',1,'TeamRecord']]],
-  ['numurm_52',['numURM',['../class_team_record.html#a333287420ed282f050965a9484a5fb35',1,'TeamRecord']]],
-  ['numwomen_53',['numWomen',['../class_team_record.html#afc8992b1cf25088974caff3e0a60289c',1,'TeamRecord']]]
+  ['numstudentswithambiguousschedules_46',['numStudentsWithAmbiguousSchedules',['../class_team_record.html#adfa0065510e443f02385879e4969f952',1,'TeamRecord']]],
+  ['numteams_47',['numTeams',['../classcustom_teamsizes_dialog.html#a21d696e1951cd2d2b0605d6dccfc0391',1,'customTeamsizesDialog::numTeams'],['../classgruepr.html#aba32bc577e27b2260c919b71a1044776',1,'gruepr::numTeams']]],
+  ['numteamsbox_48',['numTeamsBox',['../classcustom_teamsizes_dialog.html#ae9d1dcabe0473837efc6992062b330f1',1,'customTeamsizesDialog']]],
+  ['numteamsdesired_49',['numTeamsDesired',['../class_teaming_options.html#aca555f15b0cf0120a607d00ca9371352',1,'TeamingOptions']]],
+  ['numunknown_50',['numUnknown',['../class_team_record.html#a9f45a595de6ce7ea782a3ba32fa3370d',1,'TeamRecord']]],
+  ['numurm_51',['numURM',['../class_team_record.html#a333287420ed282f050965a9484a5fb35',1,'TeamRecord']]],
+  ['numwomen_52',['numWomen',['../class_team_record.html#afc8992b1cf25088974caff3e0a60289c',1,'TeamRecord']]]
 ];

@@ -56,7 +56,7 @@ private slots:
     void restartWithNewData();
     void changeSection(int index);
     void editAStudent();
-    void removeAStudentByName(const QString &name);
+    void removeAStudent(const QString &name);
     void removeAStudent(const long long ID, const bool delayVisualUpdate = false);
     void addAStudent();
     void compareStudentsToRoster();
