@@ -39,6 +39,7 @@ class CsvFile : public QObject
 public:
     enum class Delimiter {comma, tab};
     enum class Source {fileOnly, fileOrOnline};
+    enum class Operation {read, write};
 
     CsvFile(Delimiter dlmtr = Delimiter::comma, QObject *parent = nullptr);
     ~CsvFile() override;
@@ -47,7 +48,6 @@ public:
     CsvFile(CsvFile&&) = delete;
     CsvFile& operator= (CsvFile&&) = delete;
 
-    enum class Operation {read, write};
     bool open(QWidget *parent = nullptr, Operation operation = Operation::read, const QString &caption = tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     bool openExistingFile(const QString &filepath);

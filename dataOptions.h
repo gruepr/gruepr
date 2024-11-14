@@ -24,6 +24,7 @@ public:
 
     inline static const int FIELDNOTPRESENT = -1;
     inline static const int DATAFROMOTHERSOURCE = 101;
+
     int timestampField = FIELDNOTPRESENT;
     int LMSIDField = FIELDNOTPRESENT;
     int emailField = FIELDNOTPRESENT;

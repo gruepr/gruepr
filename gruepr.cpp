@@ -509,7 +509,9 @@ void gruepr::compareStudentsToRoster()
         studentsWithDiffEmail.reserve(students.size());
 
         for(auto &name : names) {
-            StudentRecord *stu = nullptr;     // start at first student in database and look until we find a matching firstname + " " +last name
+            // first try to find student in the existing students data
+            // start at first student in database and look until we find a matching firstname + " " +last name
+            StudentRecord *stu = nullptr;
             for(auto &student : students) {
                 if(name.compare(student.firstname + " " + student.lastname, Qt::CaseInsensitive) == 0) {
                     stu = &student;
@@ -517,11 +519,15 @@ void gruepr::compareStudentsToRoster()
                 }
             }
 
+            // get the email corresponding to this name on the roster
+            const int index = names.indexOf(name);
+            const QString &rosterEmail = ((index >= 0 && index < emails.size())? emails.at(index) : "");
+
             if(stu != nullptr) {
-                // Exact match found
+                // Exact match for name was found in existing students
                 namesNotFound.removeAll(stu->firstname + " " + stu->lastname);
                 if(!emails.isEmpty()) {
-                    if(stu->email.compare(emails.at(names.indexOf(name)), Qt::CaseInsensitive) != 0) {
+                    if(stu->email.compare(rosterEmail, Qt::CaseInsensitive) != 0) {
                         // Email in survey doesn't match roster
                         studentsWithDiffEmail << stu;
                     }
@@ -529,7 +535,7 @@ void gruepr::compareStudentsToRoster()
             }
             else {
                 // No exact match, so list possible matches sorted by Levenshtein distance and allow user to pick a match, add as a new student, or ignore
-                auto *choiceWindow = new findMatchingNameDialog(students, name, this, "", true, emails.isEmpty()? "" : emails.at(names.indexOf(name)));
+                auto *choiceWindow = new findMatchingNameDialog(students, name, this, "", true, emails.isEmpty()? "" : rosterEmail);
                 if(choiceWindow->exec() == QDialog::Accepted) {  // not ignoring this student
                     if(choiceWindow->addStudent) {   // add as a new student
                         dataHasChanged = true;
@@ -540,7 +546,7 @@ void gruepr::compareStudentsToRoster()
                         newStudent.firstname = name.split(" ").first();
                         newStudent.lastname = name.split(" ").mid(1).join(" ");
                         if(!emails.isEmpty()) {
-                            newStudent.email = emails.at(names.indexOf(name));
+                            newStudent.email = rosterEmail;
                         }
                         newStudent.URM = teamingOptions->URMResponsesConsideredUR.contains(newStudent.URMResponse);
                         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
@@ -564,7 +570,7 @@ void gruepr::compareStudentsToRoster()
                         }
                         if(choiceWindow->useRosterEmail) {
                             dataHasChanged = true;
-                            stu->email = emails.isEmpty()? "" : emails.at(names.indexOf(name));
+                            stu->email = emails.isEmpty()? "" : rosterEmail;
                             stu->createTooltip(*dataOptions);
                         }
                         if(choiceWindow->useRosterName) {

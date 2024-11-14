@@ -89,7 +89,7 @@ private:
     inline StudentRecord* findStudentFromID(const int ID);
 
         // reading survey data
-    int numActiveStudents = MAX_STUDENTS;
+    long long numActiveStudents = MAX_STUDENTS;
     QList<StudentRecord> students;
     bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks survey names and emails against roster
     void refreshStudentDisplay();
