@@ -16,6 +16,7 @@ struct CanvasCourse
     QString name;
     int ID = 0;
     int numStudents = 0;
+    QDateTime creationDate = QDateTime::currentDateTime();
 };
 
 class CanvasHandler : public LMS
@@ -33,7 +34,7 @@ public:
     bool authenticate() override;
     void setBaseURL(const QString &baseAPIURL);
 
-    QStringList getCourses();
+    QList<CanvasCourse> getCourses();
     int getStudentCount(const QString &courseName);
     QList<StudentRecord> getStudentRoster(const QString &courseName);
     bool createSurvey(const QString &courseName, const Survey *const survey);

@@ -10,7 +10,7 @@ class customTeamsizesDialog : public listTableDialog
     Q_OBJECT
 
 public:
-    customTeamsizesDialog(int numStudents, int idealTeamsize, QWidget *parent = nullptr);
+    customTeamsizesDialog(long long numStudents, int idealTeamsize, QWidget *parent = nullptr);
     ~customTeamsizesDialog() override = default;
     customTeamsizesDialog(const customTeamsizesDialog&) = delete;
     customTeamsizesDialog operator= (const customTeamsizesDialog&) = delete;

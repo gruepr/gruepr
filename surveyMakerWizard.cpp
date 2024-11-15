@@ -2632,38 +2632,38 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
 
     //ask the user in which course we're creating the survey
     auto *busyBox = canvas->actionDialog(this);
-    QStringList courseNames = canvas->getCourses();
+    QList<CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
-    auto *canvasCourses = new QDialog(this);
-    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-    canvasCourses->setWindowIcon(CanvasHandler::icon());
-    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *canvasCoursesDialog = new QDialog(this);
+    canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));
+    canvasCoursesDialog->setWindowIcon(CanvasHandler::icon());
+    canvasCoursesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
-    auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCourses);
+    auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *coursesComboBox = new QComboBox(canvasCourses);
-    for(const auto &courseName : qAsConst(courseNames)) {
-        coursesComboBox->addItem(courseName);
-        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole); // Not working??
+    auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+        coursesComboBox->addItem(canvasCourse.name);
+        coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole); // Not working??
     }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
-    canvasCourses->setLayout(vLayout);
-    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
-    if((canvasCourses->exec() == QDialog::Rejected)) {
-        canvasCourses->deleteLater();
+    canvasCoursesDialog->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesDialog, &QDialog::reject);
+    if((canvasCoursesDialog->exec() == QDialog::Rejected)) {
+        canvasCoursesDialog->deleteLater();
         canvas->deleteLater();
         return;
     }
     const QString course = coursesComboBox->currentText();
-    canvasCourses->deleteLater();
+    canvasCoursesDialog->deleteLater();
 
     //upload the survey as a quiz
     busyBox = canvas->actionDialog(this);

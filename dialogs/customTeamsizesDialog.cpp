@@ -7,7 +7,7 @@
 // A dialog to choose custom team sizes
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-customTeamsizesDialog::customTeamsizesDialog(int numStudents, int idealTeamsize, QWidget *parent)
+customTeamsizesDialog::customTeamsizesDialog(long long numStudents, int idealTeamsize, QWidget *parent)
     :listTableDialog(tr("Choose custom team sizes"), true, true, parent)
 {
     this->numStudents = numStudents;

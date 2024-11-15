@@ -450,7 +450,7 @@ QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder()
 }
 
 
-inline StudentRecord* TeamsTabItem::findStudentFromID(const int ID){
+inline StudentRecord* TeamsTabItem::findStudentFromID(const long long ID){
     for(auto &student : students) {
         if(student.ID == ID) {
             return &student;
@@ -509,7 +509,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
                   studentBTeam.studentIDs[studentBTeam.studentIDs.indexOf(studentB->ID)]);      //(of course, studentATeam == studentBTeam)
 
         // Re-score the teams and refresh all the info
-        gruepr::calcTeamScores(students, numStudents, teams, int(teams.size()), teamingOptions, &teams.dataOptions);
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions, &teams.dataOptions);
         teams[studentATeamNum].refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         teams[studentATeamNum].createTooltip();
 
@@ -558,7 +558,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::calcTeamScores(students, numStudents, teams, int(teams.size()), teamingOptions, &teams.dataOptions);
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions, &teams.dataOptions);
         studentATeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         studentATeam.createTooltip();
         studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
@@ -681,7 +681,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info, tooltip, treeitem for both teams
-    gruepr::calcTeamScores(students, numStudents, teams, int(teams.size()), teamingOptions, &teams.dataOptions);
+    gruepr::calcTeamScores(students, numStudents, teams, teamingOptions, &teams.dataOptions);
     oldTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
     oldTeam.createTooltip();
     newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
@@ -961,32 +961,32 @@ void TeamsTabItem::postTeamsToCanvas()
 
     //ask the user in which course we're creating the teams
     auto *busyBox = canvas->actionDialog();
-    QStringList courseNames = canvas->getCourses();
+    QList<CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
-    auto *canvasCourses = new QDialog(this);
-    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-    canvasCourses->setWindowIcon(QIcon(CanvasHandler::icon()));
-    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *canvasCoursesDialog = new QDialog(this);
+    canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));
+    canvasCoursesDialog->setWindowIcon(QIcon(CanvasHandler::icon()));
+    canvasCoursesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
-    auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCourses);
+    auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *coursesComboBox = new QComboBox(canvasCourses);
+    auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
     coursesComboBox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &courseName : qAsConst(courseNames)) {
-        coursesComboBox->addItem(courseName);
-        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+        coursesComboBox->addItem(canvasCourse.name);
+        coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
-    canvasCourses->setLayout(vLayout);
-    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
-    if((canvasCourses->exec() == QDialog::Rejected)) {
+    canvasCoursesDialog->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesDialog, &QDialog::reject);
+    if((canvasCoursesDialog->exec() == QDialog::Rejected)) {
         return;
     }
 
@@ -1040,7 +1040,7 @@ void TeamsTabItem::postTeamsToCanvas()
         canvas->actionComplete(busyBox);
         return;
     }
-    delete canvasCourses;
+    delete canvasCoursesDialog;
 
     delete canvas;
 }

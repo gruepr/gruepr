@@ -355,7 +355,7 @@ bool GetGrueprDataDialog::getFromCanvas()
 
     //ask the user from which course we're downloading the survey
     auto *busyBox = canvas->actionDialog(this);
-    QStringList courseNames = canvas->getCourses();
+    QList<CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
@@ -367,9 +367,9 @@ bool GetGrueprDataDialog::getFromCanvas()
     int i = 1;
     auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
     auto *coursesAndQuizzesComboBox = new QComboBox(canvasCoursesAndQuizzesDialog);
-    for(const auto &courseName : qAsConst(courseNames)) {
-        coursesAndQuizzesComboBox->addItem(courseName);
-        coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+        coursesAndQuizzesComboBox->addItem(canvasCourse.name);
+        coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesAndQuizzesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -834,8 +834,10 @@ bool GetGrueprDataDialog::readData()
                                             {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
         dataOptions->timeNames = allTimeNames;
 
-        // look at all the time values. If any end with 0.25, set schedule resolution to 0.25 immediately and stop looking
-        // if none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
+        // Set the schedule resolution (in units of hours) by looking at all the time values.
+        // If any end with 0.25, set schedule resolution to 0.25 immediately and stop looking.
+        // If none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
+        // If none do, keep at default of 1.
         dataOptions->scheduleResolution = 1;
         for(const auto &timeName : dataOptions->timeNames) {
             const int numOfQuarterHours = std::lround(4 * grueprGlobal::timeStringToHours(timeName)) % 4;

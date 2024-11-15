@@ -54,7 +54,7 @@ private:
     void refreshTeamDisplay();
     void refreshDisplayOrder();
     QList<int> getTeamNumbersInDisplayOrder();
-    inline StudentRecord* findStudentFromID(const int ID);
+    inline StudentRecord* findStudentFromID(const long long ID);
 
     TeamingOptions *teamingOptions = nullptr;
     TeamSet teams;

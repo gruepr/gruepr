@@ -532,6 +532,5 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
     while(fields.size() < minFields) {
         fields.append("");
     }
-
     return fields;
 }

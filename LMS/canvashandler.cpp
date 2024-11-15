@@ -174,18 +174,19 @@ bool CanvasHandler::authenticate() {
 }
 
 // Retrieves course names, and loads the names, Canvas course IDs, and student counts
-QStringList CanvasHandler::getCourses() {
+QList<CanvasCourse> CanvasHandler::getCourses() {
     QStringList courseNames;
+    QStringList courseCreatedDates;
     QList<int> ids, studentCounts;
     QStringList x;
     QList<int> y;
-    QList<QStringList*> courseNamesInList = {&courseNames};
+    QList<QStringList*> courseNamesAndCreatedDatesInList = {&courseNames, &courseCreatedDates};
     QList<QList<int>*> idsAndStudentCounts = {&ids, &studentCounts};
     QList<QStringList*> stringInSubobjectParams = {&x};
     QList<QList<int>*> intInSubArrayParams = {&y};
 
     getPaginatedCanvasResults("/api/v1/courses?include[]=total_students",
-                              {"name"}, courseNamesInList,
+                              {"name", "created_at"}, courseNamesAndCreatedDatesInList,
                               {"id", "total_students"}, idsAndStudentCounts,
                               {}, stringInSubobjectParams,
                               {}, intInSubArrayParams);
@@ -193,10 +194,11 @@ QStringList CanvasHandler::getCourses() {
 
     canvasCourses.clear();
     for(int i = 0; i < courseNames.size(); i++) {
-        canvasCourses.append({courseNames.at(i), ids.at(i), studentCounts.at(i)});
+        canvasCourses.append({courseNames.at(i), ids.at(i), studentCounts.at(i), QDateTime::fromString(courseCreatedDates.at(i), Qt::ISODate)});
     }
+    std::sort(canvasCourses.begin(), canvasCourses.end(), [](const CanvasCourse &courseA, const CanvasCourse &courseB){return (courseA.creationDate > courseB.creationDate);});
 
-    return courseNames;
+    return canvasCourses;
 }
 
 // Retrieves the number of students in the given course

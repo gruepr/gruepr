@@ -162,10 +162,10 @@ gruepr::~gruepr()
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
-void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const int _numStudents, QList<TeamRecord> &_teams,
-                              const int _numTeams, const TeamingOptions *const _teamingOptions,
-                              const DataOptions *const _dataOptions)
+void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents, QList<TeamRecord> &_teams,
+                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions)
 {
+    const auto _numTeams = _teams.size();
     auto *teamScores = new float[_numTeams];
     auto **attributeScore = new float*[_dataOptions->numAttributes];
     for(int attrib = 0; attrib < _dataOptions->numAttributes; attrib++) {
@@ -291,12 +291,12 @@ void gruepr::changeSection(int index)
         attributeWidgets[attribute]->updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
     }
 
-    ui->idealTeamSizeBox->setMaximum(std::max(2, numActiveStudents / 2));
+    ui->idealTeamSizeBox->setMaximum(std::max(2ll, numActiveStudents / 2));
     changeIdealTeamSize();    // load new team sizes in selection box, if necessary
 }
 
 
-inline StudentRecord* gruepr::findStudentFromID(const int ID){
+inline StudentRecord* gruepr::findStudentFromID(const long long ID){
     for(auto &student : students) {
         if(student.ID == ID) {
             return &student;
@@ -759,7 +759,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
     ui->studentTable->clearSortIndicator();
 
     // Load new team sizes in selection box
-    ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
+    ui->idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     changeIdealTeamSize();
 }
 
@@ -897,7 +897,7 @@ void gruepr::changeIdealTeamSize()
     // typically just figuring out team sizes for one section or for all students together, but need to re-calculate for each section if we will team all sections independently
     const bool calculatingSeparateSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress;
     const int numSectionsToCalculate = (calculatingSeparateSections? int(dataOptions->sectionNames.size()) : 1);
-    int numStudentsBeingTeamed = numActiveStudents;
+    long long numStudentsBeingTeamed = numActiveStudents;
     int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
     int cumNumSmallerATeams=0, cumNumSmallerBTeams = 0, cumNumLargerATeams=0, cumNumLargerBTeams = 0;
     for(int section = 0; section < numSectionsToCalculate; section++) {
@@ -926,7 +926,7 @@ void gruepr::changeIdealTeamSize()
             numStudentsBeingTeamed = numActiveStudents;
         }
 
-        teamingOptions->numTeamsDesired = std::max(1, numStudentsBeingTeamed/idealSize);
+        teamingOptions->numTeamsDesired = std::max(1ll, numStudentsBeingTeamed/idealSize);
         teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired;
         teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
 
@@ -1290,7 +1290,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    calcTeamScores(students, numActiveStudents, teams, int(teams.size()), teamingOptions, dataOptions);
+    calcTeamScores(students, numActiveStudents, teams, teamingOptions, dataOptions);
     for(auto &team : teams) {
         team.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
     }
@@ -1482,7 +1482,7 @@ void gruepr::loadUI()
     refreshStudentDisplay();
     ui->studentTable->resetTable();
 
-    ui->idealTeamSizeBox->setMaximum(std::max(2,numActiveStudents/2));
+    ui->idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     changeIdealTeamSize();    // load new team sizes in selection box
     ui->teamsizeSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -1775,15 +1775,28 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
     }
     do {
         QString name;
-        if(firstLastNameField != -1) {
+        if((firstLastNameField >= 0) && (firstLastNameField < rosterFile.fieldValues.size())) {
             name = rosterFile.fieldValues.at(firstLastNameField).trimmed();
         }
-        else if(lastFirstNameField != -1) {
-            const QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
-            name = QString(lastandfirstname.at(1) + " " + lastandfirstname.at(0)).trimmed();
+        else if((lastFirstNameField >= 0) && (lastFirstNameField < rosterFile.fieldValues.size())) {
+            if(rosterFile.fieldValues.at(lastFirstNameField).contains(',')) {
+                const QStringList lastandfirstname = rosterFile.fieldValues.at(lastFirstNameField).split(',');
+                name = QString(lastandfirstname.at(1) + " " + lastandfirstname.at(0)).trimmed();
+            }
+            else {
+                name = QString(rosterFile.fieldValues.at(lastFirstNameField)).trimmed();
+            }
         }
-        else if(firstNameField != -1 && lastNameField != -1) {
-            name = QString(rosterFile.fieldValues.at(firstNameField) + " " + rosterFile.fieldValues.at(lastNameField)).trimmed();
+        else if(firstNameField >= 0 || lastNameField >= 0) {
+            if((firstNameField >= 0) && firstNameField < rosterFile.fieldValues.size()) {
+                name = QString(rosterFile.fieldValues.at(firstNameField)).trimmed();
+            }
+            if(firstNameField >= 0 && lastNameField >= 0) {
+                name = name + " ";
+            }
+            if((lastNameField >= 0) && (lastNameField < rosterFile.fieldValues.size())) {
+                name = name + QString(rosterFile.fieldValues.at(lastNameField)).trimmed();
+            }
         }
         else {
             grueprGlobal::errorMessage(this, tr("File error."), tr("This roster does not contain student names."));
@@ -1792,7 +1805,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
 
         if(!name.isEmpty()) {
             names << name;
-            if(emailField != -1) {
+            if((emailField >= 0) && (emailField < rosterFile.fieldValues.size())){
                 emails << rosterFile.fieldValues.at(emailField).trimmed();
             }
         }
@@ -1915,7 +1928,7 @@ void gruepr::refreshStudentDisplay()
             numActiveStudents++;
         }
     }
-    ui->studentTable->setRowCount(std::min(int(students.size()), numActiveStudents));   // not sure how numActiveStudents could be larger, but safer to take min
+    ui->studentTable->setRowCount(std::min(students.size(), numActiveStudents));   // not sure how numActiveStudents could be larger, but safer to take min
 
     ui->studentTable->setUpdatesEnabled(true);
     ui->studentTable->resizeColumnsToContents();

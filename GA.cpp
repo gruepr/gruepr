@@ -91,7 +91,7 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
 //////////////////
 // Use ordered crossover to make child from mom and dad, splitting at random team boundaries within the genome
 //////////////////
-void GA::mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const int genomeSize, std::mt19937 &pRNG)
+void GA::mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG)
 {
 
     //randomly choose two team boundaries in the genome from which to cut an allele
@@ -135,8 +135,8 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
 //////////////////
 // Randomly swap two sites in given genome
 //////////////////
-void GA::mutate(int genome[], const int genomeSize, std::mt19937 &pRNG)
+void GA::mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG)
 {
-    std::uniform_int_distribution<unsigned int> randSite(0, genomeSize-1);
+    std::uniform_int_distribution<unsigned long long> randSite(0, genomeSize-1);
     std::swap(genome[randSite(pRNG)], genome[randSite(pRNG)]);
 }

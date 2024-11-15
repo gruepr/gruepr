@@ -40,9 +40,15 @@
 //     - edit buttons no longer get confused when a single section is selected
 //     - "deleting" a student no longer removes them from the database, just marks them as deleted and makes them not be displayed anywhere
 //     - removed studentIndexes from teamRecord
-//     - use QList, not array, for IDs of req/prev/reques teammates (currently working in teammates rules dialog)
+//     - use QList, not array, for IDs of req/prev/reques teammates
+//     - IDs are now long long instead of int
+//  - fixed crash when comparing to a roster file with invalid entries
+//  - significant speed up when loading student data
+//  - now sorts Canvas courses by creation date rather than alphabetically
 //
 // INPROG:
+//  - remove c-style arrays for teams/teamsets and everywhere else except in intensive optimization steps
+//  - update where applicable to range-based for-loops
 //
 // TO DO:
 //    BUGFIX:
@@ -50,9 +56,6 @@
 //  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
 //
 //    NEW FEATURES:
-//  - remove c-style arrays for teams/teamsets and everywhere else except in intensive optimization steps
-//  - update where applicable to range-based for-loops
-//  - speed up loading data--lag seems to be in parsing studentRecord from string->repeatedly using grueprGlobal::timeStringToHours, line 253
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action

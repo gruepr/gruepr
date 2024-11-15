@@ -629,7 +629,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
         teammates[basestudent].prepend(basenames.at(basestudent));
     }
 
-    QList<int> IDs;
+    QList<long long> IDs;
     for(int basename = 0; basename < basenames.size(); basename++) {
         IDs.clear();
         for(const auto &searchStudent : teammates.at(basename)) {   // searchStudent is the name we're looking for
@@ -704,7 +704,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
 bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
 {
     // Need to convert names to IDs and then add all to the preferences
-    QList<int> IDs;
+    QList<long long> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++) {
         if((sectionName == "") || (sectionName == students[basestudent].section)) {
             QStringList prefs;
@@ -841,7 +841,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
-    QList<int> IDs;
+    QList<long long> IDs;
     for(const auto &teammateList : qAsConst(teammateLists)) {
         IDs.clear();
         IDs.reserve(teammateList.size());

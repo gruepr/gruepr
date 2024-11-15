@@ -35,7 +35,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     URMResponse = jsonStudentRecord["URMResponse"].toString();
     availabilityChart = jsonStudentRecord["availabilityChart"].toString();
     tooltip = jsonStudentRecord["tooltip"].toString();
-    QJsonArray unavailableArray = jsonStudentRecord["unavailable"].toArray();;
+    const QJsonArray unavailableArray = jsonStudentRecord["unavailable"].toArray();;
     for(int i = 0; i < MAX_DAYS; i++) {
         QJsonArray unavailableArraySubArray = unavailableArray[i].toArray();
         for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
@@ -79,7 +79,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         }
     }
 
-    QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
+    const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
     if(jsonStudentRecord["requestedWithIDs"].type() != QJsonValue::Undefined) {
         const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
         for (const auto &val : requestedWithIDsArray) {
@@ -98,8 +98,8 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         }
     }
 
-    QJsonArray attributeValsArray = jsonStudentRecord["attributeVals"].toArray();
-    QJsonArray attributeResponseArray = jsonStudentRecord["attributeResponse"].toArray();
+    const QJsonArray attributeValsArray = jsonStudentRecord["attributeVals"].toArray();
+    const QJsonArray attributeResponseArray = jsonStudentRecord["attributeResponse"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeResponse[i] = attributeResponseArray[i].toString();
         const QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
@@ -292,6 +292,11 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
     const int numDays = int(dataOptions.dayNames.size());
     const int numTimes = int(dataOptions.timeNames.size());
+    //build a map of the hour value for each timename (e.g., "9:15am" --> 9.25)
+    QMap<float, QString> hoursForEachTimeName;
+    for(const auto &timeName : dataOptions.timeNames) {
+        hoursForEachTimeName[grueprGlobal::timeStringToHours(timeName)] = timeName;
+    }
     for(int day = 0; day < numDays; day++) {
         fieldnum = dataOptions.scheduleField[day];
         if((fieldnum >= 0) && (fieldnum < numFields)) {
@@ -331,12 +336,9 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                     }
                 }
                 int timeindex = 0;
-                float hourVal = grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex));
-                while((hourVal != -1) && (actualtime > hourVal) && (timeindex < numTimes)) {
+                while((actualtime > hoursForEachTimeName.key(dataOptions.timeNames.at(timeindex))) && (timeindex < numTimes)) {
                     timeindex++;
-                    hourVal = grueprGlobal::timeStringToHours(dataOptions.timeNames.at(timeindex));
                 }
-
                 if((actualday < 0) || (actualday > MAX_DAYS) || (timeindex < 0) || (timeindex > MAX_BLOCKS_PER_DAY)) {
                     continue;   // something went wrong in figuring out where to put this value in the array!
                 }
