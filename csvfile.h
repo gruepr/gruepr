@@ -66,7 +66,7 @@ public:
     QStringList headerValues;
     bool hasHeaderRow = true;
     int numFields = 0;
-    int estimatedNumberRows = 0;    // estimated because only based on number of newlines (doesn't account for blank lines or other unused rows)
+    long long estimatedNumberRows = 0;    // estimated because only based on number of newlines (doesn't account for blank lines or other unused rows)
     QStringList fieldMeanings;
     QStringList fieldValues;
     QStringList fieldsToBeIgnored;

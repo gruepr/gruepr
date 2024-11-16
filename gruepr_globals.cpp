@@ -113,7 +113,7 @@ void grueprGlobal::helpWindow(QWidget *parent) {
 MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent) { }
 bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e) {
     const QWidget* widget = static_cast<QWidget*>(o);
-    if (e->type() == QEvent::Wheel && widget && !widget->hasFocus()) {
+    if (e->type() == QEvent::Wheel && (widget != nullptr) && !widget->hasFocus()) {
         e->ignore();
         return true;
     }

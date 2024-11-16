@@ -37,8 +37,7 @@ public:
     int URMField = FIELDNOTPRESENT;                 // which field in surveyFile has the ethnicity info?
     bool sectionIncluded = false;                   // is section data included in the survey?
     int sectionField = FIELDNOTPRESENT;             // which field in surveyFile has the section info?
-    int notesField[MAX_NOTES_FIELDS];               // which field(s) in surveyFile has additional notes?
-    int numNotes = 0;                               // how many notes (or other additional info) included in the survey?
+    QList<int> notesFields;                         // which field(s) in surveyFile has additional notes?
     bool scheduleDataIsFreetime = false;            // was the survey set up so that students are indicating their freetime in the schedule?
     int scheduleField[MAX_DAYS];                    // which field(s) in surveyFile have schedule info?
     int numAttributes = 0;                          // how many attribute questions are in the survey?

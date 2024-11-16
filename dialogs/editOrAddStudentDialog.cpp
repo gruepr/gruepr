@@ -391,7 +391,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if(dataOptions->numNotes > 0) {
+    if(!dataOptions->notesFields.empty()) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Notes"));
@@ -403,7 +403,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if((dataOptions->prefTeammatesIncluded) || (dataOptions->prefNonTeammatesIncluded) || (dataOptions->numNotes > 0)) {
+    if((dataOptions->prefTeammatesIncluded) || (dataOptions->prefNonTeammatesIncluded) || (!dataOptions->notesFields.empty())) {
         // calculate the height of 1 row of text in the multilines
         const QFontMetrics fm(datamultiline.last()->document()->defaultFont());
         const QMargins margin = datamultiline.last()->contentsMargins();
@@ -531,7 +531,7 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
     if(dataOptions->prefNonTeammatesIncluded) {
         student.prefNonTeammates = datamultiline[multilinefield++]->toPlainText();
     }
-    if(dataOptions->numNotes > 0) {
+    if(!dataOptions->notesFields.empty()) {
         student.notes = datamultiline[multilinefield++]->toPlainText();
     }
 }

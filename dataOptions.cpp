@@ -11,10 +11,6 @@ DataOptions::DataOptions()
         attributeType[i] = AttributeType::categorical;
     }
 
-    for(int &field : notesField) {
-        field = FIELDNOTPRESENT;
-    }
-
     for(int &field : prefTeammatesField) {
         field = FIELDNOTPRESENT;
     }
@@ -42,7 +38,6 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     URMField = jsonDataOptions["URMField"].toInt();
     sectionIncluded = jsonDataOptions["sectionIncluded"].toBool();
     sectionField = jsonDataOptions["sectionField"].toInt();
-    numNotes = jsonDataOptions["numNotes"].toInt();
     scheduleDataIsFreetime = jsonDataOptions["scheduleDataIsFreetime"].toBool();
     numAttributes = jsonDataOptions["numAttributes"].toInt();
     timezoneIncluded = jsonDataOptions["timezoneIncluded"].toBool();
@@ -61,17 +56,16 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     saveStateFileName = jsonDataOptions["saveStateFileName"].toString();
 
     const QJsonArray notesFieldArray = jsonDataOptions["notesField"].toArray();
-    int i = 0;
+    notesFields.reserve(notesFieldArray.size());
     for(const auto &item : notesFieldArray) {
-        notesField[i] = item.toInt();
-        i++;
-    }
-    for(int j = i; j < MAX_NOTES_FIELDS; j++) {
-        notesField[i] = FIELDNOTPRESENT;
+        const int fieldNum = item.toInt();
+        if(fieldNum != FIELDNOTPRESENT) {
+            notesFields << fieldNum;
+        }
     }
 
     const QJsonArray scheduleFieldArray = jsonDataOptions["scheduleField"].toArray();
-    i = 0;
+    int i = 0;
     for(const auto &item : scheduleFieldArray) {
         scheduleField[i] = item.toInt();
         i++;
@@ -219,7 +213,7 @@ QJsonObject DataOptions::toJson() const
     QJsonArray notesFieldArray, scheduleFieldArray, attributeFieldArray, attributeTypeArray, prefTeammatesFieldArray, prefNonTeammatesFieldArray,
         attributeQuestionResponsesArray, attributeQuestionResponseCountsArray, attributeValsArray;
 
-    for (const int field : notesField) {
+    for (const int field : notesFields) {
         notesFieldArray.append(field);
     }
     for (const int field : scheduleField) {
@@ -259,7 +253,6 @@ QJsonObject DataOptions::toJson() const
         {"sectionIncluded", sectionIncluded},
         {"sectionField", sectionField},
         {"notesField", notesFieldArray},
-        {"numNotes", numNotes},
         {"scheduleDataIsFreetime", scheduleDataIsFreetime},
         {"scheduleField", scheduleFieldArray},
         {"numAttributes", numAttributes},

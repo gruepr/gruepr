@@ -25,7 +25,7 @@ private slots:
     void teamsizeChanged(int);
 
 private:
-    int numStudents;
+    long long numStudents;
     QSpinBox *numTeamsBox = nullptr;
     QList<QSpinBox*> teamsizeBox;
     QLabel *remainingStudents = nullptr;

@@ -16,7 +16,6 @@ inline static const int MIN_SCHEDULE_RESOLUTION = 15;                 // resolut
 inline static const int MAX_BLOCKS_PER_DAY = 24*60/MIN_SCHEDULE_RESOLUTION;       // number of time blocks in each day
 
 inline static const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes in a survey
-inline static const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
 inline static const int MAX_PREFTEAMMATES = 10;
 
 inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a team has more than the desired amount of schedule overlap, each additional overlap time is scaled by

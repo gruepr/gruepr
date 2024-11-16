@@ -527,7 +527,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
                                                   {"Multiple Choice", ".*", MAX_ATTRIBUTES},
-                                                  {"Notes", "", MAX_NOTES_FIELDS}};
+                                                  {"Notes", "", 99}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {
         const QString &headerVal = surveyFile->headerValues.at(i);
@@ -763,9 +763,9 @@ bool GetGrueprDataDialog::readData()
     }
     // notes fields
     lastFoundIndex = 0;
-    dataOptions->numNotes = int(surveyFile->fieldMeanings.count("Notes"));
-    for(int note = 0; note < dataOptions->numNotes; note++) {
-        dataOptions->notesField[note] = int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex));
+    const int numNotes = int(surveyFile->fieldMeanings.count("Notes"));
+    for(int note = 0; note < numNotes; note++) {
+        dataOptions->notesFields << int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex)));
     }
     // attribute fields, adding timezone field as an attribute if it exists

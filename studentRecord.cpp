@@ -423,11 +423,10 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // notes
-    for(int note = 0; note < dataOptions.numNotes; note++) {
+    for(const auto notesField : dataOptions.notesFields) {
         // join each one with a newline after
-        fieldnum = dataOptions.notesField[note];
-        if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString nextNote = fields.at(fieldnum).trimmed();
+        if((notesField >= 0) && (notesField < numFields)) {
+            const QString nextNote = fields.at(notesField).trimmed();
             if(!notes.isEmpty() && !nextNote.isEmpty()) {
                 notes += "\n" + nextNote;
             }
@@ -547,7 +546,7 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
         QString note = prefNonTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Non-teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions.numNotes > 0) {
+    if(!dataOptions.notesFields.empty()) {
         QString note = notes;
         if(note.size() > SIZE_OF_NOTES_IN_TOOLTIP) {
             note = note.mid(0, (SIZE_OF_NOTES_IN_TOOLTIP - 3)) + "...";
