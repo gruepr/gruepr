@@ -33,8 +33,8 @@ public:
     gruepr(gruepr&&) = delete;
     gruepr& operator= (gruepr&&) = delete;
 
-    static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents, QList<TeamRecord> &_teams,
-                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions);
+    static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
+                               TeamSet &_teams, const TeamingOptions *const _teamingOptions);
 
     bool restartRequested = false;
 
@@ -99,15 +99,28 @@ private:
     QList<AttributeWidget *> attributeWidgets;
 
         // team set optimization
-    int *studentIndexes = nullptr;                                // array of the indexes of students to be placed on teams
-    QList<int> optimizeTeams(const int *const studentIndexes);    // return value is a single permutation-of-indexes
+    QList<int> studentIndexes;                                    // the indexes of students to be placed on teams
+    QList<int> optimizeTeams(const QList<int> studentIndexes);    // return value is a single permutation-of-indexes
     QFuture< QList<int> > future;                                 // needed so that optimization can happen in a separate thread
     QFutureWatcher< QList<int> > futureWatcher;                   // used for signaling of optimization completion
     BoxWhiskerPlot *progressChart = nullptr;
     progressDialog *progressWindow = nullptr;
-    static float getGenomeScore(const StudentRecord *const _student, const int _teammates[], const int _numTeams, const int _teamSizes[],
+    static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                 float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);
+    inline static void getAttributeScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                          float **_attributeScore, const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
+                                          int *_penaltyPoints);
+    inline static void getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                                         float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);
+    inline static void getGenderPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                          const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
+    inline static void getURMPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                       int *_penaltyPoints);
+    inline static void getTeammatePenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                            const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;

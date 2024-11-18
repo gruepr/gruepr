@@ -509,7 +509,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
                   studentBTeam.studentIDs[studentBTeam.studentIDs.indexOf(studentB->ID)]);      //(of course, studentATeam == studentBTeam)
 
         // Re-score the teams and refresh all the info
-        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions, &teams.dataOptions);
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
         teams[studentATeamNum].refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         teams[studentATeamNum].createTooltip();
 
@@ -558,7 +558,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions, &teams.dataOptions);
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
         studentATeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         studentATeam.createTooltip();
         studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
@@ -681,7 +681,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info, tooltip, treeitem for both teams
-    gruepr::calcTeamScores(students, numStudents, teams, teamingOptions, &teams.dataOptions);
+    gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
     oldTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
     oldTeam.createTooltip();
     newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);

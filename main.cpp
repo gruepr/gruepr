@@ -47,8 +47,6 @@
 //  - now sorts Canvas courses by creation date rather than alphabetically
 //
 // INPROG:
-//  - remove c-style arrays for teams/teamsets and everywhere else except in intensive optimization steps
-//  - update where applicable to range-based for-loops
 //
 // TO DO:
 //    BUGFIX:
@@ -63,8 +61,8 @@
 //  - add integration with Blackboard, Qualtrics, others
 //
 //    INTERNAL:
-//  - modernize pointers throughout to smart pointers
-//  - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
+//  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
+//      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
 //
 //    NETWORK IMPLEMENTATION:

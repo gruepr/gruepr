@@ -162,19 +162,20 @@ gruepr::~gruepr()
 // The calculated scores are updated into the .scores members of the _teams array sent to the function
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 ////////////////////
-void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents, QList<TeamRecord> &_teams,
-                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions)
+void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
+                            TeamSet &_teams, const TeamingOptions *const _teamingOptions)
 {
     const auto _numTeams = _teams.size();
+    const auto &_dataOptions = _teams.dataOptions;
     auto *teamScores = new float[_numTeams];
-    auto **attributeScore = new float*[_dataOptions->numAttributes];
-    for(int attrib = 0; attrib < _dataOptions->numAttributes; attrib++) {
+    auto **attributeScore = new float*[_dataOptions.numAttributes];
+    for(int attrib = 0; attrib < _dataOptions.numAttributes; attrib++) {
         attributeScore[attrib] = new float[_numTeams];
     }
     auto *schedScore = new float[_numTeams];
-    auto **availabilityChart = new bool*[_dataOptions->dayNames.size()];
-    for(int day = 0; day < _dataOptions->dayNames.size(); day++) {
-        availabilityChart[day] = new bool[_dataOptions->timeNames.size()];
+    auto **availabilityChart = new bool*[_dataOptions.dayNames.size()];
+    for(int day = 0; day < _dataOptions.dayNames.size(); day++) {
+        availabilityChart[day] = new bool[_dataOptions.timeNames.size()];
     }
     auto *penaltyPoints = new int[_numTeams];
     auto *teamSizes = new int[_numTeams];
@@ -192,7 +193,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
         }
     }
     getGenomeScore(_students.constData(), genome, _numTeams, teamSizes,
-                   _teamingOptions, _dataOptions, teamScores,
+                   _teamingOptions, &_dataOptions, teamScores,
                    attributeScore, schedScore, availabilityChart, penaltyPoints);
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         _teams[teamnum].score = teamScores[teamnum];
@@ -200,12 +201,12 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     delete[] genome;
     delete[] teamSizes;
     delete[] penaltyPoints;
-    for(int day = 0; day < _dataOptions->dayNames.size(); day++) {
+    for(int day = 0; day < _dataOptions.dayNames.size(); day++) {
         delete[] availabilityChart[day];
     }
     delete[] availabilityChart;
     delete[] schedScore;
-    for(int attrib = 0; attrib < _dataOptions->numAttributes; attrib++) {
+    for(int attrib = 0; attrib < _dataOptions.numAttributes; attrib++) {
         delete[] attributeScore[attrib];
     }
     delete[] attributeScore;
@@ -1135,13 +1136,13 @@ void gruepr::startOptimization()
 
         // Get the indexes of non-deleted students from desired section and change numStudents accordingly
         int numStudentsInSection = 0;
-        studentIndexes = new int[students.size()];
+        studentIndexes.reserve(students.size());
         for(int index = 0; index < students.size(); index++) {
             if(!students[index].deleted &&
                 ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                 (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
                 (teamingOptions->sectionName == students[index].section))) {
-                studentIndexes[numStudentsInSection] = index;
+                studentIndexes << index;
                 numStudentsInSection++;
             }
         }
@@ -1253,12 +1254,10 @@ void gruepr::optimizationComplete()
     delete progressChart;
     delete progressWindow;
 
-    // free memory used to save array of IDs of students being teamed
-    delete[] studentIndexes;
-
     // Get the results
     bestTeamSet << future.result();
     finalTeams << teams;
+    studentIndexes.clear();
 
     emit sectionOptimizationFullyComplete();
 
@@ -1290,7 +1289,7 @@ void gruepr::optimizationComplete()
     }
 
     // Load scores and info into the teams
-    calcTeamScores(students, numActiveStudents, teams, teamingOptions, dataOptions);
+    calcTeamScores(students, numActiveStudents, teams, teamingOptions);
     for(auto &team : teams) {
         team.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
     }
@@ -1939,7 +1938,7 @@ void gruepr::refreshStudentDisplay()
 ////////////////////////////////////////////
 // Create and optimize teams using genetic algorithm
 ////////////////////////////////////////////
-QList<int> gruepr::optimizeTeams(const int *const studentIndexes)
+QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 {
     // create and seed the pRNG (need to specifically do it here because this is happening in a new thread)
     std::random_device randDev;
@@ -2239,339 +2238,41 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
         _penaltyPoints[team] = 0;
     }
 
-    int studentNum = 0;
-
-    // Calculate each component score:
-
-    // Calculate attribute scores and penalties for each attribute for each team:
+    // Calculate attribute scores and / or penalties for each attribute for each team:
     std::multiset<int> attributeLevelsInTeam;
     std::multiset<float> timezoneLevelsInTeam;
     for(int attribute = 0; attribute < _dataOptions->numAttributes; attribute++) {
         if((_teamingOptions->realAttributeWeights[attribute] > 0) ||
            (_teamingOptions->haveAnyIncompatibleAttributes[attribute]) ||
            (_teamingOptions->haveAnyRequiredAttributes[attribute])) {
-            const bool thisIsTimezone = (_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
-            studentNum = 0;
-            for(int team = 0; team < _numTeams; team++) {
-                // gather all attribute values
-                attributeLevelsInTeam.clear();
-                timezoneLevelsInTeam.clear();
-                for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-                    attributeLevelsInTeam.insert(_students[_teammates[studentNum]].attributeVals[attribute].constBegin(),
-                                                 _students[_teammates[studentNum]].attributeVals[attribute].constEnd());
-                    if(thisIsTimezone) {
-                        timezoneLevelsInTeam.insert(_students[_teammates[studentNum]].timezone);
-                    }
-                    studentNum++;
-                }
-
-                // Add a penalty per pair of incompatible attribute responses found
-                if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
-                    // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
-                    for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
-                        const int n = int(attributeLevelsInTeam.count(pair.first));
-                        if(pair.first == pair.second) {
-                            _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
-                        }
-                        else {
-                            const int m = int(attributeLevelsInTeam.count(pair.second));
-                            _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
-                        }
-                    }
-                }
-
-                // Add a penalty per required attribute response not found
-                if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
-                    // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
-                    for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
-                        if(attributeLevelsInTeam.count(value) == 0) {
-                            _penaltyPoints[team]++;
-                        }
-                    }
-                }
-
-                // Remove attribute values of -1 (unknown/not set) and then determine attribute scores assuming we have any
-                attributeLevelsInTeam.erase(-1);
-                if((_teamingOptions->realAttributeWeights[attribute] > 0) && (!attributeLevelsInTeam.empty())) {
-                    float attributeRangeInTeam;
-                    if(thisIsTimezone) {
-                        // "attribute" is timezone, so use timezone values
-                        attributeRangeInTeam = *timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin();
-                    }
-                    else if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                            (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-                        // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
-                        attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last = largest val; cbegin is 1st = smallest
-                    }
-                    else {
-                        // attribute is categorical or multicategorical--heterogeneous means create maximum number of unique values
-                        attributeRangeInTeam = -1;
-                        int prevVal = -1;
-                        for(const auto currVal : attributeLevelsInTeam) {
-                            if(currVal != prevVal) {
-                                attributeRangeInTeam += 1;
-                            }
-                            prevVal = currVal;
-                        }
-                    }
-
-                    _attributeScore[attribute][team] = attributeRangeInTeam /
-                                                      (*(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin()));
-                    if(_teamingOptions->desireHomogeneous[attribute]) { //attributeScores = 0 if homogeneous and +1 if full range of values are in a team; flip if want homogeneous
-                        _attributeScore[attribute][team] = 1 - _attributeScore[attribute][team];
-                    }
-                }
-
-                _attributeScore[attribute][team] *= _teamingOptions->realAttributeWeights[attribute];
-            }
-        }
+            getAttributeScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions,
+                              _attributeScore, attribute, attributeLevelsInTeam, timezoneLevelsInTeam, _penaltyPoints);
+       }
     }
 
-    // Calculate schedule scores for each team:
+    // Calculate schedule scores and / or penalties for each team:
     if(_teamingOptions->realScheduleWeight > 0) {
-        const int numDays = int(_dataOptions->dayNames.size());
-        const int numTimes = int(_dataOptions->timeNames.size());
-        const int numBlocksNeeded = _teamingOptions->realMeetingBlockSize;
-
-        // combine each student's schedule array into a team schedule array
-        studentNum = 0;
-        for(int team = 0; team < _numTeams; team++) {
-            if(_teamSizes[team] == 1) {
-                studentNum++;
-                continue;
-            }
-
-            // start compiling a team availability chart; begin with that of the first student on team (unless they have ambiguous schedule)
-            int numStudentsWithAmbiguousSchedules = 0;
-            const auto &firstStudentOnTeam = _students[_teammates[studentNum]];
-            if(!firstStudentOnTeam.ambiguousSchedule) {
-                const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
-                for(int day = 0; day < numDays; day++) {
-                    for(int time = 0; time < numTimes; time++) {
-                        _availabilityChart[day][time] = !firstStudentUnavailability[day][time];
-                    }
-                }
-            }
-            else {
-                // ambiguous schedule, so note it and start with all timeslots available
-                numStudentsWithAmbiguousSchedules++;
-                for(int day = 0; day < numDays; day++) {
-                    for(int time = 0; time < numTimes; time++) {
-                        _availabilityChart[day][time] = true;
-                    }
-                }
-            }
-            studentNum++;
-
-            // now move on to each subsequent student and, unless they have ambiguous schedule, merge their availability into the team's
-            for(int teammate = 1; teammate < _teamSizes[team]; teammate++) {
-                const auto &currStudent = _students[_teammates[studentNum]];
-                if(currStudent.ambiguousSchedule) {
-                    numStudentsWithAmbiguousSchedules++;
-                    studentNum++;
-                    continue;
-                }
-                const auto &currStudentUnavailability = currStudent.unavailable;
-                for(int day = 0; day < numDays; day++) {
-                    for(int time = 0; time < numTimes; time++) {
-                        // "and" each student's not-unavailability
-                        _availabilityChart[day][time] = _availabilityChart[day][time] && !currStudentUnavailability[day][time];
-                    }
-                }
-                studentNum++;
-            }
-
-            // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
-            if((_teamSizes[team] - numStudentsWithAmbiguousSchedules) < 2) {
-                continue;
-            }
-
-            //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
-            for(int day = 0; day < numDays; day++) {
-                for(int time = 0; time < numTimes; time++) {
-                    int block = 0;
-                    while((_availabilityChart[day][time]) && (block < numBlocksNeeded) && (time < numTimes)) {
-                        block++;
-                        if(block < numBlocksNeeded) {
-                            time++;
-                        }
-                    }
-
-                    if((block == numBlocksNeeded) && (block > 0)){
-                        _schedScore[team]++;
-                    }
-                }
-            }
-
-            // convert counts to a schedule score
-            // normal schedule score is number of overlaps / desired number of overlaps
-            if(_schedScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
-                const int numAdditionalOverlaps = int(_schedScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
-                _schedScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
-                float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-                for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
-                    _schedScore[team] += factor;
-                    factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-                }
-            }
-            else if(_schedScore[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
-                _schedScore[team] = 0;
-                _penaltyPoints[team]++;
-            }
-            _schedScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
-            _schedScore[team] *= _teamingOptions->realScheduleWeight;
-        }
+        getScheduleScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _schedScore, _availabilityChart, _penaltyPoints);
     }
 
-    // Determine gender penalties
+    // Determine gender penalties for each team:
     if(_dataOptions->genderIncluded && (_teamingOptions->isolatedWomenPrevented || _teamingOptions->isolatedMenPrevented ||
                                        _teamingOptions->isolatedNonbinaryPrevented || _teamingOptions->singleGenderPrevented)) {
-        studentNum = 0;
-        for(int team = 0; team < _numTeams; team++) {
-            if(_teamSizes[team] == 1) {
-                studentNum++;
-                continue;
-            }
-
-            // Count how many of each gender on the team
-            int numWomen = 0;
-            int numMen = 0;
-            int numNonbinary = 0;
-            for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-                if(_students[_teammates[studentNum]].gender == Gender::man) {
-                    numMen++;
-                }
-                else if(_students[_teammates[studentNum]].gender == Gender::woman) {
-                    numWomen++;
-                }
-                else if(_students[_teammates[studentNum]].gender == Gender::nonbinary) {
-                    numNonbinary++;
-                }
-                studentNum++;
-            }
-
-            // Apply penalties as appropriate
-            if(_teamingOptions->isolatedWomenPrevented && numWomen == 1) {
-                _penaltyPoints[team]++;
-            }
-            if(_teamingOptions->isolatedMenPrevented && numMen == 1) {
-                _penaltyPoints[team]++;
-            }
-            if(_teamingOptions->isolatedNonbinaryPrevented && numNonbinary == 1) {
-                _penaltyPoints[team]++;
-            }
-            if(_teamingOptions->singleGenderPrevented && (numMen == 0 || numWomen == 0)) {
-                _penaltyPoints[team]++;
-            }
-        }
+        getGenderPenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
     }
 
-    // Determine URM penalties
+    // Determine URM penalties for each team:
     if(_dataOptions->URMIncluded && _teamingOptions->isolatedURMPrevented) {
-        studentNum = 0;
-        for(int team = 0; team < _numTeams; team++) {
-            if(_teamSizes[team] == 1) {
-                studentNum++;
-                continue;
-            }
-
-            // Count how many URM on the team
-            int numURM = 0;
-            for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-                if(_students[_teammates[studentNum]].URM) {
-                    numURM++;
-                }
-                studentNum++;
-            }
-
-            // Apply penalties as appropriate
-            if(numURM == 1) {
-                _penaltyPoints[team]++;
-            }
-        }
+        getURMPenalties(_students, _teammates, _numTeams, _teamSizes, _penaltyPoints);
     }
 
-    // Determine penalties for required teammates NOT on team, prevented teammates on team, and insufficient number of requested teammates on team
+    // Determine penalties for required teammates NOT on team, prevented teammates on team, and insufficient number of requested teammates on team:
     if(_teamingOptions->haveAnyRequiredTeammates || _teamingOptions->haveAnyPreventedTeammates || _teamingOptions->haveAnyRequestedTeammates) {
-        std::set<long long> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
-        std::multiset<long long> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
-        std::vector< std::set<long long> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
-
-        // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
-        studentNum = 0;
-        for(int team = 0; team < _numTeams; team++) {
-            for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-                IDsBeingTeamed.insert(_students[_teammates[studentNum]].ID);
-                studentNum++;
-            }
-        }
-
-        // Loop through each team
-        studentNum = 0;
-        const StudentRecord *currStudent = nullptr;
-        for(int team = 0; team < _numTeams; team++) {
-            IDsOnTeam.clear();
-            requiredIDsOnTeam.clear();
-            preventedIDsOnTeam.clear();
-            requestedIDs.clear();
-            //loop through each student on team and collect their ID and their required/prevented/requested IDs
-            for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-                currStudent = &_students[_teammates[studentNum]];
-                IDsOnTeam.insert(currStudent->ID);
-                requestedIDsByStudent.clear();
-                for(const auto ID : IDsBeingTeamed) {
-                    if(currStudent->requiredWith.contains(ID)) {
-                        requiredIDsOnTeam.insert(ID);
-                    }
-                    if(currStudent->preventedWith.contains(ID)) {
-                        preventedIDsOnTeam.insert(ID);
-                    }
-                    if(currStudent->requestedWith.contains(ID)) {
-                        requestedIDsByStudent.insert(ID);
-                    }
-                }
-                requestedIDs.push_back(requestedIDsByStudent);
-                studentNum++;
-            }
-
-            if(_teamingOptions->haveAnyRequiredTeammates) {
-                //loop through all the required IDs to see if each is present on the team--if not, increment penalty
-                for(const auto requiredIDOnTeam : requiredIDsOnTeam) {
-                    if(IDsOnTeam.count(requiredIDOnTeam) == 0) {
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-
-            if(_teamingOptions->haveAnyPreventedTeammates) {
-                //loop through all the prevented IDs to see if each is missing on the team--if not, increment penalty
-                for(const auto preventedIDOnTeam : preventedIDsOnTeam) {
-                    if(IDsOnTeam.count(preventedIDOnTeam) != 0) {
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-
-            if(_teamingOptions->haveAnyRequestedTeammates) {
-                for(const auto &requestedIDSet : requestedIDs) {
-                    int numRequestedTeammates = 0, numRequestedTeammatesFound = 0;
-                    for(const auto requestedIDOnTeam : requestedIDSet) {
-                        numRequestedTeammates++;
-                        if(IDsOnTeam.count(requestedIDOnTeam) != 0) {
-                            numRequestedTeammatesFound++;
-                        }
-                    }
-                    //apply penalty if student has unfulfilled requests that exceed the number allowed
-                    if(numRequestedTeammatesFound < std::min(numRequestedTeammates, _teamingOptions->numberRequestedTeammatesGiven)) {
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-        }
+        getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
     }
 
-    //Bring component scores together for final team scores and, ultimately, a net score:
-    //final team scores are normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
+    // Bring together for a final score for each team:
+    // Score is normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < _numTeams; team++) {
         // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
         if((_schedScore[team] > _teamingOptions->realScheduleWeight) && (_penaltyPoints[team] > 0)) {
@@ -2585,10 +2286,11 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
         _teamScores[team] = 100 * ((_teamScores[team] / float(_teamingOptions->realNumScoringFactors)) - _penaltyPoints[team]);
     }
 
-    //Use the harmonic mean for the "total score"
-    //This value, the inverse of the average of the inverses, is skewed towards the smaller members so that we optimize for better values of the worse teams
-    //very poor teams have 0 or negative scores, and this makes the harmonic mean meaningless
-    //if any teamScore is <= 0, return the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean
+    // Finally, bring all team scores together for a total genome score.
+    // Use the harmonic mean, the inverse of the average of the inverses, so score is skewed towards the smaller members.
+    // This makes it so we optimize for better values of the worse teams rather than run-away best teams.
+    // Very poor teams have 0 or negative scores, and this makes the harmonic mean impossible to calculate.
+    // Thus, if any teamScore is <= 0, we instead use the arithmetic mean punished by reducing towards negative infinity by half the arithmetic mean.
     float harmonicSum = 0, regularSum = 0;
     int numTeamsScored = 0;
     bool allTeamsPositive = true;
@@ -2614,6 +2316,338 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
 
     const float mean = regularSum / float(numTeamsScored);    //"punished" arithmetic mean
     return(mean - (std::abs(mean)/2));
+}
+
+
+void gruepr::getAttributeScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float **_attributeScore,
+                                const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
+                                int *_penaltyPoints)
+{
+    const bool thisIsTimezone = (_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
+    int studentNum = 0;
+    for(int team = 0; team < _numTeams; team++) {
+        // gather all attribute values
+        attributeLevelsInTeam.clear();
+        timezoneLevelsInTeam.clear();
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            attributeLevelsInTeam.insert(_students[_teammates[studentNum]].attributeVals[attribute].constBegin(),
+                                         _students[_teammates[studentNum]].attributeVals[attribute].constEnd());
+            if(thisIsTimezone) {
+                timezoneLevelsInTeam.insert(_students[_teammates[studentNum]].timezone);
+            }
+            studentNum++;
+        }
+
+        // Add a penalty per pair of incompatible attribute responses found
+        if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
+            // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
+            for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
+                const int n = int(attributeLevelsInTeam.count(pair.first));
+                if(pair.first == pair.second) {
+                    _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
+                }
+                else {
+                    const int m = int(attributeLevelsInTeam.count(pair.second));
+                    _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
+                }
+            }
+        }
+
+        // Add a penalty per required attribute response not found
+        if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
+            // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
+            for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
+                if(attributeLevelsInTeam.count(value) == 0) {
+                    _penaltyPoints[team]++;
+                }
+            }
+        }
+
+        // Remove attribute values of -1 (unknown/not set) and then determine attribute scores assuming we have any
+        attributeLevelsInTeam.erase(-1);
+        if((_teamingOptions->realAttributeWeights[attribute] > 0) && (!attributeLevelsInTeam.empty())) {
+            float attributeRangeInTeam;
+            if(thisIsTimezone) {
+                // "attribute" is timezone, so use timezone values
+                attributeRangeInTeam = *timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin();
+            }
+            else if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+                     (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
+                // attribute has meaningful ordering/numerical values--heterogeneous means create maximum spread between max and min values
+                attributeRangeInTeam = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last = largest val; cbegin is 1st = smallest
+            }
+            else {
+                // attribute is categorical or multicategorical--heterogeneous means create maximum number of unique values
+                attributeRangeInTeam = -1;
+                int prevVal = -1;
+                for(const auto currVal : attributeLevelsInTeam) {
+                    if(currVal != prevVal) {
+                        attributeRangeInTeam += 1;
+                    }
+                    prevVal = currVal;
+                }
+            }
+
+            _attributeScore[attribute][team] = attributeRangeInTeam /
+                                               (*(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin()));
+            if(_teamingOptions->desireHomogeneous[attribute]) { //attributeScores = 0 if homogeneous and +1 if full range of values are in a team; flip if want homogeneous
+                _attributeScore[attribute][team] = 1 - _attributeScore[attribute][team];
+            }
+        }
+
+        _attributeScore[attribute][team] *= _teamingOptions->realAttributeWeights[attribute];
+    }
+}
+
+
+void gruepr::getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                               float *_schedScore, bool **_availabilityChart, int *_penaltyPoints)
+{
+    const int numDays = int(_dataOptions->dayNames.size());
+    const int numTimes = int(_dataOptions->timeNames.size());
+    const int numBlocksNeeded = _teamingOptions->realMeetingBlockSize;
+
+    // combine each student's schedule array into a team schedule array
+    int studentNum = 0;
+    for(int team = 0; team < _numTeams; team++) {
+        if(_teamSizes[team] == 1) {
+            studentNum++;
+            continue;
+        }
+
+        // start compiling a team availability chart; begin with that of the first student on team (unless they have ambiguous schedule)
+        int numStudentsWithAmbiguousSchedules = 0;
+        const auto &firstStudentOnTeam = _students[_teammates[studentNum]];
+        if(!firstStudentOnTeam.ambiguousSchedule) {
+            const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
+            for(int day = 0; day < numDays; day++) {
+                for(int time = 0; time < numTimes; time++) {
+                    _availabilityChart[day][time] = !firstStudentUnavailability[day][time];
+                }
+            }
+        }
+        else {
+            // ambiguous schedule, so note it and start with all timeslots available
+            numStudentsWithAmbiguousSchedules++;
+            for(int day = 0; day < numDays; day++) {
+                for(int time = 0; time < numTimes; time++) {
+                    _availabilityChart[day][time] = true;
+                }
+            }
+        }
+        studentNum++;
+
+        // now move on to each subsequent student and, unless they have ambiguous schedule, merge their availability into the team's
+        for(int teammate = 1; teammate < _teamSizes[team]; teammate++) {
+            const auto &currStudent = _students[_teammates[studentNum]];
+            if(currStudent.ambiguousSchedule) {
+                numStudentsWithAmbiguousSchedules++;
+                studentNum++;
+                continue;
+            }
+            const auto &currStudentUnavailability = currStudent.unavailable;
+            for(int day = 0; day < numDays; day++) {
+                for(int time = 0; time < numTimes; time++) {
+                    // "and" each student's not-unavailability
+                    _availabilityChart[day][time] = _availabilityChart[day][time] && !currStudentUnavailability[day][time];
+                }
+            }
+            studentNum++;
+        }
+
+        // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
+        if((_teamSizes[team] - numStudentsWithAmbiguousSchedules) < 2) {
+            continue;
+        }
+
+        //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
+        for(int day = 0; day < numDays; day++) {
+            for(int time = 0; time < numTimes; time++) {
+                int block = 0;
+                while((_availabilityChart[day][time]) && (block < numBlocksNeeded) && (time < numTimes)) {
+                    block++;
+                    if(block < numBlocksNeeded) {
+                        time++;
+                    }
+                }
+
+                if((block == numBlocksNeeded) && (block > 0)){
+                    _schedScore[team]++;
+                }
+            }
+        }
+
+        // convert counts to a schedule score
+        // normal schedule score is number of overlaps / desired number of overlaps
+        if(_schedScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
+            const int numAdditionalOverlaps = int(_schedScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
+            _schedScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
+            float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+            for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
+                _schedScore[team] += factor;
+                factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+            }
+        }
+        else if(_schedScore[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
+            _schedScore[team] = 0;
+            _penaltyPoints[team]++;
+        }
+        _schedScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
+        _schedScore[team] *= _teamingOptions->realScheduleWeight;
+    }
+}
+
+
+void gruepr::getGenderPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                const TeamingOptions *const _teamingOptions, int *_penaltyPoints)
+{
+    int studentNum = 0;
+    for(int team = 0; team < _numTeams; team++) {
+        if(_teamSizes[team] == 1) {
+            studentNum++;
+            continue;
+        }
+
+        // Count how many of each gender on the team
+        int numWomen = 0;
+        int numMen = 0;
+        int numNonbinary = 0;
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            if(_students[_teammates[studentNum]].gender == Gender::man) {
+                numMen++;
+            }
+            else if(_students[_teammates[studentNum]].gender == Gender::woman) {
+                numWomen++;
+            }
+            else if(_students[_teammates[studentNum]].gender == Gender::nonbinary) {
+                numNonbinary++;
+            }
+            studentNum++;
+        }
+
+        // Apply penalties as appropriate
+        if(_teamingOptions->isolatedWomenPrevented && numWomen == 1) {
+            _penaltyPoints[team]++;
+        }
+        if(_teamingOptions->isolatedMenPrevented && numMen == 1) {
+            _penaltyPoints[team]++;
+        }
+        if(_teamingOptions->isolatedNonbinaryPrevented && numNonbinary == 1) {
+            _penaltyPoints[team]++;
+        }
+        if(_teamingOptions->singleGenderPrevented && (numMen == 0 || numWomen == 0)) {
+            _penaltyPoints[team]++;
+        }
+    }
+}
+
+
+void gruepr::getURMPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[], int *_penaltyPoints)
+{
+    int studentNum = 0;
+    for(int team = 0; team < _numTeams; team++) {
+        if(_teamSizes[team] == 1) {
+            studentNum++;
+            continue;
+        }
+
+        // Count how many URM on the team
+        int numURM = 0;
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            if(_students[_teammates[studentNum]].URM) {
+                numURM++;
+            }
+            studentNum++;
+        }
+
+        // Apply penalties as appropriate
+        if(numURM == 1) {
+            _penaltyPoints[team]++;
+        }
+    }
+}
+
+
+void gruepr::getTeammatePenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                        const TeamingOptions *const _teamingOptions, int *_penaltyPoints)
+{
+    std::set<long long> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
+    std::multiset<long long> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
+    std::vector< std::set<long long> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
+
+    // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
+    int studentNum = 0;
+    for(int team = 0; team < _numTeams; team++) {
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            IDsBeingTeamed.insert(_students[_teammates[studentNum]].ID);
+            studentNum++;
+        }
+    }
+
+    // Loop through each team
+    studentNum = 0;
+    const StudentRecord *currStudent = nullptr;
+    for(int team = 0; team < _numTeams; team++) {
+        IDsOnTeam.clear();
+        requiredIDsOnTeam.clear();
+        preventedIDsOnTeam.clear();
+        requestedIDs.clear();
+        //loop through each student on team and collect their ID and their required/prevented/requested IDs
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            currStudent = &_students[_teammates[studentNum]];
+            IDsOnTeam.insert(currStudent->ID);
+            requestedIDsByStudent.clear();
+            for(const auto ID : IDsBeingTeamed) {
+                if(currStudent->requiredWith.contains(ID)) {
+                    requiredIDsOnTeam.insert(ID);
+                }
+                if(currStudent->preventedWith.contains(ID)) {
+                    preventedIDsOnTeam.insert(ID);
+                }
+                if(currStudent->requestedWith.contains(ID)) {
+                    requestedIDsByStudent.insert(ID);
+                }
+            }
+            requestedIDs.push_back(requestedIDsByStudent);
+            studentNum++;
+        }
+
+        if(_teamingOptions->haveAnyRequiredTeammates) {
+            //loop through all the required IDs to see if each is present on the team--if not, increment penalty
+            for(const auto requiredIDOnTeam : requiredIDsOnTeam) {
+                if(IDsOnTeam.count(requiredIDOnTeam) == 0) {
+                    _penaltyPoints[team]++;
+                }
+            }
+        }
+
+        if(_teamingOptions->haveAnyPreventedTeammates) {
+            //loop through all the prevented IDs to see if each is missing on the team--if not, increment penalty
+            for(const auto preventedIDOnTeam : preventedIDsOnTeam) {
+                if(IDsOnTeam.count(preventedIDOnTeam) != 0) {
+                    _penaltyPoints[team]++;
+                }
+            }
+        }
+
+        if(_teamingOptions->haveAnyRequestedTeammates) {
+            for(const auto &requestedIDSet : requestedIDs) {
+                int numRequestedTeammates = 0, numRequestedTeammatesFound = 0;
+                for(const auto requestedIDOnTeam : requestedIDSet) {
+                    numRequestedTeammates++;
+                    if(IDsOnTeam.count(requestedIDOnTeam) != 0) {
+                        numRequestedTeammatesFound++;
+                    }
+                }
+                //apply penalty if student has unfulfilled requests that exceed the number allowed
+                if(numRequestedTeammatesFound < std::min(numRequestedTeammates, _teamingOptions->numberRequestedTeammatesGiven)) {
+                    _penaltyPoints[team]++;
+                }
+            }
+        }
+    }
 }
 
 
