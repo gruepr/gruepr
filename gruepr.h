@@ -83,7 +83,7 @@ private:
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
-    inline void setTeamSizes(const int teamSizes[]);
+    inline void setTeamSizes(const QList<int> teamSizes);
     inline void setTeamSizes(const int singleSize);
     inline QString writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB);
     inline StudentRecord* findStudentFromID(const long long ID);

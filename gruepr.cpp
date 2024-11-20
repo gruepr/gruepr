@@ -266,10 +266,11 @@ void gruepr::changeSection(int index)
             currentResponseCounts[responseCount.first] = 0;
         }
         for(const auto &student : students) {
-            if((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
-               (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
-               ((teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress) ||
-               (student.section == teamingOptions->sectionName)) {
+            if(!student.deleted &&
+               ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
+                ((teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress) ||
+                (student.section == teamingOptions->sectionName))) {
                 const QString &currentStudentResponse = student.attributeResponse[attribute];
 
                 if(!student.attributeResponse[attribute].isEmpty()) {
@@ -888,6 +889,8 @@ void gruepr::makeTeammatesRules()
 void gruepr::changeIdealTeamSize()
 {
     const int idealSize = ui->idealTeamSizeBox->value();
+
+    // First, make sure we don't end up penalizing teams for having fewer requested teammates than the team size allows
     if(teamingOptions->numberRequestedTeammatesGiven > idealSize) {
         teamingOptions->numberRequestedTeammatesGiven = idealSize;
     }
@@ -895,7 +898,8 @@ void gruepr::changeIdealTeamSize()
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
     ui->teamSizeBox->setUpdatesEnabled(false);
 
-    // typically just figuring out team sizes for one section or for all students together, but need to re-calculate for each section if we will team all sections independently
+    // typically just figuring out team sizes for one section or for all students together,
+    // but need to re-calculate for each section if we will team all sections independently
     const bool calculatingSeparateSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) && !multipleSectionsInProgress;
     const int numSectionsToCalculate = (calculatingSeparateSections? int(dataOptions->sectionNames.size()) : 1);
     long long numStudentsBeingTeamed = numActiveStudents;
@@ -927,25 +931,27 @@ void gruepr::changeIdealTeamSize()
             numStudentsBeingTeamed = numActiveStudents;
         }
 
+        // reset the potential team sizes, and reserve sufficient memory
         teamingOptions->numTeamsDesired = std::max(1ll, numStudentsBeingTeamed/idealSize);
         teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired;
+        teamingOptions->smallerTeamsSizes.clear();
+        teamingOptions->smallerTeamsSizes.reserve(MAX_STUDENTS);
         teamingOptions->largerTeamsNumTeams = teamingOptions->numTeamsDesired;
+        teamingOptions->largerTeamsSizes.clear();
+        teamingOptions->largerTeamsSizes.reserve(MAX_STUDENTS);
+        for(int teamNum = 0; teamNum < MAX_STUDENTS; teamNum++) {
+            teamingOptions->smallerTeamsSizes << 0;
+            teamingOptions->largerTeamsSizes << 0;
+        }
 
         if(numStudentsBeingTeamed%idealSize != 0) {      //if teams can't be evenly divided into this size
-
-            // reset the potential team sizes
-            for(int teamNum = 0; teamNum < MAX_STUDENTS; teamNum++) {
-                teamingOptions->smallerTeamsSizes[teamNum] = 0;
-                teamingOptions->largerTeamsSizes[teamNum] = 0;
-            }
-
             // What are the team sizes when desiredTeamSize represents a maximum size?
             teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired+1;
             for(int student = 0; student < numStudentsBeingTeamed; student++) {     // run through every student
                 // add one student to each team (with 1 additional team relative to before) in turn until we run out of students
                 (teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams])++;
                 smallerTeamsSizeA = teamingOptions->smallerTeamsSizes[student%teamingOptions->smallerTeamsNumTeams];  // the larger of the two (uneven) team sizes
-                numSmallerATeams = (student%teamingOptions->smallerTeamsNumTeams)+1;                                 // the number of larger teams
+                numSmallerATeams = (student%teamingOptions->smallerTeamsNumTeams)+1;                                  // the number of larger teams
             }
             smallerTeamsSizeB = smallerTeamsSizeA - 1;                  // the smaller of the two (uneven) team sizes
 
@@ -955,7 +961,7 @@ void gruepr::changeIdealTeamSize()
                 // add one student to each team in turn until we run out of students
                 (teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams])++;
                 largerTeamsSizeA = teamingOptions->largerTeamsSizes[student%teamingOptions->largerTeamsNumTeams];     // the larger of the two (uneven) team sizes
-                numLargerATeams = (student%teamingOptions->largerTeamsNumTeams)+1;                                   // the number of larger teams
+                numLargerATeams = (student%teamingOptions->largerTeamsNumTeams)+1;                                    // the number of larger teams
             }
             largerTeamsSizeB = largerTeamsSizeA - 1;					// the smaller of the two (uneven) team sizes
 
@@ -996,6 +1002,11 @@ void gruepr::changeIdealTeamSize()
                 ui->teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(idealSize) + tr(" students each)"));
             }
         }
+
+        teamingOptions->smallerTeamsSizes.removeAll(0);
+        teamingOptions->smallerTeamsSizes.squeeze();
+        teamingOptions->largerTeamsSizes.removeAll(0);
+        teamingOptions->largerTeamsSizes.squeeze();
     }
 
     if(calculatingSeparateSections) {
@@ -1021,7 +1032,7 @@ void gruepr::changeIdealTeamSize()
 }
 
 
-inline QString gruepr::writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB)
+QString gruepr::writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB)
 {
     if((numTeamsA == 0) || (numTeamsB == 0)) {
         const QString numTeamsString = QString::number((numTeamsA == 0)? numTeamsB : numTeamsA);
@@ -1066,7 +1077,7 @@ void gruepr::chooseTeamSizes(int index)
         const int reply = win->exec();
         if(reply == QDialog::Accepted) {
             teamingOptions->numTeamsDesired = win->numTeams;
-            setTeamSizes(win->teamsizes.constData());
+            setTeamSizes(win->teamsizes);
         }
         else {
             // Set to index 0 if cancelled
@@ -1166,8 +1177,8 @@ void gruepr::startOptimization()
         teams.clear();
         teams.dataOptions = *dataOptions;
         teams.reserve(numTeams);
-        for(int team = 0; team < numTeams; team++) {   // run through every team to load dataOptions and size
-            teams.emplaceBack(&teams.dataOptions, teamingOptions->teamSizesDesired[team]);
+        for(const auto teamSize : teamingOptions->teamSizesDesired) {
+            teams.emplaceBack(&teams.dataOptions, teamSize);
         }
 
         // Create progress display plot
@@ -1719,16 +1730,20 @@ void gruepr::saveState()
 //////////////////
 // Set the "official" team sizes using an array of different sizes or a single, constant size
 //////////////////
-inline void gruepr::setTeamSizes(const int teamSizes[])
+inline void gruepr::setTeamSizes(const QList<int> teamSizes)
 {
-    for(int team = 0; team < teamingOptions->numTeamsDesired; team++) {	// run through every team
-        teamingOptions->teamSizesDesired[team] = teamSizes[team];
+    teamingOptions->teamSizesDesired.clear();
+    teamingOptions->teamSizesDesired.reserve(teamingOptions->numTeamsDesired);
+    for(int team = 0; team < teamingOptions->numTeamsDesired; team++) {
+        teamingOptions->teamSizesDesired << teamSizes.at(team);
     }
 }
 inline void gruepr::setTeamSizes(const int singleSize)
 {
-    for(int team = 0; team < teamingOptions->numTeamsDesired; team++) {	// run through every team
-        teamingOptions->teamSizesDesired[team] = singleSize;
+    teamingOptions->teamSizesDesired.clear();
+    teamingOptions->teamSizesDesired.reserve(teamingOptions->numTeamsDesired);
+    for(int team = 0; team < teamingOptions->numTeamsDesired; team++) {
+        teamingOptions->teamSizesDesired << singleSize;
     }
 }
 

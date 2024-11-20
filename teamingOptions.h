@@ -41,12 +41,12 @@ public:
     bool haveAnyPreventedTeammates = false;
     bool haveAnyRequestedTeammates = false;
     int numberRequestedTeammatesGiven = 1;
-    int smallerTeamsSizes[MAX_STUDENTS] = {0};
+    QList<int> smallerTeamsSizes;
     int smallerTeamsNumTeams = 1;
-    int largerTeamsSizes[MAX_STUDENTS] = {0};
+    QList<int> largerTeamsSizes;
     int largerTeamsNumTeams = 1;
+    QList<int> teamSizesDesired;
     int numTeamsDesired = 1;
-    int teamSizesDesired[MAX_STUDENTS] = {0};
     QString sectionName;
     enum class SectionType {noSections, allTogether, allSeparately, oneSection} sectionType = SectionType::noSections;
     int teamsetNumber = 1;                              // which teamset are we working on now?

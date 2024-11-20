@@ -35,23 +35,22 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - significant speed up when loading student data
 //  - make "Loading Data" window blocking and add cancel button
+//  - fixed crash when attempting to use a roster file that has invalid entries
+//  - now sorts Canvas courses by creation date rather than alphabetically
 //  - much smarter use of internal student ID values instead of the index within the students array:
 //     - edit buttons no longer get confused when a single section is selected
 //     - "deleting" a student no longer removes them from the database, just marks them as deleted and makes them not be displayed anywhere
 //     - removed studentIndexes from teamRecord
 //     - use QList, not array, for IDs of req/prev/reques teammates
 //     - IDs are now long long instead of int
-//  - fixed crash when comparing to a roster file with invalid entries
-//  - significant speed up when loading student data
-//  - now sorts Canvas courses by creation date rather than alphabetically
 //
 // INPROG:
 //
 // TO DO:
 //    BUGFIX:
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
-//  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
 //
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
