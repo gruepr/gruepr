@@ -48,10 +48,9 @@ private:
     QList <QComboBox *> possibleRequiredTeammates;
     QList <QComboBox *> possiblePreventedTeammates;
     QList <QComboBox *> possibleRequestedTeammates;
+
     void addTeammateSelector(TypeOfTeammates typeOfTeammates);
-
     void refreshDisplay(TypeOfTeammates typeOfTeammates);
-
     void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
     void clearValues(TypeOfTeammates typeOfTeammates, bool verify = true);
 
