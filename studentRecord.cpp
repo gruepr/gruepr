@@ -312,7 +312,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                 timenameRegEx.setPattern("\\b"+timeName+"\\b");
 
                 // determine which spot in the unavailability chart to put this date/time
-                int actualday = day++;
+                int actualday = day;
                 float actualtime = time + timezoneOffset;
                 // if this one wraps around the day, then adjust to the correct day/time
                 if(actualtime < 0) {
@@ -356,6 +356,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                 }
             }
         }
+        day++;
     }
     if(!dataOptions.dayNames.isEmpty()) {
         availabilityChart = QObject::tr("Availability:");

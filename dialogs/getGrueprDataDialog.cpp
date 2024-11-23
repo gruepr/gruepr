@@ -782,7 +782,7 @@ bool GetGrueprDataDialog::readData()
     // schedule fields
     lastFoundIndex = 0;
     for(int scheduleQuestion = 0, numScheduleFields = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleFields; scheduleQuestion++) {
-        int field = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
+        const int field = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
         dataOptions->scheduleField << field;
         const QString scheduleQuestionText = surveyFile->headerValues.at(field);
         static const QRegularExpression freeOrAvailable(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption);
