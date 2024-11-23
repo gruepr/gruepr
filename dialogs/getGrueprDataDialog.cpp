@@ -747,18 +747,16 @@ bool GetGrueprDataDialog::readData()
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != DataOptions::FIELDNOTPRESENT);
     // pref teammates fields
     int lastFoundIndex = 0;
-    dataOptions->numPrefTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
-    dataOptions->prefTeammatesIncluded = (dataOptions->numPrefTeammateQuestions > 0);
-    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++) {
-        dataOptions->prefTeammatesField[prefQ] = int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex));
+    const int numTeammateQs = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
+    for(int prefQ = 0; prefQ < numTeammateQs; prefQ++) {
+        dataOptions->prefTeammatesField << int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex)));
     }
     // pref non-teammates fields
     lastFoundIndex = 0;
-    dataOptions->numPrefNonTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Non-teammates"));
-    dataOptions->prefNonTeammatesIncluded = (dataOptions->numPrefNonTeammateQuestions > 0);
-    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++) {
-        dataOptions->prefNonTeammatesField[prefQ] = int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex));
+    const int numNonTeammateQs = int(surveyFile->fieldMeanings.count("Preferred Non-teammates"));
+    for(int prefQ = 0; prefQ < numNonTeammateQs; prefQ++) {
+        dataOptions->prefNonTeammatesField << int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex)));
     }
     // notes fields
@@ -784,8 +782,9 @@ bool GetGrueprDataDialog::readData()
     // schedule fields
     lastFoundIndex = 0;
     for(int scheduleQuestion = 0, numScheduleFields = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleFields; scheduleQuestion++) {
-        dataOptions->scheduleField[scheduleQuestion] = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
-        const QString scheduleQuestionText = surveyFile->headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
+        int field = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
+        dataOptions->scheduleField << field;
+        const QString scheduleQuestionText = surveyFile->headerValues.at(field);
         static const QRegularExpression freeOrAvailable(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption);
         if(scheduleQuestionText.contains(freeOrAvailable)) {
             // if >=1 field has this language, all interpreted as free time
@@ -820,8 +819,8 @@ bool GetGrueprDataDialog::readData()
     if(!dataOptions->dayNames.isEmpty()) {
         QStringList allTimeNames;
         do {
-            for(int scheduleQuestion = 0, numScheduleQuestions = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleQuestions; scheduleQuestion++) {
-                QString scheduleFieldText = (surveyFile->fieldValues.at(dataOptions->scheduleField[scheduleQuestion])).toLower().split(';').join(',');
+            for(const int fieldNum : dataOptions->scheduleField) {
+                QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
                 allTimeNames << CsvFile::getLine(scheduleFieldStream);
             }

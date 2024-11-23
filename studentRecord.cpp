@@ -297,8 +297,8 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     for(const auto &timeName : dataOptions.timeNames) {
         hoursForEachTimeName[grueprGlobal::timeStringToHours(timeName)] = timeName;
     }
-    for(int day = 0; day < numDays; day++) {
-        fieldnum = dataOptions.scheduleField[day];
+    int day = 0;
+    for(const int fieldnum : dataOptions.scheduleField) {
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             const QString &field = fields.at(fieldnum);
             static QRegularExpression timenameRegEx("", QRegularExpression::CaseInsensitiveOption);
@@ -312,7 +312,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                 timenameRegEx.setPattern("\\b"+timeName+"\\b");
 
                 // determine which spot in the unavailability chart to put this date/time
-                int actualday = day;
+                int actualday = day++;
                 float actualtime = time + timezoneOffset;
                 // if this one wraps around the day, then adjust to the correct day/time
                 if(actualtime < 0) {
@@ -389,8 +389,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // preferred teammates
-    for(int prefQ = 0; prefQ < dataOptions.numPrefTeammateQuestions; prefQ++) {
-        fieldnum = dataOptions.prefTeammatesField[prefQ];
+    for(const int fieldnum : dataOptions.prefTeammatesField) {
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum);
             static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
@@ -406,8 +405,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     }
 
     // preferred non-teammates
-    for(int prefQ = 0; prefQ < dataOptions.numPrefNonTeammateQuestions; prefQ++) {
-        fieldnum = dataOptions.prefNonTeammatesField[prefQ];
+    for(const int fieldnum : dataOptions.prefNonTeammatesField) {
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             QString nextTeammate = fields.at(fieldnum);
             static const QRegularExpression nameSeparators(R"(\s*([,;&]|(?:\sand\s))\s*)");
@@ -538,11 +536,11 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
     if(!(availabilityChart.isEmpty())) {
         toolTip += "<br>--<br>" + availabilityChart;
     }
-    if(dataOptions.prefTeammatesIncluded) {
+    if(!dataOptions.prefTeammatesField.empty()) {
         QString note = prefTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }
-    if(dataOptions.prefNonTeammatesIncluded) {
+    if(!dataOptions.prefNonTeammatesField.empty()) {
         QString note = prefNonTeammates;
         toolTip += "<br>--<br>" + QObject::tr("Preferred Non-teammates") + ":<br>" + (note.isEmpty()? ("<i>" + QObject::tr("none") + "</i>") : note.replace("\n","<br>"));
     }

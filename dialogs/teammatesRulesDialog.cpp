@@ -24,8 +24,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     sectionName = sectionname;
     teamSets = currTeamSets;
     students = incomingStudents;
-    positiverequestsInSurvey = dataOptions.prefTeammatesIncluded;
-    negativerequestsInSurvey = dataOptions.prefTeammatesIncluded;
+    positiverequestsInSurvey = !dataOptions.prefTeammatesField.empty();
+    negativerequestsInSurvey = !dataOptions.prefTeammatesField.empty();
     std::sort(students.begin(), students.end(), [](const StudentRecord &i, const StudentRecord &j)
                                                 {return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 

@@ -165,7 +165,7 @@ gruepr::~gruepr()
 void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
                             TeamSet &_teams, const TeamingOptions *const _teamingOptions)
 {
-    const auto _numTeams = _teams.size();
+    const int _numTeams = _teams.size();
     const auto &_dataOptions = _teams.dataOptions;
     auto *teamScores = new float[_numTeams];
     auto **attributeScore = new float*[_dataOptions.numAttributes];
@@ -375,7 +375,7 @@ void gruepr::removeAStudent(const QString &name)
 {
     if(!name.isEmpty()) {
         // use the name to find the ID
-        int ID = -1;
+        long long ID = -1;
         // don't have index, need to search and locate based on name
         for(const auto &student : students) {
             if(name.compare((student.firstname + " " + student.lastname), Qt::CaseInsensitive) == 0) {
@@ -522,7 +522,7 @@ void gruepr::compareStudentsToRoster()
             }
 
             // get the email corresponding to this name on the roster
-            const int index = names.indexOf(name);
+            const auto index = names.indexOf(name);
             const QString &rosterEmail = ((index >= 0 && index < emails.size())? emails.at(index) : "");
 
             if(stu != nullptr) {
@@ -1629,7 +1629,7 @@ void gruepr::loadUI()
     }
 
     // if the data containes preferred teammates or non-teammates and they haven't been loaded in, ask if they should be
-    if(dataOptions->prefTeammatesIncluded && !teamingOptions->haveAnyRequiredTeammates && !teamingOptions->haveAnyRequestedTeammates) {
+    if(!dataOptions->prefTeammatesField.empty() && !teamingOptions->haveAnyRequiredTeammates && !teamingOptions->haveAnyRequestedTeammates) {
         const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
                                                             tr("The survey asked students for preferred teammates.\n"
                                                                "Would you like to load those preferences as required teammates?"),
@@ -1649,9 +1649,9 @@ void gruepr::loadUI()
             delete win;
         }
     }
-    if(dataOptions->prefNonTeammatesIncluded && !teamingOptions->haveAnyPreventedTeammates) {
+    if(!dataOptions->prefNonTeammatesField.empty() && !teamingOptions->haveAnyPreventedTeammates) {
         const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
-                                                            tr("The survey ") + (dataOptions->prefTeammatesIncluded? tr("also") : "") +
+                                                            tr("The survey ") + (!dataOptions->prefTeammatesField.empty()? tr("also") : "") +
                                                             tr(" asked students for preferred non-teammates.\n"
                                                                "Would you like to load those preferences as prevented teammates?"),
                                                             tr("Yes"), tr("No"));
@@ -1730,7 +1730,7 @@ void gruepr::saveState()
 //////////////////
 // Set the "official" team sizes using an array of different sizes or a single, constant size
 //////////////////
-inline void gruepr::setTeamSizes(const QList<int> teamSizes)
+inline void gruepr::setTeamSizes(const QList<int> &teamSizes)
 {
     teamingOptions->teamSizesDesired.clear();
     teamingOptions->teamSizesDesired.reserve(teamingOptions->numTeamsDesired);
@@ -2212,8 +2212,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     //copy best team set into a QList to return
     QList<int> bestTeamSet;
     bestTeamSet.reserve(numActiveStudents);
+    const auto &bestGenome = genePool[orderedIndex[0]];
     for(int ID = 0; ID < numActiveStudents; ID++) {
-        bestTeamSet << genePool[orderedIndex[0]][ID];
+        bestTeamSet << bestGenome[ID];
     }
 
     // deallocate memory

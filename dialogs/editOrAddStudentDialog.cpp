@@ -365,7 +365,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         }
     }
 
-    if(dataOptions->prefTeammatesIncluded) {
+    if(!dataOptions->prefTeammatesField.empty()) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
@@ -378,7 +378,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if(dataOptions->prefNonTeammatesIncluded) {
+    if(!dataOptions->prefNonTeammatesField.empty()) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
@@ -403,7 +403,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if((dataOptions->prefTeammatesIncluded) || (dataOptions->prefNonTeammatesIncluded) || (!dataOptions->notesFields.empty())) {
+    if((!dataOptions->prefTeammatesField.empty()) || (dataOptions->prefNonTeammatesField.empty()) || (!dataOptions->notesFields.empty())) {
         // calculate the height of 1 row of text in the multilines
         const QFontMetrics fm(datamultiline.last()->document()->defaultFont());
         const QMargins margin = datamultiline.last()->contentsMargins();
@@ -525,10 +525,10 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
 
         student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (dataOptions->dayNames.size() * dataOptions->timeNames.size()));
     }
-    if(dataOptions->prefTeammatesIncluded) {
+    if(!dataOptions->prefTeammatesField.empty()) {
         student.prefTeammates = datamultiline[multilinefield++]->toPlainText();
     }
-    if(dataOptions->prefNonTeammatesIncluded) {
+    if(!dataOptions->prefNonTeammatesField.empty()) {
         student.prefNonTeammates = datamultiline[multilinefield++]->toPlainText();
     }
     if(!dataOptions->notesFields.empty()) {
