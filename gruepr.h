@@ -86,11 +86,11 @@ private:
     inline void setTeamSizes(const QList<int> &teamSizes);
     inline void setTeamSizes(const int singleSize);
     inline QString writeTeamSizeOption(const int numTeamsA, const int teamsizeA, const int numTeamsB, const int teamsizeB);
-    inline StudentRecord* findStudentFromID(const long long ID);
 
         // reading survey data
     long long numActiveStudents = MAX_STUDENTS;
     QList<StudentRecord> students;
+    inline StudentRecord* findStudentFromID(const long long ID);
     bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks survey names and emails against roster
     void refreshStudentDisplay();
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
