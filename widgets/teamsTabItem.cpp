@@ -961,7 +961,7 @@ void TeamsTabItem::postTeamsToCanvas()
 
     //ask the user in which course we're creating the teams
     auto *busyBox = canvas->actionDialog();
-    QList<CanvasCourse> canvasCourses = canvas->getCourses();
+    QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
     auto *canvasCoursesDialog = new QDialog(this);
     canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));

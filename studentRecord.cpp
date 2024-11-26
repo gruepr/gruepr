@@ -50,7 +50,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         }
     }
     else {
-        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs
+        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs.
         // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
         const QJsonArray preventedWithArray = jsonStudentRecord["preventedWith"].toArray();
         const long long MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
@@ -68,7 +68,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         }
     }
     else {
-        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs
+        // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs.
         // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
         const QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
         const long long MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students

@@ -1808,7 +1808,7 @@ bool CourseInfoPage::uploadRoster()
         rosterFile.readDataRow();
     }
     else {
-        rosterFile.readDataRow(true);
+        rosterFile.readDataRow(CsvFile::ReadLocation::beginningOfFile);
     }
     do {
         QString name;
@@ -2632,7 +2632,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
 
     //ask the user in which course we're creating the survey
     auto *busyBox = canvas->actionDialog(this);
-    QList<CanvasCourse> canvasCourses = canvas->getCourses();
+    QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
     auto *canvasCoursesDialog = new QDialog(this);

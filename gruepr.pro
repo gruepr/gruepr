@@ -75,7 +75,6 @@ SOURCES += \
         gruepr.cpp \
         GA.cpp \
         studentRecord.cpp \
-        survey.cpp \
         surveyMakerWizard.cpp \
         teamRecord.cpp \
         teamingOptions.cpp \

@@ -40,6 +40,7 @@ public:
     enum class Delimiter {comma, tab};
     enum class Source {fileOnly, fileOrOnline};
     enum class Operation {read, write};
+    enum class ReadLocation {currentPosition, beginningOfFile};
 
     CsvFile(Delimiter dlmtr = Delimiter::comma, QObject *parent = nullptr);
     ~CsvFile() override;
@@ -57,7 +58,7 @@ public:
     bool readHeader();
     //void setFieldMeanings();
     QDialog* chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
-    bool readDataRow(bool resetToStart = false);
+    bool readDataRow(ReadLocation readLocation = ReadLocation::currentPosition);
     bool writeHeader();
     void writeDataRow();
 

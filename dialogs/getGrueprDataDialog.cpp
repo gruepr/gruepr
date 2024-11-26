@@ -355,7 +355,7 @@ bool GetGrueprDataDialog::getFromCanvas()
 
     //ask the user from which course we're downloading the survey
     auto *busyBox = canvas->actionDialog(this);
-    QList<CanvasCourse> canvasCourses = canvas->getCourses();
+    QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
@@ -894,14 +894,14 @@ bool GetGrueprDataDialog::readData()
     loadingProgressDialog->setValue(2);
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
-    surveyFile->readDataRow(true);    // put cursor back to beginning and read first row
+    surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);    // put cursor back to beginning and read first row
     if(surveyFile->hasHeaderRow) {
         // that first row was headers, so get next row
         surveyFile->readDataRow();
     }
 
     students.reserve(surveyFile->estimatedNumberRows);
-    int numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    int numStudents = 0;
     StudentRecord currStudent;
     do {
         if(loadingProgressDialog->wasCanceled()) {

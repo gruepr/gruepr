@@ -5,25 +5,16 @@
 #include "studentRecord.h"
 #include "survey.h"
 
-struct CanvasQuiz
-{
-    QString name;
-    int ID = 0;
-};
-
-struct CanvasCourse
-{
-    QString name;
-    int ID = 0;
-    int numStudents = 0;
-    QDateTime creationDate = QDateTime::currentDateTime();
-};
 
 class CanvasHandler : public LMS
 {
     Q_OBJECT
 
 public:
+
+    struct CanvasQuiz {QString name; int ID = 0;};
+    struct CanvasCourse {QString name; int ID = 0; int numStudents = 0; QDateTime creationDate = QDateTime::currentDateTime();};
+
     CanvasHandler(QWidget *parent = nullptr);
     ~CanvasHandler() override;
     CanvasHandler(const CanvasHandler&) = delete;
@@ -49,7 +40,7 @@ public:
 
 private:
     void authenticateWithManualToken(const QString &token);
-    QStringList askUserForManualURLandToken(const QString &currentURL = "", const QString &currentToken = "");
+    QStringList askUserForManualURLandToken(const QString &currentAccountName = "", const QString &currentURL = "", const QString &currentToken = "");
 
     int getCourseID(const QString &courseName);
     int getQuizID(const QString &quizName);

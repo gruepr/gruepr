@@ -39,6 +39,7 @@
 //  - make "Loading Data" window blocking and add cancel button
 //  - fixed crash when attempting to use a roster file that has invalid entries
 //  - now sorts Canvas courses by creation date rather than alphabetically
+//  - simplified the Canvas login window when there's existing Canvas token info
 //  - much smarter use of internal student ID values instead of the index within the students array:
 //     - edit buttons no longer get confused when a single section is selected
 //     - "deleting" a student no longer removes them from the database, just marks them as deleted and makes them not be displayed anywhere
@@ -54,7 +55,7 @@
 //
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
-//  - add free response number as a question type
+//  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
@@ -64,6 +65,8 @@
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
 //      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
+//  - compile for webassembly, turn into a webapp
+//      - move from OpenMP to QThread?
 //
 //    NETWORK IMPLEMENTATION:
 //  - create timeout function to more nicely handle LMS connections

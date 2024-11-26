@@ -6,12 +6,12 @@
 #include <QStringList>
 
 
-class Question
+struct Question
 {
-public:
     enum class QuestionType{shorttext, dropdown, radiobutton, checkbox, schedule, longtext};
 
-    Question(const QString &questionText = "", const QuestionType questionType = QuestionType::longtext, const QStringList &responseOptions = {});
+    Question(const QString &questionText = "", const QuestionType questionType = QuestionType::longtext, const QStringList &responseOptions = {}) :
+          text(questionText), type(questionType), options(responseOptions) {};
 
     QString text;
     QuestionType type;
@@ -19,10 +19,11 @@ public:
 };
 
 
-class Survey
+struct Survey
 {
-public:
-    Survey();
+    Survey(const QString &surveyTitle = "", const QList<Question> &surveyQuestions = {}, const int surveyAttributes = 0,
+           const QStringList &surveyDayNames = {}, const QStringList &surveyTimeNames = {}) :
+        title(surveyTitle), questions(surveyQuestions), numAttributes(surveyAttributes), schedDayNames(surveyDayNames), schedTimeNames(surveyTimeNames) {};
 
     QString title = "";
     QList<Question> questions;

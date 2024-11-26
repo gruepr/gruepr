@@ -140,9 +140,9 @@ bool CsvFile::readHeader()
 //////////////////
 // Read a line from the file, splitting & saving field texts into fieldValues
 //////////////////
-bool CsvFile::readDataRow(bool resetToStart)
+bool CsvFile::readDataRow(ReadLocation readLocation)
 {
-    if(resetToStart) {
+    if(readLocation == ReadLocation::beginningOfFile) {
         stream->seek(0);
     }
     fieldValues = getLine(numFields);
@@ -442,7 +442,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
     // read up to a newline
     QString line = externalStream.readLine();
     // if there's a newline within a field, the number of " characters will be odd, so append to next newline and check again
-    while(line.count('"')%2 == 1) {
+    while(line.count('"')%2 == 1 && !externalStream.atEnd()) {
         line.append(externalStream.readLine());
     }
 

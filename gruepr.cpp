@@ -1785,7 +1785,7 @@ bool gruepr::loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList
         rosterFile.readDataRow();
     }
     else {
-        rosterFile.readDataRow(true);
+        rosterFile.readDataRow(CsvFile::ReadLocation::beginningOfFile);
     }
     do {
         QString name;

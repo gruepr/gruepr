@@ -10,11 +10,6 @@ namespace Ui {
 class AttributeRulesDialog;
 }
 
-struct AttributeValue
-{
-    int value;
-    QString response;
-};
 
 class AttributeRulesDialog : public QDialog
 {
@@ -37,6 +32,7 @@ private slots:
 
 private:
     Ui::AttributeRulesDialog *ui;
+    struct AttributeValue {int value; QString response;};
     QList<AttributeValue> attributeValues;
     int numPossibleValues;
     QString valuePrefix(int value, DataOptions::AttributeType attributeType);
