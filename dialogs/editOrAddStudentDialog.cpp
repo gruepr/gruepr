@@ -403,7 +403,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if((!dataOptions->prefTeammatesField.empty()) || (dataOptions->prefNonTeammatesField.empty()) || (!dataOptions->notesFields.empty())) {
+    if((!dataOptions->prefTeammatesField.empty()) || (!dataOptions->prefNonTeammatesField.empty()) || (!dataOptions->notesFields.empty())) {
         // calculate the height of 1 row of text in the multilines
         const QFontMetrics fm(datamultiline.last()->document()->defaultFont());
         const QMargins margin = datamultiline.last()->contentsMargins();

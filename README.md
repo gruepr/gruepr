@@ -5,7 +5,7 @@ Copyright (C) 2019-2024, Joshua Hertz < info@gruepr.com >
 ---------------
 Description of gruepr:
 
-     Gruepr is a program for splitting a section of 4-500 students into optimized teams.
+     Gruepr is a program for splitting a section of 4-1000 students into optimized teams.
      It was inspired by CATME's team forming routine as described in their paper
      [ http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf ].
 

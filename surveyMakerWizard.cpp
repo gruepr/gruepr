@@ -3,7 +3,6 @@
 #include "csvfile.h"
 #include "LMS/googlehandler.h"
 #include "LMS/canvashandler.h"
-#include "widgets/labelWithInstantTooltip.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QFile>
@@ -1404,6 +1403,26 @@ QString SchedulePage::generateScheduleQuestion(bool scheduleAsBusy, bool timezon
 CourseInfoPage::CourseInfoPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::courseinfo, parent)
 {
+    canvasSectionInfoFrame = new QFrame(this);
+    canvasSectionInfoFrame->setStyleSheet("background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX ";");
+    canvasSectionInfoIcon = new LabelWithInstantTooltip("", this);
+    canvasSectionInfoIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
+    canvasSectionInfoIcon->setStyleSheet(BIGTOOLTIPSTYLE);
+    canvasSectionInfoLabel = new LabelWithInstantTooltip(tr("Using Canvas?"));
+    canvasSectionInfoLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    canvasSectionInfoLabel->setWordWrap(true);
+    const QString helpText = tr("<html><span style=\"color: black;\">If you're using gruepr's integration with Canvas, "
+                                "you might not want the Section question. The survey results that gruepr downloads will "
+                                "automatically include each student's section (using the official section names as "
+                                "registered in your school's Canvas installation).</span></html>");
+    canvasSectionInfoIcon->setToolTipText(helpText);
+    canvasSectionInfoLabel->setToolTipText(helpText);
+    canvasSectionInfoLayout = new QHBoxLayout(canvasSectionInfoFrame);
+    canvasSectionInfoLayout->addWidget(canvasSectionInfoIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    canvasSectionInfoLayout->addWidget(canvasSectionInfoLabel, 1, Qt::AlignVCenter);
+    questionLayout->insertWidget(1, canvasSectionInfoFrame);
+    questionLayout->insertSpacing(2, 10);
+
     questions[section]->setLabel(tr("Section"));
     connect(questions[section], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
     addSectionButton = new QPushButton;
@@ -1454,7 +1473,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     questionPreviewBottomLabels[wantToWorkWith]->hide();
     registerField("PrefTeammate", questions[wantToWorkWith], "value", "valueChanged");
 
-    questionLayout->removeItem(questionLayout->itemAt(4));
+    questionLayout->removeItem(questionLayout->itemAt(6));
 
     questions[wantToAvoid]->setLabel(tr("Classmates I want to avoid"));
     questions[wantToAvoid]->setStyleSheet(questions[wantToAvoid]->styleSheet().replace("border-top: 1px solid " AQUAHEX, "border-top: 0px")

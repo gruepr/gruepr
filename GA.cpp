@@ -10,8 +10,8 @@ namespace GA
 //////////////////
 // Select two parents from the genepool using tournament selection
 //////////////////
-void GA::tournamentSelectParents(int *const *const genePool, const int *const orderedIndex, int *const *const ancestors,
-                                 int *&mom, int *&dad, int parentage[], std::mt19937 &pRNG)
+void GA::tournamentSelectParents(const int *const *const genePool, const int *const orderedIndex, const int *const *const ancestors,
+                                 const int *&mom, const int *&dad, int parentage[], std::mt19937 &pRNG)
 {
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
     std::uniform_int_distribution<unsigned int> randGenome(0, populationsize-1);
@@ -19,7 +19,7 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
     //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
     unsigned int tourneyPick[TOURNAMENTSIZE];
-    for(unsigned int &player : tourneyPick) {
+    for(auto &player : tourneyPick) {
         player = randGenome(pRNG);
     }
     std::sort(tourneyPick, tourneyPick+TOURNAMENTSIZE);
@@ -45,21 +45,24 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     //now make sure partners do not have any common ancestors going back numGenerationsOfAncestors generations
     bool potentialMatesAreRelated;
     do {
+        const auto &momsancestors = ancestors[momsindex];
+        const auto &dadsancestors = ancestors[orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]]];
         potentialMatesAreRelated = false;
         int startAncestor = 0, endAncestor = 2;
         for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS; generation++) {
-            for(int momsAncestor = startAncestor; momsAncestor < endAncestor; momsAncestor++) {
-                for(int dadsAncestor = startAncestor; dadsAncestor < endAncestor; dadsAncestor++) {
-                    potentialMatesAreRelated = potentialMatesAreRelated ||
-                                               (ancestors[momsindex][momsAncestor] == ancestors[orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]]][dadsAncestor]);
+            for(int momsAncestorIndex = startAncestor; momsAncestorIndex < endAncestor && !potentialMatesAreRelated; momsAncestorIndex++) {
+                const auto &momsAncestor = momsancestors[momsAncestorIndex];
+                for(int dadsAncestorIndex = startAncestor; dadsAncestorIndex < endAncestor && !potentialMatesAreRelated; dadsAncestorIndex++) {
+                    if(momsAncestor == dadsancestors[dadsAncestorIndex]) {
+                        potentialMatesAreRelated = true;
+                    }
                 }
             }
             startAncestor = endAncestor;
             endAncestor += (4<<generation);     //add 2^(n+1)
         }
         dadsindex++;
-    }
-    while(potentialMatesAreRelated);
+    } while(potentialMatesAreRelated);
     dadsindex--;    //need to subtract off that last increment
 
     //as done for momsindex before, convert dadsindex from ordinal value within tournament to index within the genepool
@@ -72,14 +75,16 @@ void GA::tournamentSelectParents(int *const *const genePool, const int *const or
     //return the parentage info
     parentage[0] = momsindex; //mom
     parentage[1] = dadsindex; //dad
+    auto &momsAncestors = ancestors[momsindex];
+    auto &dadsAncestors = ancestors[dadsindex];
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 and 1, so grandparents are 2, 3, 4, 5
     for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++) {
         //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up
         for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
-            parentage[ancestor] = ancestors[momsindex][ancestor-startAncestor+prevStartAncestor];
+            parentage[ancestor] = momsAncestors[ancestor-startAncestor+prevStartAncestor];
         }
         for(int ancestor = (((endAncestor - startAncestor)/2) + startAncestor); ancestor < endAncestor; ancestor++) {
-            parentage[ancestor] = ancestors[dadsindex][ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
+            parentage[ancestor] = dadsAncestors[ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
         }
         prevStartAncestor = startAncestor;
         startAncestor = endAncestor;

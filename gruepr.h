@@ -107,7 +107,9 @@ private:
     progressDialog *progressWindow = nullptr;
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);
+                                float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints,
+                                std::set<int> _attributesBeingScored, bool _schedBeingScored, bool _genderBeingScored, bool _URMBeingScored,
+                                bool _teammatesBeingScored);
     inline static void getAttributeScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                           const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                           float **_attributeScore, const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,

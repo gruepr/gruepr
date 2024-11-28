@@ -39,6 +39,7 @@
 //  - make "Loading Data" window blocking and add cancel button
 //  - fixed crash when attempting to use a roster file that has invalid entries
 //  - now sorts Canvas courses by creation date rather than alphabetically
+//  - now automatically downloads each student's section from Canvas and adds to the survey results
 //  - simplified the Canvas login window when there's existing Canvas token info
 //  - much smarter use of internal student ID values instead of the index within the students array:
 //     - edit buttons no longer get confused when a single section is selected
@@ -63,6 +64,7 @@
 //    INTERNAL:
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
+//      - much harder: replace arrays for all of the attribute-related stuff
 //      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
 //  - compile for webassembly, turn into a webapp
@@ -75,6 +77,7 @@
 //      - Question options: req'd question, answer validity checks
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
+//  - preferentially mutate the lowest scoring team(s) within a genome
 //  - use multiple genepools with limited cross-breeding
 //  - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

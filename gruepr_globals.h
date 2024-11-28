@@ -299,28 +299,18 @@ inline static const char TIMEFORMATS[] {"H:mm;"
                                         "h ap;"
                                         "h:mm:ssap;"
                                         "h:mm:ss ap"};
-inline static const char TIMEFORMATEXAMPLES[] {"8:00;"
-                                               "800;"
-                                               "8:00:00;"
-                                               "08:00;"
-                                               "0800;"
-                                               "08:00:00;"
-                                               "8:00am;"
-                                               "8:00 am;"
-                                               "8am;"
-                                               "8 am;"
-                                               "8:00:00am;"
-                                               "8:00:00 am"};
-
-/**
- * Namespace for Gruepr global variables.
- */
-namespace grueprGlobal {
-    float timeStringToHours(const QString &timeStr);
-    static const QStringList timeFormats = QString(TIMEFORMATS).split(';');
-    static QString mostRecentTimeFormat = timeFormats[0];
-}
-
+inline static const char TIMEFORMATEXAMPLES[] {"00:15;"
+                                               "0015;"
+                                               "00:15:00;"
+                                               "00:15;"
+                                               "0015;"
+                                               "00:15:00;"
+                                               "12:15am;"
+                                               "12:15 am;"
+                                               "12am;"
+                                               "12 am;"
+                                               "12:15:00am;"
+                                               "12:15:00 am"};
 inline static const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
 inline static const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
 inline static const char TIMESTAMP_FORMAT3[] {"M/d/yyyy h:mm:ss"};
@@ -418,7 +408,8 @@ inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
                                  "Minor league baseball teams,"
                                  "Discontinued Olympic sports,"
                                  "Obsolete units of measure,"
-                                 "Everyone's a winner!"};
+                                 "Everyone's a winner!,"
+                                 "Cryptids"};
 inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::numeric,
                                                   TeamNameType::numeric,
@@ -442,7 +433,8 @@ inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::random_sequeled,
-                                                  TeamNameType::random_sequeled};
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled};
 inline static const char TEAMNAMELISTS[] {";"
                               ";"
                               ";"
@@ -533,9 +525,12 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Standing High Jump,Polo;"
                               "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
                                  "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire;"
-                              "A1,Gold,Blue Ribbon,Alpha,Numero Uno,First Place,Crème de la crème,Jewel in the crown,Pole Position,Elite,"
-                                 "Superlative,Prime,Pick of the litter,Best of the bunch,Head of the line,Superior,Tip-top,Peak,First class,Flawless,"
-                                 "Preeminent,Ultimate"};
+                              "1,A,Alpha,Gold,Blue Ribbon,Numero Uno,First Place,i,Pole Position,Prime,Superior,Head of the line,Crème de la crème,"
+                                 "Jewel in the crown,Elite,Superlative,Pick of the litter,Best of the bunch,Tip-top,Peak,First class,Flawless,"
+                                 "Preeminent,Ultimate;"
+                              "Akkorokamui,Bigfoot,Chupacabra,Dover Demon,Enfield monster,Flying Rod,Ghost Deer,Hellhound,Igopopo,Jersey Devil,Kraken,"
+                                 "Loch Ness Monster,Mongolian Death Worm,Nandi Bear,Ozark Howler,Pukwudgie,Queensland Tiger,Skunk Ape,Tatzelwurm,Yeti,Bat Boy,"
+                                 "Mothman"};
 
 /**
  * The namespace with methods used throughout Gruepr.
@@ -578,6 +573,13 @@ namespace grueprGlobal {
      * @param parent The parent window to display the help window.
      */
     void helpWindow(QWidget *parent);
+
+    /**
+     * @brief timeStringToHours Converts time as a string the the decimal number of hours since midnight.
+     * @param timeStr The time as a string (e.g.. "2pm" or "14:00".
+     * @return A decimal value of the number of hours since midnight (e.g., 13.25 for 1:15pm).
+     */
+    float timeStringToHours(const QString &timeStr);
 }
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};
@@ -614,7 +616,7 @@ inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone 
                                               "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
                                               "<p>Project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
-                                              "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-500 students into optimized teams. It was originally based on "
+                                              "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-1000 students into optimized teams. It was originally based on "
                                                  "CATME's team forming routine as described in "
                                                  "<a href=\"http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf\">this paper</a>. "
                                                  "The student data is read from a file (typically directly downloaded within the app), and the students are split into teams "

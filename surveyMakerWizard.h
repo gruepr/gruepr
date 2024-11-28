@@ -9,6 +9,7 @@
 #include "dialogs/sampleQuestionsDialog.h"
 #include "widgets/comboBoxWithElidedContents.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
+#include "widgets/labelWithInstantTooltip.h"
 #include "widgets/surveyMakerQuestion.h"
 #include <QCheckBox>
 #include <QComboBox>
@@ -490,6 +491,10 @@ signals:
 
 private:
     enum {section, wantToWorkWith, wantToAvoid}; // questions in order
+    QFrame *canvasSectionInfoFrame = nullptr;
+    QHBoxLayout *canvasSectionInfoLayout = nullptr;
+    LabelWithInstantTooltip *canvasSectionInfoIcon = nullptr;
+    LabelWithInstantTooltip *canvasSectionInfoLabel = nullptr;
     QList<QLineEdit *> sectionLineEdits;
     QList<int> visibleSectionLineEdits;
     QVBoxLayout *sectionsPreviewLayout = nullptr;

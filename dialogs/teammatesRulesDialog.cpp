@@ -162,9 +162,9 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->requested_lightbulb->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     ui->requested_whatsThisLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     const QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
-                                "students will be with placed on a team with a certain number of teammates from a list. "
-                                "For example, you might allow students to make up to five requests, and use this feature so that everyone gets "
-                                "placed with at least one from their list."
+                                "students will be placed on a team with a certain number of teammates from a list. "
+                                "For example, you might allow students to make up to 5 requests, and ensure that they each get "
+                                "at least 1 of them as a teammate."
                                 "</span></html>");
     ui->requested_lightbulb->setToolTipText(helpText);
     ui->requested_whatsThisLabel->setToolTipText(helpText);

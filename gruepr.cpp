@@ -169,14 +169,25 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     const auto &_dataOptions = _teams.dataOptions;
     auto *teamScores = new float[_numTeams];
     auto **attributeScore = new float*[_dataOptions.numAttributes];
+    std::set<int> _attributesBeingScored;
     for(int attrib = 0; attrib < _dataOptions.numAttributes; attrib++) {
         attributeScore[attrib] = new float[_numTeams];
+        if((_teamingOptions->realAttributeWeights[attrib] > 0) ||
+            (_teamingOptions->haveAnyIncompatibleAttributes[attrib]) ||
+            (_teamingOptions->haveAnyRequiredAttributes[attrib])) {
+                _attributesBeingScored.insert(attrib);
+        }
     }
     auto *schedScore = new float[_numTeams];
     auto **availabilityChart = new bool*[_dataOptions.dayNames.size()];
     for(int day = 0; day < _dataOptions.dayNames.size(); day++) {
         availabilityChart[day] = new bool[_dataOptions.timeNames.size()];
     }
+    const bool _schedBeingScored = _teamingOptions->realScheduleWeight > 0;
+    const bool _genderBeingScored = _dataOptions.genderIncluded && (_teamingOptions->isolatedWomenPrevented || _teamingOptions->isolatedMenPrevented ||
+                                                                     _teamingOptions->isolatedNonbinaryPrevented || _teamingOptions->singleGenderPrevented);
+    const bool _URMBeingScored = _dataOptions.URMIncluded && _teamingOptions->isolatedURMPrevented;
+    const bool _teammatesBeingScored = _teamingOptions->haveAnyRequiredTeammates || _teamingOptions->haveAnyPreventedTeammates || _teamingOptions->haveAnyRequestedTeammates;
     auto *penaltyPoints = new int[_numTeams];
     auto *teamSizes = new int[_numTeams];
     auto *genome = new int[_numStudents];
@@ -194,7 +205,8 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     }
     getGenomeScore(_students.constData(), genome, _numTeams, teamSizes,
                    _teamingOptions, &_dataOptions, teamScores,
-                   attributeScore, schedScore, availabilityChart, penaltyPoints);
+                   attributeScore, schedScore, availabilityChart, penaltyPoints,
+                   _attributesBeingScored, _schedBeingScored, _genderBeingScored, _URMBeingScored, _teammatesBeingScored);
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         _teams[teamnum].score = teamScores[teamnum];
     }
@@ -2026,9 +2038,23 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     auto sharedNumTeams = numTeams;
     auto *sharedTeamingOptions = teamingOptions;
     auto *sharedDataOptions = dataOptions;
+    std::set<int> attributesBeingScored;
+    for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
+        if((teamingOptions->realAttributeWeights[attrib] > 0) ||
+           (teamingOptions->haveAnyIncompatibleAttributes[attrib]) ||
+            (teamingOptions->haveAnyRequiredAttributes[attrib])) {
+                attributesBeingScored.insert(attrib);
+        }
+    }
+    const bool schedBeingScored = teamingOptions->realScheduleWeight > 0;
+    const bool genderBeingScored = dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented ||
+                                                                   teamingOptions->isolatedNonbinaryPrevented || teamingOptions->singleGenderPrevented);
+    const bool URMBeingScored = dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented;
+    const bool teammatesBeingScored = teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyPreventedTeammates || teamingOptions->haveAnyRequestedTeammates;
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent, \
+               attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored) \
         private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[sharedNumTeams];
@@ -2042,11 +2068,12 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             availabilityChart[day] = new bool[sharedDataOptions->timeNames.size()];
         }
         penaltyPoints = new int[sharedNumTeams];
-#pragma omp for
+#pragma omp for nowait
         for(int genome = 0; genome < GA::populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                             sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
-                                            attributeScore, schedScore, availabilityChart, penaltyPoints);
+                                            attributeScore, schedScore, availabilityChart, penaltyPoints,
+                                            attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored);
             int totalPenaltyPoints = 0;
             for(int team = 0; team < sharedNumTeams; team++) {
                 totalPenaltyPoints += penaltyPoints[team];
@@ -2071,7 +2098,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
 
     int child[MAX_STUDENTS];
-    int *mom=nullptr, *dad=nullptr;                 // pointer to genome of mom and dad
+    const int *mom=nullptr, *dad=nullptr;               // pointer to genome of mom and dad
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
     int generation = 0;
@@ -2135,7 +2162,8 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             sharedDataOptions = dataOptions;
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent, \
+               attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored) \
         private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[sharedNumTeams];
@@ -2153,7 +2181,8 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 for(int genome = 0; genome < GA::populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                                     sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
-                                                    attributeScore, schedScore, availabilityChart, penaltyPoints);
+                                                    attributeScore, schedScore, availabilityChart, penaltyPoints,
+                                                    attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored);
                     int totalPenaltyPoints = 0;
                     for(int team = 0; team < sharedNumTeams; team++) {
                         totalPenaltyPoints += penaltyPoints[team];
@@ -2242,8 +2271,10 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 //////////////////
 float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammates[], const int _numTeams, const int _teamSizes[],
-                            const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                             float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints)
+                             const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
+                             float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints,
+                             std::set<int> _attributesBeingScored, bool _schedBeingScored, bool _genderBeingScored, bool _URMBeingScored,
+                             bool _teammatesBeingScored)
 {
     // Initialize each component score
     for(int team = 0; team < _numTeams; team++) {
@@ -2257,33 +2288,28 @@ float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammat
     // Calculate attribute scores and / or penalties for each attribute for each team:
     std::multiset<int> attributeLevelsInTeam;
     std::multiset<float> timezoneLevelsInTeam;
-    for(int attribute = 0; attribute < _dataOptions->numAttributes; attribute++) {
-        if((_teamingOptions->realAttributeWeights[attribute] > 0) ||
-           (_teamingOptions->haveAnyIncompatibleAttributes[attribute]) ||
-           (_teamingOptions->haveAnyRequiredAttributes[attribute])) {
-            getAttributeScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions,
-                              _attributeScore, attribute, attributeLevelsInTeam, timezoneLevelsInTeam, _penaltyPoints);
-       }
+    for(const auto _attributeBeingScored : _attributesBeingScored) {
+        getAttributeScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _attributeScore,
+                           _attributeBeingScored, attributeLevelsInTeam, timezoneLevelsInTeam, _penaltyPoints);
     }
 
     // Calculate schedule scores and / or penalties for each team:
-    if(_teamingOptions->realScheduleWeight > 0) {
+    if(_schedBeingScored) {
         getScheduleScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _schedScore, _availabilityChart, _penaltyPoints);
     }
 
     // Determine gender penalties for each team:
-    if(_dataOptions->genderIncluded && (_teamingOptions->isolatedWomenPrevented || _teamingOptions->isolatedMenPrevented ||
-                                       _teamingOptions->isolatedNonbinaryPrevented || _teamingOptions->singleGenderPrevented)) {
+    if(_genderBeingScored) {
         getGenderPenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
     }
 
     // Determine URM penalties for each team:
-    if(_dataOptions->URMIncluded && _teamingOptions->isolatedURMPrevented) {
+    if(_URMBeingScored) {
         getURMPenalties(_students, _teammates, _numTeams, _teamSizes, _penaltyPoints);
     }
 
     // Determine penalties for required teammates NOT on team, prevented teammates on team, and insufficient number of requested teammates on team:
-    if(_teamingOptions->haveAnyRequiredTeammates || _teamingOptions->haveAnyPreventedTeammates || _teamingOptions->haveAnyRequestedTeammates) {
+    if(_teammatesBeingScored) {
         getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
     }
 

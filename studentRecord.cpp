@@ -79,7 +79,6 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         }
     }
 
-    const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
     if(jsonStudentRecord["requestedWithIDs"].type() != QJsonValue::Undefined) {
         const QJsonArray requestedWithIDsArray = jsonStudentRecord["requestedWithIDs"].toArray();
         for (const auto &val : requestedWithIDsArray) {
@@ -562,8 +561,8 @@ QJsonObject StudentRecord::toJson() const
     QJsonArray unavailableArray, preventedWithArray, requiredWithArray, requestedWithArray, attributeValsArray, attributeResponseArray;
     for(const auto &unavailableDay : unavailable) {
         QJsonArray unavailableArraySubArray;
-        for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
-            unavailableArraySubArray.append(unavailableDay[j]);
+        for(const auto unavailableTime : unavailableDay) {
+            unavailableArraySubArray.append(unavailableTime);
         }
         unavailableArray.append(unavailableArraySubArray);
     }

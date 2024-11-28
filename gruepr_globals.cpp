@@ -10,6 +10,9 @@
 #include <QtNetwork>
 
 float grueprGlobal::timeStringToHours(const QString &timeStr) {
+    static const QStringList timeFormats = QString(TIMEFORMATS).split(';');
+    static QString mostRecentTimeFormat = timeFormats[0];
+
     QTime time = QTime::fromString(timeStr, mostRecentTimeFormat);
     if(time.isValid()) {
         return time.hour() + (time.minute() / 60.0f) + (time.second()/3600.0f);
