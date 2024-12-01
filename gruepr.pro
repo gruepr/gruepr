@@ -12,6 +12,7 @@ QT       += core gui widgets concurrent network printsupport charts networkauth
 TARGET = gruepr
 TEMPLATE = app
 macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
+macx: QMAKE_APPLE_DEVICE_ARCHS = x86_64 arm64
 
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'

@@ -528,9 +528,9 @@ inline static const char TEAMNAMELISTS[] {";"
                               "1,A,Alpha,Gold,Blue Ribbon,Numero Uno,First Place,i,Pole Position,Prime,Superior,Head of the line,Crème de la crème,"
                                  "Jewel in the crown,Elite,Superlative,Pick of the litter,Best of the bunch,Tip-top,Peak,First class,Flawless,"
                                  "Preeminent,Ultimate;"
-                              "Akkorokamui,Bigfoot,Chupacabra,Dover Demon,Enfield monster,Flying Rod,Ghost Deer,Hellhound,Igopopo,Jersey Devil,Kraken,"
-                                 "Loch Ness Monster,Mongolian Death Worm,Nandi Bear,Ozark Howler,Pukwudgie,Queensland Tiger,Skunk Ape,Tatzelwurm,Yeti,Bat Boy,"
-                                 "Mothman"};
+                              "Abonesi,Bigfoot,Chupacabra,Dover Demon,Enfield monster,Flying Rod,Ghost Deer,Hellhound,Igopopo,Jersey Devil,Kraken,"
+                                 "Loch Ness Monster,Mongolian Death Worm,Nandi Bear,Ozark Howler,Pukwudgie,Queensland Tiger,Reptilian,Skunk Ape,Tatzelwurm,"
+                                 "Urayuli,Vegetable Lamb of Tartary,Wolpertinger,Yeti,Zuiyō-maru Creature,Akkorokamui,Bat Boy,Chessie,Dingonek,Ebu Gogo"};
 
 /**
  * The namespace with methods used throughout Gruepr.
