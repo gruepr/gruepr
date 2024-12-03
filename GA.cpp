@@ -1,10 +1,20 @@
 #include "GA.h"
 #include <algorithm>
 
-namespace GA
+void GA::setGAParameters(int numRecords)
 {
-    unsigned int topgenomelikelihood = 100;
-    int populationsize = 8000;
+    if(numRecords > GENOMESIZETHRESHOLD[1]) {
+        populationsize = POPULATIONSIZE[2];
+        topgenomelikelihood = TOPGENOMELIKELIHOOD[2];
+    }
+    else if(numRecords > GENOMESIZETHRESHOLD[0]) {
+        populationsize = POPULATIONSIZE[1];
+        topgenomelikelihood = TOPGENOMELIKELIHOOD[1];
+    }
+    else {
+        populationsize = POPULATIONSIZE[0];
+        topgenomelikelihood = TOPGENOMELIKELIHOOD[0];
+    }
 }
 
 //////////////////

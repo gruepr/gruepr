@@ -34,34 +34,23 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     setWindowTitle(tr("gruepr - Form teams"));
     qRegisterMetaType<QList<float> >("QList<float>");
 
-    ui->dataSourceFrame->setStyleSheet(QString() + "QFrame {background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + ";"
-                                                           " color: " DEEPWATERHEX "; border: none;}"
-                                                   "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
-    ui->dataSourcePrelabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
-                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}");
-    ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
-                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}");
-    ui->newDataSourceButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
-                                                        "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}");
+    ui->dataSourceFrame->setStyleSheet(DATASOURCEFRAMESTYLE);
+    ui->dataSourcePrelabel->setStyleSheet(DATASOURCEPRELABELSTYLE);
+    ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
+    ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
     QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
     for(auto &frame : frames) {
         frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     }
-    ui->attributesStackedWidget->setStyleSheet(QString() + "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}");
+    ui->attributesStackedWidget->setStyleSheet(ATTRIBUTESTACKWIDGETSTYLE);
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
     ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    ui->dataDisplayTabWidget->setStyleSheet("QTabWidget {border: none; background-color: lightGray;}"
-                                            "QTabWidget::pane {margin: 10px, 0px, 0px, 0px; border: 1px solid black;}");
-    ui->dataDisplayTabWidget->tabBar()->setStyleSheet("QTabBar {alignment: center; margin: 6px; padding: 4px; border: none;}"
-                                                       "QTabBar::tab {border: 1px solid " OPENWATERHEX "; border-radius: 5px; padding: 5px; margin-left: 2px; margin-right: 2px; "
-                                                                      "font-family:'DM Sans'; font-size: 12pt;}"
-                                                       "QTabBar::tab::selected {color: white; background: " OPENWATERHEX ";}"
-                                                       "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
-                                                       "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right; margin: 2px;}");
+    ui->dataDisplayTabWidget->setStyleSheet(DATADISPTABSTYLE);
+    ui->dataDisplayTabWidget->tabBar()->setStyleSheet(DATADISPBARSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
     QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton};
     for(auto &button : buttons) {
@@ -203,6 +192,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
             ID++;
         }
     }
+
     getGenomeScore(_students.constData(), genome, _numTeams, teamSizes,
                    _teamingOptions, &_dataOptions, teamScores,
                    attributeScore, schedScore, availabilityChart, penaltyPoints,
@@ -210,6 +200,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         _teams[teamnum].score = teamScores[teamnum];
     }
+
     delete[] genome;
     delete[] teamSizes;
     delete[] penaltyPoints;
@@ -1157,7 +1148,7 @@ void gruepr::startOptimization()
             ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
         }
 
-        // Get the indexes of non-deleted students from desired section and change numStudents accordingly
+        // Get the indexes of non-deleted students from desired section(s) and change numStudents accordingly
         int numStudentsInSection = 0;
         studentIndexes.reserve(students.size());
         for(int index = 0; index < students.size(); index++) {
@@ -1217,18 +1208,7 @@ void gruepr::startOptimization()
         multipleSectionsInProgress = (section < (numSectionsToTeam - 1));
 
         // set the working value of the genetic algorithm's population size and tournament selection probability
-        if(numActiveStudents > GA::GENOMESIZETHRESHOLD[1]) {
-            GA::populationsize = GA::POPULATIONSIZE[2];
-            GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[2];
-        }
-        else if(numActiveStudents > GA::GENOMESIZETHRESHOLD[0]) {
-            GA::populationsize = GA::POPULATIONSIZE[1];
-            GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[1];
-        }
-        else {
-            GA::populationsize = GA::POPULATIONSIZE[0];
-            GA::topgenomelikelihood = GA::TOPGENOMELIKELIHOOD[0];
-        }
+        ga.setGAParameters(numActiveStudents);
 
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
@@ -1253,20 +1233,20 @@ void gruepr::updateOptimizationProgress(const float *const allScores, const int 
                                         const int generation, const float scoreStability, const bool unpenalizedGenomePresent)
 {
     if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0) {
-        progressChart->loadNextVals(allScores, orderedIndex, GA::populationsize, unpenalizedGenomePresent);
+        progressChart->loadNextVals(allScores, orderedIndex, ga.populationsize, unpenalizedGenomePresent);
     }
 
     if(generation > GA::MAX_GENERATIONS) {
         progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
-                                generation, *std::max_element(allScores, allScores+GA::populationsize), true);
+                                generation, *std::max_element(allScores, allScores+ga.populationsize), true);
         progressWindow->highlightStopButton();
     }
     else if((generation >= GA::MIN_GENERATIONS) && (scoreStability > GA::MIN_SCORE_STABILITY)) {
-        progressWindow->setText(tr("Score appears to be stable!"), generation, *std::max_element(allScores, allScores+GA::populationsize), true);
+        progressWindow->setText(tr("Score appears to be stable!"), generation, *std::max_element(allScores, allScores+ga.populationsize), true);
         progressWindow->highlightStopButton();
     }
     else {
-        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, *std::max_element(allScores, allScores+GA::populationsize), false);
+        progressWindow->setText(tr("Please wait while your grueps are created!"), generation, *std::max_element(allScores, allScores+ga.populationsize), false);
     }
 }
 
@@ -1978,24 +1958,24 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // students[] entries 4, 9, 12, and 1 on to team 1 and students[] entries 3 and 6 as the first two students on team 2.
 
     // allocate memory for a genepool for current generation and a next generation as it is being created
-    int **genePool = new int*[GA::populationsize];
-    int **nextGenGenePool = new int*[GA::populationsize];
+    int **genePool = new int*[ga.populationsize];
+    int **nextGenGenePool = new int*[ga.populationsize];
     // allocate memory for current and next generation's ancestors
-    int **ancestors = new int*[GA::populationsize];
-    int **nextGenAncestors = new int*[GA::populationsize];
+    int **ancestors = new int*[ga.populationsize];
+    int **nextGenAncestors = new int*[ga.populationsize];
     int numAncestors = 2;           //always track mom & dad
-    for(int generation = 0; generation < GA::NUMGENERATIONSOFANCESTORS; generation++) {
+    for(int generation = 0; generation < ga.NUMGENERATIONSOFANCESTORS; generation++) {
         numAncestors += (4<<generation);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
     }
-    for(int genome = 0; genome < GA::populationsize; genome++) {
+    for(int genome = 0; genome < ga.populationsize; genome++) {
         genePool[genome] = new int[numActiveStudents];
         nextGenGenePool[genome] = new int[numActiveStudents];
         ancestors[genome] = new int[numAncestors];
         nextGenAncestors[genome] = new int[numAncestors];
     }
     // allocate memory for array of indexes, to be sorted in order of score (so genePool[orderedIndex[0]] is the one with the top score)
-    int *orderedIndex = new int[GA::populationsize];
-    for(int genome = 0; genome < GA::populationsize; genome++) {
+    int *orderedIndex = new int[ga.populationsize];
+    for(int genome = 0; genome < ga.populationsize; genome++) {
         orderedIndex[genome] = genome;
     }
 
@@ -2005,22 +1985,21 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     for(int i = 0; i < numActiveStudents; i++) {
         randPerm[i] = studentIndexes[i];
     }
-    // then make "populationSize" number of random permutations for initial population, store in genePool
-    for(int genome = 0; genome < GA::populationsize; genome++) {
+    // then make "populationSize" number of random permutations for the initial population, store in genePool
+    // just use random values for their initial "ancestor" values
+    std::uniform_int_distribution<unsigned int> randAncestor(0, ga.populationsize);
+    for(int genome = 0; genome < ga.populationsize; genome++) {
         std::shuffle(randPerm, randPerm+numActiveStudents, pRNG);
+        const auto &thisGenome = genePool[genome];
         for(int ID = 0; ID < numActiveStudents; ID++) {
-            genePool[genome][ID] = randPerm[ID];
+            thisGenome[ID] = randPerm[ID];
+        }
+        const auto &thisGenomesAncestors = ancestors[genome];
+        for(int ancestor = 0; ancestor < numAncestors; ancestor++) {
+            thisGenomesAncestors[ancestor] = int(randAncestor(pRNG));
         }
     }
     delete[] randPerm;
-
-    // just use random values for the initial "ancestor" values
-    std::uniform_int_distribution<unsigned int> randAncestor(0, GA::populationsize);
-    for(int genome = 0; genome < GA::populationsize; genome++) {
-        for(int ancestor = 0; ancestor < numAncestors; ancestor++) {
-            ancestors[genome][ancestor] = int(randAncestor(pRNG));
-        }
-    }
 
     int *teamSizes = new int[MAX_TEAMS];
     for(int team = 0; team < numTeams; team++) {
@@ -2028,7 +2007,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
 
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
-    auto *scores = new float[GA::populationsize];
+    auto *scores = new float[ga.populationsize];
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
     float **attributeScore = nullptr;
     int *penaltyPoints = nullptr;
@@ -2069,7 +2048,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         }
         penaltyPoints = new int[sharedNumTeams];
 #pragma omp for nowait
-        for(int genome = 0; genome < GA::populationsize; genome++) {
+        for(int genome = 0; genome < ga.populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                             sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
                                             attributeScore, schedScore, availabilityChart, penaltyPoints,
@@ -2094,7 +2073,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
 
     // get genome indexes in order of score, largest to smallest
-    std::sort(orderedIndex, orderedIndex+GA::populationsize, [&scores](const int i, const int j){return (scores[i] > scores[j]);});
+    std::sort(orderedIndex, orderedIndex+ga.populationsize, [&scores](const int i, const int j){return (scores[i] > scores[j]);});
     emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
 
     int child[MAX_STUDENTS];
@@ -2133,12 +2112,12 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             }
 
             // create rest of population in nextGenGenePool by mating
-            for(int genome = GA::NUM_ELITES; genome < GA::populationsize; genome++) {
+            for(int genome = GA::NUM_ELITES; genome < ga.populationsize; genome++) {
                 //get a couple of parents
-                GA::tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
+                ga.tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
-                GA::mate(mom, dad, teamSizes, numTeams, child, numActiveStudents, pRNG);
+                ga.mate(mom, dad, teamSizes, numTeams, child, numActiveStudents, pRNG);
                 const auto & nextGenGenome = nextGenGenePool[genome];
                 for(int ID = 0; ID < numActiveStudents; ID++) {
                     nextGenGenome[ID] = child[ID];
@@ -2147,9 +2126,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
             // mutate all but the single top-scoring elite genome with some probability; if mutation occurs, mutate same genome again with same probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
-            for(int genome = 1; genome < GA::populationsize; genome++) {
+            for(int genome = 1; genome < ga.populationsize; genome++) {
                 while(randProbability(pRNG) < GA::MUTATIONLIKELIHOOD) {
-                    GA::mutate(&nextGenGenePool[genome][0], numActiveStudents, pRNG);
+                    ga.mutate(&nextGenGenePool[genome][0], numActiveStudents, pRNG);
                 }
             }
 
@@ -2183,7 +2162,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 }
                 penaltyPoints = new int[sharedNumTeams];
 #pragma omp for nowait
-                for(int genome = 0; genome < GA::populationsize; genome++) {
+                for(int genome = 0; genome < ga.populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                                     sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
                                                     attributeScore, schedScore, availabilityChart, penaltyPoints,
@@ -2208,12 +2187,12 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             }
 
             // get genome indexes in order of score, largest to smallest
-            std::sort(orderedIndex, orderedIndex+GA::populationsize, [scores](const int i, const int j){return (scores[i] > scores[j]);});
+            std::sort(orderedIndex, orderedIndex+ga.populationsize, [scores](const int i, const int j){return (scores[i] > scores[j]);});
 
             // determine best score, save in historical record, and calculate score stability
             const float maxScoreInThisGeneration = scores[orderedIndex[0]];
-            const float maxScoreFromGenerationsAgo = bestScores[(generation+1)%GA::GENERATIONS_OF_STABILITY];
-            bestScores[generation%GA::GENERATIONS_OF_STABILITY] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
+            const float maxScoreFromGenerationsAgo = bestScores[(generation+1) % (GA::GENERATIONS_OF_STABILITY)];
+            bestScores[generation % (GA::GENERATIONS_OF_STABILITY)] = maxScoreInThisGeneration;	//best scores from most recent generationsOfStability, wrapping storage location
 
             if(maxScoreInThisGeneration == maxScoreFromGenerationsAgo) {
                 scoreStability = maxScoreInThisGeneration / 0.0001F;
@@ -2241,7 +2220,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     while(keepOptimizing);
 
     finalGeneration = generation;
-    teamSetScore = bestScores[generation%GA::GENERATIONS_OF_STABILITY];
+    teamSetScore = bestScores[generation % (GA::GENERATIONS_OF_STABILITY)];
 
     //copy best team set into a QList to return
     QList<int> bestTeamSet;
@@ -2252,7 +2231,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     }
 
     // deallocate memory
-    for(int genome = 0; genome < GA::populationsize; ++genome) {
+    for(int genome = 0; genome < ga.populationsize; ++genome) {
         delete[] nextGenGenePool[genome];
         delete[] genePool[genome];
         delete[] nextGenAncestors[genome];
@@ -2481,8 +2460,9 @@ void gruepr::getScheduleScores(const StudentRecord *const _students, const int _
             // ambiguous schedule, so note it and start with all timeslots available
             numStudentsWithAmbiguousSchedules++;
             for(int day = 0; day < numDays; day++) {
+                const auto &_availabilityChartThisDay = _availabilityChart[day];
                 for(int time = 0; time < numTimes; time++) {
-                    _availabilityChart[day][time] = true;
+                    _availabilityChartThisDay[time] = true;
                 }
             }
         }

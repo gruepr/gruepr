@@ -170,8 +170,8 @@ void StartDialog::openSurveyMaker() {
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(Qt::BusyCursor);
 
-    bool restart = false;
-    do {
+    bool spawnNewWindow = true;
+    while(spawnNewWindow) {
         auto *getDataDialog = new GetGrueprDataDialog(this);
         QApplication::restoreOverrideCursor();
         auto result = getDataDialog->exec();
@@ -186,16 +186,16 @@ void StartDialog::openGruepr() {
             QEventLoop loop;
             connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
-            restart = grueprWindow->restartRequested;
+            spawnNewWindow = grueprWindow->restartRequested;
             grueprWindow->deleteLater();
             this->show();
         }
         else {
-            restart = false;
+            spawnNewWindow = false;
             emit closeDataDialogProgressBar();
             getDataDialog->deleteLater();
         }
-    } while(restart);
+    }
 }
 
 

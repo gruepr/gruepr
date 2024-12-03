@@ -58,12 +58,12 @@ var searchData=
   ['tooltip_55',['ToolTip',['../struct_teams_tab_item_1_1_undo_redo_item.html#a44a3d793d10993a0b3e883893e387057',1,'TeamsTabItem::UndoRedoItem']]],
   ['tooltip_56',['tooltip',['../class_student_record.html#a13a85408dd090608d6d1da7de21cd3c3',1,'StudentRecord::tooltip'],['../class_team_record.html#a60d9c969ffee7961571add002ecb2910',1,'TeamRecord::tooltip']]],
   ['tooltiptext_57',['toolTipText',['../class_label_with_instant_tooltip.html#a9677d694677b66f39db44fdf57f6f97c',1,'LabelWithInstantTooltip']]],
-  ['topgenomelikelihood_58',['TOPGENOMELIKELIHOOD',['../namespace_g_a.html#a049d27024fd3f87e6cfc920eebe99ca2',1,'GA']]],
-  ['topgenomelikelihood_59',['topgenomelikelihood',['../namespace_g_a.html#a2acafbd381fe483373a6f0c56f081697',1,'GA']]],
+  ['topgenomelikelihood_58',['TOPGENOMELIKELIHOOD',['../class_g_a.html#aec9f14c316b7d27a0763f7bc10d27326',1,'GA']]],
+  ['topgenomelikelihood_59',['topgenomelikelihood',['../class_g_a.html#a2acafbd381fe483373a6f0c56f081697',1,'GA']]],
   ['toplabel_60',['topLabel',['../class_survey_maker_page.html#a4408ce2aa512fc256002d6a408a92b7a',1,'SurveyMakerPage::topLabel'],['../class_intro_page.html#a8371c5393195a4f92e13961335be812a',1,'IntroPage::topLabel']]],
   ['toplabelstyle_61',['TOPLABELSTYLE',['../gruepr__globals_8h.html#a404089f2554ef22d283fa41e494f56ea',1,'gruepr_globals.h']]],
   ['topspacerheight_62',['TOPSPACERHEIGHT',['../class_start_dialog.html#a4a34d3c608d45f13c60876b97288e2cb',1,'StartDialog']]],
-  ['tournamentsize_63',['TOURNAMENTSIZE',['../namespace_g_a.html#ae0786353e241f9de60a3d87e76a1cb47',1,'GA']]],
+  ['tournamentsize_63',['TOURNAMENTSIZE',['../class_g_a.html#ae0786353e241f9de60a3d87e76a1cb47',1,'GA']]],
   ['type_64',['type',['../struct_google_handler_1_1_google_form_question.html#ad7f6e6e55d5ca0243095b5ee0402fc3b',1,'GoogleHandler::GoogleFormQuestion::type'],['../struct_question.html#a1bc8651b9151338fb6fed0e3e883aada',1,'Question::type']]],
   ['tz_65',['tz',['../class_schedule_page.html#a7f89cb3250f0029dcb3265a28eab23fc',1,'SchedulePage']]]
 ];

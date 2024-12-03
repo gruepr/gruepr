@@ -7,9 +7,9 @@ var searchData=
   ['max_5fattributes_4',['MAX_ATTRIBUTES',['../gruepr__globals_8h.html#ae977c12458c05887092e2395f7c406cf',1,'gruepr_globals.h']]],
   ['max_5fblocks_5fper_5fday_5',['MAX_BLOCKS_PER_DAY',['../gruepr__globals_8h.html#a410056f71365c3d69b7df8c54ab51c0d',1,'gruepr_globals.h']]],
   ['max_5fdays_6',['MAX_DAYS',['../gruepr__globals_8h.html#a6874bc8f68379c0b837c3b95e9b75d04',1,'gruepr_globals.h']]],
-  ['max_5fgenerations_7',['MAX_GENERATIONS',['../namespace_g_a.html#a29bafdd7c22f08c55a205f9ac918a966',1,'GA']]],
+  ['max_5fgenerations_7',['MAX_GENERATIONS',['../class_g_a.html#a29bafdd7c22f08c55a205f9ac918a966',1,'GA']]],
   ['max_5fprefteammates_8',['MAX_PREFTEAMMATES',['../gruepr__globals_8h.html#a69f47db8c07fd940a8aa3b3f9b993c2d',1,'gruepr_globals.h']]],
-  ['max_5frecords_9',['MAX_RECORDS',['../namespace_g_a.html#aebe4d80f7144ee0742ccf2504f7807d1',1,'GA']]],
+  ['max_5frecords_9',['MAX_RECORDS',['../class_g_a.html#aebe4d80f7144ee0742ccf2504f7807d1',1,'GA']]],
   ['max_5fsectionsexpected_10',['MAX_SECTIONSEXPECTED',['../class_course_info_page.html#a321f32a61e1f44ad5419a44ebb422ba9',1,'CourseInfoPage']]],
   ['max_5fstudents_11',['MAX_STUDENTS',['../gruepr__globals_8h.html#a79e20fbd6b7e339450e8cfa08c32844d',1,'gruepr_globals.h']]],
   ['max_5fteams_12',['MAX_TEAMS',['../gruepr__globals_8h.html#a5bf66001fa9b6429f23355fdcd2314f4',1,'gruepr_globals.h']]],
@@ -19,9 +19,9 @@ var searchData=
   ['meetingblocksize_16',['meetingBlockSize',['../class_teaming_options.html#ac3fc3c28c2bbd3750b8175cbf26bd1dc',1,'TeamingOptions']]],
   ['middlespacerheight_17',['MIDDLESPACERHEIGHT',['../class_start_dialog.html#a3d1573bb7261575108aad841a7cc1817',1,'StartDialog']]],
   ['middlespacerwidth_18',['MIDDLESPACERWIDTH',['../class_start_dialog.html#a06c392abe7b3b3e82d0c44ed4ce5e0e7',1,'StartDialog']]],
-  ['min_5fgenerations_19',['MIN_GENERATIONS',['../namespace_g_a.html#a4852f1f4e0da10c24082bc9a57e7ba44',1,'GA']]],
+  ['min_5fgenerations_19',['MIN_GENERATIONS',['../class_g_a.html#a4852f1f4e0da10c24082bc9a57e7ba44',1,'GA']]],
   ['min_5fschedule_5fresolution_20',['MIN_SCHEDULE_RESOLUTION',['../gruepr__globals_8h.html#a4f1874351d10938372c22285d1c93c7d',1,'gruepr_globals.h']]],
-  ['min_5fscore_5fstability_21',['MIN_SCORE_STABILITY',['../namespace_g_a.html#abc4edaab21495b31e9fb2132139d24df',1,'GA']]],
+  ['min_5fscore_5fstability_21',['MIN_SCORE_STABILITY',['../class_g_a.html#abc4edaab21495b31e9fb2132139d24df',1,'GA']]],
   ['min_5fstudents_22',['MIN_STUDENTS',['../gruepr__globals_8h.html#a990bba5d999a940a3f96e8b89258d0d1',1,'gruepr_globals.h']]],
   ['mintext_23',['minText',['../class_combo_box_with_elided_contents.html#af394c74ecad17bb007339c0e5733d044',1,'ComboBoxWithElidedContents']]],
   ['mintimeblocksoverlap_24',['minTimeBlocksOverlap',['../class_teaming_options.html#a64c5aea77e615c02778ea3bfcd022bab',1,'TeamingOptions']]],
@@ -29,5 +29,5 @@ var searchData=
   ['multiallowed_26',['multiAllowed',['../class_survey_maker_multichoice_question.html#a3e9effe9a19596c5aae0dc4deed92a90',1,'SurveyMakerMultichoiceQuestion']]],
   ['multichoicequestions_27',['multichoiceQuestions',['../class_multiple_choice_page.html#abcf5636b9f564f2f485002c3d07f2600',1,'MultipleChoicePage']]],
   ['multiplesectionsinprogress_28',['multipleSectionsInProgress',['../classgruepr.html#a9b3e5ed6a7fbd56430363c44bb7844cb',1,'gruepr']]],
-  ['mutationlikelihood_29',['MUTATIONLIKELIHOOD',['../namespace_g_a.html#a699e97710a6f80d045e91f76e7bade2a',1,'GA']]]
+  ['mutationlikelihood_29',['MUTATIONLIKELIHOOD',['../class_g_a.html#a699e97710a6f80d045e91f76e7bade2a',1,'GA']]]
 ];
