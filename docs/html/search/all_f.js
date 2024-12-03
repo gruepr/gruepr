@@ -19,10 +19,10 @@ var searchData=
   ['optimizationcomplete_16',['optimizationComplete',['../classgruepr.html#a8c0a463bf673364d32814233d6e1ef59',1,'gruepr']]],
   ['optimizationstopped_17',['optimizationStopped',['../classgruepr.html#aff23428092fb4424908daed3b24b4f55',1,'gruepr']]],
   ['optimizationstoppedmutex_18',['optimizationStoppedmutex',['../classgruepr.html#ad0a566d20d9e0efcee342538dd86e9d0',1,'gruepr']]],
-  ['optimizeteams_19',['optimizeTeams',['../classgruepr.html#a1387f629c2411d2c0edb8ab7bcda0f26',1,'gruepr']]],
+  ['optimizeteams_19',['optimizeTeams',['../classgruepr.html#a271bf5719722f7d5b8a33337f7f7ffa6',1,'gruepr']]],
   ['optionlabels_20',['optionLabels',['../classcustom_response_options_dialog.html#a25cd5b52355d9ba9ea9d6086609e160c',1,'customResponseOptionsDialog']]],
   ['optionlineedits_21',['optionLineEdits',['../classcustom_response_options_dialog.html#a04e48d74b5cd1826f06fbdc906ddca6d',1,'customResponseOptionsDialog']]],
-  ['options_22',['options',['../classcustom_response_options_dialog.html#a118d04add62cf4cb2a3ae82df56a0a59',1,'customResponseOptionsDialog::options'],['../class_question.html#a622f2e6b62fd7b932be03154aa394620',1,'Question::options']]],
+  ['options_22',['options',['../classcustom_response_options_dialog.html#a118d04add62cf4cb2a3ae82df56a0a59',1,'customResponseOptionsDialog::options'],['../struct_question.html#a622f2e6b62fd7b932be03154aa394620',1,'Question::options']]],
   ['ordered_23',['ordered',['../class_data_options.html#ad4e6bcf1c121a978228b3c3d014035bdac934e7c6da08a36804ba7339c23644b5',1,'DataOptions']]],
   ['orderedresponsescheckbox_24',['orderedResponsesCheckbox',['../classcustom_response_options_dialog.html#a398c2b29d303a3ca42552a964997bbb1',1,'customResponseOptionsDialog']]]
 ];

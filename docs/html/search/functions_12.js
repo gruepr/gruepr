@@ -12,6 +12,6 @@ var searchData=
   ['textfromvalue_9',['textFromValue',['../class_categorical_spin_box.html#a57a6dbae954592f53f8966222bccfc6c',1,'CategoricalSpinBox']]],
   ['timestringtohours_10',['timeStringToHours',['../namespacegruepr_global.html#a2bb2b241ecb2eb46fc9733308e990db5',1,'grueprGlobal']]],
   ['tojson_11',['toJson',['../class_data_options.html#a008e15c2b74d93d630c87055cb164645',1,'DataOptions::toJson()'],['../class_student_record.html#a1ae8a5950be0850b0c47062618219764',1,'StudentRecord::toJson()'],['../class_teaming_options.html#a6fc5856ff4d0c62362aaf6fbc92b6cb6',1,'TeamingOptions::toJson()'],['../class_team_record.html#ac42b89ed962ce24bc08a9c1641764765',1,'TeamRecord::toJson()'],['../class_teams_tab_item.html#a370580848ec8b6419490f8c25bf1c90b',1,'TeamsTabItem::toJson()']]],
-  ['tournamentselectparents_12',['tournamentSelectParents',['../namespace_g_a.html#aaec1d7e7f86bb01401c6ac324fdb8571',1,'GA']]],
+  ['tournamentselectparents_12',['tournamentSelectParents',['../namespace_g_a.html#a3656cb986534d9f2a59876e81c19d862',1,'GA']]],
   ['turnoffbusycursor_13',['turnOffBusyCursor',['../classgruepr.html#a296836a4b612ee7e88d4d8e0e999789c',1,'gruepr']]]
 ];

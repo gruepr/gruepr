@@ -12,7 +12,7 @@ var searchData=
   ['labelwithinstanttooltip_2ecpp_9',['labelWithInstantTooltip.cpp',['../label_with_instant_tooltip_8cpp.html',1,'']]],
   ['labelwithinstanttooltip_2eh_10',['labelWithInstantTooltip.h',['../label_with_instant_tooltip_8h.html',1,'']]],
   ['largerteamsnumteams_11',['largerTeamsNumTeams',['../class_teaming_options.html#a8aabb19e65047acb83751ccb76892c72',1,'TeamingOptions']]],
-  ['largerteamssizes_12',['largerTeamsSizes',['../class_teaming_options.html#a6590307e3360783dd64076187a994215',1,'TeamingOptions']]],
+  ['largerteamssizes_12',['largerTeamsSizes',['../class_teaming_options.html#a742ee546cd81d9b129ce60fa7fcba171',1,'TeamingOptions']]],
   ['lastname_13',['lastname',['../class_student_record.html#a105af20fbcbeb30643edaff19a99f68b',1,'StudentRecord::lastname'],['../class_demographics_page.html#a7358bc5bf2baddb38f97678d06398ec8aaa9085f2eaf1d671adde70a32a9415b7',1,'DemographicsPage::lastname']]],
   ['lastnamefield_14',['lastNameField',['../class_data_options.html#a8e924c6b984e0ff2141967b1868ec3e1',1,'DataOptions']]],
   ['lastnamequestion_15',['LASTNAMEQUESTION',['../gruepr__globals_8h.html#a006d536dfa4da72dc07b5eb416129436',1,'gruepr_globals.h']]],
@@ -35,7 +35,7 @@ var searchData=
   ['listtabledialog_2ecpp_32',['listTableDialog.cpp',['../list_table_dialog_8cpp.html',1,'']]],
   ['listtabledialog_2eh_33',['listTableDialog.h',['../list_table_dialog_8h.html',1,'']]],
   ['littlefontsize_34',['LITTLEFONTSIZE',['../class_start_dialog.html#a230430d8a6ae190557f419f522c2eff2',1,'StartDialog']]],
-  ['lms_35',['LMS',['../class_l_m_s.html',1,'LMS'],['../class_l_m_s.html#a7d7ba09595e8616e4b9ca482862e0a75',1,'LMS::LMS()']]],
+  ['lms_35',['LMS',['../class_l_m_s.html',1,'LMS'],['../classgruepr_o_auth_http_server_reply_handler.html#a1fea8c1e0673165140c427b94449a0ba',1,'grueprOAuthHttpServerReplyHandler::LMS'],['../class_l_m_s.html#a7d7ba09595e8616e4b9ca482862e0a75',1,'LMS::LMS()']]],
   ['lms_2ecpp_36',['LMS.cpp',['../_l_m_s_8cpp.html',1,'']]],
   ['lms_2eh_37',['LMS.h',['../_l_m_s_8h.html',1,'']]],
   ['lmsid_38',['LMSID',['../class_student_record.html#a4ab9f346c08bc42f4a6db8b52dd312d0',1,'StudentRecord::LMSID'],['../class_team_record.html#ae517880fd821e28711abb94ae639d441',1,'TeamRecord::LMSID']]],
@@ -53,5 +53,5 @@ var searchData=
   ['loadsurvey_50',['loadSurvey',['../class_survey_maker_wizard.html#a00f72d37f0707f342079da9f334409ea',1,'SurveyMakerWizard']]],
   ['loadui_51',['loadUI',['../classgruepr.html#a304c4e4d73d8abad98248144394047b5',1,'gruepr']]],
   ['locale_52',['locale',['../class_survey_maker_wizard.html#ac17cbd2b890832e4bce3b237bd8bd514',1,'SurveyMakerWizard']]],
-  ['longtext_53',['longtext',['../class_question.html#a3274af002140ecd58fc8611944b732ada63745fabb3e4d343019076db3f112ab6',1,'Question']]]
+  ['longtext_53',['longtext',['../struct_question.html#a3274af002140ecd58fc8611944b732ada63745fabb3e4d343019076db3f112ab6',1,'Question']]]
 ];

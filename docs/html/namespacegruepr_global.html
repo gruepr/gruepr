@@ -86,16 +86,13 @@ $(function(){ initResizable(false); });
 <div id="doc-content">
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">grueprGlobal Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a2bb2b241ecb2eb46fc9733308e990db5" id="r_a2bb2b241ecb2eb46fc9733308e990db5"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2bb2b241ecb2eb46fc9733308e990db5">timeStringToHours</a> (const QString &amp;timeStr)</td></tr>
-<tr class="separator:a2bb2b241ecb2eb46fc9733308e990db5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3285d9abb92a1962f90b9a0e55647a16" id="r_a3285d9abb92a1962f90b9a0e55647a16"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3285d9abb92a1962f90b9a0e55647a16">internetIsGood</a> ()</td></tr>
 <tr class="memdesc:a3285d9abb92a1962f90b9a0e55647a16"><td class="mdescLeft">&#160;</td><td class="mdescRight">internetIsGood Checks the connection between the client and Google.com  <br /></td></tr>
 <tr class="separator:a3285d9abb92a1962f90b9a0e55647a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -111,17 +108,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a227d5461466af88a3b3cfca9483811c9" id="r_a227d5461466af88a3b3cfca9483811c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a227d5461466af88a3b3cfca9483811c9">helpWindow</a> (QWidget *parent)</td></tr>
 <tr class="memdesc:a227d5461466af88a3b3cfca9483811c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">helpWindow Displays the window associated with helping the user.  <br /></td></tr>
 <tr class="separator:a227d5461466af88a3b3cfca9483811c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:aa0a7931a4f8f7eca66eb2aa835b43020" id="r_aa0a7931a4f8f7eca66eb2aa835b43020"><td class="memItemLeft" align="right" valign="top">static const QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0a7931a4f8f7eca66eb2aa835b43020">timeFormats</a> = QString(<a class="el" href="gruepr__globals_8h.html#accb77374938c928676d972eb99c3b528">TIMEFORMATS</a>).split(';')</td></tr>
-<tr class="separator:aa0a7931a4f8f7eca66eb2aa835b43020"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8326678e93eb34edd49e658869343d0f" id="r_a8326678e93eb34edd49e658869343d0f"><td class="memItemLeft" align="right" valign="top">static QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8326678e93eb34edd49e658869343d0f">mostRecentTimeFormat</a> = <a class="el" href="#aa0a7931a4f8f7eca66eb2aa835b43020">timeFormats</a>[0]</td></tr>
-<tr class="separator:a8326678e93eb34edd49e658869343d0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bb2b241ecb2eb46fc9733308e990db5" id="r_a2bb2b241ecb2eb46fc9733308e990db5"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2bb2b241ecb2eb46fc9733308e990db5">timeStringToHours</a> (const QString &amp;timeStr)</td></tr>
+<tr class="memdesc:a2bb2b241ecb2eb46fc9733308e990db5"><td class="mdescLeft">&#160;</td><td class="mdescRight">timeStringToHours Converts time as a string the the decimal number of hours since midnight.  <br /></td></tr>
+<tr class="separator:a2bb2b241ecb2eb46fc9733308e990db5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Namespace for Gruepr global variables.</p>
-<p>The namespace with methods used throughout Gruepr. </p>
+<div class="textblock"><p>The namespace with methods used throughout Gruepr. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="a4c9c2bc767536f4273ad9f9fbc5881ba" name="a4c9c2bc767536f4273ad9f9fbc5881ba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4c9c2bc767536f4273ad9f9fbc5881ba">&#9670;&#160;</a></span>aboutWindow()</h2>
@@ -244,6 +236,15 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>timeStringToHours Converts time as a string the the decimal number of hours since midnight. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">timeStr</td><td>The time as a string (e.g.. "2pm" or "14:00". </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A decimal value of the number of hours since midnight (e.g., 13.25 for 1:15pm). </dd></dl>
+
 </div>
 </div>
 <a id="a3ec07889e088aab007cf710c66a7bd33" name="a3ec07889e088aab007cf710c66a7bd33"></a>
@@ -292,51 +293,6 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the user would like to click the OKtext button; false otherwise. </dd></dl>
-
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="a8326678e93eb34edd49e658869343d0f" name="a8326678e93eb34edd49e658869343d0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8326678e93eb34edd49e658869343d0f">&#9670;&#160;</a></span>mostRecentTimeFormat</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">QString grueprGlobal::mostRecentTimeFormat = <a class="el" href="#aa0a7931a4f8f7eca66eb2aa835b43020">timeFormats</a>[0]</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa0a7931a4f8f7eca66eb2aa835b43020" name="aa0a7931a4f8f7eca66eb2aa835b43020"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0a7931a4f8f7eca66eb2aa835b43020">&#9670;&#160;</a></span>timeFormats</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const QStringList grueprGlobal::timeFormats = QString(<a class="el" href="gruepr__globals_8h.html#accb77374938c928676d972eb99c3b528">TIMEFORMATS</a>).split(';')</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
 
 </div>
 </div>

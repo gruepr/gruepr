@@ -162,14 +162,12 @@ Public Attributes</h2></td></tr>
 <tr class="separator:aa0dac4dbc0a5d6d8796bdbaa2b510e5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90cf9a7b25b681bff98651d1b651d21d" id="r_a90cf9a7b25b681bff98651d1b651d21d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a90cf9a7b25b681bff98651d1b651d21d">sectionField</a> = <a class="el" href="#ab94f582a491fe1f143007751f9888478">FIELDNOTPRESENT</a></td></tr>
 <tr class="separator:a90cf9a7b25b681bff98651d1b651d21d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2c26b6629fa5e70b757ba1e360ef14c" id="r_af2c26b6629fa5e70b757ba1e360ef14c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af2c26b6629fa5e70b757ba1e360ef14c">notesField</a> [<a class="el" href="gruepr__globals_8h.html#a1d9953c6539eddab14a9aa8be3e71b27">MAX_NOTES_FIELDS</a>]</td></tr>
-<tr class="separator:af2c26b6629fa5e70b757ba1e360ef14c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba6c74cbafb88c7427eadd102beeea33" id="r_aba6c74cbafb88c7427eadd102beeea33"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aba6c74cbafb88c7427eadd102beeea33">numNotes</a> = 0</td></tr>
-<tr class="separator:aba6c74cbafb88c7427eadd102beeea33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0871e393793434c8260be1adc5707369" id="r_a0871e393793434c8260be1adc5707369"><td class="memItemLeft" align="right" valign="top">QList&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0871e393793434c8260be1adc5707369">notesFields</a></td></tr>
+<tr class="separator:a0871e393793434c8260be1adc5707369"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76c97740afeba1f43ba12517b6ae3472" id="r_a76c97740afeba1f43ba12517b6ae3472"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a76c97740afeba1f43ba12517b6ae3472">scheduleDataIsFreetime</a> = false</td></tr>
 <tr class="separator:a76c97740afeba1f43ba12517b6ae3472"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a961b23bf54dc2e8e48e2e9ac8a78b9fb" id="r_a961b23bf54dc2e8e48e2e9ac8a78b9fb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a961b23bf54dc2e8e48e2e9ac8a78b9fb">scheduleField</a> [<a class="el" href="gruepr__globals_8h.html#a6874bc8f68379c0b837c3b95e9b75d04">MAX_DAYS</a>]</td></tr>
-<tr class="separator:a961b23bf54dc2e8e48e2e9ac8a78b9fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad10ca664fc31c700d5edc797bf3233bd" id="r_ad10ca664fc31c700d5edc797bf3233bd"><td class="memItemLeft" align="right" valign="top">QList&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad10ca664fc31c700d5edc797bf3233bd">scheduleField</a></td></tr>
+<tr class="separator:ad10ca664fc31c700d5edc797bf3233bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80f67707e9d21ada37467ce22cbefd2b" id="r_a80f67707e9d21ada37467ce22cbefd2b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a80f67707e9d21ada37467ce22cbefd2b">numAttributes</a> = 0</td></tr>
 <tr class="separator:a80f67707e9d21ada37467ce22cbefd2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56bb8abac843b17ae989be88beb6976b" id="r_a56bb8abac843b17ae989be88beb6976b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56bb8abac843b17ae989be88beb6976b">attributeField</a> [<a class="el" href="gruepr__globals_8h.html#ae977c12458c05887092e2395f7c406cf">MAX_ATTRIBUTES</a>]</td></tr>
@@ -190,18 +188,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a3a902cfffdb57bee32dff81d649aec1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4fb542e0ee7cc70ad7a4a6b292d0502" id="r_ac4fb542e0ee7cc70ad7a4a6b292d0502"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="#ad4e6bcf1c121a978228b3c3d014035bd">DataOptions::AttributeType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac4fb542e0ee7cc70ad7a4a6b292d0502">attributeType</a> [<a class="el" href="gruepr__globals_8h.html#ae977c12458c05887092e2395f7c406cf">MAX_ATTRIBUTES</a>]</td></tr>
 <tr class="separator:ac4fb542e0ee7cc70ad7a4a6b292d0502"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63c373fa07750ee05bde36719eca9a75" id="r_a63c373fa07750ee05bde36719eca9a75"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63c373fa07750ee05bde36719eca9a75">prefTeammatesIncluded</a> = false</td></tr>
-<tr class="separator:a63c373fa07750ee05bde36719eca9a75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5020cfc4b455deb22525627d60653d4f" id="r_a5020cfc4b455deb22525627d60653d4f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5020cfc4b455deb22525627d60653d4f">numPrefTeammateQuestions</a> = 0</td></tr>
-<tr class="separator:a5020cfc4b455deb22525627d60653d4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada43335f78e897426c50af4832a1598a" id="r_ada43335f78e897426c50af4832a1598a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ada43335f78e897426c50af4832a1598a">prefTeammatesField</a> [<a class="el" href="gruepr__globals_8h.html#a69f47db8c07fd940a8aa3b3f9b993c2d">MAX_PREFTEAMMATES</a>]</td></tr>
-<tr class="separator:ada43335f78e897426c50af4832a1598a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aceb5bf002177c72fe9e248e2619aae90" id="r_aceb5bf002177c72fe9e248e2619aae90"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aceb5bf002177c72fe9e248e2619aae90">prefNonTeammatesIncluded</a> = false</td></tr>
-<tr class="separator:aceb5bf002177c72fe9e248e2619aae90"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48bf14547e85a39a58729f4fe941591e" id="r_a48bf14547e85a39a58729f4fe941591e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a48bf14547e85a39a58729f4fe941591e">numPrefNonTeammateQuestions</a> = 0</td></tr>
-<tr class="separator:a48bf14547e85a39a58729f4fe941591e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a905a70cb8e147c2184b243ebdbc85e25" id="r_a905a70cb8e147c2184b243ebdbc85e25"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a905a70cb8e147c2184b243ebdbc85e25">prefNonTeammatesField</a> [<a class="el" href="gruepr__globals_8h.html#a69f47db8c07fd940a8aa3b3f9b993c2d">MAX_PREFTEAMMATES</a>]</td></tr>
-<tr class="separator:a905a70cb8e147c2184b243ebdbc85e25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ea23841fce830a6d8beb36e784a518b" id="r_a3ea23841fce830a6d8beb36e784a518b"><td class="memItemLeft" align="right" valign="top">QList&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3ea23841fce830a6d8beb36e784a518b">prefTeammatesField</a></td></tr>
+<tr class="separator:a3ea23841fce830a6d8beb36e784a518b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a374a792b980b2eefa5ed5c1ce029bfd7" id="r_a374a792b980b2eefa5ed5c1ce029bfd7"><td class="memItemLeft" align="right" valign="top">QList&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a374a792b980b2eefa5ed5c1ce029bfd7">prefNonTeammatesField</a></td></tr>
+<tr class="separator:a374a792b980b2eefa5ed5c1ce029bfd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cbb27f00cc59368407a4fc2066b12c0" id="r_a9cbb27f00cc59368407a4fc2066b12c0"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9cbb27f00cc59368407a4fc2066b12c0">sectionNames</a></td></tr>
 <tr class="separator:a9cbb27f00cc59368407a4fc2066b12c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b2bf97abb6dd701fb2c7ebdab0ad5bb" id="r_a0b2bf97abb6dd701fb2c7ebdab0ad5bb"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0b2bf97abb6dd701fb2c7ebdab0ad5bb">attributeQuestionText</a></td></tr>
@@ -216,7 +206,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:abcb09f07713d026a7d51204c1d25b5b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4430043e2478a8f7ae4bc85e1e99c98a" id="r_a4430043e2478a8f7ae4bc85e1e99c98a"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4430043e2478a8f7ae4bc85e1e99c98a">dataSourceName</a></td></tr>
 <tr class="separator:a4430043e2478a8f7ae4bc85e1e99c98a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31ecaa08e0fdd7812b31c345e2c1c6f7" id="r_a31ecaa08e0fdd7812b31c345e2c1c6f7"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="#aa1e86afac2b379b700ddc8b9b6982088">DataOptions::DataSource</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a31ecaa08e0fdd7812b31c345e2c1c6f7">dataSource</a></td></tr>
+<tr class="memitem:a31ecaa08e0fdd7812b31c345e2c1c6f7" id="r_a31ecaa08e0fdd7812b31c345e2c1c6f7"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="#aa1e86afac2b379b700ddc8b9b6982088">DataOptions::DataSource</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a31ecaa08e0fdd7812b31c345e2c1c6f7">dataSource</a> = <a class="el" href="#aa1e86afac2b379b700ddc8b9b6982088a04f4f94bb58f39b6e97fe5a3cdbd31bb">DataOptions::DataSource::fromFile</a></td></tr>
 <tr class="separator:a31ecaa08e0fdd7812b31c345e2c1c6f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06294e8c1ae85a2788928a86e7fb8e22" id="r_a06294e8c1ae85a2788928a86e7fb8e22"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06294e8c1ae85a2788928a86e7fb8e22">dayNames</a></td></tr>
 <tr class="separator:a06294e8c1ae85a2788928a86e7fb8e22"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -559,7 +549,7 @@ Static Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="#aa1e86afac2b379b700ddc8b9b6982088">DataOptions::DataSource</a> DataOptions::dataSource</td>
+          <td class="memname">enum <a class="el" href="#aa1e86afac2b379b700ddc8b9b6982088">DataOptions::DataSource</a> DataOptions::dataSource = <a class="el" href="#aa1e86afac2b379b700ddc8b9b6982088a04f4f94bb58f39b6e97fe5a3cdbd31bb">DataOptions::DataSource::fromFile</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -756,14 +746,14 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="af2c26b6629fa5e70b757ba1e360ef14c" name="af2c26b6629fa5e70b757ba1e360ef14c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2c26b6629fa5e70b757ba1e360ef14c">&#9670;&#160;</a></span>notesField</h2>
+<a id="a0871e393793434c8260be1adc5707369" name="a0871e393793434c8260be1adc5707369"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0871e393793434c8260be1adc5707369">&#9670;&#160;</a></span>notesFields</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DataOptions::notesField[<a class="el" href="gruepr__globals_8h.html#a1d9953c6539eddab14a9aa8be3e71b27">MAX_NOTES_FIELDS</a>]</td>
+          <td class="memname">QList&lt;int&gt; DataOptions::notesFields</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -784,98 +774,28 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aba6c74cbafb88c7427eadd102beeea33" name="aba6c74cbafb88c7427eadd102beeea33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba6c74cbafb88c7427eadd102beeea33">&#9670;&#160;</a></span>numNotes</h2>
+<a id="a374a792b980b2eefa5ed5c1ce029bfd7" name="a374a792b980b2eefa5ed5c1ce029bfd7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a374a792b980b2eefa5ed5c1ce029bfd7">&#9670;&#160;</a></span>prefNonTeammatesField</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DataOptions::numNotes = 0</td>
+          <td class="memname">QList&lt;int&gt; DataOptions::prefNonTeammatesField</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a48bf14547e85a39a58729f4fe941591e" name="a48bf14547e85a39a58729f4fe941591e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48bf14547e85a39a58729f4fe941591e">&#9670;&#160;</a></span>numPrefNonTeammateQuestions</h2>
+<a id="a3ea23841fce830a6d8beb36e784a518b" name="a3ea23841fce830a6d8beb36e784a518b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ea23841fce830a6d8beb36e784a518b">&#9670;&#160;</a></span>prefTeammatesField</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DataOptions::numPrefNonTeammateQuestions = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5020cfc4b455deb22525627d60653d4f" name="a5020cfc4b455deb22525627d60653d4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5020cfc4b455deb22525627d60653d4f">&#9670;&#160;</a></span>numPrefTeammateQuestions</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int DataOptions::numPrefTeammateQuestions = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a905a70cb8e147c2184b243ebdbc85e25" name="a905a70cb8e147c2184b243ebdbc85e25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a905a70cb8e147c2184b243ebdbc85e25">&#9670;&#160;</a></span>prefNonTeammatesField</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int DataOptions::prefNonTeammatesField[<a class="el" href="gruepr__globals_8h.html#a69f47db8c07fd940a8aa3b3f9b993c2d">MAX_PREFTEAMMATES</a>]</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aceb5bf002177c72fe9e248e2619aae90" name="aceb5bf002177c72fe9e248e2619aae90"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aceb5bf002177c72fe9e248e2619aae90">&#9670;&#160;</a></span>prefNonTeammatesIncluded</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DataOptions::prefNonTeammatesIncluded = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ada43335f78e897426c50af4832a1598a" name="ada43335f78e897426c50af4832a1598a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada43335f78e897426c50af4832a1598a">&#9670;&#160;</a></span>prefTeammatesField</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int DataOptions::prefTeammatesField[<a class="el" href="gruepr__globals_8h.html#a69f47db8c07fd940a8aa3b3f9b993c2d">MAX_PREFTEAMMATES</a>]</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a63c373fa07750ee05bde36719eca9a75" name="a63c373fa07750ee05bde36719eca9a75"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63c373fa07750ee05bde36719eca9a75">&#9670;&#160;</a></span>prefTeammatesIncluded</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DataOptions::prefTeammatesIncluded = false</td>
+          <td class="memname">QList&lt;int&gt; DataOptions::prefTeammatesField</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -910,14 +830,14 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a961b23bf54dc2e8e48e2e9ac8a78b9fb" name="a961b23bf54dc2e8e48e2e9ac8a78b9fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a961b23bf54dc2e8e48e2e9ac8a78b9fb">&#9670;&#160;</a></span>scheduleField</h2>
+<a id="ad10ca664fc31c700d5edc797bf3233bd" name="ad10ca664fc31c700d5edc797bf3233bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad10ca664fc31c700d5edc797bf3233bd">&#9670;&#160;</a></span>scheduleField</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DataOptions::scheduleField[<a class="el" href="gruepr__globals_8h.html#a6874bc8f68379c0b837c3b95e9b75d04">MAX_DAYS</a>]</td>
+          <td class="memname">QList&lt;int&gt; DataOptions::scheduleField</td>
         </tr>
       </table>
 </div><div class="memdoc">

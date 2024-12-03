@@ -65,7 +65,7 @@ var searchData=
   ['draggeditem_62',['draggedItem',['../class_team_tree_widget.html#a11c8ed16bedc113d93361af254f600f3',1,'TeamTreeWidget']]],
   ['dragleaveevent_63',['dragLeaveEvent',['../class_team_tree_widget.html#a03d8fe91e8fda6895d9b3aa63c4ac724',1,'TeamTreeWidget']]],
   ['dragmoveevent_64',['dragMoveEvent',['../class_team_tree_widget.html#ab06985b28b940b89f9e645e4db37a786',1,'TeamTreeWidget']]],
-  ['dropdown_65',['dropdown',['../class_question.html#a3274af002140ecd58fc8611944b732adaad973c252653a47144b79403cfb0668b',1,'Question']]],
+  ['dropdown_65',['dropdown',['../struct_question.html#a3274af002140ecd58fc8611944b732adaad973c252653a47144b79403cfb0668b',1,'Question']]],
   ['dropevent_66',['dropEvent',['../class_team_tree_widget.html#a06dc1a312e712aa7c7fe3e2ec1ba9ff2',1,'TeamTreeWidget']]],
   ['droppeditem_67',['droppedItem',['../class_team_tree_widget.html#ae66b08a787fa280940ad763f6bb79209',1,'TeamTreeWidget']]],
   ['duplicaterecord_68',['duplicateRecord',['../class_student_record.html#ab104050dd128a4470372daa4170557d7',1,'StudentRecord']]]

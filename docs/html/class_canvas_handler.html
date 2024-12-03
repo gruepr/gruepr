@@ -86,6 +86,7 @@ $(function(){ initResizable(false); });
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
@@ -108,6 +109,13 @@ Inheritance diagram for CanvasHandler:</div>
   </map>
 </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_canvas_handler_1_1_canvas_course.html">CanvasCourse</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_canvas_handler_1_1_canvas_quiz.html">CanvasQuiz</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab0069ba8fd6e8a2b8c2636d2454519a2" id="r_ab0069ba8fd6e8a2b8c2636d2454519a2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab0069ba8fd6e8a2b8c2636d2454519a2">CanvasHandler</a> (QWidget *<a class="el" href="#ad88e55aac6ed13c658357fe7be2159f9">parent</a>=nullptr)</td></tr>
@@ -126,13 +134,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a390207a4907f2457551e8618ee182685"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3979eb0df802906a61f766ad2676fea" id="r_aa3979eb0df802906a61f766ad2676fea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3979eb0df802906a61f766ad2676fea">setBaseURL</a> (const QString &amp;<a class="el" href="#a7ba1bcff46d6539c42d2b80b450cb5a5">baseAPIURL</a>)</td></tr>
 <tr class="separator:aa3979eb0df802906a61f766ad2676fea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1fcda9811d6869f443a37ccd374363a0" id="r_a1fcda9811d6869f443a37ccd374363a0"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1fcda9811d6869f443a37ccd374363a0">getCourses</a> ()</td></tr>
-<tr class="separator:a1fcda9811d6869f443a37ccd374363a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2d50042dcefe252d89c2cc7e141b088" id="r_ae2d50042dcefe252d89c2cc7e141b088"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="struct_canvas_handler_1_1_canvas_course.html">CanvasCourse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2d50042dcefe252d89c2cc7e141b088">getCourses</a> ()</td></tr>
+<tr class="separator:ae2d50042dcefe252d89c2cc7e141b088"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71488336fc481adb3780aa32f627a090" id="r_a71488336fc481adb3780aa32f627a090"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a71488336fc481adb3780aa32f627a090">getStudentCount</a> (const QString &amp;courseName)</td></tr>
 <tr class="separator:a71488336fc481adb3780aa32f627a090"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f33276e49165d79cb77d40d0f80478f" id="r_a8f33276e49165d79cb77d40d0f80478f"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="class_student_record.html">StudentRecord</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8f33276e49165d79cb77d40d0f80478f">getStudentRoster</a> (const QString &amp;courseName)</td></tr>
 <tr class="separator:a8f33276e49165d79cb77d40d0f80478f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2db5bd5ed5ecd75f79675fe7e085823a" id="r_a2db5bd5ed5ecd75f79675fe7e085823a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2db5bd5ed5ecd75f79675fe7e085823a">createSurvey</a> (const QString &amp;courseName, const <a class="el" href="class_survey.html">Survey</a> *const survey)</td></tr>
+<tr class="memitem:a2db5bd5ed5ecd75f79675fe7e085823a" id="r_a2db5bd5ed5ecd75f79675fe7e085823a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2db5bd5ed5ecd75f79675fe7e085823a">createSurvey</a> (const QString &amp;courseName, const <a class="el" href="struct_survey.html">Survey</a> *const survey)</td></tr>
 <tr class="separator:a2db5bd5ed5ecd75f79675fe7e085823a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f213d337e2d7557ee6b259a872d7cc4" id="r_a7f213d337e2d7557ee6b259a872d7cc4"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7f213d337e2d7557ee6b259a872d7cc4">getQuizList</a> (const QString &amp;courseName)</td></tr>
 <tr class="separator:a7f213d337e2d7557ee6b259a872d7cc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,8 +175,8 @@ Static Public Attributes</h2></td></tr>
 Private Member Functions</h2></td></tr>
 <tr class="memitem:a34049fcbd28ec87a87689158014a9608" id="r_a34049fcbd28ec87a87689158014a9608"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a34049fcbd28ec87a87689158014a9608">authenticateWithManualToken</a> (const QString &amp;token)</td></tr>
 <tr class="separator:a34049fcbd28ec87a87689158014a9608"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0491ebb32ca2aac66520ca7cedbe096d" id="r_a0491ebb32ca2aac66520ca7cedbe096d"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0491ebb32ca2aac66520ca7cedbe096d">askUserForManualURLandToken</a> (const QString &amp;currentURL=&quot;&quot;, const QString &amp;currentToken=&quot;&quot;)</td></tr>
-<tr class="separator:a0491ebb32ca2aac66520ca7cedbe096d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9cae636e32d2c693c9e7358a3c7e667" id="r_ae9cae636e32d2c693c9e7358a3c7e667"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae9cae636e32d2c693c9e7358a3c7e667">askUserForManualURLandToken</a> (const QString &amp;currentAccountName=&quot;&quot;, const QString &amp;currentURL=&quot;&quot;, const QString &amp;currentToken=&quot;&quot;)</td></tr>
+<tr class="separator:ae9cae636e32d2c693c9e7358a3c7e667"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98eaea15a658a8f5208aea553c402dc3" id="r_a98eaea15a658a8f5208aea553c402dc3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98eaea15a658a8f5208aea553c402dc3">getCourseID</a> (const QString &amp;courseName)</td></tr>
 <tr class="separator:a98eaea15a658a8f5208aea553c402dc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab782e6f1bf79231b2b0c21ca3a8c0549" id="r_ab782e6f1bf79231b2b0c21ca3a8c0549"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab782e6f1bf79231b2b0c21ca3a8c0549">getQuizID</a> (const QString &amp;quizName)</td></tr>
@@ -202,11 +210,11 @@ Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:acefb85eeccd386fd6805e9b457f87e0a" id="r_acefb85eeccd386fd6805e9b457f87e0a"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acefb85eeccd386fd6805e9b457f87e0a">baseURL</a></td></tr>
 <tr class="separator:acefb85eeccd386fd6805e9b457f87e0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a043c323975fda50250feaa36717efa0a" id="r_a043c323975fda50250feaa36717efa0a"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="struct_canvas_course.html">CanvasCourse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a043c323975fda50250feaa36717efa0a">canvasCourses</a></td></tr>
+<tr class="memitem:a043c323975fda50250feaa36717efa0a" id="r_a043c323975fda50250feaa36717efa0a"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="struct_canvas_handler_1_1_canvas_course.html">CanvasCourse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a043c323975fda50250feaa36717efa0a">canvasCourses</a></td></tr>
 <tr class="separator:a043c323975fda50250feaa36717efa0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab31ffd0c4fca4932119a5f50640a6362" id="r_ab31ffd0c4fca4932119a5f50640a6362"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="class_student_record.html">StudentRecord</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab31ffd0c4fca4932119a5f50640a6362">roster</a></td></tr>
 <tr class="separator:ab31ffd0c4fca4932119a5f50640a6362"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca6668e8d333b5255cea5e79fd6613ff" id="r_aca6668e8d333b5255cea5e79fd6613ff"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="struct_canvas_quiz.html">CanvasQuiz</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca6668e8d333b5255cea5e79fd6613ff">quizList</a></td></tr>
+<tr class="memitem:aca6668e8d333b5255cea5e79fd6613ff" id="r_aca6668e8d333b5255cea5e79fd6613ff"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="struct_canvas_handler_1_1_canvas_quiz.html">CanvasQuiz</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca6668e8d333b5255cea5e79fd6613ff">quizList</a></td></tr>
 <tr class="separator:aca6668e8d333b5255cea5e79fd6613ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad88e55aac6ed13c658357fe7be2159f9" id="r_ad88e55aac6ed13c658357fe7be2159f9"><td class="memItemLeft" align="right" valign="top">QWidget *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad88e55aac6ed13c658357fe7be2159f9">parent</a> = nullptr</td></tr>
 <tr class="separator:ad88e55aac6ed13c658357fe7be2159f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -375,8 +383,8 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a0491ebb32ca2aac66520ca7cedbe096d" name="a0491ebb32ca2aac66520ca7cedbe096d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0491ebb32ca2aac66520ca7cedbe096d">&#9670;&#160;</a></span>askUserForManualURLandToken()</h2>
+<a id="ae9cae636e32d2c693c9e7358a3c7e667" name="ae9cae636e32d2c693c9e7358a3c7e667"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9cae636e32d2c693c9e7358a3c7e667">&#9670;&#160;</a></span>askUserForManualURLandToken()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -387,6 +395,11 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">QStringList CanvasHandler::askUserForManualURLandToken </td>
           <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>currentAccountName</em></span><span class="paramdefsep"> = </span><span class="paramdefval">&quot;&quot;</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>currentURL</em></span><span class="paramdefsep"> = </span><span class="paramdefval">&quot;&quot;</span>, </td>
         </tr>
         <tr>
@@ -470,7 +483,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="class_survey.html">Survey</a> *const</td>          <td class="paramname"><span class="paramname"><em>survey</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="struct_survey.html">Survey</a> *const</td>          <td class="paramname"><span class="paramname"><em>survey</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -745,14 +758,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a1fcda9811d6869f443a37ccd374363a0" name="a1fcda9811d6869f443a37ccd374363a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1fcda9811d6869f443a37ccd374363a0">&#9670;&#160;</a></span>getCourses()</h2>
+<a id="ae2d50042dcefe252d89c2cc7e141b088" name="ae2d50042dcefe252d89c2cc7e141b088"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2d50042dcefe252d89c2cc7e141b088">&#9670;&#160;</a></span>getCourses()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">QStringList CanvasHandler::getCourses </td>
+          <td class="memname">QList&lt; <a class="el" href="struct_canvas_handler_1_1_canvas_course.html">CanvasHandler::CanvasCourse</a> &gt; CanvasHandler::getCourses </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -1235,7 +1248,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">QList&lt;<a class="el" href="struct_canvas_course.html">CanvasCourse</a>&gt; CanvasHandler::canvasCourses</td>
+          <td class="memname">QList&lt;<a class="el" href="struct_canvas_handler_1_1_canvas_course.html">CanvasCourse</a>&gt; CanvasHandler::canvasCourses</td>
         </tr>
       </table>
   </td>
@@ -1367,7 +1380,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">QList&lt;<a class="el" href="struct_canvas_quiz.html">CanvasQuiz</a>&gt; CanvasHandler::quizList</td>
+          <td class="memname">QList&lt;<a class="el" href="struct_canvas_handler_1_1_canvas_quiz.html">CanvasQuiz</a>&gt; CanvasHandler::quizList</td>
         </tr>
       </table>
   </td>

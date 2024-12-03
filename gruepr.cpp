@@ -2109,18 +2109,22 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         do {                // keep optimizing until reach stability or maxGenerations
             // clone the elites in genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
             for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
+                const auto &nextGenEliteGenome = nextGenGenePool[genome];
+                const auto &thisGenEliteGenome = genePool[orderedIndex[genome]];
                 for(int ID = 0; ID < numActiveStudents; ID++) {
-                    nextGenGenePool[genome][ID] = genePool[orderedIndex[genome]][ID];
+                    nextGenEliteGenome[ID] = thisGenEliteGenome[ID];
                 }
-                nextGenAncestors[genome][0] = nextGenAncestors[genome][1] = orderedIndex[genome];   // both parents are this genome
+                const auto &nextGenAncestor = nextGenAncestors[genome];
+                const auto &thisGenAncestor = ancestors[orderedIndex[genome]];
+                nextGenAncestor[0] = nextGenAncestor[1] = orderedIndex[genome];   // both parents are this genome
                 int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
                 for(int generation = 1; generation < GA::NUMGENERATIONSOFANCESTORS; generation++) {
                     //all four grandparents are this genome's parents, etc. for increasing generations
                     for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
-                        nextGenAncestors[genome][ancestor] = ancestors[orderedIndex[genome]][ancestor-startAncestor+prevStartAncestor];
+                        nextGenAncestor[ancestor] = thisGenAncestor[ancestor-startAncestor+prevStartAncestor];
                     }
                     for(int ancestor = (((endAncestor - startAncestor)/2) + startAncestor); ancestor < endAncestor; ancestor++) {
-                        nextGenAncestors[genome][ancestor] = ancestors[orderedIndex[genome]][ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
+                        nextGenAncestor[ancestor] = thisGenAncestor[ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
                     }
                     prevStartAncestor = startAncestor;
                     startAncestor = endAncestor;
@@ -2135,8 +2139,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 
                 //mate them and put child in nextGenGenePool
                 GA::mate(mom, dad, teamSizes, numTeams, child, numActiveStudents, pRNG);
+                const auto & nextGenGenome = nextGenGenePool[genome];
                 for(int ID = 0; ID < numActiveStudents; ID++) {
-                    nextGenGenePool[genome][ID] = child[ID];
+                    nextGenGenome[ID] = child[ID];
                 }
             }
 
@@ -2465,8 +2470,10 @@ void gruepr::getScheduleScores(const StudentRecord *const _students, const int _
         if(!firstStudentOnTeam.ambiguousSchedule) {
             const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
             for(int day = 0; day < numDays; day++) {
+                const auto &firstStudentUnavailabilityThisDay = firstStudentUnavailability[day];
+                const auto &_availabilityChartThisDay = _availabilityChart[day];
                 for(int time = 0; time < numTimes; time++) {
-                    _availabilityChart[day][time] = !firstStudentUnavailability[day][time];
+                    _availabilityChartThisDay[time] = !firstStudentUnavailabilityThisDay[time];
                 }
             }
         }
@@ -2491,9 +2498,11 @@ void gruepr::getScheduleScores(const StudentRecord *const _students, const int _
             }
             const auto &currStudentUnavailability = currStudent.unavailable;
             for(int day = 0; day < numDays; day++) {
+                const auto &currStudentUnavailabilityThisDay = currStudentUnavailability[day];
+                const auto &_availabilityChartThisDay = _availabilityChart[day];
                 for(int time = 0; time < numTimes; time++) {
                     // "and" each student's not-unavailability
-                    _availabilityChart[day][time] = _availabilityChart[day][time] && !currStudentUnavailability[day][time];
+                    _availabilityChartThisDay[time] = _availabilityChartThisDay[time] && !currStudentUnavailabilityThisDay[time];
                 }
             }
             studentNum++;
@@ -2506,9 +2515,10 @@ void gruepr::getScheduleScores(const StudentRecord *const _students, const int _
 
         //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
         for(int day = 0; day < numDays; day++) {
+            const auto &_availabilityChartThisDay = _availabilityChart[day];
             for(int time = 0; time < numTimes; time++) {
                 int block = 0;
-                while((_availabilityChart[day][time]) && (block < numBlocksNeeded) && (time < numTimes)) {
+                while((_availabilityChartThisDay[time]) && (block < numBlocksNeeded) && (time < numTimes)) {
                     block++;
                     if(block < numBlocksNeeded) {
                         time++;

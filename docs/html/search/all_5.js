@@ -19,7 +19,7 @@ var searchData=
   ['error_16',['error',['../classgruepr_o_auth_http_server_reply_handler.html#a28181c32181bf5e451cf40f9abb25f7b',1,'grueprOAuthHttpServerReplyHandler']]],
   ['errorcomboboxstyle_17',['ERRORCOMBOBOXSTYLE',['../gruepr__globals_8h.html#afaebdf3b7cd5a42bd04c79250a4ea5c8',1,'gruepr_globals.h']]],
   ['errormessage_18',['errorMessage',['../namespacegruepr_global.html#a6cc4932af0611494cd864da04c41b872',1,'grueprGlobal']]],
-  ['estimatednumberrows_19',['estimatedNumberRows',['../class_csv_file.html#a4cdfb0129ea6d8cfa223d87befa368e8',1,'CsvFile']]],
+  ['estimatednumberrows_19',['estimatedNumberRows',['../class_csv_file.html#a1390a640e2adf58bf71a97e4b2b2594d',1,'CsvFile']]],
   ['eventfilter_20',['eventFilter',['../class_mouse_wheel_blocker.html#a9e55a0f3b30a35b3f652ca85eb4f8d85',1,'MouseWheelBlocker']]],
   ['examplebuttonstyle_21',['EXAMPLEBUTTONSTYLE',['../gruepr__globals_8h.html#a5ae72779916129a07b99c378cf3adf91',1,'gruepr_globals.h']]],
   ['expandall_22',['expandAll',['../class_team_tree_widget.html#ae6b06c17c5e34137deab3bb08450ce52',1,'TeamTreeWidget']]],

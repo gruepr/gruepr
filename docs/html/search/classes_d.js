@@ -6,7 +6,7 @@ var searchData=
   ['startdialog_3',['StartDialog',['../class_start_dialog.html',1,'']]],
   ['studentrecord_4',['StudentRecord',['../class_student_record.html',1,'']]],
   ['studenttablewidget_5',['StudentTableWidget',['../class_student_table_widget.html',1,'']]],
-  ['survey_6',['Survey',['../class_survey.html',1,'']]],
+  ['survey_6',['Survey',['../struct_survey.html',1,'']]],
   ['surveymakermultichoicequestion_7',['SurveyMakerMultichoiceQuestion',['../class_survey_maker_multichoice_question.html',1,'']]],
   ['surveymakerpage_8',['SurveyMakerPage',['../class_survey_maker_page.html',1,'']]],
   ['surveymakerpreviewsection_9',['SurveyMakerPreviewSection',['../class_survey_maker_preview_section.html',1,'']]],

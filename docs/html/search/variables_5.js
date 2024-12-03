@@ -9,7 +9,7 @@ var searchData=
   ['emaillineedit_6',['emailLineEdit',['../classregister_dialog.html#a5ae44ab99f615e1ee2cfdd27c3ebde23',1,'registerDialog']]],
   ['emailquestion_7',['EMAILQUESTION',['../gruepr__globals_8h.html#ad7880451ae55d4bc3c6f09273e276449',1,'gruepr_globals.h']]],
   ['errorcomboboxstyle_8',['ERRORCOMBOBOXSTYLE',['../gruepr__globals_8h.html#afaebdf3b7cd5a42bd04c79250a4ea5c8',1,'gruepr_globals.h']]],
-  ['estimatednumberrows_9',['estimatedNumberRows',['../class_csv_file.html#a4cdfb0129ea6d8cfa223d87befa368e8',1,'CsvFile']]],
+  ['estimatednumberrows_9',['estimatedNumberRows',['../class_csv_file.html#a1390a640e2adf58bf71a97e4b2b2594d',1,'CsvFile']]],
   ['examplebuttonstyle_10',['EXAMPLEBUTTONSTYLE',['../gruepr__globals_8h.html#a5ae72779916129a07b99c378cf3adf91',1,'gruepr_globals.h']]],
   ['explanationtext_11',['explanationText',['../classprogress_dialog.html#a18b739236c404535430fb9a3ffd25c5b',1,'progressDialog']]],
   ['externaldoitbutton_12',['externalDoItButton',['../class_teams_tab_item.html#a6898675e455fd5e85b515c871cf8c5c1',1,'TeamsTabItem']]],
