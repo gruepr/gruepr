@@ -131,6 +131,9 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              </item>
              <item row="2" column="1">
               <widget class="QPushButton" name="editSectionNameButton">
+               <property name="toolTip">
+                <string>Edit the section names</string>
+               </property>
                <property name="text">
                 <string/>
                </property>

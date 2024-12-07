@@ -60,6 +60,8 @@
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //
 //    NEW FEATURES:
+//  - make teamTreeWidget have section as top-level of tree when teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately
+//      - will have to reconfigure what is considered student, what is considered team in drag/drop, etc....
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - make the export options more flexible--select which items are to be included
