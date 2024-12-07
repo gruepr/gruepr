@@ -73,6 +73,7 @@ private:
     static const QStringList teamnameLists;
     QComboBox *teamnamesComboBox = nullptr;
     QCheckBox *randTeamnamesCheckBox = nullptr;
+    QCheckBox *addSectionToTeamnamesCheckBox = nullptr;
 
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     TeamingOptions *externalTeamingOptions = nullptr;

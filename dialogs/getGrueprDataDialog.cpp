@@ -955,8 +955,21 @@ bool GetGrueprDataDialog::readData()
 
     // if there's a (separately-sourced) roster of students, compare against the list of submissions
     // add the name, section and email data if available in roster and blank in survey data,
+    // (ask whether to replace section data if present in both)
     // and add the info of any non-submitters now
     if(!roster.isEmpty()) {
+
+        // if there's section data in both the survey and the roster, ask which to use
+        bool loadSectionFromRoster = false;
+        if(std::any_of(students.constBegin(), students.constEnd(), [](const auto &student){return !student.section.isEmpty();}) &&
+           std::any_of(roster.constBegin(), roster.constEnd(), [](const auto &student){return !student.section.isEmpty();})) {
+            loadSectionFromRoster = grueprGlobal::warningMessage(this, "gruepr",
+                                                                 tr("The survey contains section data, but so does the roster") +
+                                                                    (dataOptions->dataSource == DataOptions::DataSource::fromCanvas? tr(" from Canvas") : "") + ".\n" +
+                                                                     tr("Would you like to replace the survey data with that from the roster?"),
+                                                                 tr("Yes"), tr("No"));
+        }
+
         students.reserve(roster.size());
         int numNonSubmitters = 0;
         for(const auto &studentOnRoster : roster) {
@@ -1000,7 +1013,7 @@ bool GetGrueprDataDialog::readData()
                     students[index].email = studentOnRoster.email;
                     dataOptions->emailField = DataOptions::DATAFROMOTHERSOURCE;
                 }
-                if(students.at(index).section.isEmpty() && !studentOnRoster.section.isEmpty()) {
+                if((students.at(index).section.isEmpty() || loadSectionFromRoster) && !studentOnRoster.section.isEmpty()) {
                     students[index].section = studentOnRoster.section;
                     dataOptions->sectionField = DataOptions::DATAFROMOTHERSOURCE;
                     dataOptions->sectionIncluded = true;

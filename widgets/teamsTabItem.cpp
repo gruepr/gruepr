@@ -154,6 +154,15 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     connect(randTeamnamesCheckBox, &QCheckBox::clicked, this, &TeamsTabItem::randomizeTeamnames);
     teamOptionsLayout->addWidget(randTeamnamesCheckBox);
 
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        addSectionToTeamnamesCheckBox = new QCheckBox(tr("Add Section"), this);
+        addSectionToTeamnamesCheckBox->setStyleSheet(CHECKBOXSTYLE);
+        addSectionToTeamnamesCheckBox->setChecked(false);
+        addSectionToTeamnamesCheckBox->setToolTip(tr("Add the section name to the team names"));
+        connect(addSectionToTeamnamesCheckBox, &QCheckBox::clicked, this, [this](){teamNamesChanged(teamnamesComboBox->currentIndex());});
+        teamOptionsLayout->addWidget(addSectionToTeamnamesCheckBox);
+    }
+
     auto *sendToPreventedTeammates = new QPushButton(tr("Create teams with all new teammates"), this);
     sendToPreventedTeammates->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     sendToPreventedTeammates->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -237,6 +246,12 @@ void TeamsTabItem::teamNamesChanged(int index)
 {
     static int prevIndex = 0;   // hold on to previous index, so we can go back to it if cancelling custom team name dialog box
 
+    // if no item is selected in the combobox, then placeholder text is shown and index is -1.
+    // This should be treated the same as index 0 (arabic numerals for the names)
+    if(index < 0) {
+        index = 0;
+    }
+
     if(index != prevIndex) {     // reset the randomize teamnames checkbox if we just moved to a new index
         randTeamnamesCheckBox->setChecked(false);
         randTeamnamesCheckBox->setEnabled(index > 3 && index < teamnameLists.size());
@@ -245,11 +260,22 @@ void TeamsTabItem::teamNamesChanged(int index)
     // Get team numbers in the order that they are currently displayed/sorted
     const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
 
+    for(auto &team : teams) {
+        if(addSectionToTeamnamesCheckBox->isChecked()) {
+            const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
+            const QString &firstStudentSection = firstStudent->section;
+            team.name = firstStudentSection + "-";
+        }
+        else {
+            team.name.clear();
+        }
+    }
+
     // Set team names to:
     if(index == 0) {
         // arabic numbers
         for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = QString::number(team+1);
+            teams[teamDisplayNums.at(team)].name += QString::number(team+1);
         }
         prevIndex = 0;
     }
@@ -260,14 +286,14 @@ void TeamsTabItem::teamNamesChanged(int index)
         const QString X[] = {"","X","XX","XXX","XL","L","LX","LXX","LXXX","XC"};
         const QString I[] = {"","I","II","III","IV","V","VI","VII","VIII","IX"};
         for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = M[(team+1)/1000]+C[((team+1)%1000)/100]+X[((team+1)%100)/10]+I[((team+1)%10)];
+            teams[teamDisplayNums.at(team)].name += M[(team+1)/1000]+C[((team+1)%1000)/100]+X[((team+1)%100)/10]+I[((team+1)%10)];
         }
         prevIndex = 1;
     }
     else if(index == 2) {
         // hexadecimal numbers
         for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = QString::number(team, 16).toUpper();
+            teams[teamDisplayNums.at(team)].name += QString::number(team, 16).toUpper();
         }
         prevIndex = 2;
     }
@@ -275,7 +301,7 @@ void TeamsTabItem::teamNamesChanged(int index)
         // binary numbers
         const int numDigitsInLargestTeam = QString::number(int(teams.size())-1, 2).size();       // the '-1' is to make the first team 0
         for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
+            teams[teamDisplayNums.at(team)].name += QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
         }
         prevIndex = 3;
     }
@@ -297,17 +323,17 @@ void TeamsTabItem::teamNamesChanged(int index)
                 case TeamNameType::numeric:
                     break;
                 case TeamNameType::repeated:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]).repeated((team/teamNames.size())+1);
+                    teams[teamDisplayNums.at(team)].name += (teamNames[team%(teamNames.size())]).repeated((team/teamNames.size())+1);
                     break;
                 case TeamNameType::repeated_spaced:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
+                    teams[teamDisplayNums.at(team)].name += (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
                     break;
                 case TeamNameType::sequeled:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]) +
+                    teams[teamDisplayNums.at(team)].name += (teamNames[team%(teamNames.size())]) +
                                                            ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
                     break;
                 case TeamNameType::random_sequeled:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[random_order[team%(teamNames.size())]]) +
+                    teams[teamDisplayNums.at(team)].name += (teamNames[random_order[team%(teamNames.size())]]) +
                                                            ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
                     break;
             }

@@ -57,6 +57,7 @@
 //    NEW FEATURES:
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
+//  - make the export options more flexible--select which items are to be included
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
@@ -67,6 +68,7 @@
 //      - much harder: replace arrays for all of the attribute-related stuff
 //      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
+//      - memory leak -> crash when loading large file, unloading, then repeating a few times
 //  - compile for webassembly, turn into a webapp
 //      - move from OpenMP to QThread?
 //

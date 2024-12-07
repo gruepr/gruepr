@@ -3,17 +3,14 @@
 
 void GA::setGAParameters(int numRecords)
 {
-    if(numRecords > GENOMESIZETHRESHOLD[1]) {
-        populationsize = POPULATIONSIZE[2];
-        topgenomelikelihood = TOPGENOMELIKELIHOOD[2];
-    }
-    else if(numRecords > GENOMESIZETHRESHOLD[0]) {
-        populationsize = POPULATIONSIZE[1];
-        topgenomelikelihood = TOPGENOMELIKELIHOOD[1];
-    }
-    else {
-        populationsize = POPULATIONSIZE[0];
-        topgenomelikelihood = TOPGENOMELIKELIHOOD[0];
+    int threshold = 0;
+    for(const auto val : GENOMESIZETHRESHOLD) {
+        if(numRecords < val) {
+            populationsize = POPULATIONSIZE[threshold];
+            topgenomelikelihood = TOPGENOMELIKELIHOOD[threshold];
+            break;
+        }
+        threshold++;
     }
 }
 
