@@ -68,6 +68,7 @@ SOURCES += \
         csvfile.cpp \
         dataOptions.cpp \
         dialogs/attributeRulesDialog.cpp \
+        dialogs/editSectionNamesDialog.cpp \
         dialogs/getGrueprDataDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
         dialogs/teammatesRulesDialog.cpp \
@@ -113,6 +114,7 @@ HEADERS += \
         csvfile.h \
         dataOptions.h \
         dialogs/attributeRulesDialog.h \
+        dialogs/editSectionNamesDialog.h \
         dialogs/getGrueprDataDialog.h \
         dialogs/sampleQuestionsDialog.h \
         dialogs/teammatesRulesDialog.h \

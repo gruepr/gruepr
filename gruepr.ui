@@ -33,25 +33,25 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
       <item row="1" column="0">
        <widget class="QScrollArea" name="teamingOptionsScrollArea">
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Shape::NoFrame</enum>
         </property>
         <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
+         <enum>QFrame::Shadow::Plain</enum>
         </property>
         <property name="verticalScrollBarPolicy">
-         <enum>Qt::ScrollBarAsNeeded</enum>
+         <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
         </property>
         <property name="horizontalScrollBarPolicy">
-         <enum>Qt::ScrollBarAlwaysOff</enum>
+         <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
         </property>
         <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::AdjustToContents</enum>
+         <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
         </property>
         <property name="widgetResizable">
          <bool>true</bool>
         </property>
         <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
         </property>
         <widget class="QWidget" name="teamingOptionsScrollAreaWidget">
          <property name="geometry">
@@ -59,7 +59,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            <x>0</x>
            <y>0</y>
            <width>481</width>
-           <height>682</height>
+           <height>679</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -86,34 +86,18 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           </property>
           <item>
            <widget class="QFrame" name="sectionFrame">
-            <layout class="QVBoxLayout" name="sectionLayout">
-             <property name="spacing">
+            <layout class="QGridLayout" name="sectionLayout">
+             <property name="verticalSpacing">
               <number>2</number>
              </property>
-             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+             <item row="0" column="0">
               <widget class="QLabel" name="sectionLabel">
                <property name="text">
                 <string>Section</string>
                </property>
               </widget>
              </item>
-             <item>
-              <spacer name="sectionLabelSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>6</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
+             <item row="2" column="0">
               <widget class="QComboBox" name="sectionSelectionBox">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -125,7 +109,40 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                 <string>Choose which section of students found in the data</string>
                </property>
                <property name="sizeAdjustPolicy">
-                <enum>QComboBox::AdjustToContents</enum>
+                <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <spacer name="sectionLabelSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Policy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>6</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="editSectionNameButton">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="gruepr.qrc">
+                 <normaloff>:/icons_new/edit.png</normaloff>:/icons_new/edit.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>24</width>
+                 <height>24</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -135,10 +152,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <spacer name="sectionSpacer">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Policy::Ignored</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -154,7 +171,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <property name="verticalSpacing">
               <number>2</number>
              </property>
-             <item row="0" column="0" colspan="2" alignment="Qt::AlignLeft|Qt::AlignVCenter">
+             <item row="0" column="0" colspan="2" alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
               <widget class="QLabel" name="teamSizeLabel">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -179,7 +196,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                 <string>Choose how many students are on each team.</string>
                </property>
                <property name="sizeAdjustPolicy">
-                <enum>QComboBox::AdjustToContents</enum>
+                <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
                </property>
               </widget>
              </item>
@@ -205,10 +222,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item row="1" column="0" colspan="2">
               <spacer name="teamSizeLabelSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -224,10 +241,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <spacer name="teamsizeSpacer">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Policy::Ignored</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -243,7 +260,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <property name="spacing">
               <number>6</number>
              </property>
-             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+             <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
               <widget class="QLabel" name="genderLabel">
                <property name="text">
                 <string>Identity options</string>
@@ -253,10 +270,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="genderLabelSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -336,10 +353,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <spacer name="genderSpacer">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Policy::Ignored</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -355,7 +372,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <property name="spacing">
               <number>6</number>
              </property>
-             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+             <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
               <widget class="QLabel" name="URMLabel">
                <property name="text">
                 <string>Identity options</string>
@@ -365,10 +382,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="URMLabelSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -419,10 +436,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <spacer name="URMSpacer">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Policy::Ignored</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -435,7 +452,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <widget class="QFrame" name="attributesFrame">
             <layout class="QVBoxLayout" name="attributesLayout">
-             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+             <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
               <widget class="QLabel" name="attributesLabel">
                <property name="text">
                 <string>Multiple choice questions</string>
@@ -445,10 +462,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="attributesLabelSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -468,10 +485,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="strut">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -490,7 +507,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                 </sizepolicy>
                </property>
                <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
+                <enum>QFrame::Shape::NoFrame</enum>
                </property>
                <property name="lineWidth">
                 <number>0</number>
@@ -500,7 +517,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="stretch">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -516,10 +533,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <spacer name="attributeSpacer">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Policy::Ignored</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -545,10 +562,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="scheduleLabelSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -561,7 +578,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <layout class="QGridLayout" name="meetingTimesLayout">
                <property name="sizeConstraint">
-                <enum>QLayout::SetMinimumSize</enum>
+                <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
                </property>
                <property name="horizontalSpacing">
                 <number>6</number>
@@ -657,7 +674,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
                <item>
                 <spacer name="horizontalSpacer_3">
                  <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
+                  <enum>Qt::Orientation::Horizontal</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
@@ -675,10 +692,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
           <item>
            <spacer name="scheduleSpacer">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
+             <enum>QSizePolicy::Policy::Ignored</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -694,7 +711,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <property name="spacing">
               <number>2</number>
              </property>
-             <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+             <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
               <widget class="QLabel" name="teammatesLabel">
                <property name="text">
                 <string>Required and prevented teammates</string>
@@ -704,10 +721,10 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <item>
               <spacer name="teammatesLabelSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
+                <enum>QSizePolicy::Policy::Fixed</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -797,25 +814,25 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <bool>true</bool>
             </property>
             <property name="contextMenuPolicy">
-             <enum>Qt::NoContextMenu</enum>
+             <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
             </property>
             <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Plain</enum>
+             <enum>QFrame::Shadow::Plain</enum>
             </property>
             <property name="lineWidth">
              <number>0</number>
             </property>
             <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustToContents</enum>
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
             </property>
             <property name="autoScroll">
              <bool>false</bool>
             </property>
             <property name="editTriggers">
-             <set>QAbstractItemView::NoEditTriggers</set>
+             <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
             </property>
             <property name="showDropIndicator" stdset="0">
              <bool>false</bool>
@@ -827,22 +844,22 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
              <bool>true</bool>
             </property>
             <property name="selectionMode">
-             <enum>QAbstractItemView::SingleSelection</enum>
+             <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
             </property>
             <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectRows</enum>
+             <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
             </property>
             <property name="verticalScrollMode">
-             <enum>QAbstractItemView::ScrollPerPixel</enum>
+             <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
             </property>
             <property name="horizontalScrollMode">
-             <enum>QAbstractItemView::ScrollPerPixel</enum>
+             <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
             </property>
             <property name="showGrid">
              <bool>false</bool>
             </property>
             <property name="gridStyle">
-             <enum>Qt::NoPen</enum>
+             <enum>Qt::PenStyle::NoPen</enum>
             </property>
             <property name="sortingEnabled">
              <bool>true</bool>
@@ -950,7 +967,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
         </property>
        </widget>
       </item>
-      <item row="0" column="0" alignment="Qt::AlignTop">
+      <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignTop">
        <widget class="QFrame" name="dataSourceFrame">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -959,7 +976,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
          </sizepolicy>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
-         <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+         <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
           <widget class="QLabel" name="dataSourcePrelabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Ignored">
@@ -975,7 +992,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </property>
           </widget>
          </item>
-         <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+         <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter">
           <widget class="QLabel" name="dataSourceIcon">
            <property name="pixmap">
             <pixmap resource="gruepr.qrc">:/icons_new/file.png</pixmap>
@@ -985,7 +1002,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </property>
           </widget>
          </item>
-         <item alignment="Qt::AlignVCenter">
+         <item alignment="Qt::AlignmentFlag::AlignVCenter">
           <widget class="QLabel" name="dataSourceLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Ignored">
@@ -1001,7 +1018,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            </property>
           </widget>
          </item>
-         <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+         <item alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter">
           <widget class="QPushButton" name="newDataSourceButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">

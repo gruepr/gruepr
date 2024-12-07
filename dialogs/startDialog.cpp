@@ -159,11 +159,10 @@ StartDialog::StartDialog(QWidget *parent)
 void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     this->hide();
-    auto *surveyMakerWizard = new SurveyMakerWizard;
+    const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard);
     QApplication::restoreOverrideCursor();
     surveyMakerWizard->exec();
     this->show();
-    delete surveyMakerWizard;
 }
 
 
@@ -172,28 +171,25 @@ void StartDialog::openGruepr() {
 
     bool spawnNewWindow = true;
     while(spawnNewWindow) {
-        auto *getDataDialog = new GetGrueprDataDialog(this);
+        const QScopedPointer<GetGrueprDataDialog> getDataDialog(new GetGrueprDataDialog(this));
         QApplication::restoreOverrideCursor();
         auto result = getDataDialog->exec();
         if(result == QDialog::Accepted) {
             QApplication::setOverrideCursor(Qt::BusyCursor);
-            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
+            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
             this->hide();
             grueprWindow->show();
             emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
-            getDataDialog->deleteLater();
             QEventLoop loop;
-            connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
+            connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
             spawnNewWindow = grueprWindow->restartRequested;
-            grueprWindow->deleteLater();
             this->show();
         }
         else {
             spawnNewWindow = false;
             emit closeDataDialogProgressBar();
-            getDataDialog->deleteLater();
         }
     }
 }

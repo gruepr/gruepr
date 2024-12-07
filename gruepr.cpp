@@ -3,6 +3,7 @@
 #include "dialogs/attributeRulesDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
+#include "dialogs/editSectionNamesDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "dialogs/teammatesRulesDialog.h"
@@ -47,12 +48,13 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
     ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
+    ui->editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->dataDisplayTabWidget->setStyleSheet(DATADISPTABSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setStyleSheet(DATADISPBARSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
-    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton};
+    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->editSectionNameButton, ui->addStudentPushButton, ui->compareRosterPushButton};
     for(auto &button : buttons) {
         button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
     }
@@ -122,6 +124,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
     //Connect other UI items to more involved actions
     connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
+    connect(ui->editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
     connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
     connect(ui->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
@@ -301,7 +304,34 @@ void gruepr::changeSection(int index)
 }
 
 
-inline StudentRecord* gruepr::findStudentFromID(const long long ID){
+void gruepr::editSectionNames()
+{
+    auto *window = new editSectionNamesDialog(dataOptions->sectionNames, this);
+
+    // If user clicks OK, use these section names
+    const int reply = window->exec();
+    if(reply == QDialog::Accepted) {
+        //build a map of old name -> new name
+        std::map<QString, QString> mapOfOldToNewSectionNames;
+        for(int i = 0; i < dataOptions->sectionNames.size(); i++) {
+            mapOfOldToNewSectionNames[dataOptions->sectionNames.at(i)] = window->sectionNames.at(i);
+        }
+        //replace section names for each student
+        for(auto &student : students) {
+            student.section = mapOfOldToNewSectionNames[student.section];
+        }
+        //replace section names in section selection box and dataOptions
+        rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
+
+        saveState();
+    }
+
+    delete window;
+}
+
+
+inline StudentRecord* gruepr::findStudentFromID(const long long ID)
+{
     for(auto &student : students) {
         if(student.ID == ID) {
             return &student;

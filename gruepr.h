@@ -55,6 +55,7 @@ protected:
 private slots:
     void restartWithNewData();
     void changeSection(int index);
+    void editSectionNames();
     void editAStudent();
     void removeAStudent(const QString &name);
     void removeAStudent(const long long ID, const bool delayVisualUpdate = false);

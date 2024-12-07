@@ -35,18 +35,23 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - many behind-the-scenes code improvements
+//  - significant speed up in the optimization algorithm that creates teams
 //  - significant speed up when loading student data
-//  - make "Loading Data" window blocking and add cancel button
-//  - fixed crash when attempting to use a roster file that has invalid entries
-//  - now sorts Canvas courses by creation date rather than alphabetically
+//     - nevertheless, made the "Loading Data" window blocking and added a cancel button
+//  - added option to prepend the section name to each team name when teaming all sections separately
+//     - won't look great with long section names, therefore added an "Edit section names" feature
 //  - now automatically downloads each student's section from Canvas and adds to the survey results
+//  - fixed crash when attempting to use a roster file that has invalid entries
 //  - simplified the Canvas login window when there's existing Canvas token info
+//  - now sorts Canvas courses by creation date (newest course first) rather than alphabetically
 //  - much smarter use of internal student ID values instead of the index within the students array:
 //     - edit buttons no longer get confused when a single section is selected
-//     - "deleting" a student no longer removes them from the database, just marks them as deleted and makes them not be displayed anywhere
+//     - "deleting" a student no longer removes them from the database, just marks them as deleted and hides them from being displayed
 //     - removed studentIndexes from teamRecord
 //     - use QList, not array, for IDs of req/prev/reques teammates
 //     - IDs are now long long instead of int
+//  - better looking disabled checkbox style
 //
 // INPROG:
 //

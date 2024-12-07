@@ -39,7 +39,9 @@ signals:
 
 private slots:
     void teamNamesChanged(int index);
-    void randomizeTeamnames();
+    void toggleSectionsInTeamNames(bool addSectionNames);
+    void randomizeTeamnames(bool random);
+    void updateTeamNamesInTableAndTooltips();
     void makeNewSetWithAllNewTeammates();
     void swapStudents(const QList<int> &arguments); // arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
     void moveAStudent(const QList<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
@@ -74,6 +76,8 @@ private:
     QComboBox *teamnamesComboBox = nullptr;
     QCheckBox *randTeamnamesCheckBox = nullptr;
     QCheckBox *addSectionToTeamnamesCheckBox = nullptr;
+    bool randomizedTeamNames = false;
+    bool sectionsInTeamNames = false;
 
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     TeamingOptions *externalTeamingOptions = nullptr;
