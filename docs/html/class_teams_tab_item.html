@@ -158,8 +158,12 @@ Private Types</h2></td></tr>
 Private Slots</h2></td></tr>
 <tr class="memitem:ac7ca2a3528250db54f0333755a7f6ad3" id="r_ac7ca2a3528250db54f0333755a7f6ad3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac7ca2a3528250db54f0333755a7f6ad3">teamNamesChanged</a> (int index)</td></tr>
 <tr class="separator:ac7ca2a3528250db54f0333755a7f6ad3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a156219d0e464a2469f22ffe36028b3" id="r_a3a156219d0e464a2469f22ffe36028b3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a156219d0e464a2469f22ffe36028b3">randomizeTeamnames</a> ()</td></tr>
-<tr class="separator:a3a156219d0e464a2469f22ffe36028b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64a978b7163bacf5b82a17c4f45a61d0" id="r_a64a978b7163bacf5b82a17c4f45a61d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64a978b7163bacf5b82a17c4f45a61d0">toggleSectionsInTeamNames</a> (bool addSectionNames)</td></tr>
+<tr class="separator:a64a978b7163bacf5b82a17c4f45a61d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03624ab11acc463ed240e01802e91904" id="r_a03624ab11acc463ed240e01802e91904"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a03624ab11acc463ed240e01802e91904">randomizeTeamnames</a> (bool random)</td></tr>
+<tr class="separator:a03624ab11acc463ed240e01802e91904"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd081f11a2a11c4a2b6c7d88785a2762" id="r_abd081f11a2a11c4a2b6c7d88785a2762"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abd081f11a2a11c4a2b6c7d88785a2762">updateTeamNamesInTableAndTooltips</a> ()</td></tr>
+<tr class="separator:abd081f11a2a11c4a2b6c7d88785a2762"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a881c7f4e0551846f54423a1c4a2aece1" id="r_a881c7f4e0551846f54423a1c4a2aece1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a881c7f4e0551846f54423a1c4a2aece1">makeNewSetWithAllNewTeammates</a> ()</td></tr>
 <tr class="separator:a881c7f4e0551846f54423a1c4a2aece1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af70db47d8f63855482b6f24ea1142c44" id="r_af70db47d8f63855482b6f24ea1142c44"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af70db47d8f63855482b6f24ea1142c44">swapStudents</a> (const QList&lt; int &gt; &amp;arguments)</td></tr>
@@ -220,6 +224,12 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a7f75f4cc349a9c12c52814360cc38232"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56a6b0c8534754af25e39802a011d98e" id="r_a56a6b0c8534754af25e39802a011d98e"><td class="memItemLeft" align="right" valign="top">QCheckBox *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a56a6b0c8534754af25e39802a011d98e">randTeamnamesCheckBox</a> = nullptr</td></tr>
 <tr class="separator:a56a6b0c8534754af25e39802a011d98e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0e9a7ca6ee262b614a0751a4a1453f5" id="r_ae0e9a7ca6ee262b614a0751a4a1453f5"><td class="memItemLeft" align="right" valign="top">QCheckBox *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0e9a7ca6ee262b614a0751a4a1453f5">addSectionToTeamnamesCheckBox</a> = nullptr</td></tr>
+<tr class="separator:ae0e9a7ca6ee262b614a0751a4a1453f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f9c4986beefe80a8cea6789e1607dd1" id="r_a2f9c4986beefe80a8cea6789e1607dd1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2f9c4986beefe80a8cea6789e1607dd1">randomizedTeamNames</a> = false</td></tr>
+<tr class="separator:a2f9c4986beefe80a8cea6789e1607dd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1436c94e83bc169399c8c646f3ebfb5" id="r_aa1436c94e83bc169399c8c646f3ebfb5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa1436c94e83bc169399c8c646f3ebfb5">sectionsInTeamNames</a> = false</td></tr>
+<tr class="separator:aa1436c94e83bc169399c8c646f3ebfb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21365b31a1accfb9e021f1fcd0431b8b" id="r_a21365b31a1accfb9e021f1fcd0431b8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_teaming_options.html">TeamingOptions</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a21365b31a1accfb9e021f1fcd0431b8b">externalTeamingOptions</a> = nullptr</td></tr>
 <tr class="separator:a21365b31a1accfb9e021f1fcd0431b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe704db85240ff7851803c03d5888ab6" id="r_afe704db85240ff7851803c03d5888ab6"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="class_student_record.html">StudentRecord</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe704db85240ff7851803c03d5888ab6">externalStudents</a> = nullptr</td></tr>
@@ -822,8 +832,8 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a3a156219d0e464a2469f22ffe36028b3" name="a3a156219d0e464a2469f22ffe36028b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a156219d0e464a2469f22ffe36028b3">&#9670;&#160;</a></span>randomizeTeamnames</h2>
+<a id="a03624ab11acc463ed240e01802e91904" name="a03624ab11acc463ed240e01802e91904"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03624ab11acc463ed240e01802e91904">&#9670;&#160;</a></span>randomizeTeamnames</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -834,7 +844,7 @@ Static Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void TeamsTabItem::randomizeTeamnames </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>random</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1022,6 +1032,31 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a64a978b7163bacf5b82a17c4f45a61d0" name="a64a978b7163bacf5b82a17c4f45a61d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64a978b7163bacf5b82a17c4f45a61d0">&#9670;&#160;</a></span>toggleSectionsInTeamNames</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TeamsTabItem::toggleSectionsInTeamNames </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>addSectionNames</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a370580848ec8b6419490f8c25bf1c90b" name="a370580848ec8b6419490f8c25bf1c90b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a370580848ec8b6419490f8c25bf1c90b">&#9670;&#160;</a></span>toJson()</h2>
 
@@ -1064,7 +1099,54 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="abd081f11a2a11c4a2b6c7d88785a2762" name="abd081f11a2a11c4a2b6c7d88785a2762"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd081f11a2a11c4a2b6c7d88785a2762">&#9670;&#160;</a></span>updateTeamNamesInTableAndTooltips</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TeamsTabItem::updateTeamNamesInTableAndTooltips </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ae0e9a7ca6ee262b614a0751a4a1453f5" name="ae0e9a7ca6ee262b614a0751a4a1453f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0e9a7ca6ee262b614a0751a4a1453f5">&#9670;&#160;</a></span>addSectionToTeamnamesCheckBox</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QCheckBox* TeamsTabItem::addSectionToTeamnamesCheckBox = nullptr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad0338bd8695d4be31c736c0691e273a9" name="ad0338bd8695d4be31c736c0691e273a9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad0338bd8695d4be31c736c0691e273a9">&#9670;&#160;</a></span>BIGGERFONTSIZE</h2>
 
@@ -1197,6 +1279,28 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a2f9c4986beefe80a8cea6789e1607dd1" name="a2f9c4986beefe80a8cea6789e1607dd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f9c4986beefe80a8cea6789e1607dd1">&#9670;&#160;</a></span>randomizedTeamNames</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TeamsTabItem::randomizedTeamNames = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a56a6b0c8534754af25e39802a011d98e" name="a56a6b0c8534754af25e39802a011d98e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a56a6b0c8534754af25e39802a011d98e">&#9670;&#160;</a></span>randTeamnamesCheckBox</h2>
 
@@ -1279,6 +1383,28 @@ Static Private Attributes</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa1436c94e83bc169399c8c646f3ebfb5" name="aa1436c94e83bc169399c8c646f3ebfb5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1436c94e83bc169399c8c646f3ebfb5">&#9670;&#160;</a></span>sectionsInTeamNames</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TeamsTabItem::sectionsInTeamNames = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

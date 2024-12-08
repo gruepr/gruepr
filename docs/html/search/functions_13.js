@@ -7,6 +7,7 @@ var searchData=
   ['updatepreviewwidget_4',['updatePreviewWidget',['../class_survey_maker_multichoice_question.html#a9f746740e580b60d7ec3d4c9241df25c',1,'SurveyMakerMultichoiceQuestion']]],
   ['updatequestionandresponses_5',['updateQuestionAndResponses',['../class_attribute_widget.html#a63754c583ccd872a435ef57b886f7e00',1,'AttributeWidget']]],
   ['updaterecord_6',['updateRecord',['../classedit_or_add_student_dialog.html#a61aa7d49f9e7d758b2919013d627a18c',1,'editOrAddStudentDialog']]],
-  ['updateteamorder_7',['updateTeamOrder',['../class_team_tree_widget.html#aea5bb12efd11de3b4b095c5d2c47da83',1,'TeamTreeWidget']]],
-  ['uploadroster_8',['uploadRoster',['../class_course_info_page.html#a1caa61733136845d8c4fcea400f0e3b3',1,'CourseInfoPage']]]
+  ['updateteamnamesintableandtooltips_7',['updateTeamNamesInTableAndTooltips',['../class_teams_tab_item.html#abd081f11a2a11c4a2b6c7d88785a2762',1,'TeamsTabItem']]],
+  ['updateteamorder_8',['updateTeamOrder',['../class_team_tree_widget.html#aea5bb12efd11de3b4b095c5d2c47da83',1,'TeamTreeWidget']]],
+  ['uploadroster_9',['uploadRoster',['../class_course_info_page.html#a1caa61733136845d8c4fcea400f0e3b3',1,'CourseInfoPage']]]
 ];
