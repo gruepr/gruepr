@@ -18,7 +18,7 @@
 class TeamTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-    enum class TreeItemType{team, student};
+    enum class TreeItemType{section, team, student} treeItemType;
     explicit TeamTreeWidgetItem(TreeItemType type, int columns = 0, float teamScore = 1);
     ~TeamTreeWidgetItem() override = default;
     TeamTreeWidgetItem(const TeamTreeWidgetItem&) = delete;
@@ -26,10 +26,9 @@ public:
     TeamTreeWidgetItem(TeamTreeWidgetItem&&) = delete;
     TeamTreeWidgetItem& operator= (TeamTreeWidgetItem&&) = delete;
     void setScoreColor(float teamScore);
-    bool operator<(const QTreeWidgetItem &other) const override;
 
 private:
-    int numColumns;
+    bool operator<(const QTreeWidgetItem &other) const override;
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -45,7 +44,8 @@ public:
     void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
     void expandAll();
     void resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
-    void refreshTeam(QTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName, const QString &firstStudentSection,
+    void refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName);
+    void refreshTeam(TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
                      const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
                         const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
@@ -64,14 +64,14 @@ public slots:
     void resorting(int column);
 
 signals:
-    void swapChildren(QList<int> arguments); // QList<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID); // chid onto child, swap teammates
-    void reorderParents(QList<int> arguments); // QList<int> arguments = int teamA, int teamB); // parent onto parent, reorder teams
-    void moveChild(QList<int> arguments); // QList<int> arguments = int studentTeam, int studentID, int NewTeam); // child onto parent, move student
+    void swapStudents(const QList<int> &arguments);    // QList<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID); // student onto student -> swap
+    void reorderTeams(const QList<int> &arguments);    // QList<int> arguments = int teamA, int teamB); // team onto team -> reorder
+    void moveStudent(const QList<int> &arguments);     // QList<int> arguments = int oldTeam, int studentID, int newTeam); // student onto team -> move student
     void updateTeamOrder();
 
 private:
-    QTreeWidgetItem *draggedItem = nullptr;
-    QTreeWidgetItem *droppedItem = nullptr;
+    TeamTreeWidgetItem *draggedItem = nullptr;
+    TeamTreeWidgetItem *droppedItem = nullptr;
     QLabel *dragDropEventLabel = nullptr;
 };
 

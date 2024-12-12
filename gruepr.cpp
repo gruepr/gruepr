@@ -93,7 +93,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
             const QJsonArray teamsetjsons = content["teamsets"].toArray();
             TeamsTabItem *teamTab = nullptr;
             for(const auto &teamsetjson : teamsetjsons) {
-                teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, this->students, ui->letsDoItButton, this);
+                teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, this->students, this->dataOptions->sectionNames, ui->letsDoItButton, this);
                 ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
                 numTeams = int(teams.size());
                 connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
@@ -1342,7 +1342,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     const QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(*teamingOptions, teams, students, teamSetName, ui->letsDoItButton, this);
+    auto *teamTab = new TeamsTabItem(*teamingOptions, teams, students, dataOptions->sectionNames, teamSetName, ui->letsDoItButton, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;

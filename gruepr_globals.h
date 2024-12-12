@@ -41,6 +41,8 @@ inline static const char16_t BULLET = u'\u2022';
 #define OPENWATERHEX "#13a9b2"
 #define AQUAHEX "#41d2ca"
 #define BUBBLYHEX "#dcf2f4"
+#define GOGREEN "#d9ffdc"
+#define STOPRED "#ffbdbd"
 
 #define SCREENWIDTH qApp->property("_SCREENWIDTH").toInt()
 #define SCREENHEIGHT qApp->property("_SCREENHEIGHT").toInt()
@@ -237,6 +239,25 @@ inline static const char DATASOURCELABELSTYLE[] = "QLabel {background-color: " T
 inline static const char DATASOURCEBUTTONSTYLE[] = "QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
                                                     "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
 inline static const char ATTRIBUTESTACKWIDGETSTYLE[] = "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
+inline static const char TEAMTREEWIDGETSTYLE[] = "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
+                                                   "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}"
+                                                   "QTreeWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}"
+                                                   "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
+                                                   "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
+                                                   "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
+                                                   "	border-image: none; image: url(:/icons_new/smallRightButton.png);}"
+                                                   "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
+                                                   "	border-image: none; image: url(:/icons_new/smallDownButton.png);}";
+inline static const char TEAMTREEWIDGETHEADERSTYLE[] = "QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray;"
+                                                         "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                                                         "   font-size: 12pt; color: white; text-align:left;}"
+                                                         "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; "
+                                                         "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                                                         "   font-size: 12pt; color: white; text-align:left;}"
+                                                         "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px;"
+                                                         "   subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                                                         "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px;"
+                                                         "   subcontrol-origin: padding; subcontrol-position: top left;}";
 
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;

@@ -19,9 +19,9 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet &incomingTeamSet, QList<StudentRecord> &incomingStudents,
-                          const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent = nullptr);
+                          const QStringList &incomingSectionNames, const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent = nullptr);
     explicit TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents,
-                          QPushButton *letsDoItButton, QWidget *parent = nullptr);
+                          const QStringList &incomingSectionNames, QPushButton *letsDoItButton, QWidget *parent = nullptr);
     void init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton);    // handle the constructor work after loading data
     ~TeamsTabItem() override;
     TeamsTabItem(const TeamsTabItem&) = delete;
@@ -38,7 +38,7 @@ signals:
     void saveState();
 
 private slots:
-    void teamNamesChanged(int index);
+    void changeTeamNames(int index);
     void toggleSectionsInTeamNames(bool addSectionNames);
     void randomizeTeamnames(bool random);
     void updateTeamNamesInTableAndTooltips();
@@ -59,6 +59,7 @@ private:
     inline StudentRecord* findStudentFromID(const long long ID);
 
     TeamingOptions *teamingOptions = nullptr;
+    QStringList sectionNames;
     TeamSet teams;
     QList<StudentRecord> students;
     int numStudents = 1;
