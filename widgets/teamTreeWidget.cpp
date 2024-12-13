@@ -529,6 +529,13 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
             dragDropEventLabel->show();
             dragDropEventLabel->adjustSize();
         }
+        else if ((draggedItem->parent() != nullptr) && (droppedItem->parent() != nullptr) && (draggedItem->parent() != droppedItem->parent())) {
+            dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                        + tr("Cannot move") + " <b>" + draggedItem->text(0) + "</b> " + tr("to a different section.") + "</b></div>");
+            dragDropEventLabel->setStyleSheet("QLabel {background-color: " STOPRED "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
+            dragDropEventLabel->show();
+            dragDropEventLabel->adjustSize();
+        }
         else {
             dragDropEventLabel->hide();
         }
@@ -562,23 +569,64 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
 
     const bool draggedItemIsStudent = (draggedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
     const bool droppedItemIsStudent = (droppedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
+    const auto draggedItemParent = draggedItem->parent();
+    const auto droppedItemParent = droppedItem->parent();
+
     if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItem->parent() == droppedItem)) {
         // ignore if dragging item onto self, team->student, or student->own team
         event->setDropAction(Qt::IgnoreAction);
         event->ignore();
     }
-    else if(draggedItemIsStudent && droppedItemIsStudent) {         // two students
-        // UserRole data stored in the item is the studentRecord.ID; TeamNumber data stored in the parent's column 0 is the team number
-        emit swapStudents({(draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
-                           (droppedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt()});
+    else if(draggedItemIsStudent && droppedItemIsStudent) {
+        // swapping two students
+        // verify they want this if separated sections and dragging between different sections
+        if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
+            draggedItemParent->parent() != nullptr && droppedItemParent->parent() != nullptr &&
+            draggedItemParent->parent() != droppedItemParent->parent()) {
+                const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+                                                                  tr("You are swapping students between sections.\n"
+                                                                     "Are you sure you want to continue?"),
+                                                                  tr("Yes"), tr("No"));
+                if(!okClear) {
+                    event->setDropAction(Qt::IgnoreAction);
+                    event->ignore();
+                }
+                else {
+                    emit swapStudents({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
+                                       droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt()});
+                }
+        }
+        else {
+            emit swapStudents({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
+                               droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt()});
+        }
     }
-    else if(draggedItemIsStudent && !droppedItemIsStudent && (draggedItem->parent()->childCount() != 1)) {  // dragging student onto team and not the only student left on the team
-        emit moveStudent({(draggedItem->parent()->data(0,TEAM_NUMBER_ROLE)).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt()});
+    else if(draggedItemIsStudent && !droppedItemIsStudent && (draggedItem->parent()->childCount() != 1)) {
+        // dragging student onto team and not the only student left on the team
+        // verify they want this if separated sections and dragging between different sections
+        if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
+            draggedItemParent->parent() != nullptr && draggedItemParent->parent() != droppedItemParent) {
+            const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
+                                                              tr("You are moving a student to a team in a different section.\n"
+                                                                 "Are you sure you want to continue?"),
+                                                              tr("Yes"), tr("No"));
+            if(!okClear) {
+                event->setDropAction(Qt::IgnoreAction);
+                event->ignore();
+            }
+            else {
+                emit moveStudent({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt()});
+            }
+        }
+        else {
+            emit moveStudent({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt()});
+        }
     }
-    else if(!draggedItemIsStudent && !droppedItemIsStudent) {  // two teams
+    else if(!draggedItemIsStudent && !droppedItemIsStudent) {
+        // dragging team onto teams in order to reorder
         // if these are teams with separated sections, only allow dragging within the section
-        if(((draggedItem->parent() == nullptr) && (droppedItem->parent() == nullptr)) ||
-            ((draggedItem->parent() != nullptr) && (droppedItem->parent() != nullptr) && (draggedItem->parent() == droppedItem->parent()))) {
+        if(((draggedItemParent == nullptr) && (droppedItemParent == nullptr)) ||
+            ((draggedItemParent != nullptr) && (droppedItemParent != nullptr) && (draggedItemParent == droppedItemParent))) {
             emit reorderTeams({(draggedItem->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt()});
         }
         else {

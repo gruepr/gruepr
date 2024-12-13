@@ -558,6 +558,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
     //Sanity and bounds checks
     if((studentAID == studentBID) ||
+        (studentAID < 0) || (studentBID < 0) ||
         (studentATeamNum < 0) || (studentATeamNum > teams.size()) ||
         (studentBTeamNum < 0) || (studentBTeamNum > teams.size())) {
         return;
