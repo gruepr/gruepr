@@ -59,7 +59,7 @@ StartDialog::StartDialog(QWidget *parent)
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(labelFont);
-    survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
+    survMakeButton->setText(tr("Use our form builder\nto create the\nperfect survey for your class."));
     survMakeButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
@@ -72,7 +72,7 @@ StartDialog::StartDialog(QWidget *parent)
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(labelFont);
-    grueprButton->setText(tr("Upload your survey results\nand form your grueps."));
+    grueprButton->setText(tr("Use the survey results\nto form your grueps."));
     grueprButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);

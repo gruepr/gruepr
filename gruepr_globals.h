@@ -137,6 +137,9 @@ inline static const char LABEL14PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; fo
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 14pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL24PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 24pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 24pt; font-family: 'DM Sans'; border: none;}";
+inline static const char DRAGDROPLABELGOODSTYLE[] = "QLabel {background-color: " GOGREEN "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}";
+inline static const char DRAGDROPLABELWARNSTYLE[] = "QLabel {background-color: " TROPICALHEX "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}";
+inline static const char DRAGDROPLABELSTOPSTYLE[] = "QLabel {background-color: " STOPRED "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}";
 inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                        "font-family: 'DM Sans'; font-size: 12pt;}"
                                              "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
@@ -222,6 +225,9 @@ inline static const char DATADISPBARSTYLE[] = "QTabBar {alignment: center; margi
                                                 "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
                                                 "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right; margin: 2px;}";
 inline static const char BIGTOOLTIPSTYLE[] = "QToolTip {font-family: 'DM Sans'; font-size: 12pt; background-color: white; color: black;}";
+inline static const char GROUPSTYLE[] = "QGroupBox {background-color: " TRANSPARENT "; color: black; font-family: 'DM Sans'; font-size: 12pt;"
+                                                    "border: 1px solid " OPENWATERHEX "; border-radius: 5px; margin-top: 16px;}"
+                                        "QGroupBox::title {subcontrol-origin: margin; left: 8px; padding: 0px 4px 0px 4px;}";
 inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
                                                 "border-top: 1px solid " AQUAHEX "; border-right: 1px solid " AQUAHEX "; "
                                                 "border-bottom: 1px solid " AQUAHEX "; border-left: 1px solid " AQUAHEX ";}"
@@ -272,6 +278,7 @@ inline static const int UI_DISPLAY_DELAYTIME = 2000;
 inline static const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // shown as the team's data value for each column
 inline static const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // used when sorting the columns
 inline static const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // column 0 of the team info display tree, used when swapping teams or teammates
+inline static const int SORT_TO_END = MAX_TEAMS + 100;                // flag to indicate moving this team to the end in the display table
 
 enum class GenderType {biol, adult, child, pronoun};
 //order of enum below MUST match order of options within the subsequent strings

@@ -39,8 +39,10 @@
 //  - significant speed up in the optimization algorithm that creates teams
 //  - significant speed up when loading student data
 //     - nevertheless, made the "Loading Data" window blocking and added a cancel button
-//  - added option to prepend the section name to each team name when teaming all sections separately
-//     - won't look great with long section names, therefore added an "Edit section names" feature
+//  - better team display when teaming all sections separately
+//     - now section is the top hierarchical level of tree
+//     - added option to prepend the section name to each team name when
+//        - won't look great with long section names, therefore added an "Edit section names" feature
 //  - now automatically downloads each student's section from Canvas and adds to the survey results
 //  - fixed crash when attempting to use a roster file that has invalid entries
 //  - simplified the Canvas login window when there's existing Canvas token info
@@ -54,23 +56,22 @@
 //  - better looking disabled checkbox style
 //
 // INPROG:
+//  - make the export options more flexible--select which items are to be included
 //
 // TO DO:
 //    BUGFIX:
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //
 //    NEW FEATURES:
-//  - make teamTreeWidget have section as top-level of tree when teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately
-//      - will have to reconfigure what is considered student, what is considered team in drag/drop, etc....
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
-//  - make the export options more flexible--select which items are to be included
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
 //
 //    INTERNAL:
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
+//      - add qAsConst where appropriate in range-based loops
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
 //      - much harder: replace arrays for all of the attribute-related stuff
 //      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.

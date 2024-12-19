@@ -19,29 +19,31 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     setDragDropMode(QAbstractItemView::InternalMove);
     setDropIndicatorShown(false);
     setAlternatingRowColors(true);
-    setAutoScroll(false);
+    setAutoScroll(true);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
     connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
     connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
-    connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::collapseItem);
-    connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::expandItem);
+    connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapsed);
 }
 
 
-void TeamTreeWidget::collapseItem(QTreeWidgetItem *item)
+void TeamTreeWidget::itemCollapsed(QTreeWidgetItem *item)
 {
+    // only collapse teams (not students or sections)
     auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
     if(newItem == nullptr) {
         return;
     }
     const bool itemIsTeam = (newItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team);
-    if(itemIsTeam) {  // only collapse teams
-        QTreeWidget::collapseItem(newItem);
+    if(itemIsTeam) {
         for(int column = 0; column < columnCount(); column++) {
             resizeColumnToContents(column);
         }
+    }
+    else {
+        QTreeWidget::expandItem(newItem);
     }
 }
 
@@ -64,22 +66,6 @@ void TeamTreeWidget::collapseAll()
     }
 
     setUpdatesEnabled(true);
-}
-
-
-void TeamTreeWidget::expandItem(QTreeWidgetItem *item)
-{
-    auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
-    if(newItem == nullptr) {
-        return;
-    }
-    const bool itemIsStudent = (newItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
-    if(!itemIsStudent) {  // only expand the sections and teams, not students
-        QTreeWidget::expandItem(newItem);
-        for(int column = 0; column < columnCount(); column++) {
-            resizeColumnToContents(column);
-        }
-    }
 }
 
 
@@ -107,7 +93,7 @@ void TeamTreeWidget::expandAll()
 void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     QStringList headerLabels;
-    headerLabels << tr("  Team name  ") << tr("  Score  ");
+    headerLabels << tr("  Name  ") << tr("  Score  ");
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
         headerLabels << tr("  Sections  ");
     }
@@ -444,6 +430,9 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
 void TeamTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     draggedItem = dynamic_cast<TeamTreeWidgetItem*>(currentItem());
+    if(draggedItem == nullptr) {
+        return;
+    }
     QTreeWidget::dragEnterEvent(event);
 
     dragDropEventLabel = new QLabel(this);
@@ -459,6 +448,7 @@ void TeamTreeWidget::dragLeaveEvent(QDragLeaveEvent *event)
     if(dragDropEventLabel != nullptr) {
         dragDropEventLabel->hide();
         delete dragDropEventLabel;
+        dragDropEventLabel = nullptr;
     }
 }
 
@@ -491,48 +481,82 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
     const int iconSize = 32;
     const QString iconSizeStr = QString::number(iconSize);
     dragDropEventLabel->move(QCursor::pos() + QPoint(iconSize, iconSize));
+
     const bool draggedItemIsStudent = (draggedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
     const bool droppedItemIsStudent = (droppedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
-    if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItem->parent() == droppedItem)) {
+    const auto draggedItemParent = draggedItem->parent();
+    const auto droppedItemParent = droppedItem->parent();
+
+    if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItemParent == droppedItem)) {
         // ignore if dragging item onto self, team->student, or student->own team
         dragDropEventLabel->hide();
     }
-    else if(draggedItemIsStudent && droppedItemIsStudent) {           // dragging student->student
-        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/swap.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
-                                     + tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + droppedItem->text(0) + "</b></div>");
-        dragDropEventLabel->setStyleSheet("QLabel {background-color: " GOGREEN "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
-        dragDropEventLabel->show();
-        dragDropEventLabel->adjustSize();
-    }
-    else if(draggedItemIsStudent && !droppedItemIsStudent && (draggedItem->parent()->childCount() == 1)) {  // dragging student->team, but this is the only student left on the team
-        dragDropEventLabel->setText(tr("Cannot move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto another team.<br>")
-                                     + " <b>" + draggedItem->parent()->text(0) + "</b> " + tr("cannot be left empty."));
-        dragDropEventLabel->setStyleSheet("QLabel {background-color: " STOPRED "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
-        dragDropEventLabel->show();
-        dragDropEventLabel->adjustSize();
-    }
-    else if(draggedItemIsStudent && !droppedItemIsStudent) {          // dragging student->team
-        dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
-                                     + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + droppedItem->text(0) + "</b></div>");
-        dragDropEventLabel->setStyleSheet("QLabel {background-color: " GOGREEN "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
-        dragDropEventLabel->show();
-        dragDropEventLabel->adjustSize();
-    }
-    else if(!draggedItemIsStudent && !droppedItemIsStudent) {         // dragging team->team
-        // if these are teams with separated sections, only allow dragging within the section
-        if((draggedItem->parent() == nullptr) ||
-           (droppedItem->parent() == nullptr) ||
-           ((draggedItem->parent() != nullptr) && (droppedItem->parent() != nullptr) && (draggedItem->parent() == droppedItem->parent()))) {
-            dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
-                                        + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("above") + " <b>" + droppedItem->text(0) + "</b></div>");
-            dragDropEventLabel->setStyleSheet("QLabel {background-color: " GOGREEN "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
+    else if(draggedItemIsStudent && droppedItemIsStudent) {
+        // dragging student->student
+        // show warning if there are separated sections and dragging between different sections
+        if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
+            draggedItemParent->parent() != nullptr && droppedItemParent->parent() != nullptr &&
+            draggedItemParent->parent() != droppedItemParent->parent()) {
+                dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/swap.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                            + tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + droppedItem->text(0) + "</b><br>"
+                                            + tr("NOTE: these students are on teams in different sections.") + "</div>");
+                dragDropEventLabel->setStyleSheet(DRAGDROPLABELWARNSTYLE);
+                dragDropEventLabel->show();
+                dragDropEventLabel->adjustSize();
+        }
+        else {
+            dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/swap.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                        + tr("Swap the placement of") + " <b>" + draggedItem->text(0) + "</b> " + tr("and") + " <b>" + droppedItem->text(0) + "</b></div>");
+            dragDropEventLabel->setStyleSheet(DRAGDROPLABELGOODSTYLE);
             dragDropEventLabel->show();
             dragDropEventLabel->adjustSize();
         }
-        else if ((draggedItem->parent() != nullptr) && (droppedItem->parent() != nullptr) && (draggedItem->parent() != droppedItem->parent())) {
+
+    }
+    else if(draggedItemIsStudent && !droppedItemIsStudent) {
+        // dragging student->team
+        // disallow if this is the only student left on the team (leaving team empty)
+        // and warn if this team is in a differen section
+        if(draggedItemParent->childCount() == 1) {
+            dragDropEventLabel->setText(tr("Cannot move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto another team.<br>")
+                                         + " <b>" + draggedItem->parent()->text(0) + "</b> " + tr("cannot be left empty."));
+            dragDropEventLabel->setStyleSheet(DRAGDROPLABELSTOPSTYLE);
+            dragDropEventLabel->show();
+            dragDropEventLabel->adjustSize();
+        }
+        else if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
+                draggedItemParent->parent() != nullptr && draggedItemParent->parent() != droppedItemParent) {
+            dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/swap.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                        + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + droppedItem->text(0) + "</b><br>"
+                                        + tr("NOTE: this students is on a team in different a section.") + "</div>");
+            dragDropEventLabel->setStyleSheet(DRAGDROPLABELWARNSTYLE);
+            dragDropEventLabel->show();
+            dragDropEventLabel->adjustSize();
+
+        }
+        else {
+            dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                         + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("onto") + " <b>" + droppedItem->text(0) + "</b></div>");
+            dragDropEventLabel->setStyleSheet(DRAGDROPLABELGOODSTYLE);
+            dragDropEventLabel->show();
+            dragDropEventLabel->adjustSize();
+        }
+    }
+    else if(!draggedItemIsStudent && !droppedItemIsStudent) {
+        // dragging team->team
+        // disallow if dragging a team to a different section
+        if((draggedItemParent == nullptr) || (droppedItemParent == nullptr) ||
+          ((draggedItemParent != nullptr) && (droppedItemParent != nullptr) && (draggedItemParent == droppedItemParent))) {
+            dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
+                                        + tr("Move") + " <b>" + draggedItem->text(0) + "</b> " + tr("above") + " <b>" + droppedItem->text(0) + "</b></div>");
+            dragDropEventLabel->setStyleSheet(DRAGDROPLABELGOODSTYLE);
+            dragDropEventLabel->show();
+            dragDropEventLabel->adjustSize();
+        }
+        else if ((draggedItemParent != nullptr) && (droppedItemParent != nullptr) && (draggedItemParent != droppedItemParent)) {
             dragDropEventLabel->setText(R"(<img style="vertical-align:middle" src=":/icons_new/move.png" width=")" + iconSizeStr + "\" height=\"" + iconSizeStr + "\">"
                                         + tr("Cannot move") + " <b>" + draggedItem->text(0) + "</b> " + tr("to a different section.") + "</b></div>");
-            dragDropEventLabel->setStyleSheet("QLabel {background-color: " STOPRED "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}");
+            dragDropEventLabel->setStyleSheet(DRAGDROPLABELSTOPSTYLE);
             dragDropEventLabel->show();
             dragDropEventLabel->adjustSize();
         }
@@ -548,6 +572,7 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
     if(dragDropEventLabel != nullptr) {
         dragDropEventLabel->hide();
         delete dragDropEventLabel;
+        dragDropEventLabel = nullptr;
     }
 
     // get the item being dragged and ensure that the item is a TeamTreeWidgetItem
@@ -584,7 +609,7 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
             draggedItemParent->parent() != nullptr && droppedItemParent->parent() != nullptr &&
             draggedItemParent->parent() != droppedItemParent->parent()) {
                 const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
-                                                                  tr("You are swapping students between sections.\n"
+                                                                  tr("You are swapping students between different sections.\n"
                                                                      "Are you sure you want to continue?"),
                                                                   tr("Yes"), tr("No"));
                 if(!okClear) {
@@ -592,20 +617,24 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
                     event->ignore();
                 }
                 else {
-                    emit swapStudents({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
-                                       droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt()});
+                    emit swapStudents({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                                      (draggedItem->data(0, Qt::UserRole)).toInt(),
+                                       droppedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                                      (droppedItem->data(0, Qt::UserRole)).toInt()});
                 }
         }
         else {
-            emit swapStudents({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(),
-                               droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (droppedItem->data(0,Qt::UserRole)).toInt()});
+            emit swapStudents({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                              (draggedItem->data(0, Qt::UserRole)).toInt(),
+                               droppedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                              (droppedItem->data(0, Qt::UserRole)).toInt()});
         }
     }
-    else if(draggedItemIsStudent && !droppedItemIsStudent && (draggedItem->parent()->childCount() != 1)) {
+    else if(draggedItemIsStudent && !droppedItemIsStudent && (draggedItemParent->childCount() != 1)) {
         // dragging student onto team and not the only student left on the team
         // verify they want this if separated sections and dragging between different sections
         if(draggedItemParent != nullptr && droppedItemParent != nullptr &&
-            draggedItemParent->parent() != nullptr && draggedItemParent->parent() != droppedItemParent) {
+           draggedItemParent->parent() != nullptr && draggedItemParent->parent() != droppedItemParent) {
             const bool okClear = grueprGlobal::warningMessage(this, "gruepr",
                                                               tr("You are moving a student to a team in a different section.\n"
                                                                  "Are you sure you want to continue?"),
@@ -615,19 +644,24 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
                 event->ignore();
             }
             else {
-                emit moveStudent({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt()});
+                emit moveStudent({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                                 (draggedItem->data(0, Qt::UserRole)).toInt(),
+                                  droppedItem->data(0, TEAM_NUMBER_ROLE).toInt()});
             }
         }
         else {
-            emit moveStudent({draggedItemParent->data(0,TEAM_NUMBER_ROLE).toInt(), (draggedItem->data(0,Qt::UserRole)).toInt(), droppedItemParent->data(0,TEAM_NUMBER_ROLE).toInt()});
+            emit moveStudent({draggedItemParent->data(0, TEAM_NUMBER_ROLE).toInt(),
+                             (draggedItem->data(0, Qt::UserRole)).toInt(),
+                              droppedItem->data(0, TEAM_NUMBER_ROLE).toInt()});
         }
     }
     else if(!draggedItemIsStudent && !droppedItemIsStudent) {
         // dragging team onto teams in order to reorder
         // if these are teams with separated sections, only allow dragging within the section
-        if(((draggedItemParent == nullptr) && (droppedItemParent == nullptr)) ||
-            ((draggedItemParent != nullptr) && (droppedItemParent != nullptr) && (draggedItemParent == droppedItemParent))) {
-            emit reorderTeams({(draggedItem->data(0,TEAM_NUMBER_ROLE)).toInt(), (droppedItem->data(0,TEAM_NUMBER_ROLE)).toInt()});
+        if((draggedItemParent == nullptr) || (droppedItemParent == nullptr) ||
+          ((draggedItemParent != nullptr) && (droppedItemParent != nullptr) && (draggedItemParent == droppedItemParent))) {
+            emit reorderTeams({(draggedItem->data(0, TEAM_NUMBER_ROLE)).toInt(),
+                               (droppedItem->data(0, TEAM_NUMBER_ROLE)).toInt()});
         }
         else {
             event->setDropAction(Qt::IgnoreAction);

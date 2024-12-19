@@ -39,9 +39,7 @@ class TeamTreeWidget : public QTreeWidget
 
 public:
     TeamTreeWidget(QWidget *parent = nullptr);
-    void collapseItem(QTreeWidgetItem *item);           // when collapsing parent, summarize the children's data
     void collapseAll();
-    void expandItem(QTreeWidgetItem *item);             // when expanding, simplify appearance by removing summary of children's data
     void expandAll();
     void resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName);
@@ -59,6 +57,7 @@ protected:
 
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
+    void itemCollapsed(QTreeWidgetItem *item);
 
 public slots:
     void resorting(int column);

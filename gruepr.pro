@@ -61,38 +61,38 @@ macx: LIBS += -L /usr/local/lib
 macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
-        LMS/LMS.cpp \
-        LMS/canvashandler.cpp \
-        LMS/googlehandler.cpp \
-        Levenshtein.cpp \
         csvfile.cpp \
         dataOptions.cpp \
-        dialogs/attributeRulesDialog.cpp \
-        dialogs/editSectionNamesDialog.cpp \
-        dialogs/getGrueprDataDialog.cpp \
-        dialogs/sampleQuestionsDialog.cpp \
-        dialogs/teammatesRulesDialog.cpp \
         gruepr_globals.cpp \
-        main.cpp \
         gruepr.cpp \
         GA.cpp \
+        Levenshtein.cpp \
+        main.cpp \
         studentRecord.cpp \
         surveyMakerWizard.cpp \
         teamRecord.cpp \
         teamingOptions.cpp \
+        dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
         dialogs/customResponseOptionsDialog.cpp \
         dialogs/customTeamnamesDialog.cpp \
         dialogs/customTeamsizesDialog.cpp \
         dialogs/dayNamesDialog.cpp \
         dialogs/editOrAddStudentDialog.cpp \
+        dialogs/editSectionNamesDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
         dialogs/gatherURMResponsesDialog.cpp \
+        dialogs/getGrueprDataDialog.cpp \
         dialogs/listTableDialog.cpp \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
+        dialogs/sampleQuestionsDialog.cpp \
         dialogs/startDialog.cpp \
+        dialogs/teammatesRulesDialog.cpp \
         dialogs/whichFilesDialog.cpp \
+        LMS/LMS.cpp \
+        LMS/canvashandler.cpp \
+        LMS/googlehandler.cpp \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -107,38 +107,38 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
-        LMS/LMS.h \
-        LMS/canvashandler.h \
-        LMS/googlehandler.h \
-        Levenshtein.h \
         csvfile.h \
         dataOptions.h \
-        dialogs/attributeRulesDialog.h \
-        dialogs/editSectionNamesDialog.h \
-        dialogs/getGrueprDataDialog.h \
-        dialogs/sampleQuestionsDialog.h \
-        dialogs/teammatesRulesDialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
+        Levenshtein.h \
         studentRecord.h \
         survey.h \
         surveyMakerWizard.h \
         teamRecord.h \
         teamingOptions.h \
+        dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \
         dialogs/customResponseOptionsDialog.h \
         dialogs/customTeamnamesDialog.h \
         dialogs/customTeamsizesDialog.h \
         dialogs/dayNamesDialog.h \
         dialogs/editOrAddStudentDialog.h \
+        dialogs/editSectionNamesDialog.h \
         dialogs/findMatchingNameDialog.h \
         dialogs/gatherURMResponsesDialog.h \
+        dialogs/getGrueprDataDialog.h \
         dialogs/listTableDialog.h \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
+        dialogs/sampleQuestionsDialog.h \
         dialogs/startDialog.h \
+        dialogs/teammatesRulesDialog.h \
         dialogs/whichFilesDialog.h \
+        LMS/LMS.h \
+        LMS/canvashandler.h \
+        LMS/googlehandler.h \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
@@ -157,6 +157,7 @@ FORMS += \
       dialogs/getGrueprDataDialog.ui \
       dialogs/sampleQuestionsDialog.ui \
       dialogs/teammatesRulesDialog.ui \
+      dialogs/whichFilesDialog.ui \
       gruepr.ui
 
 RESOURCES += \
