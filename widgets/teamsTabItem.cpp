@@ -467,95 +467,6 @@ void TeamsTabItem::updateTeamNamesInTableAndTooltips()
 }
 
 
-void TeamsTabItem::makeNewSetWithAllNewTeammates()
-{
-    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
-        const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current ") + (teamingOptions->haveAnyRequiredTeammates? tr("required") : "") +
-                                                                             ((teamingOptions->haveAnyRequiredTeammates && teamingOptions->haveAnyRequestedTeammates)? tr(" and ") : "") +
-                                                                             ((teamingOptions->haveAnyRequestedTeammates)? tr("requested") : "") +
-                                                                            tr(" teammate settings. Do you want to continue?"),
-                                                            tr("Yes"), tr("No"));
-        if(yesDoIt) {
-            for(auto &student : *externalStudents) {
-                student.requiredWith.clear();
-                student.requestedWith.clear();
-            }
-        }
-        else {
-            return;
-        }
-    }
-
-    for(const auto &team : qAsConst(teams)) {
-        for(const auto ID1 : qAsConst(team.studentIDs)) {
-            for(const auto ID2 : qAsConst(team.studentIDs)) {
-                if(ID1 != ID2) {
-                    StudentRecord* stu = nullptr;
-                    for(auto &student1 : *externalStudents) {
-                        if(student1.ID == ID1) {
-                            stu = &student1;
-                        }
-                    }
-                    if(stu == nullptr) {
-                        continue;
-                    }
-                    stu->preventedWith << ID2;
-                }
-            }
-        }
-    }
-
-    externalTeamingOptions->haveAnyPreventedTeammates = true;
-    externalDoItButton->animateClick();
-}
-
-
-void TeamsTabItem::refreshDisplayOrder()
-{
-    // Any time teams have been reordered, refresh the hidden display order column
-    const int lastCol = teamDataTree->columnCount()-1;
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
-    int teamRow = 0;
-    while(item != nullptr) {
-        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
-            item->setData(lastCol, TEAMINFO_SORT_ROLE, teamRow);
-            item->setData(lastCol, TEAMINFO_DISPLAY_ROLE, QString::number(teamRow));
-            item->setText(lastCol, QString::number(teamRow));
-            teamRow++;
-        }
-        item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
-    }
-}
-
-
-QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder() const
-{
-    //NOTE: only includes the teams that are currently being displayed. If teams are hidden within a collapsed parent, they will not be included
-    // this is not a problem currently because: a) teams are top level items, or b) teams have the section as parent and sections are prevented from being collapsed
-    QList<int> teamDisplayNums;
-    teamDisplayNums.reserve(teams.size());
-    auto item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
-    while(item != nullptr) {
-        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
-            teamDisplayNums << item->data(0, TEAM_NUMBER_ROLE).toInt();
-        }
-        item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
-    }
-    return teamDisplayNums;
-}
-
-
-inline StudentRecord* TeamsTabItem::findStudentFromID(const long long ID)
-{
-    for(auto &student : students) {
-        if(student.ID == ID) {
-            return &student;
-        }
-    }
-    return nullptr;
-}
-
-
 void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> arguments = studentAteamNum, studentAID, studentBteamNum, studentBID
 {
     if(arguments.size() != 4) {
@@ -883,7 +794,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     //Load undo onto stack and clear redo stack
     const auto itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
     const int teamBelowTeamA = ((itemBelowTeamA != nullptr) && itemBelowTeamA->treeItemType == TeamTreeWidgetItem::TreeItemType::team) ?
-                                itemBelowTeamA->data(0, TEAM_NUMBER_ROLE).toInt() : SORT_TO_END;
+                                   itemBelowTeamA->data(0, TEAM_NUMBER_ROLE).toInt() : SORT_TO_END;
     const QString UndoTooltip = tr("Undo moving Team ") + teams[teamANum].name;
     undoItems.prepend({&TeamsTabItem::moveATeam, {teamANum, teamBelowTeamA}, UndoTooltip});
     undoButton->setEnabled(true);
@@ -988,6 +899,49 @@ void TeamsTabItem::undoRedoDragDrop()
 }
 
 
+void TeamsTabItem::makeNewSetWithAllNewTeammates()
+{
+    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
+        const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current ") + (teamingOptions->haveAnyRequiredTeammates? tr("required") : "") +
+                                                                             ((teamingOptions->haveAnyRequiredTeammates && teamingOptions->haveAnyRequestedTeammates)? tr(" and ") : "") +
+                                                                             ((teamingOptions->haveAnyRequestedTeammates)? tr("requested") : "") +
+                                                                            tr(" teammate settings. Do you want to continue?"),
+                                                            tr("Yes"), tr("No"));
+        if(yesDoIt) {
+            for(auto &student : *externalStudents) {
+                student.requiredWith.clear();
+                student.requestedWith.clear();
+            }
+        }
+        else {
+            return;
+        }
+    }
+
+    for(const auto &team : qAsConst(teams)) {
+        for(const auto ID1 : qAsConst(team.studentIDs)) {
+            for(const auto ID2 : qAsConst(team.studentIDs)) {
+                if(ID1 != ID2) {
+                    StudentRecord* stu = nullptr;
+                    for(auto &student1 : *externalStudents) {
+                        if(student1.ID == ID1) {
+                            stu = &student1;
+                        }
+                    }
+                    if(stu == nullptr) {
+                        continue;
+                    }
+                    stu->preventedWith << ID2;
+                }
+            }
+        }
+    }
+
+    externalTeamingOptions->haveAnyPreventedTeammates = true;
+    externalDoItButton->animateClick();
+}
+
+
 void TeamsTabItem::saveTeams()
 {
     QStringList fileContents = createStdFileContents();
@@ -1010,7 +964,7 @@ void TeamsTabItem::saveTeams()
         else {
             //save to text files
             const QString fileName = QFileDialog::getSaveFileName(this, tr("Choose a location and filename"), "",
-                                                                        tr("Text File (*.txt);;All Files (*)"));
+                                                                  tr("Text File (*.txt);;All Files (*)"));
             if (!fileName.isEmpty()) {
                 bool problemSaving = false;
                 QFile saveFile(fileName);
@@ -1039,8 +993,28 @@ void TeamsTabItem::saveTeams()
                 }
             }
         }
-    delete window;
+        delete window;
     }
+}
+
+
+void TeamsTabItem::printTeams()
+{
+    QStringList fileContents = createStdFileContents();
+    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "...",
+                                  fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH) + "...",
+                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "...",
+                                  tr("(Custom contents)")};
+
+    //Open specialized dialog box to choose which file(s) to print
+    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::print, &teams.dataOptions, previews, this);
+    if(window->exec() == QDialog::Accepted) {
+        if(window->fileType == WhichFilesDialog::FileType::custom) {
+            fileContents[customFile] = createCustomFileContents(window->customFileOptions);
+        }
+        printFiles(fileContents, window->fileType, PrintType::printer);
+    }
+    delete window;
 }
 
 
@@ -1134,26 +1108,6 @@ void TeamsTabItem::postTeamsToCanvas()
     delete canvasCoursesDialog;
 
     delete canvas;
-}
-
-
-void TeamsTabItem::printTeams()
-{
-    QStringList fileContents = createStdFileContents();
-    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "...",
-                                  fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH) + "...",
-                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "...",
-                                  tr("(Custom contents)")};
-
-    //Open specialized dialog box to choose which file(s) to print
-    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::print, &teams.dataOptions, previews, this);
-    if(window->exec() == QDialog::Accepted) {
-        if(window->fileType == WhichFilesDialog::FileType::custom) {
-            fileContents[customFile] = createCustomFileContents(window->customFileOptions);
-        }
-        printFiles(fileContents, window->fileType, PrintType::printer);
-    }
-    delete window;
 }
 
 
@@ -1256,6 +1210,52 @@ void TeamsTabItem::refreshTeamDisplay()
     }
     teamDataTree->setUpdatesEnabled(true);
     teamDataTree->setSortingEnabled(true);
+}
+
+
+void TeamsTabItem::refreshDisplayOrder()
+{
+    // Any time teams have been reordered, refresh the hidden display order column
+    const int lastCol = teamDataTree->columnCount()-1;
+    auto item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    int teamRow = 0;
+    while(item != nullptr) {
+        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            item->setData(lastCol, TEAMINFO_SORT_ROLE, teamRow);
+            item->setData(lastCol, TEAMINFO_DISPLAY_ROLE, QString::number(teamRow));
+            item->setText(lastCol, QString::number(teamRow));
+            teamRow++;
+        }
+        item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
+    }
+}
+
+
+QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder() const
+{
+    //NOTE: only includes the teams that are currently being displayed. If teams are hidden within a collapsed parent, they will not be included
+    // this is not a problem currently because: a) teams are top level items, or b) teams have the section as parent and sections are prevented from being collapsed
+    QList<int> teamDisplayNums;
+    teamDisplayNums.reserve(teams.size());
+    auto item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    while(item != nullptr) {
+        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            teamDisplayNums << item->data(0, TEAM_NUMBER_ROLE).toInt();
+        }
+        item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
+    }
+    return teamDisplayNums;
+}
+
+
+inline StudentRecord* TeamsTabItem::findStudentFromID(const long long ID)
+{
+    for(auto &student : students) {
+        if(student.ID == ID) {
+            return &student;
+        }
+    }
+    return nullptr;
 }
 
 
@@ -1393,6 +1393,12 @@ QStringList TeamsTabItem::createStdFileContents()
                     instructorsFileContents += (QString("?")).leftJustified(3);
                 }
             }
+            if(teams.dataOptions.timezoneIncluded) {
+                instructorsFileContents += (QString::number(student->timezone)).leftJustified(5);
+            }
+            if(teams.dataOptions.sectionIncluded && teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
+                instructorsFileContents += student->section;
+            }
             const int nameSize = int((student->firstname + " " + student->lastname).size());
             instructorsFileContents += "\t" + student->firstname + " " + student->lastname +
                                         QString(std::max(2,30-nameSize), ' ') + student->email + "\n";
@@ -1437,6 +1443,205 @@ QStringList TeamsTabItem::createStdFileContents()
         studentsFileContents += "\n\n";
     }
     return fileContents;
+}
+
+
+QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptions customFileOptions)
+{
+    QString customFileContents = "";
+
+    if(customFileOptions.includeFileData) {
+        customFileContents = tr("Source: ") + teams.dataOptions.dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
+    }
+    if(customFileOptions.includeTeamingData) {
+        customFileContents += tr("Teaming Options") + ":";
+        if(teams.dataOptions.genderIncluded) {
+            customFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
+            customFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
+            customFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
+            customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
+        }
+        if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
+            customFileContents += "\n" + tr("Isolated URM students prevented");
+        }
+        if(teamingOptions->scheduleWeight > 0) {
+            customFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize)
+                                       + tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
+            customFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
+            customFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
+            customFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
+        }
+        for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
+            customFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
+                                       + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib])) +
+                                       + ", " + (teamingOptions->desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
+        }
+        customFileContents += "\n\n\n";
+        for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
+            QString questionWithResponses = tr("Multiple choice Q") + QString::number(attrib+1) + "\n" +
+                                            teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
+            for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
+                if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
+                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered)) {
+                    questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
+                }
+                else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
+                         (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multicategorical)) {
+                    questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
+                                                           QString(char(response%26 + 'A')).repeated(1 + (response/26)));
+                    questionWithResponses += ". " + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
+                }
+            }
+            questionWithResponses += "\n\n\n";
+            customFileContents += questionWithResponses;
+        }
+    }
+
+    // get the relevant gender terminology
+    QStringList genderOptions;
+    if(teams.dataOptions.genderType == GenderType::biol) {
+        genderOptions = QString(BIOLGENDERS7CHAR).split('/');
+    }
+    else if(teams.dataOptions.genderType == GenderType::adult) {
+        genderOptions = QString(ADULTGENDERS7CHAR).split('/');
+    }
+    else if(teams.dataOptions.genderType == GenderType::child) {
+        genderOptions = QString(CHILDGENDERS7CHAR).split('/');
+    }
+    else { //if(teams.dataOptions.genderType == GenderType::pronoun)
+        genderOptions = QString(PRONOUNS7CHAR).split('/');
+    }
+
+    // get team numbers in the order that they are currently displayed/sorted
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
+
+    //loop through every team
+    for(const auto teamNum : teamDisplayNums) {
+        const auto &team = teams[teamNum];
+        customFileContents += tr("Team ") + team.name;
+        if(customFileOptions.includeTeamScore) {
+            customFileContents += "  -  " + tr("Score = ") + QString::number(double(team.score), 'f', 2);
+        }
+        customFileContents += "\n\n";
+
+        //loop through each teammate in the team
+        for(const auto studentID : team.studentIDs) {
+            const auto *const student = findStudentFromID(studentID);
+            if(student == nullptr) {
+                continue;
+            }
+            if(teams.dataOptions.genderIncluded && customFileOptions.includeGender) {
+                customFileContents += " " + genderOptions.at(static_cast<int>(student->gender)) + " ";
+            }
+            if(teams.dataOptions.URMIncluded && customFileOptions.includeURM) {
+                if(student->URM) {
+                    customFileContents += tr(" URM ");
+                }
+                else {
+                    customFileContents += "     ";
+                }
+            }
+            for(int attribute = 0; attribute < teams.dataOptions.numAttributes; attribute++) {
+                if(customFileOptions.includeMultiChoice.at(attribute)) {
+                    auto value = student->attributeVals[attribute].constBegin();
+                    if(*value != -1) {
+                        if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
+                            customFileContents += (QString::number(*value)).leftJustified(3);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
+                            customFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
+                                                                    (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
+                            const auto lastValue = student->attributeVals[attribute].constEnd();
+                            QString attributeList;
+                            while(value != lastValue) {
+                                attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
+                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
+                                value++;
+                                if(value != lastValue) {
+                                    attributeList += ",";
+                                }
+                            }
+                            customFileContents += attributeList.leftJustified(3);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
+                            const auto lastValue = student->attributeVals[attribute].constEnd();
+                            QString attributeList;
+                            while(value != lastValue) {
+                                attributeList += QString::number(*value);
+                                value++;
+                                if(value != lastValue) {
+                                    attributeList += ",";
+                                }
+                            }
+                            customFileContents += attributeList.leftJustified(3);
+                        }
+                    }
+                    else {
+                        customFileContents += (QString("?")).leftJustified(3);
+                    }
+                }
+            }
+            if(teams.dataOptions.timezoneIncluded && customFileOptions.includeTimezone) {
+                customFileContents += (QString::number(student->timezone)).leftJustified(5);
+            }
+            if(teams.dataOptions.sectionIncluded && customFileOptions.includeSect) {
+                customFileContents += student->section;
+            }
+            if((teams.dataOptions.firstNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeFirstName) ||
+               (teams.dataOptions.lastNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeLastName)) {
+                int nameSize = 0, nameWidth = 0;
+                customFileContents += "\t";
+                if(customFileOptions.includeFirstName) {
+                    customFileContents += student->firstname;
+                    nameSize += int(student->firstname.size());
+                    nameWidth += 15;
+                }
+                if(customFileOptions.includeFirstName && customFileOptions.includeLastName) {
+                    customFileContents += " ";
+                }
+                if(customFileOptions.includeLastName) {
+                    customFileContents += student->lastname;
+                    nameSize += int(student->lastname.size());
+                    nameWidth += 15;
+                }
+                customFileContents += QString(std::max(2, nameWidth-nameSize), ' ');
+            }
+            if(teams.dataOptions.emailField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeEmail) {
+                customFileContents += student->email;
+            }
+            customFileContents += "\n";
+        }
+        if(!teams.dataOptions.dayNames.isEmpty() & customFileOptions.includeSechedule) {
+            customFileContents += "\n" + tr("Availability:") + "\n            ";
+
+            for(const auto &dayName : teams.dataOptions.dayNames) {
+                // using first 3 characters in day name as abbreviation
+                customFileContents += "  " + dayName.left(3) + "  ";
+            }
+            customFileContents += "\n";
+
+            for(int time = 0; time < teams.dataOptions.timeNames.size(); time++) {
+                customFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
+                for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
+                    QString percentage;
+                    if(team.size > team.numStudentsWithAmbiguousSchedules) {
+                        percentage = QString::number((100*team.numStudentsAvailable[day][time]) /
+                                                     (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
+                    }
+                    else {
+                        percentage = "?";
+                    }
+                    const QStringView left3 = QStringView{teams.dataOptions.dayNames.at(day).left(3)};
+                    customFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
+                }
+                customFileContents += "\n";
+            }
+        }
+        customFileContents += "\n\n";
+    }
+    return customFileContents;
 }
 
 

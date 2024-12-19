@@ -24,38 +24,65 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     previousToolTipFont = QToolTip::font();
     QToolTip::setFont(QFont("Oxygen Mono", previousToolTipFont.pointSize()));
 
-    // enable correct set of custom options
+    // enable correct set of custom options checkboxes and connect each to output struct
+    connect(ui->fileDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFileData = checked;});
+    connect(ui->teamingDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamingData = checked;});
+    connect(ui->teamScorecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTeamScore = checked;});
     const bool first = dataOptions->firstNameField != DataOptions::FIELDNOTPRESENT;
     ui->firstnamecheckBox->setVisible(first);
+    connect(ui->firstnamecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFirstName = checked;});
     const bool last = dataOptions->lastNameField != DataOptions::FIELDNOTPRESENT;
     ui->lastnamecheckBox->setVisible(last);
+    connect(ui->lastnamecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeLastName = checked;});
     const bool email = dataOptions->emailField != DataOptions::FIELDNOTPRESENT;
     ui->emailcheckBox->setVisible(email);
+    connect(ui->emailcheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeEmail = checked;});
     const bool gender = dataOptions->genderIncluded;
     ui->gendercheckBox->setVisible(gender);
+    connect(ui->gendercheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeGender = checked;});
     const bool urm = dataOptions->URMIncluded;
     ui->URMcheckBox->setVisible(urm);
+    connect(ui->URMcheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeURM = checked;});
     const bool sect = dataOptions->sectionIncluded;
     ui->sectioncheckBox->setVisible(sect);
+    connect(ui->sectioncheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSect = checked;});
     QList<QCheckBox*> multichoiceCheckboxes = {ui->Q1checkBox, ui->Q2checkBox, ui->Q3checkBox, ui->Q4checkBox, ui->Q5checkBox, ui->Q6checkBox, ui->Q7checkBox,
                                                ui->Q8checkBox, ui->Q9checkBox, ui->Q10checkBox, ui->Q11checkBox, ui->Q12checkBox, ui->Q13checkBox, ui->Q14checkBox};
     bool anyMultiChoice = false;
     for(int attrib = 0; attrib < multichoiceCheckboxes.size(); attrib++) {
         const bool thisMultiChoice = dataOptions->attributeField[attrib] != DataOptions::FIELDNOTPRESENT;
-        multichoiceCheckboxes[attrib]->setVisible(thisMultiChoice);
         anyMultiChoice = anyMultiChoice || thisMultiChoice;
+        multichoiceCheckboxes[attrib]->setVisible(thisMultiChoice);
+        customFileOptions.includeMultiChoice << false;
+        connect(multichoiceCheckboxes[attrib], &QCheckBox::toggled, this, [this, attrib](bool checked){customFileOptions.includeMultiChoice[attrib] = checked;});
     }
     const bool timezone = dataOptions->timezoneIncluded;
     ui->timezonecheckBox->setVisible(timezone);
-    ui->multipleChoiceLabel->setVisible(anyMultiChoice || timezone);
-    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice || timezone);
+    connect(ui->timezonecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTimezone = checked;});
     const bool sched = !dataOptions->dayNames.isEmpty();
     ui->schedulecheckBox->setVisible(sched);
+    connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSechedule = checked;});
+
+    ui->multipleChoiceLabel->setVisible(anyMultiChoice || timezone);
+    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice || timezone);
     ui->CustomFileContentsBox->hide();
 
     ui->studentFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
+    if((dataOptions->firstNameField == DataOptions::FIELDNOTPRESENT) &&
+        (dataOptions->lastNameField == DataOptions::FIELDNOTPRESENT) &&
+        (dataOptions->emailField == DataOptions::FIELDNOTPRESENT)) {
+        ui->studentFilePushButton->setText(ui->studentFilePushButton->text().remove(tr("the name and email address of each teammate and ")));
+    }
+    else if((dataOptions->firstNameField == DataOptions::FIELDNOTPRESENT) && (dataOptions->lastNameField == DataOptions::FIELDNOTPRESENT)) {
+        ui->studentFilePushButton->setText(ui->studentFilePushButton->text().remove(tr("name and ")));
+    }
+    else if(dataOptions->emailField == DataOptions::FIELDNOTPRESENT) {
+        ui->studentFilePushButton->setText(ui->studentFilePushButton->text().remove(tr("and email address ")));
+    }
+
     connect(ui->studentFilePushButton, &QPushButton::clicked, ui->studentFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->studentFileRadioButton, &QRadioButton::clicked, [this](){
+    connect(ui->studentFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+        fileType = FileType::student;
         ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
         adjustSize();
     });
@@ -66,7 +93,8 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->instructorFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->instructorFilePushButton, &QPushButton::clicked, ui->instructorFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->instructorFileRadioButton, &QRadioButton::clicked, [this](){
+    connect(ui->instructorFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+        fileType = FileType::instructor;
         ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
         adjustSize();
     });
@@ -77,7 +105,8 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->spreadsheetFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->spreadsheetFilePushButton, &QPushButton::clicked, ui->spreadsheetFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->spreadsheetFileRadioButton, &QRadioButton::clicked, [this](){
+    connect(ui->spreadsheetFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+        fileType = FileType::spreadsheet;
         ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
         adjustSize();
     });
@@ -88,8 +117,9 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->customFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->customFilePushButton, &QPushButton::clicked, ui->customFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->customFileRadioButton, &QRadioButton::clicked, [this](){
-        ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
+    connect(ui->customFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+        fileType = FileType::custom;
+        ui->CustomFileContentsBox->setVisible(checked);
         adjustSize();
     });
     if(previews.size() > 3) {

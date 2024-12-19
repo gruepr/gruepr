@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>649</width>
-    <height>656</height>
+    <width>504</width>
+    <height>682</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,7 +72,7 @@ Preview a file by hovering over the title.</string>
     <widget class="QPushButton" name="instructorFilePushButton">
      <property name="text">
       <string>Instructor's File:
-	survey file and teaming data, all student survey responses, and team availability schedules</string>
+	all data, including every teammate's survey responses</string>
      </property>
     </widget>
    </item>
@@ -80,7 +80,7 @@ Preview a file by hovering over the title.</string>
     <widget class="QPushButton" name="studentFilePushButton">
      <property name="text">
       <string>Student's File:
-	names, email addresses, and team availability schedules</string>
+	only the name and email address of each teammate and the team availability schedule</string>
      </property>
     </widget>
    </item>
@@ -106,7 +106,14 @@ Preview a file by hovering over the title.</string>
          <string>Each Team</string>
         </property>
         <layout class="QGridLayout" name="multipleChoiceGridLayout">
-         <item row="0" column="0" colspan="3">
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="schedulecheckBox">
+           <property name="text">
+            <string>Team Availability Schedule</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
           <widget class="QGroupBox" name="teammateGroupBox">
            <property name="title">
             <string>Each Teammate</string>
@@ -199,7 +206,7 @@ Preview a file by hovering over the title.</string>
             <item row="1" column="1">
              <widget class="QCheckBox" name="URMcheckBox">
               <property name="text">
-               <string>Race/Ethnicity</string>
+               <string>URM Status</string>
               </property>
              </widget>
             </item>
@@ -269,10 +276,10 @@ Preview a file by hovering over the title.</string>
            </layout>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="schedulecheckBox">
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="teamScorecheckBox">
            <property name="text">
-            <string>Team Availability Schedule</string>
+            <string>Team Compatibility Score</string>
            </property>
           </widget>
          </item>

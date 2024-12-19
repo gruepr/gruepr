@@ -26,17 +26,18 @@ public:
     enum class FileType {student, instructor, spreadsheet, custom} fileType = FileType::student;
     bool pdf = false;
     struct CustomFileOptions {
-        bool includeFileData;
-        bool includeTeamingData;
-        bool includeFirstName;
-        bool includeLastName;
-        bool includeEmail;
-        bool includeGender;
-        bool includeURM;
-        bool includeSect;
+        bool includeFileData = false;
+        bool includeTeamingData = false;
+        bool includeTeamScore = false;
+        bool includeFirstName = false;
+        bool includeLastName = false;
+        bool includeEmail = false;
+        bool includeGender = false;
+        bool includeURM = false;
+        bool includeSect = false;
         QList<bool> includeMultiChoice;
-        bool includeTimezone;
-        bool includeSechedule;
+        bool includeTimezone = false;
+        bool includeSechedule = false;
     } customFileOptions;
 
 private:
