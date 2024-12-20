@@ -35,28 +35,30 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - many behind-the-scenes code improvements
-//  - significant speed up in the optimization algorithm that creates teams
-//  - significant speed up when loading student data
-//     - nevertheless, made the "Loading Data" window blocking and added a cancel button
 //  - better team display when teaming all sections separately
 //     - now section is the top hierarchical level of tree
 //     - added option to prepend the section name to each team name when
 //        - won't look great with long section names, therefore added an "Edit section names" feature
+//  - made the save teams options more flexible, including a custom option to select which items are to be included
 //  - now automatically downloads each student's section from Canvas and adds to the survey results
 //  - fixed crash when attempting to use a roster file that has invalid entries
 //  - simplified the Canvas login window when there's existing Canvas token info
 //  - now sorts Canvas courses by creation date (newest course first) rather than alphabetically
-//  - much smarter use of internal student ID values instead of the index within the students array:
-//     - edit buttons no longer get confused when a single section is selected
-//     - "deleting" a student no longer removes them from the database, just marks them as deleted and hides them from being displayed
-//     - removed studentIndexes from teamRecord
-//     - use QList, not array, for IDs of req/prev/reques teammates
-//     - IDs are now long long instead of int
-//  - better looking disabled checkbox style
+//  - many behind-the-scenes code improvements
+//     - significant speed up in the optimization algorithm that creates teams
+//        - increased max. number of students to 1000
+//        - tweaked genetic algortihm constants since it is faster
+//     - significant speed up when loading student data
+//        - nevertheless, made the "Loading Data" window blocking and added a cancel button
+//     - much smarter use of internal student ID values instead of the index within the students array:
+//        - edit buttons no longer get confused when a single section is selected
+//        - "deleting" a student no longer removes them from the database, just marks them as deleted and hides them from being displayed
+//        - removed studentIndexes from teamRecord
+//        - use QList, not array, for IDs of req/prev/reques teammates
+//        - IDs are now long long instead of int
+//     - better looking disabled checkbox style
 //
 // INPROG:
-//  - make the export options more flexible--select which items are to be included
 //
 // TO DO:
 //    BUGFIX:
@@ -71,7 +73,6 @@
 //
 //    INTERNAL:
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
-//      - add qAsConst where appropriate in range-based loops
 //      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
 //      - much harder: replace arrays for all of the attribute-related stuff
 //      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.

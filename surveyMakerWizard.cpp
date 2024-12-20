@@ -14,6 +14,7 @@
 #include <QPainter>
 #include <QRadioButton>
 #include <QSettings>
+#include <QTimer>
 #include <QToolTip>
 
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
@@ -636,7 +637,7 @@ void DemographicsPage::update()
     }
     questionPreviewTopLabels[gender]->setText(questionText);
     int i = 0;
-    for(const auto &genderOption : genderOptions) {
+    for(const auto &genderOption : qAsConst(genderOptions)) {
         ge[i++]->setText(genderOption);
     }
 }
@@ -650,7 +651,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
 {
     auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     sampleQuestionsFrame = new QFrame(this);
-    sampleQuestionsFrame->setStyleSheet("background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX ";");
+    sampleQuestionsFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
     sampleQuestionsIcon = new QLabel;
     sampleQuestionsIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
     sampleQuestionsLabel = new QLabel(tr("Unsure of what to ask? Take a look at some example questions!"));
@@ -1404,7 +1405,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::courseinfo, parent)
 {
     canvasSectionInfoFrame = new QFrame(this);
-    canvasSectionInfoFrame->setStyleSheet("background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX ";");
+    canvasSectionInfoFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
     canvasSectionInfoIcon = new LabelWithInstantTooltip("", this);
     canvasSectionInfoIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
     canvasSectionInfoIcon->setStyleSheet(BIGTOOLTIPSTYLE);
@@ -1619,7 +1620,7 @@ void CourseInfoPage::update()
     topLabel->setWordWrap(true);
     sectionsPreviewLayout->addWidget(topLabel);
     sc.clear();
-    for(const int visibleSectionLineEdit : visibleSectionLineEdits) {
+    for(const int visibleSectionLineEdit : qAsConst(visibleSectionLineEdits)) {
         sc << new QRadioButton;
         sectionsPreviewLayout->addWidget(sc.last());
         const QString sectName = sectionLineEdits[visibleSectionLineEdit]->text();
@@ -2080,7 +2081,7 @@ void PreviewAndExportPage::initializePage()
             delete child->widget(); // delete the widget
             delete child;   // delete the layout item
         }
-        for(const auto &genderOption : genderOptions) {
+        for(const auto &genderOption : qAsConst(genderOptions)) {
             auto *option = new QRadioButton(genderOption);
             section[SurveyMakerWizard::demographics]->questionGroupLayout[3]->addWidget(option);
         }
@@ -2134,7 +2135,7 @@ void PreviewAndExportPage::initializePage()
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
-                for(const auto &response : responses) {
+                for(const auto &response : qAsConst(responses)) {
                     auto *option = new QCheckBox(response);
                     section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
                 }
@@ -2149,7 +2150,7 @@ void PreviewAndExportPage::initializePage()
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
-                for(const auto &response : responses) {
+                for(const auto &response : qAsConst(responses)) {
                     auto *option = new QRadioButton(response);
                     section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
                 }
@@ -2526,7 +2527,7 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
         if(question.type == Question::QuestionType::schedule) {
             textFileContents += "\n                 ";
-            for(const auto &timeName : survey->schedTimeNames) {
+            for(const auto &timeName : qAsConst(survey->schedTimeNames)) {
                 textFileContents += timeName + "    ";
             }
             textFileContents += "\n";
@@ -2623,11 +2624,13 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
     copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace("background-color: white;", "background-color: green;"));
     copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
-    connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
-                                                                                             clipboard->setText(form.responderURL.toEncoded());
-                                                                                             QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
-                                                                                                                tr("URL copied"), copyButton, QRect(),
-                                                                                                                UI_DISPLAY_DELAYTIME);});
+    connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){
+        QClipboard *clipboard = QGuiApplication::clipboard();
+        clipboard->setText(form.responderURL.toEncoded());
+        QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
+                           tr("URL copied"), copyButton, QRect(),
+                           UI_DISPLAY_DELAYTIME);
+    });
     successDialog->exec();
     successDialog->deleteLater();
     surveyHasBeenExported = true;

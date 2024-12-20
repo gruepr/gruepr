@@ -1,10 +1,17 @@
 #include "googlehandler.h"
 #include "googlesecrets.h"
 #include <QDesktopServices>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QTimer>
 #include <QVBoxLayout>
 
 GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {

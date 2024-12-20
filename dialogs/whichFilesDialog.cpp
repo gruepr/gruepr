@@ -81,7 +81,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     }
 
     connect(ui->studentFilePushButton, &QPushButton::clicked, ui->studentFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->studentFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+    connect(ui->studentFileRadioButton, &QRadioButton::toggled, this, [this](){
         fileType = FileType::student;
         ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
         adjustSize();
@@ -93,7 +93,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->instructorFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->instructorFilePushButton, &QPushButton::clicked, ui->instructorFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->instructorFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+    connect(ui->instructorFileRadioButton, &QRadioButton::toggled, this, [this](){
         fileType = FileType::instructor;
         ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
         adjustSize();
@@ -105,7 +105,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->spreadsheetFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->spreadsheetFilePushButton, &QPushButton::clicked, ui->spreadsheetFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->spreadsheetFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+    connect(ui->spreadsheetFileRadioButton, &QRadioButton::toggled, this, [this](){
         fileType = FileType::spreadsheet;
         ui->CustomFileContentsBox->setVisible(ui->customFileRadioButton->isChecked());
         adjustSize();
@@ -117,7 +117,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
     ui->customFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     connect(ui->customFilePushButton, &QPushButton::clicked, ui->customFileRadioButton, &QRadioButton::animateClick);
-    connect(ui->customFileRadioButton, &QRadioButton::toggled, [this](bool checked){
+    connect(ui->customFileRadioButton, &QRadioButton::toggled, this, [this](bool checked){
         fileType = FileType::custom;
         ui->CustomFileContentsBox->setVisible(checked);
         adjustSize();

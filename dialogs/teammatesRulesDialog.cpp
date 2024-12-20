@@ -72,7 +72,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                               ui->requested_studentSelectComboBox, ui->requested_teammateSelectComboBox};
     for(auto &studentcombobox : studentcomboboxes) {
         studentcombobox->setStyleSheet(COMBOBOXSTYLE);
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
                 studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
             }
@@ -288,7 +288,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
         }
 
         bool printStudent;
-        for(const auto studentBID : allIDs) {
+        for(const auto studentBID : qAsConst(allIDs)) {
             if(typeOfTeammates == TypeOfTeammates::required) {
                 printStudent = baseStudent->requiredWith.contains(studentBID);
             }
@@ -383,7 +383,7 @@ void TeammatesRulesDialog::addTeammateSelector(TypeOfTeammates typeOfTeammates)
 
     auto *studentcombobox = new QComboBox(this);
     studentcombobox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &student : students) {
+    for(const auto &student : qAsConst(students)) {
         studentcombobox->setPlaceholderText(comboBoxes->first()->placeholderText());
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
@@ -408,7 +408,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         comboBoxes = possibleRequestedTeammates;
     }
     QList<int> IDs;
-    for(const auto &comboBox : comboBoxes) {
+    for(const auto &comboBox : qAsConst(comboBoxes)) {
         //If a student is selected in this combobox, load their ID into an array that holds all the selections
         if(comboBox->currentIndex() != -1) {
             IDs << comboBox->currentData().toInt();
@@ -472,7 +472,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         if(index < numStudents) {
             baseStudent = &students[index];
 
-            for(const int ID : IDs) {
+            for(const int ID : qAsConst(IDs)) {
                 if(baseStudentID != ID) {
                     //we have at least one requested teammate pair!
                     baseStudent->requestedWith << ID;

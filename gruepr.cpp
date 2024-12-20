@@ -13,12 +13,13 @@
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
+#include <QtConcurrent/QtConcurrent>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QMessageBox>
 #include <QScreen>
+#include <QSettings>
 #include <QTextBrowser>
-#include <QtConcurrent>
-#include <QtNetwork>
 #include <random>
 
 
@@ -186,7 +187,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     int ID = 0;
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         teamSizes[teamnum] = _teams[teamnum].size;
-        for(const auto studentID : _teams[teamnum].studentIDs) {
+        for(const auto studentID : qAsConst(_teams[teamnum].studentIDs)) {
             int index = 0;
             while(index < _students.size() && _students.at(index).ID != studentID) {
                 index++;
@@ -271,7 +272,7 @@ void gruepr::changeSection(int index)
         for(const auto &responseCount : qAsConst(dataOptions->attributeQuestionResponseCounts[attribute])) {
             currentResponseCounts[responseCount.first] = 0;
         }
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             if(!student.deleted &&
                ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                 (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
@@ -410,7 +411,7 @@ void gruepr::removeAStudent(const QString &name)
         // use the name to find the ID
         long long ID = -1;
         // don't have index, need to search and locate based on name
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             if(name.compare((student.firstname + " " + student.lastname), Qt::CaseInsensitive) == 0) {
                 ID = student.ID;
                 break;
@@ -535,7 +536,7 @@ void gruepr::compareStudentsToRoster()
         // load all current names from the survey so we can later remove them as they're found in the roster and be left with problem cases
         QStringList namesNotFound;
         namesNotFound.reserve(students.size());
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             namesNotFound << student.firstname + " " + student.lastname;
         }
 
@@ -603,16 +604,18 @@ void gruepr::compareStudentsToRoster()
                                 break;
                             }
                         }
-                        if(choiceWindow->useRosterEmail) {
-                            dataHasChanged = true;
-                            stu->email = emails.isEmpty()? "" : rosterEmail;
-                            stu->createTooltip(*dataOptions);
-                        }
-                        if(choiceWindow->useRosterName) {
-                            dataHasChanged = true;
-                            stu->firstname = name.split(" ").first();
-                            stu->lastname = name.split(" ").mid(1).join(" ");
-                            stu->createTooltip(*dataOptions);
+                        if(stu != nullptr) {
+                            if(choiceWindow->useRosterEmail) {
+                                dataHasChanged = true;
+                                stu->email = emails.isEmpty()? "" : rosterEmail;
+                                stu->createTooltip(*dataOptions);
+                            }
+                            if(choiceWindow->useRosterName) {
+                                dataHasChanged = true;
+                                stu->firstname = name.split(" ").first();
+                                stu->lastname = name.split(" ").mid(1).join(" ");
+                                stu->createTooltip(*dataOptions);
+                            }
                         }
                     }
                 }
@@ -743,7 +746,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
     // Re-build the URM info
     if(dataOptions->URMIncluded) {
         dataOptions->URMResponses.clear();
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
                 dataOptions->URMResponses << student.URMResponse;
             }
@@ -945,7 +948,7 @@ void gruepr::changeIdealTeamSize()
             // if teaming all sections separately, figure out how many students in this section
             const QString sectionName = ui->sectionSelectionBox->itemText(section + 3);
             numStudentsBeingTeamed = 0;
-            for(const auto &student : students) {
+            for(const auto &student : qAsConst(students)) {
                 if(student.section == sectionName && !student.deleted) {
                     numStudentsBeingTeamed++;
                 }
@@ -954,7 +957,7 @@ void gruepr::changeIdealTeamSize()
         else if(multipleSectionsInProgress) {
             const QString sectionName = ui->sectionSelectionBox->currentText();
             numStudentsBeingTeamed = 0;
-            for(const auto &student : students) {
+            for(const auto &student : qAsConst(students)) {
                 if(student.section == sectionName && !student.deleted) {
                     numStudentsBeingTeamed++;
                 }
@@ -1210,7 +1213,7 @@ void gruepr::startOptimization()
         teams.clear();
         teams.dataOptions = *dataOptions;
         teams.reserve(numTeams);
-        for(const auto teamSize : teamingOptions->teamSizesDesired) {
+        for(const auto teamSize : qAsConst(teamingOptions->teamSizesDesired)) {
             teams.emplaceBack(&teams.dataOptions, teamSize);
         }
 
@@ -1242,18 +1245,18 @@ void gruepr::startOptimization()
 
         // hold here until the optimization is done. This feels really hacky and probably can be improved with something simple!
         QEventLoop loop;
-        connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, smallerTeamSizesInSelector]
-                                                                       {if(teamingMultipleSections && !multipleSectionsInProgress) {
-                                                                            ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
-                                                                            if(smallerTeamSizesInSelector || (ui->teamSizeBox->count() == 3)) {  // pick the correct team sizes
-                                                                                ui->teamSizeBox->setCurrentIndex(0);
-                                                                            }
-                                                                            else {
-                                                                                ui->teamSizeBox->setCurrentIndex(1);
-                                                                            }
-                                                                        }
-                                                                        loop.quit();},
-                static_cast<Qt::ConnectionType>(Qt::AutoConnection | Qt::SingleShotConnection));
+        connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, smallerTeamSizesInSelector] {
+            if(teamingMultipleSections && !multipleSectionsInProgress) {
+                ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
+                if(smallerTeamSizesInSelector || (ui->teamSizeBox->count() == 3)) {  // pick the correct team sizes
+                    ui->teamSizeBox->setCurrentIndex(0);
+                }
+                else {
+                    ui->teamSizeBox->setCurrentIndex(1);
+                }
+            }
+            loop.quit();
+        }, static_cast<Qt::ConnectionType>(Qt::AutoConnection | Qt::SingleShotConnection));
         loop.exec();
     }
 }
@@ -1708,7 +1711,7 @@ void gruepr::saveState()
         content["teamingoptions"] = teamingOptions->toJson();
         content["dataoptions"] = dataOptions->toJson();
         QJsonArray studentjsons;
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             studentjsons.append(student.toJson());
         }
         content["students"] = studentjsons;

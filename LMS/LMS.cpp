@@ -1,6 +1,8 @@
 #include "LMS.h"
+#include <QMetaEnum>
 #include <QDesktopServices>
 #include <QGridLayout>
+#include <QTimer>
 
 LMS::LMS(QObject *parent) :
     QObject(parent),

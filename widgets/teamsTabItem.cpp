@@ -9,13 +9,15 @@
 #include <QFrame>
 #include <QFuture>
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPrintDialog>
 #include <QTextDocument>
 #include <QTextStream>
-#include <QtConcurrent>
+#include <QTimer>
+#include <QtConcurrent/QtConcurrent>
 #include <QVBoxLayout>
 
 const QStringList TeamsTabItem::teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
@@ -50,7 +52,7 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     QJsonArray teamsArray = jsonTeamsTab["teams"].toArray();
     teams.dataOptions = DataOptions(teamsArray.begin()->toObject()["dataOptions"].toObject());
     teams.reserve(teamsArray.size());
-    for(const auto &team : teamsArray) {
+    for(const auto &team : qAsConst(teamsArray)) {
         teams.emplaceBack(&teams.dataOptions, team.toObject(), students);
     }
     randomizedTeamNames = jsonTeamsTab["randomizedNames"].toBool();
@@ -786,7 +788,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     }
     const int teamBSortOrder = ((teamBItem != nullptr) ? (teamBItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt()) : (largestSortOrder + 1));
 
-    if((teamASortOrder == -1) || (teamBSortOrder - teamASortOrder == 1)) {
+    if((teamASortOrder == -1) || (teamBSortOrder - teamASortOrder == 1) || (teamAItem == nullptr) || (teamBItem == nullptr)) {
         // error or dragging just one row down ==> no change in order
         return;
     }
@@ -1078,7 +1080,7 @@ void TeamsTabItem::postTeamsToCanvas()
         teamNames << team.name;
         teamRoster.clear();
         //loop through each teammate in the team
-        for(const auto studentID : team.studentIDs) {
+        for(const auto studentID : qAsConst(team.studentIDs)) {
             teamRoster << *findStudentFromID(studentID);
         }
         teamRosters << teamRoster;
@@ -1123,7 +1125,7 @@ void TeamsTabItem::refreshTeamDisplay()
 
     //iterate through sections or teams
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
-        for(const auto &sectionName : sectionNames) {
+        for(const auto &sectionName : qAsConst(sectionNames)) {
             sectionItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::section);
             teamDataTree->refreshSection(sectionItems.last(), sectionName);
 
@@ -1411,7 +1413,7 @@ QStringList TeamsTabItem::createStdFileContents()
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(const auto &dayName : teams.dataOptions.dayNames) {
+            for(const auto &dayName : qAsConst(teams.dataOptions.dayNames)) {
                 // using first 3 characters in day name as abbreviation
                 instructorsFileContents += "  " + dayName.left(3) + "  ";
                 studentsFileContents += "  " + dayName.left(3) + "  ";
@@ -1616,7 +1618,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         if(!teams.dataOptions.dayNames.isEmpty() & customFileOptions.includeSechedule) {
             customFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(const auto &dayName : teams.dataOptions.dayNames) {
+            for(const auto &dayName : qAsConst(teams.dataOptions.dayNames)) {
                 // using first 3 characters in day name as abbreviation
                 customFileContents += "  " + dayName.left(3) + "  ";
             }

@@ -1,10 +1,16 @@
 #include "canvashandler.h"
 #include <QDesktopServices>
+#include <QDir>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QTimer>
+#include <QUrlQuery>
 #include <QVBoxLayout>
 
 CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {

@@ -5,9 +5,9 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QNetworkReply>
 #include <QOAuth2AuthorizationCodeFlow>
 #include <QOAuthHttpServerReplyHandler>
-#include <QtNetwork>
 
 
 class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler

@@ -4,12 +4,19 @@
 #include "LMS/googlehandler.h"
 #include "gruepr_globals.h"
 #include "dialogs/baseTimeZoneDialog.h"
+#include <QCollator>
 #include <QComboBox>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <QPainter>
 #include <QProgressDialog>
 #include <QSettings>
 #include <QStandardItemModel>
+#include <QStandardPaths>
+#include <QTimer>
 
 GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     QDialog(parent),
@@ -65,9 +72,8 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
     connect(ui->loadDataPushButton, &QPushButton::clicked, this, &GetGrueprDataDialog::loadData);
 
-    ui->dataSourceFrame->setStyleSheet(QString("QFrame {background-color: ") + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; "
-                                                        "color: " DEEPWATERHEX "; border: none;}"
-                                                   "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
+    ui->dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
+                                       "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
     ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt;}"
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 12pt;}");
     ui->dataSourceLabel->adjustSize();
@@ -819,7 +825,7 @@ bool GetGrueprDataDialog::readData()
     if(!dataOptions->dayNames.isEmpty()) {
         QStringList allTimeNames;
         do {
-            for(const int fieldNum : dataOptions->scheduleField) {
+            for(const int fieldNum : qAsConst(dataOptions->scheduleField)) {
                 QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
                 allTimeNames << CsvFile::getLine(scheduleFieldStream);
@@ -838,7 +844,7 @@ bool GetGrueprDataDialog::readData()
         // If none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
         // If none do, keep at default of 1.
         dataOptions->scheduleResolution = 1;
-        for(const auto &timeName : dataOptions->timeNames) {
+        for(const auto &timeName : qAsConst(dataOptions->timeNames)) {
             const int numOfQuarterHours = std::lround(4 * grueprGlobal::timeStringToHours(timeName)) % 4;
             if((numOfQuarterHours == 1) || (numOfQuarterHours == 3)) {
                 dataOptions->scheduleResolution = 0.25;
@@ -972,7 +978,7 @@ bool GetGrueprDataDialog::readData()
 
         students.reserve(roster.size());
         int numNonSubmitters = 0;
-        for(const auto &studentOnRoster : roster) {
+        for(const auto &studentOnRoster : qAsConst(roster)) {
             int index = 0;
             const long long LMSid = studentOnRoster.LMSID;
             while((index < numStudents) && (LMSid != students.at(index).LMSID)) {
@@ -1046,7 +1052,7 @@ bool GetGrueprDataDialog::readData()
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];
             // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
-            for(const auto &student : students) {
+            for(const auto &student : qAsConst(students)) {
                 if(!responses.contains(student.attributeResponse[attribute])) {
                     responses << student.attributeResponse[attribute];
                 }

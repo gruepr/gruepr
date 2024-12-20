@@ -25,11 +25,11 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 
     connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
     connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
-    connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapsed);
+    connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapse);
 }
 
 
-void TeamTreeWidget::itemCollapsed(QTreeWidgetItem *item)
+void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
 {
     // only collapse teams (not students or sections)
     auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);

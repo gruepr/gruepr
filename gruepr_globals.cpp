@@ -2,12 +2,14 @@
 #include <QEvent>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSettings>
 #include <QTextBrowser>
 #include <QTime>
 #include <QWidget>
-#include <QtNetwork>
 
 float grueprGlobal::timeStringToHours(const QString &timeStr) {
     static const QStringList timeFormats = QString(TIMEFORMATS).split(';');

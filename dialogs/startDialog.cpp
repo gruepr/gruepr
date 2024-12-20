@@ -8,12 +8,15 @@
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QGridLayout>
+#include <QJsonDocument>
 #include <QMenu>
 #include <QMenuBar>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QSettings>
 #include <QStringList>
+#include <QTimer>
 #include <QToolButton>
-#include <QtNetwork>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to choose whether to create a survey or use survey results to form teams;
@@ -140,7 +143,7 @@ StartDialog::StartDialog(QWidget *parent)
     helpButton->setIconSize(INFOBUTTONSIZE);
     theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
     auto *helpMenu = new QMenu(this);
-    for(const auto &helpAction : helpActions) {
+    for(const auto &helpAction : qAsConst(helpActions)) {
         helpAction->setFont(labelFont);
         helpMenu->addAction(helpAction);
     }
