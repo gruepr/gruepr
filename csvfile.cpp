@@ -448,7 +448,7 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 
     enum {Normal, Quote} state = Normal;
     QStringList fields;
-    fields.reserve(std::max(minFields, int(line.count(','))));
+    fields.reserve(std::max(minFields, int(line.count(delimiter))));
     QString value;
 
     for(int i = 0; i < line.size(); i++) {
@@ -477,14 +477,12 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 
         // In-quote state
         else if (state == Quote) {
-            // Another double-quote
             if (current == '"') {
+                // Another quotation mark
                 if (i < line.size()) {
-                    // A double double-quote?
                     if (i+1 < line.size() && line.at(i+1) == '"') {
+                        // Skip a second quotation mark in a row as it is the escape sequence to represent a single quotation mark
                         value += '"';
-
-                        // Skip a second quote character in a row
                         i++;
                     }
                     else {
@@ -493,9 +491,8 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
                     }
                 }
             }
-
-            // Other character
             else {
+                // Other character
                 value += current;
             }
         }

@@ -709,13 +709,20 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         //connect question to delete action and to updating the wizard fields and the preview
         connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
         questionTexts << "";
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText)
-                                                                                                     {questionTexts[i] = newText;
-                                                                                                      questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : newText);});
+        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
+            QString textWOQuotes = newText;
+            textWOQuotes.replace('"', '\'');
+            questionTexts[i] = textWOQuotes;
+            questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
+        });
         questionResponses << QStringList({""});
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){questionResponses[i] = newResponses;});
+        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){
+            questionResponses[i] = newResponses;
+        });
         questionMultis << false;
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::multiChanged, this, [this, i](const bool newMulti){questionMultis[i] = newMulti;});
+        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::multiChanged, this, [this, i](const bool newMulti){
+            questionMultis[i] = newMulti;
+        });
     }
 
     addQuestionButtonFrame = new QFrame(this);
@@ -797,7 +804,9 @@ void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts
         if(i >= numQuestions) {
             addQuestion();
         }
-        multichoiceQuestions[i]->setQuestion(newQuestionText);
+        QString textWOQuotes = newQuestionText;
+        textWOQuotes.replace('"', '\'');
+        multichoiceQuestions[i]->setQuestion(textWOQuotes);
         i++;
     }
     while(i < MAX_ATTRIBUTES-1) {
@@ -2414,6 +2423,42 @@ void PreviewAndExportPage::cleanupPage()
 //////////////////////////////////
 
 /*
+ * Handles the exporting of the created survey into different options:
+ * - Google Forms
+ * - Canvas
+ * - Text file
+ * - gruepr file
+ *
+ * Param:
+ * Return: void
+ */
+void PreviewAndExportPage::exportSurvey()
+{
+
+    if (destinationGrueprFile->isChecked()) {
+
+        // Handle exporting survey to gruepr file
+        PreviewAndExportPage::exportSurveyDestinationGrueprFile();
+
+    } else if (destinationTextFiles->isChecked()) {
+
+        // Handle exporting survey to text files
+        PreviewAndExportPage::exportSurveyDestinationTextFile();
+
+    } else if (destinationGoogle->isChecked()) {
+
+        // Handle exporting survey to google forms
+        PreviewAndExportPage::exportSurveyDestinationGoogle();
+
+    } else if (destinationCanvas->isChecked()) {
+
+        // Handle exporting survey to canvas
+        PreviewAndExportPage::exportSurveyDestinationCanvas();
+
+    }
+}
+
+/*
  * HELPER METHOD FOR 'exportSurvey()': Handles survey exporting to a gruepr file
  */
 void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
@@ -2491,16 +2536,21 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
 {
     QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
     //give instructions about how this option works
-    QMessageBox createSurvey;
-    createSurvey.setIcon(QMessageBox::Information);
-    createSurvey.setWindowTitle(tr("Survey Creation"));
-    createSurvey.setText(tr("The next step will save two files to your computer:\n\n"
-                            "  » A text file that lists the questions you should include in your survey.\n\n"
-                            "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
-    createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-    if(createSurvey.exec() == QMessageBox::Cancel) {
+    auto *successDialog = new QMessageBox(this);
+    successDialog->setStyleSheet(LABEL10PTSTYLE);
+    successDialog->setIcon(QMessageBox::Information);
+    successDialog->setWindowTitle(tr("Survey Creation"));
+    successDialog->setText(tr("The next step will save two files to your computer:\n\n"
+                              "  » A text file that lists the questions you should include in your survey.\n\n"
+                              "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
+    successDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+    successDialog->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    successDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    if(successDialog->exec() == QMessageBox::Cancel) {
+        delete successDialog;
         return;
     }
+    delete successDialog;
 
     //get the filenames and location
     const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
@@ -2725,40 +2775,4 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     successDialog->exec();
     successDialog->deleteLater();
     surveyHasBeenExported = true;
-}
-
-/*
- * Handles the exporting of the created survey into different options:
- * - Google Forms
- * - Canvas
- * - Text file
- * - gruepr file
- *
- * Param:
- * Return: void
- */
-void PreviewAndExportPage::exportSurvey()
-{
-
-    if (destinationGrueprFile->isChecked()) {
-
-        // Handle exporting survey to gruepr file
-        PreviewAndExportPage::exportSurveyDestinationGrueprFile();
-
-    } else if (destinationTextFiles->isChecked()) {
-
-        // Handle exporting survey to text files
-        PreviewAndExportPage::exportSurveyDestinationTextFile();
-
-    } else if (destinationGoogle->isChecked()) {
-
-        // Handle exporting survey to google forms
-        PreviewAndExportPage::exportSurveyDestinationGoogle();
-
-    } else if (destinationCanvas->isChecked()) {
-
-        // Handle exporting survey to canvas
-        PreviewAndExportPage::exportSurveyDestinationCanvas();
-
-    }
 }
