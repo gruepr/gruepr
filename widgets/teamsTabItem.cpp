@@ -947,14 +947,14 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
 void TeamsTabItem::saveTeams()
 {
     QStringList fileContents = createStdFileContents();
-    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + " ...",
-                                  fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + " ...\n" +
-                                      fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + " ...",
-                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + " ...",
+    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + "\n...\n" +
+                                      fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + "\n...",
+                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "\n...",
                                   tr("(Custom contents)")};
 
     //Open specialized dialog box to choose which file(s) to save
-    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::save, &teams.dataOptions, previews, this);
+    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::save, &teams.dataOptions, teamingOptions->sectionType, previews, this);
     if(window->exec() == QDialog::Accepted) {
         if(window->fileType == WhichFilesDialog::FileType::custom) {
             fileContents[customFile] = createCustomFileContents(window->customFileOptions);
@@ -1003,13 +1003,14 @@ void TeamsTabItem::saveTeams()
 void TeamsTabItem::printTeams()
 {
     QStringList fileContents = createStdFileContents();
-    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "...",
-                                  fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH) + "...",
-                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "...",
+    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + "\n...\n" +
+                                      fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + "\n...",
+                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "\n...",
                                   tr("(Custom contents)")};
 
     //Open specialized dialog box to choose which file(s) to print
-    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::print, &teams.dataOptions, previews, this);
+    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::print, &teams.dataOptions, teamingOptions->sectionType, previews, this);
     if(window->exec() == QDialog::Accepted) {
         if(window->fileType == WhichFilesDialog::FileType::custom) {
             fileContents[customFile] = createCustomFileContents(window->customFileOptions);
@@ -1270,8 +1271,11 @@ QStringList TeamsTabItem::createStdFileContents()
 
     spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
 
-    instructorsFileContents = tr("Source: ") + teams.dataOptions.dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
-    instructorsFileContents += tr("Teaming Options") + ":";
+    instructorsFileContents = tr("Source: ") + teams.dataOptions.dataSourceName;
+    if(teams.dataOptions.sectionIncluded) {
+        instructorsFileContents += "\n" + tr("Section: ") + teamingOptions->sectionName;
+    }
+    instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
     if(teams.dataOptions.genderIncluded) {
         instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
         instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
@@ -1281,7 +1285,7 @@ QStringList TeamsTabItem::createStdFileContents()
     if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
         instructorsFileContents += "\n" + tr("Isolated URM students prevented");
     }
-    if(teamingOptions->scheduleWeight > 0) {
+    if(!teams.dataOptions.dayNames.isEmpty() && teamingOptions->scheduleWeight > 0) {
         instructorsFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) +
                                                                          tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
         instructorsFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
@@ -1299,7 +1303,8 @@ QStringList TeamsTabItem::createStdFileContents()
                                         teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
         for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
             if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
-                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered)) {
+                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered) ||
+                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::timezone)) {
                 questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
             }
             else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
@@ -1361,6 +1366,9 @@ QStringList TeamsTabItem::createStdFileContents()
                     if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
                         instructorsFileContents += (QString::number(*value)).leftJustified(3);
                     }
+                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
+                        instructorsFileContents += (QString::number(student->timezone)).leftJustified(5);
+                    }
                     else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
                         instructorsFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
                                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
@@ -1394,9 +1402,6 @@ QStringList TeamsTabItem::createStdFileContents()
                 else {
                     instructorsFileContents += (QString("?")).leftJustified(3);
                 }
-            }
-            if(teams.dataOptions.timezoneIncluded) {
-                instructorsFileContents += (QString::number(student->timezone)).leftJustified(5);
             }
             if(teams.dataOptions.sectionIncluded && teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
                 instructorsFileContents += student->section;
@@ -1453,7 +1458,11 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
     QString customFileContents = "";
 
     if(customFileOptions.includeFileData) {
-        customFileContents = tr("Source: ") + teams.dataOptions.dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
+        customFileContents = tr("Source: ") + teams.dataOptions.dataSourceName;
+        if(teams.dataOptions.sectionIncluded) {
+            customFileContents += "\n" + tr("Section: ") + teamingOptions->sectionName;
+        }
+        customFileContents += "\n\n";
     }
     if(customFileOptions.includeTeamingData) {
         customFileContents += tr("Teaming Options") + ":";
@@ -1466,7 +1475,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
             customFileContents += "\n" + tr("Isolated URM students prevented");
         }
-        if(teamingOptions->scheduleWeight > 0) {
+        if(!teams.dataOptions.dayNames.isEmpty() && teamingOptions->scheduleWeight > 0) {
             customFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize)
                                        + tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
             customFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
@@ -1484,7 +1493,8 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                                             teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
             for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
                 if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
-                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered)) {
+                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered) ||
+                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::timezone)) {
                     questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
                 }
                 else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
@@ -1550,6 +1560,9 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                         if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
                             customFileContents += (QString::number(*value)).leftJustified(3);
                         }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
+                            customFileContents += (QString::number(student->timezone)).leftJustified(5);
+                        }
                         else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
                             customFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
                                                                     (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
@@ -1584,9 +1597,6 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                         customFileContents += (QString("?")).leftJustified(3);
                     }
                 }
-            }
-            if(teams.dataOptions.timezoneIncluded && customFileOptions.includeTimezone) {
-                customFileContents += (QString::number(student->timezone)).leftJustified(5);
             }
             if(teams.dataOptions.sectionIncluded && customFileOptions.includeSect) {
                 customFileContents += student->section;

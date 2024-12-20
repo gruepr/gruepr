@@ -34,8 +34,8 @@
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="explanation">
      <property name="text">
-      <string>Select a pre-made export file or choose a custom set of information to include.
-Preview a file by hovering over the title.</string>
+      <string>Select a standard export file or choose a custom set of information to include.
+Preview a standard file by hovering over the title.</string>
      </property>
     </widget>
    </item>
@@ -231,13 +231,6 @@ Preview a file by hovering over the title.</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="2">
-             <widget class="QCheckBox" name="timezonecheckBox">
-              <property name="text">
-               <string>Timezone</string>
-              </property>
-             </widget>
-            </item>
             <item row="6" column="1">
              <widget class="QCheckBox" name="Q11checkBox">
               <property name="text">
@@ -270,6 +263,13 @@ Preview a file by hovering over the title.</string>
              <widget class="QLabel" name="multipleChoiceLabel">
               <property name="text">
                <string>Multiple Choice Questions:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="2">
+             <widget class="QCheckBox" name="Q15checkBox">
+              <property name="text">
+               <string>Question 15</string>
               </property>
              </widget>
             </item>

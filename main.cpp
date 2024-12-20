@@ -42,6 +42,7 @@
 //  - made the save teams options more flexible, including a custom option to select which items are to be included
 //  - now automatically downloads each student's section from Canvas and adds to the survey results
 //  - fixed crash when attempting to use a roster file that has invalid entries
+//  - fixed crash when question text in csv includes a quotation mark (by removing quotation marks from the text ins surveyMaker)
 //  - simplified the Canvas login window when there's existing Canvas token info
 //  - now sorts Canvas courses by creation date (newest course first) rather than alphabetically
 //  - many behind-the-scenes code improvements
@@ -59,6 +60,7 @@
 //     - better looking disabled checkbox style
 //
 // INPROG:
+//  - stop sorting of teams on load from json
 //
 // TO DO:
 //    BUGFIX:

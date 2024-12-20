@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "dataOptions.h"
+#include "teamingOptions.h"
 
 namespace Ui {
 class WhichFilesDialog;
@@ -16,7 +17,8 @@ class WhichFilesDialog : public QDialog
 public:
     enum class Action {save, print};
 
-    WhichFilesDialog(const Action saveOrPrint, const DataOptions *const dataOptions, const QStringList &previews, QWidget *parent = nullptr);
+    WhichFilesDialog(const Action saveOrPrint, const DataOptions *const dataOptions, const TeamingOptions::SectionType sectionType,
+                     const QStringList &previews, QWidget *parent = nullptr);
     ~WhichFilesDialog() override;
     WhichFilesDialog(const WhichFilesDialog&) = delete;
     WhichFilesDialog operator= (const WhichFilesDialog&) = delete;
@@ -36,13 +38,11 @@ public:
         bool includeURM = false;
         bool includeSect = false;
         QList<bool> includeMultiChoice;
-        bool includeTimezone = false;
         bool includeSechedule = false;
     } customFileOptions;
 
 private:
     Ui::WhichFilesDialog *ui;
-    QFont previousToolTipFont;
 };
 
 

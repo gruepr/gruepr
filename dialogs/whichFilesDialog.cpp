@@ -2,13 +2,13 @@
 #include "ui_whichFilesDialog.h"
 #include "gruepr_globals.h"
 #include <QPushButton>
-#include <QToolTip>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to choose which item(s) to save or print
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *const dataOptions, const QStringList &previews, QWidget *parent)
+WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *const dataOptions, const TeamingOptions::SectionType sectionType,
+                                   const QStringList &previews, QWidget *parent)
     :QDialog (parent),
     ui(new Ui::WhichFilesDialog)
 {
@@ -20,9 +20,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     setWindowTitle(tr("Choose files to ") + saveOrPrintString);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
-    setStyleSheet(QString(RADIOBUTTONSTYLE) + CHECKBOXSTYLE + LABEL10PTSTYLE + GROUPSTYLE);
-    previousToolTipFont = QToolTip::font();
-    QToolTip::setFont(QFont("Oxygen Mono", previousToolTipFont.pointSize()));
+    setStyleSheet(QString(RADIOBUTTONSTYLE) + CHECKBOXSTYLE + LABEL10PTSTYLE + GROUPSTYLE + MONOTOOLTIPSTYLE);
 
     // enable correct set of custom options checkboxes and connect each to output struct
     connect(ui->fileDatacheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeFileData = checked;});
@@ -43,11 +41,12 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     const bool urm = dataOptions->URMIncluded;
     ui->URMcheckBox->setVisible(urm);
     connect(ui->URMcheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeURM = checked;});
-    const bool sect = dataOptions->sectionIncluded;
+    const bool sect = dataOptions->sectionIncluded && sectionType == TeamingOptions::SectionType::allTogether;
     ui->sectioncheckBox->setVisible(sect);
     connect(ui->sectioncheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSect = checked;});
-    QList<QCheckBox*> multichoiceCheckboxes = {ui->Q1checkBox, ui->Q2checkBox, ui->Q3checkBox, ui->Q4checkBox, ui->Q5checkBox, ui->Q6checkBox, ui->Q7checkBox,
-                                               ui->Q8checkBox, ui->Q9checkBox, ui->Q10checkBox, ui->Q11checkBox, ui->Q12checkBox, ui->Q13checkBox, ui->Q14checkBox};
+    QList<QCheckBox*> multichoiceCheckboxes = {ui->Q1checkBox, ui->Q2checkBox, ui->Q3checkBox, ui->Q4checkBox, ui->Q5checkBox, ui->Q6checkBox,
+                                               ui->Q7checkBox, ui->Q8checkBox, ui->Q9checkBox, ui->Q10checkBox, ui->Q11checkBox, ui->Q12checkBox,
+                                               ui->Q13checkBox, ui->Q14checkBox, ui->Q15checkBox};
     bool anyMultiChoice = false;
     for(int attrib = 0; attrib < multichoiceCheckboxes.size(); attrib++) {
         const bool thisMultiChoice = dataOptions->attributeField[attrib] != DataOptions::FIELDNOTPRESENT;
@@ -56,19 +55,23 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
         customFileOptions.includeMultiChoice << false;
         connect(multichoiceCheckboxes[attrib], &QCheckBox::toggled, this, [this, attrib](bool checked){customFileOptions.includeMultiChoice[attrib] = checked;});
     }
-    const bool timezone = dataOptions->timezoneIncluded;
-    ui->timezonecheckBox->setVisible(timezone);
-    connect(ui->timezonecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeTimezone = checked;});
     const bool sched = !dataOptions->dayNames.isEmpty();
     ui->schedulecheckBox->setVisible(sched);
     connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSechedule = checked;});
 
-    ui->multipleChoiceLabel->setVisible(anyMultiChoice || timezone);
-    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice || timezone);
+    ui->multipleChoiceLabel->setVisible(anyMultiChoice);
+    ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice);
     ui->CustomFileContentsBox->hide();
 
     ui->studentFilePushButton->setStyleSheet(SMALLBUTTONSTYLETRANSPARENTFLAT);
     if((dataOptions->firstNameField == DataOptions::FIELDNOTPRESENT) &&
+        (dataOptions->lastNameField == DataOptions::FIELDNOTPRESENT) &&
+        (dataOptions->emailField == DataOptions::FIELDNOTPRESENT) &&
+        (dataOptions->dayNames.isEmpty())) {
+        ui->studentFilePushButton->hide();
+        ui->studentFileRadioButton->hide();
+    }
+    else if((dataOptions->firstNameField == DataOptions::FIELDNOTPRESENT) &&
         (dataOptions->lastNameField == DataOptions::FIELDNOTPRESENT) &&
         (dataOptions->emailField == DataOptions::FIELDNOTPRESENT)) {
         ui->studentFilePushButton->setText(ui->studentFilePushButton->text().remove(tr("the name and email address of each teammate and ")));
@@ -78,6 +81,9 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     }
     else if(dataOptions->emailField == DataOptions::FIELDNOTPRESENT) {
         ui->studentFilePushButton->setText(ui->studentFilePushButton->text().remove(tr("and email address ")));
+    }
+    if(dataOptions->dayNames.isEmpty()) {
+        ui->studentFilePushButton->setText(ui->studentFilePushButton->text().remove(tr("and the team availability schedule")));
     }
 
     connect(ui->studentFilePushButton, &QPushButton::clicked, ui->studentFileRadioButton, &QRadioButton::animateClick);
@@ -148,6 +154,5 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
 
 WhichFilesDialog::~WhichFilesDialog()
 {
-    QToolTip::setFont(previousToolTipFont);
     delete ui;
 }
