@@ -35,8 +35,9 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - better team display when teaming all sections separately
-//     - now section is the top hierarchical level of tree
+//  - better team display
+//     - now the order of the teams persists when closing / reopening gruepr
+//     - when teaming all sections separately, the section is now the top hierarchical level of tree
 //     - added option to prepend the section name to each team name when
 //        - won't look great with long section names, therefore added an "Edit section names" feature
 //  - made the save teams options more flexible, including a custom option to select which items are to be included

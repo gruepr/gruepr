@@ -210,17 +210,22 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     savePrintLayout->addWidget(postTeamsButton);
 
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
+    if(tabType == TabType::newTab) {
+        teamDataTree->sortByColumn(0, Qt::AscendingOrder);
+        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
+    }
+    else {
+        teamDataTree->sortByColumn(teamDataTree->columnCount() - 1, Qt::AscendingOrder);
+        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/upDownButton_white.png"));
+    }
     refreshTeamDisplay();
+    refreshDisplayOrder();
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
         //expand the sections, then collapse the teams
         teamDataTree->expandAll();
         teamDataTree->collapseAll();
     }
-    if(tabType == TabType::newTab) {
-        teamDataTree->sortByColumn(0, Qt::AscendingOrder);
-        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
-    }
-    refreshDisplayOrder();
+
     connect(teamDataTree, &TeamTreeWidget::swapStudents, this, &TeamsTabItem::swapStudents);
     connect(teamDataTree, &TeamTreeWidget::reorderTeams, this, &TeamsTabItem::moveATeam);
     connect(teamDataTree, &TeamTreeWidget::moveStudent, this, &TeamsTabItem::moveAStudent);
@@ -229,7 +234,6 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
 
 TeamsTabItem::~TeamsTabItem()
 {
-    // delete dynamically allocated objects
     delete teamingOptions;
 }
 

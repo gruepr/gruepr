@@ -313,6 +313,10 @@ void TeamTreeWidget::refreshTeam(TeamTreeWidgetItem *teamItem, const TeamRecord 
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
+    teamItem->setText(column, QString::number(teamNum));
+    teamItem->setTextAlignment(column, Qt::AlignCenter);
+    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(teamNum));
+    teamItem->setData(column, TEAMINFO_SORT_ROLE, teamNum);
 }
 
 
