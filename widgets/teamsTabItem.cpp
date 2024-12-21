@@ -17,7 +17,7 @@
 #include <QTextDocument>
 #include <QTextStream>
 #include <QTimer>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrentRun>
 #include <QVBoxLayout>
 
 const QStringList TeamsTabItem::teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");

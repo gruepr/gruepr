@@ -36,10 +36,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - better team display
-//     - now the order of the teams persists when closing / reopening gruepr
-//     - when teaming all sections separately, the section is now the top hierarchical level of tree
-//     - added option to prepend the section name to each team name when
-//        - won't look great with long section names, therefore added an "Edit section names" feature
+//     - the order of the teams now persists when closing / reopening gruepr
+//     - when teaming all sections separately, the section is now the top hierarchical level of team display
+//     - added option to prepend the section name to each team name
+//        - won't look great with long section names, so added an "Edit section names" feature
 //  - made the save teams options more flexible, including a custom option to select which items are to be included
 //  - now automatically downloads each student's section from Canvas and adds to the survey results
 //  - fixed crash when attempting to use a roster file that has invalid entries
@@ -61,7 +61,6 @@
 //     - better looking disabled checkbox style
 //
 // INPROG:
-//  - stop sorting of teams on load from json
 //
 // TO DO:
 //    BUGFIX:

@@ -17,7 +17,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     const QString saveOrPrintString = (saveDialog? tr("save") : tr("print"));
 
     //Set up window with a grid layout
-    setWindowTitle(tr("Choose files to ") + saveOrPrintString);
+    setWindowTitle(tr("Choose file to ") + saveOrPrintString);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     setStyleSheet(QString(RADIOBUTTONSTYLE) + CHECKBOXSTYLE + LABEL10PTSTYLE + GROUPSTYLE + MONOTOOLTIPSTYLE);

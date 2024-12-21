@@ -13,7 +13,7 @@
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrentRun>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QMessageBox>

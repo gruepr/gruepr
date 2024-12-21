@@ -14,7 +14,7 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="6" column="0" colspan="2">
+   <item row="7" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
@@ -24,10 +24,18 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QRadioButton" name="instructorFileRadioButton">
+   <item row="5" column="1">
+    <widget class="QPushButton" name="customFilePushButton">
      <property name="text">
-      <string/>
+      <string>Custom File</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QPushButton" name="spreadsheetFilePushButton">
+     <property name="text">
+      <string>Spreadsheet File:
+	sections, teams, names, and email addresses in a tabular format</string>
      </property>
     </widget>
    </item>
@@ -39,36 +47,7 @@ Preview a standard file by hovering over the title.</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QRadioButton" name="studentFileRadioButton">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QRadioButton" name="spreadsheetFileRadioButton">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="1">
-    <widget class="QPushButton" name="spreadsheetFilePushButton">
-     <property name="text">
-      <string>Spreadsheet File:
-	sections, teams, names, and email addresses in a tabular format</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QPushButton" name="customFilePushButton">
-     <property name="text">
-      <string>Custom File</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
     <widget class="QPushButton" name="instructorFilePushButton">
      <property name="text">
       <string>Instructor's File:
@@ -76,22 +55,28 @@ Preview a standard file by hovering over the title.</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QPushButton" name="studentFilePushButton">
-     <property name="text">
-      <string>Student's File:
-	only the name and email address of each teammate and the team availability schedule</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <widget class="QRadioButton" name="customFileRadioButton">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="3" column="0">
+    <widget class="QRadioButton" name="instructorFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QRadioButton" name="spreadsheetFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
     <widget class="QFrame" name="CustomFileContentsBox">
      <property name="frameShape">
       <enum>QFrame::Shape::NoFrame</enum>
@@ -301,6 +286,31 @@ Preview a standard file by hovering over the title.</string>
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="studentFilePushButton">
+     <property name="text">
+      <string>Student's File:
+	only the name and email address of each teammate and the team availability schedule</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QRadioButton" name="studentFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QFrame" name="explanationSepLine">
+     <property name="frameShape">
+      <enum>QFrame::Shape::HLine</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
     </widget>
    </item>
   </layout>
