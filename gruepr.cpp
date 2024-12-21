@@ -1997,7 +1997,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     int **ancestors = new int*[ga.populationsize];
     int **nextGenAncestors = new int*[ga.populationsize];
     int numAncestors = 2;           //always track mom & dad
-    for(int generation = 0; generation < ga.NUMGENERATIONSOFANCESTORS; generation++) {
+    for(int generation = 0; generation < ga.numgenerationsofancestors; generation++) {
         numAncestors += (4<<generation);   //add an additional 2^(n+1) ancestors for the next level of (great)grandparents
     }
     for(int genome = 0; genome < ga.populationsize; genome++) {
@@ -2130,7 +2130,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 const auto &thisGenAncestor = ancestors[orderedIndex[genome]];
                 nextGenAncestor[0] = nextGenAncestor[1] = orderedIndex[genome];   // both parents are this genome
                 int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
-                for(int generation = 1; generation < GA::NUMGENERATIONSOFANCESTORS; generation++) {
+                for(int generation = 1; generation < ga.numgenerationsofancestors; generation++) {
                     //all four grandparents are this genome's parents, etc. for increasing generations
                     for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
                         nextGenAncestor[ancestor] = thisGenAncestor[ancestor-startAncestor+prevStartAncestor];
@@ -2160,7 +2160,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             // mutate all but the single top-scoring elite genome with some probability; if mutation occurs, mutate same genome again with same probability
             std::uniform_int_distribution<unsigned int> randProbability(1, 100);
             for(int genome = 1; genome < ga.populationsize; genome++) {
-                while(randProbability(pRNG) < GA::MUTATIONLIKELIHOOD) {
+                while(randProbability(pRNG) < ga.mutationlikelihood) {
                     ga.mutate(&nextGenGenePool[genome][0], numActiveStudents, pRNG);
                 }
             }

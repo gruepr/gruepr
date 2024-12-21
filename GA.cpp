@@ -8,6 +8,8 @@ void GA::setGAParameters(int numRecords)
         if(numRecords < val) {
             populationsize = POPULATIONSIZE[threshold];
             topgenomelikelihood = TOPGENOMELIKELIHOOD[threshold];
+            numgenerationsofancestors = NUMGENERATIONSOFANCESTORS[threshold];
+            mutationlikelihood = MUTATIONLIKELIHOOD[threshold];
             break;
         }
         threshold++;
@@ -23,57 +25,63 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
     std::uniform_int_distribution<unsigned int> randProbability(1, 100);
     std::uniform_int_distribution<unsigned int> randGenome(0, populationsize-1);
 
-    //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
-    //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
-    unsigned int tourneyPick[TOURNAMENTSIZE];
-    for(auto &player : tourneyPick) {
-        player = randGenome(pRNG);
-    }
-    std::sort(tourneyPick, tourneyPick+TOURNAMENTSIZE);
-
-    //pick first genome from tournament, most likely from the beginning so that best genomes are more likely have offspring
-    //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring, etc.)
-    int momsindex = 0;
-    //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
-    while(randProbability(pRNG) > topgenomelikelihood) {
-        momsindex++;
-    }
-
-    //pick second genome from tournament in same way, but make sure to not pick the same genome
-    int dadsindex = 0;
-    while((randProbability(pRNG) > topgenomelikelihood) || (dadsindex == momsindex)) {
-        dadsindex++;
-    }
-
-    //convert momsindex from ordinal value within tournament to index within the genepool
-    //using play%tournamentSize to wrap around from end of tournament back to the beginning, just in case
-    momsindex = orderedIndex[tourneyPick[momsindex%TOURNAMENTSIZE]];
-
-    //now make sure partners do not have any common ancestors going back numGenerationsOfAncestors generations
-    bool potentialMatesAreRelated;
+    int momsindex = 0, dadsindex = 0;
+    bool failedTournament;  // tournament fails when can't find unrelated mom and dad
     do {
+        failedTournament = false;
+        //get tournamentSize random values in the range 0 -> populationSize-1 and then sort them
+        //these represent ordinal genome within the genepool (i.e., 0 = top scoring genome in genepool, 1 = 2nd highest scoring genome in genepool)
+        unsigned int tourneyPick[TOURNAMENTSIZE];
+        for(auto &player : tourneyPick) {
+            player = randGenome(pRNG);
+        }
+        std::sort(tourneyPick, tourneyPick+TOURNAMENTSIZE);
+
+        //pick first genome from tournament, most likely from the beginning so that best genomes are more likely have offspring
+        //for now, index represent which ordinal genome from the tournament is selected (i.e., 0 = top scoring genome in tournament, 1 = 2nd highest scoring, etc.)
+        //choosing 1st (i.e., best) genome with some likelihood, if not then choose 2nd, and so on
+        while(randProbability(pRNG) > topgenomelikelihood) {
+            momsindex++;
+        }
+
+        //pick second genome from tournament in same way, but make sure to not pick the same genome
+        while((randProbability(pRNG) > topgenomelikelihood) || (dadsindex == momsindex)) {
+            dadsindex++;
+        }
+
+        //convert momsindex from ordinal value within tournament to index within the genepool
+        //using '%tournamentSize' to wrap around from end of tournament back to the beginning, just in case
+        momsindex = orderedIndex[tourneyPick[momsindex % TOURNAMENTSIZE]];
         const auto &momsancestors = ancestors[momsindex];
-        const auto &dadsancestors = ancestors[orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]]];
-        potentialMatesAreRelated = false;
-        int startAncestor = 0, endAncestor = 2;
-        for(int generation = 0; generation < NUMGENERATIONSOFANCESTORS; generation++) {
-            for(int momsAncestorIndex = startAncestor; momsAncestorIndex < endAncestor && !potentialMatesAreRelated; momsAncestorIndex++) {
-                const auto &momsAncestor = momsancestors[momsAncestorIndex];
-                for(int dadsAncestorIndex = startAncestor; dadsAncestorIndex < endAncestor && !potentialMatesAreRelated; dadsAncestorIndex++) {
-                    if(momsAncestor == dadsancestors[dadsAncestorIndex]) {
-                        potentialMatesAreRelated = true;
+
+        //now make sure partners do not have any common ancestors going back numgenerationsofancestors generations
+        bool potentialMatesAreRelated;
+        do {
+            const auto &dadsancestors = ancestors[orderedIndex[tourneyPick[dadsindex % TOURNAMENTSIZE]]];
+            potentialMatesAreRelated = false;
+            int startAncestor = 0, endAncestor = 2;
+            for(int generation = 0; generation < numgenerationsofancestors && !potentialMatesAreRelated; generation++) {
+                for(int momsAncestorIndex = startAncestor; momsAncestorIndex < endAncestor && !potentialMatesAreRelated; momsAncestorIndex++) {
+                    const auto &momsAncestor = momsancestors[momsAncestorIndex];
+                    for(int dadsAncestorIndex = startAncestor; dadsAncestorIndex < endAncestor && !potentialMatesAreRelated; dadsAncestorIndex++) {
+                        if(momsAncestor == dadsancestors[dadsAncestorIndex]) {
+                            potentialMatesAreRelated = true;
+                            dadsindex++;
+                            if(dadsindex >= TOURNAMENTSIZE) {
+                                failedTournament = true;
+                            }
+                        }
                     }
                 }
+                startAncestor = endAncestor;
+                endAncestor += (4<<generation);     //add 2^(n+1)
             }
-            startAncestor = endAncestor;
-            endAncestor += (4<<generation);     //add 2^(n+1)
-        }
-        dadsindex++;
-    } while(potentialMatesAreRelated);
-    dadsindex--;    //need to subtract off that last increment
+        } while(potentialMatesAreRelated && !failedTournament);
 
-    //as done for momsindex before, convert dadsindex from ordinal value within tournament to index within the genepool
-    dadsindex = orderedIndex[tourneyPick[dadsindex%TOURNAMENTSIZE]];
+        //as done for momsindex before, convert dadsindex from ordinal value within tournament to index within the genepool
+        dadsindex = orderedIndex[tourneyPick[dadsindex % TOURNAMENTSIZE]];
+    } while(failedTournament);
+
 
     //return the selected genomes into mom and dad
     mom = genePool[momsindex];
@@ -85,7 +93,7 @@ void GA::tournamentSelectParents(const int *const *const genePool, const int *co
     auto &momsAncestors = ancestors[momsindex];
     auto &dadsAncestors = ancestors[dadsindex];
     int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 and 1, so grandparents are 2, 3, 4, 5
-    for(int generation = 1; generation < NUMGENERATIONSOFANCESTORS; generation++) {
+    for(int generation = 1; generation < numgenerationsofancestors; generation++) {
         //for each generation, put mom's ancestors then dad's ancestors into the parentage array one generation up
         for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
             parentage[ancestor] = momsAncestors[ancestor-startAncestor+prevStartAncestor];
