@@ -31,13 +31,13 @@ public:
 
 private:
     static constexpr int POPULATIONSIZE[] = {60000, 45000, 20000, 10000};// the number of genomes in each generation--larger size is slower, but each generation is more likely to have optimal result.
-    static constexpr int TOPGENOMELIKELIHOOD[] = {25, 33, 66, 80};       // percent likelihood of selecting the best genome in the tournament as parent; if top is not selected, move to next best genome with same probability, and so on
+    static constexpr int TOPGENOMELIKELIHOOD[] = {25, 33, 66, 100};      // percent likelihood of selecting the best genome in the tournament as parent; if top is not selected, move to next best genome with same probability, and so on
     static constexpr int NUMGENERATIONSOFANCESTORS[] = {3, 3, 3, 2};     // how many generations of ancestors to look back when preventing the selection of related mates:
                                                                          //      1 = prevent if either parent is same (no siblings mating);
                                                                          //      2 = prevent if any parent or grandparent is same (no siblings or 1st cousins);
                                                                          //      3 = prevent if any parent, grandparent, or greatgrandparent is same (no siblings, 1st or 2nd cousins); etc.
     static constexpr int MUTATIONLIKELIHOOD[] = {25, 50, 50, 75};        // percent likelihood of a mutation (when mutation occurs, another chance at mutation is given with same likelihood (iteratively))
-    static constexpr int GENOMESIZETHRESHOLD[] = {30, 75, 200};          // threshold values of genome size that decide which POPULATIONSIZE and TOPGENOMELIKELIHOOD values to use -- if genome is <= threshold 1, use more diversity; if <= threshold 2, use medium diversity
+    static constexpr int GENOMESIZETHRESHOLD[] = {30, 75, 200};          // threshold values of genome size that decide which working values of the constants to use -- if genome is <= threshold 1, use more diversity; if <= threshold 2, use medium diversity
                                                                          // when the genome size gets larger, the genomes are less similar and thus selecting non-top genomes is less advantageous to maintaining genomic diversity
 };
 

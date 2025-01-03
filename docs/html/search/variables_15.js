@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['ui_0',['ui',['../class_attribute_rules_dialog.html#a2951077b9ecb0e678c922f660a8e3bff',1,'AttributeRulesDialog::ui'],['../class_get_gruepr_data_dialog.html#aaaa865e1c0a86c6bb914c1614ddd3992',1,'GetGrueprDataDialog::ui'],['../class_sample_questions_dialog.html#aeff74597c636bd3851a2160dba352ccc',1,'SampleQuestionsDialog::ui'],['../class_teammates_rules_dialog.html#a2fb9f97b3131a88656fd6e6a0368f70d',1,'TeammatesRulesDialog::ui'],['../classgruepr.html#a2c0d984df63ed58b975ebaf8fa3e72bc',1,'gruepr::ui']]],
+  ['ui_0',['ui',['../class_attribute_rules_dialog.html#a2951077b9ecb0e678c922f660a8e3bff',1,'AttributeRulesDialog::ui'],['../class_get_gruepr_data_dialog.html#aaaa865e1c0a86c6bb914c1614ddd3992',1,'GetGrueprDataDialog::ui'],['../class_sample_questions_dialog.html#aeff74597c636bd3851a2160dba352ccc',1,'SampleQuestionsDialog::ui'],['../class_teammates_rules_dialog.html#a2fb9f97b3131a88656fd6e6a0368f70d',1,'TeammatesRulesDialog::ui'],['../class_which_files_dialog.html#ae1900144611550b50002296c04db3b84',1,'WhichFilesDialog::ui'],['../classgruepr.html#a2c0d984df63ed58b975ebaf8fa3e72bc',1,'gruepr::ui']]],
   ['ui_5fdisplay_5fdelaytime_1',['UI_DISPLAY_DELAYTIME',['../gruepr__globals_8h.html#a7f806493326fd19ebb4eebf9414ea603',1,'gruepr_globals.h']]],
   ['unavailable_2',['unavailable',['../class_student_record.html#a59765691e2f09d72d435f059eaa4ff56',1,'StudentRecord']]],
   ['undobutton_3',['undoButton',['../class_teams_tab_item.html#a9fe7969892c6c5f8b39c7cb215aacdba',1,'TeamsTabItem']]],

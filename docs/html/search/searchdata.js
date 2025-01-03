@@ -10,7 +10,7 @@ var indexSectionsWithContent =
   7: "abcdefgilmnoprstuwy",
   8: "bdmnqrsv",
   9: "l",
-  10: "abdost",
+  10: "abdgost",
   11: "r"
 };
 

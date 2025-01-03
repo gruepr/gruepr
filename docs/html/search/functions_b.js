@@ -14,7 +14,7 @@ var searchData=
   ['mousewheelblocker_11',['MouseWheelBlocker',['../class_mouse_wheel_blocker.html#a3ae71ccfa751661d46262a63208b86ff',1,'MouseWheelBlocker']]],
   ['moveastudent_12',['moveAStudent',['../class_teams_tab_item.html#a889a6ac297ab3a68b25d0eeb7be627ae',1,'TeamsTabItem']]],
   ['moveateam_13',['moveATeam',['../class_teams_tab_item.html#ac172aea08b46ab3b1cf0b04297e0b15d',1,'TeamsTabItem']]],
-  ['movechild_14',['moveChild',['../class_team_tree_widget.html#a180b4b945c7939e0144a107aa7411cc3',1,'TeamTreeWidget']]],
+  ['movestudent_14',['moveStudent',['../class_team_tree_widget.html#a0d2a8bbf1671fc0fe81d30aec26f0973',1,'TeamTreeWidget']]],
   ['movewidget_15',['moveWidget',['../class_survey_maker_question_with_switch.html#af3b29615f139e33b171f3d5a8585c2f0',1,'SurveyMakerQuestionWithSwitch']]],
   ['multichange_16',['multiChange',['../class_survey_maker_multichoice_question.html#a1d3e74c6627f49c51e411f0e503b28e0',1,'SurveyMakerMultichoiceQuestion']]],
   ['multichanged_17',['multiChanged',['../class_survey_maker_multichoice_question.html#a0f6613ebe4321c93d7c6a28b9e7f3bc5',1,'SurveyMakerMultichoiceQuestion']]],

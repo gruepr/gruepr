@@ -7,7 +7,7 @@ var searchData=
   ['posttocanvasgetsingleresult_4',['postToCanvasGetSingleResult',['../class_canvas_handler.html#a6514d3995619fff04fbe579aa55015b4',1,'CanvasHandler']]],
   ['posttogooglegetsingleresult_5',['postToGoogleGetSingleResult',['../class_google_handler.html#a0174b68ee635b041b138cb85c349385b',1,'GoogleHandler']]],
   ['previewandexportpage_6',['PreviewAndExportPage',['../class_preview_and_export_page.html#a00f4ca75320a6f272bddc8fe4d1e0a92',1,'PreviewAndExportPage']]],
-  ['printfiles_7',['printFiles',['../class_teams_tab_item.html#a4bb5a86c528e27a9d68a313ab233469a',1,'TeamsTabItem']]],
+  ['printfiles_7',['printFiles',['../class_teams_tab_item.html#a4b2c9dab9eda4ce31ac0a7c5dbd3236e',1,'TeamsTabItem']]],
   ['printonefile_8',['printOneFile',['../class_teams_tab_item.html#a2f835b1cc2c4d0dc576eb63834bcda83',1,'TeamsTabItem']]],
   ['printteams_9',['printTeams',['../class_teams_tab_item.html#a06170c3dce9e8d747ae12d964d1523d8',1,'TeamsTabItem']]],
   ['progressdialog_10',['progressDialog',['../classprogress_dialog.html#af19d4b26500137309b1a038ece094156',1,'progressDialog::progressDialog(const QString &amp;currSection=&quot;&quot;, QChartView *chart=nullptr, QWidget *parent=nullptr)'],['../classprogress_dialog.html#afc855568216444f287f5ddf42cca226a',1,'progressDialog::progressDialog(const progressDialog &amp;)=delete'],['../classprogress_dialog.html#a6f756795f68daa899090a1039ae83e84',1,'progressDialog::progressDialog(progressDialog &amp;&amp;)=delete']]],

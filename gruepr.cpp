@@ -1926,7 +1926,7 @@ void gruepr::refreshStudentDisplay()
             editButton->setProperty("StudentID", student.ID);
             editButton->setProperty("duplicate", duplicate);
             if(duplicate) {
-                editButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
+                editButton->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
             }
             connect(editButton, &PushButtonWithMouseEnter::clicked, this, &gruepr::editAStudent);
             // pass on mouse enter events onto cell in table
@@ -1948,7 +1948,7 @@ void gruepr::refreshStudentDisplay()
             removerButton->setProperty("StudentID", student.ID);
             removerButton->setProperty("duplicate", duplicate);
             if(duplicate) {
-                removerButton->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
+                removerButton->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
             }
             connect(removerButton, &PushButtonWithMouseEnter::clicked, this, [this, ID = student.ID, removerButton]{removerButton->disconnect(); removeAStudent(ID);});
             // pass on mouse enter events onto cell in table

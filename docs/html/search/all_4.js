@@ -67,12 +67,15 @@ var searchData=
   ['downloadquizresult_64',['downloadQuizResult',['../class_canvas_handler.html#a2fd6b4bec61cd71226bbc4323b625708',1,'CanvasHandler']]],
   ['downloadsurveyresult_65',['downloadSurveyResult',['../class_google_handler.html#a4b73089b734701559c6572ffa6996279',1,'GoogleHandler']]],
   ['dragdropeventlabel_66',['dragDropEventLabel',['../class_team_tree_widget.html#aa62c73774122d419e766918b084e91a7',1,'TeamTreeWidget']]],
-  ['dragenterevent_67',['dragEnterEvent',['../class_team_tree_widget.html#ac35a806939533d6f01f9f7e91f0f78b1',1,'TeamTreeWidget']]],
-  ['draggeditem_68',['draggedItem',['../class_team_tree_widget.html#a11c8ed16bedc113d93361af254f600f3',1,'TeamTreeWidget']]],
-  ['dragleaveevent_69',['dragLeaveEvent',['../class_team_tree_widget.html#a03d8fe91e8fda6895d9b3aa63c4ac724',1,'TeamTreeWidget']]],
-  ['dragmoveevent_70',['dragMoveEvent',['../class_team_tree_widget.html#ab06985b28b940b89f9e645e4db37a786',1,'TeamTreeWidget']]],
-  ['dropdown_71',['dropdown',['../struct_question.html#a3274af002140ecd58fc8611944b732adaad973c252653a47144b79403cfb0668b',1,'Question']]],
-  ['dropevent_72',['dropEvent',['../class_team_tree_widget.html#a06dc1a312e712aa7c7fe3e2ec1ba9ff2',1,'TeamTreeWidget']]],
-  ['droppeditem_73',['droppedItem',['../class_team_tree_widget.html#ae66b08a787fa280940ad763f6bb79209',1,'TeamTreeWidget']]],
-  ['duplicaterecord_74',['duplicateRecord',['../class_student_record.html#ab104050dd128a4470372daa4170557d7',1,'StudentRecord']]]
+  ['dragdroplabelgoodstyle_67',['DRAGDROPLABELGOODSTYLE',['../gruepr__globals_8h.html#a0762e4cd19a5eaa824c69e1a555925ff',1,'gruepr_globals.h']]],
+  ['dragdroplabelstopstyle_68',['DRAGDROPLABELSTOPSTYLE',['../gruepr__globals_8h.html#a7c6ae4797438c2528fb82cd1ae06ae65',1,'gruepr_globals.h']]],
+  ['dragdroplabelwarnstyle_69',['DRAGDROPLABELWARNSTYLE',['../gruepr__globals_8h.html#a29a9f4d3a393bc9292d73142549d401a',1,'gruepr_globals.h']]],
+  ['dragenterevent_70',['dragEnterEvent',['../class_team_tree_widget.html#ac35a806939533d6f01f9f7e91f0f78b1',1,'TeamTreeWidget']]],
+  ['draggeditem_71',['draggedItem',['../class_team_tree_widget.html#a9c800753dd2222d771f2a5c64f386529',1,'TeamTreeWidget']]],
+  ['dragleaveevent_72',['dragLeaveEvent',['../class_team_tree_widget.html#a03d8fe91e8fda6895d9b3aa63c4ac724',1,'TeamTreeWidget']]],
+  ['dragmoveevent_73',['dragMoveEvent',['../class_team_tree_widget.html#ab06985b28b940b89f9e645e4db37a786',1,'TeamTreeWidget']]],
+  ['dropdown_74',['dropdown',['../struct_question.html#a3274af002140ecd58fc8611944b732adaad973c252653a47144b79403cfb0668b',1,'Question']]],
+  ['dropevent_75',['dropEvent',['../class_team_tree_widget.html#a06dc1a312e712aa7c7fe3e2ec1ba9ff2',1,'TeamTreeWidget']]],
+  ['droppeditem_76',['droppedItem',['../class_team_tree_widget.html#ae62f48cdd475b10f4fa68e1840b468e0',1,'TeamTreeWidget']]],
+  ['duplicaterecord_77',['duplicateRecord',['../class_student_record.html#ab104050dd128a4470372daa4170557d7',1,'StudentRecord']]]
 ];

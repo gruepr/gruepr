@@ -24,5 +24,5 @@ var searchData=
   ['_7eteammatesrulesdialog_21',['~TeammatesRulesDialog',['../class_teammates_rules_dialog.html#a267cc00ea28959d5801ba6860967339a',1,'TeammatesRulesDialog']]],
   ['_7eteamstabitem_22',['~TeamsTabItem',['../class_teams_tab_item.html#afb7afc025864e20c5ac3dc14c2137171',1,'TeamsTabItem']]],
   ['_7eteamtreewidgetitem_23',['~TeamTreeWidgetItem',['../class_team_tree_widget_item.html#a0e0d6fd94646ae10690fa0011bfca442',1,'TeamTreeWidgetItem']]],
-  ['_7ewhichfilesdialog_24',['~whichFilesDialog',['../classwhich_files_dialog.html#ae1cdfb6bd2876a3ef36da8a73fabc321',1,'whichFilesDialog']]]
+  ['_7ewhichfilesdialog_24',['~WhichFilesDialog',['../class_which_files_dialog.html#a57073f317fdb861f0bbfba5aed9cb473',1,'WhichFilesDialog']]]
 ];

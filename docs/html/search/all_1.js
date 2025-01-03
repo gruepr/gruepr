@@ -6,7 +6,7 @@ var searchData=
   ['accesstokenurl_3',['ACCESSTOKENURL',['../class_google_handler.html#ad959d7b69d9db65f3e6b3af1356676be',1,'GoogleHandler']]],
   ['accesstokenurl_4',['accessTokenURL',['../class_canvas_handler.html#a7b1a7973d8528090a5bd495c826a1847',1,'CanvasHandler']]],
   ['accountname_5',['accountName',['../class_google_handler.html#a1545c183a49b9038d6cab2f5c2c6f37b',1,'GoogleHandler']]],
-  ['action_6',['Action',['../classwhich_files_dialog.html#ae0fd111712ba6d858e7f629e41d01467',1,'whichFilesDialog']]],
+  ['action_6',['Action',['../class_which_files_dialog.html#acf664f21bf3a98a7e5b95a9f883a02db',1,'WhichFilesDialog']]],
   ['action_7',['action',['../struct_teams_tab_item_1_1_undo_redo_item.html#a7f0f82b09507cfa4636db4129bb983ce',1,'TeamsTabItem::UndoRedoItem']]],
   ['actioncomplete_8',['actionComplete',['../class_l_m_s.html#ae671db8a602bc20f97c3acaf5444c205',1,'LMS']]],
   ['actiondialog_9',['actionDialog',['../class_l_m_s.html#abd62f858d16315da2b4b3dd9c85922ad',1,'LMS']]],

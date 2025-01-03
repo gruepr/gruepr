@@ -1,7 +1,7 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019 - 2024
+// Copyright (C) 2019 - 2025
 // Joshua Hertz
 // info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,30 +35,6 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - better team display
-//     - the order of the teams now persists when closing / reopening gruepr
-//     - when teaming all sections separately, the section is now the top hierarchical level of team display
-//     - added option to prepend the section name to each team name
-//        - won't look great with long section names, so added an "Edit section names" feature
-//  - made the save teams options more flexible, including a custom option to select which items are to be included
-//  - now automatically downloads each student's section from Canvas and adds to the survey results
-//  - fixed crash when attempting to use a roster file that has invalid entries
-//  - fixed crash when question text in csv includes a quotation mark (by removing quotation marks from the text ins surveyMaker)
-//  - simplified the Canvas login window when there's existing Canvas token info
-//  - now sorts Canvas courses by creation date (newest course first) rather than alphabetically
-//  - many behind-the-scenes code improvements
-//     - significant speed up in the optimization algorithm that creates teams
-//        - increased max. number of students to 1000
-//        - tweaked genetic algortihm constants since it is faster
-//     - significant speed up when loading student data
-//        - nevertheless, made the "Loading Data" window blocking and added a cancel button
-//     - much smarter use of internal student ID values instead of the index within the students array:
-//        - edit buttons no longer get confused when a single section is selected
-//        - "deleting" a student no longer removes them from the database, just marks them as deleted and hides them from being displayed
-//        - removed studentIndexes from teamRecord
-//        - use QList, not array, for IDs of req/prev/reques teammates
-//        - IDs are now long long instead of int
-//     - better looking disabled checkbox style
 //
 // INPROG:
 //

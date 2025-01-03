@@ -93,8 +93,8 @@ void StudentTableWidget::cellLeft(const int row)
     selectionModel()->clearSelection();
     const int numCols = columnCount();
     if(cellWidget(row, numCols-1)->property("duplicate").toBool()) {
-        cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
-        cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
+        cellWidget(row, numCols-1)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
+        cellWidget(row, numCols-2)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
     }
     else {
         cellWidget(row, numCols-1)->setStyleSheet("");
@@ -126,8 +126,8 @@ void StudentTableWidget::cellEntered(const int row)
         }
         if(prevRow < numRows) {
             if(cellWidget(prevRow, numCols-1)->property("duplicate").toBool()) {
-                cellWidget(prevRow, numCols-1)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
-                cellWidget(prevRow, numCols-2)->setStyleSheet("QPushButton {background-color: " STARFISHHEX "; border: none;}");
+                cellWidget(prevRow, numCols-1)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
+                cellWidget(prevRow, numCols-2)->setStyleSheet(EDITREMOVEBUTTONDUPLICATESTYLE);
             }
             else {
                 cellWidget(prevRow, numCols-1)->setStyleSheet("");
@@ -136,6 +136,6 @@ void StudentTableWidget::cellEntered(const int row)
         }
     }
     prevID = cellWidget(row, numCols-1)->property("StudentID").toInt();
-    cellWidget(row, numCols-1)->setStyleSheet("QPushButton {background-color: " BUBBLYHEX "; border: none;}");
-    cellWidget(row, numCols-2)->setStyleSheet("QPushButton {background-color: " BUBBLYHEX "; border: none;}");
+    cellWidget(row, numCols-1)->setStyleSheet(EDITREMOVEBUTTONSELECTEDSTYLE);
+    cellWidget(row, numCols-2)->setStyleSheet(EDITREMOVEBUTTONSELECTEDSTYLE);
 }

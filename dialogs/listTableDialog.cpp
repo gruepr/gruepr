@@ -13,7 +13,7 @@ listTableDialog::listTableDialog(const QString &title, bool hideColHeaders, bool
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint );
     setSizeGripEnabled(true);
     setWindowTitle(title);
-    setStyleSheet("QDialog{background-color: white;}");
+    setStyleSheet(WHITEDIALOGSTYLE);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
 
     theGrid = new QGridLayout(this);

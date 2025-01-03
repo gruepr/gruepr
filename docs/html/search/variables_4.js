@@ -42,7 +42,10 @@ var searchData=
   ['displaytime_39',['DISPLAYTIME',['../class_label_with_instant_tooltip.html#a1a6d03489a2c8d2fcc245738071ca856',1,'LabelWithInstantTooltip']]],
   ['doublespinboxstyle_40',['DOUBLESPINBOXSTYLE',['../gruepr__globals_8h.html#ac99110d26f4b2107d92a5f1e83ab2d5d',1,'gruepr_globals.h']]],
   ['dragdropeventlabel_41',['dragDropEventLabel',['../class_team_tree_widget.html#aa62c73774122d419e766918b084e91a7',1,'TeamTreeWidget']]],
-  ['draggeditem_42',['draggedItem',['../class_team_tree_widget.html#a11c8ed16bedc113d93361af254f600f3',1,'TeamTreeWidget']]],
-  ['droppeditem_43',['droppedItem',['../class_team_tree_widget.html#ae66b08a787fa280940ad763f6bb79209',1,'TeamTreeWidget']]],
-  ['duplicaterecord_44',['duplicateRecord',['../class_student_record.html#ab104050dd128a4470372daa4170557d7',1,'StudentRecord']]]
+  ['dragdroplabelgoodstyle_42',['DRAGDROPLABELGOODSTYLE',['../gruepr__globals_8h.html#a0762e4cd19a5eaa824c69e1a555925ff',1,'gruepr_globals.h']]],
+  ['dragdroplabelstopstyle_43',['DRAGDROPLABELSTOPSTYLE',['../gruepr__globals_8h.html#a7c6ae4797438c2528fb82cd1ae06ae65',1,'gruepr_globals.h']]],
+  ['dragdroplabelwarnstyle_44',['DRAGDROPLABELWARNSTYLE',['../gruepr__globals_8h.html#a29a9f4d3a393bc9292d73142549d401a',1,'gruepr_globals.h']]],
+  ['draggeditem_45',['draggedItem',['../class_team_tree_widget.html#a9c800753dd2222d771f2a5c64f386529',1,'TeamTreeWidget']]],
+  ['droppeditem_46',['droppedItem',['../class_team_tree_widget.html#ae62f48cdd475b10f4fa68e1840b468e0',1,'TeamTreeWidget']]],
+  ['duplicaterecord_47',['duplicateRecord',['../class_student_record.html#ab104050dd128a4470372daa4170557d7',1,'StudentRecord']]]
 ];

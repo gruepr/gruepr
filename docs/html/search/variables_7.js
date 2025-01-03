@@ -14,5 +14,6 @@ var searchData=
   ['getstartedbutton_11',['getStartedButton',['../class_intro_page.html#ac2e9ee1c4281467b9358c7b8e86d7653',1,'IntroPage']]],
   ['getstartedbuttonstyle_12',['GETSTARTEDBUTTONSTYLE',['../gruepr__globals_8h.html#acc1312ce7e3f5a9f4470833465a243b8',1,'gruepr_globals.h']]],
   ['graphshown_13',['graphShown',['../classprogress_dialog.html#a20c6421b1231fb8c204cc5b39cde7e1d',1,'progressDialog']]],
-  ['grueprdownloadpage_14',['GRUEPRDOWNLOADPAGE',['../gruepr__globals_8h.html#af3da8694f10b2a7ef72dfdace90cd80f',1,'gruepr_globals.h']]]
+  ['groupstyle_14',['GROUPSTYLE',['../gruepr__globals_8h.html#a2ee734e9b786e254d6939937172a2333',1,'gruepr_globals.h']]],
+  ['grueprdownloadpage_15',['GRUEPRDOWNLOADPAGE',['../gruepr__globals_8h.html#af3da8694f10b2a7ef72dfdace90cd80f',1,'gruepr_globals.h']]]
 ];

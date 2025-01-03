@@ -27,14 +27,13 @@ var searchData=
   ['eventfilter_24',['eventFilter',['../class_mouse_wheel_blocker.html#a9e55a0f3b30a35b3f652ca85eb4f8d85',1,'MouseWheelBlocker']]],
   ['examplebuttonstyle_25',['EXAMPLEBUTTONSTYLE',['../gruepr__globals_8h.html#a5ae72779916129a07b99c378cf3adf91',1,'gruepr_globals.h']]],
   ['expandall_26',['expandAll',['../class_team_tree_widget.html#ae6b06c17c5e34137deab3bb08450ce52',1,'TeamTreeWidget']]],
-  ['expanditem_27',['expandItem',['../class_team_tree_widget.html#a5a796ba8d36873b7f6a6aacc6fa72318',1,'TeamTreeWidget']]],
-  ['explanationtext_28',['explanationText',['../classprogress_dialog.html#a18b739236c404535430fb9a3ffd25c5b',1,'progressDialog']]],
-  ['exportsurvey_29',['exportSurvey',['../class_preview_and_export_page.html#a6b30f056c506418922deb479b088ca9e',1,'PreviewAndExportPage']]],
-  ['exportsurveydestinationcanvas_30',['exportSurveyDestinationCanvas',['../class_preview_and_export_page.html#aee4584dc5c9463a077ad4e6e35326419',1,'PreviewAndExportPage']]],
-  ['exportsurveydestinationgoogle_31',['exportSurveyDestinationGoogle',['../class_preview_and_export_page.html#a2c9d9c3cdc7b548ae368471b5f5c36cf',1,'PreviewAndExportPage']]],
-  ['exportsurveydestinationgrueprfile_32',['exportSurveyDestinationGrueprFile',['../class_preview_and_export_page.html#a2b19984bea7681250d533adda52a6162',1,'PreviewAndExportPage']]],
-  ['exportsurveydestinationtextfile_33',['exportSurveyDestinationTextFile',['../class_preview_and_export_page.html#a688efac5e91e5618457ac952c45e55e6',1,'PreviewAndExportPage']]],
-  ['externaldoitbutton_34',['externalDoItButton',['../class_teams_tab_item.html#a6898675e455fd5e85b515c871cf8c5c1',1,'TeamsTabItem']]],
-  ['externalstudents_35',['externalStudents',['../class_teams_tab_item.html#afe704db85240ff7851803c03d5888ab6',1,'TeamsTabItem']]],
-  ['externalteamingoptions_36',['externalTeamingOptions',['../class_teams_tab_item.html#a21365b31a1accfb9e021f1fcd0431b8b',1,'TeamsTabItem']]]
+  ['explanationtext_27',['explanationText',['../classprogress_dialog.html#a18b739236c404535430fb9a3ffd25c5b',1,'progressDialog']]],
+  ['exportsurvey_28',['exportSurvey',['../class_preview_and_export_page.html#a6b30f056c506418922deb479b088ca9e',1,'PreviewAndExportPage']]],
+  ['exportsurveydestinationcanvas_29',['exportSurveyDestinationCanvas',['../class_preview_and_export_page.html#aee4584dc5c9463a077ad4e6e35326419',1,'PreviewAndExportPage']]],
+  ['exportsurveydestinationgoogle_30',['exportSurveyDestinationGoogle',['../class_preview_and_export_page.html#a2c9d9c3cdc7b548ae368471b5f5c36cf',1,'PreviewAndExportPage']]],
+  ['exportsurveydestinationgrueprfile_31',['exportSurveyDestinationGrueprFile',['../class_preview_and_export_page.html#a2b19984bea7681250d533adda52a6162',1,'PreviewAndExportPage']]],
+  ['exportsurveydestinationtextfile_32',['exportSurveyDestinationTextFile',['../class_preview_and_export_page.html#a688efac5e91e5618457ac952c45e55e6',1,'PreviewAndExportPage']]],
+  ['externaldoitbutton_33',['externalDoItButton',['../class_teams_tab_item.html#a6898675e455fd5e85b515c871cf8c5c1',1,'TeamsTabItem']]],
+  ['externalstudents_34',['externalStudents',['../class_teams_tab_item.html#afe704db85240ff7851803c03d5888ab6',1,'TeamsTabItem']]],
+  ['externalteamingoptions_35',['externalTeamingOptions',['../class_teams_tab_item.html#a21365b31a1accfb9e021f1fcd0431b8b',1,'TeamsTabItem']]]
 ];

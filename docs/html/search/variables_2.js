@@ -25,7 +25,7 @@ var searchData=
   ['bullet_22',['BULLET',['../gruepr__globals_8h.html#a45b565fd975a2cef32766776fe240212',1,'gruepr_globals.h']]],
   ['busyorfreecombobox_23',['busyOrFreeComboBox',['../class_schedule_page.html#a96f8f81b498d098c37a45dd95d414a8a',1,'SchedulePage']]],
   ['busyorfreelabel_24',['busyOrFreeLabel',['../class_schedule_page.html#a92b1ad17fe7b9e85462b2148e666d106',1,'SchedulePage']]],
-  ['buttonbox_25',['buttonBox',['../classlist_table_dialog.html#ad1f831af21a5ec2d9d8ec53ee83e348c',1,'listTableDialog::buttonBox'],['../classregister_dialog.html#a0450d82b0c6668ab06cff4f5723df517',1,'registerDialog::buttonBox'],['../classwhich_files_dialog.html#a4932e620802e12cdca347cd364468647',1,'whichFilesDialog::buttonBox']]],
+  ['buttonbox_25',['buttonBox',['../classlist_table_dialog.html#ad1f831af21a5ec2d9d8ec53ee83e348c',1,'listTableDialog::buttonBox'],['../classregister_dialog.html#a0450d82b0c6668ab06cff4f5723df517',1,'registerDialog::buttonBox']]],
   ['buttonboxrowingrid_26',['BUTTONBOXROWINGRID',['../classlist_table_dialog.html#a96bc700b6d7b914385e58d1823599de4',1,'listTableDialog']]],
   ['buttonlayout_27',['buttonLayout',['../classlist_table_dialog.html#a2e972c1da20c51728a06767f2443b62f',1,'listTableDialog']]]
 ];

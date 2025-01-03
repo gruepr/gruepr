@@ -19,7 +19,7 @@ registerDialog::registerDialog(QWidget *parent)
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
 
     auto *theBox = new QVBoxLayout(this);
-    setStyleSheet("background-color: white");
+    setStyleSheet(WHITEDIALOGSTYLE);
 
     auto *explanation = new QLabel(this);
     explanation->setStyleSheet(LABEL10PTSTYLE);

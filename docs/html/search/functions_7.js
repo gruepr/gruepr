@@ -47,7 +47,7 @@ var searchData=
   ['getstudentroster_44',['getStudentRoster',['../class_canvas_handler.html#a8f33276e49165d79cb77d40d0f80478f',1,'CanvasHandler']]],
   ['getsurveylist_45',['getSurveyList',['../class_google_handler.html#a6a0a5da803f161639f2ec3935cc14b12',1,'GoogleHandler']]],
   ['getteammatepenalties_46',['getTeammatePenalties',['../classgruepr.html#a2caaa94a122d189e2279bbccd5dd4fb5',1,'gruepr']]],
-  ['getteamnumbersindisplayorder_47',['getTeamNumbersInDisplayOrder',['../class_teams_tab_item.html#a5fa50d53f7dd3d7d49d78e634cdfc567',1,'TeamsTabItem']]],
+  ['getteamnumbersindisplayorder_47',['getTeamNumbersInDisplayOrder',['../class_teams_tab_item.html#a909538e5121a6827763dff1f4716e0c2',1,'TeamsTabItem']]],
   ['geturmpenalties_48',['getURMPenalties',['../classgruepr.html#aa0e15e9cd1558c5f8098b242ff298511',1,'gruepr']]],
   ['getvalue_49',['getValue',['../class_survey_maker_question_with_switch.html#af0b3d18e48ea74bd48ef6b4d1e5d20f5',1,'SurveyMakerQuestionWithSwitch']]],
   ['googlehandler_50',['GoogleHandler',['../class_google_handler.html#a3c1f34a795474822361e298ea1883533',1,'GoogleHandler::GoogleHandler(QWidget *parent=nullptr)'],['../class_google_handler.html#a729cd5fe96103581c6363c4cf7641b03',1,'GoogleHandler::GoogleHandler(const GoogleHandler &amp;)=delete'],['../class_google_handler.html#a0da39dcaf753cc00b86c7d794b465ad1',1,'GoogleHandler::GoogleHandler(GoogleHandler &amp;&amp;)=delete']]],
