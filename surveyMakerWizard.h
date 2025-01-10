@@ -155,7 +155,11 @@ private:
     QLineEdit *em = nullptr;
     QLabel *genderResponsesLabel = nullptr;
     QComboBox *genderResponsesComboBox = nullptr;
-    QList<QRadioButton *> ge;
+    QCheckBox *genderResponsesAllowMulti = nullptr;
+    QLabel *toplabelrb = nullptr;
+    QLabel *toplabelcb = nullptr;
+    QList<QRadioButton *> gerb;
+    QList<QCheckBox *> gecb;
     QLineEdit *re = nullptr;
 
     /**

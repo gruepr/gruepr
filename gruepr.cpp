@@ -2580,13 +2580,13 @@ void gruepr::getGenderPenalties(const StudentRecord *const _students, const int 
         int numMen = 0;
         int numNonbinary = 0;
         for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            if(_students[_teammates[studentNum]].gender == Gender::man) {
+            if(_students[_teammates[studentNum]].gender.contains(Gender::man)) {
                 numMen++;
             }
-            else if(_students[_teammates[studentNum]].gender == Gender::woman) {
+            else if(_students[_teammates[studentNum]].gender.contains(Gender::woman)) {
                 numWomen++;
             }
-            else if(_students[_teammates[studentNum]].gender == Gender::nonbinary) {
+            else if(_students[_teammates[studentNum]].gender.contains(Gender::nonbinary)) {
                 numNonbinary++;
             }
             studentNum++;

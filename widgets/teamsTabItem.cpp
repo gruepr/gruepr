@@ -1354,7 +1354,16 @@ QStringList TeamsTabItem::createStdFileContents()
                 continue;
             }
             if(teams.dataOptions.genderIncluded) {
-                instructorsFileContents += " " + genderOptions.at(static_cast<int>(student->gender)) + " ";
+                QString genderText;
+                bool firstGender = true;
+                for(const auto gen : student->gender) {
+                    if(!firstGender) {
+                        genderText += ", ";
+                    }
+                    genderText += genderOptions.at(static_cast<int>(gen));
+                    firstGender = false;
+                }
+                instructorsFileContents += " " + genderText + " ";
             }
             if(teams.dataOptions.URMIncluded) {
                 if(student->URM) {
@@ -1547,7 +1556,16 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
                 continue;
             }
             if(teams.dataOptions.genderIncluded && customFileOptions.includeGender) {
-                customFileContents += " " + genderOptions.at(static_cast<int>(student->gender)) + " ";
+                QString genderText;
+                bool firstGender = true;
+                for(const auto gen : student->gender) {
+                    if(!firstGender) {
+                        genderText += ", ";
+                    }
+                    genderText += genderOptions.at(static_cast<int>(gen));
+                    firstGender = false;
+                }
+                customFileContents += " " + genderText + " ";
             }
             if(teams.dataOptions.URMIncluded && customFileOptions.includeURM) {
                 if(student->URM) {

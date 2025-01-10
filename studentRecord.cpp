@@ -20,7 +20,17 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     ID = jsonStudentRecord["ID"].toInt();
     LMSID = jsonStudentRecord["LMSID"].toInt();
     duplicateRecord = jsonStudentRecord["duplicateRecord"].toBool();
-    gender = static_cast<Gender>(jsonStudentRecord["gender"].toInt());
+    if(jsonStudentRecord["genders"].type() != QJsonValue::Undefined) {
+        const QJsonArray gendersArray = jsonStudentRecord["genders"].toArray();
+        gender.clear();
+        for (const auto &val : gendersArray) {
+            gender << static_cast<Gender>(val.toInt());
+        }
+    }
+    else {
+        // this is for backwards compatability--studentRecord formerly saved a single gender
+        gender = {static_cast<Gender>(jsonStudentRecord["gender"].toInt())};
+    }
     URM = jsonStudentRecord["URM"].toBool();
     timezone = jsonStudentRecord["timezone"].toDouble();
     ambiguousSchedule = jsonStudentRecord["ambiguousSchedule"].toBool();
@@ -113,7 +123,7 @@ void StudentRecord::clear() {
     ID = -1;
     LMSID = -1;
     duplicateRecord = false;
-    gender = Gender::unknown;
+    gender = {Gender::unknown};
     URM = false;
     for(auto &day : unavailable) {
         for(auto &time : day) {
@@ -217,37 +227,36 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
 
     // gender
     if(dataOptions.genderIncluded) {
-        fieldnum = dataOptions.genderField;
+        gender.clear();
+        QList<QStringList> genderOptions;
+        genderOptions << QString(BIOLGENDERS).split('/');
+        genderOptions << QString(ADULTGENDERS).split('/');
+        genderOptions << QString(CHILDGENDERS).split('/');
+        genderOptions << QString(PRONOUNS).split('/');
+                fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
-            const QString &field = fields.at(fieldnum);
-            if(field.contains(QObject::tr("female"), Qt::CaseInsensitive) ||
-                field.contains(QObject::tr("woman"), Qt::CaseInsensitive) ||
-                field.contains(QObject::tr("girl"), Qt::CaseInsensitive) ||
-                field.contains(QObject::tr("she"), Qt::CaseInsensitive)) {
-                gender = Gender::woman;
+            const QStringList field = fields.at(fieldnum).simplified().split(',');
+            for(const auto &options : genderOptions) {
+                if(field.contains(options.at(static_cast<int>(Gender::woman)), Qt::CaseInsensitive)) {
+                    gender << Gender::woman;
+                }
+                if(field.contains(options.at(static_cast<int>(Gender::nonbinary)), Qt::CaseInsensitive)) {
+                    gender << Gender::nonbinary;
+                }
+                if(field.contains(options.at(static_cast<int>(Gender::man)), Qt::CaseInsensitive)) {
+                    gender << Gender::man;
+                }
             }
-            else if((field.contains(QObject::tr("non"), Qt::CaseInsensitive) && field.contains(QObject::tr("binary"), Qt::CaseInsensitive)) ||
-                     field.contains(QObject::tr("queer"), Qt::CaseInsensitive) ||
-                     field.contains(QObject::tr("trans"), Qt::CaseInsensitive) ||
-                     field.contains(QObject::tr("they"), Qt::CaseInsensitive)) {
-                gender = Gender::nonbinary;
-            }
-            else if(field.contains(QObject::tr("male"), Qt::CaseInsensitive) ||    // need this last, as "she" and "they" contain "he" and "female" contains "male"
-                     field.contains(QObject::tr("man"), Qt::CaseInsensitive) ||
-                     field.contains(QObject::tr("boy"), Qt::CaseInsensitive) ||
-                     field.contains(QObject::tr("he"), Qt::CaseInsensitive)) {
-                gender = Gender::man;
-            }
-            else {
-                gender = Gender::unknown;
+            if(gender.isEmpty()) {
+                gender = {Gender::unknown};
             }
         }
         else {
-            gender = Gender::unknown;
+            gender = {Gender::unknown};
         }
     }
     else {
-        gender = Gender::unknown;
+        gender = {Gender::unknown};
     }
 
     // racial/ethnic heritage
@@ -455,22 +464,29 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
         toolTip += "<br>";
         QStringList genderOptions;
         if(dataOptions.genderType == GenderType::biol) {
-            toolTip += QObject::tr("Gender");
+            toolTip += QObject::tr("Gender") + ":  ";
             genderOptions = QString(BIOLGENDERS).split('/');
         }
         else if(dataOptions.genderType == GenderType::adult) {
-            toolTip += QObject::tr("Gender");
+            toolTip += QObject::tr("Gender") + ":  ";
             genderOptions = QString(ADULTGENDERS).split('/');
         }
         else if(dataOptions.genderType == GenderType::child) {
-            toolTip += QObject::tr("Gender");
+            toolTip += QObject::tr("Gender") + ":  ";
             genderOptions = QString(CHILDGENDERS).split('/');
         }
         else { //if(dataOptions.genderType == GenderType::pronoun)
-            toolTip += QObject::tr("Pronouns");
+            toolTip += QObject::tr("Pronouns") + ":  ";
             genderOptions = QString(PRONOUNS).split('/');
         }
-        toolTip += ":  " + genderOptions.at(static_cast<int>(gender));
+        bool firstGender = true;
+        for(const auto gen : gender) {
+            if(!firstGender) {
+                toolTip += ", ";
+            }
+            toolTip += genderOptions.at(static_cast<int>(gen));
+            firstGender = false;
+        }
     }
     if(dataOptions.URMIncluded) {
         toolTip += "<br>" + QObject::tr("Identity") + ":  ";
@@ -558,13 +574,16 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
 
 QJsonObject StudentRecord::toJson() const
 {
-    QJsonArray unavailableArray, preventedWithArray, requiredWithArray, requestedWithArray, attributeValsArray, attributeResponseArray;
+    QJsonArray gendersArray, unavailableArray, preventedWithArray, requiredWithArray, requestedWithArray, attributeValsArray, attributeResponseArray;
     for(const auto &unavailableDay : unavailable) {
         QJsonArray unavailableArraySubArray;
         for(const auto unavailableTime : unavailableDay) {
             unavailableArraySubArray.append(unavailableTime);
         }
         unavailableArray.append(unavailableArraySubArray);
+    }
+    for(const auto g : gender) {
+        gendersArray.append(static_cast<int>(g));
     }
     for(const auto id : preventedWith) {
         preventedWithArray.append(id);
@@ -589,7 +608,7 @@ QJsonObject StudentRecord::toJson() const
         {"ID", ID},
         {"LMSID", LMSID},
         {"duplicateRecord", duplicateRecord},
-        {"gender", static_cast<int>(gender)},
+        {"genders", gendersArray},
         {"URM", URM},
         {"unavailable", unavailableArray},
         {"timezone", timezone},

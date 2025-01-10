@@ -35,6 +35,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - moved gender to be multi-valued (check one or more in survey, multiple responses allowed in the studentRecord)
 //
 // INPROG:
 //
@@ -68,7 +69,8 @@
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 //  - preferentially mutate the lowest scoring team(s) within a genome
 //  - use multiple genepools with limited cross-breeding
-//  - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
+//  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< student* > >. Each team is set of pointers to the student; each section is set of teams.
+//      - would also allow sorting teams within set by ascending score and thus mutations preferentially at front
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"

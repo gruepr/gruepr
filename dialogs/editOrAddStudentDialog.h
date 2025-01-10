@@ -27,7 +27,7 @@ private:
     void adjustSchedule(const StudentRecord &student, const DataOptions *const dataOptions);
     QList<QLineEdit*> datatext;
     QList<QPlainTextEdit*> datamultiline;
-    QList<QComboBox*> databox;
+    QList<QWidget*> databox;                        // either a QGroupBox or QComboBox
     QStackedWidget *attributeStack = nullptr;
     QList<QPushButton*> attributeSelectorButtons;
     QList<QComboBox*> attributeCombobox;

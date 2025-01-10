@@ -355,7 +355,16 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
         else {         //if(dataOptions->genderType == GenderType::pronoun)
             genderOptions = QString(PRONOUNS).split('/');
         }
-        studentItem->setText(column, genderOptions.at(static_cast<int>(stu.gender)));
+        QString genderText;
+        bool firstGender = true;
+        for(const auto gen : stu.gender) {
+            if(!firstGender) {
+                genderText += ", ";
+            }
+            genderText += genderOptions.at(static_cast<int>(gen));
+            firstGender = false;
+        }
+        studentItem->setText(column, genderText);
         studentItem->setToolTip(column, stu.tooltip);
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;

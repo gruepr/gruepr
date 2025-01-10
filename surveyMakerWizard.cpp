@@ -126,6 +126,9 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble()) {
                 setField("genderOptions", loadObject["GenderType"].toInt());
             }
+            if(loadObject.contains("GenderAllowMulti") && loadObject["GenderAllowMulti"].isBool()) {
+                setField("GenderAllowMulti", loadObject["GenderAllowMulti"].toBool());
+            }
             if(loadObject.contains("URM") && loadObject["URM"].isBool()) {
                 setField("RaceEthnicity", loadObject["URM"].toBool());
             }
@@ -516,11 +519,11 @@ DemographicsPage::DemographicsPage(QWidget *parent)
 
     questions[gender]->setLabel(tr("Gender"));
     auto *genderResponses = new QWidget;
-    auto *genderResponsesLayout = new QHBoxLayout(genderResponses);
+    auto *genderResponsesLayout = new QGridLayout(genderResponses);
     genderResponsesLabel = new QLabel(tr("Ask as: "));
     genderResponsesLabel->setStyleSheet(LABEL10PTSTYLE);
     genderResponsesLabel->setEnabled(false);
-    genderResponsesLayout->addWidget(genderResponsesLabel);
+    genderResponsesLayout->addWidget(genderResponsesLabel, 0, 0, Qt::AlignLeft);
     genderResponsesComboBox = new QComboBox;
     genderResponsesComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     genderResponsesComboBox->installEventFilter(new MouseWheelBlocker(genderResponsesComboBox));
@@ -529,37 +532,51 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     genderResponsesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     genderResponsesComboBox->setEnabled(false);
     genderResponsesComboBox->setCurrentIndex(3);
-    genderResponsesLayout->addWidget(genderResponsesComboBox);
-    genderResponsesLayout->addStretch(1);
+    genderResponsesLayout->addWidget(genderResponsesComboBox, 0, 1, Qt::AlignLeft);
+    genderResponsesAllowMulti = new QCheckBox(tr("Allow multiple selections"));
+    genderResponsesAllowMulti->setStyleSheet(CHECKBOXSTYLE);
+    genderResponsesAllowMulti->setEnabled(false);
+    genderResponsesAllowMulti->setChecked(false);
+    genderResponsesLayout->addWidget(genderResponsesAllowMulti, 1, 0, 1, -1, Qt::AlignLeft);
     questions[gender]->addWidget(genderResponses, 1, 0, true);
     connect(genderResponsesComboBox, &QComboBox::currentIndexChanged, this, &DemographicsPage::update);
+    connect(genderResponsesAllowMulti, &QCheckBox::toggled, this, &DemographicsPage::update);
     questionPreviewTopLabels[gender]->setText(PRONOUNQUESTION);
     questionPreviewLayouts[gender]->addWidget(questionPreviewTopLabels[gender]);
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesLabel, &QLabel::setEnabled);
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesComboBox, &QComboBox::setEnabled);
+    connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesAllowMulti, &QComboBox::setEnabled);
     auto *options = new QGroupBox("");
     options->setStyleSheet("border-style:none;");
     auto *vbox = new QVBoxLayout;
     vbox->setSpacing(0);
     vbox->setContentsMargins(20, 0, 0, 0);
     options->setLayout(vbox);
-    auto *topLabel = new QLabel(SELECTONE);
-    topLabel->setStyleSheet(LABEL10PTSTYLE);
-    topLabel->setWordWrap(true);
-    vbox->addWidget(topLabel);
+    toplabelrb = new QLabel(SELECTONE);
+    toplabelcb = new QLabel(SELECTMULT);
+    toplabelrb->setStyleSheet(LABEL10PTSTYLE);
+    toplabelcb->setStyleSheet(LABEL10PTSTYLE);
+    toplabelrb->setWordWrap(true);
+    toplabelcb->setWordWrap(true);
+    vbox->addWidget(toplabelrb);
+    vbox->addWidget(toplabelcb);
+    toplabelrb->hide();
     const QStringList genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     for(const auto &genderOption : genderOptions) {
-        ge << new QRadioButton(genderOption);
-        vbox->addWidget(ge.last());
+        gerb << new QRadioButton(genderOption);
+        gecb << new QCheckBox(genderOption);
+        vbox->addWidget(gerb.last());
+        vbox->addWidget(gecb.last());
+        gerb.last()->hide();
     }
-    ge.first()->setChecked(true);
     questionPreviewLayouts[gender]->addWidget(options);
     questionPreviewBottomLabels[gender]->hide();
     questionPreviewLayouts[gender]->addWidget(questionPreviewBottomLabels[gender]);
     questionPreviews[gender]->hide();
     registerField("Gender", questions[gender], "value", "valueChanged");
     registerField("genderOptions", genderResponsesComboBox);
+    registerField("genderAllowMulti", genderResponsesAllowMulti);
 
     questions[urm]->setLabel(tr("Race / ethnicity"));
     questionPreviewTopLabels[urm]->setText(URMQUESTION);
@@ -636,9 +653,24 @@ void DemographicsPage::update()
         genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
     questionPreviewTopLabels[gender]->setText(questionText);
+
     int i = 0;
     for(const auto &genderOption : qAsConst(genderOptions)) {
-        ge[i++]->setText(genderOption);
+        gerb[i]->setText(genderOption);
+        gecb[i]->setText(genderOption);
+        if(genderResponsesAllowMulti->isChecked()) {
+            gerb[i]->hide();
+            gecb[i]->show();
+            toplabelrb->hide();
+            toplabelcb->show();
+        }
+        else {
+            gerb[i]->show();
+            gecb[i]->hide();
+            toplabelrb->show();
+            toplabelcb->hide();
+        }
+        i++;
     }
 }
 
@@ -1624,7 +1656,7 @@ void CourseInfoPage::update()
         delete child;   // delete the layout item
     }
 
-    auto *topLabel = new QLabel(tr("Select one:"));
+    auto *topLabel = new QLabel(SELECTONE);
     topLabel->setStyleSheet(LABEL10PTSTYLE);
     topLabel->setWordWrap(true);
     sectionsPreviewLayout->addWidget(topLabel);
@@ -2091,11 +2123,17 @@ void PreviewAndExportPage::initializePage()
             delete child;   // delete the layout item
         }
         for(const auto &genderOption : qAsConst(genderOptions)) {
-            auto *option = new QRadioButton(genderOption);
+            QWidget *option;
+            if(field("genderAllowMulti").toBool()) {
+                option = new QCheckBox(genderOption);
+            }
+            else {
+                option = new QRadioButton(genderOption);
+            }
             section[SurveyMakerWizard::demographics]->questionGroupLayout[3]->addWidget(option);
         }
         section[SurveyMakerWizard::demographics]->questionGroupBox[3]->show();
-        survey->questions << Question(questionText, Question::QuestionType::radiobutton, genderOptions);
+        survey->questions << Question(questionText, (field("genderAllowMulti").toBool()? Question::QuestionType::checkbox : Question::QuestionType::radiobutton), genderOptions);
     }
     else {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2478,6 +2516,7 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
             saveObject["Email"] = field("Email").toBool();
             saveObject["Gender"] = field("Gender").toBool();
             saveObject["GenderType"] = field("genderOptions").toInt();
+            saveObject["GenderAllowMulti"] = field("GenderAllowMulti").toBool();
             saveObject["URM"] = field("RaceEthnicity").toBool();
 
             const int numMultiChoiceQuestions = field("multiChoiceNumQuestions").toInt();
@@ -2595,7 +2634,7 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
                 (question.type == Question::QuestionType::checkbox)) {
                 textFileContents += "\n     " + tr("choices") + ": [" + question.options.join(" | ") + "]";
                 if(question.type == Question::QuestionType::checkbox) {
-                    textFileContents += "\n     (" + tr("Select one or more") + ")";
+                    textFileContents += "\n     (" + QString(SELECTMULT) + ")";
                 }
             }
         }
