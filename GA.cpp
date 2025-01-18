@@ -116,12 +116,15 @@ void GA::mate(const int *const mom, const int *const dad, const int teamSize[], 
 
     //randomly choose two team boundaries in the genome from which to cut an allele
     std::uniform_int_distribution<unsigned int> randTeam(0, numTeams);
-    const unsigned int startTeam = randTeam(pRNG);
+    unsigned int startTeam = randTeam(pRNG);
     unsigned int endTeam;
     do {
         endTeam = randTeam(pRNG);
     }
     while(endTeam == startTeam);
+    if(startTeam > endTeam) {
+        std::swap(startTeam, endTeam);
+    }
 
     //Now, need to find positions in genome to start and end allele--the "breaks" before startTeam and endTeam
     unsigned int end=0, start=0, team=0, position=0;

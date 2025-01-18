@@ -35,15 +35,22 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - moved gender to be multi-valued (check one or more in survey, multiple responses allowed in the studentRecord)
+//  - changed handling of gender, allowing it to be multi-valued (check one or more in survey; set of values in the studentRecord)
+//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
+//  - now correctly resizes columns in the team display tree whenever expanding an individual team
+//  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
+//  - attribute response counts now correctly account for added / removed / edited students
+//  - several bugfixes related to resorting teams
 //
 // INPROG:
+//  - export of teams should include the section number if that's being displayed (having trouble re-creating)
+//  - swapping students between teams reorders teams (TeamsTabItem line 580ish?)
 //
 // TO DO:
-//    BUGFIX:
-//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
+//    BUGFIXES:
 //
 //    NEW FEATURES:
+//  - add motion to the LMS busy dialog so that it doesn't appear frozen
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
@@ -65,11 +72,12 @@
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
 //      - Question options: req'd question, answer validity checks
+//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
 //  - preferentially mutate the lowest scoring team(s) within a genome
 //  - use multiple genepools with limited cross-breeding
-//  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< student* > >. Each team is set of pointers to the student; each section is set of teams.
+//  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< int > >. Each team is set of indexes to the students; each section is set of teams.
 //      - would also allow sorting teams within set by ascending score and thus mutations preferentially at front
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

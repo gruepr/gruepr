@@ -352,7 +352,7 @@ void gruepr::editAStudent()
     }
 
     // remove this student's current attribute responses from the counts in dataOptions
-    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -382,7 +382,7 @@ void gruepr::editAStudent()
     }
 
     // add back in this student's attribute responses from the counts in dataOptions and update the attribute tabs to show the counts
-    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const QString &currentStudentResponse = studentBeingEdited->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -395,9 +395,9 @@ void gruepr::editAStudent()
             }
             else {
                 dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
-            }
-            attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
+            }            
         }
+        attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
     }
 
     delete win;
@@ -442,7 +442,7 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
     }
 
     // update in dataOptions and then the attribute tab the count of each attribute response
-    for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
+    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const QString &currentStudentResponse = studentBeingRemoved->attributeResponse[attribute];
         if(!currentStudentResponse.isEmpty()) {
             if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -456,8 +456,8 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
             else {
                 dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]--;
             }
-            attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
         }
+        attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
     }
 
     //Remove the student
@@ -490,7 +490,7 @@ void gruepr::addAStudent()
             students << newStudent;
 
             // update in dataOptions and then the attribute tab the count of each attribute response
-            for(int attribute = 0; attribute < MAX_ATTRIBUTES; attribute++) {
+            for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
                 const QString &currentStudentResponse = newStudent.attributeResponse[attribute];
                 if(!currentStudentResponse.isEmpty()) {
                     if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::multicategorical) ||
@@ -504,8 +504,8 @@ void gruepr::addAStudent()
                     else {
                         dataOptions->attributeQuestionResponseCounts[attribute][currentStudentResponse]++;
                     }
-                    attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
                 }
+                attributeWidgets[attribute]->setValues(attribute, dataOptions, teamingOptions);
             }
             rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
         }

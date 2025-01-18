@@ -58,6 +58,7 @@ protected:
 private slots:
     void itemEntered(const QModelIndex &index);         // select entire row when hovering over any part of it
     void itemCollapse(QTreeWidgetItem *item);
+    void itemExpand(QTreeWidgetItem *item);
 
 public slots:
     void resorting(int column);

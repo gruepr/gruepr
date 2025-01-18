@@ -922,8 +922,10 @@ bool GetGrueprDataDialog::readData()
         // see if this record is a duplicate; assume it isn't and then check
         currStudent.duplicateRecord = false;
         for(auto &student : students) {
-            if(((currStudent.firstname + currStudent.lastname).compare(student.firstname + student.lastname, Qt::CaseInsensitive) == 0) ||
-                ((currStudent.email.compare(student.email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty())) {
+            if((((currStudent.firstname + currStudent.lastname).compare(student.firstname + student.lastname, Qt::CaseInsensitive) == 0) &&
+                 !(currStudent.firstname + currStudent.lastname).isEmpty()) ||
+                ((currStudent.email.compare(student.email, Qt::CaseInsensitive) == 0) &&
+                 !currStudent.email.isEmpty())) {
                 currStudent.duplicateRecord = true;
                 student.duplicateRecord = true;
             }

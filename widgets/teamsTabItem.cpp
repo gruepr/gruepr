@@ -514,6 +514,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
+    refreshDisplayOrder();
     teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
@@ -675,6 +676,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
+    refreshDisplayOrder();
     teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
@@ -787,18 +789,23 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     while((teamBItem != nullptr) &&
            ((teamBItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
             (teamBItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamBNum))) {
-        largestSortOrder = teamBItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        if(teamBItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            largestSortOrder = teamBItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        }
         teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamBItem));
     }
     const int teamBSortOrder = ((teamBItem != nullptr) ? (teamBItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt()) : (largestSortOrder + 1));
 
-    if((teamASortOrder == -1) || (teamBSortOrder - teamASortOrder == 1) || (teamAItem == nullptr) || (teamBItem == nullptr)) {
+    if((teamASortOrder == -1) || (teamBSortOrder - teamASortOrder == 1) || (teamAItem == nullptr)) {
         // error or dragging just one row down ==> no change in order
         return;
     }
 
     //Load undo onto stack and clear redo stack
-    const auto itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
+    auto itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
+    while((itemBelowTeamA != nullptr) && (itemBelowTeamA->treeItemType != TeamTreeWidgetItem::TreeItemType::team)) {
+        itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(itemBelowTeamA));
+    }
     const int teamBelowTeamA = ((itemBelowTeamA != nullptr) && itemBelowTeamA->treeItemType == TeamTreeWidgetItem::TreeItemType::team) ?
                                    itemBelowTeamA->data(0, TEAM_NUMBER_ROLE).toInt() : SORT_TO_END;
     const QString UndoTooltip = tr("Undo moving Team ") + teams[teamANum].name;
@@ -1081,7 +1088,7 @@ void TeamsTabItem::postTeamsToCanvas()
     QList<QList<StudentRecord>> teamRosters;
     teamRosters.reserve(numTeams);
     for(const auto teamNum : qAsConst(teamDisplayNums)) {
-        auto &team = teams[teamNum];
+        const auto &team = teams.at(teamNum);
         teamNames << team.name;
         teamRoster.clear();
         //loop through each teammate in the team

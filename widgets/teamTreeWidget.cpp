@@ -26,6 +26,7 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
     connect(this, &QTreeWidget::entered, this, &TeamTreeWidget::itemEntered);
     connect(this, &QTreeWidget::viewportEntered, this, [this] {leaveEvent(nullptr);});
     connect(this, &QTreeWidget::itemCollapsed, this, &TeamTreeWidget::itemCollapse);
+    connect(this, &QTreeWidget::itemExpanded, this, &TeamTreeWidget::itemExpand);
 }
 
 
@@ -44,6 +45,18 @@ void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
     }
     else {
         QTreeWidget::expandItem(newItem);
+    }
+}
+
+
+void TeamTreeWidget::itemExpand(QTreeWidgetItem *item)
+{
+    auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
+    if(newItem == nullptr) {
+        return;
+    }
+    for(int column = 0; column < columnCount(); column++) {
+        resizeColumnToContents(column);
     }
 }
 
