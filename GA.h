@@ -9,9 +9,12 @@ class GA
 {
 public:
     void setGAParameters(int numRecords);
+
+    void clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize);
     void tournamentSelectParents(const int * const * const genePool, const int *const orderedIndex, const int * const * const ancestors,
                                  const int *&mom, const int *&dad, int parentage[], std::mt19937 &pRNG);
     void mate(const int *const mom, const int *const dad, const int teamSize[], const int numTeams, int child[], const long long genomeSize, std::mt19937 &pRNG);
+
     void mutate(int genome[], const long long genomeSize, std::mt19937 &pRNG);
 
     inline static const int MAX_RECORDS = 1000;             // maximum number of records to optimally partition (this might be changable, but algortihm gets pretty slow as value gets bigger)

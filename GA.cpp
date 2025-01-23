@@ -16,6 +16,34 @@ void GA::setGAParameters(int numRecords)
     }
 }
 
+
+//////////////////
+// Clone one parent from the genepool into new genepool
+//////////////////
+void GA::clone(const int *const parent, const int *const ancestors, const int parentsIndex, int child[], int parentage[], const int genomeSize)
+{
+    for(int ID = 0; ID < genomeSize; ID++) {
+        child[ID] = parent[ID];
+    }
+    const auto &nextGenAncestor = parentage;
+    const auto &thisGenAncestor = ancestors;
+    nextGenAncestor[0] = nextGenAncestor[1] = parentsIndex;   // both parents are this genome
+    int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
+    for(int generation = 1; generation < numgenerationsofancestors; generation++) {
+        //all four grandparents are this genome's parents, etc. for increasing generations
+        for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
+            nextGenAncestor[ancestor] = thisGenAncestor[ancestor-startAncestor+prevStartAncestor];
+        }
+        for(int ancestor = (((endAncestor - startAncestor)/2) + startAncestor); ancestor < endAncestor; ancestor++) {
+            nextGenAncestor[ancestor] = thisGenAncestor[ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
+        }
+        prevStartAncestor = startAncestor;
+        startAncestor = endAncestor;
+        endAncestor += (4<<generation);     //add 2^(n+1)
+    }
+}
+
+
 //////////////////
 // Select two parents from the genepool using tournament selection
 //////////////////

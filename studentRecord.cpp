@@ -236,7 +236,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
                 fieldnum = dataOptions.genderField;
         if((fieldnum >= 0) && (fieldnum < numFields)) {
             const QStringList field = fields.at(fieldnum).simplified().split(',');
-            for(const auto &options : genderOptions) {
+            for(const auto &options : qAsConst(genderOptions)) {
                 if(field.contains(options.at(static_cast<int>(Gender::woman)), Qt::CaseInsensitive)) {
                     gender << Gender::woman;
                 }
@@ -480,7 +480,7 @@ void StudentRecord::createTooltip(const DataOptions &dataOptions)
             genderOptions = QString(PRONOUNS).split('/');
         }
         bool firstGender = true;
-        for(const auto gen : gender) {
+        for(const auto gen : qAsConst(gender)) {
             if(!firstGender) {
                 toolTip += ", ";
             }

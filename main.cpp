@@ -44,13 +44,12 @@
 //
 // INPROG:
 //  - export of teams should include the section number if that's being displayed (having trouble re-creating)
-//  - swapping students between teams reorders teams (TeamsTabItem line 580ish?)
+//  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //
 // TO DO:
 //    BUGFIXES:
 //
 //    NEW FEATURES:
-//  - add motion to the LMS busy dialog so that it doesn't appear frozen
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action

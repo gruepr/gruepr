@@ -2109,7 +2109,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     std::sort(orderedIndex, orderedIndex+ga.populationsize, [&scores](const int i, const int j){return (scores[i] > scores[j]);});
     emit generationComplete(scores, orderedIndex, 0, 0, unpenalizedGenomePresent);
 
-    int child[MAX_STUDENTS];
     const int *mom=nullptr, *dad=nullptr;               // pointer to genome of mom and dad
     float bestScores[GA::GENERATIONS_OF_STABILITY]={0};	// historical record of best score in the genome, going back generationsOfStability generations
     float scoreStability = 0;
@@ -2121,27 +2120,8 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         do {                // keep optimizing until reach stability or maxGenerations
             // clone the elites in genePool into nextGenGenePool, shifting their ancestor arrays as if "self-mating"
             for(int genome = 0; genome < GA::NUM_ELITES; genome++) {
-                const auto &nextGenEliteGenome = nextGenGenePool[genome];
-                const auto &thisGenEliteGenome = genePool[orderedIndex[genome]];
-                for(int ID = 0; ID < numActiveStudents; ID++) {
-                    nextGenEliteGenome[ID] = thisGenEliteGenome[ID];
-                }
-                const auto &nextGenAncestor = nextGenAncestors[genome];
-                const auto &thisGenAncestor = ancestors[orderedIndex[genome]];
-                nextGenAncestor[0] = nextGenAncestor[1] = orderedIndex[genome];   // both parents are this genome
-                int prevStartAncestor = 0, startAncestor = 2, endAncestor = 6;  // parents are 0 & 1, so grandparents are 2, 3, 4, & 5
-                for(int generation = 1; generation < ga.numgenerationsofancestors; generation++) {
-                    //all four grandparents are this genome's parents, etc. for increasing generations
-                    for(int ancestor = startAncestor; ancestor < (((endAncestor - startAncestor)/2) + startAncestor); ancestor++) {
-                        nextGenAncestor[ancestor] = thisGenAncestor[ancestor-startAncestor+prevStartAncestor];
-                    }
-                    for(int ancestor = (((endAncestor - startAncestor)/2) + startAncestor); ancestor < endAncestor; ancestor++) {
-                        nextGenAncestor[ancestor] = thisGenAncestor[ancestor-(((endAncestor - startAncestor)/2) + startAncestor)+prevStartAncestor];
-                    }
-                    prevStartAncestor = startAncestor;
-                    startAncestor = endAncestor;
-                    endAncestor += (4<<generation);     //add 2^(n+1)
-                }
+                ga.clone(genePool[orderedIndex[genome]], ancestors[orderedIndex[genome]], orderedIndex[genome],
+                         nextGenGenePool[genome], nextGenAncestors[genome], numActiveStudents);
             }
 
             // create rest of population in nextGenGenePool by mating
@@ -2150,11 +2130,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 ga.tournamentSelectParents(genePool, orderedIndex, ancestors, mom, dad, nextGenAncestors[genome], pRNG);
 
                 //mate them and put child in nextGenGenePool
-                ga.mate(mom, dad, teamSizes, numTeams, child, numActiveStudents, pRNG);
-                const auto & nextGenGenome = nextGenGenePool[genome];
-                for(int ID = 0; ID < numActiveStudents; ID++) {
-                    nextGenGenome[ID] = child[ID];
-                }
+                ga.mate(mom, dad, teamSizes, numTeams, nextGenGenePool[genome], numActiveStudents, pRNG);
             }
 
             // mutate all but the single top-scoring elite genome with some probability; if mutation occurs, mutate same genome again with same probability

@@ -120,7 +120,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         hbox->setSpacing(12);
         hbox->setContentsMargins(0, 0, 0, 0);
         int optionNum = 0;
-        for(const auto &option : genderOptions) {
+        for(const auto &option : qAsConst(genderOptions)) {
             auto *optionCheckBox = new QCheckBox(option);
             optionCheckBox->setChecked(student.gender.contains(static_cast<Gender>(optionNum)));
             hbox->addWidget(optionCheckBox);

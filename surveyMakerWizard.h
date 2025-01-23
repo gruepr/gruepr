@@ -248,9 +248,9 @@ public:
 
 signals:
     void numQuestionsChanged(int newNumQuestions);
-    void questionTextsChanged(QList<QString> &newQuestionTexts);
-    void questionResponsesChanged(QList<QList<QString>> &newQuestionResponses);
-    void questionMultisChanged(QList<bool> &newQuestionMultis);
+    void questionTextsChanged(const QList<QString> &newQuestionTexts);
+    void questionResponsesChanged(const QList<QList<QString>> &newQuestionResponses);
+    void questionMultisChanged(const QList<bool> &newQuestionMultis);
 
 private:
     QFrame *sampleQuestionsFrame = nullptr;
