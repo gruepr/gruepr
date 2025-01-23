@@ -164,8 +164,8 @@ void TeamTreeWidget::refreshSection(TeamTreeWidgetItem *sectionItem, const QStri
 }
 
 
-void TeamTreeWidget::refreshTeam(TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
-                                 const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
+void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
+                                 const QString &firstStudentName, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     if(teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) {
         return;
@@ -326,10 +326,12 @@ void TeamTreeWidget::refreshTeam(TeamTreeWidgetItem *teamItem, const TeamRecord 
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
-    teamItem->setText(column, QString::number(teamNum));
-    teamItem->setTextAlignment(column, Qt::AlignCenter);
-    teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(teamNum));
-    teamItem->setData(column, TEAMINFO_SORT_ROLE, teamNum);
+    if(refreshType == RefreshType::newTeam) {
+        teamItem->setText(column, QString::number(teamNum));
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(teamNum));
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, teamNum);
+    }
 }
 
 

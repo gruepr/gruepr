@@ -43,7 +43,8 @@ public:
     void expandAll();
     void resetDisplay(const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void refreshSection(TeamTreeWidgetItem *sectionItem, const QString &sectionName);
-    void refreshTeam(TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
+    enum class RefreshType{newTeam, existingTeam};
+    void refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum, const QString &firstStudentName,
                      const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
     void refreshStudent(TeamTreeWidgetItem *studentItem, const StudentRecord &stu,
                         const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions);
