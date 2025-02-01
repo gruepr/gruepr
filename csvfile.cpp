@@ -140,9 +140,9 @@ bool CsvFile::readHeader()
 //////////////////
 // Read a line from the file, splitting & saving field texts into fieldValues
 //////////////////
-bool CsvFile::readDataRow(bool resetToStart)
+bool CsvFile::readDataRow(ReadLocation readLocation)
 {
-    if(resetToStart) {
+    if(readLocation == ReadLocation::beginningOfFile) {
         stream->seek(0);
     }
     fieldValues = getLine(numFields);
@@ -442,13 +442,13 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
     // read up to a newline
     QString line = externalStream.readLine();
     // if there's a newline within a field, the number of " characters will be odd, so append to next newline and check again
-    while(line.count('"')%2 == 1) {
+    while(line.count('"')%2 == 1 && !externalStream.atEnd()) {
         line.append(externalStream.readLine());
     }
 
     enum {Normal, Quote} state = Normal;
     QStringList fields;
-    fields.reserve(std::max(minFields, int(line.count(','))));
+    fields.reserve(std::max(minFields, int(line.count(delimiter))));
     QString value;
 
     for(int i = 0; i < line.size(); i++) {
@@ -477,14 +477,12 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
 
         // In-quote state
         else if (state == Quote) {
-            // Another double-quote
             if (current == '"') {
+                // Another quotation mark
                 if (i < line.size()) {
-                    // A double double-quote?
                     if (i+1 < line.size() && line.at(i+1) == '"') {
+                        // Skip a second quotation mark in a row as it is the escape sequence to represent a single quotation mark
                         value += '"';
-
-                        // Skip a second quote character in a row
                         i++;
                     }
                     else {
@@ -493,9 +491,8 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
                     }
                 }
             }
-
-            // Other character
             else {
+                // Other character
                 value += current;
             }
         }
@@ -532,6 +529,5 @@ QStringList CsvFile::getLine(QTextStream &externalStream, const int minFields, c
     while(fields.size() < minFields) {
         fields.append("");
     }
-
     return fields;
 }

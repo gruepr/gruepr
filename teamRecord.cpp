@@ -238,16 +238,16 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
             numSections++;
         }
         if(teamSetDataOptions->genderIncluded) {
-            if(stu->gender == Gender::woman) {
+            if(stu->gender.contains(Gender::woman)) {
                 numWomen++;
             }
-            else if(stu->gender == Gender::man) {
+            if(stu->gender.contains(Gender::man)) {
                 numMen++;
             }
-            else if(stu->gender == Gender::nonbinary) {
+            if(stu->gender.contains(Gender::nonbinary)) {
                 numNonbinary++;
             }
-            else {
+            if (stu->gender.contains(Gender::unknown)) {
                 numUnknown++;
             }
         }

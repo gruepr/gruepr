@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['question_0',['Question',['../class_question.html#a87926727f69504d433f41e64caa0b260',1,'Question']]],
+  ['question_0',['Question',['../struct_question.html#a87926727f69504d433f41e64caa0b260',1,'Question']]],
   ['questionchange_1',['questionChange',['../class_survey_maker_multichoice_question.html#a8dd83e7b017cceb2cfeeb9c95d7fa368',1,'SurveyMakerMultichoiceQuestion']]],
   ['questionchanged_2',['questionChanged',['../class_survey_maker_multichoice_question.html#aefe8404eca35456108c6f71516181ae3',1,'SurveyMakerMultichoiceQuestion']]],
   ['questionmultischanged_3',['questionMultisChanged',['../class_multiple_choice_page.html#a41b72bacf44f5ba188de2a25bc351b31',1,'MultipleChoicePage']]],

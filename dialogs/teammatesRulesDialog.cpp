@@ -24,8 +24,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     sectionName = sectionname;
     teamSets = currTeamSets;
     students = incomingStudents;
-    positiverequestsInSurvey = dataOptions.prefTeammatesIncluded;
-    negativerequestsInSurvey = dataOptions.prefTeammatesIncluded;
+    positiverequestsInSurvey = !dataOptions.prefTeammatesField.empty();
+    negativerequestsInSurvey = !dataOptions.prefTeammatesField.empty();
     std::sort(students.begin(), students.end(), [](const StudentRecord &i, const StudentRecord &j)
                                                 {return (i.lastname+i.firstname) < (j.lastname+j.firstname);});
 
@@ -72,7 +72,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                               ui->requested_studentSelectComboBox, ui->requested_teammateSelectComboBox};
     for(auto &studentcombobox : studentcomboboxes) {
         studentcombobox->setStyleSheet(COMBOBOXSTYLE);
-        for(const auto &student : students) {
+        for(const auto &student : qAsConst(students)) {
             if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
                 studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
             }
@@ -162,9 +162,9 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     ui->requested_lightbulb->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     ui->requested_whatsThisLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     const QString helpText = tr("<html><span style=\"color: black;\">The \"requested teammate\" feature is used when you want to ensure that "
-                                "students will be with placed on a team with a certain number of teammates from a list. "
-                                "For example, you might allow students to make up to five requests, and use this feature so that everyone gets "
-                                "placed with at least one from their list."
+                                "students will be placed on a team with a certain number of teammates from a list. "
+                                "For example, you might allow students to make up to 5 requests, and ensure that they each get "
+                                "at least 1 of them as a teammate."
                                 "</span></html>");
     ui->requested_lightbulb->setToolTipText(helpText);
     ui->requested_whatsThisLabel->setToolTipText(helpText);
@@ -288,7 +288,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
         }
 
         bool printStudent;
-        for(const auto studentBID : allIDs) {
+        for(const auto studentBID : qAsConst(allIDs)) {
             if(typeOfTeammates == TypeOfTeammates::required) {
                 printStudent = baseStudent->requiredWith.contains(studentBID);
             }
@@ -383,7 +383,7 @@ void TeammatesRulesDialog::addTeammateSelector(TypeOfTeammates typeOfTeammates)
 
     auto *studentcombobox = new QComboBox(this);
     studentcombobox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &student : students) {
+    for(const auto &student : qAsConst(students)) {
         studentcombobox->setPlaceholderText(comboBoxes->first()->placeholderText());
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
@@ -408,7 +408,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         comboBoxes = possibleRequestedTeammates;
     }
     QList<int> IDs;
-    for(const auto &comboBox : comboBoxes) {
+    for(const auto &comboBox : qAsConst(comboBoxes)) {
         //If a student is selected in this combobox, load their ID into an array that holds all the selections
         if(comboBox->currentIndex() != -1) {
             IDs << comboBox->currentData().toInt();
@@ -472,7 +472,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         if(index < numStudents) {
             baseStudent = &students[index];
 
-            for(const int ID : IDs) {
+            for(const int ID : qAsConst(IDs)) {
                 if(baseStudentID != ID) {
                     //we have at least one requested teammate pair!
                     baseStudent->requestedWith << ID;
@@ -629,7 +629,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
         teammates[basestudent].prepend(basenames.at(basestudent));
     }
 
-    QList<int> IDs;
+    QList<long long> IDs;
     for(int basename = 0; basename < basenames.size(); basename++) {
         IDs.clear();
         for(const auto &searchStudent : teammates.at(basename)) {   // searchStudent is the name we're looking for
@@ -704,7 +704,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
 bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
 {
     // Need to convert names to IDs and then add all to the preferences
-    QList<int> IDs;
+    QList<long long> IDs;
     for(int basestudent = 0; basestudent < numStudents; basestudent++) {
         if((sectionName == "") || (sectionName == students[basestudent].section)) {
             QStringList prefs;
@@ -841,7 +841,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
 
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
-    QList<int> IDs;
+    QList<long long> IDs;
     for(const auto &teammateList : qAsConst(teammateLists)) {
         IDs.clear();
         IDs.reserve(teammateList.size());

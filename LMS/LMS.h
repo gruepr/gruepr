@@ -5,22 +5,21 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QNetworkReply>
 #include <QOAuth2AuthorizationCodeFlow>
 #include <QOAuthHttpServerReplyHandler>
-#include <QtNetwork>
 
 
 class grueprOAuthHttpServerReplyHandler : public QOAuthHttpServerReplyHandler
 {
     Q_OBJECT
-
-public:
-    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {}
+    friend class LMS;
 
 signals:
     void error(const QString &errorString);
 
 private:
+    grueprOAuthHttpServerReplyHandler(quint16 port, QObject *parent = nullptr) : QOAuthHttpServerReplyHandler(port, parent) {}
     void networkReplyFinished(QNetworkReply *reply) override;
 };
 

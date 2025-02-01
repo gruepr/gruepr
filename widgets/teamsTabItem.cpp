@@ -1,8 +1,7 @@
 #include "teamsTabItem.h"
-#include "LMS/canvashandler.h"
 #include "dialogs/customTeamnamesDialog.h"
-#include "dialogs/whichFilesDialog.h"
 #include "gruepr.h"
+#include "LMS/canvashandler.h"
 #include "widgets/labelWithInstantTooltip.h"
 #include <QApplication>
 #include <QFileDialog>
@@ -10,35 +9,40 @@
 #include <QFrame>
 #include <QFuture>
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPrintDialog>
 #include <QTextDocument>
 #include <QTextStream>
-#include <QtConcurrent>
+#include <QTimer>
+#include <QtConcurrentRun>
 #include <QVBoxLayout>
 
 const QStringList TeamsTabItem::teamnameCategories = QString(TEAMNAMECATEGORIES).split(",");
 const QStringList TeamsTabItem::teamnameLists = QString(TEAMNAMELISTS).split(';');
 
 TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet &incomingTeamSet, QList<StudentRecord> &incomingStudents,
-                           const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent)
+                           const QStringList &incomingSectionNames, const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent)
     : QWidget(parent)
 {
     teamingOptions = new TeamingOptions(incomingTeamingOptions);   // teamingOptions might change, so need to hold on to values when teams were made to use in print/save
+    sectionNames = incomingSectionNames;
     teams = incomingTeamSet;
     students = incomingStudents;
     numStudents = students.size();
     tabName = incomingTabName;
 
-    init(incomingTeamingOptions, incomingStudents, letsDoItButton);
+    init(incomingTeamingOptions, incomingStudents, letsDoItButton, TabType::newTab);
 }
 
-TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, QWidget *parent)
+TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents,
+                           const QStringList &incomingSectionNames, QPushButton *letsDoItButton, QWidget *parent)
     :QWidget(parent)
 {
     teamingOptions = new TeamingOptions(jsonTeamsTab["teamingOptions"].toObject());
+    sectionNames = incomingSectionNames;
     numStudents = jsonTeamsTab["numStudents"].toInt();
     const QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
     students.reserve(studentsArray.size());
@@ -48,15 +52,17 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     QJsonArray teamsArray = jsonTeamsTab["teams"].toArray();
     teams.dataOptions = DataOptions(teamsArray.begin()->toObject()["dataOptions"].toObject());
     teams.reserve(teamsArray.size());
-    for(const auto &team : teamsArray) {
+    for(const auto &team : qAsConst(teamsArray)) {
         teams.emplaceBack(&teams.dataOptions, team.toObject(), students);
     }
+    randomizedTeamNames = jsonTeamsTab["randomizedNames"].toBool();
+    sectionsInTeamNames = jsonTeamsTab["sectionsInNames"].toBool();
     tabName = jsonTeamsTab["tabName"].toString();
 
-    init(incomingTeamingOptions, incomingStudents, letsDoItButton);
+    init(incomingTeamingOptions, incomingStudents, letsDoItButton, TabType::fromJSON);
 }
 
-void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton)
+void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, TabType tabType)
 {
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     externalTeamingOptions = &incomingTeamingOptions;
@@ -143,16 +149,27 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     teamnamesComboBox->addItems(teamnameCategories);
     teamnamesComboBox->addItem(tr("Custom names..."));
     teamnamesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    connect(teamnamesComboBox, QOverload<int>::of(&QComboBox::activated), this, &TeamsTabItem::teamNamesChanged);
+    connect(teamnamesComboBox, QOverload<int>::of(&QComboBox::activated), this, &TeamsTabItem::changeTeamNames);
     teamOptionsLayout->addWidget(teamnamesComboBox);
 
     randTeamnamesCheckBox = new QCheckBox(tr("Randomize"), this);
     randTeamnamesCheckBox->setStyleSheet(CHECKBOXSTYLE);
     randTeamnamesCheckBox->setEnabled(false);
-    randTeamnamesCheckBox->setChecked(false);
+    randTeamnamesCheckBox->setChecked(randomizedTeamNames);
     randTeamnamesCheckBox->setToolTip(tr("Select to randomize the order of the team names"));
     connect(randTeamnamesCheckBox, &QCheckBox::clicked, this, &TeamsTabItem::randomizeTeamnames);
     teamOptionsLayout->addWidget(randTeamnamesCheckBox);
+
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        addSectionToTeamnamesCheckBox = new QCheckBox(tr("Add Section"), this);
+        addSectionToTeamnamesCheckBox->setStyleSheet(CHECKBOXSTYLE);
+        addSectionToTeamnamesCheckBox->setChecked(sectionsInTeamNames);
+        addSectionToTeamnamesCheckBox->setToolTip(tr("Add the section name to the team names"));
+        connect(addSectionToTeamnamesCheckBox, &QCheckBox::toggled, this, &TeamsTabItem::toggleSectionsInTeamNames);
+        teamOptionsLayout->addWidget(addSectionToTeamnamesCheckBox);
+    }
+
+    teamOptionsLayout->addStretch(1);
 
     auto *sendToPreventedTeammates = new QPushButton(tr("Create teams with all new teammates"), this);
     sendToPreventedTeammates->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -192,31 +209,46 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     connect(postTeamsButton, &QPushButton::clicked, this, &TeamsTabItem::postTeamsToCanvas);
     savePrintLayout->addWidget(postTeamsButton);
 
-    teamDataTree->collapseAll();
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
+    if(tabType == TabType::newTab) {
+        teamDataTree->sortByColumn(0, Qt::AscendingOrder);
+        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
+    }
+    else {
+        teamDataTree->sortByColumn(teamDataTree->columnCount() - 1, Qt::AscendingOrder);
+        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/upDownButton_white.png"));
+    }
     refreshTeamDisplay();
-    teamDataTree->sortByColumn(0, Qt::AscendingOrder);
-    teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
     refreshDisplayOrder();
-    connect(teamDataTree, &TeamTreeWidget::swapChildren, this, &TeamsTabItem::swapStudents);
-    connect(teamDataTree, &TeamTreeWidget::reorderParents, this, &TeamsTabItem::moveATeam);
-    connect(teamDataTree, &TeamTreeWidget::moveChild, this, &TeamsTabItem::moveAStudent);
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        //expand the sections, then collapse the teams
+        teamDataTree->expandAll();
+        teamDataTree->collapseAll();
+    }
+
+    connect(teamDataTree, &TeamTreeWidget::swapStudents, this, &TeamsTabItem::swapStudents);
+    connect(teamDataTree, &TeamTreeWidget::reorderTeams, this, &TeamsTabItem::moveATeam);
+    connect(teamDataTree, &TeamTreeWidget::moveStudent, this, &TeamsTabItem::moveAStudent);
     connect(teamDataTree, &TeamTreeWidget::updateTeamOrder, this, &TeamsTabItem::refreshDisplayOrder);
 }
 
 TeamsTabItem::~TeamsTabItem()
 {
-    // delete dynamically allocated objects
     delete teamingOptions;
 }
 
 
 QJsonObject TeamsTabItem::toJson() const
 {
-    QJsonArray teamsArray, studentsArray;
-    for(const auto &team : teams) {
+    // Get team numbers in the order that they are currently displayed/sorted
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
+
+    QJsonArray teamsArray;
+    for(const auto teamNum : teamDisplayNums) {
+        auto &team = teams[teamNum];
         teamsArray.append(team.toJson());
     }
+    QJsonArray studentsArray;
     for(const auto &student : students) {
         studentsArray.append(student.toJson());
     }
@@ -226,6 +258,8 @@ QJsonObject TeamsTabItem::toJson() const
         {"teams", teamsArray},
         {"students", studentsArray},
         {"numStudents", numStudents},
+        {"randomizedNames", randomizedTeamNames},
+        {"sectionsInNames", sectionsInTeamNames},
         {"tabName", tabName}
     };
 
@@ -233,7 +267,7 @@ QJsonObject TeamsTabItem::toJson() const
 }
 
 
-void TeamsTabItem::teamNamesChanged(int index)
+void TeamsTabItem::changeTeamNames(int index)
 {
     static int prevIndex = 0;   // hold on to previous index, so we can go back to it if cancelling custom team name dialog box
 
@@ -248,34 +282,42 @@ void TeamsTabItem::teamNamesChanged(int index)
     // Set team names to:
     if(index == 0) {
         // arabic numbers
-        for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = QString::number(team+1);
+        unsigned int team = 1;
+        for(const auto teamNum : teamDisplayNums) {
+            teams[teamNum].name = QString::number(team);
+            team++;
         }
         prevIndex = 0;
     }
     else if(index == 1) {
         // roman numerals
-        const QString M[] = {"","M","MM","MMM"};
-        const QString C[] = {"","C","CC","CCC","CD","D","DC","DCC","DCCC","CM"};
-        const QString X[] = {"","X","XX","XXX","XL","L","LX","LXX","LXXX","XC"};
-        const QString I[] = {"","I","II","III","IV","V","VI","VII","VIII","IX"};
-        for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = M[(team+1)/1000]+C[((team+1)%1000)/100]+X[((team+1)%100)/10]+I[((team+1)%10)];
+        const QStringList M = {"","M","MM","MMM"};
+        const QStringList C = {"","C","CC","CCC","CD","D","DC","DCC","DCCC","CM"};
+        const QStringList X = {"","X","XX","XXX","XL","L","LX","LXX","LXXX","XC"};
+        const QStringList I = {"","I","II","III","IV","V","VI","VII","VIII","IX"};
+        unsigned int team = 1;
+        for(const auto teamNum : teamDisplayNums) {
+            teams[teamNum].name = M.at(team/1000) + C.at(((team)%1000)/100) + X.at(((team)%100)/10) + I.at(((team)%10));
+            team++;
         }
         prevIndex = 1;
     }
     else if(index == 2) {
         // hexadecimal numbers
-        for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = QString::number(team, 16).toUpper();
+        unsigned int team = 0;
+        for(const auto teamNum : teamDisplayNums) {
+            teams[teamNum].name = QString::number(team, 16).toUpper();
+            team++;
         }
         prevIndex = 2;
     }
     else if(index == 3) {
         // binary numbers
         const int numDigitsInLargestTeam = QString::number(int(teams.size())-1, 2).size();       // the '-1' is to make the first team 0
-        for(int team = 0; team < teams.size(); team++) {
-            teams[teamDisplayNums.at(team)].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
+        unsigned int team = 0;
+        for(const auto teamNum : teamDisplayNums) {
+            teams[teamNum].name = QString::number(team, 2).rightJustified(numDigitsInLargestTeam, '0'); // pad w/ 0 to use same number of digits
+            team++;
         }
         prevIndex = 3;
     }
@@ -292,25 +334,27 @@ void TeamsTabItem::teamNamesChanged(int index)
             std::shuffle(random_order.begin(), random_order.end(), pRNG);
         }
 
-        for(int team = 0; team < teams.size(); team++) {
+        unsigned int team = 0;
+        for(const auto teamNum : teamDisplayNums) {
             switch(teamNameType) {
                 case TeamNameType::numeric:
                     break;
                 case TeamNameType::repeated:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]).repeated((team/teamNames.size())+1);
+                    teams[teamNum].name = (teamNames[team%(teamNames.size())]).repeated((team/teamNames.size())+1);
                     break;
                 case TeamNameType::repeated_spaced:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
+                    teams[teamNum].name = (teamNames[team%(teamNames.size())]+" ").repeated((team/teamNames.size())+1).trimmed();
                     break;
                 case TeamNameType::sequeled:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[team%(teamNames.size())]) +
-                                                           ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
+                    teams[teamNum].name = (teamNames[team%(teamNames.size())]) +
+                                            ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
                     break;
                 case TeamNameType::random_sequeled:
-                    teams[teamDisplayNums.at(team)].name = (teamNames[random_order[team%(teamNames.size())]]) +
-                                                           ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
+                    teams[teamNum].name = (teamNames[random_order[team%(teamNames.size())]]) +
+                                            ((team/teamNames.size() == 0) ? "" : " " + QString::number(team/teamNames.size()+1));
                     break;
             }
+            team++;
         }
         prevIndex = index;
     }
@@ -321,16 +365,18 @@ void TeamsTabItem::teamNamesChanged(int index)
         // Open custom dialog box to collect teamnames
         QStringList currentTeamNames;
         currentTeamNames.reserve(teams.size());
-        for(int team = 0; team < teams.size(); team++) {
-            currentTeamNames << teams[teamDisplayNums.at(team)].name;
+        for(const auto teamNum : teamDisplayNums) {
+            currentTeamNames << teams[teamNum].name;
         }
         auto *window = new customTeamnamesDialog(int(teams.size()), currentTeamNames, this);
 
         // If user clicks OK, use these team names, otherwise revert to previous option
         const int reply = window->exec();
         if(reply == QDialog::Accepted) {
-            for(int team = 0; team < teams.size(); team++) {
-                    teams[teamDisplayNums.at(team)].name = (window->teamNames[team]);
+            unsigned int team = 0;
+            for(const auto teamNum : teamDisplayNums) {
+                teams[teamNum].name = (window->teamNames[team]);
+                team++;
             }
             prevIndex = int(teamnameLists.size());
             const bool currentValue = teamnamesComboBox->blockSignals(true);
@@ -357,110 +403,77 @@ void TeamsTabItem::teamNamesChanged(int index)
         teamnamesComboBox->addItem(tr("Custom names..."));
     }
 
-    // Update team names in table and tooltips
-    for(int team = 0; team < teams.size(); team++) {
-        teams[team].createTooltip();
-        teamDataTree->topLevelItem(team)->setText(0, tr("Team ") + teams[teamDisplayNums.at(team)].name);
-        teamDataTree->topLevelItem(team)->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
-        teamDataTree->topLevelItem(team)->setData(0, TEAMINFO_DISPLAY_ROLE, tr("Team ") + teams[teamDisplayNums.at(team)].name);
-        for(int column = 0, numColsForToolTips = teamDataTree->columnCount()-1; column < numColsForToolTips; column++) {
-            teamDataTree->topLevelItem(team)->setToolTip(column, teams[teamDisplayNums.at(team)].tooltip);
+    // prepend section names, if applicable
+    if((addSectionToTeamnamesCheckBox != nullptr) && addSectionToTeamnamesCheckBox->isChecked()) {
+        for(const auto teamNum : teamDisplayNums) {
+            auto &team = teams[teamNum];
+            const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
+            team.name.prepend(firstStudent->section + "-");
         }
     }
-    teamDataTree->resizeColumnToContents(0);
+
+    updateTeamNamesInTableAndTooltips();
+
+    // Update team names in table and tooltips
     emit saveState();
 }
 
 
-void TeamsTabItem::randomizeTeamnames()
+void TeamsTabItem::toggleSectionsInTeamNames(bool addSectionNames)
 {
-    teamNamesChanged(teamnamesComboBox->currentIndex());
-}
+    sectionsInTeamNames = addSectionNames;
 
+    // Get team numbers in the order that they are currently displayed/sorted
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
 
-void TeamsTabItem::makeNewSetWithAllNewTeammates()
-{
-    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
-        const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current ") + (teamingOptions->haveAnyRequiredTeammates? tr("required") : "") +
-                                                                             ((teamingOptions->haveAnyRequiredTeammates && teamingOptions->haveAnyRequestedTeammates)? tr(" and ") : "") +
-                                                                             ((teamingOptions->haveAnyRequestedTeammates)? tr("requested") : "") +
-                                                                            tr(" teammate settings. Do you want to continue?"),
-                                                            tr("Yes"), tr("No"));
-        if(yesDoIt) {
-            for(auto &student : *externalStudents) {
-                student.requiredWith.clear();
-                student.requestedWith.clear();
+    for(const auto teamNum : teamDisplayNums) {
+        auto &team = teams[teamNum];
+        const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
+        if(firstStudent != nullptr) {
+            const QString sectionNotifier = firstStudent->section + "-";
+            if(addSectionNames) {
+                team.name.prepend(sectionNotifier);
             }
-        }
-        else {
-            return;
-        }
-    }
-
-    for(const auto &team : qAsConst(teams)) {
-        for(const auto ID1 : qAsConst(team.studentIDs)) {
-            for(const auto ID2 : qAsConst(team.studentIDs)) {
-                if(ID1 != ID2) {
-                    StudentRecord* stu = nullptr;
-                    for(auto &student1 : *externalStudents) {
-                        if(student1.ID == ID1) {
-                            stu = &student1;
-                        }
-                    }
-                    if(stu == nullptr) {
-                        continue;
-                    }
-                    stu->preventedWith << ID2;
-                }
+            else {
+                team.name.replace(team.name.indexOf(sectionNotifier), sectionNotifier.size(), "");
             }
         }
     }
 
-    externalTeamingOptions->haveAnyPreventedTeammates = true;
-    externalDoItButton->animateClick();
+    updateTeamNamesInTableAndTooltips();
 }
 
 
-void TeamsTabItem::refreshDisplayOrder()
+void TeamsTabItem::randomizeTeamnames(bool random)
 {
-    // Any time teams have been reordered, refresh the hidden display order column
-    const int lastCol = teamDataTree->columnCount()-1;
-    for(int row = 0; row < teams.size(); row++) {
-        auto *const teamItem = teamDataTree->topLevelItem(row);
-        teamItem->setData(lastCol, TEAMINFO_SORT_ROLE, row);
-        teamItem->setData(lastCol, TEAMINFO_DISPLAY_ROLE, QString::number(row));
-        teamItem->setText(lastCol, QString::number(row));
-    }
+    randomizedTeamNames = random;
+    changeTeamNames(teamnamesComboBox->currentIndex());
 }
 
 
-QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder()
+void TeamsTabItem::updateTeamNamesInTableAndTooltips()
 {
-    QList<int> teamDisplayNums;
-    teamDisplayNums.reserve(teams.size());
-    const int lastCol = teamDataTree->columnCount()-1;
-    for(int order = 0; order < teams.size(); order++) {
-        int row = 0;
-        while((teamDataTree->topLevelItem(row)->data(lastCol, TEAMINFO_SORT_ROLE).toInt() != order) && (row < teams.size())) {
-            row++;
+    auto item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    while(item != nullptr) {
+        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            int teamNum = item->data(0, TEAM_NUMBER_ROLE).toInt();
+            teams[teamNum].createTooltip();
+            item->setText(0, tr("Team ") + teams[teamNum].name);
+            item->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
+            item->setData(0, TEAMINFO_DISPLAY_ROLE, tr("Team ") + teams[teamNum].name);
+            for(int column = 0, numColsForToolTips = teamDataTree->columnCount()-1; column < numColsForToolTips; column++) {
+                item->setToolTip(column, teams[teamNum].tooltip);
+            }
         }
-        teamDisplayNums << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
+        item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
     }
-    return teamDisplayNums;
+
+    teamDataTree->resizeColumnToContents(0);
+    return;
 }
 
 
-inline StudentRecord* TeamsTabItem::findStudentFromID(const int ID){
-    for(auto &student : students) {
-        if(student.ID == ID) {
-            return &student;
-        }
-    }
-    return nullptr;
-}
-
-
-void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
+void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> arguments = studentAteamNum, studentAID, studentBteamNum, studentBID
 {
     if(arguments.size() != 4) {
         return;
@@ -470,6 +483,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
     //Sanity and bounds checks
     if((studentAID == studentBID) ||
+        (studentAID < 0) || (studentBID < 0) ||
         (studentATeamNum < 0) || (studentATeamNum > teams.size()) ||
         (studentBTeamNum < 0) || (studentBTeamNum > teams.size())) {
         return;
@@ -500,6 +514,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
+    refreshDisplayOrder();
     teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
@@ -509,34 +524,35 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
                   studentBTeam.studentIDs[studentBTeam.studentIDs.indexOf(studentB->ID)]);      //(of course, studentATeam == studentBTeam)
 
         // Re-score the teams and refresh all the info
-        gruepr::calcTeamScores(students, numStudents, teams, int(teams.size()), teamingOptions, &teams.dataOptions);
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
         teams[studentATeamNum].refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         teams[studentATeamNum].createTooltip();
 
         //get the team item in the tree
-        QTreeWidgetItem *teamItem = nullptr;
-        int row = 0;
-        while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentATeamNum) && (row < teams.size())) {
-            row++;
+        auto teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+        while((teamItem != nullptr) &&
+               ((teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+                (teamItem->data(0, TEAM_NUMBER_ROLE).toInt() != studentATeamNum))) {
+            teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamItem));
         }
-        teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
-
-        //clear and refresh student items in table
-        for(auto &child : teamItem->takeChildren()) {
-            delete child;
-        }
-        const int numStudentsOnTeam = studentATeam.size;
-        QList<TeamTreeWidgetItem*> childItems;
-        childItems.reserve(numStudentsOnTeam);
-        for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++) {
-            //Find each teammate based on the ID and make them a leaf on the old team
-            const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
-            if(teammate == nullptr) {
-                continue;
+        if((teamItem != nullptr) && (teamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
+            //clear and refresh this team's student items in table
+            for(auto &child : teamItem->takeChildren()) {
+                delete child;
             }
-            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            teamItem->addChild(childItems[studentNum]);
+            const int numStudentsOnTeam = studentATeam.size;
+            QList<TeamTreeWidgetItem*> childItems;
+            childItems.reserve(numStudentsOnTeam);
+            for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++) {
+                //Find each teammate based on the ID and make them a leaf on the old team
+                const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
+                if(teammate == nullptr) {
+                    continue;
+                }
+                childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+                teamItem->addChild(childItems[studentNum]);
+            }
         }
     }
     else {
@@ -545,70 +561,74 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         studentBTeam.studentIDs.replace(studentBTeam.studentIDs.indexOf(studentB->ID), studentA->ID);
 
         //get the team items in the tree
-        TeamTreeWidgetItem *studentATeamItem = nullptr, *studentBTeamItem = nullptr;
-        int row = 0;
-        while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentATeamNum) && (row < teams.size())) {
-            row++;
+        auto studentATeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+        while((studentATeamItem != nullptr) &&
+               ((studentATeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+                (studentATeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != studentATeamNum))) {
+            studentATeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(studentATeamItem));
         }
-        studentATeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
-        row = 0;
-        while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != studentBTeamNum) && (row < teams.size())) {
-            row++;
+        auto studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+        while((studentBTeamItem != nullptr) &&
+               ((studentBTeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+                (studentBTeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != studentBTeamNum))) {
+            studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(studentBTeamItem));
         }
-        studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
         //refresh the info for both teams
-        gruepr::calcTeamScores(students, numStudents, teams, int(teams.size()), teamingOptions, &teams.dataOptions);
-        studentATeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-        studentATeam.createTooltip();
-        studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-        studentBTeam.createTooltip();
-        for(const auto &stu : qAsConst(students)) {
-            if(studentATeam.studentIDs.first() == stu.ID) {
-                const QString firstStudentName = stu.lastname + stu.firstname;
-                const QString &firstStudentSection = stu.section;
-                teamDataTree->refreshTeam(studentATeamItem, studentATeam, studentATeamNum, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
+        if((studentATeamItem != nullptr) && (studentATeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) &&
+            (studentBTeamItem != nullptr) && (studentBTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
+            gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
+            studentATeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+            studentATeam.createTooltip();
+            studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+            studentBTeam.createTooltip();
+            for(const auto &stu : qAsConst(students)) {
+                if(studentATeam.studentIDs.first() == stu.ID) {
+                    const QString firstStudentName = stu.lastname + stu.firstname;
+                    teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentATeamItem, studentATeam,
+                                              studentATeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                }
+                else if(studentBTeam.studentIDs.first() == stu.ID) {
+                    const QString firstStudentName = stu.lastname + stu.firstname;
+                    teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentBTeamItem, studentBTeam,
+                                              studentBTeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                }
             }
-            else if(studentBTeam.studentIDs.first() == stu.ID) {
-                const QString firstStudentName = stu.lastname + stu.firstname;
-                const QString &firstStudentSection = stu.section;
-                teamDataTree->refreshTeam(studentBTeamItem, studentBTeam, studentBTeamNum, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
-            }
-        }
-        studentATeamItem->setScoreColor(studentATeam.score);
-        studentBTeamItem->setScoreColor(studentBTeam.score);
+            studentATeamItem->setScoreColor(studentATeam.score);
+            studentBTeamItem->setScoreColor(studentBTeam.score);
 
-        //clear and refresh student items on both teams in table
-        for(auto &child : studentATeamItem->takeChildren()) {
-            delete child;
-        }
-        for(auto &child : studentBTeamItem->takeChildren()) {
-            delete child;
-        }
-        const int numStudentsOnTeamA = studentATeam.size;
-        const int numStudentsOnTeamB = studentBTeam.size;
-        QList<TeamTreeWidgetItem*> childItems;
-        childItems.reserve(std::max(numStudentsOnTeamA, numStudentsOnTeamB));
-        for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++) {
-            //Find each teammate based on the ID and make them a leaf on the team
-            const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
-            if(teammate == nullptr) {
-                continue;
+            //clear and refresh student items on both teams in table
+            for(auto &child : studentATeamItem->takeChildren()) {
+                delete child;
             }
-            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            studentATeamItem->addChild(childItems[studentNum]);
-        }
-        childItems.clear();
-        for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++) {
-            //Find each teammate based on the ID and make them a leaf on the team
-            const StudentRecord* teammate = findStudentFromID(studentBTeam.studentIDs.at(studentNum));
-            if(teammate == nullptr) {
-                continue;
+            for(auto &child : studentBTeamItem->takeChildren()) {
+                delete child;
             }
-            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            studentBTeamItem->addChild(childItems[studentNum]);
+            const int numStudentsOnTeamA = studentATeam.size;
+            const int numStudentsOnTeamB = studentBTeam.size;
+            QList<TeamTreeWidgetItem*> childItems;
+            childItems.reserve(std::max(numStudentsOnTeamA, numStudentsOnTeamB));
+            for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++) {
+                //Find each teammate based on the ID and make them a leaf on the team
+                const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
+                if(teammate == nullptr) {
+                    continue;
+                }
+                childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+                studentATeamItem->addChild(childItems[studentNum]);
+            }
+            childItems.clear();
+            for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++) {
+                //Find each teammate based on the ID and make them a leaf on the team
+                const StudentRecord* teammate = findStudentFromID(studentBTeam.studentIDs.at(studentNum));
+                if(teammate == nullptr) {
+                    continue;
+                }
+                childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+                studentBTeamItem->addChild(childItems[studentNum]);
+            }
         }
     }
 
@@ -658,6 +678,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order
+    refreshDisplayOrder();
     teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
@@ -668,71 +689,75 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     newTeam.size++;
 
     //get the team items in the tree
-    TeamTreeWidgetItem *oldTeamItem = nullptr, *newTeamItem = nullptr;
-    int row = 0;
-    while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != oldTeamNum) && (row < teams.size())) {
-        row++;
+    auto oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    while((oldTeamItem != nullptr) &&
+           ((oldTeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+            (oldTeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != oldTeamNum))) {
+        oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(oldTeamItem));
     }
-    oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
-    row = 0;
-    while((teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() != newTeamNum) && (row < teams.size())) {
-        row++;
+    auto newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    while((newTeamItem != nullptr) &&
+           ((newTeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+            (newTeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != newTeamNum))) {
+        newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(newTeamItem));
     }
-    newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(row));
 
     //refresh the info, tooltip, treeitem for both teams
-    gruepr::calcTeamScores(students, numStudents, teams, int(teams.size()), teamingOptions, &teams.dataOptions);
-    oldTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-    oldTeam.createTooltip();
-    newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
-    newTeam.createTooltip();
-    for(const auto &stu : qAsConst(students)) {
-        if(oldTeam.studentIDs.first() == stu.ID) {
-            const QString firstStudentName = stu.lastname + stu.firstname;
-            const QString &firstStudentSection = stu.section;
-            teamDataTree->refreshTeam(oldTeamItem, oldTeam, oldTeamNum, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
+    if((oldTeamItem != nullptr) && (oldTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) &&
+        (newTeamItem != nullptr) && (newTeamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team)) {
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
+        oldTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        oldTeam.createTooltip();
+        newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        newTeam.createTooltip();
+        for(const auto &stu : qAsConst(students)) {
+            if(oldTeam.studentIDs.first() == stu.ID) {
+                const QString firstStudentName = stu.lastname + stu.firstname;
+                teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, oldTeamItem, oldTeam,
+                                          oldTeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+            }
+            else if(newTeam.studentIDs.first() == stu.ID) {
+                const QString firstStudentName = stu.lastname + stu.firstname;
+                teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, newTeamItem, newTeam,
+                                          newTeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+            }
         }
-        else if(newTeam.studentIDs.first() == stu.ID) {
-            const QString firstStudentName = stu.lastname + stu.firstname;
-            const QString &firstStudentSection = stu.section;
-            teamDataTree->refreshTeam(newTeamItem, newTeam, newTeamNum, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
-        }
-    }
-    oldTeamItem->setScoreColor(oldTeam.score);
-    newTeamItem->setScoreColor(newTeam.score);
+        oldTeamItem->setScoreColor(oldTeam.score);
+        newTeamItem->setScoreColor(newTeam.score);
 
-    //clear and refresh student items on both teams in table
-    for(auto &child : oldTeamItem->takeChildren()) {
-        delete child;
-    }
-    for(auto &child : newTeamItem->takeChildren()) {
-        delete child;
-    }
-    //clear and refresh student items on both teams in table
-    const int numStudentsOnOldTeam = oldTeam.size;
-    const int numStudentsOnNewTeam = newTeam.size;
-    QList<TeamTreeWidgetItem*> childItems;
-    childItems.reserve(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
-    for(int studentNum = 0; studentNum < numStudentsOnOldTeam; studentNum++) {
-        //Find each teammate based on the ID and make them a leaf on the old team
-        const StudentRecord* teammate = findStudentFromID(oldTeam.studentIDs.at(studentNum));
-        if(teammate == nullptr) {
-            continue;
+        //clear and refresh student items on both teams in table
+        for(auto &child : oldTeamItem->takeChildren()) {
+            delete child;
         }
-        childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-        teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-        oldTeamItem->addChild(childItems[studentNum]);
-    }
-    childItems.clear();
-    for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++) {
-        //Find each teammate based on the ID and make them a leaf on the new team
-        const StudentRecord* teammate = findStudentFromID(newTeam.studentIDs.at(studentNum));
-        if(teammate == nullptr) {
-            continue;
+        for(auto &child : newTeamItem->takeChildren()) {
+            delete child;
         }
-        childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-        teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-        newTeamItem->addChild(childItems[studentNum]);
+        //clear and refresh student items on both teams in table
+        const int numStudentsOnOldTeam = oldTeam.size;
+        const int numStudentsOnNewTeam = newTeam.size;
+        QList<TeamTreeWidgetItem*> childItems;
+        childItems.reserve(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
+        for(int studentNum = 0; studentNum < numStudentsOnOldTeam; studentNum++) {
+            //Find each teammate based on the ID and make them a leaf on the old team
+            const StudentRecord* teammate = findStudentFromID(oldTeam.studentIDs.at(studentNum));
+            if(teammate == nullptr) {
+                continue;
+            }
+            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+            oldTeamItem->addChild(childItems[studentNum]);
+        }
+        childItems.clear();
+        for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++) {
+            //Find each teammate based on the ID and make them a leaf on the new team
+            const StudentRecord* teammate = findStudentFromID(newTeam.studentIDs.at(studentNum));
+            if(teammate == nullptr) {
+                continue;
+            }
+            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+            newTeamItem->addChild(childItems[studentNum]);
+        }
     }
 
     teamDataTree->setUpdatesEnabled(true);
@@ -746,33 +771,48 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
         return;
     }
 
-    int teamANum = arguments.at(0), teamBNum = arguments.at(1);   // teamB = -1 if moving to the last row
+    int teamANum = arguments.at(0), teamBNum = arguments.at(1);   // teamB = SORT_TO_END if moving to the last row
 
     //Sanity and bounds check on teamNums
     if((teamANum == teamBNum) ||
         (teamANum < 0) || (teamANum > teams.size()) ||
-        (teamBNum < -1) || (teamBNum > teams.size())) {
+        (teamBNum < 0) || ((teamBNum > teams.size()) && teamBNum != SORT_TO_END)) {
         return;
     }
 
-    // find the teamA and teamB top level items in teamDataTree
-    int teamARow = 0, teamBRow = teamDataTree->topLevelItemCount();    // teamBRow == teamDataTree->topLevelItemCount() will correspond to teamB == -1
-    for(int row = 0; row < teams.size(); row++) {
-        if(teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamANum) {
-            teamARow = row;
-        }
-        else if(teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt() == teamBNum) {
-            teamBRow = row;
-        }
+    // find the teamA and teamB items in teamDataTree, saving a pointer to the item and their visual order# in the display
+    auto teamAItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    while((teamAItem != nullptr) &&
+           ((teamAItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+            (teamAItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamANum))) {
+        teamAItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
     }
+    const int teamASortOrder = ((teamAItem != nullptr) ? (teamAItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt()) : -1);
+    auto teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    int largestSortOrder = 0;
+    while((teamBItem != nullptr) &&
+           ((teamBItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+            (teamBItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamBNum))) {
+        if(teamBItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            largestSortOrder = teamBItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
+        }
+        teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamBItem));
+    }
+    const int teamBSortOrder = ((teamBItem != nullptr) ? (teamBItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt()) : (largestSortOrder + 1));
 
-    if(teamBRow - teamARow == 1) {           // dragging just one row down ==> no change in order
+    if((teamASortOrder == -1) || (teamBSortOrder - teamASortOrder == 1) || (teamAItem == nullptr)) {
+        // error or dragging just one row down ==> no change in order
         return;
     }
 
     //Load undo onto stack and clear redo stack
-    const int teamBelowTeamA = ((teamARow < teams.size()-1) ? teamDataTree->topLevelItem(teamARow+1)->data(0, TEAM_NUMBER_ROLE).toInt() : -1);
-    const QString UndoTooltip = tr("Undo reordering Team ") + teams[teamANum].name;
+    auto itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
+    while((itemBelowTeamA != nullptr) && (itemBelowTeamA->treeItemType != TeamTreeWidgetItem::TreeItemType::team)) {
+        itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(itemBelowTeamA));
+    }
+    const int teamBelowTeamA = ((itemBelowTeamA != nullptr) && itemBelowTeamA->treeItemType == TeamTreeWidgetItem::TreeItemType::team) ?
+                                   itemBelowTeamA->data(0, TEAM_NUMBER_ROLE).toInt() : SORT_TO_END;
+    const QString UndoTooltip = tr("Undo moving Team ") + teams[teamANum].name;
     undoItems.prepend({&TeamsTabItem::moveATeam, {teamANum, teamBelowTeamA}, UndoTooltip});
     undoButton->setEnabled(true);
     undoButton->setToolTip(UndoTooltip);
@@ -785,44 +825,54 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     //hold current sort order, then adjust sort data for teamA and teamB, then resort
     teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
-    if(teamARow - teamBRow == 1) {   // dragging just one row above ==> just swap the two
-        // swap sort column data
-        const int teamASortOrder = teamDataTree->topLevelItem(teamARow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-        const int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamASortOrder);
-        teamDataTree->topLevelItem(teamBRow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamASortOrder));
-        teamDataTree->topLevelItem(teamBRow)->setText(teamDataTree->columnCount()-1, QString::number(teamASortOrder));
-    }
-    else if(teamARow > teamBRow) {   // dragging team onto a team listed earlier in the table
-        // backwards from teamA-1 up to teamB, increment sort column data
-        for(int row = teamARow-1; row > teamBRow; row--) {
-            const int teamBelowRow = teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() + 1;
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBelowRow);
-            teamDataTree->topLevelItem(row)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBelowRow));
-            teamDataTree->topLevelItem(row)->setText(teamDataTree->columnCount()-1, QString::number(teamBelowRow));
+    if(teamASortOrder > teamBSortOrder) {
+        // dragging team onto a team listed earlier in the table
+        // backwards from item above teamA up to teamB, increment sort column data for every team item
+        auto teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemAbove(teamAItem));
+        while((teamItem != nullptr) &&
+               ((teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+                (teamItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamBNum))) {
+            if(teamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+                const int teamItemNewSortOrder = teamItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() + 1;
+                teamItem->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamItemNewSortOrder);
+                teamItem->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamItemNewSortOrder));
+                teamItem->setText(teamDataTree->columnCount()-1, QString::number(teamItemNewSortOrder));
+            }
+            teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemAbove(teamItem));
         }
+        // increment sort column data for teamB
+        teamBItem->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder + 1);
+        teamBItem->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder + 1));
+        teamBItem->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder + 1));
         // set sort column data for teamA to teamB
-        const int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-        teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-        teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        teamAItem->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
+        teamAItem->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
+        teamAItem->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
     }
-    else {         // dragging team onto a team listed later in the table (including bottom of the table when teamBRow == teamDataTree->topLevelItemCount())
-        if(teamBRow == teamDataTree->topLevelItemCount()) {
-            // set sort column data for teamA to end
-            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBRow);
-            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBRow));
-            teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBRow));
+    else {
+        // dragging team onto a team listed later in the table (possibly bottom of the table)
+        // from item below teamA down to teamB, decrement sort column data for every team item
+        auto teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
+        while((teamItem != nullptr) &&
+               ((teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
+                (teamItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamBNum))) {
+            if(teamItem->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+                const int teamItemNewSortOrder = teamItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() - 1;
+                teamItem->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamItemNewSortOrder);
+                teamItem->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamItemNewSortOrder));
+                teamItem->setText(teamDataTree->columnCount()-1, QString::number(teamItemNewSortOrder));
+            }
+            teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamItem));
         }
-        else {
-            const int teamBSortOrder = teamDataTree->topLevelItem(teamBRow)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt();
-            // set sort column data for teamA to teamB
-            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
-            teamDataTree->topLevelItem(teamARow)->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
-            teamDataTree->topLevelItem(teamARow)->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
+        // set sort column data for teamA to teamB - 1
+        teamAItem->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder - 1);
+        teamAItem->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder - 1));
+        teamAItem->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder - 1));
+        // re-set sort column data for teamB (if not placing teamA at bottom of table)
+        if(teamBItem != nullptr) {
+            teamBItem->setData(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE, teamBSortOrder);
+            teamBItem->setData(teamDataTree->columnCount()-1, TEAMINFO_DISPLAY_ROLE, QString::number(teamBSortOrder));
+            teamBItem->setText(teamDataTree->columnCount()-1, QString::number(teamBSortOrder));
         }
     }
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
@@ -866,80 +916,121 @@ void TeamsTabItem::undoRedoDragDrop()
 }
 
 
-void TeamsTabItem::saveTeams()
+void TeamsTabItem::makeNewSetWithAllNewTeammates()
 {
-    QStringList fileContents = createFileContents();
-    const int previewLength = 1000;
-    const QStringList previews = {fileContents[student].left(previewLength) + "...",
-                                  fileContents[instructor].mid(fileContents[instructor].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, previewLength) + "...",
-                                  fileContents[spreadsheet].left(previewLength) + "..."};
+    if(teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyRequestedTeammates) {
+        const bool yesDoIt = grueprGlobal::warningMessage(this, "gruepr", tr("This will remove all of the current ") + (teamingOptions->haveAnyRequiredTeammates? tr("required") : "") +
+                                                                             ((teamingOptions->haveAnyRequiredTeammates && teamingOptions->haveAnyRequestedTeammates)? tr(" and ") : "") +
+                                                                             ((teamingOptions->haveAnyRequestedTeammates)? tr("requested") : "") +
+                                                                            tr(" teammate settings. Do you want to continue?"),
+                                                            tr("Yes"), tr("No"));
+        if(yesDoIt) {
+            for(auto &student : *externalStudents) {
+                student.requiredWith.clear();
+                student.requestedWith.clear();
+            }
+        }
+        else {
+            return;
+        }
+    }
 
-    //Open specialized dialog box to choose which file(s) to save
-    auto *window = new whichFilesDialog(whichFilesDialog::Action::save, previews, this);
-    const int result = window->exec();
-
-    if(result == QDialog::Accepted && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt)) {
-        //save to text files
-        const QString baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename for the text file(s)"), "",
-                                                                  tr("Text File (*.txt);;All Files (*)"));
-        if (!baseFileName.isEmpty()) {
-            bool problemSaving = false;
-            if(window->instructorFiletxt) {
-                QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
-                if(window->studentFiletxt || window->spreadsheetFiletxt) {
-                    fullFilename += tr("_instructor");
+    for(const auto &team : qAsConst(teams)) {
+        for(const auto ID1 : qAsConst(team.studentIDs)) {
+            for(const auto ID2 : qAsConst(team.studentIDs)) {
+                if(ID1 != ID2) {
+                    StudentRecord* stu = nullptr;
+                    for(auto &student1 : *externalStudents) {
+                        if(student1.ID == ID1) {
+                            stu = &student1;
+                        }
+                    }
+                    if(stu == nullptr) {
+                        continue;
+                    }
+                    stu->preventedWith << ID2;
                 }
-                fullFilename += "." + QFileInfo(baseFileName).suffix();
-                QFile instructorsFile(fullFilename);
-                if(instructorsFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                    QTextStream out(&instructorsFile);
-                    out << fileContents[instructor];
-                    instructorsFile.close();
-                }
-                else {
-                    problemSaving = true;
-                }
-            }
-            if(window->studentFiletxt) {
-                QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
-                if(window->instructorFiletxt || window->spreadsheetFiletxt) {
-                    fullFilename += tr("_student");
-                }
-                fullFilename += "." + QFileInfo(baseFileName).suffix();
-                QFile studentsFile(fullFilename);
-                if(studentsFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                    QTextStream out(&studentsFile);
-                    out << fileContents[student];
-                    studentsFile.close();
-                }
-                else {
-                    problemSaving = true;
-                }
-            }
-            if(window->spreadsheetFiletxt) {
-                QString fullFilename = QFileInfo(baseFileName).path() + "/" + QFileInfo(baseFileName).completeBaseName();
-                if(window->studentFiletxt || window->spreadsheetFiletxt) {
-                    fullFilename += tr("_spreadsheet");
-                }
-                fullFilename += "." + QFileInfo(baseFileName).suffix();
-                QFile spreadsheetFile(fullFilename);
-                if(spreadsheetFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                    QTextStream out(&spreadsheetFile);
-                    out << fileContents[spreadsheet];
-                    spreadsheetFile.close();
-                }
-                else {
-                    problemSaving = true;
-                }
-            }
-            if(problemSaving) {
-                grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
             }
         }
     }
-    if(result == QDialog::Accepted && (window->instructorFilepdf || window->studentFilepdf)) {
-        //save as formatted pdf files
-        printFiles(fileContents, window->instructorFilepdf, window->studentFilepdf, false, true);
+
+    externalTeamingOptions->haveAnyPreventedTeammates = true;
+    externalDoItButton->animateClick();
+}
+
+
+void TeamsTabItem::saveTeams()
+{
+    QStringList fileContents = createStdFileContents();
+    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + "\n...\n" +
+                                      fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + "\n...",
+                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  tr("(Custom contents)")};
+
+    //Open specialized dialog box to choose which file(s) to save
+    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::save, &teams.dataOptions, teamingOptions->sectionType, previews, this);
+    if(window->exec() == QDialog::Accepted) {
+        if(window->fileType == WhichFilesDialog::FileType::custom) {
+            fileContents[customFile] = createCustomFileContents(window->customFileOptions);
+        }
+        if(window->pdf) {
+            //save as formatted pdf files
+            printFiles(fileContents, window->fileType, PrintType::printToPDF);
+        }
+        else {
+            //save to text files
+            const QString fileName = QFileDialog::getSaveFileName(this, tr("Choose a location and filename"), "",
+                                                                  tr("Text File (*.txt);;All Files (*)"));
+            if (!fileName.isEmpty()) {
+                bool problemSaving = false;
+                QFile saveFile(fileName);
+                if(saveFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                    QTextStream out(&saveFile);
+                    if(window->fileType == WhichFilesDialog::FileType::instructor) {
+                        out << fileContents[instructorFile];
+                    }
+                    else if(window->fileType == WhichFilesDialog::FileType::student) {
+                        out << fileContents[studentFile];
+                    }
+                    else if(window->fileType == WhichFilesDialog::FileType::spreadsheet) {
+                        out << fileContents[spreadsheetFile];
+                    }
+                    else if(window->fileType == WhichFilesDialog::FileType::custom) {
+                        out << fileContents[customFile];
+                    }
+                    saveFile.close();
+                }
+                else {
+                    problemSaving = true;
+                }
+
+                if(problemSaving) {
+                    grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("No files were saved.\nThere was an issue writing the files."));
+                }
+            }
+        }
+        delete window;
+    }
+}
+
+
+void TeamsTabItem::printTeams()
+{
+    QStringList fileContents = createStdFileContents();
+    const QStringList previews = {fileContents[studentFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  fileContents[instructorFile].left(FILEPREVIEWLENGTH/2) + "\n...\n" +
+                                      fileContents[instructorFile].mid(fileContents[instructorFile].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, FILEPREVIEWLENGTH/2) + "\n...",
+                                  fileContents[spreadsheetFile].left(FILEPREVIEWLENGTH) + "\n...",
+                                  tr("(Custom contents)")};
+
+    //Open specialized dialog box to choose which file(s) to print
+    auto *window = new WhichFilesDialog(WhichFilesDialog::Action::print, &teams.dataOptions, teamingOptions->sectionType, previews, this);
+    if(window->exec() == QDialog::Accepted) {
+        if(window->fileType == WhichFilesDialog::FileType::custom) {
+            fileContents[customFile] = createCustomFileContents(window->customFileOptions);
+        }
+        printFiles(fileContents, window->fileType, PrintType::printer);
     }
     delete window;
 }
@@ -961,45 +1052,37 @@ void TeamsTabItem::postTeamsToCanvas()
 
     //ask the user in which course we're creating the teams
     auto *busyBox = canvas->actionDialog();
-    QStringList courseNames = canvas->getCourses();
+    QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
-    auto *canvasCourses = new QDialog(this);
-    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-    canvasCourses->setWindowIcon(QIcon(CanvasHandler::icon()));
-    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *canvasCoursesDialog = new QDialog(this);
+    canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));
+    canvasCoursesDialog->setWindowIcon(QIcon(CanvasHandler::icon()));
+    canvasCoursesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
-    auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCourses);
+    auto *label = new QLabel(tr("In which course should these teams be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *coursesComboBox = new QComboBox(canvasCourses);
+    auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
     coursesComboBox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &courseName : qAsConst(courseNames)) {
-        coursesComboBox->addItem(courseName);
-        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+        coursesComboBox->addItem(canvasCourse.name);
+        coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
-    canvasCourses->setLayout(vLayout);
-    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
-    if((canvasCourses->exec() == QDialog::Rejected)) {
+    canvasCoursesDialog->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesDialog, &QDialog::reject);
+    if((canvasCoursesDialog->exec() == QDialog::Rejected)) {
         return;
     }
 
     // get team numbers in the order that they are currently displayed/sorted
-    QList<int> teamDisplayNum;
-    teamDisplayNum.reserve(teams.size());
-    for(int row = 0; row < teams.size(); row++) {
-        int team = 0;
-        while(teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != team) {
-            team++;
-        }
-        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
-    }
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
     // assemble each team in display order
     const int numTeams = teams.size();
     QStringList teamNames;
@@ -1008,17 +1091,17 @@ void TeamsTabItem::postTeamsToCanvas()
     teamRoster.reserve(numTeams);
     QList<QList<StudentRecord>> teamRosters;
     teamRosters.reserve(numTeams);
-    for(int teamNum = 0; teamNum < numTeams; teamNum++) {
-        const int team = teamDisplayNum.at(teamNum);
-        teamNames << teams[team].name;
+    for(const auto teamNum : qAsConst(teamDisplayNums)) {
+        const auto &team = teams.at(teamNum);
+        teamNames << team.name;
         teamRoster.clear();
         //loop through each teammate in the team
-        for(const auto studentID : teams[team].studentIDs) {
+        for(const auto studentID : qAsConst(team.studentIDs)) {
             teamRoster << *findStudentFromID(studentID);
         }
         teamRosters << teamRoster;
     }
-    
+
     busyBox = canvas->actionDialog();
     const QSize iconSize = canvas->actionDialogIcon->pixmap().size();
     QPixmap icon;
@@ -1040,89 +1123,176 @@ void TeamsTabItem::postTeamsToCanvas()
         canvas->actionComplete(busyBox);
         return;
     }
-    delete canvasCourses;
+    delete canvasCoursesDialog;
 
     delete canvas;
 }
 
 
-void TeamsTabItem::printTeams()
-{
-    QStringList fileContents = createFileContents();
-    const int previewLength = 1000;
-    const QStringList previews = {fileContents[student].left(previewLength) + "...",
-                                  fileContents[instructor].mid(fileContents[1].indexOf("\n\n\nteam ", 0, Qt::CaseInsensitive)+3, previewLength) + "...",
-                                  fileContents[spreadsheet].left(previewLength) + "..."};
-
-    //Open specialized dialog box to choose which file(s) to print
-    auto *window = new whichFilesDialog(whichFilesDialog::Action::print, previews, this);
-    const int result = window->exec();
-    
-    if(result == QDialog::Accepted && (window->instructorFiletxt || window->studentFiletxt || window->spreadsheetFiletxt)) {
-        printFiles(fileContents, window->instructorFiletxt, window->studentFiletxt, window->spreadsheetFiletxt, false);
-    }
-    delete window;
-}
-
-
 void TeamsTabItem::refreshTeamDisplay()
 {
-    //Create TeamTreeWidgetItems for the teams and students
-    QList<TeamTreeWidgetItem*> parentItems;
-    parentItems.reserve(teams.size());
-    QList<TeamTreeWidgetItem*> childItems;
-    childItems.reserve(numStudents);
+    //Create TeamTreeWidgetItems for the sections, teams, and students
+    QList<TeamTreeWidgetItem*> sectionItems;
+    sectionItems.reserve(sectionNames.size());
+    QList<TeamTreeWidgetItem*> teamItems;
+    teamItems.reserve(teams.size());
+    QList<TeamTreeWidgetItem*> studentItems;
+    studentItems.reserve(numStudents);
 
-    //iterate through teams to update the tree of teams and students
-    int teamNum = 0;
-    for(const auto &team : teams) {
-        parentItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
-        const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
-        const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
-        const QString firstStudentSection = firstStudent->section;
-        teamDataTree->refreshTeam(parentItems.last(), team, teamNum, firstStudentName, firstStudentSection, &teams.dataOptions, teamingOptions);
+    //iterate through sections or teams
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        for(const auto &sectionName : qAsConst(sectionNames)) {
+            sectionItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::section);
+            teamDataTree->refreshSection(sectionItems.last(), sectionName);
 
-        //remove all student items in the team
-        for(auto &studentItem : parentItems.last()->takeChildren()) {
-            parentItems.last()->removeChild(studentItem);
-            delete studentItem;
+            //remove all team items in the section
+            for(auto &teamItem : sectionItems.last()->takeChildren()) {
+                sectionItems.last()->removeChild(teamItem);
+                delete teamItem;
+            }
+
+            //iterate through teams
+            int teamNum = 0;
+            for(const auto &team : qAsConst(teams)) {
+                const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
+                const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
+                if(firstStudent->section == sectionName) {
+                    teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
+                    teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::newTeam, teamItems.last(), team, teamNum,
+                                              firstStudentName, &teams.dataOptions, teamingOptions);
+
+                    //remove all student items in the team
+                    for(auto &studentItem : teamItems.last()->takeChildren()) {
+                        teamItems.last()->removeChild(studentItem);
+                        delete studentItem;
+                    }
+
+                    //add new student items
+                    for(const auto studentID : team.studentIDs) {
+                        studentItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                        teamDataTree->refreshStudent(studentItems.last(), *findStudentFromID(studentID), &teams.dataOptions, teamingOptions);
+                        teamItems.last()->addChild(studentItems.last());
+                    }
+
+                    teamItems.last()->setExpanded(false);
+                    sectionItems.last()->addChild(teamItems.last());
+                }
+                teamNum++;
+            }
+            sectionItems.last()->setExpanded(true);
         }
+    }
+    else {
+        //iterate through teams
+        int teamNum = 0;
+        for(const auto &team : qAsConst(teams)) {
+            teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
+            const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
+            const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
+            teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::newTeam, teamItems.last(), team,
+                                      teamNum, firstStudentName, &teams.dataOptions, teamingOptions);
 
-        //add new student items
-        for(const auto studentID : team.studentIDs) {
-            childItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItems.last(), *findStudentFromID(studentID), &teams.dataOptions, teamingOptions);
-            parentItems.last()->addChild(childItems.last());
+            //remove all student items in the team
+            for(auto &studentItem : teamItems.last()->takeChildren()) {
+                teamItems.last()->removeChild(studentItem);
+                delete studentItem;
+            }
+
+            //add new student items
+            for(const auto studentID : team.studentIDs) {
+                studentItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(studentItems.last(), *findStudentFromID(studentID), &teams.dataOptions, teamingOptions);
+                teamItems.last()->addChild(studentItems.last());
+            }
+
+            teamItems.last()->setExpanded(false);
+            teamNum++;
         }
-
-        parentItems.last()->setExpanded(false);
-        teamNum++;
     }
 
-    // Finally, put each team in the table for display
+    // Finally, put each section or team in the table for display
     teamDataTree->setUpdatesEnabled(false);
+
     teamDataTree->clear();
-    for(auto &parentItem : parentItems) {
-        teamDataTree->addTopLevelItem(parentItem);
+    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+        for(auto &sectionItem : sectionItems) {
+            teamDataTree->addTopLevelItem(sectionItem);
+        }
     }
+    else {
+        for(auto &teamItem : teamItems) {
+            teamDataTree->addTopLevelItem(teamItem);
+        }
+    }
+
     for(int column = 0; column < teamDataTree->columnCount(); column++) {
         teamDataTree->resizeColumnToContents(column);
     }
     teamDataTree->setUpdatesEnabled(true);
-
     teamDataTree->setSortingEnabled(true);
 }
 
 
-//////////////////
-//Setup printer and then print paginated file(s) in boxes
-//////////////////
-QStringList TeamsTabItem::createFileContents()
+void TeamsTabItem::refreshDisplayOrder()
 {
-    QString spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
+    // Any time teams have been reordered, refresh the hidden display order column
+    const int lastCol = teamDataTree->columnCount()-1;
+    auto item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    int teamRow = 0;
+    while(item != nullptr) {
+        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            item->setData(lastCol, TEAMINFO_SORT_ROLE, teamRow);
+            item->setData(lastCol, TEAMINFO_DISPLAY_ROLE, QString::number(teamRow));
+            item->setText(lastCol, QString::number(teamRow));
+            teamRow++;
+        }
+        item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
+    }
+}
 
-    QString instructorsFileContents = tr("Source: ") + teams.dataOptions.dataSourceName + "\n" + tr("Section: ") + teamingOptions->sectionName + "\n\n";
-    instructorsFileContents += tr("Teaming Options") + ":";
+
+QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder() const
+{
+    //NOTE: only includes the teams that are currently being displayed. If teams are hidden within a collapsed parent, they will not be included
+    // this is not a problem currently because: a) teams are top level items, or b) teams have the section as parent and sections are prevented from being collapsed
+    QList<int> teamDisplayNums;
+    teamDisplayNums.reserve(teams.size());
+    auto item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    while(item != nullptr) {
+        if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
+            teamDisplayNums << item->data(0, TEAM_NUMBER_ROLE).toInt();
+        }
+        item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->itemBelow(item));
+    }
+    return teamDisplayNums;
+}
+
+
+inline StudentRecord* TeamsTabItem::findStudentFromID(const long long ID)
+{
+    for(auto &student : students) {
+        if(student.ID == ID) {
+            return &student;
+        }
+    }
+    return nullptr;
+}
+
+
+QStringList TeamsTabItem::createStdFileContents()
+{
+    QStringList fileContents(NUMEXPORTFILES);
+    QString &studentsFileContents = fileContents[studentFile];
+    QString &instructorsFileContents = fileContents[instructorFile];
+    QString &spreadsheetFileContents = fileContents[spreadsheetFile];
+
+    spreadsheetFileContents = tr("Section") + "\t" + tr("Team") + "\t" + tr("Name") + "\t" + tr("Email") + "\n";
+
+    instructorsFileContents = tr("Source: ") + teams.dataOptions.dataSourceName;
+    if(teams.dataOptions.sectionIncluded) {
+        instructorsFileContents += "\n" + tr("Section: ") + teamingOptions->sectionName;
+    }
+    instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
     if(teams.dataOptions.genderIncluded) {
         instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
         instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
@@ -1132,7 +1302,7 @@ QStringList TeamsTabItem::createFileContents()
     if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
         instructorsFileContents += "\n" + tr("Isolated URM students prevented");
     }
-    if(teamingOptions->scheduleWeight > 0) {
+    if(!teams.dataOptions.dayNames.isEmpty() && teamingOptions->scheduleWeight > 0) {
         instructorsFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize) +
                                                                          tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
         instructorsFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
@@ -1150,7 +1320,8 @@ QStringList TeamsTabItem::createFileContents()
                                         teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
         for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
             if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
-                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered)) {
+                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered) ||
+                (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::timezone)) {
                 questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
             }
             else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
@@ -1162,19 +1333,6 @@ QStringList TeamsTabItem::createFileContents()
         }
         questionWithResponses += "\n\n\n";
         instructorsFileContents += questionWithResponses;
-    }
-
-    QString studentsFileContents = "";
-
-    // get team numbers in the order that they are currently displayed/sorted
-    QList<int> teamDisplayNum;
-    teamDisplayNum.reserve(teams.size());
-    for(int row = 0; row < teams.size(); row++) {
-        int team = 0;
-        while(teamDataTree->topLevelItem(row)->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt() != team) {
-            team++;
-        }
-        teamDisplayNum << teamDataTree->topLevelItem(row)->data(0, TEAM_NUMBER_ROLE).toInt();
     }
 
     // get the relevant gender terminology
@@ -1192,25 +1350,36 @@ QStringList TeamsTabItem::createFileContents()
         genderOptions = QString(PRONOUNS7CHAR).split('/');
     }
 
+    // get team numbers in the order that they are currently displayed/sorted
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
+
     //loop through every team
-    for(int teamNum = 0; teamNum < teams.size(); teamNum++) {
-        const int team = teamDisplayNum.at(teamNum);
-        instructorsFileContents += tr("Team ") + teams[team].name + "  -  " +
-                                   tr("Score = ") + QString::number(double(teams[team].score), 'f', 2) + "\n\n";
-        studentsFileContents += tr("Team ") + teams[team].name + "\n\n";
+    for(const auto teamNum : teamDisplayNums) {
+        const auto &team = teams[teamNum];
+        instructorsFileContents += tr("Team ") + team.name + "  -  " +
+                                   tr("Score = ") + QString::number(double(team.score), 'f', 2) + "\n\n";
+        studentsFileContents += tr("Team ") + team.name + "\n\n";
 
         //loop through each teammate in the team
-        for(const auto studentID : teams[teamNum].studentIDs) {
-            int index = 0;
-            while(index < students.size() && students.at(index).ID != studentID) {
-                index++;
+        for(const auto studentID : team.studentIDs) {
+            const auto *const student = findStudentFromID(studentID);
+            if(student == nullptr) {
+                continue;
             }
-            const auto &thisStudent = students[index];
             if(teams.dataOptions.genderIncluded) {
-                instructorsFileContents += " " + genderOptions.at(static_cast<int>(thisStudent.gender)) + " ";
+                QString genderText;
+                bool firstGender = true;
+                for(const auto gen : student->gender) {
+                    if(!firstGender) {
+                        genderText += ", ";
+                    }
+                    genderText += genderOptions.at(static_cast<int>(gen));
+                    firstGender = false;
+                }
+                instructorsFileContents += " " + genderText + " ";
             }
             if(teams.dataOptions.URMIncluded) {
-                if(thisStudent.URM) {
+                if(student->URM) {
                     instructorsFileContents += tr(" URM ");
                 }
                 else {
@@ -1218,17 +1387,20 @@ QStringList TeamsTabItem::createFileContents()
                 }
             }
             for(int attribute = 0; attribute < teams.dataOptions.numAttributes; attribute++) {
-                auto value = thisStudent.attributeVals[attribute].constBegin();
+                auto value = student->attributeVals[attribute].constBegin();
                 if(*value != -1) {
                     if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
                         instructorsFileContents += (QString::number(*value)).leftJustified(3);
+                    }
+                    else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
+                        instructorsFileContents += (QString::number(student->timezone)).leftJustified(5);
                     }
                     else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
                         instructorsFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
                                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
                     }
                     else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
-                        const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        const auto lastValue = student->attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue) {
                             attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
@@ -1241,7 +1413,7 @@ QStringList TeamsTabItem::createFileContents()
                         instructorsFileContents += attributeList.leftJustified(3);
                     }
                     else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
-                        const auto lastValue = thisStudent.attributeVals[attribute].constEnd();
+                        const auto lastValue = student->attributeVals[attribute].constEnd();
                         QString attributeList;
                         while(value != lastValue) {
                             attributeList += QString::number(*value);
@@ -1257,19 +1429,22 @@ QStringList TeamsTabItem::createFileContents()
                     instructorsFileContents += (QString("?")).leftJustified(3);
                 }
             }
-            const int nameSize = int((thisStudent.firstname + " " + thisStudent.lastname).size());
-            instructorsFileContents += "\t" + thisStudent.firstname + " " + thisStudent.lastname +
-                    QString(std::max(2,30-nameSize), ' ') + thisStudent.email + "\n";
-            studentsFileContents += thisStudent.firstname + " " + thisStudent.lastname +
-                    QString(std::max(2,30-nameSize), ' ') + thisStudent.email + "\n";
-            spreadsheetFileContents += thisStudent.section + "\t" + teams[team].name + "\t" + thisStudent.firstname +
-                    " " + thisStudent.lastname + "\t" + thisStudent.email + "\n";
+            if(teams.dataOptions.sectionIncluded && teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) {
+                instructorsFileContents += student->section;
+            }
+            const int nameSize = int((student->firstname + " " + student->lastname).size());
+            instructorsFileContents += "\t" + student->firstname + " " + student->lastname +
+                                        QString(std::max(2,30-nameSize), ' ') + student->email + "\n";
+            studentsFileContents += student->firstname + " " + student->lastname +
+                                    QString(std::max(2,30-nameSize), ' ') + student->email + "\n";
+            spreadsheetFileContents += student->section + "\t" + team.name + "\t" + student->firstname +
+                                       " " + student->lastname + "\t" + student->email + "\n";
         }
         if(!teams.dataOptions.dayNames.isEmpty()) {
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(const auto &dayName : teams.dataOptions.dayNames) {
+            for(const auto &dayName : qAsConst(teams.dataOptions.dayNames)) {
                 // using first 3 characters in day name as abbreviation
                 instructorsFileContents += "  " + dayName.left(3) + "  ";
                 studentsFileContents += "  " + dayName.left(3) + "  ";
@@ -1282,9 +1457,9 @@ QStringList TeamsTabItem::createFileContents()
                 studentsFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
                 for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
                     QString percentage;
-                    if(teams[team].size > teams[team].numStudentsWithAmbiguousSchedules) {
-                        percentage = QString::number((100*teams[team].numStudentsAvailable[day][time]) /
-                                                     (teams[team].size-teams[team].numStudentsWithAmbiguousSchedules)) + "% ";
+                    if(team.size > team.numStudentsWithAmbiguousSchedules) {
+                        percentage = QString::number((100*team.numStudentsAvailable[day][time]) /
+                                                     (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
                     }
                     else {
                         percentage = "?";
@@ -1300,22 +1475,231 @@ QStringList TeamsTabItem::createFileContents()
         instructorsFileContents += "\n\n";
         studentsFileContents += "\n\n";
     }
-    return {studentsFileContents, instructorsFileContents, spreadsheetFileContents};
+    return fileContents;
 }
 
 
-//////////////////
-//Setup printer and then print paginated file(s) in boxes
-//////////////////
-void TeamsTabItem::printFiles(const QStringList &fileContents, bool printInstructorsFile, bool printStudentsFile,
-                              bool printSpreadsheetFile, bool printToPDF)
+QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptions customFileOptions)
+{
+    QString customFileContents = "";
+
+    if(customFileOptions.includeFileData) {
+        customFileContents = tr("Source: ") + teams.dataOptions.dataSourceName;
+        if(teams.dataOptions.sectionIncluded) {
+            customFileContents += "\n" + tr("Section: ") + teamingOptions->sectionName;
+        }
+        customFileContents += "\n\n";
+    }
+    if(customFileOptions.includeTeamingData) {
+        customFileContents += tr("Teaming Options") + ":";
+        if(teams.dataOptions.genderIncluded) {
+            customFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
+            customFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
+            customFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
+            customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
+        }
+        if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
+            customFileContents += "\n" + tr("Isolated URM students prevented");
+        }
+        if(!teams.dataOptions.dayNames.isEmpty() && teamingOptions->scheduleWeight > 0) {
+            customFileContents += "\n" + tr("Meeting block size is ") + QString::number(teamingOptions->meetingBlockSize)
+                                       + tr(" hour") + ((teamingOptions->meetingBlockSize == 1) ? "" : tr("s"));
+            customFileContents += "\n" + tr("Minimum number of meeting times = ") + QString::number(teamingOptions->minTimeBlocksOverlap);
+            customFileContents += "\n" + tr("Desired number of meeting times = ") + QString::number(teamingOptions->desiredTimeBlocksOverlap);
+            customFileContents += "\n" + tr("Schedule weight = ") + QString::number(double(teamingOptions->scheduleWeight));
+        }
+        for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
+            customFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
+                                       + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib])) +
+                                       + ", " + (teamingOptions->desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
+        }
+        customFileContents += "\n\n\n";
+        for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
+            QString questionWithResponses = tr("Multiple choice Q") + QString::number(attrib+1) + "\n" +
+                                            teams.dataOptions.attributeQuestionText.at(attrib) + "\n" + tr("Responses:");
+            for(int response = 0; response < teams.dataOptions.attributeQuestionResponses[attrib].size(); response++) {
+                if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::ordered) ||
+                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multiordered) ||
+                    (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::timezone)) {
+                    questionWithResponses += "\n\t" + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
+                }
+                else if((teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::categorical) ||
+                         (teams.dataOptions.attributeType[attrib] == DataOptions::AttributeType::multicategorical)) {
+                    questionWithResponses += "\n\t" + (response < 26 ? QString(char(response + 'A')) :
+                                                           QString(char(response%26 + 'A')).repeated(1 + (response/26)));
+                    questionWithResponses += ". " + teams.dataOptions.attributeQuestionResponses[attrib].at(response);
+                }
+            }
+            questionWithResponses += "\n\n\n";
+            customFileContents += questionWithResponses;
+        }
+    }
+
+    // get the relevant gender terminology
+    QStringList genderOptions;
+    if(teams.dataOptions.genderType == GenderType::biol) {
+        genderOptions = QString(BIOLGENDERS7CHAR).split('/');
+    }
+    else if(teams.dataOptions.genderType == GenderType::adult) {
+        genderOptions = QString(ADULTGENDERS7CHAR).split('/');
+    }
+    else if(teams.dataOptions.genderType == GenderType::child) {
+        genderOptions = QString(CHILDGENDERS7CHAR).split('/');
+    }
+    else { //if(teams.dataOptions.genderType == GenderType::pronoun)
+        genderOptions = QString(PRONOUNS7CHAR).split('/');
+    }
+
+    // get team numbers in the order that they are currently displayed/sorted
+    const QList<int> teamDisplayNums = getTeamNumbersInDisplayOrder();
+
+    //loop through every team
+    for(const auto teamNum : teamDisplayNums) {
+        const auto &team = teams[teamNum];
+        customFileContents += tr("Team ") + team.name;
+        if(customFileOptions.includeTeamScore) {
+            customFileContents += "  -  " + tr("Score = ") + QString::number(double(team.score), 'f', 2);
+        }
+        customFileContents += "\n\n";
+
+        //loop through each teammate in the team
+        for(const auto studentID : team.studentIDs) {
+            const auto *const student = findStudentFromID(studentID);
+            if(student == nullptr) {
+                continue;
+            }
+            if(teams.dataOptions.genderIncluded && customFileOptions.includeGender) {
+                QString genderText;
+                bool firstGender = true;
+                for(const auto gen : student->gender) {
+                    if(!firstGender) {
+                        genderText += ", ";
+                    }
+                    genderText += genderOptions.at(static_cast<int>(gen));
+                    firstGender = false;
+                }
+                customFileContents += " " + genderText + " ";
+            }
+            if(teams.dataOptions.URMIncluded && customFileOptions.includeURM) {
+                if(student->URM) {
+                    customFileContents += tr(" URM ");
+                }
+                else {
+                    customFileContents += "     ";
+                }
+            }
+            for(int attribute = 0; attribute < teams.dataOptions.numAttributes; attribute++) {
+                if(customFileOptions.includeMultiChoice.at(attribute)) {
+                    auto value = student->attributeVals[attribute].constBegin();
+                    if(*value != -1) {
+                        if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::ordered) {
+                            customFileContents += (QString::number(*value)).leftJustified(3);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::timezone) {
+                            customFileContents += (QString::number(student->timezone)).leftJustified(5);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::categorical) {
+                            customFileContents += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))).leftJustified(3) :
+                                                                    (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26)))).leftJustified(3);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multicategorical) {
+                            const auto lastValue = student->attributeVals[attribute].constEnd();
+                            QString attributeList;
+                            while(value != lastValue) {
+                                attributeList += ((*value) <= 26 ? (QString(char((*value)-1 + 'A'))) :
+                                                      (QString(char(((*value)-1)%26 + 'A')).repeated(1+(((*value)-1)/26))));
+                                value++;
+                                if(value != lastValue) {
+                                    attributeList += ",";
+                                }
+                            }
+                            customFileContents += attributeList.leftJustified(3);
+                        }
+                        else if(teams.dataOptions.attributeType[attribute] == DataOptions::AttributeType::multiordered) {
+                            const auto lastValue = student->attributeVals[attribute].constEnd();
+                            QString attributeList;
+                            while(value != lastValue) {
+                                attributeList += QString::number(*value);
+                                value++;
+                                if(value != lastValue) {
+                                    attributeList += ",";
+                                }
+                            }
+                            customFileContents += attributeList.leftJustified(3);
+                        }
+                    }
+                    else {
+                        customFileContents += (QString("?")).leftJustified(3);
+                    }
+                }
+            }
+            if(teams.dataOptions.sectionIncluded && customFileOptions.includeSect) {
+                customFileContents += student->section;
+            }
+            if((teams.dataOptions.firstNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeFirstName) ||
+               (teams.dataOptions.lastNameField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeLastName)) {
+                int nameSize = 0, nameWidth = 0;
+                customFileContents += "\t";
+                if(customFileOptions.includeFirstName) {
+                    customFileContents += student->firstname;
+                    nameSize += int(student->firstname.size());
+                    nameWidth += 15;
+                }
+                if(customFileOptions.includeFirstName && customFileOptions.includeLastName) {
+                    customFileContents += " ";
+                }
+                if(customFileOptions.includeLastName) {
+                    customFileContents += student->lastname;
+                    nameSize += int(student->lastname.size());
+                    nameWidth += 15;
+                }
+                customFileContents += QString(std::max(2, nameWidth-nameSize), ' ');
+            }
+            if(teams.dataOptions.emailField != DataOptions::FIELDNOTPRESENT && customFileOptions.includeEmail) {
+                customFileContents += student->email;
+            }
+            customFileContents += "\n";
+        }
+        if(!teams.dataOptions.dayNames.isEmpty() & customFileOptions.includeSechedule) {
+            customFileContents += "\n" + tr("Availability:") + "\n            ";
+
+            for(const auto &dayName : qAsConst(teams.dataOptions.dayNames)) {
+                // using first 3 characters in day name as abbreviation
+                customFileContents += "  " + dayName.left(3) + "  ";
+            }
+            customFileContents += "\n";
+
+            for(int time = 0; time < teams.dataOptions.timeNames.size(); time++) {
+                customFileContents += teams.dataOptions.timeNames.at(time) + QString((11-teams.dataOptions.timeNames.at(time).size()), ' ');
+                for(int day = 0; day < teams.dataOptions.dayNames.size(); day++) {
+                    QString percentage;
+                    if(team.size > team.numStudentsWithAmbiguousSchedules) {
+                        percentage = QString::number((100*team.numStudentsAvailable[day][time]) /
+                                                     (team.size-team.numStudentsWithAmbiguousSchedules)) + "% ";
+                    }
+                    else {
+                        percentage = "?";
+                    }
+                    const QStringView left3 = QStringView{teams.dataOptions.dayNames.at(day).left(3)};
+                    customFileContents += QString((4+left3.size())-percentage.size(), ' ') + percentage;
+                }
+                customFileContents += "\n";
+            }
+        }
+        customFileContents += "\n\n";
+    }
+    return customFileContents;
+}
+
+
+void TeamsTabItem::printFiles(const QStringList &fileContents, WhichFilesDialog::FileType filetype, PrintType printType)
 {
     // connecting to the printer is spun off into a separate thread because sometimes it causes ~30 second hang
     // message box explains what's happening
     QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
     auto *msgBox = new QMessageBox(this);
     msgBox->setIcon(QMessageBox::NoIcon);
-    msgBox->setText(printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
+    msgBox->setText(printType == PrintType::printToPDF? tr("Setting up PDF writer...") : tr("Connecting to printer..."));
     msgBox->setStyleSheet(LABEL10PTSTYLE);
     msgBox->setStandardButtons(QMessageBox::NoButton);
     msgBox->setModal(false);
@@ -1330,12 +1714,15 @@ void TeamsTabItem::printFiles(const QStringList &fileContents, bool printInstruc
     msgBox->deleteLater();
     QApplication::restoreOverrideCursor();
 
-    bool doIt;
-    QString baseFileName;
-    if(printToPDF) {
+    bool doIt = false;
+    QString fileName;
+    if(printType == PrintType::printToPDF) {
         printer->setOutputFormat(QPrinter::PdfFormat);
-        baseFileName = QFileDialog::getSaveFileName(this, tr("Choose a location and base filename"), "", tr("PDF File (*.pdf);;All Files (*)"));
-        doIt = !(baseFileName.isEmpty());
+        fileName = QFileDialog::getSaveFileName(this, tr("Choose a location and filename"), "", tr("PDF File (*.pdf);;All Files (*)"));
+        if(!fileName.isEmpty()) {
+            doIt = true;
+            printer->setOutputFileName(fileName);
+        }
     }
     else {
         printer->setOutputFormat(QPrinter::NativeFormat);
@@ -1347,38 +1734,31 @@ void TeamsTabItem::printFiles(const QStringList &fileContents, bool printInstruc
     if(doIt) {
         QFont printFont = PRINTFONT;
 
-        if(printInstructorsFile) {
-            if(printToPDF) {
-                const QString fileName = QFileInfo(baseFileName).path() + "/" +
-                                   QFileInfo(baseFileName).completeBaseName() + "_instructor." + QFileInfo(baseFileName).suffix();
-                printer->setOutputFileName(fileName);
-            }
-            printOneFile(fileContents[instructor], "\n\n\n", printFont, printer);
+        if(filetype == WhichFilesDialog::FileType::instructor) {
+            printOneFile(fileContents[instructorFile], "\n\n\n", printFont, printer);
         }
-        if(printStudentsFile) {
-            if(printToPDF) {
-                const QString fileName = QFileInfo(baseFileName).path() + "/" +
-                                   QFileInfo(baseFileName).completeBaseName() + "_student." + QFileInfo(baseFileName).suffix();
-                printer->setOutputFileName(fileName);
-            }
-            printOneFile(fileContents[student], "\n\n\n", printFont, printer);
-
+        else if(filetype == WhichFilesDialog::FileType::student) {
+            printOneFile(fileContents[studentFile], "\n\n\n", printFont, printer);
         }
-        if(printSpreadsheetFile) {
-            if(printToPDF) {
-                const QString fileName = QFileInfo(baseFileName).path() + "/" +
-                                   QFileInfo(baseFileName).completeBaseName() + "_spreadsheet." + QFileInfo(baseFileName).suffix();
-                printer->setOutputFileName(fileName);
-            }
-            QTextDocument textDocument(fileContents[spreadsheet], this);
+        else if(filetype == WhichFilesDialog::FileType::spreadsheet) {
             printFont.setPointSize(PRINTOUT_FONTSIZE);
-            textDocument.setDefaultFont(printFont);
             printer->setPageOrientation(QPageLayout::Landscape);
-            textDocument.print(printer);
+            if(printType == PrintType::printToPDF) {
+                printOneFile(fileContents[spreadsheetFile], "\n\n\n", printFont, printer);
+            }
+            else {
+                QTextDocument textDocument(fileContents[spreadsheetFile], this);
+                textDocument.setDefaultFont(printFont);
+                textDocument.print(printer);
+            }
+        }
+        else if(filetype == WhichFilesDialog::FileType::custom) {
+            printOneFile(fileContents[customFile], "\n\n\n", printFont, printer);
         }
     }
     delete printer;
 }
+
 
 QPrinter* TeamsTabItem::setupPrinter()
 {
@@ -1387,6 +1767,7 @@ QPrinter* TeamsTabItem::setupPrinter()
     emit connectedToPrinter();
     return printer;
 }
+
 
 void TeamsTabItem::printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer)
 {

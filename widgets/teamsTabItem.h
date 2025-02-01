@@ -2,6 +2,7 @@
 #define TEAMSTABITEM_H
 
 #include "studentRecord.h"
+#include "dialogs/whichFilesDialog.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
 #include "widgets/teamTreeWidget.h"
@@ -19,10 +20,12 @@ Q_OBJECT
 
 public:
     explicit TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet &incomingTeamSet, QList<StudentRecord> &incomingStudents,
-                          const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent = nullptr);
+                          const QStringList &incomingSectionNames, const QString &incomingTabName, QPushButton *letsDoItButton, QWidget *parent = nullptr);
     explicit TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents,
-                          QPushButton *letsDoItButton, QWidget *parent = nullptr);
-    void init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton);    // handle the constructor work after loading data
+                          const QStringList &incomingSectionNames, QPushButton *letsDoItButton, QWidget *parent = nullptr);
+    // handle the rest of the constructor work after loading data
+    enum class TabType{newTab, fromJSON};
+    void init(TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents, QPushButton *letsDoItButton, TabType tabType);
     ~TeamsTabItem() override;
     TeamsTabItem(const TeamsTabItem&) = delete;
     TeamsTabItem operator= (const TeamsTabItem&) = delete;
@@ -38,13 +41,18 @@ signals:
     void saveState();
 
 private slots:
-    void teamNamesChanged(int index);
-    void randomizeTeamnames();
-    void makeNewSetWithAllNewTeammates();
+    void changeTeamNames(int index);
+    void toggleSectionsInTeamNames(bool addSectionNames);
+    void randomizeTeamnames(bool random);
+    void updateTeamNamesInTableAndTooltips();
+
     void swapStudents(const QList<int> &arguments); // arguments = int studentAteam, int studentAID, int studentBteam, int studentBID
     void moveAStudent(const QList<int> &arguments); // arguments = int oldTeam, int studentID, int newTeam
     void moveATeam(const QList<int> &arguments);    // arguments = int teamA, int teamB
     void undoRedoDragDrop();
+
+    void makeNewSetWithAllNewTeammates();
+
     void saveTeams();
     void printTeams();
     void postTeamsToCanvas();
@@ -53,10 +61,11 @@ private:
     TeamTreeWidget *teamDataTree = nullptr;
     void refreshTeamDisplay();
     void refreshDisplayOrder();
-    QList<int> getTeamNumbersInDisplayOrder();
-    inline StudentRecord* findStudentFromID(const int ID);
+    QList<int> getTeamNumbersInDisplayOrder() const;
+    inline StudentRecord* findStudentFromID(const long long ID);
 
     TeamingOptions *teamingOptions = nullptr;
+    QStringList sectionNames;
     TeamSet teams;
     QList<StudentRecord> students;
     int numStudents = 1;
@@ -73,19 +82,26 @@ private:
     static const QStringList teamnameLists;
     QComboBox *teamnamesComboBox = nullptr;
     QCheckBox *randTeamnamesCheckBox = nullptr;
+    QCheckBox *addSectionToTeamnamesCheckBox = nullptr;
+    bool randomizedTeamNames = false;
+    bool sectionsInTeamNames = false;
 
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     TeamingOptions *externalTeamingOptions = nullptr;
     QList<StudentRecord> *externalStudents = nullptr;
     QPushButton *externalDoItButton = nullptr;
 
-    enum files{student = 0, instructor = 1, spreadsheet = 2};
-    QStringList createFileContents();   // {studentsFileContents, instructorsFileContents, spreadsheetFileContents}
-    void printFiles(const QStringList &fileContents, bool printInstructorsFile, bool printStudentsFile, bool printSpreadsheetFile, bool printToPDF);
+    enum files{studentFile = 0, instructorFile = 1, spreadsheetFile = 2, customFile = 3};
+    inline static const int NUMEXPORTFILES = 4; // must line up with number of values in line above
+    QStringList createStdFileContents();   // {studentsFileContents, instructorsFileContents, spreadsheetFileContents, ""}
+    QString createCustomFileContents(WhichFilesDialog::CustomFileOptions customFileOptions);
+    enum class PrintType{printer, printToPDF};
+    void printFiles(const QStringList &fileContents, WhichFilesDialog::FileType filetype, PrintType printType);
     QPrinter *setupPrinter();
     void printOneFile(const QString &file, const QString &delimiter, QFont &font, QPrinter *printer);
 
     inline static const QSize SAVEPRINTICONSIZE = QSize(STD_ICON_SIZE, STD_ICON_SIZE);
+    inline static const int FILEPREVIEWLENGTH = 1000;   // number of characters in each file preview, shown as tooltips in WhichFilesDialog
     inline static const int BIGGERFONTSIZE = 12;
     inline static const QFont PRINTFONT = QFont("Oxygen Mono", 10, QFont::Normal);
 };

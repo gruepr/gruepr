@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['question_0',['Question',['../class_question.html',1,'Question'],['../class_question.html#a87926727f69504d433f41e64caa0b260',1,'Question::Question()']]],
+  ['question_0',['Question',['../struct_question.html',1,'Question'],['../struct_question.html#a87926727f69504d433f41e64caa0b260',1,'Question::Question()']]],
   ['question_1',['question',['../class_survey_maker_multichoice_question.html#a8aca6ba1083ce1ec20f9f49887abd274',1,'SurveyMakerMultichoiceQuestion']]],
   ['questionarea_2',['questionArea',['../class_survey_maker_page.html#a5d5ff73ff381a3e8e7bf34b177c31709',1,'SurveyMakerPage']]],
   ['questionchange_3',['questionChange',['../class_survey_maker_multichoice_question.html#a8dd83e7b017cceb2cfeeb9c95d7fa368',1,'SurveyMakerMultichoiceQuestion']]],
@@ -20,10 +20,10 @@ var searchData=
   ['questionpreviewtoplabels_17',['questionPreviewTopLabels',['../class_survey_maker_page.html#a928b87017580196a3744cf776533238a',1,'SurveyMakerPage']]],
   ['questionresponses_18',['questionResponses',['../class_multiple_choice_page.html#aa11f1c723d3df22cc7c37afc7a605216',1,'MultipleChoicePage::questionResponses'],['../class_multiple_choice_page.html#a265f84ba6d4e45b6f07c05b5dbf27206',1,'MultipleChoicePage::questionResponses']]],
   ['questionresponseschanged_19',['questionResponsesChanged',['../class_multiple_choice_page.html#a57f1177fefeef5d0a8636a001f4652eb',1,'MultipleChoicePage']]],
-  ['questions_20',['questions',['../class_survey.html#ab8811f2539f3abdb4e99d9461421fa15',1,'Survey::questions'],['../class_survey_maker_page.html#a4ea29f32f822c17c59f65efc32d42fd4',1,'SurveyMakerPage::questions']]],
+  ['questions_20',['questions',['../struct_survey.html#ab8811f2539f3abdb4e99d9461421fa15',1,'Survey::questions'],['../class_survey_maker_page.html#a4ea29f32f822c17c59f65efc32d42fd4',1,'SurveyMakerPage::questions']]],
   ['questiontexts_21',['questionTexts',['../class_multiple_choice_page.html#a532c96fbc6a75f80c9b15e7787544d5f',1,'MultipleChoicePage::questionTexts'],['../class_multiple_choice_page.html#a5e48f7adadd60dcca4e5b5a7592d8575',1,'MultipleChoicePage::questionTexts']]],
   ['questiontextschanged_22',['questionTextsChanged',['../class_multiple_choice_page.html#acd8da0c434b1e0f627b3f93d5dcf48d4',1,'MultipleChoicePage']]],
-  ['questiontype_23',['QuestionType',['../class_question.html#a3274af002140ecd58fc8611944b732ad',1,'Question']]],
+  ['questiontype_23',['QuestionType',['../struct_question.html#a3274af002140ecd58fc8611944b732ad',1,'Question']]],
   ['questionwidget_24',['questionWidget',['../class_survey_maker_page.html#aa3ecd0e4724b9aae32fb8b3966f8ccd6',1,'SurveyMakerPage']]],
   ['quizlist_25',['quizList',['../class_canvas_handler.html#aca6668e8d333b5255cea5e79fd6613ff',1,'CanvasHandler']]]
 ];

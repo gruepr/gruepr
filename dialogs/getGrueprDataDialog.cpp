@@ -4,12 +4,19 @@
 #include "LMS/googlehandler.h"
 #include "gruepr_globals.h"
 #include "dialogs/baseTimeZoneDialog.h"
+#include <QCollator>
 #include <QComboBox>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <QPainter>
 #include <QProgressDialog>
 #include <QSettings>
 #include <QStandardItemModel>
+#include <QStandardPaths>
+#include <QTimer>
 
 GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     QDialog(parent),
@@ -65,9 +72,8 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
     connect(ui->loadDataPushButton, &QPushButton::clicked, this, &GetGrueprDataDialog::loadData);
 
-    ui->dataSourceFrame->setStyleSheet(QString("QFrame {background-color: ") + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; "
-                                                        "color: " DEEPWATERHEX "; border: none;}"
-                                                   "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
+    ui->dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
+                                       "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
     ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt;}"
                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 12pt;}");
     ui->dataSourceLabel->adjustSize();
@@ -355,7 +361,7 @@ bool GetGrueprDataDialog::getFromCanvas()
 
     //ask the user from which course we're downloading the survey
     auto *busyBox = canvas->actionDialog(this);
-    QStringList courseNames = canvas->getCourses();
+    QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
     auto *canvasCoursesAndQuizzesDialog = new QDialog(this);
@@ -367,9 +373,9 @@ bool GetGrueprDataDialog::getFromCanvas()
     int i = 1;
     auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
     auto *coursesAndQuizzesComboBox = new QComboBox(canvasCoursesAndQuizzesDialog);
-    for(const auto &courseName : qAsConst(courseNames)) {
-        coursesAndQuizzesComboBox->addItem(courseName);
-        coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole);
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+        coursesAndQuizzesComboBox->addItem(canvasCourse.name);
+        coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesAndQuizzesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -527,7 +533,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
                                                   {"Multiple Choice", ".*", MAX_ATTRIBUTES},
-                                                  {"Notes", "", MAX_NOTES_FIELDS}};
+                                                  {"Notes", "", 99}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {
         const QString &headerVal = surveyFile->headerValues.at(i);
@@ -747,25 +753,23 @@ bool GetGrueprDataDialog::readData()
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != DataOptions::FIELDNOTPRESENT);
     // pref teammates fields
     int lastFoundIndex = 0;
-    dataOptions->numPrefTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
-    dataOptions->prefTeammatesIncluded = (dataOptions->numPrefTeammateQuestions > 0);
-    for(int prefQ = 0; prefQ < dataOptions->numPrefTeammateQuestions; prefQ++) {
-        dataOptions->prefTeammatesField[prefQ] = int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex));
+    const int numTeammateQs = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
+    for(int prefQ = 0; prefQ < numTeammateQs; prefQ++) {
+        dataOptions->prefTeammatesField << int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Preferred Teammates", lastFoundIndex)));
     }
     // pref non-teammates fields
     lastFoundIndex = 0;
-    dataOptions->numPrefNonTeammateQuestions = int(surveyFile->fieldMeanings.count("Preferred Non-teammates"));
-    dataOptions->prefNonTeammatesIncluded = (dataOptions->numPrefNonTeammateQuestions > 0);
-    for(int prefQ = 0; prefQ < dataOptions->numPrefNonTeammateQuestions; prefQ++) {
-        dataOptions->prefNonTeammatesField[prefQ] = int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex));
+    const int numNonTeammateQs = int(surveyFile->fieldMeanings.count("Preferred Non-teammates"));
+    for(int prefQ = 0; prefQ < numNonTeammateQs; prefQ++) {
+        dataOptions->prefNonTeammatesField << int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Preferred Non-teammates", lastFoundIndex)));
     }
     // notes fields
     lastFoundIndex = 0;
-    dataOptions->numNotes = int(surveyFile->fieldMeanings.count("Notes"));
-    for(int note = 0; note < dataOptions->numNotes; note++) {
-        dataOptions->notesField[note] = int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex));
+    const int numNotes = int(surveyFile->fieldMeanings.count("Notes"));
+    for(int note = 0; note < numNotes; note++) {
+        dataOptions->notesFields << int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex));
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Notes", lastFoundIndex)));
     }
     // attribute fields, adding timezone field as an attribute if it exists
@@ -784,8 +788,9 @@ bool GetGrueprDataDialog::readData()
     // schedule fields
     lastFoundIndex = 0;
     for(int scheduleQuestion = 0, numScheduleFields = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleFields; scheduleQuestion++) {
-        dataOptions->scheduleField[scheduleQuestion] = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
-        const QString scheduleQuestionText = surveyFile->headerValues.at(dataOptions->scheduleField[scheduleQuestion]);
+        const int field = int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex));
+        dataOptions->scheduleField << field;
+        const QString scheduleQuestionText = surveyFile->headerValues.at(field);
         static const QRegularExpression freeOrAvailable(".+\\b(free|available)\\b.+", QRegularExpression::CaseInsensitiveOption);
         if(scheduleQuestionText.contains(freeOrAvailable)) {
             // if >=1 field has this language, all interpreted as free time
@@ -820,8 +825,8 @@ bool GetGrueprDataDialog::readData()
     if(!dataOptions->dayNames.isEmpty()) {
         QStringList allTimeNames;
         do {
-            for(int scheduleQuestion = 0, numScheduleQuestions = int(surveyFile->fieldMeanings.count("Schedule")); scheduleQuestion < numScheduleQuestions; scheduleQuestion++) {
-                QString scheduleFieldText = (surveyFile->fieldValues.at(dataOptions->scheduleField[scheduleQuestion])).toLower().split(';').join(',');
+            for(const int fieldNum : qAsConst(dataOptions->scheduleField)) {
+                QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
                 allTimeNames << CsvFile::getLine(scheduleFieldStream);
             }
@@ -834,10 +839,12 @@ bool GetGrueprDataDialog::readData()
                                             {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
         dataOptions->timeNames = allTimeNames;
 
-        // look at all the time values. If any end with 0.25, set schedule resolution to 0.25 immediately and stop looking
-        // if none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
+        // Set the schedule resolution (in units of hours) by looking at all the time values.
+        // If any end with 0.25, set schedule resolution to 0.25 immediately and stop looking.
+        // If none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
+        // If none do, keep at default of 1.
         dataOptions->scheduleResolution = 1;
-        for(const auto &timeName : dataOptions->timeNames) {
+        for(const auto &timeName : qAsConst(dataOptions->timeNames)) {
             const int numOfQuarterHours = std::lround(4 * grueprGlobal::timeStringToHours(timeName)) % 4;
             if((numOfQuarterHours == 1) || (numOfQuarterHours == 3)) {
                 dataOptions->scheduleResolution = 0.25;
@@ -893,14 +900,14 @@ bool GetGrueprDataDialog::readData()
     loadingProgressDialog->setValue(2);
 
     // Having read the header row and determined time names, if any, read each remaining row as a student record
-    surveyFile->readDataRow(true);    // put cursor back to beginning and read first row
+    surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);    // put cursor back to beginning and read first row
     if(surveyFile->hasHeaderRow) {
         // that first row was headers, so get next row
         surveyFile->readDataRow();
     }
 
     students.reserve(surveyFile->estimatedNumberRows);
-    int numStudents = 0;            // counter for the number of records in the file; used to set the number of students to be teamed for the rest of the program
+    int numStudents = 0;
     StudentRecord currStudent;
     do {
         if(loadingProgressDialog->wasCanceled()) {
@@ -915,8 +922,10 @@ bool GetGrueprDataDialog::readData()
         // see if this record is a duplicate; assume it isn't and then check
         currStudent.duplicateRecord = false;
         for(auto &student : students) {
-            if(((currStudent.firstname + currStudent.lastname).compare(student.firstname + student.lastname, Qt::CaseInsensitive) == 0) ||
-                ((currStudent.email.compare(student.email, Qt::CaseInsensitive) == 0) && !currStudent.email.isEmpty())) {
+            if((((currStudent.firstname + currStudent.lastname).compare(student.firstname + student.lastname, Qt::CaseInsensitive) == 0) &&
+                 !(currStudent.firstname + currStudent.lastname).isEmpty()) ||
+                ((currStudent.email.compare(student.email, Qt::CaseInsensitive) == 0) &&
+                 !currStudent.email.isEmpty())) {
                 currStudent.duplicateRecord = true;
                 student.duplicateRecord = true;
             }
@@ -954,11 +963,24 @@ bool GetGrueprDataDialog::readData()
 
     // if there's a (separately-sourced) roster of students, compare against the list of submissions
     // add the name, section and email data if available in roster and blank in survey data,
+    // (ask whether to replace section data if present in both)
     // and add the info of any non-submitters now
     if(!roster.isEmpty()) {
+
+        // if there's section data in both the survey and the roster, ask which to use
+        bool loadSectionFromRoster = false;
+        if(std::any_of(students.constBegin(), students.constEnd(), [](const auto &student){return !student.section.isEmpty();}) &&
+           std::any_of(roster.constBegin(), roster.constEnd(), [](const auto &student){return !student.section.isEmpty();})) {
+            loadSectionFromRoster = grueprGlobal::warningMessage(this, "gruepr",
+                                                                 tr("The survey contains section data, but so does the roster") +
+                                                                    (dataOptions->dataSource == DataOptions::DataSource::fromCanvas? tr(" from Canvas") : "") + ".\n" +
+                                                                     tr("Would you like to replace the survey data with that from the roster?"),
+                                                                 tr("Yes"), tr("No"));
+        }
+
         students.reserve(roster.size());
         int numNonSubmitters = 0;
-        for(const auto &studentOnRoster : roster) {
+        for(const auto &studentOnRoster : qAsConst(roster)) {
             int index = 0;
             const long long LMSid = studentOnRoster.LMSID;
             while((index < numStudents) && (LMSid != students.at(index).LMSID)) {
@@ -999,7 +1021,7 @@ bool GetGrueprDataDialog::readData()
                     students[index].email = studentOnRoster.email;
                     dataOptions->emailField = DataOptions::DATAFROMOTHERSOURCE;
                 }
-                if(students.at(index).section.isEmpty() && !studentOnRoster.section.isEmpty()) {
+                if((students.at(index).section.isEmpty() || loadSectionFromRoster) && !studentOnRoster.section.isEmpty()) {
                     students[index].section = studentOnRoster.section;
                     dataOptions->sectionField = DataOptions::DATAFROMOTHERSOURCE;
                     dataOptions->sectionIncluded = true;
@@ -1032,7 +1054,7 @@ bool GetGrueprDataDialog::readData()
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];
             // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
-            for(const auto &student : students) {
+            for(const auto &student : qAsConst(students)) {
                 if(!responses.contains(student.attributeResponse[attribute])) {
                     responses << student.attributeResponse[attribute];
                 }

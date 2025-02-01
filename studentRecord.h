@@ -25,7 +25,7 @@ public:
     long long ID = -1;                                  // ID is assigned in order of appearance in the data file
     long long LMSID = -1;                               // student ID number according to the learning management system
     bool duplicateRecord = false;                       // another record exists with the same firstname+lastname or email address
-    Gender gender = Gender::unknown;
+    QSet<Gender> gender = {Gender::unknown};
     bool URM = false;                                   // true if this student is from an underrepresented minority group
     bool unavailable[MAX_DAYS][MAX_BLOCKS_PER_DAY];     // true if this is a busy block during week
     float timezone = 0;                                 // offset from GMT

@@ -2,14 +2,19 @@
 #include <QEvent>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSettings>
 #include <QTextBrowser>
 #include <QTime>
 #include <QWidget>
-#include <QtNetwork>
 
 float grueprGlobal::timeStringToHours(const QString &timeStr) {
+    static const QStringList timeFormats = QString(TIMEFORMATS).split(';');
+    static QString mostRecentTimeFormat = timeFormats[0];
+
     QTime time = QTime::fromString(timeStr, mostRecentTimeFormat);
     if(time.isValid()) {
         return time.hour() + (time.minute() / 60.0f) + (time.second()/3600.0f);
@@ -113,7 +118,7 @@ void grueprGlobal::helpWindow(QWidget *parent) {
 MouseWheelBlocker::MouseWheelBlocker(QObject *parent) : QObject(parent) { }
 bool MouseWheelBlocker::eventFilter(QObject *o, QEvent *e) {
     const QWidget* widget = static_cast<QWidget*>(o);
-    if (e->type() == QEvent::Wheel && widget && !widget->hasFocus()) {
+    if (e->type() == QEvent::Wheel && (widget != nullptr) && !widget->hasFocus()) {
         e->ignore();
         return true;
     }

@@ -1,10 +1,16 @@
 #include "canvashandler.h"
 #include <QDesktopServices>
+#include <QDir>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QTimer>
+#include <QUrlQuery>
 #include <QVBoxLayout>
 
 CanvasHandler::CanvasHandler(QWidget *parent) : LMS(parent), parent(parent) {
@@ -41,7 +47,8 @@ bool CanvasHandler::authenticate() {
     //***************************************************
     //IN BETA--GETS USER'S API TOKEN MANUALLY
     QSettings savedSettings;
-    const QByteArray key = "gruepr";
+    const QByteArray key = "gruepr";    // used to prevent saving the URL and token as plaintext
+    QString savedCanvasNickname = savedSettings.value("canvasNickname", "").toString();
     QString savedCanvasURL = savedSettings.value("canvasURL", "").toString();
     QString savedCanvasToken = savedSettings.value("canvasToken", "").toString();
     //older versions of gruepr saves as plaintext qstring; if saved as QByteArray, need to 'decrypt'
@@ -58,13 +65,18 @@ bool CanvasHandler::authenticate() {
         savedCanvasToken = encToken;
     }
 
-    const QStringList newURLAndToken = askUserForManualURLandToken(savedCanvasURL, savedCanvasToken);
-    if(newURLAndToken.isEmpty()) {
+    const QStringList newAccountnameURLAndToken = askUserForManualURLandToken(savedCanvasNickname, savedCanvasURL, savedCanvasToken);
+    if(newAccountnameURLAndToken.size() != 3) {
         return false;
     }
 
-    savedCanvasURL = (newURLAndToken.at(0).isEmpty() ? savedCanvasURL : newURLAndToken.at(0));
-    savedCanvasToken =  (newURLAndToken.at(1).isEmpty() ? savedCanvasToken : newURLAndToken.at(1));
+    savedCanvasNickname = (newAccountnameURLAndToken.at(0).isEmpty() ? savedCanvasNickname : newAccountnameURLAndToken.at(0));
+    savedCanvasURL = (newAccountnameURLAndToken.at(1).isEmpty() ? savedCanvasURL : newAccountnameURLAndToken.at(1));
+    savedCanvasToken =  (newAccountnameURLAndToken.at(2).isEmpty() ? savedCanvasToken : newAccountnameURLAndToken.at(2));
+    if(savedCanvasNickname.isEmpty() || savedCanvasURL.isEmpty() || savedCanvasToken.isEmpty()) {
+        return false;
+    }
+
     QByteArray encURL = savedCanvasURL.toUtf8();
     for (int i = 0; i < encURL.size(); ++i) {
         encURL[i] ^= key[i%key.size()];
@@ -73,6 +85,7 @@ bool CanvasHandler::authenticate() {
     for (int i = 0; i < encToken.size(); ++i) {
         encToken[i] ^= key[i%key.size()];
     }
+    savedSettings.setValue("canvasNickname", savedCanvasNickname);
     savedSettings.setValue("canvasURL", encURL);
     savedSettings.setValue("canvasToken", encToken);
 
@@ -174,18 +187,19 @@ bool CanvasHandler::authenticate() {
 }
 
 // Retrieves course names, and loads the names, Canvas course IDs, and student counts
-QStringList CanvasHandler::getCourses() {
+QList<CanvasHandler::CanvasCourse> CanvasHandler::getCourses() {
     QStringList courseNames;
+    QStringList courseCreatedDates;
     QList<int> ids, studentCounts;
     QStringList x;
     QList<int> y;
-    QList<QStringList*> courseNamesInList = {&courseNames};
+    QList<QStringList*> courseNamesAndCreatedDatesInList = {&courseNames, &courseCreatedDates};
     QList<QList<int>*> idsAndStudentCounts = {&ids, &studentCounts};
     QList<QStringList*> stringInSubobjectParams = {&x};
     QList<QList<int>*> intInSubArrayParams = {&y};
 
     getPaginatedCanvasResults("/api/v1/courses?include[]=total_students",
-                              {"name"}, courseNamesInList,
+                              {"name", "created_at"}, courseNamesAndCreatedDatesInList,
                               {"id", "total_students"}, idsAndStudentCounts,
                               {}, stringInSubobjectParams,
                               {}, intInSubArrayParams);
@@ -193,10 +207,11 @@ QStringList CanvasHandler::getCourses() {
 
     canvasCourses.clear();
     for(int i = 0; i < courseNames.size(); i++) {
-        canvasCourses.append({courseNames.at(i), ids.at(i), studentCounts.at(i)});
+        canvasCourses.append({courseNames.at(i), ids.at(i), studentCounts.at(i), QDateTime::fromString(courseCreatedDates.at(i), Qt::ISODate)});
     }
+    std::sort(canvasCourses.begin(), canvasCourses.end(), [](const CanvasCourse &courseA, const CanvasCourse &courseB){return (courseA.creationDate > courseB.creationDate);});
 
-    return courseNames;
+    return canvasCourses;
 }
 
 // Retrieves the number of students in the given course
@@ -756,17 +771,17 @@ void CanvasHandler::authenticateWithManualToken(const QString &token) {
     OAuthFlow->setToken(token);
 }
 
-QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentURL, const QString &currentToken) {
+QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentAccountName, const QString &currentURL, const QString &currentToken) {
     auto *getCanvasInfoDialog = new QDialog;
     getCanvasInfoDialog->setWindowTitle(tr("Connect to Canvas"));
     getCanvasInfoDialog->setWindowIcon(QIcon(":/icons_new/canvas.png"));
     getCanvasInfoDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    auto *vLayout = new QVBoxLayout;
-    auto *label = new QLabel(tr("Completing the steps below would allow gruepr to interact with your Canvas course using a self-generated access token.\n"
-                                "This feature is not officially allowed by Canvas and is included for testing purposes only.\n"
-                            "The information typed below will be saved to your computer so that you only have to perform the following steps once.\n"
-                            "This information will not be sent anywhere and should not be shared with anyone.\n\n"
-                            "1) enter your institution's canvas URL in the first field below.\n"
+
+    auto *instructions = new QLabel(tr("Completing the steps below would allow gruepr to interact with your Canvas course using a self-generated access token.\n"
+                                    "This feature is not officially allowed by Canvas and is included for testing purposes only.\n"
+                                    "This information will not be sent anywhere and should not be shared with anyone.\n\n"
+                                    "You only have to perform the following steps once.\n"
+                            "1) enter your institution's canvas URL in the second field below.\n"
                             "2) create a token so that gruepr can access your Canvas account. You can generally do this by:\n"
                             "   »  Log into Canvas,\n"
                             "   »  click \"Account\" in the left menu\n"
@@ -775,26 +790,75 @@ QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentURL
                             "   »  click \"+ New Access Token\",\n"
                             "   »  fill in \"gruepr\" for the Purpose field and keep the expiration date blank,\n"
                             "   »  click \"Generate Token\", and\n"
-                            "   »  copy your freshly generated token and paste it into the second field below.\n"
+                            "   »  copy your freshly generated token and paste it into the third field below.\n"
                             "Depending on your institution's settings, you may have to request that "
                             "your token be generated by the campus Canvas administrators.\n\n"), getCanvasInfoDialog);
-    label->setStyleSheet(LABEL10PTSTYLE);
+    instructions->setStyleSheet(LABEL10PTSTYLE);
+    auto *accountnameLabel = new QLabel(tr("Using Canvas account:") + "<br>" + currentAccountName, getCanvasInfoDialog);
+    accountnameLabel->setStyleSheet(LABEL12PTSTYLE);
+
+    auto *canvasAccountName = new QLineEdit(currentAccountName, getCanvasInfoDialog);
+    canvasAccountName->setPlaceholderText(tr("Account nickname (optional)"));
+    canvasAccountName->setStyleSheet(LINEEDITSTYLE);
     auto *canvasURL = new QLineEdit(currentURL, getCanvasInfoDialog);
     canvasURL->setPlaceholderText(tr("Your Canvas URL (e.g., https://exampleschool.instructure.com)"));
     canvasURL->setStyleSheet(LINEEDITSTYLE);
     auto *canvasToken = new QLineEdit(currentToken, getCanvasInfoDialog);
     canvasToken->setPlaceholderText(tr("User-generated Canvas token"));
     canvasToken->setStyleSheet(LINEEDITSTYLE);
+
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, getCanvasInfoDialog);
-    buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Proceed"));
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    auto *showInputsButton = buttonBox->button(QDialogButtonBox::Cancel);
+    showInputsButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     connect(buttonBox, &QDialogButtonBox::accepted, getCanvasInfoDialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
-    vLayout->addWidget(label);
+
+    connect(canvasURL, &QLineEdit::textChanged, buttonBox, [buttonBox, canvasURL, canvasToken]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+                                                   !(canvasURL->text().isEmpty()) && !(canvasToken->text().isEmpty()));});
+    connect(canvasToken, &QLineEdit::textChanged, buttonBox, [buttonBox, canvasURL, canvasToken]() {buttonBox->button(QDialogButtonBox::Ok)->setEnabled(
+                                                   !(canvasURL->text().isEmpty()) && !(canvasToken->text().isEmpty()));});
+
+    auto *vLayout = new QVBoxLayout;
+    vLayout->addWidget(instructions);
+    vLayout->addWidget(accountnameLabel);
+    vLayout->addWidget(canvasAccountName);
     vLayout->addWidget(canvasURL);
     vLayout->addWidget(canvasToken);
     vLayout->addWidget(buttonBox);
     getCanvasInfoDialog->setLayout(vLayout);
+
+    if(!currentURL.isEmpty() && !currentToken.isEmpty()) {
+        // show simple dialog to proceed with already existing URL and token
+        showInputsButton->setText(tr("Change account"));
+        showInputsButton->setIcon(QIcon(":/icons_new/downButton.png"));
+        showInputsButton->setLayoutDirection(Qt::RightToLeft);   // icon on right side
+        showInputsButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+        instructions->hide();
+        canvasAccountName->hide();
+        canvasURL->hide();
+        canvasToken->hide();
+        auto *receiver = new QObject(getCanvasInfoDialog);
+        connect(showInputsButton, &QPushButton::clicked, receiver,
+                [getCanvasInfoDialog, instructions, accountnameLabel, canvasAccountName, canvasURL, canvasToken, showInputsButton, buttonBox, receiver]
+                { instructions->show();
+                  accountnameLabel->hide();
+                  canvasAccountName->show();
+                  canvasURL->show();
+                  canvasToken->show();
+                  showInputsButton->setIcon(QIcon());
+                  showInputsButton->setText(tr("Cancel"));
+                  getCanvasInfoDialog->adjustSize();
+                  connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
+                  receiver->deleteLater();  // makes sure this lambda only runs once
+                });
+    }
+    else {
+        accountnameLabel->hide();
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+        showInputsButton->setText(tr("Cancel"));
+        connect(buttonBox, &QDialogButtonBox::rejected, getCanvasInfoDialog, &QDialog::reject);
+    }
 
     auto result = getCanvasInfoDialog->exec();
     getCanvasInfoDialog->deleteLater();
@@ -802,12 +866,22 @@ QStringList CanvasHandler::askUserForManualURLandToken(const QString &currentURL
     if(result == QDialog::Rejected) {
         return {};
     }
+
     QString url = canvasURL->text().trimmed();
     if(!url.startsWith("https://") && !url.startsWith("http://")) {
         url.prepend("https://");
     }
+    QString accountName = canvasAccountName->text().trimmed();
+    if(accountName.isEmpty() && !url.isEmpty()) {
+        // for a default nickname, grab the first part of the url (i.e., "example" in https://example.instructure.com)
+        const int startPos = url.indexOf('/') + 2;    // move to just after the "//"
+        const int endPos = url.indexOf('.');
+        accountName = url.mid(startPos, endPos - startPos);
+        accountName[0] = accountName[0].toUpper();
+    }
     const QString token = canvasToken->text().trimmed();
-    return {url, token};
+
+    return {accountName, url, token};
 }
 
 void CanvasHandler::setBaseURL(const QString &baseAPIURL) {

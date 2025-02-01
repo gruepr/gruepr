@@ -1,10 +1,17 @@
 #include "googlehandler.h"
 #include "googlesecrets.h"
 #include <QDesktopServices>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QTimer>
 #include <QVBoxLayout>
 
 GoogleHandler::GoogleHandler(QWidget *parent) : LMS(parent), parent(parent) {
@@ -97,7 +104,7 @@ bool GoogleHandler::authenticate() {
         //RefreshToken is found, try to use it to get accessTokens without having to re-grant permission
         bool changingAccounts = false;
         if(!accountName.isEmpty()){
-            actionDialogLabel->setText(tr("Using Google account: ") + "<br>" + accountName);
+            actionDialogLabel->setText(tr("Using Google account:") + "<br>" + accountName);
             actionDialogButtons->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
             actionDialogButtons->button(QDialogButtonBox::Ok)->setText(tr("Proceed"));
             actionDialogButtons->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -181,7 +188,7 @@ bool GoogleHandler::authenticate() {
     return true;
 }
 
-GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
+GoogleHandler::GoogleForm GoogleHandler::createSurvey(const Survey *const survey) {
     //create a Google Form--only the title and document_title can be set in this step
     QString url = "https://forms.googleapis.com/v1/forms";
     const QString title = survey->title.isEmpty() ? QDateTime::currentDateTime().toString("hh:mm dd MMMM yyyy") : survey->title.simplified();
@@ -490,6 +497,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     json_doc = QJsonDocument::fromJson(replyBody);
     //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
     const QJsonArray responses = json_doc["responses"].toArray();
+    QStringList allValuesInField;
     for(const auto &response : qAsConst(responses)) {
         out << response.toObject()["lastSubmittedTime"].toString();
 
@@ -497,13 +505,13 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
         const QJsonObject answers = response.toObject()["answers"].toObject();
         for(const auto &question : qAsConst(questions)) {
             const QJsonArray nestedAnswers = answers[question.ID]["textAnswers"]["answers"].toArray();
-            QStringList allValues;
-            allValues.reserve(nestedAnswers.size());
+            allValuesInField.clear();
+            allValuesInField.reserve(nestedAnswers.size());
             for(const auto &nestedAnswer : qAsConst(nestedAnswers)) {
                 const auto answerObject = nestedAnswer.toObject();
-                allValues << answerObject["value"].toString();
+                allValuesInField << answerObject["value"].toString().replace('"', '\'');  // stray quotation marks in field can confuse the csv parser --> replace with apostrophe
             }
-            out << ",\"" << allValues.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";
+            out << ",\"" << allValuesInField.join(question.type == GoogleFormQuestion::Type::schedule? ';' : ',') << "\"";
         }
 
         out << Qt::endl;

@@ -1,6 +1,10 @@
 #include "LMS.h"
 #include <QDesktopServices>
+#include <QGraphicsOpacityEffect>
 #include <QGridLayout>
+#include <QMetaEnum>
+#include <QPropertyAnimation>
+#include <QTimer>
 
 LMS::LMS(QObject *parent) :
     QObject(parent),
@@ -109,6 +113,18 @@ QDialog* LMS::actionDialog(QWidget *parent) {
     actionDialogButtons->setStyleSheet(SMALLBUTTONSTYLE);
     actionDialogButtons->setStandardButtons(QDialogButtonBox::NoButton);
     connect(actionDialogButtons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
+
+/*
+    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(dialog);
+    actionDialogIcon->setGraphicsEffect(eff);
+    QPropertyAnimation *a = new QPropertyAnimation(eff, "opacity");
+    a->setDuration(500);
+    a->setStartValue(0);
+    a->setEndValue(1);
+    a->setLoopCount(-1);
+    a->setEasingCurve(QEasingCurve::InBack);
+    a->start(QPropertyAnimation::DeleteWhenStopped);
+*/
     auto *theGrid = new QGridLayout;
     dialog->setLayout(theGrid);
     theGrid->addWidget(actionDialogIcon, 0, 0, Qt::AlignLeft | Qt::AlignTop);

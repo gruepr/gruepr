@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['whichfilesdialog_0',['whichFilesDialog',['../classwhich_files_dialog.html',1,'']]]
+  ['whichfilesdialog_0',['WhichFilesDialog',['../class_which_files_dialog.html',1,'']]]
 ];

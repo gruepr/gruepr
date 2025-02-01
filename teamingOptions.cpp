@@ -102,35 +102,29 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     haveAnyRequestedTeammates = jsonTeamingOptions["haveAnyRequestedTeammates"].toBool();
     numberRequestedTeammatesGiven = jsonTeamingOptions["numberRequestedTeammatesGiven"].toInt();
     const QJsonArray smallerTeamsSizesArray = jsonTeamingOptions["smallerTeamsSizes"].toArray();
-    i = 0;
     for (const auto &val : smallerTeamsSizesArray) {
-        smallerTeamsSizes[i] = val.toInt();
-        i++;
-    }
-    for(int j = i; j < MAX_STUDENTS; j++) {
-        smallerTeamsSizes[j] = 0;
+        const int size = val.toInt();
+        if(size > 0) {
+            smallerTeamsSizes << size;
+        }
     }
     smallerTeamsNumTeams = jsonTeamingOptions["smallerTeamsNumTeams"].toInt();
     const QJsonArray largerTeamsSizesArray = jsonTeamingOptions["largerTeamsSizes"].toArray();
-    i = 0;
     for (const auto &val : largerTeamsSizesArray) {
-        largerTeamsSizes[i] = val.toInt();
-        i++;
-    }
-    for(int j = i; j < MAX_STUDENTS; j++) {
-        largerTeamsSizes[j] = 0;
+        const int size = val.toInt();
+        if(size > 0) {
+            largerTeamsSizes << size;
+        }
     }
     largerTeamsNumTeams = jsonTeamingOptions["largerTeamsNumTeams"].toInt();
-    numTeamsDesired = jsonTeamingOptions["numTeamsDesired"].toInt();
     const QJsonArray teamSizesDesiredArray = jsonTeamingOptions["teamSizesDesired"].toArray();
-    i = 0;
     for (const auto &val : teamSizesDesiredArray) {
-        teamSizesDesired[i] = val.toInt();
-        i++;
+        const int size = val.toInt();
+        if(size > 0) {
+            teamSizesDesired << size;
+        }
     }
-    for(int j = i; j < MAX_STUDENTS; j++) {
-        teamSizesDesired[j] = 0;
-    }
+    numTeamsDesired = jsonTeamingOptions["numTeamsDesired"].toInt();
     sectionName = jsonTeamingOptions["sectionName"].toString();
     sectionType = static_cast<SectionType>(jsonTeamingOptions["sectionType"].toInt());
     teamsetNumber = jsonTeamingOptions["teamsetNumber"].toInt();
@@ -179,10 +173,14 @@ QJsonObject TeamingOptions::toJson() const
         }
         incompatibleAttributeValuesArray.append(incompatibleAttributeValuesArraySubArray);
     }
-    for(int i = 0; i < MAX_STUDENTS; i++) {
-        smallerTeamsSizesArray.append(smallerTeamsSizes[i]);
-        largerTeamsSizesArray.append(largerTeamsSizes[i]);
-        teamSizesDesiredArray.append(teamSizesDesired[i]);
+    for(const auto size : smallerTeamsSizes) {
+        smallerTeamsSizesArray.append(size);
+    }
+    for(const auto size : largerTeamsSizes) {
+        largerTeamsSizesArray.append(size);
+    }
+    for(const auto size : teamSizesDesired) {
+        teamSizesDesiredArray.append(size);
     }
 
     QJsonObject content {
@@ -214,8 +212,8 @@ QJsonObject TeamingOptions::toJson() const
         {"smallerTeamsNumTeams", smallerTeamsNumTeams},
         {"largerTeamsSizes", largerTeamsSizesArray},
         {"largerTeamsNumTeams", largerTeamsNumTeams},
-        {"numTeamsDesired", numTeamsDesired},
         {"teamSizesDesired", teamSizesDesiredArray},
+        {"numTeamsDesired", numTeamsDesired},
         {"sectionName", sectionName},
         {"sectionType", static_cast<int>(sectionType)},
         {"teamsetNumber", teamsetNumber}

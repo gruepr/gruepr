@@ -3,7 +3,6 @@
 #include "csvfile.h"
 #include "LMS/googlehandler.h"
 #include "LMS/canvashandler.h"
-#include "widgets/labelWithInstantTooltip.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QFile>
@@ -15,6 +14,7 @@
 #include <QPainter>
 #include <QRadioButton>
 #include <QSettings>
+#include <QTimer>
 #include <QToolTip>
 
 SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
@@ -125,6 +125,9 @@ void SurveyMakerWizard::loadSurvey(int customButton)
             }
             if(loadObject.contains("GenderType") && loadObject["GenderType"].isDouble()) {
                 setField("genderOptions", loadObject["GenderType"].toInt());
+            }
+            if(loadObject.contains("GenderAllowMulti") && loadObject["GenderAllowMulti"].isBool()) {
+                setField("GenderAllowMulti", loadObject["GenderAllowMulti"].toBool());
             }
             if(loadObject.contains("URM") && loadObject["URM"].isBool()) {
                 setField("RaceEthnicity", loadObject["URM"].toBool());
@@ -516,11 +519,11 @@ DemographicsPage::DemographicsPage(QWidget *parent)
 
     questions[gender]->setLabel(tr("Gender"));
     auto *genderResponses = new QWidget;
-    auto *genderResponsesLayout = new QHBoxLayout(genderResponses);
+    auto *genderResponsesLayout = new QGridLayout(genderResponses);
     genderResponsesLabel = new QLabel(tr("Ask as: "));
     genderResponsesLabel->setStyleSheet(LABEL10PTSTYLE);
     genderResponsesLabel->setEnabled(false);
-    genderResponsesLayout->addWidget(genderResponsesLabel);
+    genderResponsesLayout->addWidget(genderResponsesLabel, 0, 0, Qt::AlignLeft);
     genderResponsesComboBox = new QComboBox;
     genderResponsesComboBox->setFocusPolicy(Qt::StrongFocus);    // make scrollwheel scroll the question area, not the combobox value
     genderResponsesComboBox->installEventFilter(new MouseWheelBlocker(genderResponsesComboBox));
@@ -529,37 +532,51 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     genderResponsesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     genderResponsesComboBox->setEnabled(false);
     genderResponsesComboBox->setCurrentIndex(3);
-    genderResponsesLayout->addWidget(genderResponsesComboBox);
-    genderResponsesLayout->addStretch(1);
+    genderResponsesLayout->addWidget(genderResponsesComboBox, 0, 1, Qt::AlignLeft);
+    genderResponsesAllowMulti = new QCheckBox(tr("Allow multiple selections"));
+    genderResponsesAllowMulti->setStyleSheet(CHECKBOXSTYLE);
+    genderResponsesAllowMulti->setEnabled(false);
+    genderResponsesAllowMulti->setChecked(false);
+    genderResponsesLayout->addWidget(genderResponsesAllowMulti, 1, 0, 1, -1, Qt::AlignLeft);
     questions[gender]->addWidget(genderResponses, 1, 0, true);
     connect(genderResponsesComboBox, &QComboBox::currentIndexChanged, this, &DemographicsPage::update);
+    connect(genderResponsesAllowMulti, &QCheckBox::toggled, this, &DemographicsPage::update);
     questionPreviewTopLabels[gender]->setText(PRONOUNQUESTION);
     questionPreviewLayouts[gender]->addWidget(questionPreviewTopLabels[gender]);
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, this, &DemographicsPage::update);
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesLabel, &QLabel::setEnabled);
     connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesComboBox, &QComboBox::setEnabled);
+    connect(questions[gender], &SurveyMakerQuestionWithSwitch::valueChanged, genderResponsesAllowMulti, &QComboBox::setEnabled);
     auto *options = new QGroupBox("");
     options->setStyleSheet("border-style:none;");
     auto *vbox = new QVBoxLayout;
     vbox->setSpacing(0);
     vbox->setContentsMargins(20, 0, 0, 0);
     options->setLayout(vbox);
-    auto *topLabel = new QLabel(SELECTONE);
-    topLabel->setStyleSheet(LABEL10PTSTYLE);
-    topLabel->setWordWrap(true);
-    vbox->addWidget(topLabel);
+    toplabelrb = new QLabel(SELECTONE);
+    toplabelcb = new QLabel(SELECTMULT);
+    toplabelrb->setStyleSheet(LABEL10PTSTYLE);
+    toplabelcb->setStyleSheet(LABEL10PTSTYLE);
+    toplabelrb->setWordWrap(true);
+    toplabelcb->setWordWrap(true);
+    vbox->addWidget(toplabelrb);
+    vbox->addWidget(toplabelcb);
+    toplabelrb->hide();
     const QStringList genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     for(const auto &genderOption : genderOptions) {
-        ge << new QRadioButton(genderOption);
-        vbox->addWidget(ge.last());
+        gerb << new QRadioButton(genderOption);
+        gecb << new QCheckBox(genderOption);
+        vbox->addWidget(gerb.last());
+        vbox->addWidget(gecb.last());
+        gerb.last()->hide();
     }
-    ge.first()->setChecked(true);
     questionPreviewLayouts[gender]->addWidget(options);
     questionPreviewBottomLabels[gender]->hide();
     questionPreviewLayouts[gender]->addWidget(questionPreviewBottomLabels[gender]);
     questionPreviews[gender]->hide();
     registerField("Gender", questions[gender], "value", "valueChanged");
     registerField("genderOptions", genderResponsesComboBox);
+    registerField("genderAllowMulti", genderResponsesAllowMulti);
 
     questions[urm]->setLabel(tr("Race / ethnicity"));
     questionPreviewTopLabels[urm]->setText(URMQUESTION);
@@ -636,9 +653,24 @@ void DemographicsPage::update()
         genderOptions = QString(PRONOUNS).split('/').replaceInStrings(UNKNOWNVALUE, PREFERNOTRESPONSE);
     }
     questionPreviewTopLabels[gender]->setText(questionText);
+
     int i = 0;
-    for(const auto &genderOption : genderOptions) {
-        ge[i++]->setText(genderOption);
+    for(const auto &genderOption : qAsConst(genderOptions)) {
+        gerb[i]->setText(genderOption);
+        gecb[i]->setText(genderOption);
+        if(genderResponsesAllowMulti->isChecked()) {
+            gerb[i]->hide();
+            gecb[i]->show();
+            toplabelrb->hide();
+            toplabelcb->show();
+        }
+        else {
+            gerb[i]->show();
+            gecb[i]->hide();
+            toplabelrb->show();
+            toplabelcb->hide();
+        }
+        i++;
     }
 }
 
@@ -651,7 +683,7 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
 {
     auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     sampleQuestionsFrame = new QFrame(this);
-    sampleQuestionsFrame->setStyleSheet("background-color: " + (QColor::fromString(QString(STARFISHHEX)).lighter(133).name()) + "; color: " DEEPWATERHEX ";");
+    sampleQuestionsFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
     sampleQuestionsIcon = new QLabel;
     sampleQuestionsIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
     sampleQuestionsLabel = new QLabel(tr("Unsure of what to ask? Take a look at some example questions!"));
@@ -709,13 +741,20 @@ MultipleChoicePage::MultipleChoicePage(QWidget *parent)
         //connect question to delete action and to updating the wizard fields and the preview
         connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
         questionTexts << "";
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText)
-                                                                                                     {questionTexts[i] = newText;
-                                                                                                      questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : newText);});
+        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
+            QString textWOQuotes = newText;
+            textWOQuotes.replace('"', '\'');
+            questionTexts[i] = textWOQuotes;
+            questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
+        });
         questionResponses << QStringList({""});
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){questionResponses[i] = newResponses;});
+        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::responsesChanged, this, [this, i](const QStringList &newResponses){
+            questionResponses[i] = newResponses;
+        });
         questionMultis << false;
-        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::multiChanged, this, [this, i](const bool newMulti){questionMultis[i] = newMulti;});
+        connect(multichoiceQuestions.last(), &SurveyMakerMultichoiceQuestion::multiChanged, this, [this, i](const bool newMulti){
+            questionMultis[i] = newMulti;
+        });
     }
 
     addQuestionButtonFrame = new QFrame(this);
@@ -797,7 +836,9 @@ void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts
         if(i >= numQuestions) {
             addQuestion();
         }
-        multichoiceQuestions[i]->setQuestion(newQuestionText);
+        QString textWOQuotes = newQuestionText;
+        textWOQuotes.replace('"', '\'');
+        multichoiceQuestions[i]->setQuestion(textWOQuotes);
         i++;
     }
     while(i < MAX_ATTRIBUTES-1) {
@@ -1404,6 +1445,26 @@ QString SchedulePage::generateScheduleQuestion(bool scheduleAsBusy, bool timezon
 CourseInfoPage::CourseInfoPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::courseinfo, parent)
 {
+    canvasSectionInfoFrame = new QFrame(this);
+    canvasSectionInfoFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
+    canvasSectionInfoIcon = new LabelWithInstantTooltip("", this);
+    canvasSectionInfoIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
+    canvasSectionInfoIcon->setStyleSheet(BIGTOOLTIPSTYLE);
+    canvasSectionInfoLabel = new LabelWithInstantTooltip(tr("Using Canvas?"));
+    canvasSectionInfoLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    canvasSectionInfoLabel->setWordWrap(true);
+    const QString helpText = tr("<html><span style=\"color: black;\">If you're using gruepr's integration with Canvas, "
+                                "you might not want the Section question. The survey results that gruepr downloads will "
+                                "automatically include each student's section (using the official section names as "
+                                "registered in your school's Canvas installation).</span></html>");
+    canvasSectionInfoIcon->setToolTipText(helpText);
+    canvasSectionInfoLabel->setToolTipText(helpText);
+    canvasSectionInfoLayout = new QHBoxLayout(canvasSectionInfoFrame);
+    canvasSectionInfoLayout->addWidget(canvasSectionInfoIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    canvasSectionInfoLayout->addWidget(canvasSectionInfoLabel, 1, Qt::AlignVCenter);
+    questionLayout->insertWidget(1, canvasSectionInfoFrame);
+    questionLayout->insertSpacing(2, 10);
+
     questions[section]->setLabel(tr("Section"));
     connect(questions[section], &SurveyMakerQuestionWithSwitch::valueChanged, this, &CourseInfoPage::update);
     addSectionButton = new QPushButton;
@@ -1454,7 +1515,7 @@ CourseInfoPage::CourseInfoPage(QWidget *parent)
     questionPreviewBottomLabels[wantToWorkWith]->hide();
     registerField("PrefTeammate", questions[wantToWorkWith], "value", "valueChanged");
 
-    questionLayout->removeItem(questionLayout->itemAt(4));
+    questionLayout->removeItem(questionLayout->itemAt(6));
 
     questions[wantToAvoid]->setLabel(tr("Classmates I want to avoid"));
     questions[wantToAvoid]->setStyleSheet(questions[wantToAvoid]->styleSheet().replace("border-top: 1px solid " AQUAHEX, "border-top: 0px")
@@ -1595,12 +1656,12 @@ void CourseInfoPage::update()
         delete child;   // delete the layout item
     }
 
-    auto *topLabel = new QLabel(tr("Select one:"));
+    auto *topLabel = new QLabel(SELECTONE);
     topLabel->setStyleSheet(LABEL10PTSTYLE);
     topLabel->setWordWrap(true);
     sectionsPreviewLayout->addWidget(topLabel);
     sc.clear();
-    for(const int visibleSectionLineEdit : visibleSectionLineEdits) {
+    for(const int visibleSectionLineEdit : qAsConst(visibleSectionLineEdits)) {
         sc << new QRadioButton;
         sectionsPreviewLayout->addWidget(sc.last());
         const QString sectName = sectionLineEdits[visibleSectionLineEdit]->text();
@@ -1808,7 +1869,7 @@ bool CourseInfoPage::uploadRoster()
         rosterFile.readDataRow();
     }
     else {
-        rosterFile.readDataRow(true);
+        rosterFile.readDataRow(CsvFile::ReadLocation::beginningOfFile);
     }
     do {
         QString name;
@@ -2061,12 +2122,18 @@ void PreviewAndExportPage::initializePage()
             delete child->widget(); // delete the widget
             delete child;   // delete the layout item
         }
-        for(const auto &genderOption : genderOptions) {
-            auto *option = new QRadioButton(genderOption);
+        for(const auto &genderOption : qAsConst(genderOptions)) {
+            QWidget *option;
+            if(field("genderAllowMulti").toBool()) {
+                option = new QCheckBox(genderOption);
+            }
+            else {
+                option = new QRadioButton(genderOption);
+            }
             section[SurveyMakerWizard::demographics]->questionGroupLayout[3]->addWidget(option);
         }
         section[SurveyMakerWizard::demographics]->questionGroupBox[3]->show();
-        survey->questions << Question(questionText, Question::QuestionType::radiobutton, genderOptions);
+        survey->questions << Question(questionText, (field("genderAllowMulti").toBool()? Question::QuestionType::checkbox : Question::QuestionType::radiobutton), genderOptions);
     }
     else {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2115,7 +2182,7 @@ void PreviewAndExportPage::initializePage()
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
-                for(const auto &response : responses) {
+                for(const auto &response : qAsConst(responses)) {
                     auto *option = new QCheckBox(response);
                     section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
                 }
@@ -2130,7 +2197,7 @@ void PreviewAndExportPage::initializePage()
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
-                for(const auto &response : responses) {
+                for(const auto &response : qAsConst(responses)) {
                     auto *option = new QRadioButton(response);
                     section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
                 }
@@ -2394,6 +2461,42 @@ void PreviewAndExportPage::cleanupPage()
 //////////////////////////////////
 
 /*
+ * Handles the exporting of the created survey into different options:
+ * - Google Forms
+ * - Canvas
+ * - Text file
+ * - gruepr file
+ *
+ * Param:
+ * Return: void
+ */
+void PreviewAndExportPage::exportSurvey()
+{
+
+    if (destinationGrueprFile->isChecked()) {
+
+        // Handle exporting survey to gruepr file
+        PreviewAndExportPage::exportSurveyDestinationGrueprFile();
+
+    } else if (destinationTextFiles->isChecked()) {
+
+        // Handle exporting survey to text files
+        PreviewAndExportPage::exportSurveyDestinationTextFile();
+
+    } else if (destinationGoogle->isChecked()) {
+
+        // Handle exporting survey to google forms
+        PreviewAndExportPage::exportSurveyDestinationGoogle();
+
+    } else if (destinationCanvas->isChecked()) {
+
+        // Handle exporting survey to canvas
+        PreviewAndExportPage::exportSurveyDestinationCanvas();
+
+    }
+}
+
+/*
  * HELPER METHOD FOR 'exportSurvey()': Handles survey exporting to a gruepr file
  */
 void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
@@ -2413,6 +2516,7 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
             saveObject["Email"] = field("Email").toBool();
             saveObject["Gender"] = field("Gender").toBool();
             saveObject["GenderType"] = field("genderOptions").toInt();
+            saveObject["GenderAllowMulti"] = field("GenderAllowMulti").toBool();
             saveObject["URM"] = field("RaceEthnicity").toBool();
 
             const int numMultiChoiceQuestions = field("multiChoiceNumQuestions").toInt();
@@ -2471,16 +2575,21 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
 {
     QFileInfo *saveFileLocation = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
     //give instructions about how this option works
-    QMessageBox createSurvey;
-    createSurvey.setIcon(QMessageBox::Information);
-    createSurvey.setWindowTitle(tr("Survey Creation"));
-    createSurvey.setText(tr("The next step will save two files to your computer:\n\n"
-                            "  » A text file that lists the questions you should include in your survey.\n\n"
-                            "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
-    createSurvey.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
-    if(createSurvey.exec() == QMessageBox::Cancel) {
+    auto *successDialog = new QMessageBox(this);
+    successDialog->setStyleSheet(LABEL10PTSTYLE);
+    successDialog->setIcon(QMessageBox::Information);
+    successDialog->setWindowTitle(tr("Survey Creation"));
+    successDialog->setText(tr("The next step will save two files to your computer:\n\n"
+                              "  » A text file that lists the questions you should include in your survey.\n\n"
+                              "  » A csv file that gruepr can read after you paste into it the survey data you receive."));
+    successDialog->setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
+    successDialog->button(QMessageBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    successDialog->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    if(successDialog->exec() == QMessageBox::Cancel) {
+        delete successDialog;
         return;
     }
+    delete successDialog;
 
     //get the filenames and location
     const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), saveFileLocation->canonicalFilePath(), tr("text and survey files (*);;All Files (*)"));
@@ -2507,7 +2616,7 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
         if(question.type == Question::QuestionType::schedule) {
             textFileContents += "\n                 ";
-            for(const auto &timeName : survey->schedTimeNames) {
+            for(const auto &timeName : qAsConst(survey->schedTimeNames)) {
                 textFileContents += timeName + "    ";
             }
             textFileContents += "\n";
@@ -2525,7 +2634,7 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
                 (question.type == Question::QuestionType::checkbox)) {
                 textFileContents += "\n     " + tr("choices") + ": [" + question.options.join(" | ") + "]";
                 if(question.type == Question::QuestionType::checkbox) {
-                    textFileContents += "\n     (" + tr("Select one or more") + ")";
+                    textFileContents += "\n     (" + QString(SELECTMULT) + ")";
                 }
             }
         }
@@ -2604,11 +2713,13 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     auto *copyButton = successDialog->addButton(tr("Copy URL to clipboard"), QMessageBox::ResetRole);
     copyButton->setStyleSheet(copyButton->styleSheet() + QString(BIGTOOLTIPSTYLE).replace("background-color: white;", "background-color: green;"));
     copyButton->disconnect();     // disconnect the button from all slots so that it doesn't close the dialog when clicked
-    connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){QClipboard *clipboard = QGuiApplication::clipboard();
-                                                                                             clipboard->setText(form.responderURL.toEncoded());
-                                                                                             QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
-                                                                                                                tr("URL copied"), copyButton, QRect(),
-                                                                                                                UI_DISPLAY_DELAYTIME);});
+    connect(copyButton, &QPushButton::clicked, successDialog, [&form, &copyButton](){
+        QClipboard *clipboard = QGuiApplication::clipboard();
+        clipboard->setText(form.responderURL.toEncoded());
+        QToolTip::showText(copyButton->mapToGlobal(QPoint(0, 0)),
+                           tr("URL copied"), copyButton, QRect(),
+                           UI_DISPLAY_DELAYTIME);
+    });
     successDialog->exec();
     successDialog->deleteLater();
     surveyHasBeenExported = true;
@@ -2632,38 +2743,38 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
 
     //ask the user in which course we're creating the survey
     auto *busyBox = canvas->actionDialog(this);
-    QStringList courseNames = canvas->getCourses();
+    QList<CanvasHandler::CanvasCourse> canvasCourses = canvas->getCourses();
     canvas->actionComplete(busyBox);
 
-    auto *canvasCourses = new QDialog(this);
-    canvasCourses->setWindowTitle(tr("Choose Canvas course"));
-    canvasCourses->setWindowIcon(CanvasHandler::icon());
-    canvasCourses->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    auto *canvasCoursesDialog = new QDialog(this);
+    canvasCoursesDialog->setWindowTitle(tr("Choose Canvas course"));
+    canvasCoursesDialog->setWindowIcon(CanvasHandler::icon());
+    canvasCoursesDialog->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     auto *vLayout = new QVBoxLayout;
     int i = 1;
-    auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCourses);
+    auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
-    auto *coursesComboBox = new QComboBox(canvasCourses);
-    for(const auto &courseName : qAsConst(courseNames)) {
-        coursesComboBox->addItem(courseName);
-        coursesComboBox->setItemData(i++, QString::number(canvas->getStudentCount(courseName)) + " students", Qt::ToolTipRole); // Not working??
+    auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+        coursesComboBox->addItem(canvasCourse.name);
+        coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole); // Not working??
     }
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCourses);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, canvasCoursesDialog);
     buttonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     buttonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     vLayout->addWidget(label);
     vLayout->addWidget(coursesComboBox);
     vLayout->addWidget(buttonBox);
-    canvasCourses->setLayout(vLayout);
-    connect(buttonBox, &QDialogButtonBox::accepted, canvasCourses, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, canvasCourses, &QDialog::reject);
-    if((canvasCourses->exec() == QDialog::Rejected)) {
-        canvasCourses->deleteLater();
+    canvasCoursesDialog->setLayout(vLayout);
+    connect(buttonBox, &QDialogButtonBox::accepted, canvasCoursesDialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, canvasCoursesDialog, &QDialog::reject);
+    if((canvasCoursesDialog->exec() == QDialog::Rejected)) {
+        canvasCoursesDialog->deleteLater();
         canvas->deleteLater();
         return;
     }
     const QString course = coursesComboBox->currentText();
-    canvasCourses->deleteLater();
+    canvasCoursesDialog->deleteLater();
 
     //upload the survey as a quiz
     busyBox = canvas->actionDialog(this);
@@ -2703,40 +2814,4 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     successDialog->exec();
     successDialog->deleteLater();
     surveyHasBeenExported = true;
-}
-
-/*
- * Handles the exporting of the created survey into different options:
- * - Google Forms
- * - Canvas
- * - Text file
- * - gruepr file
- *
- * Param:
- * Return: void
- */
-void PreviewAndExportPage::exportSurvey()
-{
-
-    if (destinationGrueprFile->isChecked()) {
-
-        // Handle exporting survey to gruepr file
-        PreviewAndExportPage::exportSurveyDestinationGrueprFile();
-
-    } else if (destinationTextFiles->isChecked()) {
-
-        // Handle exporting survey to text files
-        PreviewAndExportPage::exportSurveyDestinationTextFile();
-
-    } else if (destinationGoogle->isChecked()) {
-
-        // Handle exporting survey to google forms
-        PreviewAndExportPage::exportSurveyDestinationGoogle();
-
-    } else if (destinationCanvas->isChecked()) {
-
-        // Handle exporting survey to canvas
-        PreviewAndExportPage::exportSurveyDestinationCanvas();
-
-    }
 }

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WhichFilesDialog</class>
+ <widget class="QDialog" name="WhichFilesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>504</width>
+    <height>682</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="7" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Save|QDialogButtonBox::StandardButton::SaveAll</set>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QPushButton" name="customFilePushButton">
+     <property name="text">
+      <string>Custom File</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QPushButton" name="spreadsheetFilePushButton">
+     <property name="text">
+      <string>Spreadsheet File:
+	sections, teams, names, and email addresses in a tabular format</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="explanation">
+     <property name="text">
+      <string>Select a standard export file or choose a custom set of information to include.
+Preview a standard file by hovering over the title.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QPushButton" name="instructorFilePushButton">
+     <property name="text">
+      <string>Instructor's File:
+	all data, including every teammate's survey responses</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QRadioButton" name="customFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QRadioButton" name="instructorFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QRadioButton" name="spreadsheetFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QFrame" name="CustomFileContentsBox">
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <layout class="QGridLayout" name="customFileContentsGridLayout">
+      <item row="6" column="0" rowspan="2" colspan="2">
+       <widget class="QGroupBox" name="teamGroupBox">
+        <property name="title">
+         <string>Each Team</string>
+        </property>
+        <layout class="QGridLayout" name="multipleChoiceGridLayout">
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="schedulecheckBox">
+           <property name="text">
+            <string>Team Availability Schedule</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QGroupBox" name="teammateGroupBox">
+           <property name="title">
+            <string>Each Teammate</string>
+           </property>
+           <layout class="QGridLayout" name="demographicGridLayout">
+            <item row="3" column="0">
+             <widget class="QCheckBox" name="Q1checkBox">
+              <property name="text">
+               <string>Question 1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QCheckBox" name="Q9checkBox">
+              <property name="text">
+               <string>Question 9</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QCheckBox" name="emailcheckBox">
+              <property name="text">
+               <string>Email Address</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QCheckBox" name="Q7checkBox">
+              <property name="text">
+               <string>Question 7</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="firstnamecheckBox">
+              <property name="text">
+               <string>First Name</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QCheckBox" name="Q4checkBox">
+              <property name="text">
+               <string>Question 4</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="Q2checkBox">
+              <property name="text">
+               <string>Question 2</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="lastnamecheckBox">
+              <property name="text">
+               <string>Last Name</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="2">
+             <widget class="QCheckBox" name="Q12checkBox">
+              <property name="text">
+               <string>Question 12</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QCheckBox" name="Q8checkBox">
+              <property name="text">
+               <string>Question 8</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="2">
+             <widget class="QCheckBox" name="Q6checkBox">
+              <property name="text">
+               <string>Question 6</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QCheckBox" name="Q3checkBox">
+              <property name="text">
+               <string>Question 3</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="URMcheckBox">
+              <property name="text">
+               <string>URM Status</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QCheckBox" name="Q13checkBox">
+              <property name="text">
+               <string>Question 13</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QCheckBox" name="Q5checkBox">
+              <property name="text">
+               <string>Question 5</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="gendercheckBox">
+              <property name="text">
+               <string>Gender</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QCheckBox" name="Q11checkBox">
+              <property name="text">
+               <string>Question 11</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QCheckBox" name="sectioncheckBox">
+              <property name="text">
+               <string>Section</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QCheckBox" name="Q10checkBox">
+              <property name="text">
+               <string>Question 10</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QCheckBox" name="Q14checkBox">
+              <property name="text">
+               <string>Question 14</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="QLabel" name="multipleChoiceLabel">
+              <property name="text">
+               <string>Multiple Choice Questions:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="2">
+             <widget class="QCheckBox" name="Q15checkBox">
+              <property name="text">
+               <string>Question 15</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="teamScorecheckBox">
+           <property name="text">
+            <string>Team Compatibility Score</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="teamingDatacheckBox">
+        <property name="text">
+         <string>Teaming Data</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="fileDatacheckBox">
+        <property name="text">
+         <string>Survey File Data</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="studentFilePushButton">
+     <property name="text">
+      <string>Student's File:
+	only the name and email address of each teammate and the team availability schedule</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QRadioButton" name="studentFileRadioButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QFrame" name="explanationSepLine">
+     <property name="frameShape">
+      <enum>QFrame::Shape::HLine</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>WhichFilesDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>WhichFilesDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

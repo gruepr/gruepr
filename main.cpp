@@ -1,7 +1,7 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019 - 2024
+// Copyright (C) 2019 - 2025
 // Joshua Hertz
 // info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,44 +35,49 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - make "Loading Data" window blocking and add cancel button
-//  - much smarter use of internal student ID values instead of the index within the students array:
-//     - edit buttons no longer get confused when a single section is selected
-//     - "deleting" a student no longer removes them from the database, just marks them as deleted and makes them not be displayed anywhere
-//     - removed studentIndexes from teamRecord
-//     - use QList, not array, for IDs of req/prev/reques teammates (currently working in teammates rules dialog)
+//  - changed handling of gender, allowing it to be multi-valued (check one or more in survey; set of values in the studentRecord)
+//  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
+//  - now correctly resizes columns in the team display tree whenever expanding an individual team
+//  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
+//  - attribute response counts now correctly account for added / removed / edited students
+//  - several bugfixes related to resorting teams
 //
 // INPROG:
+//  - export of teams should include the section number if that's being displayed (having trouble re-creating)
+//  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //
 // TO DO:
-//    BUGFIX:
-//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
-//  - crash when closing gruepr window (after forming teams? when opening from prev. gruepr work?) doesn't send back to start window
+//    BUGFIXES:
 //
 //    NEW FEATURES:
-//  - remove c-style arrays for teams/teamsets and everywhere else except in intensive optimization steps
-//  - update where applicable to range-based for-loops
-//  - speed up loading data--lag seems to be in parsing studentRecord from string->repeatedly using grueprGlobal::timeStringToHours, line 253
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
-//  - add free response number as a question type
+//  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
 //
 //    INTERNAL:
-//  - modernize pointers throughout to smart pointers
-//  - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
+//  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
+//      - replace arrays for StudentRecord.unavailable, TeamRecord.numStudentsAvailable, EditOrAddStudentDialog.tempUnavailability
+//      - much harder: replace arrays for all of the attribute-related stuff
+//      - add bounds checking whenever using [], .at, .first, .constFirst, .begin, etc.
 //  - analyze for memory leaks
+//      - memory leak -> crash when loading large file, unloading, then repeating a few times
+//  - compile for webassembly, turn into a webapp
+//      - move from OpenMP to QThread?
 //
 //    NETWORK IMPLEMENTATION:
 //  - create timeout function to more nicely handle LMS connections
 //  - enable in Google Forms various options -- must wait on new API functionality from Google
 //      - Form options: accepting responses, don't collect email, don't limit one response per user, don't show link to respond again, make publicly accessible
 //      - Question options: req'd question, answer validity checks
+//  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
+//  - preferentially mutate the lowest scoring team(s) within a genome
 //  - use multiple genepools with limited cross-breeding
-//  - to get around the redundancy-of-genome issue, store each genome as unordered_set of unordered_set. Each team is set of IDs; each section is set of teams.
+//  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< int > >. Each team is set of indexes to the students; each section is set of teams.
+//      - would also allow sorting teams within set by ascending score and thus mutations preferentially at front
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gruepr_globals.h"

@@ -8,12 +8,15 @@
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QGridLayout>
+#include <QJsonDocument>
 #include <QMenu>
 #include <QMenuBar>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QSettings>
 #include <QStringList>
+#include <QTimer>
 #include <QToolButton>
-#include <QtNetwork>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // A dialog to choose whether to create a survey or use survey results to form teams;
@@ -59,7 +62,7 @@ StartDialog::StartDialog(QWidget *parent)
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(labelFont);
-    survMakeButton->setText(tr("Fill out our form building\nquestionnaire to create the\nperfect survey for your class."));
+    survMakeButton->setText(tr("Use our form builder\nto create the\nperfect survey for your class."));
     survMakeButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
@@ -72,7 +75,7 @@ StartDialog::StartDialog(QWidget *parent)
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(labelFont);
-    grueprButton->setText(tr("Upload your survey results\nand form your grueps."));
+    grueprButton->setText(tr("Use the survey results\nto form your grueps."));
     grueprButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
@@ -140,7 +143,7 @@ StartDialog::StartDialog(QWidget *parent)
     helpButton->setIconSize(INFOBUTTONSIZE);
     theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
     auto *helpMenu = new QMenu(this);
-    for(const auto &helpAction : helpActions) {
+    for(const auto &helpAction : qAsConst(helpActions)) {
         helpAction->setFont(labelFont);
         helpMenu->addAction(helpAction);
     }
@@ -159,43 +162,39 @@ StartDialog::StartDialog(QWidget *parent)
 void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     this->hide();
-    auto *surveyMakerWizard = new SurveyMakerWizard;
+    const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard);
     QApplication::restoreOverrideCursor();
     surveyMakerWizard->exec();
     this->show();
-    delete surveyMakerWizard;
 }
 
 
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(Qt::BusyCursor);
 
-    bool restart = false;
-    do {
-        auto *getDataDialog = new GetGrueprDataDialog(this);
+    bool spawnNewWindow = true;
+    while(spawnNewWindow) {
+        const QScopedPointer<GetGrueprDataDialog> getDataDialog(new GetGrueprDataDialog(this));
         QApplication::restoreOverrideCursor();
         auto result = getDataDialog->exec();
         if(result == QDialog::Accepted) {
             QApplication::setOverrideCursor(Qt::BusyCursor);
-            auto *grueprWindow = new gruepr(*getDataDialog->dataOptions, getDataDialog->students);
+            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
             this->hide();
             grueprWindow->show();
             emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
-            getDataDialog->deleteLater();
             QEventLoop loop;
-            connect(grueprWindow, &gruepr::closed, &loop, &QEventLoop::quit);
+            connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
-            restart = grueprWindow->restartRequested;
-            grueprWindow->deleteLater();
+            spawnNewWindow = grueprWindow->restartRequested;
             this->show();
         }
         else {
-            restart = false;
+            spawnNewWindow = false;
             emit closeDataDialogProgressBar();
-            getDataDialog->deleteLater();
         }
-    } while(restart);
+    }
 }
 
 

@@ -4,24 +4,13 @@
 #include "LMS.h"
 #include "survey.h"
 
-struct GoogleForm
-{
-    QString name;
-    QString ID;
-    QString createdTime;
-    QUrl responderURL;
-};
-
-struct GoogleFormQuestion
-{
-    QString ID;
-    QString text;
-    enum class Type{notSchedule, schedule} type = Type::notSchedule;
-};
 
 class GoogleHandler : public LMS
 {
     Q_OBJECT
+
+    struct GoogleFormQuestion {QString ID = ""; QString text = ""; enum class Type{notSchedule, schedule} type = Type::notSchedule;};
+    struct GoogleForm {QString name = ""; QString ID = ""; QString createdTime = ""; QUrl responderURL = {};};
 
 public:
     GoogleHandler(QWidget *parent = nullptr);

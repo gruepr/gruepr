@@ -6,7 +6,7 @@ var searchData=
   ['label14ptstyle_3',['LABEL14PTSTYLE',['../gruepr__globals_8h.html#a00bea5610f73aa32d755308c1b62b9de',1,'gruepr_globals.h']]],
   ['label24ptstyle_4',['LABEL24PTSTYLE',['../gruepr__globals_8h.html#af90ea71543079ca77f75199a650dad3a',1,'gruepr_globals.h']]],
   ['largerteamsnumteams_5',['largerTeamsNumTeams',['../class_teaming_options.html#a8aabb19e65047acb83751ccb76892c72',1,'TeamingOptions']]],
-  ['largerteamssizes_6',['largerTeamsSizes',['../class_teaming_options.html#a6590307e3360783dd64076187a994215',1,'TeamingOptions']]],
+  ['largerteamssizes_6',['largerTeamsSizes',['../class_teaming_options.html#a742ee546cd81d9b129ce60fa7fcba171',1,'TeamingOptions']]],
   ['lastname_7',['lastname',['../class_student_record.html#a105af20fbcbeb30643edaff19a99f68b',1,'StudentRecord']]],
   ['lastnamefield_8',['lastNameField',['../class_data_options.html#a8e924c6b984e0ff2141967b1868ec3e1',1,'DataOptions']]],
   ['lastnamequestion_9',['LASTNAMEQUESTION',['../gruepr__globals_8h.html#a006d536dfa4da72dc07b5eb416129436',1,'gruepr_globals.h']]],

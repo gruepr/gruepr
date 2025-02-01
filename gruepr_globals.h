@@ -16,7 +16,6 @@ inline static const int MIN_SCHEDULE_RESOLUTION = 15;                 // resolut
 inline static const int MAX_BLOCKS_PER_DAY = 24*60/MIN_SCHEDULE_RESOLUTION;       // number of time blocks in each day
 
 inline static const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes in a survey
-inline static const int MAX_NOTES_FIELDS = 99;                        // allowed number of notes fields in a survey
 inline static const int MAX_PREFTEAMMATES = 10;
 
 inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a team has more than the desired amount of schedule overlap, each additional overlap time is scaled by
@@ -37,10 +36,13 @@ inline static const char16_t BULLET = u'\u2022';
 // define colors used throughout gruepr
 #define TRANSPARENT "rgba(0, 0, 0, 0)"
 #define STARFISHHEX "#ffd771"
+#define TROPICALHEX "#ffefc5"
 #define DEEPWATERHEX "#053437"
 #define OPENWATERHEX "#13a9b2"
 #define AQUAHEX "#41d2ca"
 #define BUBBLYHEX "#dcf2f4"
+#define GOGREEN "#d9ffdc"
+#define STOPRED "#ffbdbd"
 
 #define SCREENWIDTH qApp->property("_SCREENWIDTH").toInt()
 #define SCREENHEIGHT qApp->property("_SCREENHEIGHT").toInt()
@@ -49,6 +51,7 @@ inline static const char16_t BULLET = u'\u2022';
 inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'; border-image: url(:/icons_new/surveyMakerWizardTitleBackground.png);";
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: 'DM Sans';"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
+inline static const char WHITEDIALOGSTYLE[] = "QDialog{background-color: white;}";
 inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX "; "
                                                                   "color: " DEEPWATERHEX "; background-color: white;} "
                                                     "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
@@ -127,6 +130,8 @@ inline static const char ADDBUTTONSTYLE[] = "QPushButton {background: " TRANSPAR
 inline static const char EXAMPLEBUTTONSTYLE[] = "QPushButton {background: rgba(211, 211, 211, 128); color: " DEEPWATERHEX "; "
                                                              "font-family: 'DM Sans'; font-size: 10pt; font-weight: bold; "
                                                              "border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px;}";
+inline static const char EDITREMOVEBUTTONSELECTEDSTYLE[] = "QPushButton {background-color: " BUBBLYHEX "; border: none;}";
+inline static const char EDITREMOVEBUTTONDUPLICATESTYLE[] = "QPushButton {background-color: " STARFISHHEX "; border: none;}";
 inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL12PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans'; border: none;}"
@@ -135,6 +140,10 @@ inline static const char LABEL14PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; fo
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 14pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL24PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 24pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 24pt; font-family: 'DM Sans'; border: none;}";
+inline static const char DRAGDROPLABELGOODSTYLE[] = "QLabel {background-color: " GOGREEN "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}";
+inline static const char DRAGDROPLABELWARNSTYLE[] = "QLabel {background-color: " TROPICALHEX "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}";
+inline static const char DRAGDROPLABELSTOPSTYLE[] = "QLabel {background-color: " STOPRED "; color: black; border: 2px solid black;padding: 2px 2px 2px 2px;}";
+inline static const char MONOTOOLTIPSTYLE[] = "QToolTip {font-family: 'Oxygen Mono';}";
 inline static const char LINEEDITSTYLE[] = "QLineEdit {background-color: white; color: " DEEPWATERHEX "; border-style: solid; border-color: black; border-width: 1px; "
                                                        "font-family: 'DM Sans'; font-size: 12pt;}"
                                              "QLineEdit:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
@@ -187,6 +196,7 @@ inline static const char DOUBLESPINBOXSTYLE[] = "QDoubleSpinBox {background-colo
 inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
                                              "QCheckBox::indicator {background-color: white; width: 12px; height: 12px; border: 2px solid " DEEPWATERHEX ";}"
+                                             "QCheckBox::indicator:disabled {background-color: lightGray; width: 12px; height: 12px; border: 2px solid darkGray;}"
                                              "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";
 inline static const char RADIOBUTTONSTYLE[] = "QRadioButton {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
                                                 "QRadioButton::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
@@ -210,7 +220,18 @@ inline static const char TABWIDGETSTYLE[] = "QTabWidget::pane {background-color:
                                               "QTabBar::tab:selected {background-color: white; border: 3px solid white; border-bottom-color: " OPENWATERHEX ";}"
                                               "QTabBar::tab:!selected {background-color: white; border: 3px solid white; border-bottom-color: white;}"
                                               "QTabBar::tab:hover {background-color: white; border: 3px solid white; border-bottom-color: " AQUAHEX ";}";
+inline static const char DATADISPTABSTYLE[] = "QTabWidget {border: none; background-color: lightGray;}"
+                                                "QTabWidget::pane {margin: 10px, 0px, 0px, 0px; border: 1px solid black;}";
+inline static const char DATADISPBARSTYLE[] = "QTabBar {alignment: center; margin: 6px; padding: 4px; border: none;}"
+                                                "QTabBar::tab {border: 1px solid " OPENWATERHEX "; border-radius: 5px; font-family:'DM Sans'; font-size: 12pt; "
+                                                              "padding: 5px; margin-left: 2px; margin-right: 2px;}"
+                                                "QTabBar::tab::selected {color: white; background: " OPENWATERHEX ";}"
+                                                "QTabBar::tab::!selected {color: " OPENWATERHEX "; background: white;}"
+                                                "QTabBar::close-button {image: url(:/icons_new/close.png); subcontrol-position: right; margin: 2px;}";
 inline static const char BIGTOOLTIPSTYLE[] = "QToolTip {font-family: 'DM Sans'; font-size: 12pt; background-color: white; color: black;}";
+inline static const char GROUPSTYLE[] = "QGroupBox {background-color: " TRANSPARENT "; color: black; font-family: 'DM Sans'; font-size: 12pt;"
+                                                    "border: 1px solid " OPENWATERHEX "; border-radius: 5px; margin-top: 16px;}"
+                                        "QGroupBox::title {subcontrol-origin: margin; left: 8px; padding: 0px 4px 0px 4px;}";
 inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
                                                 "border-top: 1px solid " AQUAHEX "; border-right: 1px solid " AQUAHEX "; "
                                                 "border-bottom: 1px solid " AQUAHEX "; border-left: 1px solid " AQUAHEX ";}"
@@ -218,7 +239,35 @@ inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX ";
                                                 "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                                 "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 inline static const char BORDERLESSBLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
-                                                 "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
+                                                   "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
+inline static const char DATASOURCEFRAMESTYLE[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
+                                                    "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}";
+inline static const char DATASOURCEPRELABELSTYLE[] = "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
+                                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
+inline static const char DATASOURCELABELSTYLE[] = "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
+                                                    "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
+inline static const char DATASOURCEBUTTONSTYLE[] = "QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
+                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
+inline static const char ATTRIBUTESTACKWIDGETSTYLE[] = "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
+inline static const char TEAMTREEWIDGETSTYLE[] = "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
+                                                   "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}"
+                                                   "QTreeWidget::item:hover{background-color: " BUBBLYHEX "; color: black;}"
+                                                   "QTreeView::branch:has-siblings:adjoins-item {border-image: url(:/icons_new/branch-more.png);}"
+                                                   "QTreeView::branch:!has-children:!has-siblings:adjoins-item {border-image: url(:/icons_new/branch-end.png);}"
+                                                   "QTreeView::branch:has-children:!has-siblings:closed,QTreeView::branch:closed:has-children:has-siblings {"
+                                                   "	border-image: none; image: url(:/icons_new/smallRightButton.png);}"
+                                                   "QTreeView::branch:open:has-children:!has-siblings,QTreeView::branch:open:has-children:has-siblings {"
+                                                   "	border-image: none; image: url(:/icons_new/smallDownButton.png);}";
+inline static const char TEAMTREEWIDGETHEADERSTYLE[] = "QHeaderView {border-top: none; border-left: none; border-right: 1px solid lightGray;"
+                                                         "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                                                         "   font-size: 12pt; color: white; text-align:left;}"
+                                                         "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; "
+                                                         "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
+                                                         "   font-size: 12pt; color: white; text-align:left;}"
+                                                         "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px;"
+                                                         "   subcontrol-origin: padding; subcontrol-position: bottom left;}"
+                                                         "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px;"
+                                                         "   subcontrol-origin: padding; subcontrol-position: top left;}";
 
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;
@@ -233,6 +282,7 @@ inline static const int UI_DISPLAY_DELAYTIME = 2000;
 inline static const int TEAMINFO_DISPLAY_ROLE = Qt::UserRole;         // shown as the team's data value for each column
 inline static const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // used when sorting the columns
 inline static const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // column 0 of the team info display tree, used when swapping teams or teammates
+inline static const int SORT_TO_END = MAX_TEAMS + 100;                // flag to indicate moving this team to the end in the display table
 
 enum class GenderType {biol, adult, child, pronoun};
 //order of enum below MUST match order of options within the subsequent strings
@@ -300,28 +350,18 @@ inline static const char TIMEFORMATS[] {"H:mm;"
                                         "h ap;"
                                         "h:mm:ssap;"
                                         "h:mm:ss ap"};
-inline static const char TIMEFORMATEXAMPLES[] {"8:00;"
-                                               "800;"
-                                               "8:00:00;"
-                                               "08:00;"
-                                               "0800;"
-                                               "08:00:00;"
-                                               "8:00am;"
-                                               "8:00 am;"
-                                               "8am;"
-                                               "8 am;"
-                                               "8:00:00am;"
-                                               "8:00:00 am"};
-
-/**
- * Namespace for Gruepr global variables.
- */
-namespace grueprGlobal {
-    float timeStringToHours(const QString &timeStr);
-    static const QStringList timeFormats = QString(TIMEFORMATS).split(';');
-    static QString mostRecentTimeFormat = timeFormats[0];
-}
-
+inline static const char TIMEFORMATEXAMPLES[] {"00:15;"
+                                               "0015;"
+                                               "00:15:00;"
+                                               "00:15;"
+                                               "0015;"
+                                               "00:15:00;"
+                                               "12:15am;"
+                                               "12:15 am;"
+                                               "12am;"
+                                               "12 am;"
+                                               "12:15:00am;"
+                                               "12:15:00 am"};
 inline static const char TIMESTAMP_FORMAT1[] {"yyyy/MM/dd h:mm:ss AP"};
 inline static const char TIMESTAMP_FORMAT2[] {"yyyy/MM/dd h:mm:ssAP"};
 inline static const char TIMESTAMP_FORMAT3[] {"M/d/yyyy h:mm:ss"};
@@ -419,7 +459,8 @@ inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
                                  "Minor league baseball teams,"
                                  "Discontinued Olympic sports,"
                                  "Obsolete units of measure,"
-                                 "Everyone's a winner!"};
+                                 "Everyone's a winner!,"
+                                 "Cryptids"};
 inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::numeric,
                                                   TeamNameType::numeric,
@@ -443,7 +484,8 @@ inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::random_sequeled,
-                                                  TeamNameType::random_sequeled};
+                                                  TeamNameType::sequeled,
+                                                  TeamNameType::sequeled};
 inline static const char TEAMNAMELISTS[] {";"
                               ";"
                               ";"
@@ -534,9 +576,12 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Standing High Jump,Polo;"
                               "Bunarium,Oxgang,Sthène,Poncelet,Jow,Cubit,Oka,Zentner,Buddam,Keel,Esterling,Slug,Hogshead,Masu,Omer,League,Perch,Pièze,Rood,"
                                  "Scruple,Morgen,Grain,Plethron,Congius,Ephah,Chungah,Ell,Pood,Funt,Homer,Grzywna,Zolotnik,Barleycorn,Gill,Quire;"
-                              "A1,Gold,Blue Ribbon,Alpha,Numero Uno,First Place,Crème de la crème,Jewel in the crown,Pole Position,Elite,"
-                                 "Superlative,Prime,Pick of the litter,Best of the bunch,Head of the line,Superior,Tip-top,Peak,First class,Flawless,"
-                                 "Preeminent,Ultimate"};
+                              "1,A,Alpha,Gold,Blue Ribbon,Numero Uno,First Place,i,Pole Position,Prime,Superior,Head of the line,Crème de la crème,"
+                                 "Jewel in the crown,Elite,Superlative,Pick of the litter,Best of the bunch,Tip-top,Peak,First class,Flawless,"
+                                 "Preeminent,Ultimate;"
+                              "Abonesi,Bigfoot,Chupacabra,Dover Demon,Enfield Monster,Flying Rod,Ghost Deer,Hellhound,Igopopo,Jersey Devil,Kraken,"
+                                 "Loch Ness Monster,Mongolian Death Worm,Nandi Bear,Ozark Howler,Pukwudgie,Queensland Tiger,Reptilian,Skunk Ape,Tatzelwurm,"
+                                 "Urayuli,Vegetable Lamb of Tartary,Wolpertinger,Yeti,Zuiyō-maru Creature,Akkorokamui,Bat Boy,Chessie,Dingonek,Ebu Gogo"};
 
 /**
  * The namespace with methods used throughout Gruepr.
@@ -579,6 +624,13 @@ namespace grueprGlobal {
      * @param parent The parent window to display the help window.
      */
     void helpWindow(QWidget *parent);
+
+    /**
+     * @brief timeStringToHours Converts time as a string the the decimal number of hours since midnight.
+     * @param timeStr The time as a string (e.g.. "2pm" or "14:00".
+     * @return A decimal value of the number of hours since midnight (e.g., 13.25 for 1:15pm).
+     */
+    float timeStringToHours(const QString &timeStr);
 }
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};
@@ -615,7 +667,7 @@ inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone 
                                               "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
                                               "<p>Project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
-                                              "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-500 students into optimized teams. It was originally based on "
+                                              "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-1000 students into optimized teams. It was originally based on "
                                                  "CATME's team forming routine as described in "
                                                  "<a href=\"http://advances.asee.org/wp-content/uploads/vol02/issue01/papers/aee-vol02-issue01-p09.pdf\">this paper</a>. "
                                                  "The student data is read from a file (typically directly downloaded within the app), and the students are split into teams "

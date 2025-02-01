@@ -1,44 +1,48 @@
 #ifndef WHICHFILESDIALOG_H
 #define WHICHFILESDIALOG_H
 
-#include <QCheckBox>
 #include <QDialog>
-#include <QDialogButtonBox>
-#include <QGridLayout>
-#include <QLabel>
+#include "dataOptions.h"
+#include "teamingOptions.h"
 
-class whichFilesDialog : public QDialog
+namespace Ui {
+class WhichFilesDialog;
+}
+
+
+class WhichFilesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
     enum class Action {save, print};
 
-    whichFilesDialog(const Action saveOrPrint, const QStringList &previews = {}, QWidget *parent = nullptr);
-    ~whichFilesDialog() override;
-    whichFilesDialog(const whichFilesDialog&) = delete;
-    whichFilesDialog operator= (const whichFilesDialog&) = delete;
-    whichFilesDialog(whichFilesDialog&&) = delete;
-    whichFilesDialog& operator= (whichFilesDialog&&) = delete;
+    WhichFilesDialog(const Action saveOrPrint, const DataOptions *const dataOptions, const TeamingOptions::SectionType sectionType,
+                     const QStringList &previews, QWidget *parent = nullptr);
+    ~WhichFilesDialog() override;
+    WhichFilesDialog(const WhichFilesDialog&) = delete;
+    WhichFilesDialog operator= (const WhichFilesDialog&) = delete;
+    WhichFilesDialog(WhichFilesDialog&&) = delete;
+    WhichFilesDialog& operator= (WhichFilesDialog&&) = delete;
 
-    bool studentFiletxt = false;
-    bool studentFilepdf = false;
-    bool instructorFiletxt = false;
-    bool instructorFilepdf = false;
-    bool spreadsheetFiletxt = false;
-
-private slots:
-    void boxToggled();
+    enum class FileType {student, instructor, spreadsheet, custom} fileType = FileType::student;
+    bool pdf = false;
+    struct CustomFileOptions {
+        bool includeFileData = false;
+        bool includeTeamingData = false;
+        bool includeTeamScore = false;
+        bool includeFirstName = false;
+        bool includeLastName = false;
+        bool includeEmail = false;
+        bool includeGender = false;
+        bool includeURM = false;
+        bool includeSect = false;
+        QList<bool> includeMultiChoice;
+        bool includeSechedule = false;
+    } customFileOptions;
 
 private:
-    QCheckBox *studentFiletxtCheckBox = nullptr;
-    QCheckBox *studentFilepdfCheckBox = nullptr;
-    QCheckBox *instructorFiletxtCheckBox = nullptr;
-    QCheckBox *instructorFilepdfCheckBox = nullptr;
-    QCheckBox *spreadsheetFiletxtCheckBox = nullptr;
-    QDialogButtonBox *buttonBox = nullptr;
-    QFont previousToolTipFont;
-    inline static const int CHECKBOXSIZE = 30;
+    Ui::WhichFilesDialog *ui;
 };
 
 

@@ -88,7 +88,8 @@ $(function(){ initResizable(false); });
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pri-attribs">Private Attributes</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="class_team_tree_widget_item-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">TeamTreeWidgetItem Class Reference</div></div>
 </div><!--header-->
@@ -104,7 +105,8 @@ Inheritance diagram for TeamTreeWidgetItem:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a91f581cd8a7e92576f536e8549e96f97" id="r_a91f581cd8a7e92576f536e8549e96f97"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91f581cd8a7e92576f536e8549e96f97">TreeItemType</a> { <a class="el" href="#a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f">team</a>
+<tr class="memitem:a91f581cd8a7e92576f536e8549e96f97" id="r_a91f581cd8a7e92576f536e8549e96f97"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91f581cd8a7e92576f536e8549e96f97">TreeItemType</a> { <a class="el" href="#a91f581cd8a7e92576f536e8549e96f97a73d5342eba070f636ac3246f319bf77f">section</a>
+, <a class="el" href="#a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f">team</a>
 , <a class="el" href="#a91f581cd8a7e92576f536e8549e96f97acd73502828457d15655bbd7a63fb0bc8">student</a>
  }</td></tr>
 <tr class="separator:a91f581cd8a7e92576f536e8549e96f97"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -125,13 +127,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3dea14fe2ed9a944850750d16a0027df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af64f7d2633c42284d7a5bfa96f709275" id="r_af64f7d2633c42284d7a5bfa96f709275"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af64f7d2633c42284d7a5bfa96f709275">setScoreColor</a> (float teamScore)</td></tr>
 <tr class="separator:af64f7d2633c42284d7a5bfa96f709275"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a9119e31a2ab6a82b2ab6a1cbb4e292f7" id="r_a9119e31a2ab6a82b2ab6a1cbb4e292f7"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="#a91f581cd8a7e92576f536e8549e96f97">TeamTreeWidgetItem::TreeItemType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9119e31a2ab6a82b2ab6a1cbb4e292f7">treeItemType</a></td></tr>
+<tr class="separator:a9119e31a2ab6a82b2ab6a1cbb4e292f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
 <tr class="memitem:a3dd8b271af1065cb97ff2a9a2ad785da" id="r_a3dd8b271af1065cb97ff2a9a2ad785da"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3dd8b271af1065cb97ff2a9a2ad785da">operator&lt;</a> (const QTreeWidgetItem &amp;other) const override</td></tr>
 <tr class="separator:a3dd8b271af1065cb97ff2a9a2ad785da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
-<tr class="memitem:af2168ca71a6b14c0daa08e79100fb120" id="r_af2168ca71a6b14c0daa08e79100fb120"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af2168ca71a6b14c0daa08e79100fb120">numColumns</a></td></tr>
-<tr class="separator:af2168ca71a6b14c0daa08e79100fb120"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a91f581cd8a7e92576f536e8549e96f97" name="a91f581cd8a7e92576f536e8549e96f97"></a>
@@ -154,7 +159,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f" name="a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f"></a>team&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a91f581cd8a7e92576f536e8549e96f97a73d5342eba070f636ac3246f319bf77f" name="a91f581cd8a7e92576f536e8549e96f97a73d5342eba070f636ac3246f319bf77f"></a>section&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f" name="a91f581cd8a7e92576f536e8549e96f97af894427cc1c571f79da49605ef8b112f"></a>team&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a91f581cd8a7e92576f536e8549e96f97acd73502828457d15655bbd7a63fb0bc8" name="a91f581cd8a7e92576f536e8549e96f97acd73502828457d15655bbd7a63fb0bc8"></a>student&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
@@ -289,7 +295,7 @@ Private Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -364,24 +370,16 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="af2168ca71a6b14c0daa08e79100fb120" name="af2168ca71a6b14c0daa08e79100fb120"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2168ca71a6b14c0daa08e79100fb120">&#9670;&#160;</a></span>numColumns</h2>
+<a id="a9119e31a2ab6a82b2ab6a1cbb4e292f7" name="a9119e31a2ab6a82b2ab6a1cbb4e292f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9119e31a2ab6a82b2ab6a1cbb4e292f7">&#9670;&#160;</a></span>treeItemType</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int TeamTreeWidgetItem::numColumns</td>
+          <td class="memname">enum <a class="el" href="#a91f581cd8a7e92576f536e8549e96f97">TeamTreeWidgetItem::TreeItemType</a> TeamTreeWidgetItem::treeItemType</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>

@@ -55,7 +55,7 @@ progressDialog::progressDialog(const QString &currSection, QChartView *chart, QW
         connect(showStatsButton, &QPushButton::clicked, this, [this, chart] {statsButtonPushed(chart);});
     }
 
-    onlyStopManually = new QCheckBox("Continue optimizing until end is pressed", this);
+    onlyStopManually = new QCheckBox(tr("Continue optimizing until I press end"), this);
     onlyStopManually->setStyleSheet(CHECKBOXSTYLE);
     layout->addWidget(onlyStopManually);
 

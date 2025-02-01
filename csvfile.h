@@ -39,6 +39,8 @@ class CsvFile : public QObject
 public:
     enum class Delimiter {comma, tab};
     enum class Source {fileOnly, fileOrOnline};
+    enum class Operation {read, write};
+    enum class ReadLocation {currentPosition, beginningOfFile};
 
     CsvFile(Delimiter dlmtr = Delimiter::comma, QObject *parent = nullptr);
     ~CsvFile() override;
@@ -47,7 +49,6 @@ public:
     CsvFile(CsvFile&&) = delete;
     CsvFile& operator= (CsvFile&&) = delete;
 
-    enum class Operation {read, write};
     bool open(QWidget *parent = nullptr, Operation operation = Operation::read, const QString &caption = tr("Open csv File"),
               const QString &filepath = "", const QString &filetypeDescriptor = "");
     bool openExistingFile(const QString &filepath);
@@ -57,7 +58,7 @@ public:
     bool readHeader();
     //void setFieldMeanings();
     QDialog* chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possibleFieldMeanings = {}, QWidget *parent = nullptr);
-    bool readDataRow(bool resetToStart = false);
+    bool readDataRow(ReadLocation readLocation = ReadLocation::currentPosition);
     bool writeHeader();
     void writeDataRow();
 
@@ -66,7 +67,7 @@ public:
     QStringList headerValues;
     bool hasHeaderRow = true;
     int numFields = 0;
-    int estimatedNumberRows = 0;    // estimated because only based on number of newlines (doesn't account for blank lines or other unused rows)
+    long long estimatedNumberRows = 0;    // estimated because only based on number of newlines (doesn't account for blank lines or other unused rows)
     QStringList fieldMeanings;
     QStringList fieldValues;
     QStringList fieldsToBeIgnored;

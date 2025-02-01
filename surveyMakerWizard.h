@@ -9,6 +9,7 @@
 #include "dialogs/sampleQuestionsDialog.h"
 #include "widgets/comboBoxWithElidedContents.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
+#include "widgets/labelWithInstantTooltip.h"
 #include "widgets/surveyMakerQuestion.h"
 #include <QCheckBox>
 #include <QComboBox>
@@ -154,7 +155,11 @@ private:
     QLineEdit *em = nullptr;
     QLabel *genderResponsesLabel = nullptr;
     QComboBox *genderResponsesComboBox = nullptr;
-    QList<QRadioButton *> ge;
+    QCheckBox *genderResponsesAllowMulti = nullptr;
+    QLabel *toplabelrb = nullptr;
+    QLabel *toplabelcb = nullptr;
+    QList<QRadioButton *> gerb;
+    QList<QCheckBox *> gecb;
     QLineEdit *re = nullptr;
 
     /**
@@ -243,9 +248,9 @@ public:
 
 signals:
     void numQuestionsChanged(int newNumQuestions);
-    void questionTextsChanged(QList<QString> &newQuestionTexts);
-    void questionResponsesChanged(QList<QList<QString>> &newQuestionResponses);
-    void questionMultisChanged(QList<bool> &newQuestionMultis);
+    void questionTextsChanged(const QList<QString> &newQuestionTexts);
+    void questionResponsesChanged(const QList<QList<QString>> &newQuestionResponses);
+    void questionMultisChanged(const QList<bool> &newQuestionMultis);
 
 private:
     QFrame *sampleQuestionsFrame = nullptr;
@@ -490,6 +495,10 @@ signals:
 
 private:
     enum {section, wantToWorkWith, wantToAvoid}; // questions in order
+    QFrame *canvasSectionInfoFrame = nullptr;
+    QHBoxLayout *canvasSectionInfoLayout = nullptr;
+    LabelWithInstantTooltip *canvasSectionInfoIcon = nullptr;
+    LabelWithInstantTooltip *canvasSectionInfoLabel = nullptr;
     QList<QLineEdit *> sectionLineEdits;
     QList<int> visibleSectionLineEdits;
     QVBoxLayout *sectionsPreviewLayout = nullptr;

@@ -123,6 +123,10 @@ Public Types</h2></td></tr>
 , <a class="el" href="#a24aa1e878889470d80eeabf427772ac0aefb2a684e4afb7d55e6147fbe5a332ee">write</a>
  }</td></tr>
 <tr class="separator:a24aa1e878889470d80eeabf427772ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1226fde6128a720c477f0da45204d625" id="r_a1226fde6128a720c477f0da45204d625"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1226fde6128a720c477f0da45204d625">ReadLocation</a> { <a class="el" href="#a1226fde6128a720c477f0da45204d625af92dcdd86e6beeea3e199f5d44a97241">currentPosition</a>
+, <a class="el" href="#a1226fde6128a720c477f0da45204d625a2feddb618642264387ef1c0a7e045f5a">beginningOfFile</a>
+ }</td></tr>
+<tr class="separator:a1226fde6128a720c477f0da45204d625"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -152,8 +156,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa79b5b88711b2193e1fe284f9dc1e4c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a371c259af47a72b1ae3c107ec6c75faf" id="r_a371c259af47a72b1ae3c107ec6c75faf"><td class="memItemLeft" align="right" valign="top">QDialog *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a371c259af47a72b1ae3c107ec6c75faf">chooseFieldMeaningsDialog</a> (const QList&lt; <a class="el" href="structposs_field_meaning.html">possFieldMeaning</a> &gt; &amp;possibleFieldMeanings={}, QWidget *parent=nullptr)</td></tr>
 <tr class="separator:a371c259af47a72b1ae3c107ec6c75faf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94996a6ed562b35ae46c92162046f66e" id="r_a94996a6ed562b35ae46c92162046f66e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a94996a6ed562b35ae46c92162046f66e">readDataRow</a> (bool resetToStart=false)</td></tr>
-<tr class="separator:a94996a6ed562b35ae46c92162046f66e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38a604b6e6d5fa9475da4cc47764f7f5" id="r_a38a604b6e6d5fa9475da4cc47764f7f5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38a604b6e6d5fa9475da4cc47764f7f5">readDataRow</a> (<a class="el" href="#a1226fde6128a720c477f0da45204d625">ReadLocation</a> readLocation=<a class="el" href="#a1226fde6128a720c477f0da45204d625af92dcdd86e6beeea3e199f5d44a97241">ReadLocation::currentPosition</a>)</td></tr>
+<tr class="separator:a38a604b6e6d5fa9475da4cc47764f7f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae49e33940a633a6728b27f97c93843e1" id="r_ae49e33940a633a6728b27f97c93843e1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae49e33940a633a6728b27f97c93843e1">writeHeader</a> ()</td></tr>
 <tr class="separator:ae49e33940a633a6728b27f97c93843e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb8738d6aad8b450885c802386e64c06" id="r_aeb8738d6aad8b450885c802386e64c06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb8738d6aad8b450885c802386e64c06">writeDataRow</a> ()</td></tr>
@@ -172,8 +176,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a4a34f01fe7b4dc46af2c836625f75b51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab96a50756453c73d66b8ead4990445b7" id="r_ab96a50756453c73d66b8ead4990445b7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab96a50756453c73d66b8ead4990445b7">numFields</a> = 0</td></tr>
 <tr class="separator:ab96a50756453c73d66b8ead4990445b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cdfb0129ea6d8cfa223d87befa368e8" id="r_a4cdfb0129ea6d8cfa223d87befa368e8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4cdfb0129ea6d8cfa223d87befa368e8">estimatedNumberRows</a> = 0</td></tr>
-<tr class="separator:a4cdfb0129ea6d8cfa223d87befa368e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1390a640e2adf58bf71a97e4b2b2594d" id="r_a1390a640e2adf58bf71a97e4b2b2594d"><td class="memItemLeft" align="right" valign="top">long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1390a640e2adf58bf71a97e4b2b2594d">estimatedNumberRows</a> = 0</td></tr>
+<tr class="separator:a1390a640e2adf58bf71a97e4b2b2594d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabb428e07c7820657a1d5f65961ed8f9" id="r_aabb428e07c7820657a1d5f65961ed8f9"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aabb428e07c7820657a1d5f65961ed8f9">fieldMeanings</a></td></tr>
 <tr class="separator:aabb428e07c7820657a1d5f65961ed8f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83cf1186a71b6cbdb9df0f18ec8ced1f" id="r_a83cf1186a71b6cbdb9df0f18ec8ced1f"><td class="memItemLeft" align="right" valign="top">QStringList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a83cf1186a71b6cbdb9df0f18ec8ced1f">fieldValues</a></td></tr>
@@ -265,6 +269,32 @@ Static Private Attributes</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e" name="a24aa1e878889470d80eeabf427772ac0aecae13117d6f0584c25a9da6c8f8415e"></a>read&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a24aa1e878889470d80eeabf427772ac0aefb2a684e4afb7d55e6147fbe5a332ee" name="a24aa1e878889470d80eeabf427772ac0aefb2a684e4afb7d55e6147fbe5a332ee"></a>write&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<a id="a1226fde6128a720c477f0da45204d625" name="a1226fde6128a720c477f0da45204d625"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1226fde6128a720c477f0da45204d625">&#9670;&#160;</a></span>ReadLocation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a1226fde6128a720c477f0da45204d625">CsvFile::ReadLocation</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1226fde6128a720c477f0da45204d625af92dcdd86e6beeea3e199f5d44a97241" name="a1226fde6128a720c477f0da45204d625af92dcdd86e6beeea3e199f5d44a97241"></a>currentPosition&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a1226fde6128a720c477f0da45204d625a2feddb618642264387ef1c0a7e045f5a" name="a1226fde6128a720c477f0da45204d625a2feddb618642264387ef1c0a7e045f5a"></a>beginningOfFile&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
@@ -627,8 +657,8 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a94996a6ed562b35ae46c92162046f66e" name="a94996a6ed562b35ae46c92162046f66e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94996a6ed562b35ae46c92162046f66e">&#9670;&#160;</a></span>readDataRow()</h2>
+<a id="a38a604b6e6d5fa9475da4cc47764f7f5" name="a38a604b6e6d5fa9475da4cc47764f7f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38a604b6e6d5fa9475da4cc47764f7f5">&#9670;&#160;</a></span>readDataRow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -636,7 +666,7 @@ Static Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">bool CsvFile::readDataRow </td>
           <td>(</td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>resetToStart</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a1226fde6128a720c477f0da45204d625">ReadLocation</a></td>          <td class="paramname"><span class="paramname"><em>readLocation</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="#a1226fde6128a720c477f0da45204d625af92dcdd86e6beeea3e199f5d44a97241">ReadLocation::currentPosition</a></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -809,14 +839,14 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a4cdfb0129ea6d8cfa223d87befa368e8" name="a4cdfb0129ea6d8cfa223d87befa368e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4cdfb0129ea6d8cfa223d87befa368e8">&#9670;&#160;</a></span>estimatedNumberRows</h2>
+<a id="a1390a640e2adf58bf71a97e4b2b2594d" name="a1390a640e2adf58bf71a97e4b2b2594d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1390a640e2adf58bf71a97e4b2b2594d">&#9670;&#160;</a></span>estimatedNumberRows</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CsvFile::estimatedNumberRows = 0</td>
+          <td class="memname">long long CsvFile::estimatedNumberRows = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

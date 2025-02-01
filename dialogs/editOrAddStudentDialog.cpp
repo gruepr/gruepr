@@ -110,13 +110,23 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
             explanation.last()->setText(tr("Pronouns"));
             genderOptions = QString(PRONOUNS).split('/');
         }
-        databox << new QComboBox(this);
-        databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
-        databox.last()->setFocusPolicy(Qt::StrongFocus);
-        databox.last()->setStyleSheet(COMBOBOXSTYLE);
-        databox.last()->addItems(genderOptions);
-        databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-        databox.last()->setCurrentIndex(static_cast<int>(student.gender));
+        auto *genderbox = new QGroupBox(this);
+        databox << genderbox;
+        genderbox->installEventFilter(new MouseWheelBlocker(genderbox));
+        genderbox->setFocusPolicy(Qt::StrongFocus);
+        genderbox->setFlat(true);
+        genderbox->setStyleSheet(CHECKBOXSTYLE + QString("QGroupBox{border:0;padding:0;margin:0;}"));
+        auto *hbox = new QHBoxLayout;
+        hbox->setSpacing(12);
+        hbox->setContentsMargins(0, 0, 0, 0);
+        int optionNum = 0;
+        for(const auto &option : qAsConst(genderOptions)) {
+            auto *optionCheckBox = new QCheckBox(option);
+            optionCheckBox->setChecked(student.gender.contains(static_cast<Gender>(optionNum)));
+            hbox->addWidget(optionCheckBox);
+            optionNum++;
+        }
+        genderbox->setLayout(hbox);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
         fieldAreaLayout->addWidget(databox.last(), 0, Qt::AlignLeft);
     }
@@ -125,32 +135,34 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Racial/ethnic/cultural identity"));
-        databox << new QComboBox(this);
-        databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
-        databox.last()->setFocusPolicy(Qt::StrongFocus);
-        databox.last()->setStyleSheet(COMBOBOXSTYLE);
-        databox.last()->addItems(dataOptions->URMResponses);
-        databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-        databox.last()->setEditable(true);
-        databox.last()->setCurrentText(student.URMResponse);
+        auto *urmbox = new QComboBox(this);
+        databox << urmbox;
+        urmbox->installEventFilter(new MouseWheelBlocker(urmbox));
+        urmbox->setFocusPolicy(Qt::StrongFocus);
+        urmbox->setStyleSheet(COMBOBOXSTYLE);
+        urmbox->addItems(dataOptions->URMResponses);
+        urmbox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+        urmbox->setEditable(true);
+        urmbox->setCurrentText(student.URMResponse);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
-        fieldAreaLayout->addWidget(databox.last(), 0, Qt::AlignLeft);
+        fieldAreaLayout->addWidget(urmbox, 0, Qt::AlignLeft);
     }
 
     if(dataOptions->sectionIncluded) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Section"));
-        databox << new QComboBox(this);
-        databox.last()->installEventFilter(new MouseWheelBlocker(databox.last()));
-        databox.last()->setFocusPolicy(Qt::StrongFocus);
-        databox.last()->setStyleSheet(COMBOBOXSTYLE);
-        databox.last()->addItems(dataOptions->sectionNames);
-        databox.last()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-        databox.last()->setEditable(true);
-        databox.last()->setCurrentText(student.section);
+        auto *sectbox = new QComboBox(this);
+        databox << sectbox;
+        sectbox->installEventFilter(new MouseWheelBlocker(sectbox));
+        sectbox->setFocusPolicy(Qt::StrongFocus);
+        sectbox->setStyleSheet(COMBOBOXSTYLE);
+        sectbox->addItems(dataOptions->sectionNames);
+        sectbox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+        sectbox->setEditable(true);
+        sectbox->setCurrentText(student.section);
         fieldAreaLayout->addWidget(explanation.last(), 0, Qt::AlignLeft);
-        fieldAreaLayout->addWidget(databox.last(), 0, Qt::AlignLeft);
+        fieldAreaLayout->addWidget(sectbox, 0, Qt::AlignLeft);
     }
 
     if(dataOptions->numAttributes != 0) {
@@ -282,13 +294,16 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeCombobox.last()->insertItem(0, tr("no response/unknown"), -1);
                 attributeCombobox.last()->insertSeparator(1);
                 auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
+                auto attributeResIter = dataOptions->attributeQuestionResponses[attribute].cbegin();
                 int indexOfStudentValue = 0;
                 for(int i = 0; i < prefixes.size(); i++) {
-                    attributeCombobox.last()->insertItem(i+2, prefixes[i], *attributeValIter);
+                    const QStringList resValAndText({QString::number(*attributeValIter), *attributeResIter});
+                    attributeCombobox.last()->insertItem(i+2, prefixes[i], resValAndText);
                     if(!student.attributeResponse[attribute].isEmpty() && (student.attributeVals[attribute].first() == *attributeValIter)) {
                         indexOfStudentValue = i+2;
                     }
                     attributeValIter++;
+                    attributeResIter++;
                 }
                 attributeCombobox.last()->setCurrentIndex(indexOfStudentValue);
                 layout->addWidget(attributeCombobox.last());
@@ -330,12 +345,15 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 attributeMultibox.last()->setFlat(true);
                 auto *internalLayout = new QVBoxLayout;
                 auto attributeValIter = dataOptions->attributeVals[attribute].cbegin();
+                auto attributeResIter = dataOptions->attributeQuestionResponses[attribute].cbegin();
                 for(int option = 0, totNumOptions = int(dataOptions->attributeQuestionResponses[attribute].size()); option < totNumOptions; option++) {
                     auto *responseCheckBox = new QCheckBox(prefixes.at(option), this);
                     responseCheckBox->setStyleSheet(CHECKBOXSTYLE);
                     responseCheckBox->setProperty("responseValue", *attributeValIter);
+                    responseCheckBox->setProperty("responseText", *attributeResIter);
                     responseCheckBox->setChecked(student.attributeVals[attribute].contains(*attributeValIter));
                     attributeValIter++;
+                    attributeResIter++;
                     internalLayout->addWidget(responseCheckBox);
                 }
                 attributeMultibox.last()->setLayout(internalLayout);
@@ -365,7 +383,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         }
     }
 
-    if(dataOptions->prefTeammatesIncluded) {
+    if(!dataOptions->prefTeammatesField.empty()) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
@@ -378,7 +396,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if(dataOptions->prefNonTeammatesIncluded) {
+    if(!dataOptions->prefNonTeammatesField.empty()) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setTextFormat(Qt::RichText);
@@ -391,7 +409,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if(dataOptions->numNotes > 0) {
+    if(!dataOptions->notesFields.empty()) {
         explanation << new QLabel(this);
         explanation.last()->setStyleSheet(LABEL10PTSTYLE);
         explanation.last()->setText(tr("Notes"));
@@ -403,7 +421,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         fieldAreaLayout->addWidget(datamultiline.last(), 0);
     }
 
-    if((dataOptions->prefTeammatesIncluded) || (dataOptions->prefNonTeammatesIncluded) || (dataOptions->numNotes > 0)) {
+    if((!dataOptions->prefTeammatesField.empty()) || (!dataOptions->prefNonTeammatesField.empty()) || (!dataOptions->notesFields.empty())) {
         // calculate the height of 1 row of text in the multilines
         const QFontMetrics fm(datamultiline.last()->document()->defaultFont());
         const QMargins margin = datamultiline.last()->contentsMargins();
@@ -448,27 +466,42 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
         student.email = datatext[textfield++]->text();
     }
     if(dataOptions->genderIncluded) {
-        student.gender = static_cast<Gender>(databox.at(boxfield++)->currentIndex());
+        auto *genderbox = qobject_cast<QGroupBox *>(databox.at(boxfield++));
+        const auto &genderOptions = genderbox->children();
+        student.gender.clear();
+        int optionNum = 0;
+        for(const auto &genderoption : genderOptions) {
+            const auto *genderoptionCheckBox = qobject_cast<QCheckBox *>(genderoption);
+            if(genderoptionCheckBox != nullptr) {
+                if(genderoptionCheckBox->isChecked()) {
+                    student.gender << static_cast<Gender>(optionNum);
+                }
+                optionNum++;
+            }
+        }
     }
     if(dataOptions->URMIncluded) {
-        student.URMResponse = databox[boxfield++]->currentText();
+        auto *urmbox = qobject_cast<QComboBox *>(databox[boxfield++]);
+        student.URMResponse = urmbox->currentText();
     }
     if(dataOptions->sectionIncluded) {
-        student.section = databox[boxfield++]->currentText();
+        auto *sectbox = qobject_cast<QComboBox *>(databox[boxfield++]);
+        student.section = sectbox->currentText();
     }
 
     int multiboxNum = 0, comboboxNum = 0;
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         const DataOptions::AttributeType type = dataOptions->attributeType[attribute];
         student.attributeVals[attribute].clear();
+        student.attributeResponse[attribute].clear();
         if((type == DataOptions::AttributeType::multicategorical) || (type == DataOptions::AttributeType::multiordered)) {
             QStringList attributeResponse;
             for(int itemNum = 0, totNumItems = attributeMultibox.at(multiboxNum)->layout()->count(); itemNum < totNumItems; itemNum++) {
                 // loop through all items in the attributeMultibox: make sure it's a checkbox, then add the response if it's checked
-                auto *optionCheckBox = qobject_cast<QCheckBox*>(attributeMultibox.at(multiboxNum)->layout()->itemAt(itemNum)->widget());
+                auto *optionCheckBox = qobject_cast<QCheckBox *>(attributeMultibox.at(multiboxNum)->layout()->itemAt(itemNum)->widget());
                 if((optionCheckBox != nullptr) && (optionCheckBox->isChecked())) {
                     student.attributeVals[attribute] << optionCheckBox->property("responseValue").toInt();
-                    attributeResponse << optionCheckBox->text();
+                    attributeResponse << optionCheckBox->property("responseText").toString();
                 }
             }
             student.attributeResponse[attribute] = attributeResponse.join(',');
@@ -492,9 +525,12 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
                 if(type == DataOptions::AttributeType::timezone) {
                     student.timezone = attributeCombobox.at(comboboxNum)->currentData().toFloat();
                     student.attributeVals[attribute] << int(student.timezone);
+                    student.attributeResponse[attribute] = attributeCombobox.at(comboboxNum)->currentText();
                 }
                 else {
-                    student.attributeVals[attribute] << attributeCombobox[comboboxNum]->currentData().toInt();
+                    const QStringList resValAndText = attributeCombobox[comboboxNum]->currentData().toStringList();
+                    student.attributeVals[attribute] << resValAndText[0].toInt();
+                    student.attributeResponse[attribute] = resValAndText[1];
                 }
             }
             comboboxNum++;
@@ -525,13 +561,13 @@ void editOrAddStudentDialog::updateRecord(StudentRecord &student, const DataOpti
 
         student.ambiguousSchedule = (student.availabilityChart.count("√") == 0 || student.availabilityChart.count("√") == (dataOptions->dayNames.size() * dataOptions->timeNames.size()));
     }
-    if(dataOptions->prefTeammatesIncluded) {
+    if(!dataOptions->prefTeammatesField.empty()) {
         student.prefTeammates = datamultiline[multilinefield++]->toPlainText();
     }
-    if(dataOptions->prefNonTeammatesIncluded) {
+    if(!dataOptions->prefNonTeammatesField.empty()) {
         student.prefNonTeammates = datamultiline[multilinefield++]->toPlainText();
     }
-    if(dataOptions->numNotes > 0) {
+    if(!dataOptions->notesFields.empty()) {
         student.notes = datamultiline[multilinefield++]->toPlainText();
     }
 }
