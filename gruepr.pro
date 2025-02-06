@@ -26,6 +26,9 @@ DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between h
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'
 DEFINES += GRUEPRHELPEMAIL='\\"info@gruepr.com\\"'
 
+#Set Config
+CONFIG += no_moc_predefs #Added to avoid file name conflicts
+
 # set application properties
 VERSION = $$gruepr_version
 QMAKE_TARGET_COPYRIGHT = $$copyright_year
