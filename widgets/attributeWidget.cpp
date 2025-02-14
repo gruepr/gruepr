@@ -1,4 +1,5 @@
 #include "attributeWidget.h"
+#include "attributeDiversitySlider.cpp"
 #include <QApplication>
 #include <QFrame>
 #include <QGridLayout>
@@ -46,12 +47,20 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     weight->setValue(1);
     theGrid->addWidget(weight, row, column++);
     theGrid->setColumnStretch(column++, 1);
-    auto *homogenLabel = new QLabel(tr("Homogeneous Values"), this);
-    homogenLabel->setToolTip(HOMOGENTOOLTIP);
-    theGrid->addWidget(homogenLabel, row, column++);
-    homogeneous = new SwitchButton(this, true);
-    homogeneous->setToolTip(HOMOGENTOOLTIP);
-    theGrid->addWidget(homogeneous, row++, column);
+
+    auto *sliderLabel = new QLabel(tr("Attribute Diversity"), this);
+    sliderLabel->setToolTip(HOMOGENTOOLTIP);
+    theGrid->addWidget(sliderLabel, row, column++);
+    attribute_diversity_slider = new AttributeDiversitySlider(this);
+    attribute_diversity_slider->setToolTip(HOMOGENTOOLTIP);
+    QLabel *sliderLabel1 = new QLabel("Diverse", this);
+    QLabel *sliderLabel2 = new QLabel("Ignore", this);
+    QLabel *sliderLabel3 = new QLabel("Similar", this);
+    theGrid->addWidget(attribute_diversity_slider, row++, column, 1, 3);
+    // Align labels under the slider evenly
+    theGrid->addWidget(sliderLabel1, row, column++, Qt::AlignLeft);
+    theGrid->addWidget(sliderLabel2, row, column++, Qt::AlignLeft);
+    theGrid->addWidget(sliderLabel3, row++, column, Qt::AlignLeft);
 
     requiredIncompatsButton = new QPushButton(tr("Set Rules"), this);
     requiredIncompatsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
@@ -65,7 +74,7 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
         questionLabel->setText(tr("N/A"));
         responsesLabel->setText(tr("N/A"));
         weight->setEnabled(false);
-        homogeneous->setEnabled(false);
+        attribute_diversity_slider->setEnabled(false);
         requiredIncompatsButton->setEnabled(false);
         return;
     }
@@ -76,21 +85,22 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
         teamingOptions->attributeWeights[attribute] = 0;
         weight->setEnabled(false);
         weight->setToolTip(ONLYONETOOLTIP);
-        homogeneous->setEnabled(false);
-        homogeneous->setToolTip(ONLYONETOOLTIP);
+        attribute_diversity_slider->setEnabled(false);
+        attribute_diversity_slider->setToolTip(ONLYONETOOLTIP);
         requiredIncompatsButton->setEnabled(false);
         requiredIncompatsButton->setToolTip(ONLYONETOOLTIP);
     }
     else {
         weight->setEnabled(true);
         weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
-        homogeneous->setEnabled(true);
-        homogeneous->setToolTip(HOMOGENTOOLTIP);
+        attribute_diversity_slider->setEnabled(true);
+        attribute_diversity_slider->setToolTip(HOMOGENTOOLTIP);
         requiredIncompatsButton->setEnabled(true);
         requiredIncompatsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
     }
     weight->setValue(double(teamingOptions->attributeWeights[attribute]));
-    homogeneous->setValue(teamingOptions->desireHomogeneous[attribute]);
+    //Convert AttributeDiversity to Slider Index then set slider value
+    attribute_diversity_slider->setValue(AttributeDiversitySlider::getSliderIndexFromAttributeDiversity(teamingOptions->attributeDiversity[attribute]));
 }
 
 void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts)

@@ -57,9 +57,9 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-153</y>
-           <width>481</width>
-           <height>679</height>
+           <y>0</y>
+           <width>498</width>
+           <height>549</height>
           </rect>
          </property>
          <property name="sizePolicy">

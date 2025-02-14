@@ -3,10 +3,10 @@
 
 #include "dataOptions.h"
 #include "teamingOptions.h"
-#include "widgets/switchButton.h"
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QSlider>
 
 class AttributeWidget : public QWidget
 {
@@ -14,14 +14,14 @@ Q_OBJECT
 
 public:
     explicit AttributeWidget(QWidget *parent = nullptr);
-
+    //This function sets the values for a particular attribute (multiple choice) question
     void setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions);
     void updateQuestionAndResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts={});
 
     QLabel *questionLabel = nullptr;
     QLabel *responsesLabel = nullptr;
     QDoubleSpinBox *weight = nullptr;
-    SwitchButton *homogeneous = nullptr;
+    QSlider *attribute_diversity_slider = nullptr;
     QPushButton *requiredIncompatsButton = nullptr;
 
 private:
