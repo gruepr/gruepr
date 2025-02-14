@@ -97,6 +97,7 @@ SOURCES += \
         LMS/LMS.cpp \
         LMS/canvashandler.cpp \
         LMS/googlehandler.cpp \
+        widgets/attributeDiversitySlider.cpp \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
@@ -143,6 +144,7 @@ HEADERS += \
         LMS/LMS.h \
         LMS/canvashandler.h \
         LMS/googlehandler.h \
+        widgets/attributeDiversitySlider.h \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
