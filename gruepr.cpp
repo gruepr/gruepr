@@ -10,6 +10,7 @@
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
+#include "widgets/attributeDiversitySlider.h"
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -20,6 +21,7 @@
 #include <QScreen>
 #include <QSettings>
 #include <QTextBrowser>
+#include <QSlider>
 #include <random>
 
 
@@ -1162,6 +1164,10 @@ void gruepr::startOptimization()
         normFactor = 0;
     }
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+        //If criteria is ignored, set the weight to 0 so that it is ignored
+        if (teamingOptions->attributeDiversity[attribute] == TeamingOptions::AttributeDiversity::IGNORED){
+            teamingOptions->realAttributeWeights[attribute] = 0;
+        }
         teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
     }
     teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
@@ -1369,7 +1375,6 @@ void gruepr::dataDisplayTabClose(int closingTabIndex)
     saveState();
 }
 
-
 void gruepr::editDataDisplayTabName(int tabIndex)
 {
     // don't do anything if they double-clicked on the student tab
@@ -1427,7 +1432,7 @@ void gruepr::loadDefaultSettings()
     savedSettings.beginReadArray("Attributes");
     for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {
         savedSettings.setArrayIndex(attribNum);
-        teamingOptions->desireHomogeneous[attribNum] = savedSettings.value("desireHomogeneous", false).toBool();
+        teamingOptions->attributeDiversity[attribNum] = TeamingOptions::stringToAttributeDiversity(savedSettings.value("attributeDiversity", "IGNORED").toString());
         teamingOptions->attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
         // Shouldn't re-load the incompatible and required responses if working with new survey data
         if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
@@ -1566,8 +1571,8 @@ void gruepr::loadUI()
             attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions);
             connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
                         this, [this, attribute](double arg1){teamingOptions->attributeWeights[attribute] = float(arg1);});
-            connect(attributeWidgets.last()->homogeneous, &SwitchButton::valueChanged,
-                        this, [this, attribute](bool value){teamingOptions->desireHomogeneous[attribute] = value;});
+            connect(attributeWidgets.last()->attribute_diversity_slider, &QSlider::valueChanged,
+                        this, [this, attribute](int value){teamingOptions->attributeDiversity[attribute] = AttributeDiversitySlider::getAttributeDiversityFromSliderIndex(value);});
             connect(attributeWidgets.last()->requiredIncompatsButton, &QPushButton::clicked, this, &gruepr::responsesRulesButton_clicked);
 
             if(dataOptions->numAttributes > 1) {
@@ -1696,7 +1701,6 @@ void gruepr::loadUI()
         }
     }
 }
-
 
 //////////////////
 // Save everything for future re-opening
@@ -2423,10 +2427,10 @@ void gruepr::getAttributeScores(const StudentRecord *const _students, const int 
                     prevVal = currVal;
                 }
             }
-
+            //Default value is heterogenous
             _attributeScore[attribute][team] = attributeRangeInTeam /
                                                (*(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin()));
-            if(_teamingOptions->desireHomogeneous[attribute]) { //attributeScores = 0 if homogeneous and +1 if full range of values are in a team; flip if want homogeneous
+            if(_teamingOptions->attributeDiversity[attribute] == TeamingOptions::AttributeDiversity::HOMOGENOUS) { //attributeScores = 0 if homogeneous and +1 if full range of values are in a team; flip if want homogeneous
                 _attributeScore[attribute][team] = 1 - _attributeScore[attribute][team];
             }
         }
@@ -2763,7 +2767,7 @@ void gruepr::closeEvent(QCloseEvent *event)
             savedSettings.beginWriteArray("Attributes");
             for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {
                 savedSettings.setArrayIndex(attribNum);
-                savedSettings.setValue("desireHomogeneous", teamingOptions->desireHomogeneous[attribNum]);
+                savedSettings.setValue("attributeDiversity", TeamingOptions::attributeDiversityToString(teamingOptions->attributeDiversity[attribNum]));
                 savedSettings.setValue("weight", teamingOptions->attributeWeights[attribNum]);
                 savedSettings.remove("incompatibleResponses");  //clear any existing values
                 savedSettings.beginWriteArray("incompatibleResponses");

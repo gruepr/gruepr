@@ -542,7 +542,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             }
             const int numStudentsOnTeam = studentATeam.size;
             QList<TeamTreeWidgetItem*> childItems;
-            childItems.reserve(numStudentsOnTeam);
+            childItems.resize(numStudentsOnTeam);
             for(int studentNum = 0; studentNum < numStudentsOnTeam; studentNum++) {
                 //Find each teammate based on the ID and make them a leaf on the old team
                 const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
@@ -606,28 +606,29 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             }
             const int numStudentsOnTeamA = studentATeam.size;
             const int numStudentsOnTeamB = studentBTeam.size;
-            QList<TeamTreeWidgetItem*> childItems;
-            childItems.reserve(std::max(numStudentsOnTeamA, numStudentsOnTeamB));
+            QList<TeamTreeWidgetItem*> childItemsTeamA;
+            childItemsTeamA.resize(numStudentsOnTeamA);
             for(int studentNum = 0; studentNum < numStudentsOnTeamA; studentNum++) {
                 //Find each teammate based on the ID and make them a leaf on the team
                 const StudentRecord* teammate = findStudentFromID(studentATeam.studentIDs.at(studentNum));
                 if(teammate == nullptr) {
                     continue;
                 }
-                childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-                teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-                studentATeamItem->addChild(childItems[studentNum]);
+                childItemsTeamA[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItemsTeamA[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+                studentATeamItem->addChild(childItemsTeamA[studentNum]);
             }
-            childItems.clear();
+            QList<TeamTreeWidgetItem*> childItemsTeamB;
+            childItemsTeamB.resize(numStudentsOnTeamB);
             for(int studentNum = 0; studentNum < numStudentsOnTeamB; studentNum++) {
                 //Find each teammate based on the ID and make them a leaf on the team
                 const StudentRecord* teammate = findStudentFromID(studentBTeam.studentIDs.at(studentNum));
                 if(teammate == nullptr) {
                     continue;
                 }
-                childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-                teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-                studentBTeamItem->addChild(childItems[studentNum]);
+                childItemsTeamB[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+                teamDataTree->refreshStudent(childItemsTeamB[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+                studentBTeamItem->addChild(childItemsTeamB[studentNum]);
             }
         }
     }
@@ -735,28 +736,29 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         //clear and refresh student items on both teams in table
         const int numStudentsOnOldTeam = oldTeam.size;
         const int numStudentsOnNewTeam = newTeam.size;
-        QList<TeamTreeWidgetItem*> childItems;
-        childItems.reserve(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
+        QList<TeamTreeWidgetItem*> childItemsOldTeam;
+        childItemsOldTeam.resize(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
         for(int studentNum = 0; studentNum < numStudentsOnOldTeam; studentNum++) {
             //Find each teammate based on the ID and make them a leaf on the old team
             const StudentRecord* teammate = findStudentFromID(oldTeam.studentIDs.at(studentNum));
             if(teammate == nullptr) {
                 continue;
             }
-            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            oldTeamItem->addChild(childItems[studentNum]);
+            childItemsOldTeam[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+            teamDataTree->refreshStudent(childItemsOldTeam[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+            oldTeamItem->addChild(childItemsOldTeam[studentNum]);
         }
-        childItems.clear();
+        QList<TeamTreeWidgetItem*> childItemsNewTeam;
+        childItemsNewTeam.resize(std::max(numStudentsOnOldTeam, numStudentsOnNewTeam));
         for(int studentNum = 0; studentNum < numStudentsOnNewTeam; studentNum++) {
             //Find each teammate based on the ID and make them a leaf on the new team
             const StudentRecord* teammate = findStudentFromID(newTeam.studentIDs.at(studentNum));
             if(teammate == nullptr) {
                 continue;
             }
-            childItems[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
-            teamDataTree->refreshStudent(childItems[studentNum], *teammate, &teams.dataOptions, teamingOptions);
-            newTeamItem->addChild(childItems[studentNum]);
+            childItemsNewTeam[studentNum] = new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::student);
+            teamDataTree->refreshStudent(childItemsNewTeam[studentNum], *teammate, &teams.dataOptions, teamingOptions);
+            newTeamItem->addChild(childItemsNewTeam[studentNum]);
         }
     }
 
@@ -1311,8 +1313,15 @@ QStringList TeamsTabItem::createStdFileContents()
     }
     for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
         instructorsFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
-                + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib])) +
-                + ", " + (teamingOptions->desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
+                                   + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
+        // Check the attribute diversity type explicitly
+        if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HOMOGENOUS) {
+            instructorsFileContents += ", " + tr("homogeneous");
+        } else if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HETEROGENOUS) {
+            instructorsFileContents += ", " + tr("heterogeneous");
+        } else {
+            instructorsFileContents += ", " + tr("ignored");
+        }
     }
     instructorsFileContents += "\n\n\n";
     for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
@@ -1510,8 +1519,14 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         }
         for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
             customFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
-                                       + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib])) +
-                                       + ", " + (teamingOptions->desireHomogeneous[attrib]? tr("homogeneous") : tr("heterogeneous"));
+                                  + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
+            if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HOMOGENOUS) {
+                customFileContents += ", " + tr("homogeneous");
+            } else if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HETEROGENOUS) {
+                customFileContents += ", " + tr("heterogeneous");
+            } else {
+                customFileContents += ", " + tr("ignored");
+            }
         }
         customFileContents += "\n\n\n";
         for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
