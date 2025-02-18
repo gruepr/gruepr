@@ -75,7 +75,8 @@ private slots:
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
     void saveState();
-
+private slots:
+    void swapFrames(int draggedIndex, int targetIndex);
 private:
         // setup
     Ui::gruepr *ui;

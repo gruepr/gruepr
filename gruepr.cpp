@@ -7,6 +7,8 @@
 #include "dialogs/findMatchingNameDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "dialogs/teammatesRulesDialog.h"
+#include "widgets/draggableQFrame.h"
+#include "widgets/draggableFramesScrollWidget.h"
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
@@ -42,9 +44,15 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataSourcePrelabel->setStyleSheet(DATASOURCEPRELABELSTYLE);
     ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
     ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
-    QList<QFrame*> frames = {ui->sectionFrame, ui->teamSizeFrame, ui->genderFrame, ui->URMFrame, ui->attributesFrame, ui->scheduleFrame, ui->teammatesFrame};
+    ui->teamSizeFrame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    // initialize the order of frames in the layout
+    int count = 1;
+    QVBoxLayout* layout = ui->verticalLayout_2;
+    QList<DraggableQFrame*> frames = layout->parentWidget()->findChildren<DraggableQFrame*>();
     for(auto &frame : frames) {
+        frame->setPriorityOrder(count);
         frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        count += 1;
     }
     ui->attributesStackedWidget->setStyleSheet(ATTRIBUTESTACKWIDGETSTYLE);
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
@@ -113,7 +121,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     }
 
     loadUI();
-
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
     connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
     connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
@@ -126,6 +133,10 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
 
     //Connect other UI items to more involved actions
+    // Connect signals from each draggableQFrame to swapFrames
+    for(auto &frame : frames) {
+        connect(frame, &DraggableQFrame::frameSwapRequested, this, &gruepr::swapFrames);
+    }
     connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
     connect(ui->editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
@@ -151,6 +162,32 @@ gruepr::~gruepr()
     delete ui;
 }
 
+void gruepr::swapFrames(int draggedIndex, int targetIndex) {
+    // Access the existing layout (verticalLayout_2)
+    QVBoxLayout* layout = ui->verticalLayout_2;
+
+    // Get the list of frames from the layout
+    QList<QWidget*> frames = layout->parentWidget()->findChildren<QWidget*>();
+
+    if (draggedIndex < 0 || targetIndex < 0 || draggedIndex >= frames.size() || targetIndex >= frames.size()) {
+        qDebug() << "Invalid indices for swapping!";
+        return;
+    }
+    qDebug() << "dragged index" << draggedIndex;
+    qDebug() << "target index" << targetIndex;
+
+
+    // Remove the frames from the layout
+    QWidget* draggedFrame = frames[draggedIndex];
+    QWidget* targetFrame = frames[targetIndex];
+
+    layout->removeWidget(draggedFrame);
+    layout->removeWidget(targetFrame);
+
+    // Add the frames back in the swapped order
+    layout->insertWidget(targetIndex, draggedFrame);
+    layout->insertWidget(draggedIndex, targetFrame);
+}
 
 ////////////////////
 // A static public wrapper for the getGenomeScore function used internally
