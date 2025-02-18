@@ -11,6 +11,7 @@
 #include "teamingOptions.h"
 #include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
+#include "widgets/draggableQFrame.h"
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QPrinter>
@@ -84,6 +85,7 @@ private:
     void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
+    QList<DraggableQFrame*> frames;
     int numTeams = 1;
     inline void setTeamSizes(const QList<int> &teamSizes);
     inline void setTeamSizes(const int singleSize);
