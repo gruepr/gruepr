@@ -36,10 +36,9 @@ void DraggableQFrame::dropEvent(QDropEvent *event) {
         int draggedPriorityOrder = draggedFrame->getPriorityOrder();
         int targetPriorityOrder = this->getPriorityOrder();
 
-        // Swap positions in layout
+        qDebug() << this->getPriorityOrder();
+        qDebug() << draggedFrame->getPriorityOrder();
 
-        this->setPriorityOrder(draggedPriorityOrder);
-        draggedFrame->setPriorityOrder(targetPriorityOrder);
 
         // a layout that stores the objects in a list <DraggableQFrame> then depending on the order, outputs!
         // Insert the widgets back at their new positions
