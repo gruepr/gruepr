@@ -46,10 +46,11 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
     ui->teamSizeFrame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     // initialize the order of frames in the layout
-    int count = 1;
+    int count = 0;
     QVBoxLayout* layout = ui->verticalLayout_2;
-    QList<DraggableQFrame*> frames = layout->parentWidget()->findChildren<DraggableQFrame*>();
-    for(auto &frame : frames) {
+    this->frames = layout->parentWidget()->findChildren<DraggableQFrame*>();
+    layout->setSpacing(5);
+    for(auto &frame : this->frames) {
         frame->setPriorityOrder(count);
         frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         count += 1;
@@ -165,35 +166,28 @@ gruepr::~gruepr()
 void gruepr::swapFrames(int draggedIndex, int targetIndex) {
     // Access the existing layout (verticalLayout_2)
     QVBoxLayout* layout = ui->verticalLayout_2;
-
-    // Get the list of frames from the layout
-    QList<DraggableQFrame*> frames = layout->parentWidget()->findChildren<DraggableQFrame*>();
-
     if (draggedIndex < 0 || targetIndex < 0 || draggedIndex >= frames.size() || targetIndex >= frames.size()) {
         qDebug() << "Invalid indices for swapping!";
         return;
     }
-    qDebug() << "dragged index" << draggedIndex;
-    qDebug() << "target index" << targetIndex;
-
-
     // Remove the frames from the layout
     DraggableQFrame* draggedFrame = frames[draggedIndex];
     DraggableQFrame* targetFrame = frames[targetIndex];
 
-    layout->removeWidget(draggedFrame);
-    layout->removeWidget(targetFrame);
+    frames[targetIndex] = draggedFrame;
+    frames[draggedIndex] = targetFrame;
+    frames[targetIndex]->setPriorityOrder(targetIndex);
+    frames[draggedIndex]->setPriorityOrder(draggedIndex);
 
-    // Add the frames back in the swapped order
-    layout->insertWidget(targetIndex, draggedFrame);
-    layout->insertWidget(draggedIndex, targetFrame);
+    // Clear and Rebuild Layout
+    while (layout->count() > 1) {
+        layout->removeItem(layout->itemAt(1));
+    }
 
-    draggedFrame->setPriorityOrder(targetIndex);
-    targetFrame->setPriorityOrder(draggedIndex);
+    for (DraggableQFrame* frame : frames) {
+        layout->addWidget(frame);
+    }
 
-    qDebug() << "Updated priority orders:";
-    qDebug() << draggedFrame->getPriorityOrder();
-    qDebug() << targetFrame->getPriorityOrder();
 }
 
 ////////////////////

@@ -2,8 +2,6 @@
 #include <QDrag>
 #include <QMimeData>
 #include "qevent.h"
-#include "qscrollarea.h"
-#include "widgets/draggableFramesScrollWidget.h"
 #include <QLayout>
 
 DraggableQFrame::DraggableQFrame(QWidget *parent): QFrame(parent) {
@@ -31,14 +29,13 @@ void DraggableQFrame::dropEvent(QDropEvent *event) {
     QString widgetID = event->mimeData()->text();
     DraggableQFrame *draggedFrame = reinterpret_cast<DraggableQFrame*>(widgetID.toULongLong());
 
-    if (draggedFrame) {
+    if (draggedFrame!=this) {
         // Find the index of both frames in the layout
         int draggedPriorityOrder = draggedFrame->getPriorityOrder();
         int targetPriorityOrder = this->getPriorityOrder();
 
         qDebug() << this->getPriorityOrder();
         qDebug() << draggedFrame->getPriorityOrder();
-
 
         // a layout that stores the objects in a list <DraggableQFrame> then depending on the order, outputs!
         // Insert the widgets back at their new positions
