@@ -167,7 +167,7 @@ void gruepr::swapFrames(int draggedIndex, int targetIndex) {
     QVBoxLayout* layout = ui->verticalLayout_2;
 
     // Get the list of frames from the layout
-    QList<QWidget*> frames = layout->parentWidget()->findChildren<QWidget*>();
+    QList<DraggableQFrame*> frames = layout->parentWidget()->findChildren<DraggableQFrame*>();
 
     if (draggedIndex < 0 || targetIndex < 0 || draggedIndex >= frames.size() || targetIndex >= frames.size()) {
         qDebug() << "Invalid indices for swapping!";
@@ -178,8 +178,8 @@ void gruepr::swapFrames(int draggedIndex, int targetIndex) {
 
 
     // Remove the frames from the layout
-    QWidget* draggedFrame = frames[draggedIndex];
-    QWidget* targetFrame = frames[targetIndex];
+    DraggableQFrame* draggedFrame = frames[draggedIndex];
+    DraggableQFrame* targetFrame = frames[targetIndex];
 
     layout->removeWidget(draggedFrame);
     layout->removeWidget(targetFrame);
@@ -187,6 +187,13 @@ void gruepr::swapFrames(int draggedIndex, int targetIndex) {
     // Add the frames back in the swapped order
     layout->insertWidget(targetIndex, draggedFrame);
     layout->insertWidget(draggedIndex, targetFrame);
+
+    draggedFrame->setPriorityOrder(targetIndex);
+    targetFrame->setPriorityOrder(draggedIndex);
+
+    qDebug() << "Updated priority orders:";
+    qDebug() << draggedFrame->getPriorityOrder();
+    qDebug() << targetFrame->getPriorityOrder();
 }
 
 ////////////////////
@@ -1503,7 +1510,6 @@ void gruepr::loadUI()
     adjustSize();
     const QSettings savedSettings;
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
-    const int SPACERHEIGHT = 10;
 
     //Set the label and icon for the data source
     ui->dataSourceLabel->setText(dataOptions->dataSourceName);
@@ -1533,7 +1539,6 @@ void gruepr::loadUI()
             else {
                 ui->sectionSelectionBox->setCurrentIndex(0);
             }
-            ui->sectionSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
         else {
             if(dataOptions->sectionNames.size() > 0) {     // (must be only one section, but checking not empty just so it doesn't crash on .first()...)
@@ -1544,14 +1549,12 @@ void gruepr::loadUI()
             }
             teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
             ui->sectionFrame->hide();
-            ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
     }
     else {
         ui->sectionSelectionBox->addItem(tr("No section data."));
         teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
         ui->sectionFrame->hide();
-        ui->sectionSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
     teamingOptions->sectionName = ui->sectionSelectionBox->currentText();
     ui->sectionSelectionBox->blockSignals(false);
@@ -1561,10 +1564,8 @@ void gruepr::loadUI()
 
     ui->idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     changeIdealTeamSize();    // load new team sizes in selection box
-    ui->teamsizeSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     if(dataOptions->genderIncluded) {
-        ui->genderSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->isolatedWomenCheckBox->setChecked(teamingOptions->isolatedWomenPrevented);
         ui->isolatedMenCheckBox->setChecked(teamingOptions->isolatedMenPrevented);
         ui->isolatedNonbinaryCheckBox->setChecked(teamingOptions->isolatedNonbinaryPrevented);
@@ -1572,11 +1573,9 @@ void gruepr::loadUI()
     }
     else {
         ui->genderFrame->hide();
-        ui->genderSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
     if(dataOptions->URMIncluded) {
-        ui->URMSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
         ui->isolatedURMCheckBox->setChecked(teamingOptions->isolatedURMPrevented);
         ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
@@ -1584,11 +1583,9 @@ void gruepr::loadUI()
     }
     else {
         ui->URMFrame->hide();
-        ui->URMSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
     if(dataOptions->genderIncluded && dataOptions->URMIncluded) {
-        ui->genderSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->URMLabel->hide();
         ui->URMLabelSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->URMFrame->setStyleSheet(ui->URMFrame->styleSheet().replace("border: 1px solid;",
@@ -1598,7 +1595,6 @@ void gruepr::loadUI()
 
     if(dataOptions->numAttributes == 0) {
         ui->attributesFrame->hide();
-        ui->attributeSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
     else {
         ui->attributesFrame->setUpdatesEnabled(false);
@@ -1656,7 +1652,6 @@ void gruepr::loadUI()
         }
 
         ui->attributesStackedWidget->setCurrentIndex(0);
-        ui->attributeSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->attributesFrame->setUpdatesEnabled(true);
     }
 
@@ -1680,11 +1675,9 @@ void gruepr::loadUI()
         ui->meetingLengthSpinBox->setSingleStep(dataOptions->scheduleResolution);
         ui->meetingLengthSpinBox->setMinimum(dataOptions->scheduleResolution);
         ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
-        ui->scheduleSpacer->changeSize(0, SPACERHEIGHT, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
     else {
         ui->scheduleFrame->hide();
-        ui->scheduleSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
 
     changeIdealTeamSize();    // load new team sizes in selection box, if necessary

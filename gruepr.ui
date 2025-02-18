@@ -362,7 +362,7 @@ QGroupBox::title { subcontrol-origin: margin; left: 7px; padding: 0px 5px 0px 5p
            <number>6</number>
           </property>
           <item>
-           <widget class="DraggableQFrame" name="teamSizeFrame">
+           <widget class="QFrame" name="teamSizeFrame">
             <layout class="QGridLayout" name="teamSizeLayout" columnstretch="0,0">
              <property name="verticalSpacing">
               <number>2</number>
