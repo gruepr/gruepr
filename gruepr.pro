@@ -101,6 +101,8 @@ SOURCES += \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/draggableFramesScrollWidget.cpp \
+        widgets/draggableQFrame.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
@@ -148,6 +150,8 @@ HEADERS += \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/draggableFramesScrollWidget.h \
+        widgets/draggableQFrame.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
         widgets/pushButtonWithMouseEnter.h \
