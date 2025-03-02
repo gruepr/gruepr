@@ -46,9 +46,10 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     toggleButton->setArrowType(Qt::ArrowType::RightArrow);
     toggleButton->setText(title);
     toggleButton->setCheckable(true);
-    toggleButton->setChecked(true);
+    toggleButton->setChecked(false);
     // Ensure toggleButton don't stretch
     toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    //set initial toggle to true
 
     //dragHandleButton settings
     dragHandleButton->setIcon(QIcon(":/icons_new/drag-handle.png"));
@@ -94,6 +95,8 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     connect(toggleButton, &QToolButton::toggled, this, &GroupingCriteriaCard::toggle);
     connect(dragHandleButton, &QToolButton::pressed, this, &GroupingCriteriaCard::dragStarted);
     connect(dragHandleButton, &QToolButton::released, this, &QFrame::unsetCursor);
+    //set initial toggle to be true
+    toggle(true);
 }
 
 

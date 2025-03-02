@@ -98,6 +98,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
 
     //MCQ Criteria Card
+    //depending on how many criteria, initialize that many mcq cards!
 
 
     //Meeting Schedule Criteria Card
@@ -214,7 +215,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         count += 1;
     }
-    ui->attributesStackedWidget->setStyleSheet(ATTRIBUTESTACKWIDGETSTYLE);
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
@@ -1067,10 +1067,11 @@ void gruepr::selectURMResponses()
     delete win;
 }
 
-
-void gruepr::responsesRulesButton_clicked()
+//Set Rules Button Clicked
+void gruepr::responsesRulesButton_clicked(int attribute)
 {
-    const int currAttribute = ui->attributesStackedWidget->currentIndex();
+    const int currAttribute = attribute;
+
     //Open specialized dialog box to collect attribute values that are required on each team
     auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, this);
 
@@ -1748,65 +1749,40 @@ void gruepr::loadUI()
     }
 
     if(dataOptions->numAttributes == 0) {
-        ui->attributesFrame->hide();
+        //not adding any multiple choice questions
     }
     else {
-        ui->attributesFrame->setUpdatesEnabled(false);
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
             attributeWidgets << new AttributeWidget(this);
-            ui->attributesStackedWidget->addWidget(attributeWidgets.last());
-            attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions);
+            QString title = "Multiple Choice Question:" + dataOptions->attributeQuestionText.at(attribute);
+            this->criteriaCardsList.append(new GroupingCriteriaCard(this, title, true)); //i could also add it directly to the criteriaCardsList
+            GroupingCriteriaCard *currentMultipleChoiceCard = this->criteriaCardsList.last();
+            currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+            QHBoxLayout* mcqContentLayout = new QHBoxLayout();
+
+            //initialize the card
+            QVBoxLayout *scrollLayout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollArea->widget()->layout());
+            //add the widget
+
+            //ui->attributesStackedWidget->addWidget(attributeWidgets.last());
+            attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions); //update issue
             connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
                         this, [this, attribute](double arg1){teamingOptions->attributeWeights[attribute] = float(arg1);});
             connect(attributeWidgets.last()->attribute_diversity_slider, &QSlider::valueChanged,
                         this, [this, attribute](int value){teamingOptions->attributeDiversity[attribute] = AttributeDiversitySlider::getAttributeDiversityFromSliderIndex(value);});
-            connect(attributeWidgets.last()->requiredIncompatsButton, &QPushButton::clicked, this, &gruepr::responsesRulesButton_clicked);
-
-            if(dataOptions->numAttributes > 1) {
-                const int rowSize = 5;  // number of buttons in each row
-                attributeSelectorButtons << new QPushButton(tr("Q") + QString::number(attribute + 1), this);
-                attributeSelectorButtons.last()->setFlat(true);
-                QString stylesheet = attribute == 0? ATTRIBBUTTONONSTYLE : ATTRIBBUTTONOFFSTYLE;
-                if(attribute == 0) {
-                    stylesheet.replace("border-top-left-radius: 0px;", "border-top-left-radius: 5px;");
-                }
-                if( ((dataOptions->numAttributes < rowSize) && (attribute == (dataOptions->numAttributes - 1))) ||
-                    ((dataOptions->numAttributes >= rowSize) && ((attribute / rowSize) == 0) && ((attribute % rowSize) == (rowSize - 1))) ) {
-                    stylesheet.replace("border-top-right-radius: 0px;", "border-top-right-radius: 5px;");
-                }
-                if(attribute == (dataOptions->numAttributes-1)) {
-                    stylesheet.replace("border-bottom-right-radius: 0px;", "border-bottom-right-radius: 5px;");
-                }
-                if( ((attribute / rowSize) == ((dataOptions->numAttributes - 1) / rowSize)) && ((attribute % rowSize) == 0) ) {
-                    stylesheet.replace("border-bottom-left-radius: 0px;", "border-bottom-left-radius: 5px;");
-                }
-                attributeSelectorButtons.last()->setStyleSheet(stylesheet);
-                ui->attributeSelectorGrid->addWidget(attributeSelectorButtons.last(), attribute/rowSize, attribute%rowSize);
-                connect(attributeSelectorButtons.last(), &QPushButton::clicked, this, [this, attribute]
-                                                        {ui->attributesStackedWidget->setCurrentIndex(attribute);
-                                                          for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
-                                                            if( (attribute == attrib) ||
-                                                                (attributeSelectorButtons.at(attrib)->styleSheet()
-                                                                                           .contains("background-color: " OPENWATERHEX ";")) ) {
-                                                               attributeSelectorButtons[attrib]->setStyleSheet(
-                                                                                         attributeSelectorButtons.at(attrib)->styleSheet()
-                                                                                         .replace("white", "black")
-                                                                                         .replace(OPENWATERHEX, "white")
-                                                                                         .replace("black", OPENWATERHEX));
-                                                            }
-                                                          }
-                                                         });
-                ui->attributeSelectorGrid->setColumnStretch(rowSize, 1);
-            }
+            connect(attributeWidgets.last()->requiredIncompatsButton, &QPushButton::clicked, this, [this, attribute](){
+                this->responsesRulesButton_clicked(attribute);
+            });
 
             //(re)set the weight to zero for any attributes with just one value in the data
             if(dataOptions->attributeVals[attribute].size() == 1) {
                 teamingOptions->attributeWeights[attribute] = 0;
             }
+            mcqContentLayout->addWidget(attributeWidgets.last());
+            currentMultipleChoiceCard->setContentAreaLayout(*mcqContentLayout);
+            //why is it not visible?
+            scrollLayout->addWidget(currentMultipleChoiceCard);
         }
-
-        ui->attributesStackedWidget->setCurrentIndex(0);
-        ui->attributesFrame->setUpdatesEnabled(true);
     }
 
     if(!dataOptions->dayNames.isEmpty()) {

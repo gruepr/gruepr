@@ -66,7 +66,7 @@ private slots:
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void selectURMResponses();
-    void responsesRulesButton_clicked();
+    void responsesRulesButton_clicked(int attribute);
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
     void makeTeammatesRules();
@@ -161,7 +161,7 @@ private:
     QComboBox *sectionSelectionBox;
 
     //MCQ Criteria Card //likert scale or categorical?
-    GroupingCriteriaCard* multipleChoiceCriteriaCard;
+    QList<GroupingCriteriaCard*> multipleChoiceCriteriaCardList;
     QHBoxLayout* multipleChoiceContentLayout;
 
 
