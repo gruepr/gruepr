@@ -147,6 +147,9 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         attributeVals[j].clear();
     }
 
+    const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
+    Genders = grueprGlobal::jsonArrayToGenderList(GendersArray);
+
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
     URMResponses.reserve(URMResponsesArray.size());
     for(const auto &item : URMResponsesArray) {
@@ -255,6 +258,7 @@ QJsonObject DataOptions::toJson() const
         {"attributeQuestionResponses", attributeQuestionResponsesArray},
         {"attributeQuestionResponseCounts", attributeQuestionResponseCountsArray},
         {"attributeVals", attributeValsArray},
+        {"Genders", grueprGlobal::genderListToJsonArray(Genders)},
         {"URMResponses", QJsonArray::fromStringList(URMResponses)},
         {"dataSourceName", dataSourceName},
         {"dataSource", static_cast<int>(dataSource)},

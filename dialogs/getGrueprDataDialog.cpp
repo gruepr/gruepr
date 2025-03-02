@@ -1194,7 +1194,14 @@ bool GetGrueprDataDialog::readData()
         if(!(dataOptions->sectionNames.contains(student.section, Qt::CaseInsensitive))) {
             dataOptions->sectionNames << student.section;
         }
+
+        for(auto gender: student.gender){
+            if(!dataOptions->Genders.contains(gender)) {
+                dataOptions->Genders << gender;
+            }
+        }
     }
+
     QCollator sortAlphanumerically;
     sortAlphanumerically.setNumericMode(true);
     sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);

@@ -53,9 +53,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
     //Defining all criteria cards
     criteriaCardsList = {};
-
     //Team Size Criteria Card
-    teamSizeCriteriaCard = new GroupingCriteriaCard(scrollWidget, QString("Team Size"), false);
+    teamSizeCriteriaCard = new GroupingCriteriaCard(this, QString("Team Size"), false);
 
     teamSizeContentAreaLayout = new QHBoxLayout();
     teamSizeContentAreaLayout->setSpacing(2);
@@ -74,48 +73,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     teamSizeCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     teamSizeCriteriaCard->setContentAreaLayout(*teamSizeContentAreaLayout);
     criteriaCardsList.append(teamSizeCriteriaCard);
-
-
-    //Section Criteria Card
-    sectionCriteriaCard = new GroupingCriteriaCard(scrollWidget, QString("Section"), true);
-    sectionContentLayout = new QHBoxLayout();
-    sectionContentLayout->setSpacing(1);
-
-    editSectionNameButton = new QPushButton(this);
-    sectionSelectionBox = new QComboBox(this);
-    sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    editSectionNameButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-    sectionContentLayout->addWidget(sectionSelectionBox);
-    sectionContentLayout->addWidget(editSectionNameButton);
-    editSectionNameButton->setMinimumHeight(28);
-    editSectionNameButton->setMinimumWidth(34);
-    sectionCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-    sectionCriteriaCard->setContentAreaLayout(*sectionContentLayout);
-    criteriaCardsList.append(sectionCriteriaCard);
-
-    //Identity Options Criteria Card
-
-
-    //MCQ Criteria Card
-    //depending on how many criteria, initialize that many mcq cards!
-
-
-    //Meeting Schedule Criteria Card
-
-    //Required and Prevented Teammates criteria card
-
-    //Numeric variable criteria card
-
-
-    //Adding all cards
-
-    for (GroupingCriteriaCard* card : this->criteriaCardsList){
-        scrollLayout->addWidget(card);
-    }
-
-
-
 
     addGroupingCriteriaButton = new QPushButton(this);
     letsDoItButton = new QPushButton(this);
@@ -160,7 +117,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     footerButtonsLayout->addWidget(addGroupingCriteriaButton);
     footerButtonsLayout->addWidget(letsDoItButton);
 
-
     ui->topLayout->addLayout(footerButtonsLayout, 2, 0);
 
     //Button at the bottom
@@ -174,7 +130,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
     connect(addNewCriteriaButton, &QPushButton::clicked, [mainMenu, addNewCriteriaButton](){
         QPoint centerOfCriteriaButton = addNewCriteriaButton->mapToGlobal(addNewCriteriaButton->rect().center());
-        qDebug() << "add criteria button clicked";
         mainMenu->popup(QPoint(centerOfCriteriaButton.x() - mainMenu->sizeHint().width()/2, centerOfCriteriaButton.y()));
     });
 
@@ -202,9 +157,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     mainMenu->addMenu(studentTimeTable);
     mainMenu->addMenu(teamMatePreferencesMenu);
 
-    //
-
-
     // initialize the order of frames in the layout
     int count = 0;
     QVBoxLayout* layout = ui->verticalLayout_2;
@@ -215,28 +167,13 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         count += 1;
     }
-    ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
-    ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
     letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
-    editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->dataDisplayTabWidget->setStyleSheet(DATADISPTABSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setStyleSheet(DATADISPBARSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
-    QList<QPushButton *> buttons = {letsDoItButton, editSectionNameButton, ui->addStudentPushButton, ui->compareRosterPushButton};
-    for(auto &button : buttons) {
-        button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
-    }
-    ui->dataSourceIcon->setFixedSize(STD_ICON_SIZE, STD_ICON_SIZE);
-
-    QList<QWidget *> selectors = {sectionSelectionBox, idealTeamSizeBox, teamSizeBox,
-                                  ui->minMeetingTimes, ui->desiredMeetingTimes, ui->meetingLengthSpinBox, ui->scheduleWeight};
-    for(auto &selector : selectors) {
-        selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
-    }
 
     //Make the teams tabs double-clickable and closable (hide the close button on the students tab)
     connect(ui->dataDisplayTabWidget, &QTabWidget::tabBarDoubleClicked, this, &gruepr::editDataDisplayTabName);
@@ -281,6 +218,21 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     }
 
     loadUI();
+
+
+    QList<QPushButton *> buttons = {letsDoItButton, editSectionNameButton, ui->addStudentPushButton, ui->compareRosterPushButton};
+    for(auto &button : buttons) {
+        button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
+    }
+    ui->dataSourceIcon->setFixedSize(STD_ICON_SIZE, STD_ICON_SIZE);
+
+    QList<QWidget *> selectors = {sectionSelectionBox, idealTeamSizeBox, teamSizeBox,
+                                  ui->minMeetingTimes, ui->desiredMeetingTimes, ui->meetingLengthSpinBox, ui->scheduleWeight};
+    for(auto &selector : selectors) {
+        selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
+    }
+
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
     connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
     connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
@@ -312,7 +264,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
-
+    setAllStyles();
     saveState();
 }
 
@@ -321,6 +273,10 @@ gruepr::~gruepr()
     delete dataOptions;
     delete teamingOptions;
     delete ui;
+}
+
+void gruepr::setAllStyles(){
+
 }
 
 void gruepr::swapFrames(int draggedIndex, int targetIndex) {
@@ -1666,6 +1622,117 @@ void gruepr::loadUI()
     const QSettings savedSettings;
     restoreGeometry(savedSettings.value("windowGeometry").toByteArray());
 
+    //Cards
+    QVBoxLayout *scrollLayout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollArea->widget()->layout());
+
+    //Section Criteria Card
+    sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), true);
+    sectionContentLayout = new QHBoxLayout();
+    sectionContentLayout->setSpacing(1);
+
+    editSectionNameButton = new QPushButton(this);
+    sectionSelectionBox = new QComboBox(this);
+    sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    editSectionNameButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+
+    sectionContentLayout->addWidget(sectionSelectionBox);
+    sectionContentLayout->addWidget(editSectionNameButton);
+    editSectionNameButton->setMinimumHeight(28);
+    editSectionNameButton->setMinimumWidth(34);
+    sectionCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    sectionCriteriaCard->setContentAreaLayout(*sectionContentLayout);
+    criteriaCardsList.append(sectionCriteriaCard);
+
+    //Identity Options Criteria Card
+    //step 1: find all identities available
+    QStringList URMResponses = dataOptions->URMResponses;
+    QList<Gender> Genders = dataOptions->Genders;
+    //gender responses too
+    //step 2: create cards for each one of them
+    for (Gender g : Genders){
+        //if preventing isolated women is clicked, then it directly adds a rule, and allows you to add another one!
+        //add rule button
+        QString genderString = grueprGlobal::genderToString(g);
+        GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Gender Identity: " + genderString), true);
+        QVBoxLayout* genderCardContentAreaLayout = new QVBoxLayout();
+
+        QHBoxLayout* labelsLayout = new QHBoxLayout();
+        //identity, operator, amount
+        QLabel* identityLabel = new QLabel("Identity", this);
+        QLabel* operatorLabel = new QLabel("Operator", this);
+        QLabel* noOfIdentityLabel = new QLabel("No. of Identity", this);
+        labelsLayout->addWidget(identityLabel);
+        labelsLayout->addWidget(operatorLabel);
+        labelsLayout->addWidget(noOfIdentityLabel);
+        QHBoxLayout* eachGenderIdentityRuleLayout = new QHBoxLayout();
+        QLabel* currentIdentityLabel = new QLabel(genderString);
+        QComboBox* operatorComboBox = new QComboBox(this);
+        operatorComboBox->addItem(">");    // Greater than
+        operatorComboBox->addItem("=");    // Equal to
+        operatorComboBox->addItem(">=");   // Greater than or equal to
+        operatorComboBox->addItem("<=");   // Less than or equal to
+        operatorComboBox->addItem("<");    // Less than
+        operatorComboBox->addItem("!=");   // Not equal to
+        QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
+        eachGenderIdentityRuleLayout->addWidget(currentIdentityLabel);
+        eachGenderIdentityRuleLayout->addWidget(operatorComboBox);
+        eachGenderIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
+
+        QCheckBox* preventedIsolatedCheckBox = new QCheckBox("Prevent Isolated " + genderString, this);
+        newGenderCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+
+        genderCardContentAreaLayout->addWidget(preventedIsolatedCheckBox);
+        genderCardContentAreaLayout->addLayout(labelsLayout);
+        genderCardContentAreaLayout->addLayout(eachGenderIdentityRuleLayout);
+
+        newGenderCard->setContentAreaLayout(*genderCardContentAreaLayout);
+        criteriaCardsList.append(newGenderCard);
+    }
+
+
+    //and required mixed gender?
+    //step 3: each card has the same layout:
+    //identity, operator, number
+    //operator can be: == 0, == 3, !=0? - look at the algorithm implementation
+    //button to prevent isolated X minority
+
+    //MCQ Criteria Card
+    //depending on how many criteria, initialize that many mcq cards!
+
+
+    //Meeting Schedule Criteria Card
+    GroupingCriteriaCard* meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true);
+    QVBoxLayout* meetingScheduleContentLayout = new QVBoxLayout();
+    QHBoxLayout* minimumAndDesiredButtonLayout = new QHBoxLayout();
+    QSpinBox* minMeetingTimes = new QSpinBox(this);
+    QSpinBox* desiredMeetingTimes = new QSpinBox(this);
+    minMeetingTimes->setPrefix(QString("Minimum: "));
+    desiredMeetingTimes->setPrefix(QString("Desired: "));
+
+    minimumAndDesiredButtonLayout->addWidget(minMeetingTimes);
+    minimumAndDesiredButtonLayout->addWidget(desiredMeetingTimes);
+
+    QSpinBox* duration = new QSpinBox(this);
+    duration->setPrefix(QString("Duration: "));
+    duration->setSuffix(QString(" hour"));
+    meetingScheduleContentLayout->addLayout(minimumAndDesiredButtonLayout);
+    meetingScheduleContentLayout->addWidget(duration);
+    meetingScheduleCriteriaCard->setContentAreaLayout(*meetingScheduleContentLayout);
+    meetingScheduleCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    criteriaCardsList.append(meetingScheduleCriteriaCard);
+
+    //Required and Prevented Teammates criteria card, Isolated URM cards!
+    //Numeric variable criteria card
+
+    //Adding all cards
+
+    for (GroupingCriteriaCard* card : this->criteriaCardsList){
+        scrollLayout->addWidget(card);
+    }
+    //genetic algorithm will break for gender because i changed it to be normal gender (try understanding this)
+
+
     //Set the label and icon for the data source
     ui->dataSourceLabel->setText(dataOptions->dataSourceName);
     if(dataOptions->dataSource == DataOptions::DataSource::fromGoogle) {
@@ -1679,6 +1746,7 @@ void gruepr::loadUI()
     }
 
     sectionSelectionBox->blockSignals(true);
+
     if(dataOptions->sectionIncluded) {
         if(dataOptions->sectionNames.size() > 1) {
             sectionSelectionBox->addItem(tr("Students in all sections together"));
