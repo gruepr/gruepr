@@ -12,6 +12,7 @@
 #include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/draggableQFrame.h"
+#include "widgets/groupingCriteriaCardWidget.h"
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QPrinter>
@@ -139,6 +140,36 @@ private:
     TeamSet teams;
     QList<int> bestTeamSet;
     TeamSet finalTeams;
+
+    //Extra refactoring
+    QPushButton *letsDoItButton;
+    QPushButton *addGroupingCriteriaButton;
+
+    //Criteria Cards
+    QList<GroupingCriteriaCard*> criteriaCardsList;
+
+    //Team Size Criteria Card
+    GroupingCriteriaCard* teamSizeCriteriaCard;
+    QHBoxLayout* teamSizeContentAreaLayout;
+    QComboBox* teamSizeBox;
+    QSpinBox* idealTeamSizeBox;
+
+    //Section Criteria Card
+    GroupingCriteriaCard* sectionCriteriaCard;
+    QHBoxLayout* sectionContentLayout;
+    QPushButton *editSectionNameButton;
+    QComboBox *sectionSelectionBox;
+
+    //MCQ Criteria Card //likert scale or categorical?
+    GroupingCriteriaCard* multipleChoiceCriteriaCard;
+    QHBoxLayout* multipleChoiceContentLayout;
+
+
+    //Identity Options Card (these are all objects that can be created)
+
+
+
+
 };
 
 #endif // GRUEPR_H

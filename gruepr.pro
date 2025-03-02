@@ -8,6 +8,7 @@ gruepr_version = 12.8
 copyright_year = 2019-2025
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
+QT       += designer
 
 TARGET = gruepr
 TEMPLATE = app
@@ -67,6 +68,7 @@ macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
 SOURCES += \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/addgroupingcriteriadialog.cpp \
         gruepr_globals.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -103,6 +105,7 @@ SOURCES += \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/draggableFramesScrollWidget.cpp \
         widgets/draggableQFrame.cpp \
+        widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
@@ -116,6 +119,7 @@ SOURCES += \
 HEADERS += \
         csvfile.h \
         dataOptions.h \
+        dialogs/addgroupingcriteriadialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
@@ -152,6 +156,7 @@ HEADERS += \
         widgets/comboBoxWithElidedContents.h \
         widgets/draggableFramesScrollWidget.h \
         widgets/draggableQFrame.h \
+        widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
         widgets/pushButtonWithMouseEnter.h \

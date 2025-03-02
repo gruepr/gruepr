@@ -1,4 +1,5 @@
 #include "gruepr.h"
+#include "dialogs/addgroupingcriteriadialog.h"
 #include "ui_gruepr.h"
 #include "dialogs/attributeRulesDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
@@ -8,11 +9,12 @@
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "dialogs/teammatesRulesDialog.h"
 #include "widgets/draggableQFrame.h"
-#include "widgets/draggableFramesScrollWidget.h"
 #include "widgets/pushButtonWithMouseEnter.h"
+#include "widgets/groupingCriteriaCardWidget.h"
 #include "widgets/sortableTableWidgetItem.h"
 #include "widgets/teamsTabItem.h"
 #include "widgets/attributeDiversitySlider.h"
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
@@ -44,7 +46,164 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataSourcePrelabel->setStyleSheet(DATASOURCEPRELABELSTYLE);
     ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
     ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
-    ui->teamSizeFrame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+
+    QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
+
+    QVBoxLayout *scrollLayout = qobject_cast<QVBoxLayout*>(scrollWidget->layout());
+
+    //Defining all criteria cards
+    criteriaCardsList = {};
+
+    //Team Size Criteria Card
+    teamSizeCriteriaCard = new GroupingCriteriaCard(scrollWidget, QString("Team Size"), false);
+
+    teamSizeContentAreaLayout = new QHBoxLayout();
+    teamSizeContentAreaLayout->setSpacing(2);
+
+    teamSizeBox = new QComboBox(teamSizeCriteriaCard);
+    teamSizeBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    teamSizeBox->setMinimumHeight(28);
+
+    //set minimum height too
+    idealTeamSizeBox = new QSpinBox(teamSizeCriteriaCard);
+    idealTeamSizeBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    idealTeamSizeBox->setMinimumHeight(28);
+    idealTeamSizeBox->setMinimumWidth(30);
+    teamSizeContentAreaLayout->addWidget(idealTeamSizeBox);
+    teamSizeContentAreaLayout->addWidget(teamSizeBox);
+    teamSizeCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    teamSizeCriteriaCard->setContentAreaLayout(*teamSizeContentAreaLayout);
+    criteriaCardsList.append(teamSizeCriteriaCard);
+
+
+    //Section Criteria Card
+    sectionCriteriaCard = new GroupingCriteriaCard(scrollWidget, QString("Section"), true);
+    sectionContentLayout = new QHBoxLayout();
+    sectionContentLayout->setSpacing(1);
+
+    editSectionNameButton = new QPushButton(this);
+    sectionSelectionBox = new QComboBox(this);
+    sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    editSectionNameButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    sectionContentLayout->addWidget(sectionSelectionBox);
+    sectionContentLayout->addWidget(editSectionNameButton);
+    editSectionNameButton->setMinimumHeight(28);
+    editSectionNameButton->setMinimumWidth(34);
+    sectionCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    sectionCriteriaCard->setContentAreaLayout(*sectionContentLayout);
+    criteriaCardsList.append(sectionCriteriaCard);
+
+    //Identity Options Criteria Card
+
+
+    //MCQ Criteria Card
+
+
+    //Meeting Schedule Criteria Card
+
+    //Required and Prevented Teammates criteria card
+
+    //Numeric variable criteria card
+
+
+    //Adding all cards
+
+    for (GroupingCriteriaCard* card : this->criteriaCardsList){
+        scrollLayout->addWidget(card);
+    }
+
+
+
+
+    addGroupingCriteriaButton = new QPushButton(this);
+    letsDoItButton = new QPushButton(this);
+    addGroupingCriteriaButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
+
+    //connect the grouping criteria button with a pop up.
+
+    // Set text (title) for the buttons
+    //set the styles of these buttons omg
+    addGroupingCriteriaButton->setText("New Grouping Criteria");
+    letsDoItButton->setText("Create Teams");
+
+    // Set icons for the buttons (make sure the icons exist in your project directory or resource file)
+    addGroupingCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));  // Use resource path
+    letsDoItButton->setIcon(QIcon(":/icons_new/create_teams.png"));
+
+    // Set tooltips for extra info when hovering
+    addGroupingCriteriaButton->setToolTip("Click to add a new grouping criteria/rule/heuristic");
+    letsDoItButton->setToolTip("Click to form teams");
+
+    addGroupingCriteriaButton->setIconSize(QSize(24, 24));  // Set icon size
+
+    connect(addGroupingCriteriaButton, &QPushButton::clicked, this, [this]() {
+        auto *addGroupingCriteriaDialog = new AddGroupingCriteriaDialog(this);
+
+        const int groupingCriteriaDialogResult = addGroupingCriteriaDialog->exec();
+
+        if (groupingCriteriaDialogResult == QDialog::Accepted) {
+            // Handle what happens when the dialog is accepted
+            qDebug() << "Dialog accepted!";
+        }
+
+        addGroupingCriteriaDialog->deleteLater(); // Clean up memory
+    });//open a dialog
+
+    letsDoItButton->setIconSize(QSize(24, 24));
+
+    QHBoxLayout *footerButtonsLayout = new QHBoxLayout();
+    // Set margins: left = 10, top = 0, right = 10, bottom = 20
+    footerButtonsLayout->setContentsMargins(6, 2, 6, 0);
+
+    footerButtonsLayout->addWidget(addGroupingCriteriaButton);
+    footerButtonsLayout->addWidget(letsDoItButton);
+
+
+    ui->topLayout->addLayout(footerButtonsLayout, 2, 0);
+
+    //Button at the bottom
+    QPushButton *addNewCriteriaButton = new QPushButton("Add New Criteria", this);
+    addNewCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));
+    scrollLayout->addWidget(addNewCriteriaButton);
+    addNewCriteriaButton->setStyleSheet("QPushButton::menu-indicator{image:none;}");
+    //Menu!
+
+    QMenu *mainMenu = new QMenu(this);
+
+    connect(addNewCriteriaButton, &QPushButton::clicked, [mainMenu, addNewCriteriaButton](){
+        QPoint centerOfCriteriaButton = addNewCriteriaButton->mapToGlobal(addNewCriteriaButton->rect().center());
+        qDebug() << "add criteria button clicked";
+        mainMenu->popup(QPoint(centerOfCriteriaButton.x() - mainMenu->sizeHint().width()/2, centerOfCriteriaButton.y()));
+    });
+
+    QMenu *newSection = new QMenu("Section", this);
+    QMenu *multipleChoiceQuestionMenu = new QMenu("Multiple Choice Question", this);
+    multipleChoiceQuestionMenu->setLayoutDirection(Qt::RightToLeft);
+    multipleChoiceQuestionMenu->addAction("Likert Scale");
+    multipleChoiceQuestionMenu->addAction("Categorical");
+
+    QMenu *identityOptionsMenu = new QMenu("Identity Options", this);
+    identityOptionsMenu->setLayoutDirection(Qt::RightToLeft);
+    identityOptionsMenu->addAction("Gender");
+    identityOptionsMenu->addAction("Under-represented minority");
+
+    QMenu *studentTimeTable = new QMenu("Student Time Table", this);
+    QMenu *teamMatePreferencesMenu = new QMenu("Teammate Preferences", this);
+    teamMatePreferencesMenu->setLayoutDirection(Qt::RightToLeft);
+    teamMatePreferencesMenu->addAction("Required Teammates");
+    teamMatePreferencesMenu->addAction("Prevented Teammates");
+    teamMatePreferencesMenu->addAction("Requested Teammates");
+
+    mainMenu->addMenu(newSection);
+    mainMenu->addMenu(multipleChoiceQuestionMenu);
+    mainMenu->addMenu(identityOptionsMenu);
+    mainMenu->addMenu(studentTimeTable);
+    mainMenu->addMenu(teamMatePreferencesMenu);
+
+    //
+
+
     // initialize the order of frames in the layout
     int count = 0;
     QVBoxLayout* layout = ui->verticalLayout_2;
@@ -59,20 +218,20 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->scheduleWeight->setSuffix("  /  " + QString::number(TeamingOptions::MAXWEIGHT));
     ui->scheduleWeight->setToolTip(TeamingOptions::SCHEDULEWEIGHTTOOLTIP);
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
-    ui->letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
-    ui->editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
+    editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->compareRosterPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     ui->dataDisplayTabWidget->setStyleSheet(DATADISPTABSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setStyleSheet(DATADISPBARSTYLE);
     ui->dataDisplayTabWidget->tabBar()->setDrawBase(false);
-    QList<QPushButton *> buttons = {ui->letsDoItButton, ui->editSectionNameButton, ui->addStudentPushButton, ui->compareRosterPushButton};
+    QList<QPushButton *> buttons = {letsDoItButton, editSectionNameButton, ui->addStudentPushButton, ui->compareRosterPushButton};
     for(auto &button : buttons) {
         button->setIconSize(QSize(STD_ICON_SIZE, STD_ICON_SIZE));
     }
     ui->dataSourceIcon->setFixedSize(STD_ICON_SIZE, STD_ICON_SIZE);
 
-    QList<QWidget *> selectors = {ui->sectionSelectionBox, ui->idealTeamSizeBox, ui->teamSizeBox,
+    QList<QWidget *> selectors = {sectionSelectionBox, idealTeamSizeBox, teamSizeBox,
                                   ui->minMeetingTimes, ui->desiredMeetingTimes, ui->meetingLengthSpinBox, ui->scheduleWeight};
     for(auto &selector : selectors) {
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
@@ -89,7 +248,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Set alternate fonts on some UI features
     QFont altFont = this->font();
     altFont.setPointSize(altFont.pointSize() + 4);
-    ui->letsDoItButton->setFont(altFont);
+    letsDoItButton->setFont(altFont);
     ui->addStudentPushButton->setFont(altFont);
     ui->compareRosterPushButton->setFont(altFont);
     ui->dataDisplayTabWidget->setFont(altFont);
@@ -105,7 +264,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
             const QJsonArray teamsetjsons = content["teamsets"].toArray();
             TeamsTabItem *teamTab = nullptr;
             for(const auto &teamsetjson : teamsetjsons) {
-                teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, this->students, this->dataOptions->sectionNames, ui->letsDoItButton, this);
+                teamTab = new TeamsTabItem(teamsetjson.toObject(), *teamingOptions, this->students, this->dataOptions->sectionNames, letsDoItButton, this);
                 ui->dataDisplayTabWidget->addTab(teamTab, teamTab->tabName);
                 numTeams = int(teams.size());
                 connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
@@ -138,16 +297,17 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     for(auto &frame : frames) {
         connect(frame, &DraggableQFrame::frameSwapRequested, this, &gruepr::swapFrames);
     }
+
     connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
-    connect(ui->editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
+    connect(editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
     connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
-    connect(ui->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
-    connect(ui->idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
-    connect(ui->teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
+    connect(sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
+    connect(idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
+    connect(teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
     connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
     connect(ui->teammatesButton, &QPushButton::clicked, this, &gruepr::makeTeammatesRules);
-    connect(ui->letsDoItButton, &QPushButton::clicked, this, &gruepr::startOptimization);
+    connect(letsDoItButton, &QPushButton::clicked, this, &gruepr::startOptimization);
 
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
@@ -270,7 +430,7 @@ void gruepr::restartWithNewData()
 
 void gruepr::changeSection(int index)
 {
-    const QString desiredSection = ui->sectionSelectionBox->itemText(index);
+    const QString desiredSection = sectionSelectionBox->itemText(index);
     if(dataOptions->sectionIncluded && desiredSection.isEmpty()) {
         const QString prevSection = teamingOptions->sectionName;
         teamingOptions->sectionName = desiredSection;
@@ -280,7 +440,7 @@ void gruepr::changeSection(int index)
         teamingOptions->sectionName = prevSection;
 
         numActiveStudents = 0;
-        ui->letsDoItButton->setEnabled(false);
+        letsDoItButton->setEnabled(false);
         return;
     }
 
@@ -289,10 +449,10 @@ void gruepr::changeSection(int index)
         if(!dataOptions->sectionIncluded) {
             teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
         }
-        else if(ui->sectionSelectionBox->currentIndex() == 1) {
+        else if(sectionSelectionBox->currentIndex() == 1) {
             teamingOptions->sectionType = TeamingOptions::SectionType::allSeparately;
         }
-        else if(ui->sectionSelectionBox->currentIndex() == 0) {
+        else if(sectionSelectionBox->currentIndex() == 0) {
             teamingOptions->sectionType = TeamingOptions::SectionType::allTogether;
         }
         else {
@@ -340,7 +500,7 @@ void gruepr::changeSection(int index)
         attributeWidgets[attribute]->updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
     }
 
-    ui->idealTeamSizeBox->setMaximum(std::max(2ll, numActiveStudents / 2));
+    idealTeamSizeBox->setMaximum(std::max(2ll, numActiveStudents / 2));
     changeIdealTeamSize();    // load new team sizes in selection box, if necessary
 }
 
@@ -804,8 +964,8 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
     // Re-build the section options in the selection box
     if(dataOptions->sectionIncluded) {
-        ui->sectionSelectionBox->blockSignals(true);
-        ui->sectionSelectionBox->clear();
+        sectionSelectionBox->blockSignals(true);
+        sectionSelectionBox->clear();
         dataOptions->sectionNames.clear();
         for(const auto &student : qAsConst(students)) {
             if(!student.deleted && !dataOptions->sectionNames.contains(student.section, Qt::CaseInsensitive)) {
@@ -817,18 +977,18 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
             sortAlphanumerically.setNumericMode(true);
             sortAlphanumerically.setCaseSensitivity(Qt::CaseInsensitive);
             std::sort(dataOptions->sectionNames.begin(), dataOptions->sectionNames.end(), sortAlphanumerically);
-            ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
-            ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
-            ui->sectionSelectionBox->insertSeparator(2);
-            ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
+            sectionSelectionBox->addItem(tr("Students in all sections together"));
+            sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
+            sectionSelectionBox->insertSeparator(2);
+            sectionSelectionBox->addItems(dataOptions->sectionNames);
         }
         else {
-            ui->sectionSelectionBox->addItem(tr("Only one section in the data."));
+            sectionSelectionBox->addItem(tr("Only one section in the data."));
         }
-        ui->sectionSelectionBox->blockSignals(false);
+        sectionSelectionBox->blockSignals(false);
 
-        if(ui->sectionSelectionBox->findText(teamingOptions->sectionName) != -1) {
-            ui->sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
+        if(sectionSelectionBox->findText(teamingOptions->sectionName) != -1) {
+            sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
         }
     }
 
@@ -837,7 +997,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
     ui->studentTable->clearSortIndicator();
 
     // Load new team sizes in selection box
-    ui->idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
+    idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     changeIdealTeamSize();
 }
 
@@ -964,7 +1124,7 @@ void gruepr::makeTeammatesRules()
 
 void gruepr::changeIdealTeamSize()
 {
-    const int idealSize = ui->idealTeamSizeBox->value();
+    const int idealSize = idealTeamSizeBox->value();
 
     // First, make sure we don't end up penalizing teams for having fewer requested teammates than the team size allows
     if(teamingOptions->numberRequestedTeammatesGiven > idealSize) {
@@ -972,7 +1132,7 @@ void gruepr::changeIdealTeamSize()
     }
 
     // put suitable options in the team size selection box, depending on whether the number of students is evenly divisible by this desired team size
-    ui->teamSizeBox->setUpdatesEnabled(false);
+    teamSizeBox->setUpdatesEnabled(false);
 
     // typically just figuring out team sizes for one section or for all students together,
     // but need to re-calculate for each section if we will team all sections independently
@@ -982,11 +1142,11 @@ void gruepr::changeIdealTeamSize()
     int smallerTeamsSizeA=0, smallerTeamsSizeB=0, numSmallerATeams=0, largerTeamsSizeA=0, largerTeamsSizeB=0, numLargerATeams=0;
     int cumNumSmallerATeams=0, cumNumSmallerBTeams = 0, cumNumLargerATeams=0, cumNumLargerBTeams = 0;
     for(int section = 0; section < numSectionsToCalculate; section++) {
-        ui->teamSizeBox->clear();
+        teamSizeBox->clear();
 
         if(calculatingSeparateSections) {
             // if teaming all sections separately, figure out how many students in this section
-            const QString sectionName = ui->sectionSelectionBox->itemText(section + 3);
+            const QString sectionName = sectionSelectionBox->itemText(section + 3);
             numStudentsBeingTeamed = 0;
             for(const auto &student : qAsConst(students)) {
                 if(student.section == sectionName && !student.deleted) {
@@ -995,7 +1155,7 @@ void gruepr::changeIdealTeamSize()
             }
         }
         else if(multipleSectionsInProgress) {
-            const QString sectionName = ui->sectionSelectionBox->currentText();
+            const QString sectionName = sectionSelectionBox->currentText();
             numStudentsBeingTeamed = 0;
             for(const auto &student : qAsConst(students)) {
                 if(student.section == sectionName && !student.deleted) {
@@ -1060,8 +1220,8 @@ void gruepr::changeIdealTeamSize()
             }
 
             if(!calculatingSeparateSections) {
-                ui->teamSizeBox->addItem(smallerTeamOption);
-                ui->teamSizeBox->addItem(largerTeamOption);
+                teamSizeBox->addItem(smallerTeamOption);
+                teamSizeBox->addItem(largerTeamOption);
             }
         }
         else {  // evenly divisible number of students
@@ -1075,7 +1235,7 @@ void gruepr::changeIdealTeamSize()
             }
 
             if(!calculatingSeparateSections) {
-                ui->teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(idealSize) + tr(" students each)"));
+                teamSizeBox->addItem(QString::number(teamingOptions->numTeamsDesired) + tr(" teams (") + QString::number(idealSize) + tr(" students each)"));
             }
         }
 
@@ -1090,21 +1250,21 @@ void gruepr::changeIdealTeamSize()
         const QString smallerTeamOption = writeTeamSizeOption(cumNumSmallerATeams, smallerTeamsSizeA, cumNumSmallerBTeams, smallerTeamsSizeB);
         const QString largerTeamOption = writeTeamSizeOption(cumNumLargerBTeams, largerTeamsSizeB, cumNumLargerATeams, largerTeamsSizeA);
 
-        ui->teamSizeBox->addItem(smallerTeamOption);
+        teamSizeBox->addItem(smallerTeamOption);
         if(smallerTeamOption != largerTeamOption) {
-            ui->teamSizeBox->addItem(largerTeamOption);
+            teamSizeBox->addItem(largerTeamOption);
         }
     }
     else {
         // allow custom team sizes (too complicated to allow this if teaming all sections separately
-        ui->teamSizeBox->insertSeparator(ui->teamSizeBox->count());
-        ui->teamSizeBox->addItem(tr("Custom team sizes"));
+        teamSizeBox->insertSeparator(teamSizeBox->count());
+        teamSizeBox->addItem(tr("Custom team sizes"));
     }
 
     // if we have fewer than MIN_STUDENTS students somehow, disable the form teams button
-    ui->letsDoItButton->setEnabled(numStudentsBeingTeamed >= MIN_STUDENTS);
+    letsDoItButton->setEnabled(numStudentsBeingTeamed >= MIN_STUDENTS);
 
-    ui->teamSizeBox->setUpdatesEnabled(true);
+    teamSizeBox->setUpdatesEnabled(true);
 }
 
 
@@ -1139,15 +1299,15 @@ QString gruepr::writeTeamSizeOption(const int numTeamsA, const int teamsizeA, co
 
 void gruepr::chooseTeamSizes(int index)
 {
-    if(ui->teamSizeBox->currentText() == QString::number(teamingOptions->numTeamsDesired) +
-                                         tr(" teams (") + QString::number(ui->idealTeamSizeBox->value()) +
+    if(teamSizeBox->currentText() == QString::number(teamingOptions->numTeamsDesired) +
+                                         tr(" teams (") + QString::number(idealTeamSizeBox->value()) +
                                          tr(" students each)")) {
         // Evenly divisible teams, all same size
-        setTeamSizes(ui->idealTeamSizeBox->value());
+        setTeamSizes(idealTeamSizeBox->value());
     }
-    else if(ui->teamSizeBox->currentText() == tr("Custom team sizes")) {
+    else if(teamSizeBox->currentText() == tr("Custom team sizes")) {
         //Open specialized dialog box to collect teamsizes
-        auto *win = new customTeamsizesDialog(numActiveStudents, ui->idealTeamSizeBox->value(), this);
+        auto *win = new customTeamsizesDialog(numActiveStudents, idealTeamSizeBox->value(), this);
 
         //If user clicks OK, use these team sizes, otherwise revert to option 1, smaller team sizes
         const int reply = win->exec();
@@ -1157,7 +1317,7 @@ void gruepr::chooseTeamSizes(int index)
         }
         else {
             // Set to index 0 if cancelled
-            ui->teamSizeBox->setCurrentIndex(0);
+            teamSizeBox->setCurrentIndex(0);
         }
         delete win;
         return;
@@ -1218,11 +1378,11 @@ void gruepr::startOptimization()
     const bool teamingMultipleSections = (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately);
     multipleSectionsInProgress = teamingMultipleSections;
     const int numSectionsToTeam = (teamingMultipleSections? int(dataOptions->sectionNames.size()) : 1);
-    const bool smallerTeamSizesInSelector = (ui->teamSizeBox->currentIndex() == 0);
+    const bool smallerTeamSizesInSelector = (teamSizeBox->currentIndex() == 0);
     for(int section = 0; section < numSectionsToTeam; section++) {
         if(teamingMultipleSections) {
             // team each section one at a time by changing the section
-            ui->sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
+            sectionSelectionBox->setCurrentIndex(section + 3);  // go to the next section (index: 0 = allTogether, 1 = allSeparately, 2 = separator line, 3 = first section)
         }
 
         // Get the indexes of non-deleted students from desired section(s) and change numStudents accordingly
@@ -1244,11 +1404,11 @@ void gruepr::startOptimization()
 
         if(teamingMultipleSections) {
             // now pick the correct team sizes
-            if(smallerTeamSizesInSelector || (ui->teamSizeBox->count() == 3)) {
-                ui->teamSizeBox->setCurrentIndex(0);
+            if(smallerTeamSizesInSelector || (teamSizeBox->count() == 3)) {
+                teamSizeBox->setCurrentIndex(0);
             }
             else {
-                ui->teamSizeBox->setCurrentIndex(1);
+                teamSizeBox->setCurrentIndex(1);
             }
         }
 
@@ -1291,12 +1451,12 @@ void gruepr::startOptimization()
         QEventLoop loop;
         connect(this, &gruepr::sectionOptimizationFullyComplete, this, [this, &loop, teamingMultipleSections, smallerTeamSizesInSelector] {
             if(teamingMultipleSections && !multipleSectionsInProgress) {
-                ui->sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
-                if(smallerTeamSizesInSelector || (ui->teamSizeBox->count() == 3)) {  // pick the correct team sizes
-                    ui->teamSizeBox->setCurrentIndex(0);
+                sectionSelectionBox->setCurrentIndex(1);            // go back to each section separately
+                if(smallerTeamSizesInSelector || (teamSizeBox->count() == 3)) {  // pick the correct team sizes
+                    teamSizeBox->setCurrentIndex(0);
                 }
                 else {
-                    ui->teamSizeBox->setCurrentIndex(1);
+                    teamSizeBox->setCurrentIndex(1);
                 }
             }
             loop.quit();
@@ -1389,7 +1549,7 @@ void gruepr::optimizationComplete()
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
     const QString teamSetName = tr("Team set ") + QString::number(teamingOptions->teamsetNumber);
-    auto *teamTab = new TeamsTabItem(*teamingOptions, teams, students, dataOptions->sectionNames, teamSetName, ui->letsDoItButton, this);
+    auto *teamTab = new TeamsTabItem(*teamingOptions, teams, students, dataOptions->sectionNames, teamSetName, letsDoItButton, this);
     ui->dataDisplayTabWidget->addTab(teamTab, teamSetName);
     numTeams = int(teams.size());
     teamingOptions->teamsetNumber++;
@@ -1456,7 +1616,7 @@ void gruepr::loadDefaultSettings()
     QSettings savedSettings;
 
     //Restore teaming options
-    ui->idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
+    idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
     teamingOptions->isolatedWomenPrevented = savedSettings.value("isolatedWomenPrevented", false).toBool();
     teamingOptions->isolatedMenPrevented = savedSettings.value("isolatedMenPrevented", false).toBool();
     teamingOptions->isolatedNonbinaryPrevented = savedSettings.value("isolatedNonbinaryPrevented", false).toBool();
@@ -1517,46 +1677,46 @@ void gruepr::loadUI()
         ui->dataSourceIcon->setPixmap(QPixmap(":/icons_new/icon.svg"));
     }
 
-    ui->sectionSelectionBox->blockSignals(true);
+    sectionSelectionBox->blockSignals(true);
     if(dataOptions->sectionIncluded) {
         if(dataOptions->sectionNames.size() > 1) {
-            ui->sectionSelectionBox->addItem(tr("Students in all sections together"));
-            ui->sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
-            ui->sectionSelectionBox->insertSeparator(2);
-            ui->sectionSelectionBox->addItems(dataOptions->sectionNames);
+            sectionSelectionBox->addItem(tr("Students in all sections together"));
+            sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
+            sectionSelectionBox->insertSeparator(2);
+            sectionSelectionBox->addItems(dataOptions->sectionNames);
             if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
-                ui->sectionSelectionBox->setCurrentIndex(1);
+                sectionSelectionBox->setCurrentIndex(1);
             }
             else if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
-                ui->sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
+                sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
             }
             else {
-                ui->sectionSelectionBox->setCurrentIndex(0);
+                sectionSelectionBox->setCurrentIndex(0);
             }
         }
         else {
             if(dataOptions->sectionNames.size() > 0) {     // (must be only one section, but checking not empty just so it doesn't crash on .first()...)
-                ui->sectionSelectionBox->addItem(dataOptions->sectionNames.first());
+                sectionSelectionBox->addItem(dataOptions->sectionNames.first());
             }
             else {
-                ui->sectionSelectionBox->addItem(tr("No section data."));
+                sectionSelectionBox->addItem(tr("No section data."));
             }
             teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
-            ui->sectionFrame->hide();
+            sectionCriteriaCard->hide();
         }
     }
     else {
-        ui->sectionSelectionBox->addItem(tr("No section data."));
+        sectionSelectionBox->addItem(tr("No section data."));
         teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
-        ui->sectionFrame->hide();
+        sectionCriteriaCard->hide();
     }
-    teamingOptions->sectionName = ui->sectionSelectionBox->currentText();
-    ui->sectionSelectionBox->blockSignals(false);
+    teamingOptions->sectionName = sectionSelectionBox->currentText();
+    sectionSelectionBox->blockSignals(false);
 
     refreshStudentDisplay();
     ui->studentTable->resetTable();
 
-    ui->idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
+    idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     changeIdealTeamSize();    // load new team sizes in selection box
 
     if(dataOptions->genderIncluded) {
@@ -1683,47 +1843,47 @@ void gruepr::loadUI()
     }
 
     // if the data containes preferred teammates or non-teammates and they haven't been loaded in, ask if they should be
-    if(!dataOptions->prefTeammatesField.empty() && !teamingOptions->haveAnyRequiredTeammates && !teamingOptions->haveAnyRequestedTeammates) {
-        const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
-                                                            tr("The survey asked students for preferred teammates.\n"
-                                                               "Would you like to load those preferences as required teammates?"),
-                                                            tr("Yes"), tr("No"));
-        if(okLoadThem) {
-            const int numTabs = ui->dataDisplayTabWidget->count();
-            QStringList teamTabNames;
-            teamTabNames.reserve(numTabs);
-            for(int tab = 1; tab < numTabs; tab++) {
-                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
-            }
-            auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, true);
-            for(int index = 0; index < students.size(); index++) {
-                this->students[index] = win->students[index];
-            }
-            teamingOptions->haveAnyRequiredTeammates = true;
-            delete win;
-        }
-    }
-    if(!dataOptions->prefNonTeammatesField.empty() && !teamingOptions->haveAnyPreventedTeammates) {
-        const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
-                                                            tr("The survey ") + (!dataOptions->prefTeammatesField.empty()? tr("also") : "") +
-                                                            tr(" asked students for preferred non-teammates.\n"
-                                                               "Would you like to load those preferences as prevented teammates?"),
-                                                            tr("Yes"), tr("No"));
-        if(okLoadThem) {
-            const int numTabs = ui->dataDisplayTabWidget->count();
-            QStringList teamTabNames;
-            teamTabNames.reserve(numTabs);
-            for(int tab = 1; tab < numTabs; tab++) {
-                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
-            }
-            auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, false, true);
-            for(int index = 0; index < students.size(); index++) {
-                this->students[index] = win->students[index];
-            }
-            teamingOptions->haveAnyPreventedTeammates = true;
-            delete win;
-        }
-    }
+    // if(!dataOptions->prefTeammatesField.empty() && !teamingOptions->haveAnyRequiredTeammates && !teamingOptions->haveAnyRequestedTeammates) {
+    //     const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
+    //                                                         tr("The survey asked students for preferred teammates.\n"
+    //                                                            "Would you like to load those preferences as required teammates?"),
+    //                                                         tr("Yes"), tr("No"));
+    //     if(okLoadThem) {
+    //         const int numTabs = ui->dataDisplayTabWidget->count();
+    //         QStringList teamTabNames;
+    //         teamTabNames.reserve(numTabs);
+    //         for(int tab = 1; tab < numTabs; tab++) {
+    //             teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+    //         }
+    //         auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, true);
+    //         for(int index = 0; index < students.size(); index++) {
+    //             this->students[index] = win->students[index];
+    //         }
+    //         teamingOptions->haveAnyRequiredTeammates = true;
+    //         delete win;
+    //     }
+    // }
+    // if(!dataOptions->prefNonTeammatesField.empty() && !teamingOptions->haveAnyPreventedTeammates) {
+    //     const bool okLoadThem = grueprGlobal::warningMessage(this, "gruepr",
+    //                                                         tr("The survey ") + (!dataOptions->prefTeammatesField.empty()? tr("also") : "") +
+    //                                                         tr(" asked students for preferred non-teammates.\n"
+    //                                                            "Would you like to load those preferences as prevented teammates?"),
+    //                                                         tr("Yes"), tr("No"));
+    //     if(okLoadThem) {
+    //         const int numTabs = ui->dataDisplayTabWidget->count();
+    //         QStringList teamTabNames;
+    //         teamTabNames.reserve(numTabs);
+    //         for(int tab = 1; tab < numTabs; tab++) {
+    //             teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+    //         }
+    //         auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions, "", teamTabNames, this, false, true);
+    //         for(int index = 0; index < students.size(); index++) {
+    //             this->students[index] = win->students[index];
+    //         }
+    //         teamingOptions->haveAnyPreventedTeammates = true;
+    //         delete win;
+    //     }
+    // }
 }
 
 //////////////////
@@ -2777,7 +2937,7 @@ void gruepr::closeEvent(QCloseEvent *event)
     }
     else {
         if(saveSettings) {
-            savedSettings.setValue("idealTeamSize", ui->idealTeamSizeBox->value());
+            savedSettings.setValue("idealTeamSize", idealTeamSizeBox->value());
             savedSettings.setValue("isolatedWomenPrevented", teamingOptions->isolatedWomenPrevented);
             savedSettings.setValue("isolatedMenPrevented", teamingOptions->isolatedMenPrevented);
             savedSettings.setValue("isolatedNonbinaryPrevented", teamingOptions->isolatedNonbinaryPrevented);
