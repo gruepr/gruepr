@@ -144,6 +144,7 @@ private:
     //Extra refactoring
     QPushButton *letsDoItButton;
     QPushButton *addGroupingCriteriaButton;
+    void setAllStyles();
 
     //Criteria Cards
     QList<GroupingCriteriaCard*> criteriaCardsList;
@@ -162,11 +163,9 @@ private:
 
     //MCQ Criteria Card //likert scale or categorical?
     QList<GroupingCriteriaCard*> multipleChoiceCriteriaCardList;
-    QHBoxLayout* multipleChoiceContentLayout;
-
 
     //Identity Options Card (these are all objects that can be created)
-
+    QList<GroupingCriteriaCard*> identityOptionsCardList;
 
 
 
