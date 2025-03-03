@@ -178,7 +178,7 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
         // a layout that stores the objects in a list <DraggableQFrame> then depending on the order, outputs!
         // Insert the widgets back at their new positions
         event->acceptProposedAction();
-        emit frameSwapRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
+        emit criteriaCardSwapRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
     }
 }
 
