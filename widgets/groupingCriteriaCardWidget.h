@@ -74,7 +74,7 @@ public:
     int getPriorityOrder();
     void setPriorityOrder(int priorityOrder);
     signals:
-        void frameSwapRequested(int draggedIndex, int targetIndex);
+        void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
 private:
     int priorityOrder;
 };

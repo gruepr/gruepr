@@ -78,7 +78,7 @@ private slots:
     void editDataDisplayTabName(int tabIndex);
     void saveState();
 private slots:
-    void swapFrames(int draggedIndex, int targetIndex);
+    void swapCriteriaCards(int draggedIndex, int targetIndex);
 private:
         // setup
     Ui::gruepr *ui;
@@ -149,13 +149,13 @@ private:
     //Criteria Cards
     QList<GroupingCriteriaCard*> criteriaCardsList;
 
-    //Team Size Criteria Card
+    //Single: Team Size Criteria Card
     GroupingCriteriaCard* teamSizeCriteriaCard;
     QHBoxLayout* teamSizeContentAreaLayout;
     QComboBox* teamSizeBox;
     QSpinBox* idealTeamSizeBox;
 
-    //Section Criteria Card
+    //Single: Section Criteria Card
     GroupingCriteriaCard* sectionCriteriaCard;
     QHBoxLayout* sectionContentLayout;
     QPushButton *editSectionNameButton;
@@ -164,11 +164,16 @@ private:
     //MCQ Criteria Card //likert scale or categorical?
     QList<GroupingCriteriaCard*> multipleChoiceCriteriaCardList;
 
+
     //Identity Options Card (these are all objects that can be created)
     QList<GroupingCriteriaCard*> identityOptionsCardList;
+    QMap<QString, QCheckBox*> uiCheckBoxMap;
 
-
-
+    //Single: Meeting Schedule Criteria Card
+    GroupingCriteriaCard* meetingScheduleCriteriaCard;
+    QSpinBox* minMeetingTimes;
+    QSpinBox* desiredMeetingTimes;
+    QDoubleSpinBox* meetingLengthSpinBox;
 };
 
 #endif // GRUEPR_H

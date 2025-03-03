@@ -50,6 +50,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
 
     QVBoxLayout *scrollLayout = qobject_cast<QVBoxLayout*>(scrollWidget->layout());
+    scrollLayout->setSpacing(15);
 
     //Defining all criteria cards
     criteriaCardsList = {};
@@ -122,7 +123,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Button at the bottom
     QPushButton *addNewCriteriaButton = new QPushButton("Add New Criteria", this);
     addNewCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));
-    scrollLayout->addWidget(addNewCriteriaButton);
     addNewCriteriaButton->setStyleSheet("QPushButton::menu-indicator{image:none;}");
     //Menu!
 
@@ -157,16 +157,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     mainMenu->addMenu(studentTimeTable);
     mainMenu->addMenu(teamMatePreferencesMenu);
 
-    // initialize the order of frames in the layout
-    int count = 0;
-    QVBoxLayout* layout = ui->verticalLayout_2;
-    this->frames = layout->parentWidget()->findChildren<DraggableQFrame*>();
-    layout->setSpacing(5);
-    for(auto &frame : this->frames) {
-        frame->setPriorityOrder(count);
-        frame->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        count += 1;
-    }
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
     letsDoItButton->setStyleSheet(GETSTARTEDBUTTONSTYLE);
     ui->addStudentPushButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
@@ -219,6 +209,13 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
     loadUI();
 
+    // initialize the priority order of criteria cards
+    int count = 0;
+    for(auto &criteriaCard : this->criteriaCardsList) {
+        criteriaCard->setPriorityOrder(count);
+        criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        count += 1;
+    }
 
     QList<QPushButton *> buttons = {letsDoItButton, editSectionNameButton, ui->addStudentPushButton, ui->compareRosterPushButton};
     for(auto &button : buttons) {
@@ -227,27 +224,20 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataSourceIcon->setFixedSize(STD_ICON_SIZE, STD_ICON_SIZE);
 
     QList<QWidget *> selectors = {sectionSelectionBox, idealTeamSizeBox, teamSizeBox,
-                                  ui->minMeetingTimes, ui->desiredMeetingTimes, ui->meetingLengthSpinBox, ui->scheduleWeight};
+                                  minMeetingTimes, desiredMeetingTimes, meetingLengthSpinBox}; //ui->scheduleWeight
     for(auto &selector : selectors) {
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
     }
 
     //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
-    connect(ui->isolatedWomenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedWomenCheckBox);});
-    connect(ui->isolatedMenCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedMenCheckBox);});
-    connect(ui->isolatedNonbinaryCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedNonbinaryCheckBox);});
-    connect(ui->mixedGenderCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->mixedGenderCheckBox);});
-    connect(ui->isolatedURMCheckBox, &QCheckBox::stateChanged, this, [this](){simpleUIItemUpdate(ui->isolatedURMCheckBox);});
-    connect(ui->minMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->minMeetingTimes);});
-    connect(ui->desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->desiredMeetingTimes);});
-    connect(ui->meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->meetingLengthSpinBox);});
-    connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
+
+    //connect(ui->scheduleWeight, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(ui->scheduleWeight);});
 
     //Connect other UI items to more involved actions
     // Connect signals from each draggableQFrame to swapFrames
-    for(auto &frame : frames) {
-        connect(frame, &DraggableQFrame::frameSwapRequested, this, &gruepr::swapFrames);
+    for(auto &criteriaCard : criteriaCardsList) {
+        connect(criteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
     }
 
     connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
@@ -257,14 +247,14 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
     connect(idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
     connect(teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
-    connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
-    connect(ui->teammatesButton, &QPushButton::clicked, this, &gruepr::makeTeammatesRules);
+    // connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
+    // connect(ui->teammatesButton, &QPushButton::clicked, this, &gruepr::makeTeammatesRules);
     connect(letsDoItButton, &QPushButton::clicked, this, &gruepr::startOptimization);
 
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
-    setAllStyles();
+    scrollLayout->addWidget(addNewCriteriaButton);
     saveState();
 }
 
@@ -275,33 +265,30 @@ gruepr::~gruepr()
     delete ui;
 }
 
-void gruepr::setAllStyles(){
-
-}
-
-void gruepr::swapFrames(int draggedIndex, int targetIndex) {
+void gruepr::swapCriteriaCards(int draggedIndex, int targetIndex) {
     // Access the existing layout (verticalLayout_2)
-    QVBoxLayout* layout = ui->verticalLayout_2;
-    if (draggedIndex < 0 || targetIndex < 0 || draggedIndex >= frames.size() || targetIndex >= frames.size()) {
+    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
+    layout->setSpacing(15);
+    if (draggedIndex < 0 || targetIndex < 0 || draggedIndex >= criteriaCardsList.size() || targetIndex >= criteriaCardsList.size()) {
         qDebug() << "Invalid indices for swapping!";
         return;
     }
     // Remove the frames from the layout
-    DraggableQFrame* draggedFrame = frames[draggedIndex];
-    DraggableQFrame* targetFrame = frames[targetIndex];
+    GroupingCriteriaCard* draggedCard = criteriaCardsList[draggedIndex];
+    GroupingCriteriaCard* targetCard = criteriaCardsList[targetIndex];
 
-    frames[targetIndex] = draggedFrame;
-    frames[draggedIndex] = targetFrame;
-    frames[targetIndex]->setPriorityOrder(targetIndex);
-    frames[draggedIndex]->setPriorityOrder(draggedIndex);
+    criteriaCardsList[targetIndex] = draggedCard;
+    criteriaCardsList[draggedIndex] = targetCard;
+    criteriaCardsList[targetIndex]->setPriorityOrder(targetIndex);
+    criteriaCardsList[draggedIndex]->setPriorityOrder(draggedIndex);
 
     // Clear and Rebuild Layout
     while (layout->count() > 1) {
         layout->removeItem(layout->itemAt(1));
     }
 
-    for (DraggableQFrame* frame : frames) {
-        layout->addWidget(frame);
+    for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
+        layout->addWidget(criteriaCard);
     }
 
 }
@@ -958,49 +945,49 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 }
 
 
-void gruepr::simpleUIItemUpdate(QObject *sender)
+void gruepr::simpleUIItemUpdate(QObject* sender)
 {
-    teamingOptions->isolatedWomenPrevented = (ui->isolatedWomenCheckBox->isChecked());
+    teamingOptions->isolatedWomenPrevented = (uiCheckBoxMap["WomanPreventIsolatedCheckBox"]->isChecked()); //need to cast
 
-    teamingOptions->isolatedMenPrevented = (ui->isolatedMenCheckBox->isChecked());
+    teamingOptions->isolatedMenPrevented = (uiCheckBoxMap["ManPreventIsolatedCheckBox"]->isChecked());
 
-    teamingOptions->isolatedNonbinaryPrevented = (ui->isolatedNonbinaryCheckBox->isChecked());
+    teamingOptions->isolatedNonbinaryPrevented = (uiCheckBoxMap["Non-binaryPreventIsolatedCheckBox"]->isChecked());
 
-    teamingOptions->singleGenderPrevented = (ui->mixedGenderCheckBox->isChecked());
+    teamingOptions->singleGenderPrevented = false;
 
-    teamingOptions->isolatedURMPrevented = (ui->isolatedURMCheckBox->isChecked());
-    ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
-    if(sender == ui->isolatedURMCheckBox) {
-        if(teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
-            // if we are just now preventing isolated URM students but have not selected which responses should be considered URM, ask user
-            selectURMResponses();
+    //teamingOptions->isolatedURMPrevented = (ui->isolatedURMCheckBox->isChecked());
+    // ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
+    // if(sender == ui->isolatedURMCheckBox) {
+    //     if(teamingOptions->isolatedURMPrevented && teamingOptions->URMResponsesConsideredUR.isEmpty()) {
+    //         // if we are just now preventing isolated URM students but have not selected which responses should be considered URM, ask user
+    //         selectURMResponses();
+    //     }
+    // }
+
+    teamingOptions->minTimeBlocksOverlap = (minMeetingTimes->value());
+    if(sender == minMeetingTimes) {
+        if(desiredMeetingTimes->value() < (minMeetingTimes->value())) {
+            desiredMeetingTimes->setValue(minMeetingTimes->value());
         }
     }
 
-    teamingOptions->minTimeBlocksOverlap = (ui->minMeetingTimes->value());
-    if(sender == ui->minMeetingTimes) {
-        if(ui->desiredMeetingTimes->value() < (ui->minMeetingTimes->value())) {
-            ui->desiredMeetingTimes->setValue(ui->minMeetingTimes->value());
+    teamingOptions->desiredTimeBlocksOverlap = (desiredMeetingTimes->value());
+    if(sender == desiredMeetingTimes) {
+        if(minMeetingTimes->value() > (desiredMeetingTimes->value())) {
+            minMeetingTimes->setValue(desiredMeetingTimes->value());
         }
     }
 
-    teamingOptions->desiredTimeBlocksOverlap = (ui->desiredMeetingTimes->value());
-    if(sender == ui->desiredMeetingTimes) {
-        if(ui->minMeetingTimes->value() > (ui->desiredMeetingTimes->value())) {
-            ui->minMeetingTimes->setValue(ui->desiredMeetingTimes->value());
-        }
-    }
-
-    teamingOptions->meetingBlockSize = (ui->meetingLengthSpinBox->value());
-    if(sender == ui->meetingLengthSpinBox) {
-        ui->meetingLengthSpinBox->setSuffix(ui->meetingLengthSpinBox->value() > 1? tr(" hours") : tr(" hour"));
+    teamingOptions->meetingBlockSize = (meetingLengthSpinBox->value());
+    if(sender == meetingLengthSpinBox) {
+        meetingLengthSpinBox->setSuffix(meetingLengthSpinBox->value() > 1? tr(" hours") : tr(" hour"));
         if((dataOptions->timeNames.size() * dataOptions->dayNames.size() != 0)) {
-            ui->minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
-            ui->desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
+            minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
+            desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
         }
     }
 
-    teamingOptions->scheduleWeight = float(ui->scheduleWeight->value());
+    //teamingOptions->scheduleWeight = float(ui->scheduleWeight->value());
 }
 
 
@@ -1304,7 +1291,7 @@ void gruepr::startOptimization()
                                                                 "or click Open Selection Window to select the URM responses."),
                                                              tr("Continue"), tr("Open Selection Window"));
         if(!okContinue) {
-            ui->URMResponsesButton->animateClick();
+            //ui->URMResponsesButton->animateClick();
             return;
         }
     }
@@ -1687,7 +1674,20 @@ void gruepr::loadUI()
         genderCardContentAreaLayout->addLayout(eachGenderIdentityRuleLayout);
 
         newGenderCard->setContentAreaLayout(*genderCardContentAreaLayout);
+        //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
+        connect(preventedIsolatedCheckBox, &QCheckBox::stateChanged, this, [this, preventedIsolatedCheckBox](){simpleUIItemUpdate(preventedIsolatedCheckBox);});
         criteriaCardsList.append(newGenderCard);
+        uiCheckBoxMap[genderString + "PreventIsolatedCheckBox"] = preventedIsolatedCheckBox;
+        // if(dataOptions->genderIncluded) {
+        //     //if gender was woman
+        //     preventedIsolatedCheckBox->setChecked(teamingOptions->isolatedWomenPrevented);
+        //     ui->isolatedMenCheckBox->setChecked(teamingOptions->isolatedMenPrevented);
+        //     ui->isolatedNonbinaryCheckBox->setChecked(teamingOptions->isolatedNonbinaryPrevented);
+        //     //ui->mixedGenderCheckBox->setChecked(teamingOptions->singleGenderPrevented);
+        // }
+        // else {
+        //     ui->genderFrame->hide();
+        // }
     }
 
 
@@ -1702,22 +1702,33 @@ void gruepr::loadUI()
 
 
     //Meeting Schedule Criteria Card
-    GroupingCriteriaCard* meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true);
+    meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true);
     QVBoxLayout* meetingScheduleContentLayout = new QVBoxLayout();
     QHBoxLayout* minimumAndDesiredButtonLayout = new QHBoxLayout();
-    QSpinBox* minMeetingTimes = new QSpinBox(this);
-    QSpinBox* desiredMeetingTimes = new QSpinBox(this);
+    minMeetingTimes = new QSpinBox(this);
+    desiredMeetingTimes = new QSpinBox(this);
+    minMeetingTimes->setMinimumHeight(40);
+    desiredMeetingTimes->setMinimumHeight(40);
     minMeetingTimes->setPrefix(QString("Minimum: "));
+    minMeetingTimes->setMinimum(1);
+    minMeetingTimes->setValue(4);
     desiredMeetingTimes->setPrefix(QString("Desired: "));
-
+    desiredMeetingTimes->setValue(8);
+    desiredMeetingTimes->setMinimum(1);
     minimumAndDesiredButtonLayout->addWidget(minMeetingTimes);
     minimumAndDesiredButtonLayout->addWidget(desiredMeetingTimes);
 
-    QSpinBox* duration = new QSpinBox(this);
-    duration->setPrefix(QString("Duration: "));
-    duration->setSuffix(QString(" hour"));
+    meetingLengthSpinBox = new QDoubleSpinBox(this);
+    meetingLengthSpinBox->setMinimumHeight(40);
+    meetingLengthSpinBox->setPrefix(QString("Duration: "));
+    meetingLengthSpinBox->setSuffix(QString(" hour"));
     meetingScheduleContentLayout->addLayout(minimumAndDesiredButtonLayout);
-    meetingScheduleContentLayout->addWidget(duration);
+    meetingScheduleContentLayout->addWidget(meetingLengthSpinBox);
+    meetingLengthSpinBox->setMinimum(0.25);
+    meetingLengthSpinBox->setMaximum(3.0);
+    meetingLengthSpinBox->setSingleStep(0.25);
+    meetingLengthSpinBox->setValue(1.0);
+    meetingLengthSpinBox->setDecimals(2);
     meetingScheduleCriteriaCard->setContentAreaLayout(*meetingScheduleContentLayout);
     meetingScheduleCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     criteriaCardsList.append(meetingScheduleCriteriaCard);
@@ -1788,33 +1799,24 @@ void gruepr::loadUI()
     idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     changeIdealTeamSize();    // load new team sizes in selection box
 
-    if(dataOptions->genderIncluded) {
-        ui->isolatedWomenCheckBox->setChecked(teamingOptions->isolatedWomenPrevented);
-        ui->isolatedMenCheckBox->setChecked(teamingOptions->isolatedMenPrevented);
-        ui->isolatedNonbinaryCheckBox->setChecked(teamingOptions->isolatedNonbinaryPrevented);
-        ui->mixedGenderCheckBox->setChecked(teamingOptions->singleGenderPrevented);
-    }
-    else {
-        ui->genderFrame->hide();
-    }
 
-    if(dataOptions->URMIncluded) {
-        ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
-        ui->isolatedURMCheckBox->setChecked(teamingOptions->isolatedURMPrevented);
-        ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
-        ui->isolatedURMCheckBox->blockSignals(false);
-    }
-    else {
-        ui->URMFrame->hide();
-    }
+    // if(dataOptions->URMIncluded) {
+    //     ui->isolatedURMCheckBox->blockSignals(true);    // prevent select URM identities box from immediately opening
+    //     ui->isolatedURMCheckBox->setChecked(teamingOptions->isolatedURMPrevented);
+    //     ui->URMResponsesButton->setEnabled(teamingOptions->isolatedURMPrevented);
+    //     ui->isolatedURMCheckBox->blockSignals(false);
+    // }
+    // else {
+    //     ui->URMFrame->hide();
+    // }
 
-    if(dataOptions->genderIncluded && dataOptions->URMIncluded) {
-        ui->URMLabel->hide();
-        ui->URMLabelSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-        ui->URMFrame->setStyleSheet(ui->URMFrame->styleSheet().replace("border: 1px solid;",
-                                                                       "border-top: none; border-bottom: 1px solid; "
-                                                                       "border-left: 1px solid; border-right: 1px solid;"));
-    }
+    // if(dataOptions->genderIncluded && dataOptions->URMIncluded) {
+    //     ui->URMLabel->hide();
+    //     ui->URMLabelSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    //     ui->URMFrame->setStyleSheet(ui->URMFrame->styleSheet().replace("border: 1px solid;",
+    //                                                                    "border-top: none; border-bottom: 1px solid; "
+    //                                                                    "border-left: 1px solid; border-right: 1px solid;"));
+    // }
 
     if(dataOptions->numAttributes == 0) {
         //not adding any multiple choice questions
@@ -1854,28 +1856,28 @@ void gruepr::loadUI()
     }
 
     if(!dataOptions->dayNames.isEmpty()) {
-        ui->minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
-        ui->minMeetingTimes->setValue(teamingOptions->minTimeBlocksOverlap);
-        ui->desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (ui->meetingLengthSpinBox->value())));
-        ui->desiredMeetingTimes->setValue(teamingOptions->desiredTimeBlocksOverlap);
+        minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
+        minMeetingTimes->setValue(teamingOptions->minTimeBlocksOverlap);
+        desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
+        desiredMeetingTimes->setValue(teamingOptions->desiredTimeBlocksOverlap);
         //display no decimals if whole number of hours, 1 decimal if on the half-hour, 2 decimals otherwise
         const int roundedVal = std::round(100*dataOptions->scheduleResolution);
         if((roundedVal == 100) || (roundedVal == 200) || (roundedVal == 300)) {
-            ui->meetingLengthSpinBox->setDecimals(0);
+            meetingLengthSpinBox->setDecimals(0);
         }
         else if ((roundedVal == 50) || (roundedVal == 150)) {
-            ui->meetingLengthSpinBox->setDecimals(1);
+            meetingLengthSpinBox->setDecimals(1);
         }
         else {
-            ui->meetingLengthSpinBox->setDecimals(2);
+            meetingLengthSpinBox->setDecimals(2);
         }
-        ui->meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
-        ui->meetingLengthSpinBox->setSingleStep(dataOptions->scheduleResolution);
-        ui->meetingLengthSpinBox->setMinimum(dataOptions->scheduleResolution);
-        ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
+        meetingLengthSpinBox->setValue(teamingOptions->meetingBlockSize);
+        meetingLengthSpinBox->setSingleStep(dataOptions->scheduleResolution);
+        meetingLengthSpinBox->setMinimum(dataOptions->scheduleResolution);
+        //ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
     }
     else {
-        ui->scheduleFrame->hide();
+        //ui->scheduleFrame->hide();
     }
 
     changeIdealTeamSize();    // load new team sizes in selection box, if necessary
@@ -1928,6 +1930,9 @@ void gruepr::loadUI()
     //         delete win;
     //     }
     // }
+    connect(meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(meetingLengthSpinBox);});
+    connect(minMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(minMeetingTimes);});
+    connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(desiredMeetingTimes);});
 }
 
 //////////////////

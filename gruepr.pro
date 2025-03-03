@@ -67,7 +67,6 @@ macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 SOURCES += \
         csvfile.cpp \
         dataOptions.cpp \
-        dialogs/addgroupingcriteriadialog.cpp \
         gruepr_globals.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -103,7 +102,6 @@ SOURCES += \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
         widgets/draggableFramesScrollWidget.cpp \
-        widgets/draggableQFrame.cpp \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
@@ -118,7 +116,6 @@ SOURCES += \
 HEADERS += \
         csvfile.h \
         dataOptions.h \
-        dialogs/addgroupingcriteriadialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
@@ -154,7 +151,6 @@ HEADERS += \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
         widgets/draggableFramesScrollWidget.h \
-        widgets/draggableQFrame.h \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
