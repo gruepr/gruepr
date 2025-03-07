@@ -68,7 +68,7 @@ public:
     QWidget *createWidget(QWidget *parent);
     QLabel *priorityOrderLabel;
     QHBoxLayout* headerRowLayout;
-   // QPushButton *deleteGroupingCriteriaCardButton;
+   QPushButton *deleteGroupingCriteriaCardButton;
 
     //Drag and Drop Methods
     //void setDraggable(bool draggable);
@@ -80,6 +80,7 @@ public:
     void setPriorityOrder(int priorityOrder);
     signals:
         void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
+        void deleteCardRequested(int deletedIndex);
 private:
     int priorityOrder = 0;
 };

@@ -78,6 +78,7 @@ private slots:
     void saveState();
 private slots:
     void swapCriteriaCards(int draggedIndex, int targetIndex);
+    void deleteCriteriaCard(int deletedIndex);
 private:
         // setup
     Ui::gruepr *ui;
@@ -144,7 +145,8 @@ private:
     QPushButton *addGroupingCriteriaButton;
     void initializeCriteriaCardPriorities();
     QPushButton* createAddNewCriteriaButton(bool hoverToSee);
-    QList<QPushButton*> addNewCriteriaCardButtons;
+    //QList<QPushButton*> addNewCriteriaCardButtons;
+    QPushButton* addNewCriteriaCardButton;
     QHBoxLayout* createIdentityOperatorRule(QString identity, QString operatorString = "", int noOfIdentity = -1);
     void updateIdentityCriteriaCard(GroupingCriteriaCard *identityCard, QString identity, bool addNewCriteria);
 
