@@ -102,6 +102,7 @@ private:
     QList<QPushButton *> attributeSelectorButtons;
     QList<AttributeWidget *> attributeWidgets = {};
     QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards = {};
+    QList<CriteriaType> teammateRulesExistence;
         // team set optimization
     QList<int> studentIndexes;                                    // the indexes of students to be placed on teams
     QList<int> optimizeTeams(const QList<int> studentIndexes);    // return value is a single permutation-of-indexes

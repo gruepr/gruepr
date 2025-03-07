@@ -167,9 +167,12 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Always add required and prevented teammates (but these need to update, if it is in the menu already then do not include)
     QMenu *teamMatePreferencesMenu = new QMenu("Teammate Preferences", this);
     teamMatePreferencesMenu->setLayoutDirection(Qt::RightToLeft);
-    teamMatePreferencesMenu->addAction("Required Teammates");
-    teamMatePreferencesMenu->addAction("Prevented Teammates");
-    teamMatePreferencesMenu->addAction("Requested Teammates");
+    QAction* requiredTeammatesAction = teamMatePreferencesMenu->addAction("Required Teammates");
+    connect(requiredTeammatesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::requiredTeammates);});
+    QAction* preventedTeammatesAction = teamMatePreferencesMenu->addAction("Prevented Teammates");
+    connect(preventedTeammatesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::preventedTeammates);});
+    QAction* requestedTeammatesAction = teamMatePreferencesMenu->addAction("Requested Teammates");
+    connect(requestedTeammatesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::requestedTeammates);});
     mainMenu->addMenu(teamMatePreferencesMenu);
     //check if submenus for identity options exist, if they do, include them
     for (QAction* action : identityOptionsMenu->actions()) {
@@ -516,11 +519,187 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             msgBox.exec();
         }
     } else if (criteriaType == CriteriaType::requiredTeammates){
+        if (!teammateRulesExistence.contains(criteriaType)){
+            //Create Gender Criteria Card Styling
+            teammateRulesExistence.append(criteriaType);
+            GroupingCriteriaCard* newRequiredTeammatesCard = new GroupingCriteriaCard(this, QString("Required Teammates"), true);
+            QVBoxLayout* requiredTeammatesContentAreaLayout = new QVBoxLayout();
+
+            //initialize add new identity rule button
+            QPushButton* setTeammateRulesButton = new QPushButton("Set Required Teammate Rules", this);
+            setTeammateRulesButton->setMinimumHeight(30);
+            const int numTabs = ui->dataDisplayTabWidget->count();
+            QStringList teamTabNames;
+            teamTabNames.reserve(numTabs);
+            for(int tab = 1; tab < numTabs; tab++) {
+                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+            }
+            connect(setTeammateRulesButton, &QPushButton::clicked, this, [this, teamTabNames](){
+                auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
+                                                     ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                                                      (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
+                                                      (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
+                                                     teamTabNames, this);
+                //If user clicks OK, replace student database with copy that has had pairings added
+                const int reply = win->exec();
+                if(reply == QDialog::Accepted) {
+                    for(int index = 0; index < students.size(); index++) {
+                        this->students[index] = win->students[index];
+                    }
+                    teamingOptions->haveAnyRequiredTeammates = win->required_teammatesSpecified;
+                    teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
+                    teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
+                    teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
+
+                    saveState();
+                }
+
+                delete win;
+            });
+            //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
+
+            requiredTeammatesContentAreaLayout->addWidget(setTeammateRulesButton);
+            newRequiredTeammatesCard->setContentAreaLayout(*requiredTeammatesContentAreaLayout);
+            //adding to criteria card list and layout, then clean and rebuild criteria cards layout
+            criteriaCardsList.append(newRequiredTeammatesCard);
+            connect(newRequiredTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newRequiredTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+            //The button underneath the criteria card
+            while (layout->count() > 1) {
+                layout->removeItem(layout->itemAt(1));
+            }
+            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
+                layout->addWidget(criteriaCard);
+            }
+            layout->addWidget(addNewCriteriaCardButton);
+            //layout should have been rebuilt
+        } else {
+            QMessageBox msgBox;
+            msgBox.setText("Required Teammates Criteria Card already exists");
+            msgBox.exec();
+        }
         qDebug() << "Required Teammates Criteria Card Added";
     } else if (criteriaType == CriteriaType::preventedTeammates){
-        qDebug() << "Preveneted Teammates Criteria Card Added";
+        if (!teammateRulesExistence.contains(criteriaType)){
+            //Create Gender Criteria Card Styling
+            teammateRulesExistence.append(criteriaType);
+            GroupingCriteriaCard* newPreventedTeammatesCard = new GroupingCriteriaCard(this, QString("Prevented Teammates"), true);
+            QVBoxLayout* preventedTeammatesContentAreaLayout = new QVBoxLayout();
+
+            //initialize add new identity rule button
+            QPushButton* setTeammateRulesButton = new QPushButton("Set Prevented Teammate Rules", this);
+            setTeammateRulesButton->setMinimumHeight(30);
+            const int numTabs = ui->dataDisplayTabWidget->count();
+            QStringList teamTabNames;
+            teamTabNames.reserve(numTabs);
+            for(int tab = 1; tab < numTabs; tab++) {
+                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+            }
+            connect(setTeammateRulesButton, &QPushButton::clicked, this, [this, teamTabNames](){
+                auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
+                                                     ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                                                      (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
+                                                      (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
+                                                     teamTabNames, this);
+                //If user clicks OK, replace student database with copy that has had pairings added
+                const int reply = win->exec();
+                if(reply == QDialog::Accepted) {
+                    for(int index = 0; index < students.size(); index++) {
+                        this->students[index] = win->students[index];
+                    }
+                    teamingOptions->haveAnyRequiredTeammates = win->required_teammatesSpecified;
+                    teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
+                    teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
+                    teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
+
+                    saveState();
+                }
+
+                delete win;
+            });
+            //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
+
+            preventedTeammatesContentAreaLayout->addWidget(setTeammateRulesButton);
+            newPreventedTeammatesCard->setContentAreaLayout(*preventedTeammatesContentAreaLayout);
+            //adding to criteria card list and layout, then clean and rebuild criteria cards layout
+            criteriaCardsList.append(newPreventedTeammatesCard);
+            connect(newPreventedTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newPreventedTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+            //The button underneath the criteria card
+            while (layout->count() > 1) {
+                layout->removeItem(layout->itemAt(1));
+            }
+            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
+                layout->addWidget(criteriaCard);
+            }
+            layout->addWidget(addNewCriteriaCardButton);
+            //layout should have been rebuilt
+        } else {
+            QMessageBox msgBox;
+            msgBox.setText("Prevented Teammates Criteria Card already exists");
+            msgBox.exec();
+        }
+        qDebug() << "Required Teammates Criteria Card Added";
     } else if (criteriaType == CriteriaType::requestedTeammates){
-        qDebug() << "Requested Teammates Criteria Card Added";
+        if (!teammateRulesExistence.contains(criteriaType)){
+            //Create Gender Criteria Card Styling
+            teammateRulesExistence.append(criteriaType);
+            GroupingCriteriaCard* newRequestedTeammatesCard = new GroupingCriteriaCard(this, QString("Requested Teammates"), true);
+            QVBoxLayout* requestedTeammatesContentAreaLayout = new QVBoxLayout();
+
+            //initialize add new identity rule button
+            QPushButton* setTeammateRulesButton = new QPushButton("Set Requested Teammate Rules", this);
+            setTeammateRulesButton->setMinimumHeight(30);
+            const int numTabs = ui->dataDisplayTabWidget->count();
+            QStringList teamTabNames;
+            teamTabNames.reserve(numTabs);
+            for(int tab = 1; tab < numTabs; tab++) {
+                teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
+            }
+            connect(setTeammateRulesButton, &QPushButton::clicked, this, [this, teamTabNames](){
+                auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
+                                                     ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
+                                                      (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
+                                                      (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
+                                                     teamTabNames, this);
+                //If user clicks OK, replace student database with copy that has had pairings added
+                const int reply = win->exec();
+                if(reply == QDialog::Accepted) {
+                    for(int index = 0; index < students.size(); index++) {
+                        this->students[index] = win->students[index];
+                    }
+                    teamingOptions->haveAnyRequiredTeammates = win->required_teammatesSpecified;
+                    teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
+                    teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
+                    teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
+
+                    saveState();
+                }
+
+                delete win;
+            });
+            //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
+
+            requestedTeammatesContentAreaLayout->addWidget(setTeammateRulesButton);
+            newRequestedTeammatesCard->setContentAreaLayout(*requestedTeammatesContentAreaLayout);
+            //adding to criteria card list and layout, then clean and rebuild criteria cards layout
+            criteriaCardsList.append(newRequestedTeammatesCard);
+            connect(newRequestedTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newRequestedTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+            //The button underneath the criteria card
+            while (layout->count() > 1) {
+                layout->removeItem(layout->itemAt(1));
+            }
+            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
+                layout->addWidget(criteriaCard);
+            }
+            layout->addWidget(addNewCriteriaCardButton);
+            //layout should have been rebuilt
+        } else {
+            QMessageBox msgBox;
+            msgBox.setText("Requested Teammates Criteria Card already exists");
+            msgBox.exec();
+        }
     }
     initializeCriteriaCardPriorities();
 }
