@@ -58,5 +58,8 @@
         <file>icons_new/question.png</file>
         <file>icons_new/lock.png</file>
         <file>icons_new/drag-handle.png</file>
+        <file>icons_new/heterogeneous.png</file>
+        <file>icons_new/homogeneous.png</file>
+        <file>icons_new/close_square.png</file>
     </qresource>
 </RCC>

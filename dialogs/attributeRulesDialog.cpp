@@ -3,17 +3,19 @@
 #include <QPushButton>
 #include <QTabBar>
 
-AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions, QWidget *parent) :
+AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions, QWidget *parent, int tabIndex) :
     QDialog(parent),
     ui(new Ui::AttributeRulesDialog)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
-    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
+    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 4 / 6);
 
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE) + LABEL10PTSTYLE);
+    ui->tabWidget->setCurrentIndex(tabIndex);
+
     ui->reqScrollArea->setStyleSheet(QString("QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
                                                           "border: 1px solid; border-color: " AQUAHEX ";}") + SCROLLBARSTYLE);
     ui->reqScrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");

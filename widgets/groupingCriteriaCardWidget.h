@@ -66,8 +66,13 @@ public:
     QString whatsThis() const;
     bool isContainer() const;
     QWidget *createWidget(QWidget *parent);
+    QLabel *priorityOrderLabel;
+    QHBoxLayout* headerRowLayout;
+   // QPushButton *deleteGroupingCriteriaCardButton;
 
     //Drag and Drop Methods
+    //void setDraggable(bool draggable);
+    //QPushButton* getDeleteButton();
     void dragStarted();
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
@@ -76,7 +81,7 @@ public:
     signals:
         void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
 private:
-    int priorityOrder;
+    int priorityOrder = 0;
 };
 
 #endif // SECTION_H

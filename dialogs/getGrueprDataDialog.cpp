@@ -1,4 +1,5 @@
 #include "getGrueprDataDialog.h"
+#include "dialogs/dataTypesTableDialog.h"
 #include "ui_getGrueprDataDialog.h"
 #include "LMS/canvashandler.h"
 #include "LMS/googlehandler.h"
@@ -86,19 +87,61 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     ui->fieldsExplainer->setStyleSheet(LABEL10PTSTYLE);
     ui->headerRowCheckBox->setStyleSheet("QCheckBox {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
                                          "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}");
-    connect(ui->headerRowCheckBox, &QCheckBox::clicked, this, [this]{if(ui->headerRowCheckBox->isChecked())
-                                                                        {ui->tableWidget->setHorizontalHeaderLabels({HEADERTEXT, CATEGORYTEXT});}
+    categoryHelpButton = new QPushButton("?", this);
+    categoryHelpButton->setFixedSize(20, 20);
+    categoryHelpButton->setStyleSheet(R"(
+        QPushButton {
+            font-weight: bold;
+            color: white;
+            background-color: darkGray;
+            border-radius: 10px;
+            border: none;
+        }
+        QPushButton:hover {
+            color: darkGray;
+            background-color: white;
+        }
+    )");
+
+    connect(categoryHelpButton, &QPushButton::clicked, this, [this](){
+        dataTypesTableDialog *dialog = new dataTypesTableDialog(this);
+        dialog->exec();
+    });
+
+    // Create a widget to hold both the text and the button
+    QHBoxLayout *headerLayout = new QHBoxLayout();
+    QHBoxLayout *categoryHeaderLayout = new QHBoxLayout();
+    QLabel *questionTextLabel = new QLabel(HEADERTEXT, this);
+    QLabel *categoryTextLabel = new QLabel(CATEGORYTEXT, this);
+    questionTextLabel->setStyleSheet("color: white; font-family: 'DM Sans'; font-size: 12pt;");
+    headerLayout->addWidget(questionTextLabel);
+    categoryHeaderLayout->addWidget(categoryTextLabel); // Category text
+    categoryTextLabel->setStyleSheet("color: white; font-family: 'DM Sans'; font-size: 12pt;");
+    categoryHeaderLayout->addWidget(categoryHelpButton);
+    categoryHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    categoryHeaderLayout->setSpacing(5);
+    headerLayout->addLayout(categoryHeaderLayout);
+
+    QHeaderView *header = ui->tableWidget->horizontalHeader();
+    header->setLayout(headerLayout);
+
+    // Add the widget to the horizontal header
+    ui->tableWidget->setColumnCount(2);
+
+    // Insert the custom widget into the header
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tableWidget->setHorizontalHeaderLabels({"",""});
+    connect(ui->headerRowCheckBox, &QCheckBox::clicked, this, [this, questionTextLabel]{if(ui->headerRowCheckBox->isChecked())
+                                                                        {questionTextLabel->setText(HEADERTEXT);}
                                                                      else
-                                                                        {ui->tableWidget->setHorizontalHeaderLabels({ROW1TEXT, CATEGORYTEXT});}});
+                                                                        {questionTextLabel->setText(ROW1TEXT);}});
     ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
                                                                              "border-top: none; border-bottom: none; border-left: none; "
-                                                                             "border-right: 1px solid darkGray; "
-                                                                             "font-family: 'DM Sans'; font-size: 12pt;}");
-    ui->tableWidget->setHorizontalHeaderLabels({HEADERTEXT, CATEGORYTEXT});
-    ui->tableWidget->horizontalHeaderItem(0)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    ui->tableWidget->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+                                                                             "border-right: 1px solid darkGray; }");
+    // ui->tableWidget->horizontalHeaderItem(0)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    // ui->tableWidget->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
     ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -134,6 +177,7 @@ void GetGrueprDataDialog::accept() {
                                                                "border-top: none; border-bottom: none; border-left: none; "
                                                                "border-right: 1px solid darkGray; "
                                                                "font-family: 'DM Sans'; font-size: 12pt;}");
+
             ui->tableWidget->clearContents();
             ui->tableWidget->setRowCount(0);
             ui->dataSourceFrame->setEnabled(false);
@@ -222,6 +266,20 @@ void GetGrueprDataDialog::loadData()
     ui->fieldsExplainer->setEnabled(true);
     ui->headerRowCheckBox->setEnabled(true);
     ui->tableWidget->setEnabled(true);
+    QString buttonStyle = QString(R"(
+                QPushButton {
+                    font-weight: bold;
+                    color: white;
+                    background-color: %1;
+                    border-radius: 10px;
+                    border: none;
+                }
+                QPushButton:hover {
+                    color: %1;
+                    background-color: white;
+                }
+            )").arg(DEEPWATERHEX);
+    categoryHelpButton->setStyleSheet(buttonStyle);
     ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; padding: 5px; "
                                                                              "border-top: none; border-bottom: none; border-left: none; "
                                                                              "border-right: 1px solid white; "
@@ -751,6 +809,7 @@ bool GetGrueprDataDialog::readData()
     dataOptions->sectionIncluded = (dataOptions->sectionField != DataOptions::FIELDNOTPRESENT);
     dataOptions->timezoneField = int(surveyFile->fieldMeanings.indexOf("Timezone"));
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != DataOptions::FIELDNOTPRESENT);
+
     // pref teammates fields
     int lastFoundIndex = 0;
     const int numTeammateQs = int(surveyFile->fieldMeanings.count("Preferred Teammates"));
@@ -812,7 +871,6 @@ bool GetGrueprDataDialog::readData()
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Schedule", lastFoundIndex)));
     }
     loadingProgressDialog->setValue(1);
-
     // read one line of data; if no data after header row then file is invalid
     if(!surveyFile->readDataRow()) {
         grueprGlobal::errorMessage(this, tr("Insufficient number of students."),
@@ -1185,7 +1243,6 @@ bool GetGrueprDataDialog::readData()
         loadingProgressDialog->setValue(2 + numStudents + attribute);
     }
     loadingProgressDialog->setValue(2 + numStudents + MAX_ATTRIBUTES);
-
     // gather all unique URM and section question responses and sort
     for(auto &student : students) {
         if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
@@ -1199,6 +1256,19 @@ bool GetGrueprDataDialog::readData()
             if(!dataOptions->Genders.contains(gender)) {
                 dataOptions->Genders << gender;
             }
+        }
+        //Only take the first gender, otherwise numOfIdentities > numOfStudents
+        QString studentFirstGender = grueprGlobal::genderToString(student.gender.values()[0]);
+        if (dataOptions->numberOfIdentitiesInPopulation.contains(studentFirstGender)){
+            dataOptions->numberOfIdentitiesInPopulation[studentFirstGender] += 1;
+        } else{
+            dataOptions->numberOfIdentitiesInPopulation[studentFirstGender] = 0;
+        }
+
+        if (dataOptions->numberOfIdentitiesInPopulation.contains(student.URMResponse)){
+            dataOptions->numberOfIdentitiesInPopulation[student.URMResponse] += 1;
+        } else{
+            dataOptions->numberOfIdentitiesInPopulation[student.URMResponse] = 0;
         }
     }
 
@@ -1219,7 +1289,6 @@ bool GetGrueprDataDialog::readData()
     for(auto &student : students) {
         student.createTooltip(*dataOptions);
     }
-
     loadingProgressDialog->setValue(surveyFile->estimatedNumberRows + 4 + MAX_ATTRIBUTES);
     surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
     loadingProgressDialog->setValue(loadingProgressDialog->maximum());
