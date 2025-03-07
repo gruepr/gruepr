@@ -27,6 +27,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
 
     //make it draggable and droppable
     setAcceptDrops(draggable);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     //initialize parts of section
     toggleButton = new QToolButton(this);
@@ -37,17 +38,21 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
 
     //toggleButton settings
     toggleButton->setStyleSheet(R"(
-    QToolButton {border: none;}
-    QToolButton:hover {
-        background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
-        border-radius: 1px;
-    })");
+        QToolButton {
+            border: none;
+            font-family: 'DM Sans';  /* Set font family to DM Sans */
+            font-size: 12pt;         /* Set font size to 12 */
+        }
+        QToolButton:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
+    )");
     toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toggleButton->setArrowType(Qt::ArrowType::RightArrow);
     toggleButton->setText(title);
     toggleButton->setCheckable(true);
     toggleButton->setChecked(false);
-    // Ensure toggleButton don't stretch
     toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     //set initial toggle to true
 
@@ -70,10 +75,10 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     dragHandleButton->setMinimumHeight(24);
 
     //contentArea settings
-    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     contentArea->setStyleSheet("QScrollArea { border: none; }");
 
-    // start out collapsed
+    //start out collapsed
     contentArea->setMaximumHeight(0);
     contentArea->setMinimumHeight(0);
 
@@ -82,11 +87,42 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
 
-    QHBoxLayout* headerRowLayout = new QHBoxLayout();
+    QString priorityOrder = QString::number(this->priorityOrder);
+    priorityOrderLabel = new QLabel("#" + priorityOrder); //how to update this?
+    priorityOrderLabel->setFixedWidth(20);
+    priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    priorityOrderLabel->setToolTip("Priority of the Criteria");
+    headerRowLayout = new QHBoxLayout();
     QHBoxLayout* contentRowLayout = new QHBoxLayout();
     mainVerticalLayout->addLayout(headerRowLayout);
-    headerRowLayout->addWidget(dragHandleButton);
+
+    if (draggable == false){
+        QPushButton *lockButton = new QPushButton(this);
+        lockButton->setStyleSheet("border: none;");
+        lockButton->setIcon(QIcon(":/icons_new/lock.png"));
+        headerRowLayout->addWidget(lockButton);
+        dragHandleButton->setVisible(false);
+    } else {
+        headerRowLayout->addWidget(dragHandleButton);
+    }
+    // if (title != "Team Size"){
+    //     deleteGroupingCriteriaCardButton = new QPushButton(this);
+    //     deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/close_square.png"));
+    //     deleteGroupingCriteriaCardButton->setStyleSheet(R"(
+    //         QPushButton {
+    //             border: none;
+    //         }
+    //         QPushButton:hover {
+    //             background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+    //             border-radius: 1px;
+    //         }
+    //     )");
+    //     deleteGroupingCriteriaCardButton->setFixedSize(25, 25);
+    // }
+    headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignLeft);
     headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
+    headerRowLayout->addStretch();
+    //headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
     contentRowLayout->addWidget(contentArea);
     mainVerticalLayout->addLayout(contentRowLayout);
 
@@ -96,9 +132,36 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     connect(dragHandleButton, &QToolButton::pressed, this, &GroupingCriteriaCard::dragStarted);
     connect(dragHandleButton, &QToolButton::released, this, &QFrame::unsetCursor);
     //set initial toggle to be true
-    toggle(true);
+    toggleButton->setChecked(true);
 }
 
+// QPushButton* GroupingCriteriaCard::getDeleteButton(){
+//     return deleteGroupingCriteriaCardButton;
+// }
+
+//delete button! and checkbox button!
+
+//if draggable is false, it locks the criteria!
+// void GroupingCriteriaCard::setDraggable(bool draggable){
+//     setAcceptDrops(draggable);
+
+//     // Clear and Rebuild Layout
+//     while (headerRowLayout->count() > 1) {
+//         headerRowLayout->removeItem(headerRowLayout->itemAt(1));
+//     }
+
+//     if (draggable == false){
+//         QPushButton *lockButton = new QPushButton(this);
+//         lockButton->setIcon(QIcon(":/icons_new/lock.png"));
+//         headerRowLayout->addWidget(lockButton);
+//         dragHandleButton->setVisible(false);
+//     } else {
+//         headerRowLayout->addWidget(dragHandleButton);
+//     }
+//     headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
+//     headerRowLayout->addStretch();
+//     headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignRight);
+// }
 
 void GroupingCriteriaCard::toggle(bool collapsed) {
     toggleButton->setArrowType(collapsed ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
@@ -107,12 +170,14 @@ void GroupingCriteriaCard::toggle(bool collapsed) {
 }
 
 
-//Sets ContentLayout for the contentArea
+//Sets ContentLayout for the contentArea, this function always needs to be called otherwise, the expanded portion does not have a layout
 void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout) {
     delete contentArea->layout();
     contentArea->setLayout(&contentLayout);
+
     const auto collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
     auto contentHeight = contentLayout.sizeHint().height();
+    qDebug() << "contentHeight: " << contentHeight;
 
     for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i) {
         QPropertyAnimation *SectionAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(i));
@@ -126,6 +191,10 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout) {
     contentAnimation->setDuration(animationDuration);
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
+
+    if (toggleButton->isChecked()) {
+        contentArea->setMaximumHeight(contentHeight);
+    }
 }
 
 // Drag and Drop Methods
@@ -175,7 +244,6 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
         qDebug() << this->getPriorityOrder();
         qDebug() << draggedFrame->getPriorityOrder();
 
-        // a layout that stores the objects in a list <DraggableQFrame> then depending on the order, outputs!
         // Insert the widgets back at their new positions
         event->acceptProposedAction();
         emit criteriaCardSwapRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
@@ -186,7 +254,10 @@ int GroupingCriteriaCard::getPriorityOrder(){
     return this->priorityOrder;
 }
 void GroupingCriteriaCard::setPriorityOrder(int priorityOrder){
+    qDebug() << "set priority for " << priorityOrder;
     this->priorityOrder = priorityOrder;
+    priorityOrderLabel->setText("#" + QString::number(this->priorityOrder+1)); //priorityOrder starts with 0, so add 1 to make more clear
+    headerRowLayout->update();
 }
 
 // --------------------------------------------------------------------------------

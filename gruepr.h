@@ -11,7 +11,6 @@
 #include "teamingOptions.h"
 #include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
-#include "widgets/draggableQFrame.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QFuture>
 #include <QFutureWatcher>
@@ -66,7 +65,7 @@ private slots:
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void selectURMResponses();
-    void responsesRulesButton_clicked(int attribute);
+    void responsesRulesButton_clicked(int attribute, int tabIndex);
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
     void makeTeammatesRules();
@@ -86,7 +85,6 @@ private:
     void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
-    QList<DraggableQFrame*> frames;
     int numTeams = 1;
     inline void setTeamSizes(const QList<int> &teamSizes);
     inline void setTeamSizes(const int singleSize);
@@ -101,8 +99,8 @@ private:
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     QList<QPushButton *> attributeSelectorButtons;
-    QList<AttributeWidget *> attributeWidgets;
-
+    QList<AttributeWidget *> attributeWidgets = {};
+    QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards = {};
         // team set optimization
     QList<int> studentIndexes;                                    // the indexes of students to be placed on teams
     QList<int> optimizeTeams(const QList<int> studentIndexes);    // return value is a single permutation-of-indexes
@@ -144,36 +142,47 @@ private:
     //Extra refactoring
     QPushButton *letsDoItButton;
     QPushButton *addGroupingCriteriaButton;
-    void setAllStyles();
+    void initializeCriteriaCardPriorities();
+    QPushButton* createAddNewCriteriaButton(bool hoverToSee);
+    QList<QPushButton*> addNewCriteriaCardButtons;
+    QHBoxLayout* createIdentityOperatorRule(QString identity, QString operatorString = "", int noOfIdentity = -1);
+    void updateIdentityCriteriaCard(GroupingCriteriaCard *identityCard, QString identity, bool addNewCriteria);
+
+    //make an enum criteria type.
+    void addCriteriaCard(CriteriaType criteriaType);
+    void addCriteriaCard(CriteriaType criteriaType, Gender gender);
+    void addCriteriaCard(CriteriaType criteriaType, QString urmResponse);
+    void addCriteriaCard(CriteriaType criteriaType, int attribute);
+
+    QMenu *mainMenu;
 
     //Criteria Cards
     QList<GroupingCriteriaCard*> criteriaCardsList;
 
     //Single: Team Size Criteria Card
-    GroupingCriteriaCard* teamSizeCriteriaCard;
+    GroupingCriteriaCard* teamSizeCriteriaCard = nullptr;
     QHBoxLayout* teamSizeContentAreaLayout;
-    QComboBox* teamSizeBox;
-    QSpinBox* idealTeamSizeBox;
+    QComboBox* teamSizeBox = nullptr;
+    QSpinBox* idealTeamSizeBox = nullptr;
 
     //Single: Section Criteria Card
-    GroupingCriteriaCard* sectionCriteriaCard;
-    QHBoxLayout* sectionContentLayout;
-    QPushButton *editSectionNameButton;
-    QComboBox *sectionSelectionBox;
+    GroupingCriteriaCard* sectionCriteriaCard = nullptr;
+    QHBoxLayout* sectionContentLayout = nullptr;
+    QPushButton *editSectionNameButton = nullptr;
+    QComboBox *sectionSelectionBox = nullptr;
 
     //MCQ Criteria Card //likert scale or categorical?
-    QList<GroupingCriteriaCard*> multipleChoiceCriteriaCardList;
-
+    QList<int> addedAttributeNumbersList;
 
     //Identity Options Card (these are all objects that can be created)
     QList<GroupingCriteriaCard*> identityOptionsCardList;
     QMap<QString, QCheckBox*> uiCheckBoxMap;
 
     //Single: Meeting Schedule Criteria Card
-    GroupingCriteriaCard* meetingScheduleCriteriaCard;
-    QSpinBox* minMeetingTimes;
-    QSpinBox* desiredMeetingTimes;
-    QDoubleSpinBox* meetingLengthSpinBox;
+    GroupingCriteriaCard* meetingScheduleCriteriaCard = nullptr;
+    QSpinBox* minMeetingTimes = nullptr;
+    QSpinBox* desiredMeetingTimes = nullptr;
+    QDoubleSpinBox* meetingLengthSpinBox = nullptr;
 };
 
 #endif // GRUEPR_H
