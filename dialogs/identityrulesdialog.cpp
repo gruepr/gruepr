@@ -33,7 +33,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
     // Set up the table's header style
     QHeaderView* header = rulesTable->horizontalHeader();
     header->setStyleSheet("QHeaderView::section {"
-                          "background-color: " BUBBLYHEX";"
+                          "background-color: " OPENWATERHEX";"
                           "color: white;"
                           "font-family: 'DM Sans'; font-size: 12pt;"
                           "padding: 5px;"

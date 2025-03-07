@@ -282,7 +282,9 @@ gruepr::~gruepr()
 
 QPushButton* gruepr::createAddNewCriteriaButton(bool hoverToSee){
     QPushButton *addNewCriteriaButton = new QPushButton("Add New Criteria", this);
-    //addNewCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));
+
+    addNewCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));
+    addNewCriteriaButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     // inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
     //                                              "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
     //
@@ -308,7 +310,7 @@ QPushButton* gruepr::createAddNewCriteriaButton(bool hoverToSee){
 
     connect(addNewCriteriaButton, &QPushButton::clicked, [this, addNewCriteriaButton](){
         QPoint centerOfCriteriaButton = addNewCriteriaButton->mapToGlobal(addNewCriteriaButton->rect().center());
-        mainMenu->popup(QPoint(centerOfCriteriaButton.x() - mainMenu->sizeHint().width()/2, centerOfCriteriaButton.y()));
+        mainMenu->popup(QPoint(centerOfCriteriaButton.x() - mainMenu->sizeHint().width()/1.8, centerOfCriteriaButton.y()));
     });
     return addNewCriteriaButton;
 }
@@ -927,7 +929,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, int attribute){ //how to
 
         } else {
             QMessageBox msgBox;
-            QString title = "Multiple Choice Question:" + dataOptions->attributeQuestionText.at(attribute);
+            QString title = "Multiple Choice Question: " + dataOptions->attributeQuestionText.at(attribute);
             msgBox.setText(title + " MCQ Question Criteria already exists");
             msgBox.exec();
         }
@@ -2291,7 +2293,7 @@ void gruepr::loadUI()
     for (int attribute=0; attribute < dataOptions->numAttributes; attribute++){
         attributeWidgets << new AttributeWidget(this);
         teamingOptions->attributeSelected[attribute] = 0;
-        QString title = "Multiple Choice Question:" + dataOptions->attributeQuestionText.at(attribute);
+        QString title = "Multiple Choice Question "+ QString::number(attribute) + ":"+ dataOptions->attributeQuestionText.at(attribute);
         initializedAttributeCriteriaCards << new GroupingCriteriaCard(this, title, true);
         GroupingCriteriaCard *currentMultipleChoiceCard = this->initializedAttributeCriteriaCards.last();
         currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
