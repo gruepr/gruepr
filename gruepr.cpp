@@ -111,9 +111,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     connect(idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
     connect(teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
     scrollLayout->addWidget(teamSizeCriteriaCard);
-    QPushButton *addNewCriteriaButton = createAddNewCriteriaButton(false);
-    addNewCriteriaCardButtons.prepend(addNewCriteriaButton);
-    scrollLayout->addWidget(addNewCriteriaButton);
+    addNewCriteriaCardButton = createAddNewCriteriaButton(false);
+    scrollLayout->addWidget(addNewCriteriaCardButton);
 
     //addNewCriteriaButton->setGeometry(teamSizeCriteriaCard->x() + 5, teamSizeCriteriaCard->y() + teamSizeCriteriaCard->height(), teamSizeCriteriaCard->width()-10, 30);
 
@@ -347,12 +346,10 @@ void gruepr::swapCriteriaCards(int draggedIndex, int targetIndex) {
         layout->removeItem(layout->itemAt(1));
     }
 
-    int addNewCriteriaCardButtonCount = 0;
     for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
         layout->addWidget(criteriaCard);
-        layout->addWidget(addNewCriteriaCardButtons[addNewCriteriaCardButtonCount]);
-        addNewCriteriaCardButtonCount++;
     }
+    layout->addWidget(addNewCriteriaCardButton);
 }
 
 void gruepr::addCriteriaCard(CriteriaType criteriaType){
@@ -425,20 +422,16 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             criteriaCardsList.append(sectionCriteriaCard);
             //adding to layout
             connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
-            QPushButton *addNewCriteriaButton = createAddNewCriteriaButton(true);
-            addNewCriteriaCardButtons.prepend(addNewCriteriaButton);
+            connect(sectionCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
 
             // Clear and Rebuild Layout
             while (layout->count() > 1) {
                 layout->removeItem(layout->itemAt(1));
             }
-
-            int addNewCriteriaCardButtonCount = 0;
             for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
                 layout->addWidget(criteriaCard);
-                layout->addWidget(addNewCriteriaCardButtons[addNewCriteriaCardButtonCount]);
-                addNewCriteriaCardButtonCount++;
             }
+            layout->addWidget(addNewCriteriaCardButton);
         } else {
             QMessageBox msgBox;
             msgBox.setText("Section Criteria already exists");
@@ -506,20 +499,16 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(desiredMeetingTimes);});
             //adding to layout
             connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
-            QPushButton *addNewCriteriaButton = createAddNewCriteriaButton(true);
-            addNewCriteriaCardButtons.prepend(addNewCriteriaButton);
-
+            connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             // Clear and Rebuild Layout
             while (layout->count() > 1) {
                 layout->removeItem(layout->itemAt(1));
             }
 
-            int addNewCriteriaCardButtonCount = 0;
             for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
                 layout->addWidget(criteriaCard);
-                layout->addWidget(addNewCriteriaCardButtons[addNewCriteriaCardButtonCount]);
-                addNewCriteriaCardButtonCount++;
             }
+            layout->addWidget(addNewCriteriaCardButton);
 
         } else {
             QMessageBox msgBox;
@@ -533,6 +522,28 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
     } else if (criteriaType == CriteriaType::requestedTeammates){
         qDebug() << "Requested Teammates Criteria Card Added";
     }
+    initializeCriteriaCardPriorities();
+}
+
+void gruepr::deleteCriteriaCard(int deletedIndex){
+    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
+
+    // Clear and Rebuild Layout
+    while (layout->count() > 1) {
+        layout->removeItem(layout->itemAt(1));
+    }
+
+    // Get the card to be deleted
+    GroupingCriteriaCard* cardToDelete = criteriaCardsList[deletedIndex];
+
+    // Remove the card from the list and delete it
+    criteriaCardsList.removeAt(deletedIndex);
+    delete cardToDelete; // Deleting the card to free memory not sure!
+
+    for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
+        layout->addWidget(criteriaCard);
+    }
+    layout->addWidget(addNewCriteriaCardButton);
     initializeCriteriaCardPriorities();
 }
 QHBoxLayout* gruepr::createIdentityOperatorRule(QString identity, QString operatorString, int noOfIdentity){
@@ -635,18 +646,15 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender){
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newGenderCard);
             connect(newGenderCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newGenderCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             //The button underneath the criteria card
-            QPushButton *addNewCriteriaButton = createAddNewCriteriaButton(true);
-            addNewCriteriaCardButtons.prepend(addNewCriteriaButton);
             while (layout->count() > 1) {
                 layout->removeItem(layout->itemAt(1));
             }
-            int addNewCriteriaCardButtonCount = 0;
             for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
                 layout->addWidget(criteriaCard);
-                layout->addWidget(addNewCriteriaCardButtons[addNewCriteriaCardButtonCount]);
-                addNewCriteriaCardButtonCount++;
             }
+            layout->addWidget(addNewCriteriaCardButton);
             //layout should have been rebuilt
         } else {
             QMessageBox msgBox;
@@ -698,18 +706,15 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newIdentityCard);
             connect(newIdentityCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newIdentityCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             //The button underneath the criteria card
-            QPushButton *addNewCriteriaButton = createAddNewCriteriaButton(true);
-            addNewCriteriaCardButtons.prepend(addNewCriteriaButton);
             while (layout->count() > 1) {
                 layout->removeItem(layout->itemAt(1));
             }
-            int addNewCriteriaCardButtonCount = 0;
             for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
                 layout->addWidget(criteriaCard);
-                layout->addWidget(addNewCriteriaCardButtons[addNewCriteriaCardButtonCount]);
-                addNewCriteriaCardButtonCount++;
             }
+            layout->addWidget(addNewCriteriaCardButton);
             //layout should have been rebuilt
         } else {
             QMessageBox msgBox;
@@ -728,8 +733,6 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, int attribute){ //how to
             addedAttributeNumbersList.append(attribute);
             criteriaCardsList.append(currentMultipleChoiceCard);
             initializeCriteriaCardPriorities();
-            QPushButton *addNewCriteriaButton = createAddNewCriteriaButton(true);
-            addNewCriteriaCardButtons.prepend(addNewCriteriaButton);
             teamingOptions->attributeSelected[attribute] = 1;
 
             // Clear and Rebuild Layout
@@ -737,13 +740,11 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, int attribute){ //how to
                 layout->removeItem(layout->itemAt(1));
             }
 
-            int addNewCriteriaCardButtonCount = 0;
             for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
                 layout->addWidget(criteriaCard);
                 criteriaCard->setVisible(true);
-                layout->addWidget(addNewCriteriaCardButtons[addNewCriteriaCardButtonCount]);
-                addNewCriteriaCardButtonCount++;
             }
+            layout->addWidget(addNewCriteriaCardButton);
 
         } else {
             QMessageBox msgBox;
@@ -2116,7 +2117,8 @@ void gruepr::loadUI()
         GroupingCriteriaCard *currentMultipleChoiceCard = this->initializedAttributeCriteriaCards.last();
         currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         QHBoxLayout* mcqContentLayout = new QHBoxLayout();
-
+        connect(currentMultipleChoiceCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(currentMultipleChoiceCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
         //ui->attributesStackedWidget->addWidget(attributeWidgets.last());
         attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions); //update issue
         connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
@@ -2139,7 +2141,6 @@ void gruepr::loadUI()
         mcqContentLayout->addWidget(attributeWidgets.last());
         currentMultipleChoiceCard->setContentAreaLayout(*mcqContentLayout);
         currentMultipleChoiceCard->setVisible(false); //just initialize, but initially false visibility
-        connect(currentMultipleChoiceCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
     }
 
 

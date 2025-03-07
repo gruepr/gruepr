@@ -105,29 +105,33 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     } else {
         headerRowLayout->addWidget(dragHandleButton);
     }
-    // if (title != "Team Size"){
-    //     deleteGroupingCriteriaCardButton = new QPushButton(this);
-    //     deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/close_square.png"));
-    //     deleteGroupingCriteriaCardButton->setStyleSheet(R"(
-    //         QPushButton {
-    //             border: none;
-    //         }
-    //         QPushButton:hover {
-    //             background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
-    //             border-radius: 1px;
-    //         }
-    //     )");
-    //     deleteGroupingCriteriaCardButton->setFixedSize(25, 25);
-    // }
+    deleteGroupingCriteriaCardButton = new QPushButton(this);
+    deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/close_square.png"));
+    deleteGroupingCriteriaCardButton->setStyleSheet(R"(
+            QPushButton {
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+                border-radius: 1px;
+            }
+        )");
+    deleteGroupingCriteriaCardButton->setFixedSize(25, 25);
+    if (title == "Team Size"){
+        deleteGroupingCriteriaCardButton->setVisible(false);
+    }
     headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignLeft);
     headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
     headerRowLayout->addStretch();
-    //headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
+    headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
     contentRowLayout->addWidget(contentArea);
     mainVerticalLayout->addLayout(contentRowLayout);
 
     setLayout(mainVerticalLayout);
     setContentsMargins(2,2,2,2);
+    connect(deleteGroupingCriteriaCardButton, &QPushButton::clicked, this, [this](){
+        emit deleteCardRequested(this->priorityOrder);
+    });
     connect(toggleButton, &QToolButton::toggled, this, &GroupingCriteriaCard::toggle);
     connect(dragHandleButton, &QToolButton::pressed, this, &GroupingCriteriaCard::dragStarted);
     connect(dragHandleButton, &QToolButton::released, this, &QFrame::unsetCursor);
