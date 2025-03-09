@@ -50,6 +50,7 @@
 //    BUGFIXES:
 //
 //    NEW FEATURES:
+//  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
