@@ -284,9 +284,11 @@ inline static const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // used wh
 inline static const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // column 0 of the team info display tree, used when swapping teams or teammates
 inline static const int SORT_TO_END = MAX_TEAMS + 100;                // flag to indicate moving this team to the end in the display table
 
+enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion, scheduleMeetingTimes, requiredTeammates, preventedTeammates, requestedTeammates};
 enum class GenderType {biol, adult, child, pronoun};
 //order of enum below MUST match order of options within the subsequent strings
 enum class Gender {woman, man, nonbinary, unknown};
+
 inline static const char BIOLGENDERS[] {"female/male/intersex or nonbinary/unknown"};
 inline static const char BIOLGENDERS7CHAR[] {"Female / Male  /Nonbin./Unknown"};  // 7 character names are used for printing
 inline static const char BIOLGENDERSINITIALS[] {"F/M/X/?"};                       // initials are used in table of teams
@@ -631,6 +633,12 @@ namespace grueprGlobal {
      * @return A decimal value of the number of hours since midnight (e.g., 13.25 for 1:15pm).
      */
     float timeStringToHours(const QString &timeStr);
+
+    //Converts List with Gender Enum type, to Json Array
+    QJsonArray genderListToJsonArray(const QList<Gender>& genders);
+    QList<Gender> jsonArrayToGenderList(const QJsonArray& jsonArray);
+    QString genderToString(Gender gender);
+    Gender stringToGender(const QString& genderStr);
 }
 
 inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#/" GRUEPRDOWNLOADSUBPAGE};
