@@ -36,6 +36,7 @@ private:
     DataOptions::DataSource source = DataOptions::DataSource::fromFile;
 
     QList<StudentRecord> roster;    // holds roster of students from alternative source (in order to add names of non-submitters)
+    QPushButton *categoryHelpButton;
 
     void loadData();
     CsvFile *surveyFile = nullptr;

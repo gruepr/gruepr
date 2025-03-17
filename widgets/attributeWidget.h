@@ -2,6 +2,7 @@
 #define ATTRIBUTEWIDGET_H
 
 #include "dataOptions.h"
+#include "qradiobutton.h"
 #include "teamingOptions.h"
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -22,7 +23,12 @@ public:
     QLabel *responsesLabel = nullptr;
     QDoubleSpinBox *weight = nullptr;
     QSlider *attribute_diversity_slider = nullptr;
-    QPushButton *requiredIncompatsButton = nullptr;
+    QPushButton *setRequiredStudentsButton = nullptr;
+    QPushButton *setIncompatibleStudentsButton = nullptr;
+    QFrame *diverseCard = nullptr;
+    QFrame *similarCard = nullptr;
+    QRadioButton *similarButton = nullptr;
+    QRadioButton *diverseButton = nullptr;
 
 private:
 

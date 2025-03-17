@@ -1315,9 +1315,9 @@ QStringList TeamsTabItem::createStdFileContents()
         instructorsFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
                                    + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
         // Check the attribute diversity type explicitly
-        if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HOMOGENOUS) {
+        if (teamingOptions->attributeDiversity[attrib] == 1) {
             instructorsFileContents += ", " + tr("homogeneous");
-        } else if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HETEROGENOUS) {
+        } else if (teamingOptions->attributeDiversity[attrib] == 0) {
             instructorsFileContents += ", " + tr("heterogeneous");
         } else {
             instructorsFileContents += ", " + tr("ignored");
@@ -1520,9 +1520,9 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
             customFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
                                   + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
-            if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HOMOGENOUS) {
+            if (teamingOptions->attributeDiversity[attrib] == 1) {
                 customFileContents += ", " + tr("homogeneous");
-            } else if (teamingOptions->attributeDiversity[attrib] == TeamingOptions::AttributeDiversity::HETEROGENOUS) {
+            } else if (teamingOptions->attributeDiversity[attrib] == 0) {
                 customFileContents += ", " + tr("heterogeneous");
             } else {
                 customFileContents += ", " + tr("ignored");

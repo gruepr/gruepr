@@ -6,7 +6,8 @@ TeamingOptions::TeamingOptions()
 {
     // initialize all attribute weights to 1, desires to heterogeneous, and incompatible attribute values to none
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeDiversity[i] = AttributeDiversity::IGNORED;
+        attributeDiversity[i] = 0;
+        attributeSelected[i] = 0;
         attributeWeights[i] = 1;
         realAttributeWeights[i] = 1;
         haveAnyRequiredAttributes[i] = false;
@@ -15,24 +16,6 @@ TeamingOptions::TeamingOptions()
         incompatibleAttributeValues[i].clear();
     }
 }
-
-//Enum conversions method for JSON Compatibility
-QString TeamingOptions::attributeDiversityToString(TeamingOptions::AttributeDiversity value) {
-    switch (value) {
-    case TeamingOptions::AttributeDiversity::IGNORED:      return "IGNORED";
-    case TeamingOptions::AttributeDiversity::HOMOGENOUS:  return "HOMOGENEOUS";
-    case TeamingOptions::AttributeDiversity::HETEROGENOUS: return "HETEROGENEOUS";
-    default:                             return "IGNORED"; // default value
-    }
-}
-
-TeamingOptions::AttributeDiversity TeamingOptions::stringToAttributeDiversity(const QString& str) {
-    if (str == "IGNORED")      return TeamingOptions::AttributeDiversity::IGNORED;
-    if (str == "HOMOGENEOUS")  return TeamingOptions::AttributeDiversity::HOMOGENOUS;
-    if (str == "HETEROGENEOUS") return TeamingOptions::AttributeDiversity::HETEROGENOUS;
-    return TeamingOptions::AttributeDiversity::IGNORED; // Default if string doesn't match
-}
-
 
 TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
 {
@@ -51,14 +34,23 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     minTimeBlocksOverlap = jsonTeamingOptions["minTimeBlocksOverlap"].toInt();
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
+    const QJsonArray attributeSelectedArray = jsonTeamingOptions["attributeSelected"].toArray();
     const QJsonArray attributeDiversityArray = jsonTeamingOptions["attributeDiversity"].toArray();
     int i = 0;
     for(const auto &item : attributeDiversityArray) {
-        attributeDiversity[i] = TeamingOptions::stringToAttributeDiversity(item.toString()); //conversion from string to enum
+        attributeDiversity[i] = item.toInt();
         i++;
     }
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeDiversity[j] = AttributeDiversity::IGNORED;
+        attributeDiversity[j] = 0;
+    }
+    i = 0;
+    for(const auto &item : attributeSelectedArray) {
+        attributeSelectedArray[i] = item.toInt();
+        i++;
+    }
+    for(int j = i; j < MAX_ATTRIBUTES; j++) {
+        attributeSelectedArray[j] = 0;
     }
     const QJsonArray attributeWeightsArray = jsonTeamingOptions["attributeWeights"].toArray();
     i = 0;
@@ -169,11 +161,12 @@ void TeamingOptions::reset()
 
 QJsonObject TeamingOptions::toJson() const
 {
-    QJsonArray attributeDiversityArray, attributeWeightsArray, realAttributeWeightsArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
+    QJsonArray attributeSelectedArray, attributeDiversityArray, attributeWeightsArray, realAttributeWeightsArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
                incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray;
 
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeDiversityArray.append(TeamingOptions::attributeDiversityToString(attributeDiversity[i]));
+        attributeSelectedArray.append(attributeSelected[i]);
+        attributeDiversityArray.append(attributeDiversity[i]);
         attributeWeightsArray.append(attributeWeights[i]);
         realAttributeWeightsArray.append(realAttributeWeights[i]);
         haveAnyRequiredAttributesArray.append(haveAnyRequiredAttributes[i]);
@@ -213,6 +206,7 @@ QJsonObject TeamingOptions::toJson() const
         {"minTimeBlocksOverlap", minTimeBlocksOverlap},
         {"meetingBlockSize", meetingBlockSize},
         {"realMeetingBlockSize", realMeetingBlockSize},
+        {"attributeSelected", attributeSelectedArray},
         {"attributeDiversity", attributeDiversityArray},
         {"attributeWeights", attributeWeightsArray},
         {"realAttributeWeights", realAttributeWeightsArray},

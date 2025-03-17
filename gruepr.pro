@@ -8,6 +8,7 @@ gruepr_version = 12.8
 copyright_year = 2019-2025
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
+QT       += designer
 
 TARGET = gruepr
 TEMPLATE = app
@@ -66,6 +67,8 @@ macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 SOURCES += \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/dataTypesTableDialog.cpp \
+        dialogs/identityrulesdialog.cpp \
         gruepr_globals.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -96,10 +99,10 @@ SOURCES += \
         LMS/LMS.cpp \
         LMS/canvashandler.cpp \
         LMS/googlehandler.cpp \
-        widgets/attributeDiversitySlider.cpp \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
@@ -113,6 +116,8 @@ SOURCES += \
 HEADERS += \
         csvfile.h \
         dataOptions.h \
+        dialogs/dataTypesTableDialog.h \
+        dialogs/identityrulesdialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
@@ -143,10 +148,10 @@ HEADERS += \
         LMS/LMS.h \
         LMS/canvashandler.h \
         LMS/googlehandler.h \
-        widgets/attributeDiversitySlider.h \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
         widgets/pushButtonWithMouseEnter.h \
