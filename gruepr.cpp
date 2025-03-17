@@ -541,7 +541,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                                                      ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                     teamTabNames, this);
+                                                     teamTabNames, this, false, false, false, 0);
                 //If user clicks OK, replace student database with copy that has had pairings added
                 const int reply = win->exec();
                 if(reply == QDialog::Accepted) {
@@ -602,7 +602,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                                                      ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                     teamTabNames, this);
+                                                     teamTabNames, this, false, false, false, 1);
                 //If user clicks OK, replace student database with copy that has had pairings added
                 const int reply = win->exec();
                 if(reply == QDialog::Accepted) {
@@ -663,7 +663,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                                                      ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                     teamTabNames, this);
+                                                     teamTabNames, this, false, false, false, 2);
                 //If user clicks OK, replace student database with copy that has had pairings added
                 const int reply = win->exec();
                 if(reply == QDialog::Accepted) {

@@ -93,8 +93,6 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
                 uniqueNumbersList.append(value);
             }
         }
-        qDebug() << "Has Duplicates:" << hasDuplicates;
-        qDebug() << "Has Placeholder:" << hasPlaceholder;
         if (hasDuplicates) {
             QMessageBox msgBox;
             msgBox.setText("Duplicate Error: There are duplicate entries in the identity rules.");
