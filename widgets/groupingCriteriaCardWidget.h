@@ -68,7 +68,7 @@ public:
     QWidget *createWidget(QWidget *parent);
     QLabel *priorityOrderLabel;
     QHBoxLayout* headerRowLayout;
-   QPushButton *deleteGroupingCriteriaCardButton;
+    QPushButton *deleteGroupingCriteriaCardButton;
 
     //Drag and Drop Methods
     //void setDraggable(bool draggable);
