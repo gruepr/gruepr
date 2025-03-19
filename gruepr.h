@@ -2,7 +2,14 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
+#include "CriterionTypes/mixedgendercriterion.h"
 #include "CriterionTypes/multiplechoicestylecriterion.h"
+#include "CriterionTypes/preventedteammatescriterion.h"
+#include "CriterionTypes/requestedteammatescriterion.h"
+#include "CriterionTypes/requiredteammatescriterion.h"
+#include "CriterionTypes/schedulecriterion.h"
+#include "CriterionTypes/singlegendercriterion.h"
+#include "CriterionTypes/singleurmidentitycriterion.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
@@ -128,6 +135,20 @@ private:
                                        int *_penaltyPoints);
     inline static void getTeammatePenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                             const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
+    inline static void getMixedGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                           const TeamingOptions *const _teamingOptions, MixedGenderCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getSingleGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                            const TeamingOptions *const _teamingOptions, SingleGenderCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getSingleURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                         const TeamingOptions *const _teamingOptions, SingleURMIdentityCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                         const TeamingOptions *const _teamingOptions, PreventedTeammatesCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getRequiredTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                                 const TeamingOptions *const _teamingOptions, RequiredTeammatesCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getRequestedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                                 const TeamingOptions *const _teamingOptions, RequestedTeammatesCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getScheduleScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                                  const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, ScheduleCriterion *criterion, float *_criterionScore, bool **_availabilityChart, int *_penaltyPoints);
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
