@@ -7,7 +7,7 @@ class SingleGenderCriterion : public Criterion {
 public:
     QString genderName;
 
-    SingleGenderCriterion(const QString& genderName, int priority, bool penaltyStatus);
+    SingleGenderCriterion(const QString& genderName, float weight, bool penaltyStatus);
 };
 
 #endif // SINGLEGENDERCRITERION_H

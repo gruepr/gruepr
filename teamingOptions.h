@@ -1,6 +1,7 @@
 #ifndef TEAMINGOPTIONS_H
 #define TEAMINGOPTIONS_H
 
+#include "CriterionTypes/criterion.h"
 #include "gruepr_globals.h"
 #include <QJsonObject>
 #include <QObject>
@@ -33,6 +34,9 @@ public:
     float meetingBlockSize = 1;                         // the minimum length of schedule overlap to count as a meeting time (in units of hours)
     int realMeetingBlockSize = 1;                       // the minimum length of schedule overlap (in units of # of blocks in schedule)
 
+    float weights[MAX_CRITERIA] = {};
+    bool penaltyStatus[MAX_CRITERIA] = {};
+    Criterion* criterionTypes[MAX_CRITERIA] = {};
     int attributeSelected[MAX_ATTRIBUTES]; //array that stores attribute values which the user included, and therefore should be grouped by.
     int attributeDiversity[MAX_ATTRIBUTES]; 			// if true/false, tries to make all students on a team have similar/different levels of each attribute
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
@@ -43,7 +47,7 @@ public:
     QList< QPair<int,int> > incompatibleAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of incompatible attribute value pairs
     float scheduleWeight = 1;
     float realScheduleWeight = 1;                       // scoring weight of the schedule, normalized to total weight
-    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of attributes + 1 for schedule if that is used
+    int realNumScoringFactors = 1;                      // the total weight of all scoring factors, equal to the number of criteria to group by (excluding teamsize and section)
     bool haveAnyRequiredTeammates = false;
     bool haveAnyPreventedTeammates = false;
     bool haveAnyRequestedTeammates = false;

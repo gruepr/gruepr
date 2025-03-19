@@ -1,4 +1,4 @@
 #include "schedulecriterion.h"
 
-ScheduleCriterion::ScheduleCriterion(int priority, bool penaltyStatus)
-    : Criterion(priority, penaltyStatus) {}
+ScheduleCriterion::ScheduleCriterion(float weight, bool penaltyStatus)
+    : Criterion(weight, penaltyStatus) {}

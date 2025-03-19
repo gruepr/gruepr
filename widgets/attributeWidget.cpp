@@ -33,12 +33,10 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     // theGrid->addWidget(questionLabel, row++, column, 1, -1);
 
     responsesLabel = new QLabel(this);
-    responsesLabel->setStyleSheet(LABEL10PTSTYLE);
     responsesLabel->setTextFormat(Qt::RichText);
     responsesLabel->setWordWrap(true);
     responsesLabel->setIndent(10);
     auto *responsesFrame = new QFrame(this);
-    responsesFrame->setStyleSheet("QFrame {background-color: " TRANSPARENT "; border: 1px solid; border-color: " AQUAHEX "; padding: 2 px;}");
     responsesFrame->setLineWidth(1);
     responsesFrame->setFrameStyle(QFrame::Box | QFrame::Plain);
     auto *hlay = new QHBoxLayout(responsesFrame);
@@ -81,23 +79,17 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
 
 
     // Create the "Diverse" card
-
-    static const char RADIOBUTTONCARDSSTYLE[] = "QFrame#similarCard, QFrame#diverseCard {border-color: " DEEPWATERHEX "; "
-                                                        "color: " DEEPWATERHEX "; background-color: white;} "
-                                                        "QFrame#similarCard:checked, QFrame#diverseCard:checked {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
-
     diverseButton = new QRadioButton(this);
     diverseButton->setToolTip("All of the students in the team will have a wide range of responses to this question.");
     diverseCard = new QFrame(this);
     diverseCard->setObjectName("diverseCard");
-    diverseCard->setStyleSheet(RADIOBUTTONCARDSSTYLE);
+    //diverseCard->setStyleSheet(RADIOBUTTONCARDSSTYLE);
     diverseButton->setIcon(QIcon(":/icons_new/heterogeneous.png"));
     diverseButton->setIconSize(QSize(40, 40)); // Bigger icon
     diverseButton->setStyleSheet("font-size: 15px;");
     diverseButton->setChecked(true);
     auto *diverseLayout = new QVBoxLayout(diverseCard);
     QLabel *diverseLabel = new QLabel("Diverse", this);
-    diverseLabel->setStyleSheet("background-color: white;");
     diverseButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     diverseLayout->addWidget(diverseButton, 0, Qt::AlignTop);
     diverseLayout->addWidget(diverseLabel,0,Qt::AlignBottom);
@@ -107,13 +99,12 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     similarButton->setToolTip("All of the students in the team will have similar responses to this question.");
     similarCard = new QFrame(this);
     similarCard->setObjectName("similarCard");
-    similarCard->setStyleSheet(RADIOBUTTONCARDSSTYLE);
+    //similarCard->setStyleSheet(RADIOBUTTONCARDSSTYLE);
     similarButton->setIcon(QIcon(":/icons_new/homogeneous.png"));
     similarButton->setIconSize(QSize(40, 40));
     similarButton->setStyleSheet("font-size: 15px;");
     auto *similarLayout = new QVBoxLayout(similarCard);
     QLabel *similarLabel = new QLabel("Similar", this);
-    similarLabel->setStyleSheet("background-color: white;");
     similarButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     similarLayout->addWidget(similarButton, 0, Qt::AlignTop);
     similarLayout->addWidget(similarLabel,0,Qt::AlignBottom);
@@ -140,19 +131,19 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     //Signal to update style on selection
     connect(diverseButton, &QRadioButton::toggled, [=](bool checked) {
         diverseCard->setStyleSheet(checked ?
-                                       "QFrame#diverseCard {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}" :
+                                       "" :
                                        "QFrame#diverseCard {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}"
                                    );
         // Update QLabel background color based on selection
-        diverseLabel->setStyleSheet(checked ? "background-color: " BUBBLYHEX ";" : "background-color: white;");
+        diverseLabel->setStyleSheet(checked ? "" : "background-color: white;");
     });
     connect(similarButton, &QRadioButton::toggled, [=](bool checked) {
         similarCard->setStyleSheet(checked ?
-                                       "QFrame#similarCard {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}" :
+                                       "" :
                                        "QFrame#similarCard {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}"
                                    );
         // Update QLabel background color based on selection
-        similarLabel->setStyleSheet(checked ? "background-color: " BUBBLYHEX ";" : "background-color: white;");
+        similarLabel->setStyleSheet(checked ? "" : "background-color: white;");
     });
 
 
@@ -229,17 +220,9 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
     int responseNum = 0;
     bool first = true;
 
-    QString responsesText = "<html>";
+    QString responsesText = "";
     //Create Table to store text
-    responsesText += "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>";
-    responsesText += "<tr style='background-color: #f2f2f2;'><th>Response</th><th>Count</th></tr>";  // Table headers
-
     for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
-        QString rowColor = (responseNum % 2 == 0) ? "#ffffff" : BUBBLYHEX;  // Alternate row colors (white and light blue)
-
-        responsesText += "<tr style='background-color: " + rowColor + ";'>";
-
-        responsesText += "<td>";
         responsesText += "<b>";
         if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
             // show response with starting number
@@ -264,21 +247,13 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
                 responsesText += "</b>. " + response;
             }
         }
-        responsesText += "</td>";
 
         // Display response count
-        responsesText += "<td>";
-        responsesText += QString::number(responseCounts.empty() ?
-                                             (dataOptions->attributeQuestionResponseCounts[attribute].at(response)) :
-                                             (responseCounts.at(response))) +
-                         " " + tr("students");
-        responsesText += "</td>";
-
-        responsesText += "</tr>";  // End row
-
+        // responsesText += QString::number(responseCounts.empty() ?
+        //                                      (dataOptions->attributeQuestionResponseCounts[attribute].at(response)) :
+        //                                      (responseCounts.at(response)));
+        responsesText += "<br>"; //add a new row
         responseNum++;
     }
-    responsesText += "</table>";  // End table
-    responsesText += "</html>";
     responsesLabel->setText(responsesText);
 }

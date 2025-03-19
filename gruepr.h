@@ -2,6 +2,7 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
+#include "CriterionTypes/multiplechoicestylecriterion.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
@@ -113,13 +114,11 @@ private:
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                float _teamScores[], float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints,
-                                std::set<int> _attributesBeingScored, bool _schedBeingScored, bool _genderBeingScored, bool _URMBeingScored,
-                                bool _teammatesBeingScored);
-    inline static void getAttributeScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                          float **_attributeScore, const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
-                                          int *_penaltyPoints);
+                                float _teamScores[], float **_criterionScore, bool **_availabilityChart, int *_penaltyPoints);
+    inline static void getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, MultipleChoiceStyleCriterion *criterion, float *_criterionScore,
+                                         const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
+                                         int *_penaltyPoints);
     inline static void getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                          float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);
@@ -148,12 +147,12 @@ private:
     QPushButton* createAddNewCriteriaButton(bool hoverToSee);
     //QList<QPushButton*> addNewCriteriaCardButtons;
     QPushButton* addNewCriteriaCardButton;
-    QHBoxLayout* createIdentityOperatorRule(QString identity, QString operatorString = "", int noOfIdentity = -1);
     void updateIdentityCriteriaCard(GroupingCriteriaCard *identityCard, QString identity, bool addNewCriteria);
+    void refreshCriteriaLayout();
 
     //make an enum criteria type.
     void addCriteriaCard(CriteriaType criteriaType);
-    void addCriteriaCard(CriteriaType criteriaType, Gender gender);
+    void addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requireMixed = false);
     void addCriteriaCard(CriteriaType criteriaType, QString urmResponse);
     void addCriteriaCard(CriteriaType criteriaType, int attribute);
 

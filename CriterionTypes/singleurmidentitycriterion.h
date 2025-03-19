@@ -8,7 +8,7 @@ class SingleURMIdentityCriterion : public Criterion {
 public:
     QString urmName;
 
-    SingleURMIdentityCriterion(const QString& urmName, int priority, bool penaltyStatus);
+    SingleURMIdentityCriterion(const QString& urmName, float weight, bool penaltyStatus);
 };
 
 #endif // SINGLEURMIDENTITYCRITERION_H

@@ -5,7 +5,7 @@
 
 class ScheduleCriterion : public Criterion {
 public:
-    ScheduleCriterion(int priority, bool penaltyStatus);
+    ScheduleCriterion(float weight, bool penaltyStatus);
 };
 
 #endif // SCHEDULECRITERION_H

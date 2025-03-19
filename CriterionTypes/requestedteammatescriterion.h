@@ -5,7 +5,7 @@
 
 class RequestedTeammatesCriterion : public Criterion {
 public:
-    RequestedTeammatesCriterion(int priority, bool penaltyStatus);
+    RequestedTeammatesCriterion(float weight, bool penaltyStatus);
 };
 
 #endif // REQUESTEDTEAMMATESCRITERION_H

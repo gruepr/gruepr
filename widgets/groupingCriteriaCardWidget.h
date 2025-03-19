@@ -21,6 +21,8 @@
 #ifndef GROUPINGCRITERIACARDWIDGET_H
 #define GROUPINGCRITERIACARDWIDGET_H
 
+#include "CriterionTypes/criterion.h"
+#include "gruepr_globals.h"
 #include <QFrame>
 #include <QGridLayout>
 #include <QParallelAnimationGroup>
@@ -42,6 +44,7 @@ private:
     QVBoxLayout* mainVerticalLayout;
     QToolButton* toggleButton;
     QPushButton* dragHandleButton;
+    QPushButton *lockButton;
     QParallelAnimationGroup* toggleAnimation;
     QScrollArea* contentArea;
     int animationDuration = 100;
@@ -54,10 +57,13 @@ public slots:
 
 
 public:
-    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = QString("Title"), bool draggable = false);
+    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = QString("Title"), bool draggable = false, CriteriaType criteriaType = CriteriaType::teamSize);
 
+    Criterion *criterion = nullptr;
+    CriteriaType criteriaType;
+
+    QCheckBox *includePenaltyCheckBox = nullptr;
     void setContentAreaLayout(QLayout & contentLayout);
-
     QString name() const;
     QString includeFile() const;
     QString group() const;
@@ -71,7 +77,7 @@ public:
     QPushButton *deleteGroupingCriteriaCardButton;
 
     //Drag and Drop Methods
-    //void setDraggable(bool draggable);
+    void setDraggable(bool draggable);
     //QPushButton* getDeleteButton();
     void dragStarted();
     void dragEnterEvent(QDragEnterEvent *event);
@@ -81,6 +87,7 @@ public:
     signals:
         void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
         void deleteCardRequested(int deletedIndex);
+        void includePenaltyStateChanged();
 private:
     int priorityOrder = 0;
 };

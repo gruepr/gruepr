@@ -1,4 +1,4 @@
 #include "mixedgendercriterion.h"
 
-MixedGenderCriterion::MixedGenderCriterion(int priority, int penaltyStatus)
-    : Criterion(priority, penaltyStatus) {}
+MixedGenderCriterion::MixedGenderCriterion(float weight, int penaltyStatus)
+    : Criterion(weight, penaltyStatus) {}

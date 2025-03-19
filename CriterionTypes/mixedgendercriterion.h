@@ -5,7 +5,7 @@
 
 class MixedGenderCriterion : public Criterion {
 public:
-    MixedGenderCriterion(int priority, int penaltyStatus);
+    MixedGenderCriterion(float weight, int penaltyStatus);
 };
 
 #endif // MIXEDGENDERCRITERION_H

@@ -1,4 +1,12 @@
 #include "gruepr.h"
+#include "CriterionTypes/mixedgendercriterion.h"
+#include "CriterionTypes/multiplechoicestylecriterion.h"
+#include "CriterionTypes/preventedteammatescriterion.h"
+#include "CriterionTypes/requestedteammatescriterion.h"
+#include "CriterionTypes/requiredteammatescriterion.h"
+#include "CriterionTypes/schedulecriterion.h"
+#include "CriterionTypes/singlegendercriterion.h"
+#include "CriterionTypes/singleurmidentitycriterion.h"
 #include "dialogs/identityrulesdialog.h"
 #include "qlist.h"
 #include "ui_gruepr.h"
@@ -85,8 +93,39 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
     //Defining all criteria cards
     criteriaCardsList = {};
+    //Section Criteria Card
+
+    if (dataOptions.sectionIncluded){
+        sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), true, CriteriaType::section);
+        sectionCriteriaCard->criteriaType = CriteriaType::section;
+        sectionCriteriaCard->criterion = new Criterion(0.0, true);
+        sectionContentLayout = new QHBoxLayout();
+        sectionContentLayout->setSpacing(1);
+
+        editSectionNameButton = new QPushButton(this);
+        sectionSelectionBox = new QComboBox(this);
+        sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        editSectionNameButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+
+        sectionContentLayout->addWidget(sectionSelectionBox);
+        sectionContentLayout->addWidget(editSectionNameButton);
+        editSectionNameButton->setMinimumHeight(28);
+        editSectionNameButton->setMinimumWidth(34);
+        sectionCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        sectionCriteriaCard->setContentAreaLayout(*sectionContentLayout);
+
+        connect(editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
+        connect(sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+        criteriaCardsList.append(sectionCriteriaCard);
+    }
+
     //Team Size Criteria Card
-    teamSizeCriteriaCard = new GroupingCriteriaCard(this, QString("Team Size"), false);
+    teamSizeCriteriaCard = new GroupingCriteriaCard(this, QString("Team Size"), false, CriteriaType::teamSize);
+    teamSizeCriteriaCard->criteriaType = CriteriaType::teamSize;
+    teamSizeCriteriaCard->criterion = new Criterion(0.0, true);
 
     teamSizeContentAreaLayout = new QHBoxLayout();
     teamSizeContentAreaLayout->setSpacing(2);
@@ -110,9 +149,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     criteriaCardsList.append(teamSizeCriteriaCard);
     connect(idealTeamSizeBox, &QSpinBox::valueChanged, this, &gruepr::changeIdealTeamSize);
     connect(teamSizeBox, &QComboBox::currentIndexChanged, this, &gruepr::chooseTeamSizes);
-    scrollLayout->addWidget(teamSizeCriteriaCard);
     addNewCriteriaCardButton = createAddNewCriteriaButton(false);
-    scrollLayout->addWidget(addNewCriteriaCardButton);
+
 
     //addNewCriteriaButton->setGeometry(teamSizeCriteriaCard->x() + 5, teamSizeCriteriaCard->y() + teamSizeCriteriaCard->height(), teamSizeCriteriaCard->width()-10, 30);
 
@@ -122,11 +160,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //initialize some Menus
     QMenu *identityOptionsMenu = new QMenu("Identity Options", this);
     identityOptionsMenu->setLayoutDirection(Qt::RightToLeft);
-    if (this->dataOptions->sectionIncluded){
-        QAction *sectionAction = new QAction("Section", this);
-        connect(sectionAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::section);});
-        mainMenu->addAction(sectionAction);
-    }
     if (this->dataOptions->genderIncluded){
         QMenu *genderMenu = new QMenu("Gender", this);
         for (Gender g: this->dataOptions->Genders){
@@ -134,6 +167,10 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
             QAction *currentGenderAction = genderMenu->addAction(currentGender);
             connect(currentGenderAction, &QAction::triggered, this, [this, g](){gruepr::addCriteriaCard(CriteriaType::genderIdentity, g);});
         }
+        //always add a mixed gender option
+        QAction *currentGenderAction = genderMenu->addAction("Mixed Gender");
+        connect(currentGenderAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::genderIdentity, Gender::unknown, true);});
+
         identityOptionsMenu->addMenu(genderMenu);
         //1 main method where i pass in genderType and QString for object to create?
     }
@@ -270,6 +307,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Connect genetic algorithm progress signals to slots
     connect(this, &gruepr::generationComplete, this, &gruepr::updateOptimizationProgress, Qt::BlockingQueuedConnection);
     connect(&futureWatcher, &QFutureWatcher<void>::finished, this, &gruepr::optimizationComplete);
+    refreshCriteriaLayout();
     saveState();
 }
 
@@ -285,28 +323,6 @@ QPushButton* gruepr::createAddNewCriteriaButton(bool hoverToSee){
 
     addNewCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));
     addNewCriteriaButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-    // inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
-    //                                              "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
-    //
-    static const char ADDNEWCRITERIABUTTONSTYLE[] = "QPushButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX "; "
-                                                    "color: " DEEPWATERHEX "; background-color: white;} "
-                                                    "QPushButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
-                                                    "QPushButton::menu-indicator {image: none;}";
-
-    //add fontstyle, add the logo.
-    static const char STDBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
-                                                "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
-                                                "color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}"
-                                                "QPushButton:hover {color: " DEEPWATERHEX "; background-color: white}";
-    static const char TRANSPARENTADDNEWCRITERIABUTTONSTYLE[] = "QPushButton:hover {color: " DEEPWATERHEX "; "
-                                         "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
-                                          "background-color: white; font-family: 'DM Sans'; font-size: 14pt; padding: 10px;}"
-                                                               "QPushButton {background-color: transparent; border: none; color: transparent;} ";
-    if (hoverToSee) {
-        //addNewCriteriaButton->setStyleSheet(TRANSPARENTADDNEWCRITERIABUTTONSTYLE);
-    } else {
-        //addNewCriteriaButton->setStyleSheet(STDBUTTONSTYLE);
-    }
 
     connect(addNewCriteriaButton, &QPushButton::clicked, [this, addNewCriteriaButton](){
         QPoint centerOfCriteriaButton = addNewCriteriaButton->mapToGlobal(addNewCriteriaButton->rect().center());
@@ -340,112 +356,18 @@ void gruepr::swapCriteriaCards(int draggedIndex, int targetIndex) {
     // qDebug() << "draggedCard pointer:" << draggedCard << "targetCard pointer:" << targetCard;
     criteriaCardsList[targetIndex] = draggedCard;
     criteriaCardsList[draggedIndex] = targetCard;
-    qDebug() << "targetIndex" << targetIndex;
-    qDebug() << "target card prev priority order" << criteriaCardsList[targetIndex]->getPriorityOrder();
     criteriaCardsList[targetIndex]->setPriorityOrder(targetIndex);
 
     criteriaCardsList[draggedIndex]->setPriorityOrder(draggedIndex);
-
-    // Clear and Rebuild Layout
-    while (layout->count() > 1) {
-        layout->removeItem(layout->itemAt(1));
-    }
-
-    for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-        layout->addWidget(criteriaCard);
-    }
-    layout->addWidget(addNewCriteriaCardButton);
+    refreshCriteriaLayout();
 }
 
 void gruepr::addCriteriaCard(CriteriaType criteriaType){
-    //Check that Section does not already exist, otherwise tell user that section has been added
-    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
-    if (criteriaType == CriteriaType::section){
-        //Section Criteria Card Styling
-        if (sectionCriteriaCard==nullptr){
-            sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), true);
-            sectionContentLayout = new QHBoxLayout();
-            sectionContentLayout->setSpacing(1);
-
-            editSectionNameButton = new QPushButton(this);
-            sectionSelectionBox = new QComboBox(this);
-            sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-            editSectionNameButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-            editSectionNameButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-
-            sectionContentLayout->addWidget(sectionSelectionBox);
-            sectionContentLayout->addWidget(editSectionNameButton);
-            editSectionNameButton->setMinimumHeight(28);
-            editSectionNameButton->setMinimumWidth(34);
-            sectionCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-            sectionCriteriaCard->setContentAreaLayout(*sectionContentLayout);
-            //Setting Priority Order
-            sectionCriteriaCard->setPriorityOrder(criteriaCardsList.count());
-            //copied from loadUI()
-            sectionSelectionBox->blockSignals(true);
-
-            if(dataOptions->sectionIncluded) {
-                if(dataOptions->sectionNames.size() > 1) {
-                    sectionSelectionBox->addItem(tr("Students in all sections together"));
-                    sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
-                    sectionSelectionBox->insertSeparator(2);
-                    sectionSelectionBox->addItems(dataOptions->sectionNames);
-                    if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
-                        sectionSelectionBox->setCurrentIndex(1);
-                    }
-                    else if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
-                        sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
-                    }
-                    else {
-                        sectionSelectionBox->setCurrentIndex(0);
-                    }
-                }
-                else {
-                    if(dataOptions->sectionNames.size() > 0) {     // (must be only one section, but checking not empty just so it doesn't crash on .first()...)
-                        sectionSelectionBox->addItem(dataOptions->sectionNames.first());
-                    }
-                    else {
-                        sectionSelectionBox->addItem(tr("No section data."));
-                    }
-                    teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
-                    sectionCriteriaCard->hide();
-                }
-            }
-            else {
-                sectionSelectionBox->addItem(tr("No section data."));
-                teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
-                sectionCriteriaCard->hide();
-            }
-            teamingOptions->sectionName = sectionSelectionBox->currentText();
-            sectionSelectionBox->blockSignals(false);
-
-            refreshStudentDisplay();
-            ui->studentTable->resetTable();
-            connect(editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
-            connect(sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
-            //adding to criteria cards list
-            criteriaCardsList.append(sectionCriteriaCard);
-            //adding to layout
-            connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
-            connect(sectionCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-
-            // Clear and Rebuild Layout
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-        } else {
-            QMessageBox msgBox;
-            msgBox.setText("Section Criteria already exists");
-            msgBox.exec();
-        }
-    } else if (criteriaType == CriteriaType::scheduleMeetingTimes){
+    if (criteriaType == CriteriaType::scheduleMeetingTimes){
         if (meetingScheduleCriteriaCard==nullptr){
             //Meeting Schedule Criteria Card Styling
-            meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true);
+            meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true, criteriaType);
+            meetingScheduleCriteriaCard->criterion = new ScheduleCriterion(0.0, false);
             QVBoxLayout* meetingScheduleContentLayout = new QVBoxLayout();
             QHBoxLayout* minimumAndDesiredButtonLayout = new QHBoxLayout();
             minMeetingTimes = new QSpinBox(this);
@@ -505,16 +427,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             //adding to layout
             connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
             connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-            // Clear and Rebuild Layout
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-
+            connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText("Schedule Meeting Times Criteria already exists");
@@ -524,7 +437,9 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         if (!teammateRulesExistence.contains(criteriaType)){
             //Create Gender Criteria Card Styling
             teammateRulesExistence.append(criteriaType);
-            GroupingCriteriaCard* newRequiredTeammatesCard = new GroupingCriteriaCard(this, QString("Required Teammates"), true);
+            GroupingCriteriaCard* newRequiredTeammatesCard = new GroupingCriteriaCard(this, QString("Required Teammates"), true, criteriaType);
+            newRequiredTeammatesCard->criteriaType = criteriaType;
+            newRequiredTeammatesCard->criterion = new RequiredTeammatesCriterion(0.0, false);
             QVBoxLayout* requiredTeammatesContentAreaLayout = new QVBoxLayout();
 
             //initialize add new identity rule button
@@ -566,15 +481,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             criteriaCardsList.append(newRequiredTeammatesCard);
             connect(newRequiredTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
             connect(newRequiredTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-            //The button underneath the criteria card
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-            //layout should have been rebuilt
+            connect(newRequiredTeammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText("Required Teammates Criteria Card already exists");
@@ -585,7 +492,9 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         if (!teammateRulesExistence.contains(criteriaType)){
             //Create Gender Criteria Card Styling
             teammateRulesExistence.append(criteriaType);
-            GroupingCriteriaCard* newPreventedTeammatesCard = new GroupingCriteriaCard(this, QString("Prevented Teammates"), true);
+            GroupingCriteriaCard* newPreventedTeammatesCard = new GroupingCriteriaCard(this, QString("Prevented Teammates"), true, criteriaType);
+            newPreventedTeammatesCard->criteriaType = criteriaType;
+            newPreventedTeammatesCard->criterion = new PreventedTeammatesCriterion(0.0, false);
             QVBoxLayout* preventedTeammatesContentAreaLayout = new QVBoxLayout();
 
             //initialize add new identity rule button
@@ -627,15 +536,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             criteriaCardsList.append(newPreventedTeammatesCard);
             connect(newPreventedTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
             connect(newPreventedTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-            //The button underneath the criteria card
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-            //layout should have been rebuilt
+            connect(newPreventedTeammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText("Prevented Teammates Criteria Card already exists");
@@ -646,7 +547,9 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         if (!teammateRulesExistence.contains(criteriaType)){
             //Create Gender Criteria Card Styling
             teammateRulesExistence.append(criteriaType);
-            GroupingCriteriaCard* newRequestedTeammatesCard = new GroupingCriteriaCard(this, QString("Requested Teammates"), true);
+            GroupingCriteriaCard* newRequestedTeammatesCard = new GroupingCriteriaCard(this, QString("Requested Teammates"), true, criteriaType);
+            newRequestedTeammatesCard->criteriaType = criteriaType;
+            newRequestedTeammatesCard->criterion = new RequestedTeammatesCriterion(0.0, false);
             QVBoxLayout* requestedTeammatesContentAreaLayout = new QVBoxLayout();
 
             //initialize add new identity rule button
@@ -674,7 +577,6 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                     teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
                     teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
                     teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
-
                     saveState();
                 }
 
@@ -688,15 +590,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             criteriaCardsList.append(newRequestedTeammatesCard);
             connect(newRequestedTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
             connect(newRequestedTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-            //The button underneath the criteria card
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-            //layout should have been rebuilt
+            connect(newRequestedTeammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText("Requested Teammates Criteria Card already exists");
@@ -704,97 +598,126 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         }
     }
     initializeCriteriaCardPriorities();
+    refreshCriteriaLayout();
 }
 
 void gruepr::deleteCriteriaCard(int deletedIndex){
-    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
-
-    // Clear and Rebuild Layout
-    while (layout->count() > 1) {
-        layout->removeItem(layout->itemAt(1));
-    }
-
     // Get the card to be deleted
     GroupingCriteriaCard* cardToDelete = criteriaCardsList[deletedIndex];
 
     // Remove the card from the list and delete it
+    qDebug() << deletedIndex;
     criteriaCardsList.removeAt(deletedIndex);
-    delete cardToDelete; // Deleting the card to free memory not sure!
 
+    if (cardToDelete->criteriaType == CriteriaType::urmIdentity){
+        SingleURMIdentityCriterion *criterion = dynamic_cast<SingleURMIdentityCriterion*>(cardToDelete->criterion);
+        QString urmResponse = criterion->urmName;
+        uiCheckBoxMap.remove(urmResponse + "PreventIsolatedCheckBox");
+        delete cardToDelete;
+    } else if (cardToDelete->criteriaType == CriteriaType::attributeQuestion){
+        MultipleChoiceStyleCriterion *criterion = dynamic_cast<MultipleChoiceStyleCriterion*>(cardToDelete->criterion);
+        int attributeIndex = criterion->attributeIndex;
+        int indexToRemove = addedAttributeNumbersList.indexOf(attributeIndex);
+        addedAttributeNumbersList.remove(indexToRemove);
+        cardToDelete->setVisible(false);
+        //setVisible to false?
+    } else if (cardToDelete->criteriaType == CriteriaType::section){
+        delete cardToDelete;
+        sectionCriteriaCard = nullptr;
+    } else if (cardToDelete->criteriaType == CriteriaType::scheduleMeetingTimes){
+        delete cardToDelete;
+        meetingScheduleCriteriaCard = nullptr;
+    } else if ((cardToDelete->criteriaType == CriteriaType::requiredTeammates || cardToDelete->criteriaType == CriteriaType::preventedTeammates) || cardToDelete->criteriaType == CriteriaType::requestedTeammates){
+        int indexToRemove = teammateRulesExistence.indexOf(cardToDelete->criteriaType);
+        teammateRulesExistence.remove(indexToRemove);
+        delete cardToDelete;
+    } else if (cardToDelete->criteriaType == CriteriaType::genderIdentity){
+        MixedGenderCriterion *criterion = dynamic_cast<MixedGenderCriterion*>(cardToDelete->criterion);
+        if (criterion != nullptr){
+            uiCheckBoxMap.remove("RequireMixedGenderCheckBox");
+            delete cardToDelete;
+        } else {
+            SingleGenderCriterion *criterion = dynamic_cast<SingleGenderCriterion*>(cardToDelete->criterion);
+            QString genderName = criterion->genderName;
+            uiCheckBoxMap.remove(genderName + "PreventIsolatedCheckBox");
+        }
+    } else {
+        qDebug() << deletedIndex << " does not exist.";
+    }
+    initializeCriteriaCardPriorities();
+    refreshCriteriaLayout();
+}
+
+void gruepr::refreshCriteriaLayout(){
+    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
+    while (layout->count() > 1) {
+        layout->removeItem(layout->itemAt(1));
+    }
+    //Since CriteriaCard TeamSize will always exist & is mandatory (Section may exist & is mandatory), it will mean next frame after these will always have the tickBox
+    GroupingCriteriaCard* prevCriteriaCard = nullptr;
     for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
+        if (criteriaCard->criteriaType == CriteriaType::teamSize || criteriaCard->criteriaType == CriteriaType::section){
+            criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == true){
+            if (prevCriteriaCard->includePenaltyCheckBox!=nullptr){
+                prevCriteriaCard->includePenaltyCheckBox->setDisabled(true);
+            }
+            criteriaCard->includePenaltyCheckBox->setDisabled(false);
+            criteriaCard->includePenaltyCheckBox->setVisible(true);
+            criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == false){
+            criteriaCard->includePenaltyCheckBox->setVisible(true);
+            criteriaCard->includePenaltyCheckBox->setDisabled(false);
+            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        } else if (prevCriteriaCard->criterion->penaltyStatus == false && criteriaCard->criterion->penaltyStatus == false){
+            criteriaCard->includePenaltyCheckBox->setVisible(false);
+            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        } else {
+            criteriaCard->includePenaltyCheckBox->setVisible(false);
+            criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        }
+        criteriaCard->setVisible(true);
         layout->addWidget(criteriaCard);
+        prevCriteriaCard = criteriaCard;
     }
     layout->addWidget(addNewCriteriaCardButton);
-    initializeCriteriaCardPriorities();
-}
-QHBoxLayout* gruepr::createIdentityOperatorRule(QString identity, QString operatorString, int noOfIdentity){
-    QHBoxLayout* eachIdentityRuleLayout = new QHBoxLayout();
-    QLabel* currentIdentityLabel = new QLabel(identity);
-    currentIdentityLabel->setMinimumHeight(30);
-    currentIdentityLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-    QComboBox* operatorComboBox = new QComboBox(this);
-    operatorComboBox->setMinimumHeight(30);
-    operatorComboBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-    operatorComboBox->addItem(">");    // Greater than
-    operatorComboBox->addItem("=");    // Equal to
-    operatorComboBox->addItem(">=");   // Greater than or equal to
-    operatorComboBox->addItem("<=");   // Less than or equal to
-    operatorComboBox->addItem("<");    // Less than
-    operatorComboBox->addItem("!=");   // Not equal to
-
-    int operatorIndex = operatorComboBox->findText(operatorString);
-    if (operatorIndex != -1) {
-        operatorComboBox->setCurrentIndex(operatorIndex);
-    }
-
-    QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
-    noOfIdentitySpinBox->setMinimum(0);
-    noOfIdentitySpinBox->setValue(noOfIdentity);  // Initialize to special value
-
-    noOfIdentitySpinBox->setMinimumHeight(30);
-    noOfIdentitySpinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-    // Connect combobox to update identityRules
-    connect(operatorComboBox, &QComboBox::currentTextChanged, this, [this, operatorComboBox, identity, noOfIdentitySpinBox](const QString &newOperator) {
-        if (teamingOptions->identityRules.contains(identity)) {
-            int currentValue = noOfIdentitySpinBox->value(); //how is this initialized?
-            //remove the old value
-            teamingOptions->identityRules[identity][operatorComboBox->currentText()].remove(currentValue);
-            //remove the old operator if it is now empty
-            if (teamingOptions->identityRules[identity].isEmpty()){
-                teamingOptions->identityRules[identity].remove(operatorComboBox->currentText());  // Remove old operator
-            }
-            //add the new operator and value
-            teamingOptions->identityRules[identity][newOperator].append(currentValue);
-        }
-    });
-
-    // Connect spinbox to update identityRules
-    connect(noOfIdentitySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, identity, operatorComboBox, noOfIdentitySpinBox](int newValue) {
-        if (teamingOptions->identityRules.contains(identity)) {
-            int currentValue = noOfIdentitySpinBox->value();
-            QString currentOperator = operatorComboBox->currentText();
-            teamingOptions->identityRules[identity][currentOperator].remove(currentValue);
-            teamingOptions->identityRules[identity][currentOperator].append(newValue);
-        }
-    });
-
-    eachIdentityRuleLayout->addWidget(currentIdentityLabel);
-    eachIdentityRuleLayout->addWidget(operatorComboBox);
-    eachIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
-
-    return eachIdentityRuleLayout;
 }
 
-void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender){
-    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
+void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requireMixed){ //include mixed gender grouping
     if (criteriaType == CriteriaType::genderIdentity){ //how to check if gender has been added
         QString genderString = grueprGlobal::genderToString(gender);
-        if (!uiCheckBoxMap.contains(genderString + "PreventIsolatedCheckBox")){
-            //Create Gender Criteria Card Styling
-            GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Gender Identity: " + genderString), true);
-            QVBoxLayout* genderCardContentAreaLayout = new QVBoxLayout();
+        if (requireMixed){
+            //add mixed gender rule
+            if (!uiCheckBoxMap.contains("RequireMixedGenderCheckBox")){
+                GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Mixed Gender Identity"), true, criteriaType);
+                QVBoxLayout* genderCardContentAreaLayout = new QVBoxLayout();
+                newGenderCard->criterion = new MixedGenderCriterion(0.0, false);
+                //initialize checkbox
+                QCheckBox* mixedGenderCheckBox = new QCheckBox("Require Mixed Gender", this);
+                connect(mixedGenderCheckBox, &QCheckBox::stateChanged, this, [this](){
+                    teamingOptions->singleGenderPrevented = true;
+                });
+                uiCheckBoxMap["RequireMixedGenderCheckBox"] = mixedGenderCheckBox;
 
+                genderCardContentAreaLayout->addWidget(mixedGenderCheckBox);
+                newGenderCard->setContentAreaLayout(*genderCardContentAreaLayout);
+                //adding to criteria card list and layout, then clean and rebuild criteria cards layout
+                criteriaCardsList.append(newGenderCard);
+                connect(newGenderCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+                connect(newGenderCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+                connect(newGenderCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
+            } else {
+                QMessageBox msgBox;
+                msgBox.setText("Mixed Gender Identity Criteria already exists");
+                msgBox.exec();
+            }
+        }
+        else if (!uiCheckBoxMap.contains(genderString + "PreventIsolatedCheckBox")){
+            //Create Gender Criteria Card Styling
+            GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Gender Identity: " + genderString), true, criteriaType);
+            newGenderCard->criteriaType = criteriaType;
+            QVBoxLayout* genderCardContentAreaLayout = new QVBoxLayout();
+            newGenderCard->criterion = new SingleGenderCriterion(genderString, 0.0, false);
             //initialize checkbox
             QCheckBox* preventedIsolatedCheckBox = new QCheckBox("Prevent Isolated " + genderString, this);
 
@@ -828,15 +751,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender){
             criteriaCardsList.append(newGenderCard);
             connect(newGenderCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
             connect(newGenderCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-            //The button underneath the criteria card
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-            //layout should have been rebuilt
+            connect(newGenderCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText(genderString + " Gender Identity Criteria already exists");
@@ -844,15 +759,17 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender){
         }
     }
     initializeCriteriaCardPriorities();
+    refreshCriteriaLayout();
 }
 
 //generic identity criteria card, not just urm
 void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
-    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
     if (criteriaType == CriteriaType::urmIdentity){ //how to check if gender has been added
         if (!uiCheckBoxMap.contains(urmResponse + "PreventIsolatedCheckBox")){
             //Create Gender Criteria Card Styling
-            GroupingCriteriaCard* newIdentityCard = new GroupingCriteriaCard(this, QString("Identity: " + urmResponse), true);
+            GroupingCriteriaCard* newIdentityCard = new GroupingCriteriaCard(this, QString("Identity: " + urmResponse), true, criteriaType);
+            newIdentityCard->criteriaType = criteriaType;
+            newIdentityCard->criterion = new SingleURMIdentityCriterion(urmResponse, 0.0, false);
             QVBoxLayout* identityCardContentAreaLayout = new QVBoxLayout();
 
             //initialize checkbox
@@ -888,15 +805,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
             criteriaCardsList.append(newIdentityCard);
             connect(newIdentityCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
             connect(newIdentityCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-            //The button underneath the criteria card
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-            //layout should have been rebuilt
+            connect(newIdentityCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText(urmResponse + " Identity Criteria already exists");
@@ -904,6 +813,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
         }
     }
     initializeCriteriaCardPriorities();
+    refreshCriteriaLayout();
 }
 
 void gruepr::addCriteriaCard(CriteriaType criteriaType, int attribute){ //how to check if attribute exists?
@@ -911,22 +821,11 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, int attribute){ //how to
         if (!addedAttributeNumbersList.contains(attribute)){
             QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
             GroupingCriteriaCard* currentMultipleChoiceCard = initializedAttributeCriteriaCards[attribute];
+            currentMultipleChoiceCard->criteriaType = criteriaType;
+            currentMultipleChoiceCard->criterion = new MultipleChoiceStyleCriterion(0.0, false, dataOptions->attributeType[attribute], attribute);
             addedAttributeNumbersList.append(attribute);
             criteriaCardsList.append(currentMultipleChoiceCard);
-            initializeCriteriaCardPriorities();
             teamingOptions->attributeSelected[attribute] = 1;
-
-            // Clear and Rebuild Layout
-            while (layout->count() > 1) {
-                layout->removeItem(layout->itemAt(1));
-            }
-
-            for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
-                layout->addWidget(criteriaCard);
-                criteriaCard->setVisible(true);
-            }
-            layout->addWidget(addNewCriteriaCardButton);
-
         } else {
             QMessageBox msgBox;
             QString title = "Multiple Choice Question: " + dataOptions->attributeQuestionText.at(attribute);
@@ -934,6 +833,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, int attribute){ //how to
             msgBox.exec();
         }
     }
+    initializeCriteriaCardPriorities();
+    refreshCriteriaLayout();
 }
 
 ////////////////////
@@ -947,26 +848,26 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     const int _numTeams = _teams.size();
     const auto &_dataOptions = _teams.dataOptions;
     auto *teamScores = new float[_numTeams];
-    auto **attributeScore = new float*[_dataOptions.numAttributes];
-    std::set<int> _attributesBeingScored;
-    for(int attrib = 0; attrib < _dataOptions.numAttributes; attrib++) {
-        attributeScore[attrib] = new float[_numTeams];
-        if((_teamingOptions->realAttributeWeights[attrib] > 0) ||
-            (_teamingOptions->haveAnyIncompatibleAttributes[attrib]) ||
-            (_teamingOptions->haveAnyRequiredAttributes[attrib])) {
-                _attributesBeingScored.insert(attrib);
-        }
+    auto **criterionScore = new float*[_teamingOptions->numberRequestedTeammatesGiven];
+    //std::set<int> _criterionBeingScored;
+    for(int criterion = 0; criterion < _teamingOptions->numberRequestedTeammatesGiven; criterion++) {
+        criterionScore[criterion] = new float[_numTeams];
+        // if((_teamingOptions->realAttributeWeights[attrib] > 0) ||
+        //     (_teamingOptions->haveAnyIncompatibleAttributes[attrib]) ||
+        //     (_teamingOptions->haveAnyRequiredAttributes[attrib])) {
+        //         _attributesBeingScored.insert(attrib);
+        // }
     }
-    auto *schedScore = new float[_numTeams];
+    //auto *schedScore = new float[_numTeams];
     auto **availabilityChart = new bool*[_dataOptions.dayNames.size()];
     for(int day = 0; day < _dataOptions.dayNames.size(); day++) {
         availabilityChart[day] = new bool[_dataOptions.timeNames.size()];
     }
-    const bool _schedBeingScored = _teamingOptions->realScheduleWeight > 0;
-    const bool _genderBeingScored = _dataOptions.genderIncluded && (_teamingOptions->isolatedWomenPrevented || _teamingOptions->isolatedMenPrevented ||
-                                                                     _teamingOptions->isolatedNonbinaryPrevented || _teamingOptions->singleGenderPrevented);
-    const bool _URMBeingScored = _dataOptions.URMIncluded && _teamingOptions->isolatedURMPrevented;
-    const bool _teammatesBeingScored = _teamingOptions->haveAnyRequiredTeammates || _teamingOptions->haveAnyPreventedTeammates || _teamingOptions->haveAnyRequestedTeammates;
+    // const bool _schedBeingScored = _teamingOptions->realScheduleWeight > 0;
+    // const bool _genderBeingScored = _dataOptions.genderIncluded && (_teamingOptions->isolatedWomenPrevented || _teamingOptions->isolatedMenPrevented ||
+    //                                                                  _teamingOptions->isolatedNonbinaryPrevented || _teamingOptions->singleGenderPrevented);
+    // const bool _URMBeingScored = _dataOptions.URMIncluded && _teamingOptions->isolatedURMPrevented;
+    // const bool _teammatesBeingScored = _teamingOptions->haveAnyRequiredTeammates || _teamingOptions->haveAnyPreventedTeammates || _teamingOptions->haveAnyRequestedTeammates;
     auto *penaltyPoints = new int[_numTeams];
     auto *teamSizes = new int[_numTeams];
     auto *genome = new int[_numStudents];
@@ -985,8 +886,8 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
 
     getGenomeScore(_students.constData(), genome, _numTeams, teamSizes,
                    _teamingOptions, &_dataOptions, teamScores,
-                   attributeScore, schedScore, availabilityChart, penaltyPoints,
-                   _attributesBeingScored, _schedBeingScored, _genderBeingScored, _URMBeingScored, _teammatesBeingScored);
+                   criterionScore, availabilityChart, penaltyPoints);
+                   //_attributesBeingScored, _schedBeingScored, _genderBeingScored, _URMBeingScored, _teammatesBeingScored);
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         _teams[teamnum].score = teamScores[teamnum];
     }
@@ -998,11 +899,10 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
         delete[] availabilityChart[day];
     }
     delete[] availabilityChart;
-    delete[] schedScore;
-    for(int attrib = 0; attrib < _dataOptions.numAttributes; attrib++) {
-        delete[] attributeScore[attrib];
+    for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+        delete[] criterionScore[criterion];
     }
-    delete[] attributeScore;
+    delete[] criterionScore;
     delete[] teamScores;
 }
 
@@ -1962,22 +1862,53 @@ void gruepr::startOptimization()
     }
 
     // Normalize all score factor weights using norm factor = number of factors / total weights of all factors
-    teamingOptions->realNumScoringFactors = dataOptions->numAttributes + (dataOptions->dayNames.isEmpty()? 0 : 1);
-    float normFactor = (float(teamingOptions->realNumScoringFactors)) /
-            (std::accumulate(teamingOptions->attributeWeights, teamingOptions->attributeWeights + dataOptions->numAttributes, 0.0f) +
-             (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight));
+
+    //Initialize weights based on priority
+    float weight = 10;
+    float sumOfWeights = 0;
+    int index = 0;
+    for (GroupingCriteriaCard* criteriaCard : criteriaCardsList){
+        if (criteriaCard->criteriaType == CriteriaType::section || criteriaCard->criteriaType == CriteriaType::teamSize){
+            continue;
+        } else {
+            teamingOptions->weights[index] = weight;
+            teamingOptions->penaltyStatus[index] = criteriaCard->criterion->penaltyStatus;
+            teamingOptions->criterionTypes[index] = criteriaCard->criterion;
+        }
+        sumOfWeights = sumOfWeights + weight;
+        weight = weight/2;
+        index++;
+    }
+
+    teamingOptions->realNumScoringFactors = index;
+    qDebug() << "===========";
+    qDebug() << teamingOptions->realNumScoringFactors;
+    qDebug() << "===========";
+
+    if (index == 0){
+        //just do the randomization bcs no priority
+    }
+
+    float normFactor = teamingOptions->realNumScoringFactors / sumOfWeights;
     if(!std::isfinite(normFactor)) {
         // pretty sure this should never be true given the math above!
         normFactor = 0;
     }
-    for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-        //If criteria is ignored, set the weight to 0 so that it is ignored
-        if (teamingOptions->attributeSelected[attribute] == 0){
-            teamingOptions->realAttributeWeights[attribute] = 0;
-        }
-        teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
+
+    // convert weights to realWeights
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        teamingOptions->weights[i] *= normFactor;
+        teamingOptions->criterionTypes[i]->weight = teamingOptions->weights[i];
     }
-    teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
+
+    // for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
+    //     //If criteria is ignored, set the weight to 0 so that it is ignored
+    //     if (teamingOptions->attributeSelected[attribute] == 0){
+    //         teamingOptions->realAttributeWeights[attribute] = 0;
+    //     }
+    //     teamingOptions->realAttributeWeights[attribute] = teamingOptions->attributeWeights[attribute] * normFactor;
+    // }
+    //teamingOptions->realScheduleWeight = (dataOptions->dayNames.isEmpty()? 0 : teamingOptions->scheduleWeight) * normFactor;
     teamingOptions->realMeetingBlockSize = std::ceil(teamingOptions->meetingBlockSize / dataOptions->scheduleResolution); // divide by length of time block in hours, rounded up
 
     bestTeamSet.clear();
@@ -2289,17 +2220,56 @@ void gruepr::loadUI()
     idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     qDebug() << "Calling change ideal team size in loadUI:";
 
+
+    if(dataOptions->sectionIncluded) {
+        sectionSelectionBox->blockSignals(true);
+        if(dataOptions->sectionNames.size() > 1) {
+            sectionSelectionBox->addItem(tr("Students in all sections together"));
+            sectionSelectionBox->addItem(tr("Students in all sections, each section separately"));
+            sectionSelectionBox->insertSeparator(2);
+            sectionSelectionBox->addItems(dataOptions->sectionNames);
+            if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
+                sectionSelectionBox->setCurrentIndex(1);
+            }
+            else if(teamingOptions->sectionType == TeamingOptions::SectionType::oneSection) {
+                sectionSelectionBox->setCurrentText(teamingOptions->sectionName);
+            }
+            else {
+                sectionSelectionBox->setCurrentIndex(0);
+            }
+        }
+        else {
+            if(dataOptions->sectionNames.size() > 0) {     // (must be only one section, but checking not empty just so it doesn't crash on .first()...)
+                sectionSelectionBox->addItem(dataOptions->sectionNames.first());
+            }
+            else {
+                sectionSelectionBox->addItem(tr("No section data."));
+            }
+            teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
+            sectionCriteriaCard->hide();
+        }
+        teamingOptions->sectionName = sectionSelectionBox->currentText();
+        sectionSelectionBox->blockSignals(false);
+    }
+    else {
+        teamingOptions->sectionType = TeamingOptions::SectionType::noSections;
+    }
+
+    refreshStudentDisplay();
+    ui->studentTable->resetTable();
+
     //Initialize all cards, but not add them to the layout
     for (int attribute=0; attribute < dataOptions->numAttributes; attribute++){
         attributeWidgets << new AttributeWidget(this);
         teamingOptions->attributeSelected[attribute] = 0;
         QString title = "Multiple Choice Question "+ QString::number(attribute) + ":"+ dataOptions->attributeQuestionText.at(attribute);
-        initializedAttributeCriteriaCards << new GroupingCriteriaCard(this, title, true);
+        initializedAttributeCriteriaCards << new GroupingCriteriaCard(this, title, true, CriteriaType::attributeQuestion);
         GroupingCriteriaCard *currentMultipleChoiceCard = this->initializedAttributeCriteriaCards.last();
         currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         QHBoxLayout* mcqContentLayout = new QHBoxLayout();
         connect(currentMultipleChoiceCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
         connect(currentMultipleChoiceCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+        connect(currentMultipleChoiceCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         //ui->attributesStackedWidget->addWidget(attributeWidgets.last());
         attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions); //update issue
         connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
@@ -2741,7 +2711,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto *scores = new float[ga.populationsize];
     float *unusedTeamScores = nullptr, *schedScore = nullptr;
-    float **attributeScore = nullptr;
+    //float **attributeScore = nullptr;
+    float **criterionScore = nullptr; //new variable
+
     int *penaltyPoints = nullptr;
     bool **availabilityChart = nullptr;
     bool unpenalizedGenomePresent = false;
@@ -2749,42 +2721,45 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     auto sharedNumTeams = numTeams;
     auto *sharedTeamingOptions = teamingOptions;
     auto *sharedDataOptions = dataOptions;
-    std::set<int> attributesBeingScored;
-    for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
-        if((teamingOptions->realAttributeWeights[attrib] > 0) ||
-           (teamingOptions->haveAnyIncompatibleAttributes[attrib]) ||
-            (teamingOptions->haveAnyRequiredAttributes[attrib])) {
-                attributesBeingScored.insert(attrib);
-        }
-    }
-    const bool schedBeingScored = teamingOptions->realScheduleWeight > 0;
-    const bool genderBeingScored = dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented ||
-                                                                   teamingOptions->isolatedNonbinaryPrevented || teamingOptions->singleGenderPrevented);
-    const bool URMBeingScored = dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented;
-    const bool teammatesBeingScored = teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyPreventedTeammates || teamingOptions->haveAnyRequestedTeammates;
+    //std::set<int> attributesBeingScored;
+    // for(int attrib = 0; attrib < dataOptions->numAttributes; attrib++) {
+    //     if((teamingOptions->realAttributeWeights[attrib] > 0) ||
+    //        (teamingOptions->haveAnyIncompatibleAttributes[attrib]) ||
+    //         (teamingOptions->haveAnyRequiredAttributes[attrib])) {
+    //             attributesBeingScored.insert(attrib);
+    //     }
+    // }
+    //Determing criteria to calculate scores for, which user selected.
+    // const bool schedBeingScored = teamingOptions->realScheduleWeight > 0;
+    // const bool genderBeingScored = dataOptions->genderIncluded && (teamingOptions->isolatedWomenPrevented || teamingOptions->isolatedMenPrevented ||
+    //                                                                teamingOptions->isolatedNonbinaryPrevented || teamingOptions->singleGenderPrevented);
+    // const bool URMBeingScored = dataOptions->URMIncluded && teamingOptions->isolatedURMPrevented;
+    // const bool teammatesBeingScored = teamingOptions->haveAnyRequiredTeammates || teamingOptions->haveAnyPreventedTeammates || teamingOptions->haveAnyRequestedTeammates;
+    //parallel initialization of needed variables.
 #pragma omp parallel \
         default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent, \
-               attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored) \
-        private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+        private(unusedTeamScores, criterionScore, availabilityChart, penaltyPoints)
+               //attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored) \
+               //private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[sharedNumTeams];
-        attributeScore = new float*[sharedDataOptions->numAttributes];
-        for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++) {
-            attributeScore[attrib] = new float[sharedNumTeams];
+        criterionScore = new float*[sharedTeamingOptions->realNumScoringFactors];
+        for(int criterion = 0; criterion < sharedTeamingOptions->realNumScoringFactors; criterion++) {
+            criterionScore[criterion] = new float[sharedNumTeams];
         }
-        schedScore = new float[sharedNumTeams];
+        //schedScore = new float[sharedNumTeams];
         availabilityChart = new bool*[sharedDataOptions->dayNames.size()];
         for(int day = 0; day < sharedDataOptions->dayNames.size(); day++) {
             availabilityChart[day] = new bool[sharedDataOptions->timeNames.size()];
         }
         penaltyPoints = new int[sharedNumTeams];
+
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                             sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
-                                            attributeScore, schedScore, availabilityChart, penaltyPoints,
-                                            attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored);
+                                            criterionScore, availabilityChart, penaltyPoints);
             int totalPenaltyPoints = 0;
             for(int team = 0; team < sharedNumTeams; team++) {
                 totalPenaltyPoints += penaltyPoints[team];
@@ -2797,10 +2772,10 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         }
         delete[] availabilityChart;
         delete[] schedScore;
-        for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++) {
-            delete[] attributeScore[attrib];
+        for(int criterion = 0; criterion < sharedTeamingOptions->realNumScoringFactors; criterion++) {
+            delete[] criterionScore[criterion];
         }
-        delete[] attributeScore;
+        delete[] criterionScore;
         delete[] unusedTeamScores;
     }
 
@@ -2853,17 +2828,18 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             sharedTeamingOptions = teamingOptions;
             sharedDataOptions = dataOptions;
 #pragma omp parallel \
-        default(none) \
-        shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent, \
-               attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored) \
-        private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
+            default(none) \
+                shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
+                private(unusedTeamScores, criterionScore, availabilityChart, penaltyPoints)
+                //attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored) \
+                //private(unusedTeamScores, attributeScore, schedScore, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[sharedNumTeams];
-                attributeScore = new float*[sharedDataOptions->numAttributes];
-                for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++) {
-                    attributeScore[attrib] = new float[sharedNumTeams];
+                criterionScore = new float*[sharedTeamingOptions->realNumScoringFactors];
+                for(int criterion = 0; criterion < sharedTeamingOptions->realNumScoringFactors; criterion++) {
+                    criterionScore[criterion] = new float[sharedNumTeams];
                 }
-                schedScore = new float[sharedNumTeams];
+                //schedScore = new float[sharedNumTeams];
                 availabilityChart = new bool*[sharedDataOptions->dayNames.size()];
                 for(int day = 0; day < sharedDataOptions->dayNames.size(); day++) {
                     availabilityChart[day] = new bool[sharedDataOptions->timeNames.size()];
@@ -2873,8 +2849,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 for(int genome = 0; genome < ga.populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                                     sharedTeamingOptions, sharedDataOptions, unusedTeamScores,
-                                                    attributeScore, schedScore, availabilityChart, penaltyPoints,
-                                                    attributesBeingScored, schedBeingScored, genderBeingScored, URMBeingScored, teammatesBeingScored);
+                                                    criterionScore, availabilityChart, penaltyPoints);
                     int totalPenaltyPoints = 0;
                     for(int team = 0; team < sharedNumTeams; team++) {
                         totalPenaltyPoints += penaltyPoints[team];
@@ -2887,10 +2862,10 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 }
                 delete[] availabilityChart;
                 delete[] schedScore;
-                for(int attrib = 0; attrib < sharedDataOptions->numAttributes; attrib++) {
-                    delete[] attributeScore[attrib];
+                for(int criterion = 0; criterion < sharedTeamingOptions->realNumScoringFactors; criterion++) {
+                    delete[] criterionScore[criterion];
                 }
-                delete[] attributeScore;
+                delete[] criterionScore;
                 delete[] unusedTeamScores;
             }
 
@@ -2962,60 +2937,72 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 // Modifys the teamScores[] to give scores for each individual team in the genome, too
 // This is a static function, and parameters are named with leading underscore to differentiate from gruepr member variables
 //////////////////
-float gruepr::getGenomeScore(const StudentRecord _students[], const int _teammates[], const int _numTeams, const int _teamSizes[],
-                             const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                             float **_attributeScore, float *_schedScore, bool **_availabilityChart, int *_penaltyPoints,
-                             std::set<int> _attributesBeingScored, bool _schedBeingScored, bool _genderBeingScored, bool _URMBeingScored,
-                             bool _teammatesBeingScored)
+float gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                             const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
+                             float _teamScores[], float **_criterionScore, bool **_availabilityChart, int *_penaltyPoints)
 {
     // Initialize each component score
     for(int team = 0; team < _numTeams; team++) {
-        for(int attribute = 0; attribute < _dataOptions->numAttributes; attribute++) {
-            _attributeScore[attribute][team] = 0;
+        for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+            _criterionScore[criterion][team] = 0;
         }
-        _schedScore[team] = 0;
         _penaltyPoints[team] = 0;
     }
 
     // Calculate attribute scores and / or penalties for each attribute for each team:
     std::multiset<int> attributeLevelsInTeam;
     std::multiset<float> timezoneLevelsInTeam;
-    for(const auto _attributeBeingScored : _attributesBeingScored) {
-        getAttributeScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _attributeScore,
-                           _attributeBeingScored, attributeLevelsInTeam, timezoneLevelsInTeam, _penaltyPoints);
-    }
 
-    // Calculate schedule scores and / or penalties for each team:
-    if(_schedBeingScored) {
-        getScheduleScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _schedScore, _availabilityChart, _penaltyPoints);
-    }
-
-    // Determine gender penalties for each team:
-    if(_genderBeingScored) {
-        getGenderPenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+    for (int i = 0; i< _teamingOptions->realNumScoringFactors; i++){
+        auto _criterionBeingScored = _teamingOptions->criterionTypes[i];
+        // qDebug() << "Current Criterion Weight:";
+        // qDebug() << _criterionBeingScored.weight;
+        // qDebug() << _criterionBeingScored.penaltyStatus;
+        if (dynamic_cast<MultipleChoiceStyleCriterion*>(_criterionBeingScored)){
+            auto criterionCasted = dynamic_cast<MultipleChoiceStyleCriterion*>(_criterionBeingScored);
+            getAttributeScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, criterionCasted, _criterionScore[i],
+                               criterionCasted->attributeIndex, attributeLevelsInTeam, timezoneLevelsInTeam, _penaltyPoints);
+        } else if (dynamic_cast<MixedGenderCriterion*>(_criterionBeingScored)){
+            qDebug() << "Mixed Gender Criterion";
+            //getGenderPenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+        } else if (dynamic_cast<SingleGenderCriterion*>(_criterionBeingScored)){
+            qDebug() << "Single Gender Criterion";
+            //getGenderPenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+        } else if (dynamic_cast<SingleURMIdentityCriterion*>(_criterionBeingScored)){
+            qDebug() << "Single URM Criterion";
+            //getURMPenalties(_students, _teammates, _numTeams, _teamSizes, _penaltyPoints);
+        } else if (dynamic_cast<ScheduleCriterion*>(_criterionBeingScored)){
+            qDebug() << "Schedule Criterion";
+            //getScheduleScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _schedScore, _availabilityChart, _penaltyPoints);
+        } else if (dynamic_cast<PreventedTeammatesCriterion*>(_criterionBeingScored)){
+            qDebug() << "Prevented Teammates Criterion";
+            //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+        } else if (dynamic_cast<RequestedTeammatesCriterion*>(_criterionBeingScored)){
+            qDebug() << "Requested Teammates Criterion";
+            //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+        } else if (dynamic_cast<RequiredTeammatesCriterion*>(_criterionBeingScored)){
+            qDebug() << "Required Teammates Criterion";
+            //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+        } else {
+            qDebug() << "Normal Criterion";
+            qDebug() << _criterionBeingScored->penaltyStatus;
+        }
     }
 
     // Determine URM penalties for each team:
-    if(_URMBeingScored) {
-        getURMPenalties(_students, _teammates, _numTeams, _teamSizes, _penaltyPoints);
-    }
 
     // Determine penalties for required teammates NOT on team, prevented teammates on team, and insufficient number of requested teammates on team:
-    if(_teammatesBeingScored) {
-        getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
-    }
-
     // Bring together for a final score for each team:
     // Score is normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < _numTeams; team++) {
         // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
-        if((_schedScore[team] > _teamingOptions->realScheduleWeight) && (_penaltyPoints[team] > 0)) {
-            _schedScore[team] = _teamingOptions->realScheduleWeight;
-        }
+        // if((_schedScore[team] > _teamingOptions->realScheduleWeight) && (_penaltyPoints[team] > 0)) {
+        //     _schedScore[team] = _teamingOptions->realScheduleWeight;
+        // }
 
-        _teamScores[team] = _schedScore[team];
-        for(int attribute = 0; attribute < _dataOptions->numAttributes; attribute++) {
-            _teamScores[team] += _attributeScore[attribute][team];
+        //_teamScores[team] = _schedScore[team];
+        for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+            _teamScores[team] += _criterionScore[criterion][team]; //_criterionScore[criterion][team];
         }
         _teamScores[team] = 100 * ((_teamScores[team] / float(_teamingOptions->realNumScoringFactors)) - _penaltyPoints[team]);
     }
@@ -3101,18 +3088,24 @@ void printTeamingOptions(const TeamingOptions &options) {
     qDebug() << "Teamset Number:" << options.teamsetNumber;
 }
 
-
-void gruepr::getAttributeScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float **_attributeScore,
+//function to get a score for an attribute type
+void gruepr::getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, MultipleChoiceStyleCriterion *criterion, float *_criterionScore,
                                 const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
                                 int *_penaltyPoints)
 {
-    const bool thisIsTimezone = (_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
+    //what about multicategorical? refactor penaltyPoints so that you make (no rules broken for the team instead)
+    const bool thisIsTimezone = criterion->typeOfAttribute == DataOptions::AttributeType::timezone; //(_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
+    const bool penaltyStatus = criterion->penaltyStatus;
     int studentNum = 0;
+
     for(int team = 0; team < _numTeams; team++) {
         // gather all attribute values
         attributeLevelsInTeam.clear();
         timezoneLevelsInTeam.clear();
+
+        //for every teammate of a particular student, it adds the attributeValues belonging to that teammate
+        //if the attribute is a timezone, it adds that
         for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
             attributeLevelsInTeam.insert(_students[_teammates[studentNum]].attributeVals[attribute].constBegin(),
                                          _students[_teammates[studentNum]].attributeVals[attribute].constEnd());
@@ -3123,33 +3116,97 @@ void gruepr::getAttributeScores(const StudentRecord *const _students, const int 
         }
 
         // Add a penalty per pair of incompatible attribute responses found
-        if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
-            // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
-            for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
-                const int n = int(attributeLevelsInTeam.count(pair.first));
-                if(pair.first == pair.second) {
-                    _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
-                }
-                else {
-                    const int m = int(attributeLevelsInTeam.count(pair.second));
-                    _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
+
+        if (penaltyStatus){
+            if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
+                //get the values of all, put a penalty for each
+                float attributeRangeInTeam;
+                if (_teamingOptions->attributeDiversity[attribute] == 1){ //homogenous
+                    if(thisIsTimezone) {
+                        for (auto level: timezoneLevelsInTeam){
+                            int numUniqueValues = timezoneLevelsInTeam.size(); // Count unique values
+                            if (numUniqueValues > 1) { // More than one unique value -> penalty
+                                _penaltyPoints[team] += numUniqueValues - 1; // Increase penalty for each extra unique value
+                            }
+                        }
+                    } if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+                        (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
+                        for (auto level: attributeLevelsInTeam){
+                            int numUniqueValues = attributeLevelsInTeam.size(); // Count unique values
+                            if (numUniqueValues > 1) { // More than one unique value -> penalty
+                                _penaltyPoints[team] += numUniqueValues - 1; // Increase penalty for each extra unique value
+                            }
+                        }
+                    } else {
+                        int prevVal = -1;
+                        for(const auto currVal : attributeLevelsInTeam) {
+                            if(currVal != prevVal) {
+                                //add penalty points for differing values
+                                _penaltyPoints[team]+=1;
+                            }
+                            prevVal = currVal;
+                        }
+                    }
+                } else { //heterogenous
+                    if(thisIsTimezone) {
+                        for (auto level: timezoneLevelsInTeam){
+                            int n = timezoneLevelsInTeam.count(level);
+                            //
+                            _penaltyPoints[team] += (n * (n-1))/ 2;
+                        }
+                    } if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+                        (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
+                        for (auto level: attributeLevelsInTeam){
+                            int n = attributeLevelsInTeam.count(level);
+                            //penalty score
+                            _penaltyPoints[team] += (n * (n-1))/ 2;
+                        }
+                    } else {
+                        // attribute is categorical or multicategorical--heterogeneous means create maximum number of unique values
+                        attributeRangeInTeam = -1;
+
+                        int prevVal = -1;
+                        for(const auto currVal : attributeLevelsInTeam) {
+                            if(currVal == prevVal) {
+                                //add penalty points for duplicate values
+                                _penaltyPoints[team]+=1;
+                            }
+                            prevVal = currVal;
+                        }
+                    }
                 }
             }
-        }
 
-        // Add a penalty per required attribute response not found
-        if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
-            // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
-            for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
-                if(attributeLevelsInTeam.count(value) == 0) {
-                    _penaltyPoints[team]++;
+            if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
+                // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
+                for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
+                    //getting the attribute level count for each incompatible attribute value
+                    const int n = int(attributeLevelsInTeam.count(pair.first));
+                    if(pair.first == pair.second) {
+                        _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
+                    }
+                    else {
+                        const int m = int(attributeLevelsInTeam.count(pair.second));
+                        _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
+                    }
                 }
             }
-        }
 
+            // Add a penalty per required attribute response not found
+            if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
+                // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
+                for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
+                    if(attributeLevelsInTeam.count(value) == 0) {
+                        _penaltyPoints[team]++;
+                    }
+                }
+            }
+        } //end of penalty points
         // Remove attribute values of -1 (unknown/not set) and then determine attribute scores assuming we have any
         attributeLevelsInTeam.erase(-1);
-        if((_teamingOptions->realAttributeWeights[attribute] > 0) && (!attributeLevelsInTeam.empty())) {
+
+        //calculating score from homogeneity/heterogeneity
+        if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
             float attributeRangeInTeam;
             if(thisIsTimezone) {
                 // "attribute" is timezone, so use timezone values
@@ -3172,14 +3229,55 @@ void gruepr::getAttributeScores(const StudentRecord *const _students, const int 
                 }
             }
             //Default value is heterogenous
-            _attributeScore[attribute][team] = attributeRangeInTeam /
+            _criterionScore[team] = attributeRangeInTeam /
                                                (*(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin()));
             if(_teamingOptions->attributeDiversity[attribute] == 1) { //attributeScores = 0 if homogeneous and +1 if full range of values are in a team; flip if want homogeneous
-                _attributeScore[attribute][team] = 1 - _attributeScore[attribute][team];
+                _criterionScore[team] = 1 - _criterionScore[team];
             }
         }
 
-        _attributeScore[attribute][team] *= _teamingOptions->realAttributeWeights[attribute];
+        //calculating score for prevented/required teammates
+        int teamSize = _teamSizes[team];
+        int _totalNumberOfRules = 0; //upper bound for total number of teams
+        int _numberOfBrokenRules = 0;
+
+        if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
+            _totalNumberOfRules+=(teamSize * (teamSize-1))/ 2;
+            // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
+            for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
+                const int n = int(attributeLevelsInTeam.count(pair.first));
+                if(pair.first == pair.second) {
+                    _numberOfBrokenRules += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
+                }
+                else {
+                    const int m = int(attributeLevelsInTeam.count(pair.second));
+                    _numberOfBrokenRules += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
+                }
+            }
+        }
+
+        // Add a penalty per required attribute response not found
+        if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
+            _totalNumberOfRules += (teamSize * (teamSize-1))/ 2;
+            // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
+            for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
+                if(attributeLevelsInTeam.count(value) == 0) {
+                    _numberOfBrokenRules++;
+                }
+            }
+        }
+
+        if (_totalNumberOfRules == (teamSize * (teamSize-1))/ 2){
+            float compatibleIncompatibleScore = _numberOfBrokenRules / _totalNumberOfRules;
+            _criterionScore[team] = (compatibleIncompatibleScore + _criterionScore[team]) / 2;
+            _criterionScore[team] *= criterion->weight;
+        } else if (_totalNumberOfRules == (teamSize * (teamSize-1))){
+            float compatibleIncompatibleScore = _numberOfBrokenRules / _totalNumberOfRules;
+            _criterionScore[team] = (compatibleIncompatibleScore + _criterionScore[team]) / 3;
+            _criterionScore[team] *= criterion->weight;
+        } else {
+            _criterionScore[team] *= criterion->weight;
+        }
     }
 }
 

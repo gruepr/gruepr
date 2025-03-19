@@ -1,4 +1,4 @@
 #include "singleurmidentitycriterion.h"
 
-SingleURMIdentityCriterion::SingleURMIdentityCriterion(const QString& urmName, int priority, bool penaltyStatus)
-    : Criterion(priority, penaltyStatus), urmName(urmName) {}
+SingleURMIdentityCriterion::SingleURMIdentityCriterion(const QString& urmName, float weight, bool penaltyStatus)
+    : Criterion(weight, penaltyStatus), urmName(urmName) {}

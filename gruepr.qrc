@@ -61,5 +61,8 @@
         <file>icons_new/heterogeneous.png</file>
         <file>icons_new/homogeneous.png</file>
         <file>icons_new/close_square.png</file>
+        <file>icons_new/important_black.png</file>
+        <file>icons_new/important_gray.png</file>
+        <file>icons_new/important_yellow.png</file>
     </qresource>
 </RCC>

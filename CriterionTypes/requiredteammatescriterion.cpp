@@ -1,4 +1,4 @@
 #include "requiredteammatescriterion.h"
 
-RequiredTeammatesCriterion::RequiredTeammatesCriterion(int priority, bool penaltyStatus)
-    : Criterion(priority, penaltyStatus) {}
+RequiredTeammatesCriterion::RequiredTeammatesCriterion(float weight, bool penaltyStatus)
+    : Criterion(weight, penaltyStatus) {}

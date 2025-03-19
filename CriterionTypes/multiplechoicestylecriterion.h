@@ -9,7 +9,7 @@ public:
     DataOptions::AttributeType typeOfAttribute;
     int attributeIndex;
 
-    MultipleChoiceStyleCriterion(int priority, bool penaltyStatus, DataOptions::AttributeType typeOfAttribute, int attributeIndex);
+    MultipleChoiceStyleCriterion(float weight, bool penaltyStatus, DataOptions::AttributeType typeOfAttribute, int attributeIndex);
 };
 
 #endif // MULTIPLECHOICESTYLECRITERION_H

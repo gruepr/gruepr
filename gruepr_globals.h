@@ -17,6 +17,7 @@ inline static const int MAX_BLOCKS_PER_DAY = 24*60/MIN_SCHEDULE_RESOLUTION;     
 
 inline static const int MAX_ATTRIBUTES = 15;                          // maximum number of skills/attitudes in a survey
 inline static const int MAX_PREFTEAMMATES = 10;
+inline static const int MAX_CRITERIA = 20;
 
 inline static const int HIGHSCHEDULEOVERLAPSCALE = 2;                 // if a team has more than the desired amount of schedule overlap, each additional overlap time is scaled by
                                                                       // the inverse of this factor (e.g., 2 means next additional hour is worth 1/2; next is worth 1/4; then 1/8, etc.)
@@ -134,6 +135,8 @@ inline static const char EDITREMOVEBUTTONSELECTEDSTYLE[] = "QPushButton {backgro
 inline static const char EDITREMOVEBUTTONDUPLICATESTYLE[] = "QPushButton {background-color: " STARFISHHEX "; border: none;}";
 inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL10PTMANDATORYSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: #ffcccc; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
+                                            "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL12PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 12pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL14PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 14pt; font-family: 'DM Sans'; border: none;}"
@@ -198,6 +201,12 @@ inline static const char CHECKBOXSTYLE[] = "QCheckBox {background-color: " TRANS
                                              "QCheckBox::indicator {background-color: white; width: 12px; height: 12px; border: 2px solid " DEEPWATERHEX ";}"
                                              "QCheckBox::indicator:disabled {background-color: lightGray; width: 12px; height: 12px; border: 2px solid darkGray;}"
                                              "QCheckBox::indicator:checked {background-color: white; image: url(:/icons_new/Checkmark.png);}";
+inline static const char MANDATORYCHECKBOXSTYLE[] = "QCheckBox { background-color: transparent; font-family: 'DM Sans'; font-size: 10pt; border: none; }"
+                                                "QCheckBox:hover { background-color: rgba(200, 200, 200, 0.5); }"
+                                                "QCheckBox::disabled { color: darkGray; font-family: 'DM Sans'; font-size: 10pt; }"
+                                                "QCheckBox::indicator { background-color: white; width: 12px; height: 12px; image: url(:/icons_new/important_black.png); border: none;}"
+                                                "QCheckBox::indicator:disabled { background-color: lightGray; width: 12px; height: 12px; image: url(:/icons_new/important_gray.png); }"
+                                                "QCheckBox::indicator:checked { background-color: white; image: url(:/icons_new/important_yellow.png); }";
 inline static const char RADIOBUTTONSTYLE[] = "QRadioButton {background-color: " TRANSPARENT "; font-family: 'DM Sans'; font-size: 10pt;}"
                                                 "QRadioButton::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 10pt;}"
                                                 "QRadioButton::indicator {width: 16px; height: 16px;}"
@@ -238,6 +247,12 @@ inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX ";
                                        "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
                                                 "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                                 "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+inline static const char MANDATORYFRAME[] = "QFrame {background-color: #ffcccc ; color: #ffcccc ; "
+                                       "border-top: 1px solid; border-right: 1px solid; "
+                                       "border-bottom: 1px solid; border-left: 1px solid;}"
+                                       "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
+                                       "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
+                                       "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 inline static const char BORDERLESSBLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
                                                    "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
 inline static const char DATASOURCEFRAMESTYLE[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"

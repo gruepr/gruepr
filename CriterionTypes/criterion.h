@@ -3,10 +3,10 @@
 
 class Criterion {
 public:
-    int priority;
+    float weight;
     bool penaltyStatus;
 
-    Criterion(int priority, bool penaltyStatus);
+    Criterion(float weight = 0, bool penaltyStatus = false);
     virtual ~Criterion() = default;
 };
 
