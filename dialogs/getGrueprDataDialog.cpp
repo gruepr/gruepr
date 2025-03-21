@@ -59,7 +59,7 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
     connect(ui->fromPrevWorkRadioButton, &QRadioButton::toggled, ui->prevWorkComboBox, &QComboBox::setVisible);
     ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
                                           "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
-    ui->sourceButtonGroup->setId(ui->fromFileRadioButton, static_cast<int>(DataOptions::DataSource::fromFile));
+    ui->sourceButtonGroup->setId(ui->fromFileRadioButton, static_cast<int>(DataOptions::DataSource::fromUploadFile));
     ui->sourceButtonGroup->setId(ui->fromGoogleradioButton, static_cast<int>(DataOptions::DataSource::fromGoogle));
     ui->sourceButtonGroup->setId(ui->fromCanvasradioButton, static_cast<int>(DataOptions::DataSource::fromCanvas));
     ui->sourceButtonGroup->setId(ui->fromPrevWorkRadioButton, static_cast<int>(DataOptions::DataSource::fromPrevWork));
@@ -209,7 +209,7 @@ void GetGrueprDataDialog::loadData()
 
     bool fileLoaded = false;
     switch(static_cast<DataOptions::DataSource>(ui->sourceButtonGroup->checkedId())) {
-    case DataOptions::DataSource::fromFile:
+    case DataOptions::DataSource::fromUploadFile:
         dataOptions = new DataOptions;
         surveyFile = new CsvFile;
         fileLoaded = getFromFile();
@@ -304,7 +304,7 @@ bool GetGrueprDataDialog::getFromFile()
     }
 
     savedSettings.setValue("saveFileLocation", surveyFile->fileInfo().canonicalFilePath());
-    source = DataOptions::DataSource::fromFile;
+    source = DataOptions::DataSource::fromUploadFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
     const int h = ui->dataSourceLabel->height();

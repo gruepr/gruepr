@@ -53,7 +53,7 @@ inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: 'DM Sans';"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
 inline static const char WHITEDIALOGSTYLE[] = "QDialog{background-color: white;}";
-inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 8px;"
+inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 8px; border-color: #D0D0D0; /* Soft grey for subtle elevation */"
                                                                   "color: " DEEPWATERHEX "; background-color: white;} "
                                                     "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}";
 inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
@@ -67,12 +67,18 @@ inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: " DE
 inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
                                                            "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
                                                            "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                              "QPushButton:hover {"
+                                              "    background-color: #204a70; /* Adjusted shade for hover effect */"
+                                              "}"
                                               "QPushButton:disabled {background-color: lightGray; "
                                                                     "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                     "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 inline static const char SMALLBUTTONSTYLEINVERTED[] = "QPushButton {background-color: white; "
                                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
                                                                    "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
+                                                      "QPushButton:hover {"
+                                                      "    background-color: #f0f0f0; /* Light grey on hover */"
+                                                      "}"
                                                       "QPushButton:disabled {background-color: lightGray; "
                                                                             "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                             "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";

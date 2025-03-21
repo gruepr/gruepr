@@ -197,23 +197,23 @@ void StartDialog::openGruepr() {
         const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
         QApplication::restoreOverrideCursor();
         auto result = getDataDialog->exec();
-        // if(result == QDialog::Accepted) {
-        //     // QApplication::setOverrideCursor(Qt::BusyCursor);
-        //     // const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
-        //     // this->hide();
-        //     // grueprWindow->show();
-        //     // emit closeDataDialogProgressBar();
-        //     // QApplication::restoreOverrideCursor();
-        //     // QEventLoop loop;
-        //     // connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
-        //     // loop.exec();
-        //     // spawnNewWindow = grueprWindow->restartRequested;
-        //     // this->show();
-        // }
-        // else {
-        //     spawnNewWindow = false;
-        //     emit closeDataDialogProgressBar();
-        // }
+        if(result == QDialog::Accepted) {
+            QApplication::setOverrideCursor(Qt::BusyCursor);
+            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
+            this->hide();
+            grueprWindow->show();
+            emit closeDataDialogProgressBar();
+            QApplication::restoreOverrideCursor();
+            QEventLoop loop;
+            connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
+            loop.exec();
+            spawnNewWindow = grueprWindow->restartRequested;
+            this->show();
+        }
+        else {
+            spawnNewWindow = false;
+            emit closeDataDialogProgressBar();
+        }
     }
 }
 

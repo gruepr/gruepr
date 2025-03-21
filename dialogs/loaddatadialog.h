@@ -4,6 +4,7 @@
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/startDialog.h"
+#include "qcombobox.h"
 #include "qdialog.h"
 #include "studentRecord.h"
 
@@ -19,15 +20,22 @@ public slots:
     void accept() override;
 
 private:
-    void loadData();
+    StartDialog *parent;
+    void loadData(QString filePathString);
     CsvFile *surveyFile = nullptr;
     bool getFromFile();
     bool getFromGoogle();
     bool getFromCanvas();
     bool getFromPrevWork();
+    bool getFromDropFile(QString filePathString);
     bool readData();
-    DataOptions::DataSource source = DataOptions::DataSource::fromFile;
-
+    bool readQuestionsFromHeader();
+    DataOptions::DataSource source = DataOptions::DataSource::fromUploadFile;
+    QDialogButtonBox* confirmCancelButtonBox;
+    QFrame* dataSourceFrame;
+    QPushButton* dataSourceLabel;
+    QComboBox *prevWorkComboBox;
+    QList<StudentRecord> roster;
     inline static const QString HEADERTEXT = QObject::tr("Question text");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");
     inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
