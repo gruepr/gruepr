@@ -64,5 +64,9 @@
         <file>icons_new/important_black.png</file>
         <file>icons_new/important_gray.png</file>
         <file>icons_new/important_yellow.png</file>
+        <file>icons_new/upload.png</file>
+        <file>icons_new/upload-dark.png</file>
+        <file>icons_new/save.png</file>
+        <file>icons_new/googleform.png</file>
     </qresource>
 </RCC>

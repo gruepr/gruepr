@@ -1,4 +1,5 @@
 #include "startDialog.h"
+#include "dialogs/loaddatadialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
 #include "dialogs/getGrueprDataDialog.h"
@@ -193,26 +194,26 @@ void StartDialog::openGruepr() {
 
     bool spawnNewWindow = true;
     while(spawnNewWindow) {
-        const QScopedPointer<GetGrueprDataDialog> getDataDialog(new GetGrueprDataDialog(this));
+        const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
         QApplication::restoreOverrideCursor();
         auto result = getDataDialog->exec();
-        if(result == QDialog::Accepted) {
-            QApplication::setOverrideCursor(Qt::BusyCursor);
-            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
-            this->hide();
-            grueprWindow->show();
-            emit closeDataDialogProgressBar();
-            QApplication::restoreOverrideCursor();
-            QEventLoop loop;
-            connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
-            loop.exec();
-            spawnNewWindow = grueprWindow->restartRequested;
-            this->show();
-        }
-        else {
-            spawnNewWindow = false;
-            emit closeDataDialogProgressBar();
-        }
+        // if(result == QDialog::Accepted) {
+        //     // QApplication::setOverrideCursor(Qt::BusyCursor);
+        //     // const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
+        //     // this->hide();
+        //     // grueprWindow->show();
+        //     // emit closeDataDialogProgressBar();
+        //     // QApplication::restoreOverrideCursor();
+        //     // QEventLoop loop;
+        //     // connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
+        //     // loop.exec();
+        //     // spawnNewWindow = grueprWindow->restartRequested;
+        //     // this->show();
+        // }
+        // else {
+        //     spawnNewWindow = false;
+        //     emit closeDataDialogProgressBar();
+        // }
     }
 }
 

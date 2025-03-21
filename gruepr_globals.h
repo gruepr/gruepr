@@ -53,10 +53,10 @@ inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: 'DM Sans';"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
 inline static const char WHITEDIALOGSTYLE[] = "QDialog{background-color: white;}";
-inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 3px; border-radius: 8px; border-color: " DEEPWATERHEX "; "
+inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 8px;"
                                                                   "color: " DEEPWATERHEX "; background-color: white;} "
-                                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}";
-inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: solid; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
+                                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}";
+inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
                                                            "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
                                                            "color: " DEEPWATERHEX "; background-color: white;} "
                                              "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
@@ -247,6 +247,16 @@ inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX ";
                                        "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
                                                 "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                                 "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+inline static const char DROPFRAME[] = "QFrame {"
+                                       "    background-color: rgba(0, 0, 0, 0);"  // Transparent background
+                                       "    border: 2px dotted rgba(128, 128, 128, 150);" // Grey dotted border
+                                       "    border-radius: 10px;"  // Rounded corners
+                                       "}";
+inline static const char BASICFRAME[] = "QFrame {"
+                                       "    background-color: rgba(0, 0, 0, 0);"  // Transparent background
+                                       "    border: 2px solid rgba(128, 128, 128, 150);" // Grey dotted border
+                                       "    border-radius: 10px;"  // Rounded corners
+                                       "}";
 inline static const char MANDATORYFRAME[] = "QFrame {background-color: #ffcccc ; color: #ffcccc ; "
                                        "border-top: 1px solid; border-right: 1px solid; "
                                        "border-bottom: 1px solid; border-left: 1px solid;}"
@@ -263,6 +273,30 @@ inline static const char DATASOURCELABELSTYLE[] = "QLabel {background-color: " T
                                                     "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
 inline static const char DATASOURCEBUTTONSTYLE[] = "QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
                                                     "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
+inline static const char UPLOADBUTTONSTYLE[] =  "QPushButton {"
+                                                "    background-color: rgba(180, 180, 180, 180); /* Lighter Grey */"
+                                                "    border: none;"
+                                                "    border-radius: 25px; /* Makes it circular */"
+                                                "    width: 50px; /* Set fixed width */"
+                                                "    height: 50px; /* Set fixed height */"
+                                                "}"
+                                                "QPushButton:hover {"
+                                                "    background-color: rgba(100, 100, 100, 200); /* Darker Grey on Hover */"
+                                                "}";
+inline static const char STANDARDBUTTON[] = "QPushButton {"
+                                            "    background-color: rgba(180, 180, 180, 180); /* Lighter Grey */"
+                                            "    padding: 5px;"
+                                            "    border-radius: 8px;"
+                                            "    border: none;"
+                                            "    font-size: 10pt;"
+                                            "}"
+                                            "QPushButton:hover {"
+                                            "    background-color: rgba(100, 100, 100, 200); /* Darker Grey on Hover */"
+                                            "}";
+inline static const char LABELONLYBUTTON[] = "QPushButton {"
+                                            "    background-color: none; "
+                                            "    border: none;"
+                                             "}";
 inline static const char ATTRIBUTESTACKWIDGETSTYLE[] = "QFrame {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: none;}";
 inline static const char TEAMTREEWIDGETSTYLE[] = "QTreeView{font-family: 'DM Sans'; font-size: 12pt;}"
                                                    "QTreeWidget::item:selected{background-color: " BUBBLYHEX "; color: black;}"

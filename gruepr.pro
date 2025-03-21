@@ -78,6 +78,7 @@ SOURCES += \
         dataOptions.cpp \
         dialogs/dataTypesTableDialog.cpp \
         dialogs/identityrulesdialog.cpp \
+        dialogs/loaddatadialog.cpp \
         gruepr_globals.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -136,6 +137,7 @@ HEADERS += \
         dataOptions.h \
         dialogs/dataTypesTableDialog.h \
         dialogs/identityrulesdialog.h \
+        dialogs/loaddatadialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
