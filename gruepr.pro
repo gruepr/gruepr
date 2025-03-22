@@ -76,8 +76,10 @@ SOURCES += \
         CriterionTypes/singleurmidentitycriterion.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/categorizingdialog.cpp \
         dialogs/dataTypesTableDialog.cpp \
         dialogs/identityrulesdialog.cpp \
+        dialogs/loaddatadialog.cpp \
         gruepr_globals.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -111,6 +113,7 @@ SOURCES += \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/dropcsvframe.cpp \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
@@ -134,8 +137,10 @@ HEADERS += \
         CriterionTypes/singleurmidentitycriterion.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/categorizingdialog.h \
         dialogs/dataTypesTableDialog.h \
         dialogs/identityrulesdialog.h \
+        dialogs/loaddatadialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
@@ -169,6 +174,7 @@ HEADERS += \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/dropcsvframe.h \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
