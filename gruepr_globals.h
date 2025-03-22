@@ -258,6 +258,11 @@ inline static const char DROPFRAME[] = "QFrame {"
                                        "    border: 2px dotted rgba(128, 128, 128, 150);" // Grey dotted border
                                        "    border-radius: 10px;"  // Rounded corners
                                        "}";
+inline static const char DRAGENTERDROPFRAME[] = "QFrame {"
+                                       "    background-color: rgba(0, 0, 0, 0);"  // Transparent background
+                                       "    border: 2px solid rgba(128, 128, 128, 150);" // Grey dotted border
+                                       "    border-radius: 10px;"  // Rounded corners
+                                       "}";
 inline static const char BASICFRAME[] = "QFrame {"
                                        "    background-color: rgba(0, 0, 0, 0);"  // Transparent background
                                        "    border: 2px solid rgba(128, 128, 128, 150);" // Grey dotted border
@@ -323,7 +328,9 @@ inline static const char TEAMTREEWIDGETHEADERSTYLE[] = "QHeaderView {border-top:
                                                          "   subcontrol-origin: padding; subcontrol-position: bottom left;}"
                                                          "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px;"
                                                          "   subcontrol-origin: padding; subcontrol-position: top left;}";
-
+inline static const char FAKETABLEHEADERWIDGETSTYLE[] = "QWidget{border-top: none; border-left: none; border-right: 1px solid lightGray; "
+                                                  "border-bottom: none; background-color:" DEEPWATERHEX "; "
+                                                  "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center; padding:2px;}";
 inline static const int DIALOG_SPACER_ROWHEIGHT = 20;
 inline static const int LG_DLG_SIZE = 600;
 inline static const int SM_DLG_SIZE = 300;

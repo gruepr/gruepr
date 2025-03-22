@@ -707,7 +707,7 @@ void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
         }
 
         // if we are at or above the allowed number of ocurrences, note it
-        if(takenValues[selection] >= box->currentData().toInt()) {
+        if(takenValues[selection] >= box->currentData().toInt()) { //combo box notes allowed number of ocurrences
             // add this occurence in the takenValues mapping
             if(fullyUsedValues.count(selection) == 0) {
                 // field has just reached capacity; create the key/value
@@ -809,6 +809,8 @@ bool GetGrueprDataDialog::readData()
     dataOptions->sectionIncluded = (dataOptions->sectionField != DataOptions::FIELDNOTPRESENT);
     dataOptions->timezoneField = int(surveyFile->fieldMeanings.indexOf("Timezone"));
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != DataOptions::FIELDNOTPRESENT);
+
+    //associating column numbers with fields
 
     // pref teammates fields
     int lastFoundIndex = 0;

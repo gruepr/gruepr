@@ -15,12 +15,16 @@ void DropCSVFrame::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls()){
         event->acceptProposedAction();
+        setStyleSheet(DRAGENTERDROPFRAME);
     }
+}
+void DropCSVFrame::dragLeaveEvent(QDragLeaveEvent *event) {
+    Q_UNUSED(event); //suppress warnings about unused event parameter
+    setStyleSheet(DROPFRAME);
 }
 
 void DropCSVFrame::dropEvent(QDropEvent *event)
 {
-
     QList<QUrl> urls = event->mimeData()->urls();
     QString filePathString;
 
@@ -28,5 +32,6 @@ void DropCSVFrame::dropEvent(QDropEvent *event)
         filePathString += url.toLocalFile();
     }
     emit itemDropped(filePathString);
+    setStyleSheet(DROPFRAME);
     qDebug() << "Dropped url" << filePathString;
 }

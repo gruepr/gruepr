@@ -68,5 +68,7 @@
         <file>icons_new/upload-dark.png</file>
         <file>icons_new/save.png</file>
         <file>icons_new/googleform.png</file>
+        <file>icons_new/checkmark-green.png</file>
+        <file>icons_new/left.png</file>
     </qresource>
 </RCC>

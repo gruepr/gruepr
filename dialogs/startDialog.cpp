@@ -1,8 +1,8 @@
 #include "startDialog.h"
+#include "dialogs/categorizingdialog.h"
 #include "dialogs/loaddatadialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
-#include "dialogs/getGrueprDataDialog.h"
 #include "dialogs/registerDialog.h"
 #include "surveyMakerWizard.h"
 #include <QApplication>
@@ -196,11 +196,13 @@ void StartDialog::openGruepr() {
     while(spawnNewWindow) {
         const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
         QApplication::restoreOverrideCursor();
+        this->hide();
         auto result = getDataDialog->exec();
         if(result == QDialog::Accepted) {
+            //where is the surveyFile stored?
             QApplication::setOverrideCursor(Qt::BusyCursor);
             const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
-            this->hide();
+
             grueprWindow->show();
             emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
@@ -208,11 +210,11 @@ void StartDialog::openGruepr() {
             connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
             spawnNewWindow = grueprWindow->restartRequested;
-            this->show();
         }
         else {
             spawnNewWindow = false;
             emit closeDataDialogProgressBar();
+            this->show();
         }
     }
 }

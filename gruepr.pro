@@ -76,6 +76,7 @@ SOURCES += \
         CriterionTypes/singleurmidentitycriterion.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/categorizingdialog.cpp \
         dialogs/dataTypesTableDialog.cpp \
         dialogs/identityrulesdialog.cpp \
         dialogs/loaddatadialog.cpp \
@@ -136,6 +137,7 @@ HEADERS += \
         CriterionTypes/singleurmidentitycriterion.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/categorizingdialog.h \
         dialogs/dataTypesTableDialog.h \
         dialogs/identityrulesdialog.h \
         dialogs/loaddatadialog.h \

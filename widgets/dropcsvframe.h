@@ -9,6 +9,7 @@ public:
     DropCSVFrame(QWidget *parent = nullptr);
     void dragEnterEvent(QDragEnterEvent *event = nullptr);
     void dropEvent(QDropEvent *event = nullptr);
+    void dragLeaveEvent(QDragLeaveEvent *event);
 
 signals:
     void itemDropped(const QString &filePathString);

@@ -16,6 +16,7 @@ public:
 
     DataOptions *dataOptions = nullptr;
     QList<StudentRecord> students;
+    CsvFile* getSurveyFile();
 public slots:
     void accept() override;
 

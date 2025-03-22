@@ -2,6 +2,7 @@
 #include "LMS/canvashandler.h"
 #include "LMS/googlehandler.h"
 #include "dialogs/baseTimeZoneDialog.h"
+#include "dialogs/categorizingdialog.h"
 #include "qcollator.h"
 #include "qcombobox.h"
 #include "qdir.h"
@@ -22,6 +23,10 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(pa
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(5);
+    QPushButton *previousScreenButton = new QPushButton(this);
+    previousScreenButton->setIcon(QIcon(":/icons_new/left.png"));
+    previousScreenButton->setStyleSheet(STANDARDBUTTON);
+
     QLabel *headerLabel = new QLabel("Load your student data to form teams");
     QLabel *headerLabel2 = new QLabel("GruePR does not collect any student data - it is stored in your computer.");
 
@@ -155,6 +160,10 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(pa
     dataSourceLabel->setStyleSheet(LABELONLYBUTTON);
     dataSourceFrame->setEnabled(false);
     dataSourceLabel->setEnabled(false);
+    dataSourceLabel->setText("No data source loaded.");
+    const QPixmap icon(":/icons_new/file.png");
+    const int h = dataSourceLabel->height();
+    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
 
     confirmCancelButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
@@ -184,8 +193,10 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(pa
         loadData("");
     });
     connect(confirmCancelButtonBox, &QDialogButtonBox::accepted, this, &loadDataDialog::accept);
-    //connect(confirmCancelButtonBox, &QDialogButtonBox::rejected, this, );
+    connect(confirmCancelButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(previousScreenButton, &QPushButton::clicked, this, &QDialog::reject);
 
+    mainLayout->addWidget(previousScreenButton, 0, Qt::AlignLeft);
     mainLayout->addWidget(headerLabel, 0, Qt::AlignCenter);
     mainLayout->addWidget(headerLabel2, 0, Qt::AlignCenter);
     mainLayout->addWidget(dropCSVFileFrame);
@@ -322,6 +333,9 @@ void loadDataDialog::loadData(QString filePathString)
     confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
+CsvFile* loadDataDialog::getSurveyFile(){
+    return surveyFile;
+}
 
 bool loadDataDialog::readQuestionsFromHeader()
 {
@@ -703,38 +717,30 @@ bool loadDataDialog::getFromPrevWork()
 
 
 void loadDataDialog::accept() {
-    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
-        if(!readData()) {
-            confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-            // ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
-            //                                QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
-            // ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
-            //                                       "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
-            QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
-            //QPainter painter(&whiteUploadIcon);
-            // painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-            // painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
-            // painter.end();
-            //loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(ui->loadDataPushButton->height(), Qt::SmoothTransformation));
-            //ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
-            // ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
-            //                                                    "border-top: none; border-bottom: none; border-left: none; "
-            //                                                    "border-right: 1px solid darkGray; "
-            //                                                    "font-family: 'DM Sans'; font-size: 12pt;}");
 
-            //ui->tableWidget->clearContents();
-            //ui->tableWidget->setRowCount(0);
+    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
+        const QScopedPointer<CategorizingDialog> categorizingDataDialog(new CategorizingDialog(this, surveyFile, source));
+        auto categorizing_result = categorizingDataDialog->exec();
+        if (categorizing_result != QDialog::Accepted){
+            //spawnNewWindow = false;
+            //emit closeDataDialogProgressBar();
+            return;
+        } else if(!readData()){
+            confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
             dataSourceFrame->setEnabled(false);
             dataSourceLabel->setEnabled(false);
             dataSourceLabel->setText(tr("No survey loaded"));
-            //ui->fieldsExplainer->setEnabled(false);
-            //ui->headerRowCheckBox->setEnabled(false);
-            //ui->tableWidget->setEnabled(false);
+            // ui->hLine->setEnabled(false);
+            //still missing the checkbox to indicate first row is header + missing explanation
+            // ui->fieldsExplainer->setEnabled(false);
+            // ui->headerRowCheckBox->setEnabled(false);
+            // ui->tableWidget->setEnabled(false);
             students.clear();
             return;
+        } else {
+            QDialog::accept();
         }
     }
-
     QDialog::accept();
 }
 
