@@ -253,6 +253,9 @@ inline static const char BLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX ";
                                        "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
                                                 "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
                                                 "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+inline static const char LEGENDFRAME[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
+                                       "border-top: 1px solid " DEEPWATERHEX "; border-right: 1px solid " DEEPWATERHEX "; "
+                                         "border-bottom: 1px solid " DEEPWATERHEX "; border-left: 1px solid " DEEPWATERHEX "; border-radius:5px;}";
 inline static const char DROPFRAME[] = "QFrame {"
                                        "    background-color: rgba(0, 0, 0, 0);"  // Transparent background
                                        "    border: 2px dotted rgba(128, 128, 128, 150);" // Grey dotted border

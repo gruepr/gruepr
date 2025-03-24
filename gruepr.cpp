@@ -55,6 +55,14 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
 
     QSplitter *splitter = new QSplitter(Qt::Horizontal);
+    splitter->setStyleSheet(R"(
+        QSplitter::handle {
+            background: lightgray;
+        }
+    )");
+    splitter->setHandleWidth(5);
+    splitter->setToolTip("Drag left or right to adjust");
+
     QWidget *settingTeamCriteriaWidget = new QWidget(this);
     QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
     ui->teamingOptionsScrollArea->setWidgetResizable(true);
@@ -901,11 +909,9 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
             float actualScore = criterionScore[criterion][team]/_teamingOptions->weights[criterion];
             qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
             qDebug() << "weight from criterion->weight:" << _teamingOptions->criterionTypes[criterion]->weight;
-            if (penaltyScore < 0 && _teamingOptions->criterionTypes[criterion]->penaltyStatus){
-                _teams[team].criterionScores[criterion] = penaltyScore;
-            } else {
-                _teams[team].criterionScores[criterion] = actualScore;
-            }
+
+            //does not take into account penalty scores yet
+            _teams[team].criterionScores[criterion] = actualScore;
 
             qDebug() << "team:" << team;
             qDebug() << "criterion:" << criterion;

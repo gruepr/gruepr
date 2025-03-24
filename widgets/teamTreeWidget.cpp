@@ -336,24 +336,36 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
             (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
-            if(*firstTeamVal == -1) {
-                firstTeamVal++;
+            //find average
+            // if(*firstTeamVal == -1) {
+            //     firstTeamVal++;
+            // }
+            float sum = 0.0f;
+            int count = 0;
+
+            for (auto it = team.attributeVals[attribute].cbegin(); it != team.attributeVals[attribute].cend(); ++it) {
+                sum += *it;  // Add the current value to the sum
+                count++;  // Increment the count
             }
 
-            if(firstTeamVal != team.attributeVals[attribute].cend()) {
-                if(*firstTeamVal == *lastTeamVal) {
-                    attributeText = QString::number(*firstTeamVal);
-                }
-                else {
-                    attributeText = QString::number(*firstTeamVal) + " - " + QString::number(*lastTeamVal);
-                }
-                sortData = *firstTeamVal * 100 + *lastTeamVal;
-            }
-            else {
-                //only attribute value was -1
-                attributeText = "?";
-                sortData = -1;
-            }
+            // Check if there are any values to avoid division by zero
+            float average = (count > 0) ? sum / count : 0.0f;
+            attributeText = QString("Average: ") + QString::number(average);
+            sortData = average;
+            // if(firstTeamVal != team.attributeVals[attribute].cend()) {
+            //     if(*firstTeamVal == *lastTeamVal) {
+            //         attributeText = QString::number(*firstTeamVal);
+            //     }
+            //     else {
+            //         attributeText = QString::number(*firstTeamVal) + " - " + QString::number(*lastTeamVal);
+            //     }
+            //     sortData = *firstTeamVal * 100 + *lastTeamVal;
+            // }
+            // else {
+            //     //only attribute value was -1
+            //     attributeText = "?";
+            //     sortData = -1;
+            // }
         }
         else {
             // attribute is categorical or multicategorical, so important info is the list of values
@@ -838,12 +850,12 @@ TeamTreeWidgetItem::TeamTreeWidgetItem(TreeItemType type, int columns, float tea
 
 void TeamTreeWidgetItem::setScoreColor(float teamScore)
 {
-    if(teamScore < 0) {
-        setBackground(1, QColor::fromString(STARFISHHEX));
-    }
-    else {
+    // if(teamScore < 0) {
+    //     setBackground(1, QColor::fromString(STARFISHHEX));
+    // }
+    // else {
         setBackground(1, background(0));
-    }
+    //}
 }
 
 

@@ -42,6 +42,7 @@ signals:
     void saveState();
 
 private slots:
+    QWidget* createScoreLegend();
     void changeTeamNames(int index);
     void toggleSectionsInTeamNames(bool addSectionNames);
     void randomizeTeamnames(bool random);
@@ -57,6 +58,7 @@ private slots:
     void saveTeams();
     void printTeams();
     void postTeamsToCanvas();
+    void refreshSummaryTable(TeamingOptions teamingOptions);
 
 private:
     TeamTreeWidget *teamDataTree = nullptr;
