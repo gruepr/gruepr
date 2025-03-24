@@ -87,12 +87,12 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     diverseButton->setIcon(QIcon(":/icons_new/heterogeneous.png"));
     diverseButton->setIconSize(QSize(40, 40)); // Bigger icon
     diverseButton->setStyleSheet("font-size: 15px;");
-    diverseButton->setChecked(true);
     auto *diverseLayout = new QVBoxLayout(diverseCard);
     QLabel *diverseLabel = new QLabel("Diverse", this);
     diverseButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     diverseLayout->addWidget(diverseButton, 0, Qt::AlignTop);
     diverseLayout->addWidget(diverseLabel,0,Qt::AlignBottom);
+    diverseButton->setChecked(false);
 
     // Create the "Similar" card
     similarButton = new QRadioButton(this);
@@ -108,6 +108,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     similarButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     similarLayout->addWidget(similarButton, 0, Qt::AlignTop);
     similarLayout->addWidget(similarLabel,0,Qt::AlignBottom);
+    similarButton->setChecked(false);
 
     // Set square size for the "Diverse" button
     diverseCard->setFixedSize(100, 100); // You can change 100 to any size you prefer
@@ -118,7 +119,10 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     // Optionally, keep the expanding size policy to ensure proper layout behavior
     diverseCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     similarCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
+    diverseCard->setStyleSheet("QFrame#diverseCard {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}");
+    similarCard->setStyleSheet("QFrame#similarCard {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}");
+    diverseLabel->setStyleSheet("background-color: white;");
+    similarLabel->setStyleSheet("background-color: white;");
 
     QButtonGroup *radioButtonGroup = new QButtonGroup(this);
     radioButtonGroup->addButton(similarButton);
@@ -197,11 +201,12 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
         setIncompatibleStudentsButton->setEnabled(true);
         // requiredIncompatsButton->setToolTip(REQUIREDINCOMPATTOOLTIP);
     }
+
     // weight->setValue(double(teamingOptions->attributeWeights[attribute]));
     //Convert AttributeDiversity to Slider Index then set slider value
     bool homogeneous = teamingOptions->attributeDiversity[attribute];
-    diverseButton->toggled(!homogeneous);
-    similarButton->toggled(homogeneous);
+    diverseButton->setChecked(!homogeneous);
+    similarButton->setChecked(homogeneous);
 }
 
 void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts)

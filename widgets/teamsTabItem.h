@@ -1,6 +1,7 @@
 #ifndef TEAMSTABITEM_H
 #define TEAMSTABITEM_H
 
+#include "qtablewidget.h"
 #include "studentRecord.h"
 #include "dialogs/whichFilesDialog.h"
 #include "teamRecord.h"
@@ -59,6 +60,7 @@ private slots:
 
 private:
     TeamTreeWidget *teamDataTree = nullptr;
+    QTableWidget *summaryTable = nullptr;
     void refreshTeamDisplay();
     void refreshDisplayOrder();
     QList<int> getTeamNumbersInDisplayOrder() const;

@@ -37,6 +37,7 @@ TeamsTabItem::TeamsTabItem(TeamingOptions &incomingTeamingOptions, const TeamSet
     init(incomingTeamingOptions, incomingStudents, letsDoItButton, TabType::newTab);
 }
 
+//initialize from previous data
 TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &incomingTeamingOptions, QList<StudentRecord> &incomingStudents,
                            const QStringList &incomingSectionNames, QPushButton *letsDoItButton, QWidget *parent)
     :QWidget(parent)
@@ -76,8 +77,21 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     teamDataLayout->setStretch(0, 1);
     setLayout(teamDataLayout);
 
+    auto *summaryAndDataLayout = new QHBoxLayout();
+
     teamDataTree = new TeamTreeWidget(this);
-    teamDataLayout->addWidget(teamDataTree);
+    //create a new table
+    auto *summaryLayout = new QVBoxLayout();
+    summaryTable = new QTableWidget();
+    auto* legend = new QHBoxLayout();
+    auto* summaryLabel = new QLabel("Summary");
+    summaryLabel->setStyleSheet(LABEL12PTSTYLE);
+    legend->addWidget(summaryLabel);
+    summaryLayout->addLayout(legend);
+    summaryLayout->addWidget(summaryTable);
+    summaryAndDataLayout->addLayout(summaryLayout);
+    summaryAndDataLayout->addWidget(teamDataTree);
+    teamDataLayout->addLayout(summaryAndDataLayout);
 
     auto *rowsLayout = new QHBoxLayout;
     rowsLayout->setSpacing(6);

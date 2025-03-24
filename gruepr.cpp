@@ -891,32 +891,29 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
                    criterionScore, availabilityChart, penaltyPoints);
                    //_attributesBeingScored, _schedBeingScored, _genderBeingScored, _URMBeingScored, _teammatesBeingScored);
     // Print `teamSizes`
-    qDebug() << "DEBUG: Team Sizes:";
-    for (int i = 0; i < _numTeams; i++) {
-        qDebug() << "teamSizes[" << i << "] = " << teamSizes[i];
-    }
 
-    getGenomeScore(_students.constData(), genome, _numTeams, teamSizes,
-                   _teamingOptions, &_dataOptions, teamScores,
-                   criterionScore, availabilityChart, penaltyPoints);
+    for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++){
+        for (int team = 0; team <_numTeams; team++){
+            _teams[team].criterionScores[criterion] = criterionScore[criterion][team];
+            //penalty
+            int penaltyScore = -penaltyPoints[criterion];
+            //unweighted score
+            float actualScore = criterionScore[criterion][team]/_teamingOptions->weights[criterion];
+            qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
+            qDebug() << "weight from criterion->weight:" << _teamingOptions->criterionTypes[criterion]->weight;
+            if (penaltyScore < 0 && _teamingOptions->criterionTypes[criterion]->penaltyStatus){
+                _teams[team].criterionScores[criterion] = penaltyScore;
+            } else {
+                _teams[team].criterionScores[criterion] = actualScore;
+            }
 
-    // Print `penaltyPoints`
-    qDebug() << "DEBUG: Penalty Points:";
-    for (int i = 0; i < _numTeams; i++) {
-        qDebug() << "penaltyPoints[" << i << "] = " << penaltyPoints[i];
-    }
+            qDebug() << "team:" << team;
+            qDebug() << "criterion:" << criterion;
+            qDebug() << "penalty:" << -penaltyPoints[criterion];
+            qDebug() << "actual score:" << actualScore;
+            qDebug() << "score:" << criterionScore[criterion][team];
+            qDebug() << "score final:" << _teams[team].criterionScores[criterion];
 
-    // Print `weights`
-    qDebug() << "DEBUG: Weights:";
-    for (const auto &weight : _teamingOptions->weights) {
-        qDebug() << weight;
-    }
-
-    // Print `criterionScore`
-    qDebug() << "DEBUG: Criterion Scores:";
-    for (int criterion = 0; criterion< _teamingOptions->realNumScoringFactors; criterion++){
-        for (int i = 0; i < _numTeams; i++) {
-            qDebug() << "criterionScore[" << criterion << "][" << i << "] = " << criterionScore[criterion][i];
         }
     }
 
@@ -1904,6 +1901,7 @@ void gruepr::startOptimization()
             continue;
         } else {
             teamingOptions->weights[index] = weight;
+            criteriaCard->criterion->weight = weight;
             teamingOptions->penaltyStatus[index] = criteriaCard->criterion->penaltyStatus;
             teamingOptions->criterionTypes[index] = criteriaCard->criterion;
         }
@@ -2103,17 +2101,18 @@ void gruepr::optimizationComplete()
         team.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
     }
 
-    // Sort teams by 1st student's name, then set default teamnames and create tooltips
-    std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
-              { const StudentRecord *const firstStudentOnTeamA = findStudentFromID(a.studentIDs.at(0));
-                const StudentRecord *const firstStudentOnTeamB = findStudentFromID(b.studentIDs.at(0));
-                return ((firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) <
-                        (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname));
-              });
     for(int team = 0; team < teams.size(); team++) {
         teams[team].name = QString::number(team+1);
         teams[team].createTooltip();
     }
+
+    // Sort teams by 1st student's name, then set default teamnames and create tooltips
+    // std::sort(teams.begin(), teams.end(), [this](const TeamRecord &a, const TeamRecord &b)
+    //           { const StudentRecord *const firstStudentOnTeamA = findStudentFromID(a.studentIDs.at(0));
+    //             const StudentRecord *const firstStudentOnTeamB = findStudentFromID(b.studentIDs.at(0));
+    //             return ((firstStudentOnTeamA->lastname + firstStudentOnTeamA->firstname) <
+    //                     (firstStudentOnTeamB->lastname + firstStudentOnTeamB->firstname));
+    //           });
 
     // Display the results in a new tab
     // Eventually maybe this should let the tab take ownership of the teams pointer, deleting when the tab is closed!
@@ -2291,7 +2290,7 @@ void gruepr::loadUI()
     for (int attribute=0; attribute < dataOptions->numAttributes; attribute++){
         attributeWidgets << new AttributeWidget(this);
         teamingOptions->attributeSelected[attribute] = 0;
-        QString title = "Multiple Choice Question "+ QString::number(attribute) + ":"+ dataOptions->attributeQuestionText.at(attribute);
+        QString title = "Multiple Choice: "+ dataOptions->attributeQuestionText.at(attribute);
         initializedAttributeCriteriaCards << new GroupingCriteriaCard(this, title, true, CriteriaType::attributeQuestion);
         GroupingCriteriaCard *currentMultipleChoiceCard = this->initializedAttributeCriteriaCards.last();
         currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
@@ -2303,9 +2302,9 @@ void gruepr::loadUI()
         attributeWidgets.last()->setValues(attribute, dataOptions, teamingOptions); //update issue
         connect(attributeWidgets.last()->weight, &QDoubleSpinBox::valueChanged,
                 this, [this, attribute](double arg1){teamingOptions->attributeWeights[attribute] = float(arg1);});
-        connect(attributeWidgets.last()->diverseButton, &QRadioButton::toggled,
+        connect(attributeWidgets.last()->diverseButton, &QRadioButton::clicked,
                 this, [this, attribute](){teamingOptions->attributeDiversity[attribute] = 0;});
-        connect(attributeWidgets.last()->similarButton, &QRadioButton::toggled,
+        connect(attributeWidgets.last()->similarButton, &QRadioButton::clicked,
                 this, [this, attribute](){teamingOptions->attributeDiversity[attribute] = 1;});
         connect(attributeWidgets.last()->setRequiredStudentsButton, &QPushButton::clicked, this, [this, attribute](){
             this->responsesRulesButton_clicked(attribute, 0);
@@ -3084,7 +3083,6 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
     const bool thisIsTimezone = criterion->typeOfAttribute == DataOptions::AttributeType::timezone; //(_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
     const bool penaltyStatus = criterion->penaltyStatus;
     int studentNum = 0;
-
     for(int team = 0; team < _numTeams; team++) {
         // gather all attribute values
         attributeLevelsInTeam.clear();
@@ -3106,59 +3104,35 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
         if (penaltyStatus){
             if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
                 //get the values of all, put a penalty for each
-                float attributeRangeInTeam;
                 if (_teamingOptions->attributeDiversity[attribute] == 1){ //homogenous
-                    if(thisIsTimezone) {
-                        for (auto level: timezoneLevelsInTeam){
-                            int numUniqueValues = timezoneLevelsInTeam.size(); // Count unique values
-                            if (numUniqueValues > 1) { // More than one unique value -> penalty
-                                _penaltyPoints[team] += numUniqueValues - 1; // Increase penalty for each extra unique value
-                            }
+                    if(thisIsTimezone) { //homogeneous, penalize if uniqueItems > 1 (we can only have 1 unique)
+                        std::set<int> uniqueItems(timezoneLevelsInTeam.begin(), timezoneLevelsInTeam.end());
+                        int duplicatedValues = timezoneLevelsInTeam.size() - uniqueItems.size();  // Count unique values
+                        int uniqueCount = uniqueItems.size();
+                        if (uniqueCount > 1) {
+                            _penaltyPoints[team] += uniqueCount - 1; // Penalize for extra unique values
                         }
-                    } if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                        (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
-                        for (auto level: attributeLevelsInTeam){
-                            int numUniqueValues = attributeLevelsInTeam.size(); // Count unique values
-                            if (numUniqueValues > 1) { // More than one unique value -> penalty
-                                _penaltyPoints[team] += numUniqueValues - 1; // Increase penalty for each extra unique value
-                            }
-                        }
-                    } else {
-                        int prevVal = -1;
-                        for(const auto currVal : attributeLevelsInTeam) {
-                            if(currVal != prevVal) {
-                                //add penalty points for differing values
-                                _penaltyPoints[team]+=1;
-                            }
-                            prevVal = currVal;
+                    } else { //if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+                        //(_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
+                        std::set<int> uniqueItems(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
+                        int duplicatedValues = attributeLevelsInTeam.size() - uniqueItems.size();  // Count unique values
+                        int uniqueCount = uniqueItems.size();
+                        if (uniqueCount > 1) {
+                            _penaltyPoints[team] += uniqueCount - 1; // Penalize for extra unique values
                         }
                     }
-                } else { //heterogenous
+                } else { //heterogenous, penalize same values
                     if(thisIsTimezone) {
-                        for (auto level: timezoneLevelsInTeam){
-                            int n = timezoneLevelsInTeam.count(level);
-                            //
-                            _penaltyPoints[team] += (n * (n-1))/ 2;
-                        }
-                    } if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                        (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
-                        for (auto level: attributeLevelsInTeam){
-                            int n = attributeLevelsInTeam.count(level);
-                            //penalty score
-                            _penaltyPoints[team] += (n * (n-1))/ 2;
-                        }
-                    } else {
-                        // attribute is categorical or multicategorical--heterogeneous means create maximum number of unique values
-                        attributeRangeInTeam = -1;
+                        std::set<int> uniqueItems(timezoneLevelsInTeam.begin(), timezoneLevelsInTeam.end());
+                        int duplicatedValues = std::max(0, int(timezoneLevelsInTeam.size() - uniqueItems.size()));
+                        _penaltyPoints[team] += duplicatedValues;
 
-                        int prevVal = -1;
-                        for(const auto currVal : attributeLevelsInTeam) {
-                            if(currVal == prevVal) {
-                                //add penalty points for duplicate values
-                                _penaltyPoints[team]+=1;
-                            }
-                            prevVal = currVal;
-                        }
+                    } else { //if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
+                        //(_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
+                        std::set<int> uniqueItems(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
+                        int duplicatedValues = std::max(0, int(attributeLevelsInTeam.size() - uniqueItems.size()));
+                        _penaltyPoints[team] += duplicatedValues;
+
                     }
                 }
             }
