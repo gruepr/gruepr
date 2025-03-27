@@ -172,11 +172,11 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         QMenu *genderMenu = new QMenu("Gender", this);
         for (Gender g: this->dataOptions->Genders){
             QString currentGender = grueprGlobal::genderToString(g);
-            QAction *currentGenderAction = genderMenu->addAction(currentGender);
+            QAction *currentGenderAction = mainMenu->addAction("Gender: " + currentGender);
             connect(currentGenderAction, &QAction::triggered, this, [this, g](){gruepr::addCriteriaCard(CriteriaType::genderIdentity, g);});
         }
         //always add a mixed gender option
-        QAction *currentGenderAction = genderMenu->addAction("Mixed Gender");
+        QAction *currentGenderAction = mainMenu->addAction("Mixed Gender");
         connect(currentGenderAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::genderIdentity, Gender::unknown, true);});
 
         identityOptionsMenu->addMenu(genderMenu);
@@ -187,11 +187,11 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         //connect each mcq question!
         //add an action for each question
         for(int attribute = 0; attribute < this->dataOptions->numAttributes; attribute++) {
-            QAction *currentMCQAction = multipleChoiceQuestionMenu->addAction(this->dataOptions->attributeQuestionText[attribute]);
+            QAction *currentMCQAction = mainMenu->addAction("Multiple Choice: " + this->dataOptions->attributeQuestionText[attribute]);
             connect(currentMCQAction, &QAction::triggered, this, [this, attribute](){gruepr::addCriteriaCard(CriteriaType::attributeQuestion, attribute);});
         }
         // multipleChoiceQuestionMenu->setLayoutDirection(Qt::RightToLeft);
-        mainMenu->addMenu(multipleChoiceQuestionMenu);
+        //mainMenu->addMenu(multipleChoiceQuestionMenu);
     }
     if (this->dataOptions->URMIncluded){
         QMenu *URMMenu = new QMenu("Other Identities", this);
@@ -212,17 +212,17 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Always add required and prevented teammates (but these need to update, if it is in the menu already then do not include)
     QMenu *teamMatePreferencesMenu = new QMenu("Teammate Preferences", this);
     teamMatePreferencesMenu->setLayoutDirection(Qt::RightToLeft);
-    QAction* requiredTeammatesAction = teamMatePreferencesMenu->addAction("Required Teammates");
+    QAction* requiredTeammatesAction = mainMenu->addAction("Required Teammates");
     connect(requiredTeammatesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::requiredTeammates);});
-    QAction* preventedTeammatesAction = teamMatePreferencesMenu->addAction("Prevented Teammates");
+    QAction* preventedTeammatesAction = mainMenu->addAction("Prevented Teammates");
     connect(preventedTeammatesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::preventedTeammates);});
-    QAction* requestedTeammatesAction = teamMatePreferencesMenu->addAction("Requested Teammates");
+    QAction* requestedTeammatesAction = mainMenu->addAction("Requested Teammates");
     connect(requestedTeammatesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::requestedTeammates);});
-    mainMenu->addMenu(teamMatePreferencesMenu);
+    //mainMenu->addMenu(teamMatePreferencesMenu);
     //check if submenus for identity options exist, if they do, include them
     for (QAction* action : identityOptionsMenu->actions()) {
         if (action->menu()) {
-            mainMenu->addMenu(identityOptionsMenu);
+            //mainMenu->addMenu(identityOptionsMenu);
         }
     }
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
@@ -907,18 +907,18 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
             int penaltyScore = -penaltyPoints[criterion];
             //unweighted score
             float actualScore = criterionScore[criterion][team]/_teamingOptions->weights[criterion];
-            qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
-            qDebug() << "weight from criterion->weight:" << _teamingOptions->criterionTypes[criterion]->weight;
+            //qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
+            //qDebug() << "weight from criterion->weight:" << _teamingOptions->criterionTypes[criterion]->weight;
 
             //does not take into account penalty scores yet
             _teams[team].criterionScores[criterion] = actualScore;
 
-            qDebug() << "team:" << team;
-            qDebug() << "criterion:" << criterion;
-            qDebug() << "penalty:" << -penaltyPoints[criterion];
-            qDebug() << "actual score:" << actualScore;
-            qDebug() << "score:" << criterionScore[criterion][team];
-            qDebug() << "score final:" << _teams[team].criterionScores[criterion];
+            // qDebug() << "team:" << team;
+            // qDebug() << "criterion:" << criterion;
+            // qDebug() << "penalty:" << -penaltyPoints[criterion];
+            // qDebug() << "actual score:" << actualScore;
+            // qDebug() << "score:" << criterionScore[criterion][team];
+            // qDebug() << "score final:" << _teams[team].criterionScores[criterion];
 
         }
     }
@@ -1665,7 +1665,6 @@ void gruepr::changeIdealTeamSize()
 {
     const int idealSize = idealTeamSizeBox->value();
 
-    qDebug() << idealSize;
     // First, make sure we don't end up penalizing teams for having fewer requested teammates than the team size allows
     if(teamingOptions->numberRequestedTeammatesGiven > idealSize) {
         teamingOptions->numberRequestedTeammatesGiven = idealSize;
@@ -1709,8 +1708,8 @@ void gruepr::changeIdealTeamSize()
 
         // reset the potential team sizes, and reserve sufficient memory
         teamingOptions->numTeamsDesired = std::max(1ll, numStudentsBeingTeamed/idealSize);
-        qDebug() << "Num teams desired being calculated:" << teamingOptions->numTeamsDesired;
-        qDebug() << "Num students being teamed: "<< numStudentsBeingTeamed;
+        // qDebug() << "Num teams desired being calculated:" << teamingOptions->numTeamsDesired;
+        // qDebug() << "Num students being teamed: "<< numStudentsBeingTeamed;
         teamingOptions->smallerTeamsNumTeams = teamingOptions->numTeamsDesired;
         teamingOptions->smallerTeamsSizes.clear();
         teamingOptions->smallerTeamsSizes.reserve(MAX_STUDENTS);
@@ -1805,7 +1804,7 @@ void gruepr::changeIdealTeamSize()
 
     // if we have fewer than MIN_STUDENTS students somehow, disable the form teams button
     letsDoItButton->setEnabled(numStudentsBeingTeamed >= MIN_STUDENTS);
-    qDebug() << teamSizeBox->currentText();
+    //qDebug() << teamSizeBox->currentText();
     teamSizeBox->setUpdatesEnabled(true);
 }
 
@@ -1845,8 +1844,8 @@ void gruepr::chooseTeamSizes(int index)
                                          tr(" teams (") + QString::number(idealTeamSizeBox->value()) +
                                          tr(" students each)")) {
         // Evenly divisible teams, all same size
-        qDebug() << "teams desired:";
-        qDebug() << QString::number(teamingOptions->numTeamsDesired);
+        // qDebug() << "teams desired:";
+        // qDebug() << QString::number(teamingOptions->numTeamsDesired);
         setTeamSizes(idealTeamSizeBox->value());
     }
     else if(teamSizeBox->currentText() == tr("Custom team sizes")) {
@@ -3003,28 +3002,21 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
             getSingleURMScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criterionScore[i], _penaltyPoints);
             //getURMPenalties(_students, _teammates, _numTeams, _teamSizes, _penaltyPoints);
         } else if (dynamic_cast<ScheduleCriterion*>(_criterionBeingScored)){
-            qDebug() << "Schedule Criterion";
             auto criterionCasted = dynamic_cast<ScheduleCriterion*>(_criterionBeingScored);
             getScheduleScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, criterionCasted, _criterionScore[i], _availabilityChart, _penaltyPoints);
             //getScheduleScores(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, _schedScore, _availabilityChart, _penaltyPoints);
         } else if (dynamic_cast<PreventedTeammatesCriterion*>(_criterionBeingScored)){
-            qDebug() << "Prevented Teammates Criterion";
             auto criterionCasted = dynamic_cast<PreventedTeammatesCriterion*>(_criterionBeingScored);
             getPreventedTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criterionScore[i], _penaltyPoints);
             //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
-        } else if (dynamic_cast<RequestedTeammatesCriterion*>(_criterionBeingScored)){
-            qDebug() << "Requested Teammates Criterion";
+        } else if (dynamic_cast<RequestedTeammatesCriterion*>(_criterionBeingScored)){;
             auto criterionCasted = dynamic_cast<RequestedTeammatesCriterion*>(_criterionBeingScored);
             getRequestedTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criterionScore[i], _penaltyPoints);
             //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
         } else if (dynamic_cast<RequiredTeammatesCriterion*>(_criterionBeingScored)){
-            qDebug() << "Required Teammates Criterion";
             auto criterionCasted = dynamic_cast<RequiredTeammatesCriterion*>(_criterionBeingScored);
             getRequiredTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criterionScore[i], _penaltyPoints);
             //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
-        } else {
-            qDebug() << "Normal Criterion";
-            qDebug() << _criterionBeingScored->penaltyStatus;
         }
     }
 
