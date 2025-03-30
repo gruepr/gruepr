@@ -428,7 +428,7 @@ void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
     }
     summaryTable->resizeColumnsToContents();
     summaryTable->resizeRowsToContents();
-    summaryTable->adjustSize();
+    //summaryTable->adjustSize();
 }
 
 

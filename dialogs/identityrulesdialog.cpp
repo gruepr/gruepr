@@ -77,7 +77,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
             QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));  // 3rd row, index 2
             if (spinBox) {
                 int value = spinBox->value();
-                qDebug() << "Checking each spinBox, row:" << row << "value:" << value;
+                //qDebug() << "Checking each spinBox, row:" << row << "value:" << value;
                 rowValues.append(value);
 
                 // Check for duplicates and placeholders
