@@ -201,8 +201,8 @@ void StartDialog::openGruepr() {
         if(result == QDialog::Accepted) {
             //where is the surveyFile stored?
             QApplication::setOverrideCursor(Qt::BusyCursor);
-            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students));
-
+            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this));
+            this->hide();
             grueprWindow->show();
             emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
