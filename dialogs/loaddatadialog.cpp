@@ -1,36 +1,130 @@
-#include "getGrueprDataDialog.h"
-#include "dialogs/dataTypesTableDialog.h"
-#include "ui_getGrueprDataDialog.h"
+#include "loaddatadialog.h"
 #include "LMS/canvashandler.h"
 #include "LMS/googlehandler.h"
-#include "gruepr_globals.h"
 #include "dialogs/baseTimeZoneDialog.h"
-#include <QCollator>
-#include <QComboBox>
-#include <QDir>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QPainter>
-#include <QProgressDialog>
-#include <QSettings>
-#include <QStandardItemModel>
-#include <QStandardPaths>
-#include <QTimer>
+#include "dialogs/categorizingdialog.h"
+#include "qcollator.h"
+#include "qcombobox.h"
+#include "qdir.h"
+#include "qjsonarray.h"
+#include "qjsondocument.h"
+#include "qsettings.h"
+#include "qstandardpaths.h"
+#include "qtimer.h"
+#include "widgets/dropcsvframe.h"
 
-GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
-    QDialog(parent),
-    ui(new Ui::GetGrueprDataDialog),
-    parent(parent)
-{
-    ui->setupUi(this);
+loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(parent){
     setWindowTitle(tr("gruepr - Form teams"));
-    setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
-
+    setWindowIcon(QIcon(":/icons_new/icon.svg"));
+    //setMinimumSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
     QSettings savedSettings;
+    setStyleSheet("background-color: white");
+    //set background image same as the beginning page?
+
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    mainLayout->setSpacing(5);
+    QPushButton *previousScreenButton = new QPushButton(this);
+    previousScreenButton->setIcon(QIcon(":/icons_new/left.png"));
+    previousScreenButton->setStyleSheet(STANDARDBUTTON);
+
+    QLabel *headerLabel = new QLabel("Load your student data to form teams");
+    QLabel *headerLabel2 = new QLabel("GruePR does not collect any student data - it is stored in your computer.");
+
+    headerLabel->setStyleSheet(LABEL14PTSTYLE);
+    DropCSVFrame *dropCSVFileFrame = new DropCSVFrame(this);
+    dropCSVFileFrame->setStyleSheet(DROPFRAME);
+    dropCSVFileFrame->setMinimumWidth(0);
+    dropCSVFileFrame->setMinimumHeight(200);
+    dropCSVFileFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    QPushButton* uploadButton = new QPushButton(this);
+    uploadButton->setIcon(QIcon(":/icons_new/upload.png"));
+    uploadButton->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
+    uploadButton->setStyleSheet(UPLOADBUTTONSTYLE);
+
+    QLabel *uploadSourceLabel = new QLabel("Drag & drop or Choose file to upload.", this);
+    QLabel *acceptedFormatsLabel = new QLabel("Accepted format: .csv");
+    uploadSourceLabel->setStyleSheet(LABEL10PTSTYLE);
+    acceptedFormatsLabel->setStyleSheet(LABEL10PTSTYLE);
+
+    QVBoxLayout* dropCSVFileFrameLayout = new QVBoxLayout();
+
+    dropCSVFileFrameLayout->addWidget(uploadButton, 0, Qt::AlignCenter);
+    dropCSVFileFrameLayout->addWidget(uploadSourceLabel, 0, Qt::AlignCenter);
+    dropCSVFileFrameLayout->addWidget(acceptedFormatsLabel, 0, Qt::AlignCenter);
+    dropCSVFileFrameLayout->setContentsMargins(0, 0, 0, 0);
+    dropCSVFileFrameLayout->setSpacing(5);
+
+    dropCSVFileFrame->setLayout(dropCSVFileFrameLayout);
+
+    QHBoxLayout *otherDataSourcesLayout = new QHBoxLayout();
+    QLabel *otherDataSourcesLabel = new QLabel("Other data sources", this);
+    otherDataSourcesLabel->setStyleSheet(LABEL12PTSTYLE);
+
+    QFrame *googleFormFrame = new QFrame(this);
+    googleFormFrame->setStyleSheet(BASICFRAME);
+    QVBoxLayout* googleFormFrameLayout = new QVBoxLayout();
+    googleFormFrame->setLayout(googleFormFrameLayout);
+    //add Label, button
+    QPushButton* googleFormLabel = new QPushButton(this);
+    googleFormLabel->setIcon(QIcon(":/icons_new/googleform.png"));
+    googleFormLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
+    googleFormLabel->setText("Google Form");
+    googleFormLabel->setStyleSheet(LABELONLYBUTTON);
+
+    QPushButton* loadDataFromGoogleFormButton = new QPushButton(this);
+    loadDataFromGoogleFormButton->setIcon(QIcon(":/icons_new/upload.png"));
+    loadDataFromGoogleFormButton->setIconSize(QSize(SMALLERICONSIZE,SMALLERICONSIZE));
+    loadDataFromGoogleFormButton->setText("Load data from google form results");
+    loadDataFromGoogleFormButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    googleFormFrameLayout->addWidget(googleFormLabel, 0, Qt::AlignLeft);
+    googleFormFrameLayout->addWidget(loadDataFromGoogleFormButton, 0, Qt::AlignLeft);
+
+    //Canvas Survey Frame
+    QFrame *canvasSurveyFrame = new QFrame(this);
+    canvasSurveyFrame->setStyleSheet(BASICFRAME);
+    QVBoxLayout* canvasSurveyFrameLayout = new QVBoxLayout();
+    canvasSurveyFrame->setLayout(canvasSurveyFrameLayout);
+    QPushButton* canvasSurveyLabel = new QPushButton(this);
+    canvasSurveyLabel->setIcon(QIcon(":/icons_new/canvas.png"));
+    canvasSurveyLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
+    canvasSurveyLabel->setText("Canvas Survey");
+    canvasSurveyLabel->setStyleSheet(LABELONLYBUTTON);
+
+    QPushButton* loadDataFromCanvasSurveyButton = new QPushButton(this);
+    loadDataFromCanvasSurveyButton->setIcon(QIcon(":/icons_new/upload.png"));
+    loadDataFromCanvasSurveyButton->setIconSize(QSize(SMALLERICONSIZE,SMALLERICONSIZE));
+    loadDataFromCanvasSurveyButton->setText("Load data from canvas survey results");
+    loadDataFromCanvasSurveyButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    canvasSurveyFrameLayout->addWidget(canvasSurveyLabel, 0, Qt::AlignLeft);
+    canvasSurveyFrameLayout->addWidget(loadDataFromCanvasSurveyButton, 0, Qt::AlignLeft);
+
+    //Reopen Prev Work Frame
+    QFrame *reopenPrevWorkFrame = new QFrame(this);
+    reopenPrevWorkFrame->setStyleSheet(BASICFRAME);
+    QVBoxLayout* reopenPrevWorkFrameLayout = new QVBoxLayout();
+    reopenPrevWorkFrame->setLayout(reopenPrevWorkFrameLayout);
+
+    QPushButton* reopenPrevWorkLabel = new QPushButton(this);
+    reopenPrevWorkLabel->setIcon(QIcon(":/icons_new/save.png"));
+    reopenPrevWorkLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
+    reopenPrevWorkLabel->setText("Reopen previous work");
+    reopenPrevWorkLabel->setStyleSheet(LABELONLYBUTTON);
+
+    QHBoxLayout *prevWorkComboBoxLayout = new QHBoxLayout();
+    prevWorkComboBox = new QComboBox(this);
+    QPushButton *loadPrevWorkButton = new QPushButton (this);
+    loadPrevWorkButton->setIcon(QIcon(":/icons_new/upload.png"));
+    loadPrevWorkButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    prevWorkComboBoxLayout->addWidget(prevWorkComboBox, 3);
+    prevWorkComboBoxLayout->addWidget(loadPrevWorkButton, 1);
+    prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
+    prevWorkComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    reopenPrevWorkFrameLayout->addWidget(reopenPrevWorkLabel, 0, Qt::AlignLeft);
+    reopenPrevWorkFrameLayout->addLayout(prevWorkComboBoxLayout);
+
     const int numPrevWorks = savedSettings.beginReadArray("prevWorks");
-    ui->fromPrevWorkRadioButton->setVisible(numPrevWorks > 0);
+    prevWorkComboBox->setVisible(numPrevWorks > 0);
     if(numPrevWorks > 0) {
         QList<std::tuple<QDateTime, QString, QString, QString>> prevWorkInfos;   //lastModifiedDate, displayName, lastModifiedDateString, fileName
         prevWorkInfos.reserve(numPrevWorks);
@@ -47,172 +141,129 @@ GetGrueprDataDialog::GetGrueprDataDialog(StartDialog *parent) :
         std::sort(prevWorkInfos.begin(), prevWorkInfos.end(), [](std::tuple<QDateTime, QString, QString, QString> a, std::tuple<QDateTime, QString, QString, QString> b)
                   {return std::get<0>(a) > std::get<0>(b);});  // sort by last modified date descending
         for(const auto &prevWork : prevWorkInfos) {
-            ui->prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]", std::get<3>(prevWork));
+            prevWorkComboBox->addItem(std::get<1>(prevWork) + " [Last opened: " + std::get<2>(prevWork) + "]", std::get<3>(prevWork));
         }
     }
     savedSettings.endArray();
 
-    ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
-                                   QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
-    ui->prevWorkComboBox->setStyleSheet(COMBOBOXSTYLE);
-    ui->prevWorkComboBox->hide();
-    connect(ui->fromPrevWorkRadioButton, &QRadioButton::toggled, ui->prevWorkComboBox, &QComboBox::setVisible);
-    ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
-                                          "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
-    ui->sourceButtonGroup->setId(ui->fromFileRadioButton, static_cast<int>(DataOptions::DataSource::fromUploadFile));
-    ui->sourceButtonGroup->setId(ui->fromGoogleradioButton, static_cast<int>(DataOptions::DataSource::fromGoogle));
-    ui->sourceButtonGroup->setId(ui->fromCanvasradioButton, static_cast<int>(DataOptions::DataSource::fromCanvas));
-    ui->sourceButtonGroup->setId(ui->fromPrevWorkRadioButton, static_cast<int>(DataOptions::DataSource::fromPrevWork));
-    ui->loadDataPushButton->adjustSize();
-    QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
-    QPainter painter(&whiteUploadIcon);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
-    painter.end();
-    int h = ui->loadDataPushButton->height();
-    ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
-    connect(ui->loadDataPushButton, &QPushButton::clicked, this, &GetGrueprDataDialog::loadData);
+    otherDataSourcesLayout->addWidget(googleFormFrame, 0);
+    otherDataSourcesLayout->addWidget(canvasSurveyFrame, 0);
+    otherDataSourcesLayout->addWidget(reopenPrevWorkFrame, 0);
 
-    ui->dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
+    dataSourceFrame = new QFrame(this);
+    dataSourceLabel = new QPushButton(this);
+    QHBoxLayout* dataSourceFrameLayout = new QHBoxLayout();
+    dataSourceFrameLayout->addWidget(dataSourceLabel);
+    dataSourceFrame->setLayout(dataSourceFrameLayout);
+    dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
                                        "QFrame::disabled {background-color: lightGray; color: darkGray; border: none;}");
-    ui->dataSourceLabel->setStyleSheet("QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt;}"
-                                       "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 12pt;}");
-    ui->dataSourceLabel->adjustSize();
-    const QPixmap fileIcon(":/icons_new/file.png");
-    h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(fileIcon.scaledToHeight(h, Qt::SmoothTransformation));
+    dataSourceLabel->setStyleSheet(LABELONLYBUTTON);
+    dataSourceFrame->setEnabled(false);
+    dataSourceLabel->setEnabled(false);
+    dataSourceLabel->setText("No data source loaded.");
+    const QPixmap icon(":/icons_new/file.png");
+    const int h = dataSourceLabel->height();
+    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
 
-    ui->hLine->setStyleSheet("QFrame {color: " OPENWATERHEX ";}"
-                             "QFrame::disabled {color: lightGray;}");
-    ui->fieldsExplainer->setStyleSheet(LABEL10PTSTYLE);
-    ui->headerRowCheckBox->setStyleSheet("QCheckBox {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt;}"
-                                         "QCheckBox::disabled {color: darkGray; font-family: 'DM Sans'; font-size: 12pt;}");
-    categoryHelpButton = new QPushButton("?", this);
-    categoryHelpButton->setFixedSize(20, 20);
-    categoryHelpButton->setStyleSheet(R"(
-        QPushButton {
-            font-weight: bold;
-            color: white;
-            background-color: darkGray;
-            border-radius: 10px;
-            border: none;
-        }
-        QPushButton:hover {
-            color: darkGray;
-            background-color: white;
-        }
-    )");
+    confirmCancelButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
+    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setText(tr("Confirm"));
+    confirmCancelButtonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
-    connect(categoryHelpButton, &QPushButton::clicked, this, [this](){
-        dataTypesTableDialog *dialog = new dataTypesTableDialog(this);
-        dialog->exec();
+    connect(dropCSVFileFrame, &DropCSVFrame::itemDropped, this, [this](const QString &filePathString) {
+        source = DataOptions::DataSource::fromDragDropFile;
+        loadData(filePathString);
     });
 
-    // Create a widget to hold both the text and the button
-    QHBoxLayout *headerLayout = new QHBoxLayout();
-    QHBoxLayout *categoryHeaderLayout = new QHBoxLayout();
-    QLabel *questionTextLabel = new QLabel(HEADERTEXT, this);
-    QLabel *categoryTextLabel = new QLabel(CATEGORYTEXT, this);
-    questionTextLabel->setStyleSheet("color: white; font-family: 'DM Sans'; font-size: 12pt;");
-    headerLayout->addWidget(questionTextLabel);
-    categoryHeaderLayout->addWidget(categoryTextLabel); // Category text
-    categoryTextLabel->setStyleSheet("color: white; font-family: 'DM Sans'; font-size: 12pt;");
-    categoryHeaderLayout->addWidget(categoryHelpButton);
-    categoryHeaderLayout->setContentsMargins(0, 0, 0, 0);
-    categoryHeaderLayout->setSpacing(5);
-    headerLayout->addLayout(categoryHeaderLayout);
+    connect(uploadButton, &QPushButton::clicked, this, [this](){
+        source = DataOptions::DataSource::fromUploadFile;
+        loadData("");
+    });
+    connect(loadDataFromGoogleFormButton, &QPushButton::clicked, this, [this](){
+        source = DataOptions::DataSource::fromGoogle;
+        loadData("");
+    });
+    connect(loadDataFromCanvasSurveyButton, &QPushButton::clicked, this, [this](){
+        source = DataOptions::DataSource::fromCanvas;
+        loadData("");
+    });
+    connect(loadPrevWorkButton, &QPushButton::clicked, this, [this](){
+        source = DataOptions::DataSource::fromPrevWork;
+        loadData("");
+    });
+    connect(confirmCancelButtonBox, &QDialogButtonBox::accepted, this, &loadDataDialog::accept);
+    connect(confirmCancelButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(previousScreenButton, &QPushButton::clicked, this, &QDialog::reject);
 
-    QHeaderView *header = ui->tableWidget->horizontalHeader();
-    header->setLayout(headerLayout);
+    mainLayout->addWidget(previousScreenButton, 0, Qt::AlignLeft);
+    mainLayout->addWidget(headerLabel, 0, Qt::AlignCenter);
+    mainLayout->addWidget(headerLabel2, 0, Qt::AlignCenter);
+    mainLayout->addWidget(dropCSVFileFrame);
+    mainLayout->addStretch(1);
+    mainLayout->addWidget(otherDataSourcesLabel, 0, Qt::AlignLeft);
+    mainLayout->addLayout(otherDataSourcesLayout);
+    mainLayout->addWidget(dataSourceFrame);
+    mainLayout->addWidget(confirmCancelButtonBox);
 
-    // Add the widget to the horizontal header
-    ui->tableWidget->setColumnCount(2);
-
-    // Insert the custom widget into the header
-    ui->tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    ui->tableWidget->setHorizontalHeaderLabels({"",""});
-    connect(ui->headerRowCheckBox, &QCheckBox::clicked, this, [this, questionTextLabel]{if(ui->headerRowCheckBox->isChecked())
-                                                                        {questionTextLabel->setText(HEADERTEXT);}
-                                                                     else
-                                                                        {questionTextLabel->setText(ROW1TEXT);}});
-    ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
-                                                                             "border-top: none; border-bottom: none; border-left: none; "
-                                                                             "border-right: 1px solid darkGray; }");
-    // ui->tableWidget->horizontalHeaderItem(0)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    // ui->tableWidget->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
-    ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setStyleSheet(SMALLBUTTONSTYLE);
-    ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setText(tr("Confirm"));
-    ui->confirmCancelButtonBox->button(QDialogButtonBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
+    setLayout(mainLayout);
 }
 
-GetGrueprDataDialog::~GetGrueprDataDialog()
-{
-    if(surveyFile != nullptr) {
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
-        surveyFile->deleteLater();
+bool loadDataDialog::getFromDropFile(QString filePathString){
+    const QPixmap icon(":/icons_new/file.png");
+    QFileInfo fileInfo(filePathString);
+    if (fileInfo.suffix().toLower() != "csv") {
+        qDebug() << "Error: The dropped file is not a CSV file.";
+        return false;
     }
-    delete ui;
-}
 
-void GetGrueprDataDialog::accept() {
-    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
-        if(!readData()) {
-            ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-            ui->sourceFrame->setStyleSheet("QFrame {background-color: " OPENWATERHEX "; color: white; padding: 10px; border: none;}" +
-                                           QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: white;"));
-            ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: " OPENWATERHEX "; color: white; font-family:'DM Sans'; font-size: 12pt; "
-                                                  "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; padding: 10px;}");
-            QPixmap whiteUploadIcon(":/icons_new/upload_file.png");
-            QPainter painter(&whiteUploadIcon);
-            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-            painter.fillRect(whiteUploadIcon.rect(), QColor("white"));
-            painter.end();
-            ui->loadDataPushButton->setIcon(whiteUploadIcon.scaledToHeight(ui->loadDataPushButton->height(), Qt::SmoothTransformation));
-            ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}");
-            ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: lightGray; color: white; padding: 5px; "
-                                                               "border-top: none; border-bottom: none; border-left: none; "
-                                                               "border-right: 1px solid darkGray; "
-                                                               "font-family: 'DM Sans'; font-size: 12pt;}");
+    QSettings savedSettings;
+    QFileInfo dataFileLocation;
+    dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
+    qDebug() << "Trying to open file!";
 
-            ui->tableWidget->clearContents();
-            ui->tableWidget->setRowCount(0);
-            ui->dataSourceFrame->setEnabled(false);
-            ui->dataSourceIcon->setEnabled(false);
-            ui->dataSourceLabel->setEnabled(false);
-            ui->dataSourceLabel->setText(tr("No survey loaded"));
-            ui->hLine->setEnabled(false);
-            ui->fieldsExplainer->setEnabled(false);
-            ui->headerRowCheckBox->setEnabled(false);
-            ui->tableWidget->setEnabled(false);
-            students.clear();
-            return;
+    try {
+        if (!surveyFile->openExistingFile(filePathString)) {
+            qDebug() << "Error: Failed to open CSV file.";
+            return false;
         }
+    } catch (const std::exception &e) {
+        qDebug() << "Failed to open CSV File: " << e.what();
+        return false;
     }
 
-    QDialog::accept();
+    savedSettings.setValue("saveFileLocation", surveyFile->fileInfo().canonicalFilePath());
+    source = DataOptions::DataSource::fromDragDropFile;
+    dataOptions->dataSource = source;
+    dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
+    const int h = dataSourceLabel->height();
+    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
+    return true;
 }
 
-void GetGrueprDataDialog::loadData()
+void loadDataDialog::loadData(QString filePathString)
 {
     if(surveyFile != nullptr) {
         surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
         surveyFile->deleteLater();
     }
-    ui->tableWidget->clearContents();
-    ui->tableWidget->setRowCount(0);
+    //ui->tableWidget->clearContents();
+    //ui->tableWidget->setRowCount(0);
     delete dataOptions;
-    roster.clear();
+    //roster.clear();
 
     bool fileLoaded = false;
-    switch(static_cast<DataOptions::DataSource>(ui->sourceButtonGroup->checkedId())) {
+
+    switch(source) {
     case DataOptions::DataSource::fromUploadFile:
         dataOptions = new DataOptions;
         surveyFile = new CsvFile;
         fileLoaded = getFromFile();
+        break;
+    case DataOptions::DataSource::fromDragDropFile:
+        dataOptions = new DataOptions;
+        surveyFile = new CsvFile;
+        fileLoaded = getFromDropFile(filePathString);
         break;
     case DataOptions::DataSource::fromGoogle:
         dataOptions = new DataOptions;
@@ -234,8 +285,8 @@ void GetGrueprDataDialog::loadData()
     }
 
     if(source == DataOptions::DataSource::fromPrevWork) {
-        ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-        ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->animateClick();
+        confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+        confirmCancelButtonBox->button(QDialogButtonBox::Ok)->animateClick();
         return;
     }
 
@@ -250,48 +301,162 @@ void GetGrueprDataDialog::loadData()
         return;
     }
 
+    dataSourceFrame->setEnabled(true);
+    dataSourceLabel->setEnabled(true);
+    dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSourceName);
 
-    ui->sourceFrame->setStyleSheet("QFrame {background-color: white; color: " DEEPWATERHEX "; padding: 10px; border: none;}" +
-                                   QString(RADIOBUTTONSTYLE).replace("font-size: 10pt;", "font-size: 12pt; color: " DEEPWATERHEX ";"));
-    ui->loadDataPushButton->setStyleSheet("QPushButton {background-color: white; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 12pt; "
-                                          "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 10px;}");
-    const QPixmap uploadIcon(":/icons_new/upload_file.png");
-    const int h = ui->loadDataPushButton->height();
-    ui->loadDataPushButton->setIcon(uploadIcon.scaledToHeight(h, Qt::SmoothTransformation));
-    ui->dataSourceFrame->setEnabled(true);
-    ui->dataSourceIcon->setEnabled(true);
-    ui->dataSourceLabel->setEnabled(true);
-    ui->dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSourceName);
-    ui->hLine->setEnabled(true);
-    ui->fieldsExplainer->setEnabled(true);
-    ui->headerRowCheckBox->setEnabled(true);
-    ui->tableWidget->setEnabled(true);
-    QString buttonStyle = QString(R"(
-                QPushButton {
-                    font-weight: bold;
-                    color: white;
-                    background-color: %1;
-                    border-radius: 10px;
-                    border: none;
-                }
-                QPushButton:hover {
-                    color: %1;
-                    background-color: white;
-                }
-            )").arg(DEEPWATERHEX);
-    categoryHelpButton->setStyleSheet(buttonStyle);
-    ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; padding: 5px; "
-                                                                             "border-top: none; border-bottom: none; border-left: none; "
-                                                                             "border-right: 1px solid white; "
-                                                                             "font-family: 'DM Sans'; font-size: 12pt;}");
-    ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}"
-                                   "QTableView::item{border-top: none; border-bottom: none; border-left: none; border-right: 1px solid darkGray; padding: 3px;}" +
-                                   QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
+    //ui->fieldsExplainer->setEnabled(true);
+    //ui->headerRowCheckBox->setEnabled(true);
+    //ui->tableWidget->setEnabled(true);
+    // QString buttonStyle = QString(R"(
+    //             QPushButton {
+    //                 font-weight: bold;
+    //                 color: white;
+    //                 background-color: %1;
+    //                 border-radius: 10px;
+    //                 border: none;
+    //             }
+    //             QPushButton:hover {
+    //                 color: %1;
+    //                 background-color: white;
+    //             }
+    //         )").arg(DEEPWATERHEX);
+    // categoryHelpButton->setStyleSheet(buttonStyle);
+    // ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; padding: 5px; "
+    //                                                    "border-top: none; border-bottom: none; border-left: none; "
+    //                                                    "border-right: 1px solid white; "
+    //                                                    "font-family: 'DM Sans'; font-size: 12pt;}");
+    // ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}"
+    //                                "QTableView::item{border-top: none; border-bottom: none; border-left: none; border-right: 1px solid darkGray; padding: 3px;}" +
+    //                                QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
 
-    ui->confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
-bool GetGrueprDataDialog::getFromFile()
+CsvFile* loadDataDialog::getSurveyFile(){
+    return surveyFile;
+}
+
+bool loadDataDialog::readQuestionsFromHeader()
+{
+    if(!surveyFile->readHeader()) {
+        // header row could not be read as valid data
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        return false;
+    }
+
+    if(surveyFile->headerValues.size() < 2) {
+        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
+        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
+        return false;
+    }
+
+    // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
+    static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
+                                                             "(.*(like to have on your team).*)|(.*(want to work with).*)|"
+                                                             ".*(which section are you enrolled).*|(.*(check).+(times).*)",
+                                                             QRegularExpression::CaseInsensitiveOption);
+    const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
+    if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
+        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
+        //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
+        for(int field = notesFieldsProbBeginAt; field < surveyFile->fieldMeanings.size(); field++) {
+            surveyFile->fieldMeanings[field] = "Notes";
+        }
+    }
+
+    // Ask user what the columns mean
+    QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
+                                                  {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+                                                  {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
+                                                  {"Email Address", "(e).*(mail)", 1},
+                                                  {"Gender", "((gender)|(pronouns))", 1},
+                                                  {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
+                                                  {"Section", "which section are you enrolled", 1},
+                                                  {"Timezone","(time zone)", 1},
+                                                  {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
+                                                  {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
+                                                  {"Multiple Choice", ".*", MAX_ATTRIBUTES},
+                                                  {"Notes", "", 99}};
+    // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
+    for(int i = 0; i < surveyFile->numFields; i++) {
+        const QString &headerVal = surveyFile->headerValues.at(i);
+
+        bool ignore = false;
+        for(const auto &matchpattern : qAsConst(surveyFile->fieldsToBeIgnored)) {
+            if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
+                surveyFile->fieldMeanings[i] = "**IGNORE**";
+                ignore = true;
+            }
+            // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
+            if((source == DataOptions::DataSource::fromCanvas) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
+                surveyFile->fieldMeanings[i] = "**LMSID**";
+                ignore = true;
+            }
+        }
+
+        if(!ignore && surveyFile->fieldMeanings.at(i).isEmpty()) {
+            int matchPattern = 0;
+            QString match;
+            do {
+                match = surveyFieldOptions.at(matchPattern).regExSearchString;
+                matchPattern++;
+            } while((matchPattern < surveyFieldOptions.size()) && !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)));
+
+            if(matchPattern != surveyFieldOptions.size()) {
+                surveyFile->fieldMeanings[i] = surveyFieldOptions.at(matchPattern - 1).nameShownToUser;
+            }
+            else {
+                surveyFile->fieldMeanings[i] = UNUSEDTEXT;
+            }
+        }
+    }
+
+    //ui->tableWidget->setRowCount(surveyFile->numFields);
+    // a label and combobox for each column
+    // for(int row = 0; row < surveyFile->numFields; row++) {
+    //     auto *label = new QLabel("\n" + surveyFile->headerValues.at(row) + "\n", this);
+    //     label->setStyleSheet(LABEL10PTSTYLE);
+    //     label->setWordWrap(true);
+    //     ui->tableWidget->setCellWidget(row, 0, label);
+
+    //     auto *selector = new QComboBox(this);
+    //     selector->setStyleSheet(COMBOBOXSTYLE);
+    //     selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+    //     selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
+    //     for(const auto &meaning : qAsConst(surveyFieldOptions)) {
+    //         selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
+    //     }
+    //     selector->insertItem(0, UNUSEDTEXT);
+    //     auto *model = qobject_cast<QStandardItemModel *>(selector->model());
+    //     model->item(0)->setForeground(Qt::darkRed);
+    //     selector->insertSeparator(1);
+    //     if((surveyFile->fieldMeanings.at(row) == "**IGNORE**") || (surveyFile->fieldMeanings.at(row) == "**LMSID**")) {
+    //         selector->addItem(surveyFile->fieldMeanings.at(row));
+    //         selector->setCurrentText(surveyFile->fieldMeanings.at(row));
+    //         ui->tableWidget->hideRow(row);
+    //     }
+    //     else {
+    //         selector->setCurrentText(surveyFile->fieldMeanings.at(row));
+    //     }
+    //     selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
+    //     const int width = selector->minimumSizeHint().width();
+    //     selector->setMinimumWidth(width);
+    //     selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    //     ui->tableWidget->setCellWidget(row, 1, selector);
+    //     connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
+    // }
+    // validateFieldSelectorBoxes();
+    // ui->tableWidget->resizeColumnsToContents();
+    // ui->tableWidget->resizeRowsToContents();
+    // ui->tableWidget->adjustSize();
+
+    return true;
+}
+
+bool loadDataDialog::getFromFile()
 {
     const QPixmap icon(":/icons_new/file.png");
 
@@ -307,12 +472,12 @@ bool GetGrueprDataDialog::getFromFile()
     source = DataOptions::DataSource::fromUploadFile;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = surveyFile->fileInfo().fileName();
-    const int h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(icon.scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = dataSourceLabel->height();
+    dataSourceLabel->setIcon(icon.scaledToHeight(h, Qt::SmoothTransformation));
     return true;
 }
 
-bool GetGrueprDataDialog::getFromGoogle()
+bool loadDataDialog::getFromGoogle()
 {
     if(!grueprGlobal::internetIsGood()) {
         return false;
@@ -380,9 +545,9 @@ bool GetGrueprDataDialog::getFromGoogle()
     const QSize iconSize = google->actionDialogIcon->size();
     google->actionDialogIcon->setPixmap(resultIcon.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     const QString resultText = (fail? (tr("Download failed.") + "<br>" +
-                                      (fileNotFound? tr("The survey was not found in your Google Drive. ") :
-                                       tr("Please retry later."))) :
-                                tr("Survey downloaded"));
+                                        (fileNotFound? tr("The survey was not found in your Google Drive. ") :
+                                             tr("Please retry later."))) :
+                                    tr("Survey downloaded"));
     google->actionDialogLabel->setText(resultText);
     QEventLoop loop;
     busyBox->adjustSize();
@@ -398,13 +563,13 @@ bool GetGrueprDataDialog::getFromGoogle()
     source = DataOptions::DataSource::fromGoogle;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = googleFormName;
-    const int h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(GoogleHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = dataSourceLabel->height();
+    dataSourceLabel->setIcon(GoogleHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
 }
 
-bool GetGrueprDataDialog::getFromCanvas()
+bool loadDataDialog::getFromCanvas()
 {
     if(!grueprGlobal::internetIsGood()) {
         return false;
@@ -504,15 +669,15 @@ bool GetGrueprDataDialog::getFromCanvas()
     source = DataOptions::DataSource::fromCanvas;
     dataOptions->dataSource = source;
     dataOptions->dataSourceName = canvasSurveyName;
-    const int h = ui->dataSourceLabel->height();
-    ui->dataSourceIcon->setPixmap(CanvasHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
+    const int h = dataSourceLabel->height();
+    dataSourceLabel->setIcon(CanvasHandler::icon().scaledToHeight(h, Qt::SmoothTransformation));
 
     return true;
 }
 
-bool GetGrueprDataDialog::getFromPrevWork()
+bool loadDataDialog::getFromPrevWork()
 {
-    QFile savedFile(ui->prevWorkComboBox->currentData().toString(), this);
+    QFile savedFile(prevWorkComboBox->currentData().toString(), this);
     if(!savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
         return false;
     }
@@ -549,242 +714,37 @@ bool GetGrueprDataDialog::getFromPrevWork()
     return true;
 }
 
-bool GetGrueprDataDialog::readQuestionsFromHeader()
-{
-    if(!surveyFile->readHeader()) {
-        // header row could not be read as valid data
-        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
-        return false;
-    }
 
-    if(surveyFile->headerValues.size() < 2) {
-        grueprGlobal::errorMessage(this, tr("File error."), tr("This file is empty or there is an error in its format."));
-        surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
-        return false;
-    }
 
-    // See if there are header fields after any of (preferred teammates / non-teammates, section, or schedule) since those are probably notes fields
-    static const QRegularExpression lastKnownMeaningfulField("(.*(like to not have on your team).*)|(.*(want to avoid working with).*)|"
-                                                             "(.*(like to have on your team).*)|(.*(want to work with).*)|"
-                                                             ".*(which section are you enrolled).*|(.*(check).+(times).*)",
-                                                             QRegularExpression::CaseInsensitiveOption);
-    const int notesFieldsProbBeginAt = 1 + int(surveyFile->headerValues.lastIndexOf(lastKnownMeaningfulField));
-    if((notesFieldsProbBeginAt != 0) && (notesFieldsProbBeginAt != surveyFile->headerValues.size())) {
-        //if notesFieldsProbBeginAt == 0 then none of these questions exist, so assume no notes because list ends with attributes
-        //and if notesFieldsProbBeginAt == headervalues size, also assume no notes because list ends with one of these questions
-        for(int field = notesFieldsProbBeginAt; field < surveyFile->fieldMeanings.size(); field++) {
-            surveyFile->fieldMeanings[field] = "Notes";
+void loadDataDialog::accept() {
+
+    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
+        const QScopedPointer<CategorizingDialog> categorizingDataDialog(new CategorizingDialog(this, surveyFile, source));
+        auto categorizing_result = categorizingDataDialog->exec();
+        if (categorizing_result != QDialog::Accepted){
+            //spawnNewWindow = false;
+            //emit closeDataDialogProgressBar();
+            return;
+        } else if(!readData()){
+            confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+            dataSourceFrame->setEnabled(false);
+            dataSourceLabel->setEnabled(false);
+            dataSourceLabel->setText(tr("No survey loaded"));
+            // ui->hLine->setEnabled(false);
+            //still missing the checkbox to indicate first row is header + missing explanation
+            // ui->fieldsExplainer->setEnabled(false);
+            // ui->headerRowCheckBox->setEnabled(false);
+            // ui->tableWidget->setEnabled(false);
+            students.clear();
+            return;
+        } else {
+            QDialog::accept();
         }
     }
-
-    // Ask user what the columns mean
-    QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
-                                                  {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
-                                                  {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
-                                                  {"Email Address", "(e).*(mail)", 1},
-                                                  {"Gender", "((gender)|(pronouns))", 1},
-                                                  {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
-                                                  {"Section", "which section are you enrolled", 1},
-                                                  {"Timezone","(time zone)", 1},
-                                                  {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
-                                                  {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                  {"Multiple Choice", ".*", MAX_ATTRIBUTES},
-                                                  {"Notes", "", 99}};
-    // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
-    for(int i = 0; i < surveyFile->numFields; i++) {
-        const QString &headerVal = surveyFile->headerValues.at(i);
-
-        bool ignore = false;
-        for(const auto &matchpattern : qAsConst(surveyFile->fieldsToBeIgnored)) {
-            if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
-                surveyFile->fieldMeanings[i] = "**IGNORE**";
-                ignore = true;
-            }
-            // if this is coming from Canvas, see if it's the LMSID field and, if so, set the field
-            if((ui->sourceButtonGroup->checkedId() == static_cast<int>(DataOptions::DataSource::fromCanvas)) && (headerVal.compare("id", Qt::CaseInsensitive) == 0)) {
-                surveyFile->fieldMeanings[i] = "**LMSID**";
-                ignore = true;
-            }
-        }
-
-        if(!ignore && surveyFile->fieldMeanings.at(i).isEmpty()) {
-            int matchPattern = 0;
-            QString match;
-            do {
-                match = surveyFieldOptions.at(matchPattern).regExSearchString;
-                matchPattern++;
-            } while((matchPattern < surveyFieldOptions.size()) && !headerVal.contains(QRegularExpression(match, QRegularExpression::CaseInsensitiveOption)));
-
-            if(matchPattern != surveyFieldOptions.size()) {
-                surveyFile->fieldMeanings[i] = surveyFieldOptions.at(matchPattern - 1).nameShownToUser;
-            }
-            else {
-                surveyFile->fieldMeanings[i] = UNUSEDTEXT;
-            }
-        }
-    }
-
-    ui->tableWidget->setRowCount(surveyFile->numFields);
-    // a label and combobox for each column
-    for(int row = 0; row < surveyFile->numFields; row++) {
-        auto *label = new QLabel("\n" + surveyFile->headerValues.at(row) + "\n", this);
-        label->setStyleSheet(LABEL10PTSTYLE);
-        label->setWordWrap(true);
-        ui->tableWidget->setCellWidget(row, 0, label);
-
-        auto *selector = new QComboBox(this);
-        selector->setStyleSheet(COMBOBOXSTYLE);
-        selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
-        for(const auto &meaning : qAsConst(surveyFieldOptions)) {
-            selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
-        }
-        selector->insertItem(0, UNUSEDTEXT);
-        auto *model = qobject_cast<QStandardItemModel *>(selector->model());
-        model->item(0)->setForeground(Qt::darkRed);
-        selector->insertSeparator(1);
-        if((surveyFile->fieldMeanings.at(row) == "**IGNORE**") || (surveyFile->fieldMeanings.at(row) == "**LMSID**")) {
-            selector->addItem(surveyFile->fieldMeanings.at(row));
-            selector->setCurrentText(surveyFile->fieldMeanings.at(row));
-            ui->tableWidget->hideRow(row);
-        }
-        else {
-            selector->setCurrentText(surveyFile->fieldMeanings.at(row));
-        }
-        selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-        const int width = selector->minimumSizeHint().width();
-        selector->setMinimumWidth(width);
-        selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-        ui->tableWidget->setCellWidget(row, 1, selector);
-        connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
-    }
-    validateFieldSelectorBoxes();
-    ui->tableWidget->resizeColumnsToContents();
-    ui->tableWidget->resizeRowsToContents();
-    ui->tableWidget->adjustSize();
-
-    return true;
+    QDialog::accept();
 }
 
-//////////////////
-// Validate the selector boxes in the choose field meaning table:
-// one per field unless there's an asterisk in the name, in which case there are as many as the number after
-//////////////////
-void GetGrueprDataDialog::validateFieldSelectorBoxes(int callingRow)
-{
-    // get list of rows in top-to-bottom order, but if this function is getting called by a selector box, then put its row at the front of the line
-    QList<int> rows(surveyFile->numFields);
-    std::iota(rows.begin(), rows.end(), 0);
-    if(callingRow != -1) {
-        rows.remove(callingRow);
-        rows.prepend(callingRow);
-    }
-
-    // start by counting all the values to count how many times each are used, and which are fully used
-    std::map<QString, int> takenValues;     // mapping fieldMeaning -> number of fields selected with this meaning
-    std::map<QString, int> fullyUsedValues; // mapping the same, but saving how many extra fields with this meaning
-    for(auto row : rows) {
-        // get the selected fieldMeaning
-        const auto *box = qobject_cast<QComboBox *>(ui->tableWidget->cellWidget(row, 1));
-        if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
-            continue;
-        }
-        const QString selection = box->currentText();
-
-        // set it in the CsvFile's data
-        surveyFile->fieldMeanings[row] = selection;
-
-        // add this occurence in the takenValues mapping
-        if(takenValues.count(selection) == 0) {
-            // first ocurrence of this field; create the key/value
-            takenValues[selection] = 1;
-        }
-        else {
-            // key already exists
-            takenValues[selection]++;
-        }
-
-        // if we are at or above the allowed number of ocurrences, note it
-        if(takenValues[selection] >= box->currentData().toInt()) { //combo box notes allowed number of ocurrences
-            // add this occurence in the takenValues mapping
-            if(fullyUsedValues.count(selection) == 0) {
-                // field has just reached capacity; create the key/value
-                fullyUsedValues[selection] = 1;
-            }
-            else {
-                // key already exists; we have MORE than are allowed
-                fullyUsedValues[selection]++;
-            }
-        }
-        else {
-            fullyUsedValues[selection] = 0;
-        }
-    }
-
-    // Now go back through in reverse order and:
-    //  1) replacing overused values with "Unused",
-    //  2) setting fully used values in other boxes to red with a tooltip,
-    //  3) clearing formatting of all non-overused values (except "Unused") and the fully used values that are currently chosen.
-    // Then:
-    //  4) clearing formatting of all items unchosen in any box (except "Unused").
-    for(auto row = rows.rbegin(); row != rows.rend(); ++row) {
-        auto *box = qobject_cast<QComboBox *>(ui->tableWidget->cellWidget(*row, 1));
-        if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
-            continue;
-        }
-        box->blockSignals(true);
-        auto *model = qobject_cast<QStandardItemModel *>(box->model());
-        for(auto &takenValue : takenValues) {
-            const QString fieldval = takenValue.first;
-            const int numAllowed = box->itemData(box->findText(fieldval)).toInt();
-            QStandardItem *item = model->item(box->findText(fieldval));
-            if((fullyUsedValues[fieldval] > 1) && (box->currentText() == fieldval)) {
-                // number exceeds max. allowed somehow, so set to unused
-                box->setCurrentText(UNUSEDTEXT);
-                surveyFile->fieldMeanings[*row] = UNUSEDTEXT;
-                fullyUsedValues[fieldval]--;
-                if(numAllowed == 1) {
-                    item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
-                                                                  "\nSelecting this will de-select it elsewhere."));
-                }
-                else {
-                    item->setToolTip(tr("All ") + QString::number(numAllowed) + " \"" + fieldval + tr("\" fields have already been assigned."
-                                                                                                      "\nSelecting this will de-select it elsewhere."));
-                }
-            }
-            else if((fullyUsedValues[fieldval] == 1) && (box->currentText() != fieldval)) {
-                // at capacity, and not selected in this box
-                item->setForeground(Qt::darkRed);
-                if(numAllowed == 1) {
-                    item->setToolTip(tr("The \"") + fieldval + tr("\" field has already been assigned."
-                                                                  "\nSelecting this will de-select it elsewhere."));
-                }
-                else {
-                    item->setToolTip(tr("All ") + QString::number(numAllowed) + " \"" + fieldval + tr("\" fields have already been assigned."
-                                                                                                      "\nSelecting this will de-select it elsewhere."));
-                }
-            }
-            else if(fieldval != UNUSEDTEXT) {
-                // below capacity or at capacity including this one
-                item->setForeground(Qt::black);
-                item->setToolTip("");
-            }
-        }
-
-        // clearing formatting of all unchosen items except "Unused"
-        for(int itemNum = 0; itemNum < box->count(); itemNum++) {
-            if((takenValues.count(box->itemText(itemNum)) == 0) && (box->itemText(itemNum) != UNUSEDTEXT)) {
-                model->item(itemNum)->setForeground(Qt::black);
-                model->item(itemNum)->setToolTip("");
-            }
-        }
-        box->blockSignals(false);
-    }
-}
-
-bool GetGrueprDataDialog::readData()
+bool loadDataDialog::readData()
 {
     auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), tr("Cancel"), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
                                                       this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
@@ -809,8 +769,6 @@ bool GetGrueprDataDialog::readData()
     dataOptions->sectionIncluded = (dataOptions->sectionField != DataOptions::FIELDNOTPRESENT);
     dataOptions->timezoneField = int(surveyFile->fieldMeanings.indexOf("Timezone"));
     dataOptions->timezoneIncluded = (dataOptions->timezoneField != DataOptions::FIELDNOTPRESENT);
-
-    //associating column numbers with fields
 
     // pref teammates fields
     int lastFoundIndex = 0;
@@ -896,7 +854,7 @@ bool GetGrueprDataDialog::readData()
 
         //sort allTimeNames smartly, using string -> hour of day float; any timeName not found is put at the beginning of the list
         std::sort(allTimeNames.begin(), allTimeNames.end(), [] (const QString &a, const QString &b)
-                                            {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
+                  {return grueprGlobal::timeStringToHours(a) < grueprGlobal::timeStringToHours(b);});
         dataOptions->timeNames = allTimeNames;
 
         // Set the schedule resolution (in units of hours) by looking at all the time values.
@@ -1030,10 +988,10 @@ bool GetGrueprDataDialog::readData()
         // if there's section data in both the survey and the roster, ask which to use
         bool loadSectionFromRoster = false;
         if(std::any_of(students.constBegin(), students.constEnd(), [](const auto &student){return !student.section.isEmpty();}) &&
-           std::any_of(roster.constBegin(), roster.constEnd(), [](const auto &student){return !student.section.isEmpty();})) {
+            std::any_of(roster.constBegin(), roster.constEnd(), [](const auto &student){return !student.section.isEmpty();})) {
             loadSectionFromRoster = grueprGlobal::warningMessage(this, "gruepr",
                                                                  tr("The survey contains section data, but so does the roster") +
-                                                                    (dataOptions->dataSource == DataOptions::DataSource::fromCanvas? tr(" from Canvas") : "") + ".\n" +
+                                                                     (dataOptions->dataSource == DataOptions::DataSource::fromCanvas? tr(" from Canvas") : "") + ".\n" +
                                                                      tr("Would you like to replace the survey data with that from the roster?"),
                                                                  tr("Yes"), tr("No"));
         }
@@ -1092,8 +1050,8 @@ bool GetGrueprDataDialog::readData()
         if(numNonSubmitters > 0) {
             grueprGlobal::errorMessage(this, tr("Not all surveys submitted"),
                                        QString::number(numNonSubmitters) + " " + (numNonSubmitters == 1? tr("student has") : tr("students have")) +
-                                       tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name has") : tr("names have")) +
-                                       tr(" been added to the roster."));
+                                           tr(" not submitted a survey. Their ") + (numNonSubmitters == 1? tr("name has") : tr("names have")) +
+                                           tr(" been added to the roster."));
         }
     }
 
@@ -1135,11 +1093,11 @@ bool GetGrueprDataDialog::readData()
                 attributeType = DataOptions::AttributeType::timezone;
             }
             else if(std::any_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
-                                                                              {return response.contains(',');})) {
+                                 {return response.contains(',');})) {
                 attributeType = DataOptions::AttributeType::multicategorical;   // might be multiordered, this gets sorted out below
             }
             else if(std::all_of(responses.constBegin(), responses.constEnd(), [](const QString &response)
-                                                                              {return startsWithInteger.match(response).hasMatch();})) {
+                                 {return startsWithInteger.match(response).hasMatch();})) {
                 attributeType = DataOptions::AttributeType::ordered;
             }
             else {

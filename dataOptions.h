@@ -61,7 +61,7 @@ public:
     QList<Gender> Genders;
     QMap<QString, int> numberOfIdentitiesInPopulation; //Identity : Number in Population
     QString dataSourceName;
-    enum class DataSource{fromFile, fromGoogle, fromCanvas, fromPrevWork} dataSource = DataOptions::DataSource::fromFile;
+    enum class DataSource{fromUploadFile, fromDragDropFile, fromGoogle, fromCanvas, fromPrevWork} dataSource = DataOptions::DataSource::fromUploadFile;
     QStringList dayNames;
     QStringList timeNames;
     QString saveStateFileName;

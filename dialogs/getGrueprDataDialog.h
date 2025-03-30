@@ -33,7 +33,7 @@ private:
     Ui::GetGrueprDataDialog *ui;
     StartDialog *parent;
 
-    DataOptions::DataSource source = DataOptions::DataSource::fromFile;
+    DataOptions::DataSource source = DataOptions::DataSource::fromUploadFile;
 
     QList<StudentRecord> roster;    // holds roster of students from alternative source (in order to add names of non-submitters)
     QPushButton *categoryHelpButton;

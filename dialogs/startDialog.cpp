@@ -1,7 +1,8 @@
 #include "startDialog.h"
+#include "dialogs/categorizingdialog.h"
+#include "dialogs/loaddatadialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
-#include "dialogs/getGrueprDataDialog.h"
 #include "dialogs/registerDialog.h"
 #include "surveyMakerWizard.h"
 #include <QApplication>
@@ -47,6 +48,25 @@ StartDialog::StartDialog(QWidget *parent)
     theGrid->setRowMinimumHeight(row++, TOPSPACERHEIGHT);
 
     auto *topLabel = new QLabel(tr("What would you like to do?"), this);
+    // int fontId = QFontDatabase::addApplicationFont(":/fonts/PaytoneOne-Regular.ttf");
+    // QString fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
+    // QFont paytoneFont(fontFamily, 16); // Set size 16
+    // QPushButton* grueprIcon = new QPushButton(this);
+    // grueprIcon->setIcon(QIcon(":/icons_new/icon.svg"));
+    // grueprIcon->setText("gruepr");
+    // grueprIcon->setIconSize(QSize(60,60));
+    // grueprIcon->setFont(paytoneFont);
+    // grueprIcon->setStyleSheet(
+    //     "QPushButton {"
+    //     "   border: none;"
+    //     "   background: transparent;"
+    //     "   color: black;"  // Adjust text color if needed
+    //     "}"
+    //     "QPushButton:focus { outline: none; }"  // Remove focus outline
+    //     "QPushButton:hover { background: transparent; }"  // No hover effect
+    //     "QPushButton:pressed { background: transparent; }" // No press effect
+    //     );
+
     topLabel->setStyleSheet(LABEL24PTSTYLE);
     theGrid->addWidget(topLabel, row++, col, 1, -1, Qt::AlignCenter);
 
@@ -62,7 +82,7 @@ StartDialog::StartDialog(QWidget *parent)
     const QSize ICONSIZE = QSize(QPixmap(":/icons_new/makeASurvey.png").width() * ICONHEIGHT / QPixmap(":/icons_new/makeASurvey.png").height(), ICONHEIGHT);
     survMakeButton->setIconSize(ICONSIZE);
     survMakeButton->setFont(labelFont);
-    survMakeButton->setText(tr("Use our form builder\nto create the\nperfect survey for your class."));
+    survMakeButton->setText(tr("Need to collect student data?\nUse our form builder."));
     survMakeButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(survMakeButton, &QToolButton::clicked, this, &StartDialog::openSurveyMaker);
     theGrid->addWidget(survMakeButton, row, col++, 1, 1, Qt::AlignLeft);
@@ -75,7 +95,7 @@ StartDialog::StartDialog(QWidget *parent)
     grueprButton->setIcon(QIcon(":/icons_new/formTeams.png"));
     grueprButton->setIconSize(ICONSIZE);
     grueprButton->setFont(labelFont);
-    grueprButton->setText(tr("Use the survey results\nto form your grueps."));
+    grueprButton->setText(tr("Already have your student data?\nStart forming your groups."));
     grueprButton->setStyleSheet(STARTDIALODBUTTONSTYLE);
     connect(grueprButton, &QToolButton::clicked, this, &StartDialog::openGruepr);
     theGrid->addWidget(grueprButton, row++, col++, 1, 1, Qt::AlignRight);
@@ -174,13 +194,17 @@ void StartDialog::openGruepr() {
 
     bool spawnNewWindow = true;
     while(spawnNewWindow) {
-        const QScopedPointer<GetGrueprDataDialog> getDataDialog(new GetGrueprDataDialog(this));
+        const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
         QApplication::restoreOverrideCursor();
+        this->hide();
         auto result = getDataDialog->exec();
         if(result == QDialog::Accepted) {
+            //where is the surveyFile stored?
             QApplication::setOverrideCursor(Qt::BusyCursor);
+
             const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this));
             this->hide();
+
             grueprWindow->show();
             emit closeDataDialogProgressBar();
             QApplication::restoreOverrideCursor();
@@ -188,11 +212,11 @@ void StartDialog::openGruepr() {
             connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
             loop.exec();
             spawnNewWindow = grueprWindow->restartRequested;
-            this->show();
         }
         else {
             spawnNewWindow = false;
             emit closeDataDialogProgressBar();
+            this->show();
         }
     }
 }

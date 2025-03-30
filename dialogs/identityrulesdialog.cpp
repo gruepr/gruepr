@@ -33,7 +33,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
     // Set up the table's header style
     QHeaderView* header = rulesTable->horizontalHeader();
     header->setStyleSheet("QHeaderView::section {"
-                          "background-color: " BUBBLYHEX";"
+                          "background-color: " OPENWATERHEX";"
                           "color: white;"
                           "font-family: 'DM Sans'; font-size: 12pt;"
                           "padding: 5px;"
@@ -77,7 +77,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
             QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));  // 3rd row, index 2
             if (spinBox) {
                 int value = spinBox->value();
-                qDebug() << "Checking each spinBox, row:" << row << "value:" << value;
+                //qDebug() << "Checking each spinBox, row:" << row << "value:" << value;
                 rowValues.append(value);
 
                 // Check for duplicates and placeholders
@@ -93,8 +93,6 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
                 uniqueNumbersList.append(value);
             }
         }
-        qDebug() << "Has Duplicates:" << hasDuplicates;
-        qDebug() << "Has Placeholder:" << hasPlaceholder;
         if (hasDuplicates) {
             QMessageBox msgBox;
             msgBox.setText("Duplicate Error: There are duplicate entries in the identity rules.");

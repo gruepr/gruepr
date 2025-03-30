@@ -157,6 +157,7 @@ void StudentRecord::clear() {
 ////////////////////////////////////////////
 void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions)
 {
+    qDebug() << fields;
     const int numFields = fields.size();
 
     // Timestamp
