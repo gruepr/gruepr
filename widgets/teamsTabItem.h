@@ -1,6 +1,7 @@
 #ifndef TEAMSTABITEM_H
 #define TEAMSTABITEM_H
 
+#include "qtablewidget.h"
 #include "studentRecord.h"
 #include "dialogs/whichFilesDialog.h"
 #include "teamRecord.h"
@@ -41,6 +42,7 @@ signals:
     void saveState();
 
 private slots:
+    QWidget* createScoreLegend();
     void changeTeamNames(int index);
     void toggleSectionsInTeamNames(bool addSectionNames);
     void randomizeTeamnames(bool random);
@@ -56,9 +58,11 @@ private slots:
     void saveTeams();
     void printTeams();
     void postTeamsToCanvas();
+    void refreshSummaryTable(TeamingOptions teamingOptions);
 
 private:
     TeamTreeWidget *teamDataTree = nullptr;
+    QTableWidget *summaryTable = nullptr;
     void refreshTeamDisplay();
     void refreshDisplayOrder();
     QList<int> getTeamNumbersInDisplayOrder() const;

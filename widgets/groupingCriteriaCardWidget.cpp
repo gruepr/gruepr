@@ -247,7 +247,7 @@ void GroupingCriteriaCard::dragStarted() {
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
     mimeData->setText(QString::number(reinterpret_cast<quintptr>(this)));
-    qDebug() << mimeData;
+    //qDebug() << mimeData;
     drag->setMimeData(mimeData);
     QPixmap pixmap = grab();
 
@@ -269,7 +269,7 @@ void GroupingCriteriaCard::dragStarted() {
 
 void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event) {
     if (event->mimeData()->hasText()) {
-        qDebug() << "drag enter event accepted";
+        //qDebug() << "drag enter event accepted";
         event->acceptProposedAction();
     }
 }
@@ -284,8 +284,8 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
         int draggedPriorityOrder = draggedFrame->getPriorityOrder();
         int targetPriorityOrder = this->getPriorityOrder();
 
-        qDebug() << this->getPriorityOrder();
-        qDebug() << draggedFrame->getPriorityOrder();
+        //qDebug() << this->getPriorityOrder();
+        //qDebug() << draggedFrame->getPriorityOrder();
 
         // Insert the widgets back at their new positions
         event->acceptProposedAction();
@@ -297,7 +297,7 @@ int GroupingCriteriaCard::getPriorityOrder(){
     return this->priorityOrder;
 }
 void GroupingCriteriaCard::setPriorityOrder(int priorityOrder){
-    qDebug() << "set priority for " << priorityOrder;
+    //qDebug() << "set priority for " << priorityOrder;
     this->priorityOrder = priorityOrder;
     priorityOrderLabel->setText("Priority #" + QString::number(this->priorityOrder+1)); //priorityOrder starts with 0, so add 1 to make more clear
     headerRowLayout->update();
