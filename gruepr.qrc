@@ -56,5 +56,19 @@
         <file>icons_new/upButton_white.png</file>
         <file>icons_new/upDownButton_white.png</file>
         <file>icons_new/question.png</file>
+        <file>icons_new/lock.png</file>
+        <file>icons_new/drag-handle.png</file>
+        <file>icons_new/heterogeneous.png</file>
+        <file>icons_new/homogeneous.png</file>
+        <file>icons_new/close_square.png</file>
+        <file>icons_new/important_black.png</file>
+        <file>icons_new/important_gray.png</file>
+        <file>icons_new/important_yellow.png</file>
+        <file>icons_new/upload.png</file>
+        <file>icons_new/upload-dark.png</file>
+        <file>icons_new/save.png</file>
+        <file>icons_new/googleform.png</file>
+        <file>icons_new/checkmark-green.png</file>
+        <file>icons_new/left.png</file>
     </qresource>
 </RCC>

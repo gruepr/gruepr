@@ -8,6 +8,7 @@ gruepr_version = 12.8
 copyright_year = 2019-2025
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
+QT       += designer
 
 TARGET = gruepr
 TEMPLATE = app
@@ -25,6 +26,9 @@ DEFINES += GRUEPRHOMEPAGE='\\"gruepr.com\\"'
 DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between homepage and this, but cannot include "#" in the define here
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'
 DEFINES += GRUEPRHELPEMAIL='\\"info@gruepr.com\\"'
+
+#Set Config
+CONFIG += no_moc_predefs #Added to avoid file name conflicts
 
 # set application properties
 VERSION = $$gruepr_version
@@ -61,8 +65,21 @@ macx: LIBS += -L /usr/local/lib
 macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
+        CriterionTypes/criterion.cpp \
+        CriterionTypes/mixedgendercriterion.cpp \
+        CriterionTypes/multiplechoicestylecriterion.cpp \
+        CriterionTypes/preventedteammatescriterion.cpp \
+        CriterionTypes/requestedteammatescriterion.cpp \
+        CriterionTypes/requiredteammatescriterion.cpp \
+        CriterionTypes/schedulecriterion.cpp \
+        CriterionTypes/singlegendercriterion.cpp \
+        CriterionTypes/singleurmidentitycriterion.cpp \
         csvfile.cpp \
         dataOptions.cpp \
+        dialogs/categorizingdialog.cpp \
+        dialogs/dataTypesTableDialog.cpp \
+        dialogs/identityrulesdialog.cpp \
+        dialogs/loaddatadialog.cpp \
         gruepr_globals.cpp \
         gruepr.cpp \
         GA.cpp \
@@ -96,6 +113,8 @@ SOURCES += \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/dropcsvframe.cpp \
+        widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
         widgets/pushButtonWithMouseEnter.cpp \
@@ -107,8 +126,21 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+        CriterionTypes/criterion.h \
+        CriterionTypes/mixedgendercriterion.h \
+        CriterionTypes/multiplechoicestylecriterion.h \
+        CriterionTypes/preventedteammatescriterion.h \
+        CriterionTypes/requestedteammatescriterion.h \
+        CriterionTypes/requiredteammatescriterion.h \
+        CriterionTypes/schedulecriterion.h \
+        CriterionTypes/singlegendercriterion.h \
+        CriterionTypes/singleurmidentitycriterion.h \
         csvfile.h \
         dataOptions.h \
+        dialogs/categorizingdialog.h \
+        dialogs/dataTypesTableDialog.h \
+        dialogs/identityrulesdialog.h \
+        dialogs/loaddatadialog.h \
         gruepr.h \
         GA.h \
         gruepr_globals.h \
@@ -142,6 +174,8 @@ HEADERS += \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/dropcsvframe.h \
+        widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \
         widgets/pushButtonWithMouseEnter.h \

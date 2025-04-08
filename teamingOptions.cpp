@@ -1,11 +1,13 @@
 #include "teamingOptions.h"
 #include <QJsonArray>
+#include <QString>
 
 TeamingOptions::TeamingOptions()
 {
     // initialize all attribute weights to 1, desires to heterogeneous, and incompatible attribute values to none
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        desireHomogeneous[i] = false;
+        attributeDiversity[i] = 0;
+        attributeSelected[i] = 0;
         attributeWeights[i] = 1;
         realAttributeWeights[i] = 1;
         haveAnyRequiredAttributes[i] = false;
@@ -32,14 +34,23 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     minTimeBlocksOverlap = jsonTeamingOptions["minTimeBlocksOverlap"].toInt();
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
-    const QJsonArray desireHomogeneousArray = jsonTeamingOptions["desireHomogeneous"].toArray();
+    const QJsonArray attributeSelectedArray = jsonTeamingOptions["attributeSelected"].toArray();
+    const QJsonArray attributeDiversityArray = jsonTeamingOptions["attributeDiversity"].toArray();
     int i = 0;
-    for(const auto &item : desireHomogeneousArray) {
-        desireHomogeneous[i] = item.toBool();
+    for(const auto &item : attributeDiversityArray) {
+        attributeDiversity[i] = item.toInt();
         i++;
     }
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        desireHomogeneous[j] = false;
+        attributeDiversity[j] = 0;
+    }
+    i = 0;
+    for(const auto &item : attributeSelectedArray) {
+        attributeSelectedArray[i] = item.toInt();
+        i++;
+    }
+    for(int j = i; j < MAX_ATTRIBUTES; j++) {
+        attributeSelectedArray[j] = 0;
     }
     const QJsonArray attributeWeightsArray = jsonTeamingOptions["attributeWeights"].toArray();
     i = 0;
@@ -150,11 +161,12 @@ void TeamingOptions::reset()
 
 QJsonObject TeamingOptions::toJson() const
 {
-    QJsonArray desireHomogeneousArray, attributeWeightsArray, realAttributeWeightsArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
+    QJsonArray attributeSelectedArray, attributeDiversityArray, attributeWeightsArray, realAttributeWeightsArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
                incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray;
 
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        desireHomogeneousArray.append(desireHomogeneous[i]);
+        attributeSelectedArray.append(attributeSelected[i]);
+        attributeDiversityArray.append(attributeDiversity[i]);
         attributeWeightsArray.append(attributeWeights[i]);
         realAttributeWeightsArray.append(realAttributeWeights[i]);
         haveAnyRequiredAttributesArray.append(haveAnyRequiredAttributes[i]);
@@ -194,7 +206,8 @@ QJsonObject TeamingOptions::toJson() const
         {"minTimeBlocksOverlap", minTimeBlocksOverlap},
         {"meetingBlockSize", meetingBlockSize},
         {"realMeetingBlockSize", realMeetingBlockSize},
-        {"desireHomogeneous", desireHomogeneousArray},
+        {"attributeSelected", attributeSelectedArray},
+        {"attributeDiversity", attributeDiversityArray},
         {"attributeWeights", attributeWeightsArray},
         {"realAttributeWeights", realAttributeWeightsArray},
         {"haveAnyRequiredAttributes", haveAnyRequiredAttributesArray},
