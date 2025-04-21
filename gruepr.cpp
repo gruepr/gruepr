@@ -61,7 +61,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         }
     )");
     splitter->setHandleWidth(5);
-    splitter->setToolTip("Drag left or right to adjust");
 
     QWidget *settingTeamCriteriaWidget = new QWidget(this);
     QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
