@@ -61,7 +61,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         }
     )");
     splitter->setHandleWidth(5);
-    splitter->setToolTip("Drag left or right to adjust");
 
     QWidget *settingTeamCriteriaWidget = new QWidget(this);
     QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
@@ -3226,11 +3225,11 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
         }
 
         if (_totalNumberOfRules == (teamSize * (teamSize-1))/ 2){
-            float compatibleIncompatibleScore = _numberOfBrokenRules / _totalNumberOfRules;
+            float compatibleIncompatibleScore = 1 - (_numberOfBrokenRules / _totalNumberOfRules);
             _criterionScore[team] = (compatibleIncompatibleScore + _criterionScore[team]) / 2;
             _criterionScore[team] *= criterion->weight;
         } else if (_totalNumberOfRules == (teamSize * (teamSize-1))){
-            float compatibleIncompatibleScore = _numberOfBrokenRules / _totalNumberOfRules;
+            float compatibleIncompatibleScore = 1 - (_numberOfBrokenRules / _totalNumberOfRules);
             _criterionScore[team] = (compatibleIncompatibleScore + _criterionScore[team]) / 3;
             _criterionScore[team] *= criterion->weight;
         } else {

@@ -227,6 +227,8 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
 
     QString responsesText = "";
     //Create Table to store text
+    responsesText += "<u>Responses</u>";
+    responsesText += "<br>"; //add a new row
     for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
         responsesText += "<b>";
         if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {

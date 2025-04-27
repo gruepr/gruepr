@@ -418,13 +418,14 @@ void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
     //initialize the headers (priority, criterion names and final overall rating)
     //initialize the vertical headers to be the team numbers
     for (int row = 0; row < teamingOptions.numTeamsDesired; row++){
-        float minScore = 1;
+        float averageScore = 0;
         for (int criterion = 0; criterion < teamingOptions.realNumScoringFactors; criterion++){
             //auto* _criterionBeingScored = teamingOptions->criterionTypes[criterion];
             summaryTable->setCellWidget(row, criterion, getLabelFromCriterionScore(teams[row].criterionScores[criterion]));
-            minScore = std::min(minScore, teams[row].criterionScores[criterion]);
+            averageScore = averageScore + teams[row].criterionScores[criterion];
         }
-        summaryTable->setCellWidget(row, teamingOptions.realNumScoringFactors, getLabelFromCriterionScore(minScore));
+        averageScore = averageScore/teamingOptions.realNumScoringFactors;
+        summaryTable->setCellWidget(row, teamingOptions.realNumScoringFactors, getLabelFromCriterionScore(averageScore));
     }
     summaryTable->resizeColumnsToContents();
     summaryTable->resizeRowsToContents();
