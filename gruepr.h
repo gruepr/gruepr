@@ -2,6 +2,7 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
+#include "CriterionTypes/gradebalancecriterion.h"
 #include "CriterionTypes/mixedgendercriterion.h"
 #include "CriterionTypes/multiplechoicestylecriterion.h"
 #include "CriterionTypes/preventedteammatescriterion.h"
@@ -87,6 +88,7 @@ private slots:
 private slots:
     void swapCriteriaCards(int draggedIndex, int targetIndex);
     void deleteCriteriaCard(int deletedIndex);
+    void doAutoScroll(QPoint point);
 private:
         // setup
     Ui::gruepr *ui;
@@ -147,8 +149,11 @@ private:
                                                  const TeamingOptions *const _teamingOptions, RequiredTeammatesCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
     inline static void getRequestedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                  const TeamingOptions *const _teamingOptions, RequestedTeammatesCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getGradeBalanceScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                                  const TeamingOptions *const _teamingOptions, GradeBalanceCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
     inline static void getScheduleScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                   const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, ScheduleCriterion *criterion, float *_criterionScore, bool **_availabilityChart, int *_penaltyPoints);
+
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
@@ -203,6 +208,9 @@ private:
 
     //Single: Meeting Schedule Criteria Card
     GroupingCriteriaCard* meetingScheduleCriteriaCard = nullptr;
+    GroupingCriteriaCard* gradeBalanceCriteriaCard = nullptr;
+    QDoubleSpinBox* minimumMeanGradeSpinBox = nullptr;
+    QDoubleSpinBox* maximumMeanGradeSpinBox = nullptr;
     QSpinBox* minMeetingTimes = nullptr;
     QSpinBox* desiredMeetingTimes = nullptr;
     QDoubleSpinBox* meetingLengthSpinBox = nullptr;

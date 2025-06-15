@@ -111,6 +111,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     summaryTable->setRowCount(incomingTeamingOptions.numTeamsDesired);
     QStringList headerLabels;
     //add all the criterion being scored, each as a column
+    headerLabels << tr(" Overall Rating ");
     for (auto* _criterionBeingScored : teamingOptions->criterionTypes){
         if (dynamic_cast<MultipleChoiceStyleCriterion*>(_criterionBeingScored)){
             auto criterionCasted = dynamic_cast<MultipleChoiceStyleCriterion*>(_criterionBeingScored);
@@ -129,15 +130,15 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
         } else if (dynamic_cast<ScheduleCriterion*>(_criterionBeingScored)){
             headerLabels << tr (" Schedule Criterion ");
         } else if (dynamic_cast<PreventedTeammatesCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Prevented Teammates Criterion ");
+            headerLabels << tr(" Prevented Teammates ");
         } else if (dynamic_cast<RequestedTeammatesCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Requested Teammates Criterion ");
+            headerLabels << tr(" Requested Teammates ");
         } else if (dynamic_cast<RequiredTeammatesCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Required Teammates Criterion ");
-        } //else not possible
+            headerLabels << tr(" Required Teammates ");
+        } else if (dynamic_cast<GradeBalanceCriterion*>(_criterionBeingScored)){
+            headerLabels << tr(" Grade Balance ");
+        }//else not possible
     }
-    headerLabels << tr(" Overall Rating ");
-
     QStringList verticalHeaders;
 
     // Iterate through teams and add their names to the vertical headers
@@ -421,11 +422,11 @@ void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
         float averageScore = 0;
         for (int criterion = 0; criterion < teamingOptions.realNumScoringFactors; criterion++){
             //auto* _criterionBeingScored = teamingOptions->criterionTypes[criterion];
-            summaryTable->setCellWidget(row, criterion, getLabelFromCriterionScore(teams[row].criterionScores[criterion]));
+            summaryTable->setCellWidget(row, criterion+1, getLabelFromCriterionScore(teams[row].criterionScores[criterion])); //critrion+1 since overall rating is in the first column
             averageScore = averageScore + teams[row].criterionScores[criterion];
         }
         averageScore = averageScore/teamingOptions.realNumScoringFactors;
-        summaryTable->setCellWidget(row, teamingOptions.realNumScoringFactors, getLabelFromCriterionScore(averageScore));
+        summaryTable->setCellWidget(row, 0, getLabelFromCriterionScore(averageScore)); //overall rating is in the first column
     }
     summaryTable->resizeColumnsToContents();
     summaryTable->resizeRowsToContents();

@@ -204,6 +204,7 @@ bool CategorizingDialog::initializeComboBoxes()
                                                   {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
                                                   {"Section", "which section are you enrolled", 1},
                                                   {"Timezone","(time zone)", 1},
+                                                  {"Grade", "(grade)|(marks)", 1},
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
                                                   {"Multiple Choice", ".*", MAX_ATTRIBUTES},

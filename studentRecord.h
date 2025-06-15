@@ -39,6 +39,7 @@ public:
     QString lastname;
     QString email;
     QString section;									// section data stored as text
+    float grade;                                      // grade stored as float
     QString prefTeammates;
     QString prefNonTeammates;
     QString notes;										// any special notes for this student

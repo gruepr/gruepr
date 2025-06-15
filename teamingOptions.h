@@ -33,6 +33,8 @@ public:
     int minTimeBlocksOverlap = 4;                       // a team is penalized if there are fewer than this many time blocks that overlap
     float meetingBlockSize = 1;                         // the minimum length of schedule overlap to count as a meeting time (in units of hours)
     int realMeetingBlockSize = 1;                       // the minimum length of schedule overlap (in units of # of blocks in schedule)
+    float targetMinimumGroupGradeAverage = 0.0;         // the target minimum group average grade
+    float targetMaximumGroupGradeAverage = 100.0;       // the target maximum group average grade
 
     float weights[MAX_CRITERIA] = {};
     bool penaltyStatus[MAX_CRITERIA] = {};

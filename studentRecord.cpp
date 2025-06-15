@@ -144,6 +144,7 @@ void StudentRecord::clear() {
     lastname.clear();
     email.clear();
     section.clear();
+    grade = -1.0; //clearing the grade
     prefTeammates.clear();
     prefNonTeammates.clear();
     notes.clear();
@@ -224,6 +225,12 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
     fieldnum = dataOptions.emailField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         email = fields.at(fieldnum).trimmed();
+    }
+
+    // Email
+    fieldnum = dataOptions.gradeField;
+    if((fieldnum >= 0) && (fieldnum < numFields)) {
+        grade = fields.at(fieldnum).trimmed().toFloat();
     }
 
     // gender
@@ -613,6 +620,7 @@ QJsonObject StudentRecord::toJson() const
         {"URM", URM},
         {"unavailable", unavailableArray},
         {"timezone", timezone},
+        {"grade", grade},
         {"ambiguousSchedule", ambiguousSchedule},
         {"preventedWithIDs", preventedWithArray},
         {"requiredWithIDs", requiredWithArray},

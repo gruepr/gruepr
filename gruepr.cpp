@@ -1,4 +1,5 @@
 #include "gruepr.h"
+#include "CriterionTypes/gradebalancecriterion.h"
 #include "CriterionTypes/mixedgendercriterion.h"
 #include "CriterionTypes/multiplechoicestylecriterion.h"
 #include "CriterionTypes/preventedteammatescriterion.h"
@@ -67,6 +68,8 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->teamingOptionsScrollArea->setWidgetResizable(true);
     ui->teamingOptionsScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->teamingOptionsScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    ui->teamingOptionsScrollArea->viewport()->installEventFilter(this);
+
     QVBoxLayout *scrollLayout = qobject_cast<QVBoxLayout*>(scrollWidget->layout());
     scrollLayout->setSpacing(5);
     scrollLayout->setAlignment(Qt::AlignTop);
@@ -125,6 +128,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         connect(editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
         connect(sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
         connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
         connect(sectionCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
         criteriaCardsList.append(sectionCriteriaCard);
     }
@@ -193,15 +197,21 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
         //mainMenu->addMenu(multipleChoiceQuestionMenu);
     }
     if (this->dataOptions->URMIncluded){
-        QMenu *URMMenu = new QMenu("Other Identities", this);
+        QMenu *URMMenu = new QMenu("URM Identities", this);
         for (QString urm: this->dataOptions->URMResponses){
-            QString currentURM = urm;
-            QAction *currentURMAction = URMMenu->addAction(currentURM);
+            QString currentURM = "URM Identity: " + urm;
+            //QAction *currentURMAction = URMMenu->addAction(currentURM);
+            QAction *currentURMAction = mainMenu->addAction(currentURM);
             connect(currentURMAction, &QAction::triggered, this, [this, currentURM](){gruepr::addCriteriaCard(CriteriaType::urmIdentity, currentURM);});
+
         }
-        identityOptionsMenu->addMenu(URMMenu);
     }
     if (this->dataOptions->timezoneIncluded){
+    }
+    if (this->dataOptions->gradeIncluded){
+        QAction *gradeAction = mainMenu->addAction("Grade");
+        connect(gradeAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(CriteriaType::gradeBalance);});
+        mainMenu->addAction(gradeAction);
     }
     if (this->dataOptions->scheduleField.length()!=0){
         QAction* scheduleMeetingTimesAction = new QAction("Meeting Times", this);
@@ -301,6 +311,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     // Connect signals from each draggableQFrame to swapFrames
     for(auto &criteriaCard : criteriaCardsList) {
         connect(criteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(criteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
     }
 
     //connecting the buttons that are always shown
@@ -323,6 +334,20 @@ gruepr::~gruepr()
     delete dataOptions;
     delete teamingOptions;
     delete ui;
+}
+
+void gruepr::doAutoScroll(QPoint point){
+    const int margin = 30, step = 10;
+        QRect area = ui->teamingOptionsScrollArea->viewport()->rect();
+        if (point.y() < area.top() + margin) {
+            ui->teamingOptionsScrollArea->verticalScrollBar()->setValue(
+                ui->teamingOptionsScrollArea->verticalScrollBar()->value() - step
+            );
+        } else if (point.y() > area.bottom() - margin) {
+            ui->teamingOptionsScrollArea->verticalScrollBar()->setValue(
+                ui->teamingOptionsScrollArea->verticalScrollBar()->value() + step
+            );
+        }
 }
 
 QPushButton* gruepr::createAddNewCriteriaButton(bool hoverToSee){
@@ -433,6 +458,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(desiredMeetingTimes);});
             //adding to layout
             connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
             connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
@@ -487,6 +513,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newRequiredTeammatesCard);
             connect(newRequiredTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newRequiredTeammatesCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
             connect(newRequiredTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             connect(newRequiredTeammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
@@ -542,6 +569,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newPreventedTeammatesCard);
             connect(newPreventedTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newPreventedTeammatesCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
             connect(newPreventedTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             connect(newPreventedTeammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
@@ -596,11 +624,87 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newRequestedTeammatesCard);
             connect(newRequestedTeammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newRequestedTeammatesCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
             connect(newRequestedTeammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             connect(newRequestedTeammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
             QMessageBox msgBox;
             msgBox.setText("Requested Teammates Criteria Card already exists");
+            msgBox.exec();
+        }
+    } else if (criteriaType == CriteriaType::gradeBalance){
+        if (gradeBalanceCriteriaCard==nullptr){
+            //Meeting Schedule Criteria Card Styling
+            gradeBalanceCriteriaCard = new GroupingCriteriaCard(this, QString("Grade Balance"), true, criteriaType);
+            gradeBalanceCriteriaCard->criterion = new GradeBalanceCriterion(0.0, false);
+
+            QHBoxLayout* gradeBalanceContentLayout = new QHBoxLayout();
+            QFrame *gradeInfoFrame = new QFrame();
+            gradeBalanceContentLayout->addWidget(gradeInfoFrame, 1);
+            //mean grade box that is elevated + distribution of student grades
+
+            QVBoxLayout* spinBoxVLayout = new QVBoxLayout();
+            QHBoxLayout* spinBoxHLayout = new QHBoxLayout();
+            gradeBalanceContentLayout->addLayout(spinBoxVLayout, 3);
+
+            QLabel* gradeRangeLabel = new QLabel("Target group average grade range: ");
+            spinBoxVLayout->addWidget(gradeRangeLabel);
+            spinBoxVLayout->addLayout(spinBoxHLayout);
+
+            minimumMeanGradeSpinBox = new QDoubleSpinBox(this);
+            maximumMeanGradeSpinBox = new QDoubleSpinBox(this);
+
+            spinBoxHLayout->addWidget(minimumMeanGradeSpinBox);
+            spinBoxHLayout->addWidget(maximumMeanGradeSpinBox);
+
+
+            minimumMeanGradeSpinBox->setPrefix(QString("Min: "));
+            minimumMeanGradeSpinBox->setMinimum(0.0);
+            minimumMeanGradeSpinBox->setValue(0.0);
+            minimumMeanGradeSpinBox->setSingleStep(1.0);
+            minimumMeanGradeSpinBox->setDecimals(2);
+            minimumMeanGradeSpinBox->setMinimumHeight(40);
+
+            maximumMeanGradeSpinBox->setPrefix(QString("Max: "));
+            maximumMeanGradeSpinBox->setMinimum(0.0);
+            maximumMeanGradeSpinBox->setMaximum(100.0);
+            maximumMeanGradeSpinBox->setValue(100.0);
+            maximumMeanGradeSpinBox->setSingleStep(1.0);
+            maximumMeanGradeSpinBox->setDecimals(2);
+            maximumMeanGradeSpinBox->setMinimumHeight(40);
+            //add standard deviation and average data of grade based on population
+
+            //mean grade?
+            float meangrade = 0.0;
+            for (StudentRecord student : students){
+                meangrade += student.grade;
+            }
+            meangrade = meangrade / students.size();
+
+            gradeInfoFrame->setFrameShadow(QFrame::Raised);
+            QVBoxLayout *gradeInfoFrameLayout = new QVBoxLayout();
+            gradeInfoFrameLayout->addWidget(new QLabel("<u>Mean Student Grade</u>"));
+            gradeInfoFrameLayout->addWidget(new QLabel(QString::number(meangrade, 'f', 2)));
+            gradeInfoFrame->setLayout(gradeInfoFrameLayout);
+
+            //students over total students for mean grade
+
+            gradeBalanceCriteriaCard->setContentAreaLayout(*gradeBalanceContentLayout);
+            gradeBalanceCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+
+            //adding to criteria card list
+            criteriaCardsList.append(gradeBalanceCriteriaCard);
+
+            connect(minimumMeanGradeSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(minimumMeanGradeSpinBox);});
+            connect(maximumMeanGradeSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(maximumMeanGradeSpinBox);});
+            //adding to layout
+            connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
+            connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
+            connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
+        } else {
+            QMessageBox msgBox;
+            msgBox.setText("Grade Balance Criteria already exists");
             msgBox.exec();
         }
     }
@@ -650,6 +754,9 @@ void gruepr::deleteCriteriaCard(int deletedIndex){
             uiCheckBoxMap.remove(genderName + "PreventIsolatedCheckBox");
             delete cardToDelete;
         }
+    } else if (cardToDelete->criteriaType == CriteriaType::gradeBalance){
+        delete cardToDelete;
+        gradeBalanceCriteriaCard = nullptr;
     } else {
         qDebug() << deletedIndex << " does not exist.";
     }
@@ -667,23 +774,26 @@ void gruepr::refreshCriteriaLayout(){
     for (GroupingCriteriaCard* criteriaCard : criteriaCardsList) {
         if (criteriaCard->criteriaType == CriteriaType::teamSize || criteriaCard->criteriaType == CriteriaType::section){
             criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == true){
-            if (prevCriteriaCard->includePenaltyCheckBox!=nullptr){
-                prevCriteriaCard->includePenaltyCheckBox->setDisabled(true);
-            }
-            criteriaCard->includePenaltyCheckBox->setDisabled(false);
-            criteriaCard->includePenaltyCheckBox->setVisible(true);
-            criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == false){
-            criteriaCard->includePenaltyCheckBox->setVisible(true);
-            criteriaCard->includePenaltyCheckBox->setDisabled(false);
-            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-        } else if (prevCriteriaCard->criterion->penaltyStatus == false && criteriaCard->criterion->penaltyStatus == false){
-            criteriaCard->includePenaltyCheckBox->setVisible(false);
-            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        // } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == true){
+        //     if (prevCriteriaCard->includePenaltyCheckBox!=nullptr){
+        //         prevCriteriaCard->includePenaltyCheckBox->setDisabled(true);
+        //     }
+        //     criteriaCard->includePenaltyCheckBox->setDisabled(false);
+        //     criteriaCard->includePenaltyCheckBox->setVisible(true);
+        //     criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        // } else if (prevCriteriaCard->criterion->penaltyStatus == true && criteriaCard->criterion->penaltyStatus == false){
+        //     criteriaCard->includePenaltyCheckBox->setVisible(true);
+        //     criteriaCard->includePenaltyCheckBox->setDisabled(false);
+        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        // } else if (prevCriteriaCard->criterion->penaltyStatus == false && criteriaCard->criterion->penaltyStatus == false){
+        //     criteriaCard->includePenaltyCheckBox->setVisible(false);
+        //     criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+        // } else {
+        //     //criteriaCard->includePenaltyCheckBox->setVisible(false);
+        //     criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         } else {
-            criteriaCard->includePenaltyCheckBox->setVisible(false);
-            criteriaCard->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+            //criteriaCard->includePenaltyCheckBox->setVisible(false);
+            criteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         }
         criteriaCard->setVisible(true);
         layout->addWidget(criteriaCard);
@@ -713,6 +823,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
                 //adding to criteria card list and layout, then clean and rebuild criteria cards layout
                 criteriaCardsList.append(newGenderCard);
                 connect(newGenderCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+                connect(newGenderCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(newGenderCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
                 connect(newGenderCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
             } else {
@@ -759,6 +870,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newGenderCard);
             connect(newGenderCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newGenderCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
             connect(newGenderCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             connect(newGenderCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
@@ -813,6 +925,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
             //adding to criteria card list and layout, then clean and rebuild criteria cards layout
             criteriaCardsList.append(newIdentityCard);
             connect(newIdentityCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+            connect(newIdentityCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
             connect(newIdentityCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
             connect(newIdentityCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         } else {
@@ -1570,7 +1683,7 @@ void gruepr::simpleUIItemUpdate(QObject* sender)
         }
     }
 
-    if (meetingLengthSpinBox!=nullptr) {
+    if (meetingLengthSpinBox!=nullptr) { //only initialized if the card is added in the QMenu
         teamingOptions->meetingBlockSize = (meetingLengthSpinBox->value());
         if (sender == meetingLengthSpinBox) {
             meetingLengthSpinBox->setSuffix(meetingLengthSpinBox->value() > 1 ? tr(" hours") : tr(" hour"));
@@ -1579,6 +1692,16 @@ void gruepr::simpleUIItemUpdate(QObject* sender)
                 desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
             }
         }
+    }
+
+    if (minimumMeanGradeSpinBox!=nullptr){
+        teamingOptions->targetMinimumGroupGradeAverage = minimumMeanGradeSpinBox->value();
+        //qDebug() << "Maximum Deviation of Group Average SpinBox: " << QString::number(teamingOptions->maximumDeviationOfGroupGradeAverage);
+    }
+
+    if (maximumMeanGradeSpinBox!=nullptr){
+        teamingOptions->targetMaximumGroupGradeAverage = maximumMeanGradeSpinBox->value();
+        //qDebug() << "Maximum Deviation of Group Average SpinBox: " << QString::number(teamingOptions->maximumDeviationOfGroupGradeAverage);
     }
 
     //teamingOptions->scheduleWeight = float(ui->scheduleWeight->value());
@@ -1914,7 +2037,7 @@ void gruepr::startOptimization()
         index++;
     }
 
-    teamingOptions->realNumScoringFactors = index;
+    teamingOptions->realNumScoringFactors = index; //initialize realNumScoringFactors to contain number of criteria to optimize
 
     if (index == 0){
         //just do the randomization bcs no priority
@@ -2043,6 +2166,8 @@ void gruepr::updateOptimizationProgress(const float *const allScores, const int 
     if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0) {
         progressChart->loadNextVals(allScores, orderedIndex, ga.populationsize, unpenalizedGenomePresent);
     }
+
+    float maxScore = *std::max_element(allScores, allScores + ga.populationsize);
 
     if(generation > GA::MAX_GENERATIONS) {
         progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
@@ -2252,7 +2377,6 @@ void gruepr::loadUI()
     idealTeamSizeBox->setMaximum(std::max(2ll,numActiveStudents/2));
     qDebug() << "Calling change ideal team size in loadUI:";
 
-
     if(dataOptions->sectionIncluded) {
         sectionSelectionBox->blockSignals(true);
         if(dataOptions->sectionNames.size() > 1) {
@@ -2300,6 +2424,7 @@ void gruepr::loadUI()
         currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         QHBoxLayout* mcqContentLayout = new QHBoxLayout();
         connect(currentMultipleChoiceCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(currentMultipleChoiceCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
         connect(currentMultipleChoiceCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
         connect(currentMultipleChoiceCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
         //ui->attributesStackedWidget->addWidget(attributeWidgets.last());
@@ -3016,6 +3141,9 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
             auto criterionCasted = dynamic_cast<RequiredTeammatesCriterion*>(_criterionBeingScored);
             getRequiredTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criterionScore[i], _penaltyPoints);
             //getTeammatePenalties(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _penaltyPoints);
+        } else if (dynamic_cast<GradeBalanceCriterion*>(_criterionBeingScored)){
+            auto criterionCasted = dynamic_cast<GradeBalanceCriterion*>(_criterionBeingScored);
+            getGradeBalanceScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criterionScore[i], _penaltyPoints);
         }
     }
 
@@ -3567,6 +3695,38 @@ void gruepr::getPreventedTeammatesScore(const StudentRecord *const _students, co
                     }
                 }
             }
+        }
+        _criterionScore[team] *= criterion->weight;
+    }
+}
+
+void gruepr::getGradeBalanceScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                  const TeamingOptions *const _teamingOptions, GradeBalanceCriterion *criterion, float *_criterionScore, int *_penaltyPoints){
+    // optimize based on _teamingOptions->maximumDeviationOfGroupGradeAverage;
+
+    // calculate group average grade. if absolute (overallmeangrade - currentgroupaveragegrade) > standarddeviationallowed, this group has a lower score
+
+    int studentNum = 0;
+    float overallMeanGrade = 0.0;
+    float meanGroupGrades[_numTeams];
+    //calculate grade average of each team
+    for(int team = 0; team < _numTeams; team++) {
+        float totalGroupGrade = 0.0;
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            totalGroupGrade += _students[_teammates[studentNum]].grade;
+            studentNum++;
+        }
+        meanGroupGrades[team] = totalGroupGrade / _teamSizes[team];
+        overallMeanGrade += meanGroupGrades[team];
+    }
+    overallMeanGrade = overallMeanGrade / _numTeams;
+
+    //get overall mean grade
+    for(int team = 0; team < _numTeams; team++){
+        if (meanGroupGrades[team] > _teamingOptions->targetMaximumGroupGradeAverage || meanGroupGrades[team] < _teamingOptions->targetMinimumGroupGradeAverage){
+            _criterionScore[team] = 0;
+        } else {
+            _criterionScore[team] = 1;
         }
         _criterionScore[team] *= criterion->weight;
     }

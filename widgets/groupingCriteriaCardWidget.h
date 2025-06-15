@@ -62,7 +62,7 @@ public:
     Criterion *criterion = nullptr;
     CriteriaType criteriaType;
 
-    QCheckBox *includePenaltyCheckBox = nullptr;
+    //QCheckBox *includePenaltyCheckBox = nullptr;
     void setContentAreaLayout(QLayout & contentLayout);
     QString name() const;
     QString includeFile() const;
@@ -81,15 +81,20 @@ public:
     //QPushButton* getDeleteButton();
     void dragStarted();
     void dragEnterEvent(QDragEnterEvent *event);
+    QPoint mapToViewport(const QPointF &local);
+    void dragMoveEvent(QDragMoveEvent *event);
     void dropEvent(QDropEvent *event);
     int getPriorityOrder();
     void setPriorityOrder(int priorityOrder);
     signals:
+        void criteriaCardMoved(QPoint point);
         void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
         void deleteCardRequested(int deletedIndex);
         void includePenaltyStateChanged();
 private:
     int priorityOrder = 0;
+    QTimer  m_dragTimer;
+    QPoint  m_lastPos;
 };
 
 #endif // SECTION_H
