@@ -518,6 +518,7 @@ inline static const char TEAMNAMECATEGORIES[] {"Arabic numbers,"
                                  "Crayola crayon colors,"
                                  "Genres of music,"
                                  "Cheeses,"
+                                 "Classic video games,"
                                  "Shakespeare plays (RSC chron.),"
                                  "Languages (globally most spoken),"
                                  "All time best-selling albums in US,"
@@ -536,6 +537,7 @@ inline static const TeamNameType TEAMNAMETYPES[] {TeamNameType::numeric,
                                                   TeamNameType::repeated,
                                                   TeamNameType::repeated,
                                                   TeamNameType::repeated_spaced,
+                                                  TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
                                                   TeamNameType::sequeled,
@@ -599,6 +601,10 @@ inline static const char TEAMNAMELISTS[] {";"
                                  "Paneer,Queso Fresco,Ricotta,Siraz,Tyn Grug,Ulloa,Vignotte,Weichkaese,Xynotyro,Yorkshire Blue,Zamorano,American,Blue,Camembert,"
                                  "Danablu,Emmental,Fontina,Gjetost,Halloumi,Idiazabal,Juustoleipa,Kefalotyri,Leicester,Mascarpone,Parmesan,Queso Blanco,"
                                  "Raclette,Stilton,Tronchon;"
+                              "Asteroids,Battlezone,Centipede,Donkey Kong,Elevator Action,Frogger,Galaga,Half-Life,Ikari Warriors,Joust,Kung-Fu Master,"
+                                 "Lode Runner,Missle Command,Ninja Gaiden,Oregon Trail,Pac-Man,Quake,Resident Evil,Super Mario Bros,Tetris,Ultima,"
+                                 "Virtua Racing,Wolfenstein 3D,Xenophobe,Zork,Arkanoid,Bubble Bobble,Contra,Defender,EarthBound,Final Fantasy,Gauntlet,Halo,"
+                                 "Legend of Zelda,Metroid,NBA Jam,Out Run,Pong,Sonic the Hedgehog;"
                               "Taming of the Shrew,Henry VI,Two Gentlemen of Verona,Titus Andronicus,Richard III,Comedy of Errors,"
                                  "Love's Labour's Lost,Midsummer Night's Dream,Romeo and Juliet,Richard II,King John,Merchant of Venice,"
                                  "Henry IV,Much Ado about Nothing,Henry V,As You Like It,Julius Caesar,Hamlet,Merry Wives of Windsor,"
@@ -710,7 +716,7 @@ inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#
 
 inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                                "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
-                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
+                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>, Giovanni Assad, Nikhen Nyo"
                                                "<p>gruepr is an open source project. The source code is freely available at "
                                                "the project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
                                                "<br><br>gruepr incorporates:"
@@ -738,7 +744,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
 
 inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                               "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
-                                              "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
+                                              "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>, Giovanni Assad, Nikhen Nyo"
                                               "<p>Project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
                                               "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-1000 students into optimized teams. It was originally based on "
                                                  "CATME's team forming routine as described in "

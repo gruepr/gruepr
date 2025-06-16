@@ -1,7 +1,7 @@
 #ifndef TEAMINGOPTIONS_H
 #define TEAMINGOPTIONS_H
 
-#include "CriterionTypes/criterion.h"
+#include "criteria/criterion.h"
 #include "gruepr_globals.h"
 #include <QJsonObject>
 #include <QObject>

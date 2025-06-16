@@ -2,7 +2,7 @@
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2019 - 2025
-// Joshua Hertz
+// Joshua Hertz, Giovanni Assad, Nikhen Nyo
 // info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    This program is free software: you can redistribute it and/or modify
@@ -35,12 +35,14 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - changed handling of gender, allowing it to be multi-valued (check one or more in survey; set of values in the studentRecord)
+//  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values in the studentRecord)
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
 //  - attribute response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
+//  - Pulling in the ***incredible*** dissertation work by Nikhen:
+//    -
 //
 // INPROG:
 //  - export of teams should include the section number if that's being displayed (having trouble re-creating)
@@ -50,6 +52,15 @@
 //    BUGFIXES:
 //
 //    NEW FEATURES:
+//  From Nikhen's work:
+//  - allow "balance of values" among all teams as a criterion condition
+//  - split the required/prev/request. teammates window into three spearate windows
+//  - identity rules add >, >=, <, <=
+//  - bar graphs for the MCQ student counts
+//  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points
+//  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
+//  - heterogeneous should always go towards most number of values, as with categorical MCQs, not (just?) the range of values, as is currently done with ordered MCQs
+//  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)

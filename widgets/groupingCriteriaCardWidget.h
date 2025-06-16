@@ -21,7 +21,7 @@
 #ifndef GROUPINGCRITERIACARDWIDGET_H
 #define GROUPINGCRITERIACARDWIDGET_H
 
-#include "CriterionTypes/criterion.h"
+#include "criteria/criterion.h"
 #include "gruepr_globals.h"
 #include <QFrame>
 #include <QGridLayout>
