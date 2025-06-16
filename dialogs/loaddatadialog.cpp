@@ -744,6 +744,7 @@ void loadDataDialog::accept() {
     QDialog::accept();
 }
 
+//reads data from csv file and assigns dataOption variables accordingly, dataOptions are fields that characterize the information from the data file and categorizing stage.
 bool loadDataDialog::readData()
 {
     auto *loadingProgressDialog = new QProgressDialog(tr("Loading data..."), tr("Cancel"), 0, surveyFile->estimatedNumberRows + MAX_ATTRIBUTES + 6,
@@ -762,6 +763,8 @@ bool loadDataDialog::readData()
     dataOptions->lastNameField = int(surveyFile->fieldMeanings.indexOf("Last Name"));
     dataOptions->emailField = int(surveyFile->fieldMeanings.indexOf("Email Address"));
     dataOptions->genderField = int(surveyFile->fieldMeanings.indexOf("Gender"));
+    dataOptions->gradeField = int(surveyFile->fieldMeanings.indexOf("Grade"));
+    dataOptions->gradeIncluded = (dataOptions->gradeField != DataOptions::FIELDNOTPRESENT);
     dataOptions->genderIncluded = (dataOptions->genderField != DataOptions::FIELDNOTPRESENT);
     dataOptions->URMField = int(surveyFile->fieldMeanings.indexOf("Racial/ethnic identity"));
     dataOptions->URMIncluded = (dataOptions->URMField != DataOptions::FIELDNOTPRESENT);
@@ -934,7 +937,7 @@ bool loadDataDialog::readData()
         }
 
         currStudent.clear();
-        currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions);
+        currStudent.parseRecordFromStringList(surveyFile->fieldValues, *dataOptions); //copy survey file fieldValue onto studentRecord
         currStudent.ID = students.size();
 
         // see if this record is a duplicate; assume it isn't and then check
@@ -1016,6 +1019,7 @@ bool loadDataDialog::readData()
                 currStudent.lastname = studentOnRoster.lastname;
                 currStudent.email = studentOnRoster.email;
                 currStudent.section = studentOnRoster.section;
+                currStudent.grade = studentOnRoster.grade;
                 for(auto &day : currStudent.unavailable) {
                     for(auto &time : day) {
                         time = false;

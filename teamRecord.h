@@ -33,6 +33,7 @@ public:
     int numURM = 0;
     std::set<int> attributeVals[MAX_ATTRIBUTES];
     std::set<float> timezoneVals;
+    QList<float> gradeVals;
     int numStudentsAvailable[MAX_DAYS][MAX_BLOCKS_PER_DAY] = {{0}};
     int numStudentsWithAmbiguousSchedules = 0;
     int numMeetingTimes = 0;

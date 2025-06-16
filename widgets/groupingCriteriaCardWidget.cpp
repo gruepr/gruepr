@@ -30,6 +30,15 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     this->criteriaType = criteriaType;
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
+    //initialize timer
+    m_dragTimer.setInterval(50);
+    m_dragTimer.setSingleShot(false);
+
+    connect(&m_dragTimer, &QTimer::timeout, this, [this]()
+            {
+                emit criteriaCardMoved(m_lastPos);
+            });
+
     //initialize parts of section
     toggleButton = new QToolButton(this);
     toggleAnimation = new QParallelAnimationGroup(this);
@@ -196,27 +205,31 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout) {
     //if cannot cast contentLayout to VBoxLayout, then
     QVBoxLayout *mainLayout = new QVBoxLayout();
     //don't allow user to set penalty checkbox if it criteria is teamsize or section
-    if (criteriaType == CriteriaType::teamSize || criteriaType == CriteriaType::section){
-        mainLayout->addLayout(&contentLayout);
-    } else {
-        mainLayout->addLayout(&contentLayout);
-        includePenaltyCheckBox = new QCheckBox(this);
-        includePenaltyCheckBox->setText(QString("Set Criteria as Mandatory"));
-        includePenaltyCheckBox->setToolTip(QString("If condition is unmet, gruepr applies a penalty to the team score"));
-        includePenaltyCheckBox->setStyleSheet(CHECKBOXSTYLE);
-        connect(includePenaltyCheckBox, &QCheckBox::stateChanged, this, [this](){
-            this->criterion->penaltyStatus = (includePenaltyCheckBox->checkState() == Qt::Checked);
-            if (includePenaltyCheckBox->checkState() == Qt::Checked){
-                this->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-                this->setDraggable(false);
-            } else {
-                this->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-                this->setDraggable(true);
-            }
-            emit includePenaltyStateChanged();
-        });
-        mainLayout->addWidget(includePenaltyCheckBox);
-    }
+
+    mainLayout->addLayout(&contentLayout);
+
+    // if (criteriaType == CriteriaType::teamSize || criteriaType == CriteriaType::section){
+    //     mainLayout->addLayout(&contentLayout);
+    // } else {
+    //     mainLayout->addLayout(&contentLayout);
+    //     includePenaltyCheckBox = new QCheckBox(this);
+    //     includePenaltyCheckBox->setText(QString("Set Criteria as Mandatory"));
+    //     includePenaltyCheckBox->setToolTip(QString("If condition is unmet, gruepr applies a penalty to the team score"));
+    //     includePenaltyCheckBox->setStyleSheet(CHECKBOXSTYLE);
+    //     connect(includePenaltyCheckBox, &QCheckBox::stateChanged, this, [this](){
+    //         this->criterion->penaltyStatus = (includePenaltyCheckBox->checkState() == Qt::Checked);
+    //         if (includePenaltyCheckBox->checkState() == Qt::Checked){
+    //             this->setStyleSheet(QString(MANDATORYFRAME) + LABEL10PTMANDATORYSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    //             this->setDraggable(false);
+    //         } else {
+    //             this->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+    //             this->setDraggable(true);
+    //         }
+    //         emit includePenaltyStateChanged();
+    //     });
+    //     mainLayout->addWidget(includePenaltyCheckBox);
+    // }
+
     contentArea->setLayout(mainLayout);
 
     auto contentHeight = mainLayout->sizeHint().height();
@@ -267,18 +280,34 @@ void GroupingCriteriaCard::dragStarted() {
     drag->exec(Qt::MoveAction);
 }
 
+QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local) {
+    QAbstractScrollArea *vp = nullptr;
+    for (QWidget *w = parentWidget(); w; w = w->parentWidget())
+        if ((vp = qobject_cast<QAbstractScrollArea*>(w)))
+            return vp->viewport()->mapFromGlobal(mapToGlobal(local.toPoint()));
+    return local.toPoint();
+}
+
+
 void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event) {
     if (event->mimeData()->hasText()) {
-        //qDebug() << "drag enter event accepted";
         event->acceptProposedAction();
+        m_lastPos = mapToViewport(event->position());
+        if (!m_dragTimer.isActive())
+            m_dragTimer.start();
     }
+}
+
+void GroupingCriteriaCard::dragMoveEvent(QDragMoveEvent *e)
+{
+    m_lastPos = mapToViewport(e->position()); // just refresh the cached pos
 }
 
 void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
     // Get the widget ID (pointer stored in mime data)
     QString widgetID = event->mimeData()->text();
     GroupingCriteriaCard *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
-
+    m_dragTimer.stop();
     if (draggedFrame!=this) {
         // Find the index of both frames in the layout
         int draggedPriorityOrder = draggedFrame->getPriorityOrder();

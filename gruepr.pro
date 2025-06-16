@@ -66,6 +66,7 @@ macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
         CriterionTypes/criterion.cpp \
+        CriterionTypes/gradebalancecriterion.cpp \
         CriterionTypes/mixedgendercriterion.cpp \
         CriterionTypes/multiplechoicestylecriterion.cpp \
         CriterionTypes/preventedteammatescriterion.cpp \
@@ -127,6 +128,7 @@ SOURCES += \
 
 HEADERS += \
         CriterionTypes/criterion.h \
+        CriterionTypes/gradebalancecriterion.h \
         CriterionTypes/mixedgendercriterion.h \
         CriterionTypes/multiplechoicestylecriterion.h \
         CriterionTypes/preventedteammatescriterion.h \

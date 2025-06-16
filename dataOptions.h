@@ -32,6 +32,8 @@ public:
     int lastNameField = FIELDNOTPRESENT;
     bool genderIncluded = false;                    // is gender data included in the survey?
     GenderType genderType = GenderType::adult;
+    int gradeField = FIELDNOTPRESENT;               // which field in surveyFile has gradeInfo?
+    bool gradeIncluded = false;                     // is grade data included in the survey?
     int genderField = FIELDNOTPRESENT;              // which field in surveyFile has the gender info?
     bool URMIncluded = false;                       // is URM data included in the survey?
     int URMField = FIELDNOTPRESENT;                 // which field in surveyFile has the ethnicity info?

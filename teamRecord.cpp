@@ -210,6 +210,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     numURM = 0;
     numStudentsWithAmbiguousSchedules = 0;
     numMeetingTimes = 0;
+    gradeVals = {};
     for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
         attributeVals[attribute].clear();
     }
@@ -259,6 +260,10 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
         for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
             attributeVals[attribute].insert(stu->attributeVals[attribute].constBegin(), stu->attributeVals[attribute].constEnd());
         }
+        if(teamSetDataOptions->gradeIncluded) {
+            gradeVals.append(stu->grade);
+        }
+
         if(!stu->ambiguousSchedule) {
             for(int day = 0; day < numDays; day++) {
                 for(int time = 0; time < numTimes; time++) {

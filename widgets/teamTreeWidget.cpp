@@ -155,6 +155,9 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
     if(dataOptions->URMIncluded) {
         headerLabels << tr("  URM  ");
     }
+    if(dataOptions->gradeIncluded) {
+        headerLabels << tr("  Grade  ");
+    }
     const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         headerLabels << tr("  MCQ: ") + dataOptions->attributeQuestionText[attribute] + "  ";
@@ -327,6 +330,20 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
+    if (dataOptions->gradeIncluded){
+        float total = 0.0;
+        //team grades
+        for (float grade : team.gradeVals){
+            total += grade;
+        }
+        float average = total / team.size;
+        teamItem->setText(column, QString::number(average));
+        teamItem->setTextAlignment(column, Qt::AlignCenter);
+        teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, "");
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, 0);
+        teamItem->setToolTip(column, team.tooltip);
+        column++;
+    }
     const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         QString attributeText;
@@ -493,6 +510,11 @@ void TeamTreeWidget::refreshStudent(TeamTreeWidgetItem *studentItem, const Stude
             studentItem->setText(column,"");
         }
         studentItem->setToolTip(column, stu.tooltip);
+        studentItem->setTextAlignment(column, Qt::AlignCenter);
+        column++;
+    }
+    if (dataOptions->gradeIncluded){
+        studentItem->setText(column, QString::number(stu.grade));
         studentItem->setTextAlignment(column, Qt::AlignCenter);
         column++;
     }

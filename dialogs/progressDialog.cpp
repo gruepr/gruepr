@@ -80,6 +80,13 @@ void progressDialog::setText(const QString &text, int generation, float score, b
 {
     explanationText->setText(tr("Generation ") + QString::number(generation) + " - " + tr("Top Score = ") + QString::number(score));
     QString action = text;
+
+    if (std::fabs(score - 100.0f) < 1e-4f) {
+        action += tr("\nOptimal groups achieved!");
+        score = 100;
+        emit letsStop();
+    }
+
     if(autostopInProgress && !onlyStopManually->isChecked()) {
         action += tr("\nOptimization will end in ") + QString::number(secsLeftToClose) + tr(" seconds.");
         score = PROGRESSBARMAX - ((PROGRESSBARMAX - score) * secsLeftToClose / SECSINCOUNTDOWNTIMER);
