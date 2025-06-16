@@ -10,6 +10,7 @@
 #include "qscrollarea.h"
 #include "qstandarditemmodel.h"
 #include "qtablewidget.h"
+#include "qtoolbutton.h"
 
 CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, DataOptions::DataSource dataSource): QDialog (parent) {
     this->source = dataSource;
@@ -18,44 +19,34 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
     setMinimumSize(QSize(790, 450));
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
     //include a table
-    QPushButton* checkmarkIcon = new QPushButton(this);
-    checkmarkIcon->setIcon(QIcon(":/icons_new/checkmark-green.png"));
-    checkmarkIcon->setIconSize(QSize(100,100));
+    // QPushButton* checkmarkIcon = new QPushButton(this);
+    // checkmarkIcon->setIcon(QIcon(":/icons_new/checkmark-green.png"));
+    // checkmarkIcon->setIconSize(QSize(100,100));
 
+    QHBoxLayout *titleLayout = new QHBoxLayout();
+    QLabel *categorizingFields = new QLabel(this);
+    categorizingFields->setText("Select Gruepr Data Type for Each Field");
+    categorizingFields->setStyleSheet(LABEL14PTSTYLE);
+    mainLayout->addWidget(categorizingFields);
     QLabel* successLabel = new QLabel(this);
-    successLabel->setText("gruepr has recognized the format of each field in your dataset.");
-    successLabel->setStyleSheet(LABEL14PTSTYLE);
-    QLabel *confirmLabel = new QLabel(this);
-    confirmLabel->setText("Please confirm below.");
-    confirmLabel->setStyleSheet(LABEL14PTSTYLE);
-    QPushButton* categoryHelpButton = new QPushButton("?", this);
-    categoryHelpButton->setFixedSize(20, 20);
-    QString buttonStyle = QString(R"(
-        QPushButton {
-            font-weight: bold;
-            color: #C0A000; /* Dark Yellow */
-            background-color: white;
-            border-radius: 10px;
-            border: 1px solid #C0A000;;
-        }
-        QPushButton:hover {
-            color: white;
-            background-color: #FFD700; /* Yellow */
-        }
-    )");
-    categoryHelpButton->setStyleSheet(buttonStyle);
-    QWidget *sucessLabelWidget = new QWidget();
-    QHBoxLayout *successLabelLayout = new QHBoxLayout();
-    successLabelLayout->addWidget(successLabel);
-    successLabelLayout->addWidget(categoryHelpButton);
-    sucessLabelWidget->setLayout(successLabelLayout);
+    successLabel->setWordWrap(true);
+    successLabel->setText("Below is a table for mapping fields. The top row displays the field names. Gruepr has automatically suggested data types based on the field names, but you can adjust them using the combo boxes in the row below.");
+    successLabel->setStyleSheet(INSTRUCTIONSLABELSTYLE);
+    QToolButton *categoryHelpButton = new QToolButton(this);
+    categoryHelpButton->setIcon(QIcon(":/icons_new/infoButton.png"));
+    categoryHelpButton->setToolTip("What do the data types mean?");
+    titleLayout->addWidget(categorizingFields);
+    titleLayout->addWidget(categoryHelpButton);
+    QWidget *titleWidget = new QWidget();
+    titleWidget->setLayout(titleLayout);
+    titleLayout->setSpacing(5);
 
     connect(categoryHelpButton, &QPushButton::clicked, this, [this](){
         dataTypesTableDialog *dialog = new dataTypesTableDialog(this);
         dialog->show();
     });
 
-    checkmarkIcon->setStyleSheet(LABELONLYBUTTON);
+    //checkmarkIcon->setStyleSheet(LABELONLYBUTTON);
     QWidget* dataSetTableHeaderWidget = new QWidget(this);
     datasetTableHeaderLayout = new QHBoxLayout();
     datasetTableWidget = new QTableWidget(this);
@@ -110,9 +101,9 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
     connect(confirmCancelButtonBox, &QDialogButtonBox::accepted, this, &CategorizingDialog::accept);
     connect(confirmCancelButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    mainLayout->addWidget(checkmarkIcon, 1, Qt::AlignCenter);
-    mainLayout->addWidget(sucessLabelWidget, 1, Qt::AlignCenter);
-    mainLayout->addWidget(confirmLabel, 1, Qt::AlignCenter);
+    //mainLayout->addWidget(checkmarkIcon, 1, Qt::AlignCenter);
+    mainLayout->addWidget(titleWidget, 1, Qt::AlignCenter);
+    mainLayout->addWidget(successLabel);
     mainLayout->addWidget(datasetTableScrollArea, 8);
     mainLayout->addWidget(confirmCancelButtonBox);
     populateTable();
@@ -151,13 +142,17 @@ void CategorizingDialog::populateTable(){
     }
 
     int row = 0;
-    datasetTableWidget->setRowCount(surveyFile->estimatedNumberRows);
+    datasetTableWidget->setRowCount(surveyFile->estimatedNumberRows-1);
     while(surveyFile->readDataRow()){
         QStringList fieldValues = surveyFile->fieldValues;
         for (int fieldValueIndex = 0; fieldValueIndex < fieldValues.count(); fieldValueIndex++){
+
             QLabel *fieldValue = new QLabel(fieldValues[fieldValueIndex], this);
             fieldValue->setWordWrap(true);
             //fieldValue->setFixedWidth(200);
+            if (row % 2 == 0) {
+                fieldValue->setStyleSheet("background-color: #f0f0f0;");
+            }
             datasetTableWidget->setCellWidget(row, fieldValueIndex, fieldValue);
         }
         row++;

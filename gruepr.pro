@@ -114,6 +114,8 @@ SOURCES += \
         widgets/attributeWidget.cpp \
         widgets/boxwhiskerplot.cpp \
         widgets/comboBoxWithElidedContents.cpp \
+        widgets/customsplitter.cpp \
+        widgets/customsplitterhandle.cpp \
         widgets/dropcsvframe.cpp \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
@@ -176,6 +178,8 @@ HEADERS += \
         widgets/attributeWidget.h \
         widgets/boxwhiskerplot.h \
         widgets/comboBoxWithElidedContents.h \
+        widgets/customsplitter.h \
+        widgets/customsplitterhandle.h \
         widgets/dropcsvframe.h \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \

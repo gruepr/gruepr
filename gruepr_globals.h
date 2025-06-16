@@ -180,6 +180,29 @@ inline static const char COMBOBOXSTYLE[] = "QComboBox {background-color: white; 
                                                                                  "selection-background-color: " OPENWATERHEX "; selection-color: white;}"
                                              "QComboBox QAbstractItemView::item:selected {background-color: " OPENWATERHEX "; color: white;}"
                                              "QComboBox QAbstractItemView::item:hover {background-color: " OPENWATERHEX "; color: white;}";
+inline static const char MENUSTYLE[] =
+                                        "QMenu {"
+                                        "  background-color: white;"
+                                        "  color: black;"
+                                        "  font-family: 'DM Sans';"
+                                        "  font-size: 10pt;"
+                                        "  border: 1px solid black;"
+                                        "  padding: 5px;"
+                                        "}"
+                                        "QMenu::item {"
+                                        "  background-color: white;"
+                                        "  color: black;"
+                                        "  padding: 5px 10px;"
+                                        "}"
+                                        "QMenu::item:selected {"
+                                        "  background-color: " OPENWATERHEX ";"
+                                        "  color: white;"
+                                        "}"
+                                        "QMenu::item:hover {"
+                                        "  background-color: " OPENWATERHEX ";"
+                                        "  color: white;"
+                                        "}";
+
 inline static const char ERRORCOMBOBOXSTYLE[] = "QComboBox {background-color: red; color: black; border-style: solid; border-color: black; border-width: 1px;"
                                                             "font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
                                                  "QComboBox:disabled {background-color: lightGray; color: darkGray; border-style: solid; border-color: darkGray; border-width: 1px; "
@@ -286,7 +309,9 @@ inline static const char DATASOURCEPRELABELSTYLE[] = "QLabel {background-color: 
 inline static const char DATASOURCELABELSTYLE[] = "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
                                                     "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
 inline static const char DATASOURCEBUTTONSTYLE[] = "QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
-                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
+                                                    "border-style: solid; border-width: 1px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
+inline static const char INSTRUCTIONSLABELSTYLE[] = "QLabel {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
+                                                   "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
 inline static const char UPLOADBUTTONSTYLE[] =  "QPushButton {"
                                                 "    background-color: rgba(180, 180, 180, 180); /* Lighter Grey */"
                                                 "    border: none;"

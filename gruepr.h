@@ -204,7 +204,7 @@ private:
 
     //Identity Options Card (these are all objects that can be created)
     QList<GroupingCriteriaCard*> identityOptionsCardList;
-    QMap<QString, QCheckBox*> uiCheckBoxMap;
+    QMap<QString, bool> uiCheckBoxMap;
 
     //Single: Meeting Schedule Criteria Card
     GroupingCriteriaCard* meetingScheduleCriteriaCard = nullptr;
