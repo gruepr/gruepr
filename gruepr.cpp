@@ -1,15 +1,6 @@
 #include "gruepr.h"
-<<<<<<< Updated upstream
-#include "CriterionTypes/gradebalancecriterion.h"
-#include "CriterionTypes/mixedgendercriterion.h"
-#include "CriterionTypes/multiplechoicestylecriterion.h"
-#include "CriterionTypes/preventedteammatescriterion.h"
-#include "CriterionTypes/requestedteammatescriterion.h"
-#include "CriterionTypes/requiredteammatescriterion.h"
-#include "CriterionTypes/schedulecriterion.h"
-#include "CriterionTypes/singlegendercriterion.h"
-#include "CriterionTypes/singleurmidentitycriterion.h"
-=======
+#include "ui_gruepr.h"
+#include "criteria/gradebalancecriterion.h"
 #include "criteria/mixedgendercriterion.h"
 #include "criteria/multiplechoicestylecriterion.h"
 #include "criteria/preventedteammatescriterion.h"
@@ -18,10 +9,7 @@
 #include "criteria/schedulecriterion.h"
 #include "criteria/singlegendercriterion.h"
 #include "criteria/singleurmidentitycriterion.h"
->>>>>>> Stashed changes
 #include "dialogs/identityrulesdialog.h"
-#include "qlist.h"
-#include "ui_gruepr.h"
 #include "dialogs/attributeRulesDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
@@ -40,6 +28,7 @@
 #include <QtConcurrentRun>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QList>
 #include <QMessageBox>
 #include <QScreen>
 #include <QSettings>

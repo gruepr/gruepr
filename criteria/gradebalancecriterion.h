@@ -1,7 +1,7 @@
 #ifndef GRADEBALANCECRITERION_H
 #define GRADEBALANCECRITERION_H
 
-#include "CriterionTypes/criterion.h"
+#include "criteria/criterion.h"
 class GradeBalanceCriterion : public Criterion
 {
 public:
