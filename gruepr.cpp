@@ -3454,23 +3454,23 @@ void gruepr::getScheduleScore(const StudentRecord *const _students, const int _t
 
         // convert counts to a schedule score
         // normal schedule score is number of overlaps / desired number of overlaps
-        if(_criterionScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
-            const int numAdditionalOverlaps = int(_criterionScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
-            _criterionScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
-            float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-            for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
-                _criterionScore[team] += factor;
-                factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-            }
-        }
-        else if(_criterionScore[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
+        // if(_criterionScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
+        //     const int numAdditionalOverlaps = int(_criterionScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
+        //     _criterionScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
+        //     float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+        //     for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
+        //         _criterionScore[team] += factor;
+        //         factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+        //     }
+        // }
+        if(_criterionScore[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
             _criterionScore[team] = 0;
-            if (criterion->penaltyStatus){
-                _penaltyPoints[team]++;
-            }
+        } else if (_criterionScore[team] >= _teamingOptions->desiredTimeBlocksOverlap){
+            _criterionScore[team] = 1;
+        } else {
+            _criterionScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
         }
-        _criterionScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
-        _criterionScore[team] *= _teamingOptions->realScheduleWeight;
+        _criterionScore[team] *= criterion->weight;
     }
 }
 

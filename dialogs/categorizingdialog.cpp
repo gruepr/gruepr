@@ -25,9 +25,8 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
 
     QHBoxLayout *titleLayout = new QHBoxLayout();
     QLabel *categorizingFields = new QLabel(this);
-    categorizingFields->setText("Select Gruepr Data Type for Each Field");
+    categorizingFields->setText("Assign Each Field to a Gruepr Data Type");
     categorizingFields->setStyleSheet(LABEL14PTSTYLE);
-    mainLayout->addWidget(categorizingFields);
     QLabel* successLabel = new QLabel(this);
     successLabel->setWordWrap(true);
     successLabel->setText("Below is a table for mapping fields. The top row displays the field names. Gruepr has automatically suggested data types based on the field names, but you can adjust them using the combo boxes in the row below.");
