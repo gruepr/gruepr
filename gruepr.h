@@ -2,6 +2,7 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
+<<<<<<< Updated upstream
 #include "CriterionTypes/gradebalancecriterion.h"
 #include "CriterionTypes/mixedgendercriterion.h"
 #include "CriterionTypes/multiplechoicestylecriterion.h"
@@ -11,6 +12,16 @@
 #include "CriterionTypes/schedulecriterion.h"
 #include "CriterionTypes/singlegendercriterion.h"
 #include "CriterionTypes/singleurmidentitycriterion.h"
+=======
+#include "criteria/mixedgendercriterion.h"
+#include "criteria/multiplechoicestylecriterion.h"
+#include "criteria/preventedteammatescriterion.h"
+#include "criteria/requestedteammatescriterion.h"
+#include "criteria/requiredteammatescriterion.h"
+#include "criteria/schedulecriterion.h"
+#include "criteria/singlegendercriterion.h"
+#include "criteria/singleurmidentitycriterion.h"
+>>>>>>> Stashed changes
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"

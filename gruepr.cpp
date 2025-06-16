@@ -1,4 +1,5 @@
 #include "gruepr.h"
+<<<<<<< Updated upstream
 #include "CriterionTypes/gradebalancecriterion.h"
 #include "CriterionTypes/mixedgendercriterion.h"
 #include "CriterionTypes/multiplechoicestylecriterion.h"
@@ -8,6 +9,16 @@
 #include "CriterionTypes/schedulecriterion.h"
 #include "CriterionTypes/singlegendercriterion.h"
 #include "CriterionTypes/singleurmidentitycriterion.h"
+=======
+#include "criteria/mixedgendercriterion.h"
+#include "criteria/multiplechoicestylecriterion.h"
+#include "criteria/preventedteammatescriterion.h"
+#include "criteria/requestedteammatescriterion.h"
+#include "criteria/requiredteammatescriterion.h"
+#include "criteria/schedulecriterion.h"
+#include "criteria/singlegendercriterion.h"
+#include "criteria/singleurmidentitycriterion.h"
+>>>>>>> Stashed changes
 #include "dialogs/identityrulesdialog.h"
 #include "qlist.h"
 #include "ui_gruepr.h"
@@ -2926,7 +2937,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
             delete[] availabilityChart[day];
         }
         delete[] availabilityChart;
-        delete[] schedScore;
+        //delete[] schedScore;
         for(int criterion = 0; criterion < sharedTeamingOptions->realNumScoringFactors; criterion++) {
             delete[] criterionScore[criterion];
         }
@@ -3017,7 +3028,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                     delete[] availabilityChart[day];
                 }
                 delete[] availabilityChart;
-                delete[] schedScore;
+                //delete[] schedScore;
                 for(int criterion = 0; criterion < sharedTeamingOptions->realNumScoringFactors; criterion++) {
                     delete[] criterionScore[criterion];
                 }

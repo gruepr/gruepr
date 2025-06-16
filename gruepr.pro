@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-gruepr_version = 12.8
+gruepr_version = 13.0
 copyright_year = 2019-2025
 
 QT       += core gui widgets concurrent network printsupport charts networkauth
@@ -65,6 +65,7 @@ macx: LIBS += -L /usr/local/lib
 macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib
 
 SOURCES += \
+<<<<<<< Updated upstream
         CriterionTypes/criterion.cpp \
         CriterionTypes/gradebalancecriterion.cpp \
         CriterionTypes/mixedgendercriterion.cpp \
@@ -75,6 +76,17 @@ SOURCES += \
         CriterionTypes/schedulecriterion.cpp \
         CriterionTypes/singlegendercriterion.cpp \
         CriterionTypes/singleurmidentitycriterion.cpp \
+=======
+        criteria/criterion.cpp \
+        criteria/mixedgendercriterion.cpp \
+        criteria/multiplechoicestylecriterion.cpp \
+        criteria/preventedteammatescriterion.cpp \
+        criteria/requestedteammatescriterion.cpp \
+        criteria/requiredteammatescriterion.cpp \
+        criteria/schedulecriterion.cpp \
+        criteria/singlegendercriterion.cpp \
+        criteria/singleurmidentitycriterion.cpp \
+>>>>>>> Stashed changes
         csvfile.cpp \
         dataOptions.cpp \
         dialogs/categorizingdialog.cpp \
@@ -127,6 +139,7 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+<<<<<<< Updated upstream
         CriterionTypes/criterion.h \
         CriterionTypes/gradebalancecriterion.h \
         CriterionTypes/mixedgendercriterion.h \
@@ -137,6 +150,17 @@ HEADERS += \
         CriterionTypes/schedulecriterion.h \
         CriterionTypes/singlegendercriterion.h \
         CriterionTypes/singleurmidentitycriterion.h \
+=======
+        criteria/criterion.h \
+        criteria/mixedgendercriterion.h \
+        criteria/multiplechoicestylecriterion.h \
+        criteria/preventedteammatescriterion.h \
+        criteria/requestedteammatescriterion.h \
+        criteria/requiredteammatescriterion.h \
+        criteria/schedulecriterion.h \
+        criteria/singlegendercriterion.h \
+        criteria/singleurmidentitycriterion.h \
+>>>>>>> Stashed changes
         csvfile.h \
         dataOptions.h \
         dialogs/categorizingdialog.h \
