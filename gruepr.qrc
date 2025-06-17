@@ -70,5 +70,7 @@
         <file>icons_new/googleform.png</file>
         <file>icons_new/checkmark-green.png</file>
         <file>icons_new/left.png</file>
+        <file>icons_new/left-collapse.png</file>
+        <file>icons_new/right-collapse.png</file>
     </qresource>
 </RCC>

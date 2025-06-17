@@ -16,10 +16,16 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const QString &identit
     setWindowTitle("Edit Identity Rules");
     //initialize labels
     //QHBoxLayout* labelsLayout = new QHBoxLayout();
-    QLabel* identityTitleLabel = new QLabel("Identity Rules for: " + identity, this);
-    identityTitleLabel->setStyleSheet(QString(LABEL10PTSTYLE));
-    identityTitleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(identityTitleLabel);
+    // QLabel* identityTitleLabel = new QLabel("Identity Rules for: " + identity, this);
+    // identityTitleLabel->setStyleSheet(QString(LABEL12PTSTYLE));
+    // identityTitleLabel->setAlignment(Qt::AlignCenter);
+    // mainLayout->addWidget(identityTitleLabel);
+
+    QLabel* instructions = new QLabel("<b><u>Identity Rules for: " + identity + "</u></b> <i>Click \"Add New Identity Rule\" to begin. Set " + identity +" != 1 to prevent the identity from being isolated in a team.</i>", this);
+    instructions->setStyleSheet(QString(INSTRUCTIONSLABELSTYLE));
+    instructions->setAlignment(Qt::AlignCenter);
+    mainLayout->addWidget(instructions);
+
     // Table Widget
     rulesTable = new QTableWidget(this);
     rulesTable->verticalHeader()->setVisible(false);

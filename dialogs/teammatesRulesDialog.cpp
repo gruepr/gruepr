@@ -279,6 +279,9 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     initializeTableHeaders(TypeOfTeammates::requested, "", true);
 
     // the following options are for when this window was opened by gruepr immediately after starting, when the survey contained prefteammate or prefnonteammate questions
+    QTabBar *tabBar = ui->tabWidget->tabBar();
+    tabBar->hide();  // Hides the tab header area
+
     if(autoLoadRequired) {
         ui->tabWidget->setCurrentIndex(0);
         loadStudentPrefs(TypeOfTeammates::required);

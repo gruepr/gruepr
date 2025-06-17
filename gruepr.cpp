@@ -17,6 +17,7 @@
 #include "dialogs/findMatchingNameDialog.h"
 #include "dialogs/gatherURMResponsesDialog.h"
 #include "dialogs/teammatesRulesDialog.h"
+#include "widgets/customsplitter.h"
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include "widgets/sortableTableWidgetItem.h"
@@ -55,13 +56,13 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
     ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
 
-    QSplitter *splitter = new QSplitter(Qt::Horizontal);
+    CustomSplitter *splitter = new CustomSplitter(Qt::Horizontal);
     splitter->setStyleSheet(R"(
         QSplitter::handle {
             background: lightgray;
         }
     )");
-    splitter->setHandleWidth(5);
+    splitter->setHandleWidth(8);
 
     QWidget *settingTeamCriteriaWidget = new QWidget(this);
     QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
@@ -89,7 +90,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     letsDoItButton->setText("Create Teams");
 
     // Set icons for the buttons (make sure the icons exist in your project directory or resource file)
-    letsDoItButton->setIcon(QIcon(":/icons_new/create_teams.png"));
+    letsDoItButton->setIcon(QIcon(":/icons_new/createTeams.png"));
 
     // Set tooltips for extra info when hovering
     letsDoItButton->setToolTip("Click to form teams");
@@ -167,6 +168,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
 
     //Construct Menu to add new criteria cards
     mainMenu = new QMenu(this);
+    mainMenu->setStyleSheet(MENUSTYLE);
 
     //initialize some Menus
     QMenu *identityOptionsMenu = new QMenu("Identity Options", this);
@@ -352,13 +354,12 @@ void gruepr::doAutoScroll(QPoint point){
 
 QPushButton* gruepr::createAddNewCriteriaButton(bool hoverToSee){
     QPushButton *addNewCriteriaButton = new QPushButton("Add New Criteria", this);
-
     addNewCriteriaButton->setIcon(QIcon(":/icons_new/add.png"));
     addNewCriteriaButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
 
     connect(addNewCriteriaButton, &QPushButton::clicked, [this, addNewCriteriaButton](){
         QPoint centerOfCriteriaButton = addNewCriteriaButton->mapToGlobal(addNewCriteriaButton->rect().center());
-        mainMenu->popup(QPoint(centerOfCriteriaButton.x() - mainMenu->sizeHint().width()/1.8, centerOfCriteriaButton.y()));
+        mainMenu->popup(QPoint(centerOfCriteriaButton.x() - mainMenu->sizeHint().width()/1.8, centerOfCriteriaButton.y()+10));
     });
     return addNewCriteriaButton;
 }
@@ -840,9 +841,10 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
             newGenderCard->criterion = new SingleGenderCriterion(genderString, 0.0, false);
             //initialize checkbox
             QCheckBox* preventedIsolatedCheckBox = new QCheckBox("Prevent Isolated " + genderString, this);
-
+            preventedIsolatedCheckBox->setVisible(false);
             //initialize add new identity rule button
-            QPushButton* addNewIdentityRuleButton = new QPushButton("Add more rules for Identity: " + genderString, this);
+            QPushButton* addNewIdentityRuleButton = new QPushButton("Add Rules for Identity: " + genderString, this);
+            addNewIdentityRuleButton->setFixedHeight(40);
             connect(addNewIdentityRuleButton, &QPushButton::clicked, this, [this, preventedIsolatedCheckBox, genderString](){
                 auto *window = new IdentityRulesDialog(this, genderString, teamingOptions, dataOptions);
                 window->exec();
@@ -863,7 +865,6 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
                 }
             });
             uiCheckBoxMap[genderString + "PreventIsolatedCheckBox"] = preventedIsolatedCheckBox;
-
             genderCardContentAreaLayout->addWidget(preventedIsolatedCheckBox);
             genderCardContentAreaLayout->addWidget(addNewIdentityRuleButton);
             newGenderCard->setContentAreaLayout(*genderCardContentAreaLayout);
@@ -895,13 +896,14 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
 
             //initialize checkbox
             QCheckBox* preventedIsolatedCheckBox = new QCheckBox("Prevent Isolated " + urmResponse, this);
+            preventedIsolatedCheckBox->setVisible(false);
 
             //initialize add new identity rule button
-            QPushButton* addNewIdentityRuleButton = new QPushButton("Add more rules for Identity: " + urmResponse, this);
+            QPushButton* addNewIdentityRuleButton = new QPushButton("Add Rules for Identity: " + urmResponse, this);
+            addNewIdentityRuleButton->setFixedHeight(40);
             connect(addNewIdentityRuleButton, &QPushButton::clicked, this, [this, preventedIsolatedCheckBox, urmResponse](){
                 auto *window = new IdentityRulesDialog(this, urmResponse, teamingOptions, dataOptions);
                 window->exec();
-                preventedIsolatedCheckBox->setChecked(teamingOptions->identityRules[urmResponse]["!="].contains(1));
             });
             //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
             connect(preventedIsolatedCheckBox, &QCheckBox::stateChanged, this, [this, urmResponse, preventedIsolatedCheckBox](){
@@ -1641,19 +1643,19 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 
 void gruepr::simpleUIItemUpdate(QObject* sender)
 {
-    if (uiCheckBoxMap.contains("WomanPreventIsolatedCheckBox") && uiCheckBoxMap["WomanPreventIsolatedCheckBox"]) {
-        teamingOptions->isolatedWomenPrevented = (uiCheckBoxMap["WomanPreventIsolatedCheckBox"]->isChecked());
-    }
+    // if (uiCheckBoxMap.contains("WomanPreventIsolatedCheckBox") && uiCheckBoxMap["WomanPreventIsolatedCheckBox"]) {
+    //     teamingOptions->isolatedWomenPrevented = (uiCheckBoxMap["WomanPreventIsolatedCheckBox"]->isChecked());
+    // }
 
-    if (uiCheckBoxMap.contains("ManPreventIsolatedCheckBox") && uiCheckBoxMap["ManPreventIsolatedCheckBox"]) {
-        teamingOptions->isolatedMenPrevented = (uiCheckBoxMap["ManPreventIsolatedCheckBox"]->isChecked());
-    }
+    // if (uiCheckBoxMap.contains("ManPreventIsolatedCheckBox") && uiCheckBoxMap["ManPreventIsolatedCheckBox"]) {
+    //     teamingOptions->isolatedMenPrevented = (uiCheckBoxMap["ManPreventIsolatedCheckBox"]->isChecked());
+    // }
 
-    if (uiCheckBoxMap.contains("Non-binaryPreventIsolatedCheckBox") && uiCheckBoxMap["Non-binaryPreventIsolatedCheckBox"]) {
-        teamingOptions->isolatedNonbinaryPrevented = (uiCheckBoxMap["Non-binaryPreventIsolatedCheckBox"]->isChecked());
-    }
+    // if (uiCheckBoxMap.contains("Non-binaryPreventIsolatedCheckBox") && uiCheckBoxMap["Non-binaryPreventIsolatedCheckBox"]) {
+    //     teamingOptions->isolatedNonbinaryPrevented = (uiCheckBoxMap["Non-binaryPreventIsolatedCheckBox"]->isChecked());
+    // }
 
-    teamingOptions->singleGenderPrevented = false;
+    //teamingOptions->singleGenderPrevented = false;
 
 
     //teamingOptions->isolatedURMPrevented = (ui->isolatedURMCheckBox->isChecked());
@@ -3452,23 +3454,23 @@ void gruepr::getScheduleScore(const StudentRecord *const _students, const int _t
 
         // convert counts to a schedule score
         // normal schedule score is number of overlaps / desired number of overlaps
-        if(_criterionScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
-            const int numAdditionalOverlaps = int(_criterionScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
-            _criterionScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
-            float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-            for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
-                _criterionScore[team] += factor;
-                factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-            }
-        }
-        else if(_criterionScore[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
+        // if(_criterionScore[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, additional overlaps count less
+        //     const int numAdditionalOverlaps = int(_criterionScore[team]) - _teamingOptions->desiredTimeBlocksOverlap;
+        //     _criterionScore[team] = _teamingOptions->desiredTimeBlocksOverlap;
+        //     float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+        //     for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
+        //         _criterionScore[team] += factor;
+        //         factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+        //     }
+        // }
+        if(_criterionScore[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
             _criterionScore[team] = 0;
-            if (criterion->penaltyStatus){
-                _penaltyPoints[team]++;
-            }
+        } else if (_criterionScore[team] >= _teamingOptions->desiredTimeBlocksOverlap){
+            _criterionScore[team] = 1;
+        } else {
+            _criterionScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
         }
-        _criterionScore[team] /= _teamingOptions->desiredTimeBlocksOverlap;
-        _criterionScore[team] *= _teamingOptions->realScheduleWeight;
+        _criterionScore[team] *= criterion->weight;
     }
 }
 

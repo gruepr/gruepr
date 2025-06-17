@@ -8,13 +8,13 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
     setWindowTitle("DataTypes Definition Table");
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     QTableWidget *rulesTable = new QTableWidget(this);
-    rulesTable->setColumnCount(4);
-    rulesTable->setHorizontalHeaderLabels({"Data Type", "Description", "Format", "Example"});
-    rulesTable->setRowCount(14); // Adjust row count based on the data provided
+    rulesTable->setColumnCount(5);
+    rulesTable->setHorizontalHeaderLabels({"Data Type", "Description", "Grouping Rules", "Format", "Example"});
+    rulesTable->setRowCount(15);
 
     QStringList dataTypes = {
         "Unused", "Timestamp", "First Name", "Last Name", "Email Address",
-        "Gender", "Racial/ethnic identity", "Schedule", "Section", "Timezone",
+        "Gender", "Racial/ethnic identity", "Schedule", "Section", "Timezone", "Grade",
         "Preferred Teammates", "Preferred Non-teammates", "Multiple Choice", "Notes"
     };
 
@@ -23,17 +23,36 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
         "Last name of student", "Email address of student", "Student's self-identified gender (can be more than one)",
         "Student's self-identified racial, ethnic, or cultural identity",
         "Student's availability for team meetings throughout the week",
-        "The Academic Section the student is enrolled in", "Timezone which the student is in",
+        "The Academic Section the student is enrolled in", "Timezone which the student is in", "Numeric field describing student's grade.",
         "A list of classmates with whom the student desires to work",
         "A list of classmates with whom the student does not want to work",
         "Instructor-defined questions/column-names with multiple-choice responses",
         "Additional notes added by the instructor that are not directly used by gruepr"
     };
 
+    QStringList groupingRules = {
+        "--",
+        "--",
+        "--",
+        "--",
+        "--",
+        "Set rules like 'woman != 1' to prevent isolation of genders in teams.",
+        "Set rules to prevent isolation of racial/ethnic identities in teams.",
+        "Specify minimum and desired meeting times and durations for compatible schedules.",
+        "Generate separate team sets for each academic section.",
+        "Group students by similar time zones for easier coordination.",
+        "Balance groups so average grades fall within a specified range.",
+        "Students listed here will be grouped together as preferred teammates.",
+        "Students listed here will be kept apart as non-preferred teammates.",
+        "Groups can be formed to be diverse or similar based on multiple-choice fields. Certain options can be prevented from grouping together or ensured to group together.",
+        "--"
+    };
+
+
     QStringList formats = {
         "N/A", "YYYY/MM/DD HH:MM:SS(AM/PM) TIMEZONE", "Text", "Text", "Text",
         "Categorical", "Free response", "Hourly times (semi-colon separated)",
-        "Categorical", "Categorical", "List of names or student IDs",
+        "Categorical", "Categorical", "Numeric", "List of names or student IDs",
         "List of names or student IDs", "Multiple choice with categorical or Likert scale answers",
         "Free response"
     };
@@ -41,7 +60,7 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
     QStringList examples = {
         "N/A", "2018/02/07 3:48:34PM EST", "Ben", "Smith", "b.smith@school.edu",
         "Male, Female, Nonbinary, Unknown", "Asian, Hispanic, African, Caucasian",
-        "8AM;9AM;10AM;", "Section 1, Section 2, Section 3", "EST, GMT",
+        "8AM;9AM;10AM;", "Section 1, Section 2, Section 3", "EST, GMT", "0.0 or 100.0",
         "Student A, Student B, Student C", "Student A, Student B, Student C",
         "What is your academic major?\nChemistry, Physics, Biology, English, Computer Science",
         "Free response"
@@ -50,8 +69,9 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
     for (int i = 0; i < dataTypes.size(); ++i) {
         rulesTable->setItem(i, 0, new QTableWidgetItem(dataTypes[i]));
         rulesTable->setItem(i, 1, new QTableWidgetItem(descriptions[i]));
-        rulesTable->setItem(i, 2, new QTableWidgetItem(formats[i]));
-        rulesTable->setItem(i, 3, new QTableWidgetItem(examples[i]));
+        rulesTable->setItem(i, 2, new QTableWidgetItem(groupingRules[i]));
+        rulesTable->setItem(i, 3, new QTableWidgetItem(formats[i]));
+        rulesTable->setItem(i, 4, new QTableWidgetItem(examples[i]));
     }
 
     rulesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -68,7 +88,7 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
     header->setStyleSheet("QHeaderView::section {"
                           "background-color: " OPENWATERHEX";"  // Replace BUBBLYHEX with a color
                           "color: white;"
-                          "font-family: 'DM Sans'; font-size: 12pt;"
+                          "font-family: 'DM Sans'; font-size: 10pt;"
                           "padding: 5px;"
                           "border: 1px solid #ccc;"
                           "}");
