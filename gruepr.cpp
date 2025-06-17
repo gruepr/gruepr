@@ -3708,7 +3708,7 @@ void gruepr::getGradeBalanceScore(const StudentRecord *const _students, const in
 
     int studentNum = 0;
     float overallMeanGrade = 0.0;
-    float meanGroupGrades[_numTeams];
+    QList<float> meanGroupGrades(_numTeams);
     //calculate grade average of each team
     for(int team = 0; team < _numTeams; team++) {
         float totalGroupGrade = 0.0;
