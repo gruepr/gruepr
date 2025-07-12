@@ -52,7 +52,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->questionTextLabel_2->setStyleSheet(LABEL12PTSTYLE);
     QString responses;
     bool firstTime = true;
-    for(const auto &attributeValue : qAsConst(attributeValues)) {
+    for(const auto &attributeValue : std::as_const(attributeValues)) {
         // create numbered list of responses (prefixing a number for the token value of -1 and
         // for unordered responses, since they don't already start with number)
         if(!firstTime) {
@@ -83,7 +83,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     incompSepLines.reserve(numPossibleValues);
     incompCheckboxList.reserve(numPossibleValues);
     reqCheckboxes.reserve(numPossibleValues);
-    for(const auto &attributeValue : qAsConst(attributeValues)) {
+    for(const auto &attributeValue : std::as_const(attributeValues)) {
         reqCheckboxes << new QCheckBox(this);
         reqCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt;", "12pt; color: " DEEPWATERHEX ";"));
         reqCheckboxes.last()->setText(valuePrefix(attributeValue.value, attributeType));
@@ -117,7 +117,7 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
         incompSepLines.last()->setFixedHeight(1);
         incompFrameLayouts.last()->addWidget(incompSepLines.last(), 0, Qt::AlignVCenter);
         incompCheckboxes.clear();
-        for(const auto &attributeValue2 : qAsConst(attributeValues)) {
+        for(const auto &attributeValue2 : std::as_const(attributeValues)) {
             incompCheckboxes << new QCheckBox(this);
             incompCheckboxes.last()->setStyleSheet(QString(CHECKBOXSTYLE).replace("10pt", "12pt"));
             incompCheckboxes.last()->setText(valuePrefix(attributeValue2.value, attributeType));

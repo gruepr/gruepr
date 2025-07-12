@@ -998,7 +998,7 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     int ID = 0;
     for(int teamnum = 0; teamnum < _numTeams; teamnum++) {
         teamSizes[teamnum] = _teams[teamnum].size;
-        for(const auto studentID : qAsConst(_teams[teamnum].studentIDs)) {
+        for(const auto studentID : std::as_const(_teams[teamnum].studentIDs)) {
             int index = 0;
             while(index < _students.size() && _students.at(index).ID != studentID) {
                 index++;
@@ -1107,10 +1107,10 @@ void gruepr::changeSection(int index)
 
             // record a tally for each response, starting with a 0 count for each response found in all of the survey data
             std::map<QString, int> currentResponseCounts;
-            for(const auto &responseCount : qAsConst(dataOptions->attributeQuestionResponseCounts[attribute])) {
+            for(const auto &responseCount : std::as_const(dataOptions->attributeQuestionResponseCounts[attribute])) {
                 currentResponseCounts[responseCount.first] = 0;
             }
-            for(const auto &student : qAsConst(students)) {
+            for(const auto &student : std::as_const(students)) {
                 if(!student.deleted &&
                    ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                     (teamingOptions->sectionType == TeamingOptions::SectionType::noSections) ||
@@ -1198,7 +1198,7 @@ void gruepr::editAStudent()
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
                 //need to process each one
                 const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent)) {
+                for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
                     dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]--;
                 }
             }
@@ -1228,7 +1228,7 @@ void gruepr::editAStudent()
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
                 //need to process each one
                 const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent)) {
+                for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
                     dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
                 }
             }
@@ -1250,7 +1250,7 @@ void gruepr::removeAStudent(const QString &name)
         // use the name to find the ID
         long long ID = -1;
         // don't have index, need to search and locate based on name
-        for(const auto &student : qAsConst(students)) {
+        for(const auto &student : std::as_const(students)) {
             if(name.compare((student.firstname + " " + student.lastname), Qt::CaseInsensitive) == 0) {
                 ID = student.ID;
                 break;
@@ -1288,7 +1288,7 @@ void gruepr::removeAStudent(const long long ID, const bool delayVisualUpdate)
                 (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
                 //need to process each one
                 const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent)) {
+                for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
                     dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]--;
                 }
             }
@@ -1336,7 +1336,7 @@ void gruepr::addAStudent()
                         (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
                         //need to process each one
                         const QStringList setOfResponsesFromStudent = currentStudentResponse.split(',', Qt::SkipEmptyParts);
-                        for(const auto &responseFromStudent : qAsConst(setOfResponsesFromStudent)) {
+                        for(const auto &responseFromStudent : std::as_const(setOfResponsesFromStudent)) {
                             dataOptions->attributeQuestionResponseCounts[attribute][responseFromStudent.trimmed()]++;
                         }
                     }
@@ -1375,7 +1375,7 @@ void gruepr::compareStudentsToRoster()
         // load all current names from the survey so we can later remove them as they're found in the roster and be left with problem cases
         QStringList namesNotFound;
         namesNotFound.reserve(students.size());
-        for(const auto &student : qAsConst(students)) {
+        for(const auto &student : std::as_const(students)) {
             namesNotFound << student.firstname + " " + student.lastname;
         }
 
@@ -1585,7 +1585,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
     // Re-build the URM info
     if(dataOptions->URMIncluded) {
         dataOptions->URMResponses.clear();
-        for(const auto &student : qAsConst(students)) {
+        for(const auto &student : std::as_const(students)) {
             if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
                 dataOptions->URMResponses << student.URMResponse;
             }
@@ -1606,7 +1606,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
         sectionSelectionBox->blockSignals(true);
         sectionSelectionBox->clear();
         dataOptions->sectionNames.clear();
-        for(const auto &student : qAsConst(students)) {
+        for(const auto &student : std::as_const(students)) {
             if(!student.deleted && !dataOptions->sectionNames.contains(student.section, Qt::CaseInsensitive)) {
                 dataOptions->sectionNames << student.section;
             }
@@ -1811,7 +1811,7 @@ void gruepr::changeIdealTeamSize()
             // if teaming all sections separately, figure out how many students in this section
             const QString sectionName = sectionSelectionBox->itemText(section + 3);
             numStudentsBeingTeamed = 0;
-            for(const auto &student : qAsConst(students)) {
+            for(const auto &student : std::as_const(students)) {
                 if(student.section == sectionName && !student.deleted) {
                     numStudentsBeingTeamed++;
                 }
@@ -1820,7 +1820,7 @@ void gruepr::changeIdealTeamSize()
         else if(multipleSectionsInProgress) {
             const QString sectionName = sectionSelectionBox->currentText();
             numStudentsBeingTeamed = 0;
-            for(const auto &student : qAsConst(students)) {
+            for(const auto &student : std::as_const(students)) {
                 if(student.section == sectionName && !student.deleted) {
                     numStudentsBeingTeamed++;
                 }
@@ -2113,7 +2113,7 @@ void gruepr::startOptimization()
         teams.clear();
         teams.dataOptions = *dataOptions;
         teams.reserve(numTeams);
-        for(const auto teamSize : qAsConst(teamingOptions->teamSizesDesired)) {
+        for(const auto teamSize : std::as_const(teamingOptions->teamSizesDesired)) {
             teams.emplaceBack(&teams.dataOptions, teamSize);
         }
 
@@ -2539,7 +2539,7 @@ void gruepr::saveState()
         content["teamingoptions"] = teamingOptions->toJson();
         content["dataoptions"] = dataOptions->toJson();
         QJsonArray studentjsons;
-        for(const auto &student : qAsConst(students)) {
+        for(const auto &student : std::as_const(students)) {
             studentjsons.append(student.toJson());
         }
         content["students"] = studentjsons;
@@ -2715,7 +2715,7 @@ void gruepr::refreshStudentDisplay()
 
     ui->studentTable->setRowCount(students.size());
     numActiveStudents = 0;
-    for(const auto &student : qAsConst(students)) {
+    for(const auto &student : std::as_const(students)) {
         column = 0;
         if((numActiveStudents < students.size()) &&            // make sure student exists, hasn't been deleted, and is in the section(s) being teamed
            (!student.deleted) &&
@@ -3266,7 +3266,7 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
 
             if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
                 // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
-                for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
+                for(const auto &pair : std::as_const(_teamingOptions->incompatibleAttributeValues[attribute])) {
                     //getting the attribute level count for each incompatible attribute value
                     const int n = int(attributeLevelsInTeam.count(pair.first));
                     if(pair.first == pair.second) {
@@ -3282,7 +3282,7 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
             // Add a penalty per required attribute response not found
             if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
                 // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
-                for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
+                for(const auto value : std::as_const(_teamingOptions->requiredAttributeValues[attribute])) {
                     if(attributeLevelsInTeam.count(value) == 0) {
                         _penaltyPoints[team]++;
                     }
@@ -3331,7 +3331,7 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
         if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
             _totalNumberOfRules+=(teamSize * (teamSize-1))/ 2;
             // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
-            for(const auto &pair : qAsConst(_teamingOptions->incompatibleAttributeValues[attribute])) {
+            for(const auto &pair : std::as_const(_teamingOptions->incompatibleAttributeValues[attribute])) {
                 const int n = int(attributeLevelsInTeam.count(pair.first));
                 if(pair.first == pair.second) {
                     _numberOfBrokenRules += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
@@ -3347,7 +3347,7 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
         if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
             _totalNumberOfRules += (teamSize * (teamSize-1))/ 2;
             // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
-            for(const auto value : qAsConst(_teamingOptions->requiredAttributeValues[attribute])) {
+            for(const auto value : std::as_const(_teamingOptions->requiredAttributeValues[attribute])) {
                 if(attributeLevelsInTeam.count(value) == 0) {
                     _numberOfBrokenRules++;
                 }

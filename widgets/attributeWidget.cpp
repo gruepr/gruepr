@@ -229,7 +229,7 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
     //Create Table to store text
     responsesText += "<u>Responses</u>";
     responsesText += "<br>"; //add a new row
-    for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
+    for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
         responsesText += "<b>";
         if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
             // show response with starting number

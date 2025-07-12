@@ -53,7 +53,7 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     QJsonArray teamsArray = jsonTeamsTab["teams"].toArray();
     teams.dataOptions = DataOptions(teamsArray.begin()->toObject()["dataOptions"].toObject());
     teams.reserve(teamsArray.size());
-    for(const auto &team : qAsConst(teamsArray)) {
+    for(const auto &team : std::as_const(teamsArray)) {
         teams.emplaceBack(&teams.dataOptions, team.toObject(), students);
     }
     randomizedTeamNames = jsonTeamsTab["randomizedNames"].toBool();
@@ -778,7 +778,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             studentATeam.createTooltip();
             studentBTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
             studentBTeam.createTooltip();
-            for(const auto &stu : qAsConst(students)) {
+            for(const auto &stu : std::as_const(students)) {
                 if(studentATeam.studentIDs.first() == stu.ID) {
                     const QString firstStudentName = stu.lastname + stu.firstname;
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentATeamItem, studentATeam,
@@ -907,7 +907,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         oldTeam.createTooltip();
         newTeam.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
         newTeam.createTooltip();
-        for(const auto &stu : qAsConst(students)) {
+        for(const auto &stu : std::as_const(students)) {
             if(oldTeam.studentIDs.first() == stu.ID) {
                 const QString firstStudentName = stu.lastname + stu.firstname;
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, oldTeamItem, oldTeam,
@@ -1133,9 +1133,9 @@ void TeamsTabItem::makeNewSetWithAllNewTeammates()
         }
     }
 
-    for(const auto &team : qAsConst(teams)) {
-        for(const auto ID1 : qAsConst(team.studentIDs)) {
-            for(const auto ID2 : qAsConst(team.studentIDs)) {
+    for(const auto &team : std::as_const(teams)) {
+        for(const auto ID1 : std::as_const(team.studentIDs)) {
+            for(const auto ID2 : std::as_const(team.studentIDs)) {
                 if(ID1 != ID2) {
                     StudentRecord* stu = nullptr;
                     for(auto &student1 : *externalStudents) {
@@ -1262,7 +1262,7 @@ void TeamsTabItem::postTeamsToCanvas()
     label->setStyleSheet(LABEL10PTSTYLE);
     auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
     coursesComboBox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+    for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesComboBox->addItem(canvasCourse.name);
         coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
@@ -1289,12 +1289,12 @@ void TeamsTabItem::postTeamsToCanvas()
     teamRoster.reserve(numTeams);
     QList<QList<StudentRecord>> teamRosters;
     teamRosters.reserve(numTeams);
-    for(const auto teamNum : qAsConst(teamDisplayNums)) {
+    for(const auto teamNum : std::as_const(teamDisplayNums)) {
         const auto &team = teams.at(teamNum);
         teamNames << team.name;
         teamRoster.clear();
         //loop through each teammate in the team
-        for(const auto studentID : qAsConst(team.studentIDs)) {
+        for(const auto studentID : std::as_const(team.studentIDs)) {
             teamRoster << *findStudentFromID(studentID);
         }
         teamRosters << teamRoster;
@@ -1339,7 +1339,7 @@ void TeamsTabItem::refreshTeamDisplay()
 
     //iterate through sections or teams
     if(teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) {
-        for(const auto &sectionName : qAsConst(sectionNames)) {
+        for(const auto &sectionName : std::as_const(sectionNames)) {
             sectionItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::section);
             teamDataTree->refreshSection(sectionItems.last(), sectionName);
 
@@ -1351,7 +1351,7 @@ void TeamsTabItem::refreshTeamDisplay()
 
             //iterate through teams
             int teamNum = 0;
-            for(const auto &team : qAsConst(teams)) {
+            for(const auto &team : std::as_const(teams)) {
                 const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
                 const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
                 if(firstStudent->section == sectionName) {
@@ -1383,7 +1383,7 @@ void TeamsTabItem::refreshTeamDisplay()
     else {
         //iterate through teams
         int teamNum = 0;
-        for(const auto &team : qAsConst(teams)) {
+        for(const auto &team : std::as_const(teams)) {
             teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
             const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
             const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
@@ -1649,7 +1649,7 @@ QStringList TeamsTabItem::createStdFileContents()
             instructorsFileContents += "\n" + tr("Availability:") + "\n            ";
             studentsFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(const auto &dayName : qAsConst(teams.dataOptions.dayNames)) {
+            for(const auto &dayName : std::as_const(teams.dataOptions.dayNames)) {
                 // using first 3 characters in day name as abbreviation
                 instructorsFileContents += "  " + dayName.left(3) + "  ";
                 studentsFileContents += "  " + dayName.left(3) + "  ";
@@ -1874,7 +1874,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         if(!teams.dataOptions.dayNames.isEmpty() & customFileOptions.includeSechedule) {
             customFileContents += "\n" + tr("Availability:") + "\n            ";
 
-            for(const auto &dayName : qAsConst(teams.dataOptions.dayNames)) {
+            for(const auto &dayName : std::as_const(teams.dataOptions.dayNames)) {
                 // using first 3 characters in day name as abbreviation
                 customFileContents += "  " + dayName.left(3) + "  ";
             }

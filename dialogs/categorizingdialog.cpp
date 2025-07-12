@@ -208,7 +208,7 @@ bool CategorizingDialog::initializeComboBoxes()
         const QString &headerVal = surveyFile->headerValues.at(i);
 
         bool ignore = false;
-        for(const auto &matchpattern : qAsConst(surveyFile->fieldsToBeIgnored)) {
+        for(const auto &matchpattern : std::as_const(surveyFile->fieldsToBeIgnored)) {
             if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
                 surveyFile->fieldMeanings[i] = "**IGNORE**";
                 ignore = true;
@@ -243,7 +243,7 @@ bool CategorizingDialog::initializeComboBoxes()
         selector->setStyleSheet(COMBOBOXSTYLE);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
-        for(const auto &meaning : qAsConst(surveyFieldOptions)) {
+        for(const auto &meaning : std::as_const(surveyFieldOptions)) {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
         selector->insertItem(0, UNUSEDTEXT);
