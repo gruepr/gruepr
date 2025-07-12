@@ -143,7 +143,7 @@ StartDialog::StartDialog(QWidget *parent)
     helpButton->setIconSize(INFOBUTTONSIZE);
     theGrid->addWidget(helpButton, row, 4, 1, 1, Qt::AlignRight);
     auto *helpMenu = new QMenu(this);
-    for(const auto &helpAction : qAsConst(helpActions)) {
+    for(const auto &helpAction : std::as_const(helpActions)) {
         helpAction->setFont(labelFont);
         helpMenu->addAction(helpAction);
     }

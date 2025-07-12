@@ -77,7 +77,7 @@ void customResponseOptionsDialog::refreshDisplay()
 
     //show a label and a combobox for as many options as chosen in the numTeams selection
     int i = 0;
-    for(const auto &optionLineEdit : qAsConst(optionLineEdits)) {
+    for(const auto &optionLineEdit : std::as_const(optionLineEdits)) {
         if(i < numOptions) {
             QString currText = optionLineEdits.at(i)->text();
             int currPos = 0;

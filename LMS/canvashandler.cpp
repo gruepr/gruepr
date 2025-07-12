@@ -216,7 +216,7 @@ QList<CanvasHandler::CanvasCourse> CanvasHandler::getCourses() {
 
 // Retrieves the number of students in the given course
 int CanvasHandler::getStudentCount(const QString &courseName) {
-    for(const auto &course : qAsConst(canvasCourses)) {
+    for(const auto &course : std::as_const(canvasCourses)) {
         if(course.name == courseName) {
             return course.numStudents;
         }
@@ -598,7 +598,7 @@ bool CanvasHandler::createTeams(const QString &courseName, const QString &setNam
 
 int CanvasHandler::getCourseID(const QString &courseName) {
     int courseID = -1;
-    for(const auto &course : qAsConst(canvasCourses)) {
+    for(const auto &course : std::as_const(canvasCourses)) {
         if(course.name == courseName) {
             courseID = course.ID;
         }
@@ -608,7 +608,7 @@ int CanvasHandler::getCourseID(const QString &courseName) {
 
 int CanvasHandler::getQuizID(const QString &quizName) {
     int quizID = -1;
-    for(const auto &quiz : qAsConst(quizList)) {
+    for(const auto &quiz : std::as_const(quizList)) {
         if(quiz.name == quizName) {
             quizID = quiz.ID;
         }
@@ -681,7 +681,7 @@ void CanvasHandler::getPaginatedCanvasResults(const QString &initialURL, const Q
             break;
         }
 
-        for(const auto &value : qAsConst(json_array)) {
+        for(const auto &value : std::as_const(json_array)) {
             const QJsonObject json_obj = value.toObject();
             for(int i = 0; i < stringParams.size(); i++) {
                 *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
@@ -736,7 +736,7 @@ void CanvasHandler::postToCanvasGetSingleResult(const QString &URL, const QByteA
         return;
     }
 
-    for(const auto &value : qAsConst(json_array)) {
+    for(const auto &value : std::as_const(json_array)) {
         QJsonObject json_obj = value.toObject();
         for(int i = 0; i < stringParams.size(); i++) {
             *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
