@@ -26,12 +26,12 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QParallelAnimationGroup>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QToolButton>
 #include <QWidget>
-#include <QDesignerCustomWidgetInterface>
+#include <QtUiPlugin/customwidget.h>
 #include <QtDesigner>
-#include <QPushButton>
 
 
 class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterface {
