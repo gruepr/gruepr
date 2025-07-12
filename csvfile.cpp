@@ -212,7 +212,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
         const QString &headerVal = headerValues.at(i);
 
         bool ignore = false;
-        for(const auto &matchpattern : qAsConst(fieldsToBeIgnored)) {
+        for(const auto &matchpattern : std::as_const(fieldsToBeIgnored)) {
             if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
                 fieldMeanings[i] = "**IGNORE**";
                 ignore = true;
@@ -282,7 +282,7 @@ QDialog* CsvFile::chooseFieldMeaningsDialog(const QList<possFieldMeaning> &possi
         selector->setStyleSheet(COMBOBOXSTYLE);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(new MouseWheelBlocker(selector));  // as it's too easy to mistake scrolling through the rows with changing the value
-        for(const auto &meaning : qAsConst(possibleFieldMeanings)) {
+        for(const auto &meaning : std::as_const(possibleFieldMeanings)) {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
         selector->insertItem(0, UNUSEDTEXT);

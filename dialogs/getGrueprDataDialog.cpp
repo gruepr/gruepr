@@ -278,7 +278,7 @@ bool GetGrueprDataDialog::getFromGoogle()
     label->setStyleSheet(LABEL10PTSTYLE);
     auto *formsComboBox = new QComboBox(googleFormsDialog);
     formsComboBox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &form : qAsConst(formsList)) {
+    for(const auto &form : std::as_const(formsList)) {
         formsComboBox->addItem(form);
     }
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -373,7 +373,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     int i = 1;
     auto *label = new QLabel(tr("From which course should the survey be downloaded?"), canvasCoursesAndQuizzesDialog);
     auto *coursesAndQuizzesComboBox = new QComboBox(canvasCoursesAndQuizzesDialog);
-    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
+    for(const auto &canvasCourse : std::as_const(canvasCourses)) {
         coursesAndQuizzesComboBox->addItem(canvasCourse.name);
         coursesAndQuizzesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole);
     }
@@ -402,7 +402,7 @@ bool GetGrueprDataDialog::getFromCanvas()
     canvasCoursesAndQuizzesDialog->setWindowTitle(tr("Choose Canvas quiz"));
     label->setText(tr("Which survey should be downloaded?"));
     coursesAndQuizzesComboBox->clear();
-    for(const auto &form : qAsConst(formsList)) {
+    for(const auto &form : std::as_const(formsList)) {
         coursesAndQuizzesComboBox->addItem(form);
     }
     if((canvasCoursesAndQuizzesDialog->exec() == QDialog::Rejected)) {
@@ -539,7 +539,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
         const QString &headerVal = surveyFile->headerValues.at(i);
 
         bool ignore = false;
-        for(const auto &matchpattern : qAsConst(surveyFile->fieldsToBeIgnored)) {
+        for(const auto &matchpattern : std::as_const(surveyFile->fieldsToBeIgnored)) {
             if(headerVal.contains(QRegularExpression(matchpattern, QRegularExpression::CaseInsensitiveOption))) {
                 surveyFile->fieldMeanings[i] = "**IGNORE**";
                 ignore = true;
@@ -580,7 +580,7 @@ bool GetGrueprDataDialog::readQuestionsFromHeader()
         selector->setStyleSheet(COMBOBOXSTYLE);
         selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
-        for(const auto &meaning : qAsConst(surveyFieldOptions)) {
+        for(const auto &meaning : std::as_const(surveyFieldOptions)) {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
         selector->insertItem(0, UNUSEDTEXT);
@@ -825,7 +825,7 @@ bool GetGrueprDataDialog::readData()
     if(!dataOptions->dayNames.isEmpty()) {
         QStringList allTimeNames;
         do {
-            for(const int fieldNum : qAsConst(dataOptions->scheduleField)) {
+            for(const int fieldNum : std::as_const(dataOptions->scheduleField)) {
                 QString scheduleFieldText = (surveyFile->fieldValues.at(fieldNum)).toLower().split(';').join(',');
                 QTextStream scheduleFieldStream(&scheduleFieldText);
                 allTimeNames << CsvFile::getLine(scheduleFieldStream);
@@ -844,7 +844,7 @@ bool GetGrueprDataDialog::readData()
         // If none do, still keep looking for any that end 0.5, in which case resolution is 0.5.
         // If none do, keep at default of 1.
         dataOptions->scheduleResolution = 1;
-        for(const auto &timeName : qAsConst(dataOptions->timeNames)) {
+        for(const auto &timeName : std::as_const(dataOptions->timeNames)) {
             const int numOfQuarterHours = std::lround(4 * grueprGlobal::timeStringToHours(timeName)) % 4;
             if((numOfQuarterHours == 1) || (numOfQuarterHours == 3)) {
                 dataOptions->scheduleResolution = 0.25;
@@ -980,7 +980,7 @@ bool GetGrueprDataDialog::readData()
 
         students.reserve(roster.size());
         int numNonSubmitters = 0;
-        for(const auto &studentOnRoster : qAsConst(roster)) {
+        for(const auto &studentOnRoster : std::as_const(roster)) {
             int index = 0;
             const long long LMSid = studentOnRoster.LMSID;
             while((index < numStudents) && (LMSid != students.at(index).LMSID)) {
@@ -1054,7 +1054,7 @@ bool GetGrueprDataDialog::readData()
             auto &responses = dataOptions->attributeQuestionResponses[attribute];
             auto &attributeType = dataOptions->attributeType[attribute];
             // gather all unique attribute question responses, then remove a blank response if it exists in a list with other responses
-            for(const auto &student : qAsConst(students)) {
+            for(const auto &student : std::as_const(students)) {
                 if(!responses.contains(student.attributeResponse[attribute])) {
                     responses << student.attributeResponse[attribute];
                 }
@@ -1124,7 +1124,7 @@ bool GetGrueprDataDialog::readData()
             if((attributeType == DataOptions::AttributeType::ordered) ||
                 (attributeType == DataOptions::AttributeType::multiordered)) {
                 // ordered/numerical values. value is based on number at start of response
-                for(const auto &response : qAsConst(responses)) {
+                for(const auto &response : std::as_const(responses)) {
                     dataOptions->attributeVals[attribute].insert(startsWithInteger.match(response).captured(1).toInt());
                     dataOptions->attributeQuestionResponseCounts[attribute].insert({response, 0});
                 }
