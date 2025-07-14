@@ -655,7 +655,7 @@ void DemographicsPage::update()
     questionPreviewTopLabels[gender]->setText(questionText);
 
     int i = 0;
-    for(const auto &genderOption : std::as_const(genderOptions)) {
+    for(const auto &genderOption : qAsConst(genderOptions)) {
         gerb[i]->setText(genderOption);
         gecb[i]->setText(genderOption);
         if(genderResponsesAllowMulti->isChecked()) {
@@ -1661,7 +1661,7 @@ void CourseInfoPage::update()
     topLabel->setWordWrap(true);
     sectionsPreviewLayout->addWidget(topLabel);
     sc.clear();
-    for(const int visibleSectionLineEdit : std::as_const(visibleSectionLineEdits)) {
+    for(const int visibleSectionLineEdit : qAsConst(visibleSectionLineEdits)) {
         sc << new QRadioButton;
         sectionsPreviewLayout->addWidget(sc.last());
         const QString sectName = sectionLineEdits[visibleSectionLineEdit]->text();
@@ -2122,7 +2122,7 @@ void PreviewAndExportPage::initializePage()
             delete child->widget(); // delete the widget
             delete child;   // delete the layout item
         }
-        for(const auto &genderOption : std::as_const(genderOptions)) {
+        for(const auto &genderOption : qAsConst(genderOptions)) {
             QWidget *option;
             if(field("genderAllowMulti").toBool()) {
                 option = new QCheckBox(genderOption);
@@ -2182,7 +2182,7 @@ void PreviewAndExportPage::initializePage()
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
-                for(const auto &response : std::as_const(responses)) {
+                for(const auto &response : qAsConst(responses)) {
                     auto *option = new QCheckBox(response);
                     section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
                 }
@@ -2197,7 +2197,7 @@ void PreviewAndExportPage::initializePage()
                     delete child->widget(); // delete the widget
                     delete child;   // delete the layout item
                 }
-                for(const auto &response : std::as_const(responses)) {
+                for(const auto &response : qAsConst(responses)) {
                     auto *option = new QRadioButton(response);
                     section[SurveyMakerWizard::multichoice]->questionGroupLayout[questionNum]->addWidget(option);
                 }
@@ -2612,15 +2612,15 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
     }
 
     textFileContents += tr("Your survey (and/or other data sources) should collect the following information to paste into the csv file \"") + fileName + ".csv\":";
-    for(const auto &question : std::as_const(survey->questions)) {
+    for(const auto &question : qAsConst(survey->questions)) {
         textFileContents += "\n\n  " + QString::number(++questionNumber) + ") " + question.text;
         if(question.type == Question::QuestionType::schedule) {
             textFileContents += "\n                 ";
-            for(const auto &timeName : std::as_const(survey->schedTimeNames)) {
+            for(const auto &timeName : qAsConst(survey->schedTimeNames)) {
                 textFileContents += timeName + "    ";
             }
             textFileContents += "\n";
-            for(const auto &dayName : std::as_const(survey->schedDayNames)) {
+            for(const auto &dayName : qAsConst(survey->schedDayNames)) {
                 if(!(dayName.isEmpty())) {
                     textFileContents += "\n      " + dayName + "\n";
                     csvFileContents +=  "," + (question.text.contains(',')? "\"" + question.text + "\"" : question.text) + "[" + dayName + "]";
@@ -2755,7 +2755,7 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     auto *label = new QLabel(tr("In which course should this survey be created?"), canvasCoursesDialog);
     label->setStyleSheet(LABEL10PTSTYLE);
     auto *coursesComboBox = new QComboBox(canvasCoursesDialog);
-    for(const auto &canvasCourse : std::as_const(canvasCourses)) {
+    for(const auto &canvasCourse : qAsConst(canvasCourses)) {
         coursesComboBox->addItem(canvasCourse.name);
         coursesComboBox->setItemData(i++, QString::number(canvasCourse.numStudents) + " students", Qt::ToolTipRole); // Not working??
     }

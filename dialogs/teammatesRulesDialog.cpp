@@ -1,21 +1,14 @@
 #include "teammatesRulesDialog.h"
-#include "qcompleter.h"
-#include "qheaderview.h"
-#include "qlineedit.h"
-#include "qscrollbar.h"
-#include "qstringlistmodel.h"
-#include "qtimer.h"
 #include "ui_teammatesRulesDialog.h"
 #include "csvfile.h"
 #include "gruepr_globals.h"
 #include "dialogs/findMatchingNameDialog.h"
-#include "studentRecord.h"
 #include <QMenu>
 #include <QMessageBox>
 
 TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
                                            const QString &sectionname, const QStringList &currTeamSets, QWidget *parent,
-                                           bool autoLoadRequired, bool autoLoadPrevented, bool autoLoadRequested, int initialTabIndex) :
+                                           bool autoLoadRequired, bool autoLoadPrevented, bool autoLoadRequested) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
     numStudents(incomingStudents.size())
@@ -27,7 +20,6 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
 
-    ui->tabWidget->setCurrentIndex(initialTabIndex);
     //copy data into local versions, including full database of students
     sectionName = sectionname;
     teamSets = currTeamSets;
@@ -46,96 +38,17 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         scrollArea->setStyleSheet(QString("QScrollArea{background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; border: 1px solid black;}") +
                                   SCROLLBARSTYLE);
     }
-    headerRequiredTeammates = new QWidget(this);
-    headerLayoutRequiredTeammates = new QHBoxLayout(this);
-    headerLayoutRequiredTeammates->setContentsMargins(0, 0, 0, 0);
-    headerLayoutRequiredTeammates->setSpacing(0);
-    headerRequiredTeammates->setLayout(headerLayoutRequiredTeammates);
 
-    headerPreventedTeammates = new QWidget(this);
-    headerLayoutPreventedTeammates = new QHBoxLayout(this);
-    headerLayoutPreventedTeammates->setContentsMargins(0, 0, 0, 0);
-    headerLayoutPreventedTeammates->setSpacing(0);
-    headerPreventedTeammates->setLayout(headerLayoutPreventedTeammates);
-
-    headerRequestedTeammates = new QWidget(this);
-    headerLayoutRequestedTeammates = new QHBoxLayout(this);
-    headerLayoutRequestedTeammates->setContentsMargins(0, 0, 0, 0);
-    headerLayoutRequestedTeammates->setSpacing(0);
-    headerRequestedTeammates->setLayout(headerLayoutRequestedTeammates);
-
-    //initialize required_tableWidget
-    //initialize prevented_tableWidget
-    //initialize requested_tableWidget
-
-    // auto scrollAreaWidgets = {ui->requiredScrollAreaWidget, ui->preventedScrollAreaWidget, ui->requestedScrollAreaWidget};
-    // for(auto &scrollAreaWidget : scrollAreaWidgets) {
-    //     scrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
-
-    //     auto *scrollAreaLayout = qobject_cast<QVBoxLayout*>(scrollAreaWidget->layout());
-    //     if (scrollAreaLayout) {
-    //         // Add the headerLayout to the now-empty layout
-    //         scrollAreaLayout->addLayout(headerLayoutRequiredTeammates);
-    //         auto *tableWidget = new QTableWidget();
-    //         tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // Make table expand to fill remaining space
-    //         scrollAreaLayout->addWidget(tableWidget);
-
-    //         // Ensure the layout fills the entire scroll area widget
-    //         scrollAreaLayout->setContentsMargins(0, 0, 0, 0);
-    //         scrollAreaLayout->setSpacing(0);
-    //         scrollAreaWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    //     }
-    // }
-    // Initialize table widgets
-    required_tableWidget = new QTableWidget(this);
-    prevented_tableWidget = new QTableWidget(this);
-    requested_tableWidget = new QTableWidget(this);
-
-    // Set up requiredScrollAreaWidget
-    ui->requiredScrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
-    auto *requiredScrollAreaLayout = qobject_cast<QVBoxLayout*>(ui->requiredScrollAreaWidget->layout());
-    requiredScrollAreaLayout->addWidget(headerRequiredTeammates);
-    required_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    required_tableWidget->horizontalHeader()->setVisible(false);
-    requiredScrollAreaLayout->addWidget(required_tableWidget);
-    requiredScrollAreaLayout->setContentsMargins(0, 0, 0, 0);
-    requiredScrollAreaLayout->setSpacing(0);
-    ui->requiredScrollAreaWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->requiredScrollArea->setWidgetResizable(true);
-
-    // Set up preventedScrollAreaWidget
-    ui->preventedScrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
-    auto *preventedScrollAreaLayout = qobject_cast<QVBoxLayout*>(ui->preventedScrollAreaWidget->layout());
-    preventedScrollAreaLayout->addWidget(headerPreventedTeammates);
-    prevented_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    prevented_tableWidget->horizontalHeader()->setVisible(false);
-    preventedScrollAreaLayout->addWidget(prevented_tableWidget);
-    preventedScrollAreaLayout->setContentsMargins(0, 0, 0, 0);
-    preventedScrollAreaLayout->setSpacing(0);
-    ui->preventedScrollAreaWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->preventedScrollArea->setWidgetResizable(true);
-
-    // Set up requestedScrollAreaWidget
-    ui->requestedScrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
-    auto *requestedScrollAreaLayout = qobject_cast<QVBoxLayout*>(ui->requestedScrollAreaWidget->layout());
-    requestedScrollAreaLayout->addWidget(headerRequestedTeammates);
-    requested_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    requested_tableWidget->horizontalHeader()->setVisible(false);
-    requestedScrollAreaLayout->addWidget(requested_tableWidget);
-    requestedScrollAreaLayout->setContentsMargins(0, 0, 0, 0);
-    requestedScrollAreaLayout->setSpacing(0);
-    ui->requestedScrollAreaWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->requestedScrollArea->setWidgetResizable(true);
-
+    auto scrollAreaWidgets = {ui->requiredScrollAreaWidget, ui->preventedScrollAreaWidget, ui->requestedScrollAreaWidget};
+    for(auto &scrollAreaWidget : scrollAreaWidgets) {
+        scrollAreaWidget->setStyleSheet("background-color: " TRANSPARENT "; color: " TRANSPARENT ";");
+    }
 
     auto frames = {ui->required_addFrame, ui->required_valuesFrame, ui->prevented_addFrame,
                    ui->prevented_valuesFrame, ui->requested_addFrame, ui->requested_valuesFrame};
     for(auto &frame : frames) {
         frame->setStyleSheet(BLUEFRAME);
     }
-    ui->required_addFrame->setVisible(false);
-    ui->requested_addFrame->setVisible(false);
-    ui->prevented_addFrame->setVisible(false);
 
     auto addLabels = {ui->required_explanationLabel, ui->prevented_explanationLabel, ui->requested_explanationLabel};
     for(auto &addLabel : addLabels) {
@@ -159,7 +72,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                               ui->requested_studentSelectComboBox, ui->requested_teammateSelectComboBox};
     for(auto &studentcombobox : studentcomboboxes) {
         studentcombobox->setStyleSheet(COMBOBOXSTYLE);
-        for(const auto &student : std::as_const(students)) {
+        for(const auto &student : qAsConst(students)) {
             if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
                 studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
             }
@@ -201,11 +114,10 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
         connect(clearButton, &QPushButton::clicked, this, [this](){clearValues(static_cast<TypeOfTeammates>(ui->tabWidget->currentIndex()));});
     }
 
-    auto tableWidgets = {required_tableWidget, prevented_tableWidget, requested_tableWidget};
+    auto tableWidgets = {ui->required_tableWidget, ui->prevented_tableWidget, ui->requested_tableWidget};
     for(auto &tableWidget : tableWidgets) {
         tableWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-        tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        //tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+        tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         tableWidget->setStyleSheet("QTableView{gridline-color: lightGray; background-color: " TRANSPARENT "; border: none; "
                                                "font-size: 12pt; font-family: 'DM Sans';}"
                                    "QTableWidget:item {border-right: 1px solid lightGray; color: black;}" + QString(SCROLLBARSTYLE));
@@ -222,18 +134,15 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                                                                            "background-color:" DEEPWATERHEX "; "
                                                                            "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
         //below is stupid way needed to get text in the top-left corner cell
-        tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        topLeftTableHeaderButton = tableWidget->findChild<QAbstractButton *>();
-        if (topLeftTableHeaderButton != nullptr) {
-            topLeftTableHeaderButton->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; border: none;");
-            auto *lay = new QVBoxLayout(topLeftTableHeaderButton);
+        auto *button = tableWidget->findChild<QAbstractButton *>();
+        if (button != nullptr) {
+            button->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; border: none;");
+            auto *lay = new QVBoxLayout(button);
             lay->setContentsMargins(0, 0, 0, 0);
-            lay->setSpacing(0);
-            lay->setAlignment(Qt::AlignCenter);
             auto *label = new QLabel(tr("Student"), this);
             label->setAlignment(Qt::AlignCenter);
             label->setStyleSheet("QLabel {font-size: 12pt; font-family: 'DM Sans'; color: white;}");
-            //label->setContentsMargins(2, 2, 2, 2);
+            label->setContentsMargins(2, 2, 2, 2);
             lay->addWidget(label);
         }
     }
@@ -270,18 +179,11 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    refreshDisplay(TypeOfTeammates::required, 0, 0, "");
-    refreshDisplay(TypeOfTeammates::prevented, 0, 0, "");
-    refreshDisplay(TypeOfTeammates::requested, 0, 0, "");
-
-    initializeTableHeaders(TypeOfTeammates::required, "", true);
-    initializeTableHeaders(TypeOfTeammates::prevented, "", true);
-    initializeTableHeaders(TypeOfTeammates::requested, "", true);
+    refreshDisplay(TypeOfTeammates::required);
+    refreshDisplay(TypeOfTeammates::prevented);
+    refreshDisplay(TypeOfTeammates::requested);
 
     // the following options are for when this window was opened by gruepr immediately after starting, when the survey contained prefteammate or prefnonteammate questions
-    QTabBar *tabBar = ui->tabWidget->tabBar();
-    tabBar->hide();  // Hides the tab header area
-
     if(autoLoadRequired) {
         ui->tabWidget->setCurrentIndex(0);
         loadStudentPrefs(TypeOfTeammates::required);
@@ -304,44 +206,7 @@ TeammatesRulesDialog::~TeammatesRulesDialog()
     delete ui;
 }
 
-void clearLayout(QHBoxLayout *layout) {
-    if (!layout) return; // Safety check
-
-    QLayoutItem *item;
-    while ((item = layout->takeAt(0)) != nullptr) {
-        if (item->widget()) {
-            item->widget()->deleteLater(); // Delete the widget safely
-        }
-        delete item; // Remove the layout item
-    }
-}
-
-void TeammatesRulesDialog::showToast(QWidget *parent, const QString &message, int duration) {
-    // Create label for the toast message
-    QLabel *toast = new QLabel(parent);
-    toast->setText(message);
-    toast->setStyleSheet("background-color: rgba(0, 0, 0, 180);"
-                         "color: white;"
-                         "padding: 10px;"
-                         "border-radius: 5px;"
-                         "font-size: 10pt;");
-    toast->setAlignment(Qt::AlignCenter);
-
-    // Position it at the bottom
-    toast->adjustSize();
-    int x = (this->width()) / 2;  // Center horizontally
-    int y = parent->height() - toast->height() - 20; // Bottom with some margin
-    toast->move(x, y);
-    toast->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
-    toast->setAttribute(Qt::WA_DeleteOnClose);
-    toast->show();
-
-    // Auto-hide after 'duration' milliseconds
-    QTimer::singleShot(duration, toast, &QLabel::close);
-}
-
-
-void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int verticalScrollPos, int horizontalScrollPos, QString searchBarText)
+void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates)
 {
     QString typeText;
     QTableWidget *table;
@@ -350,21 +215,21 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
     bool *teammatesSpecified;
     if(typeOfTeammates == TypeOfTeammates::required) {
         typeText = tr("Required");
-        table = required_tableWidget;
+        table = ui->required_tableWidget;
         clearButton = ui->required_clearButton;
         requestsInSurvey = positiverequestsInSurvey;
         teammatesSpecified = &required_teammatesSpecified;
     }
     else if (typeOfTeammates == TypeOfTeammates::prevented) {
         typeText = tr("Prevented");
-        table = prevented_tableWidget;
+        table = ui->prevented_tableWidget;
         clearButton = ui->prevented_clearButton;
         requestsInSurvey = negativerequestsInSurvey;
         teammatesSpecified = &prevented_teammatesSpecified;
     }
     else {
         typeText = tr("Requested");
-        table = requested_tableWidget;
+        table = ui->requested_tableWidget;
         clearButton = ui->requested_clearButton;
         requestsInSurvey = positiverequestsInSurvey;
         teammatesSpecified = &requested_teammatesSpecified;
@@ -372,12 +237,13 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
 
     table->clear();
 
+
     int column = 0;
     if(requestsInSurvey) {
         table->setColumnCount(2);
         table->setHorizontalHeaderItem(column, new QTableWidgetItem(tr("Preferences\nfrom Survey")));
-        required_tableWidget->ensurePolished();
-        QFont italicized(required_tableWidget->font());
+        ui->required_tableWidget->ensurePolished();
+        QFont italicized(ui->required_tableWidget->font());
         italicized.setItalic(true);
         table->horizontalHeaderItem(column)->setFont(italicized);
         column++;
@@ -385,71 +251,53 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
     else {
         table->setColumnCount(1);
     }
-
-    //pass in the maximum number of teammates, render all the columns properly.
-    //for each row of baseStudent, render all existing students first, then afterwards render only 1 missing lineEdit
-    //render all the lineEdits (with "Enter a teammate")
-
-    //then render the existing teammates as labels and remove the lineEdits previously
-
     table->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + "\n" + tr("Teammate #1")));
     table->setRowCount(0);
     *teammatesSpecified = false;     // assume no teammates specified until we find one
-    //include a tool tip when pressed or etc that student they can add only when they have added prev student or include instructions in the beginning, which they can press X and hide)
-    // the tradeoff is that they know they can add fields and etc, less decluttered
-    QList<StudentRecord *> baseStudents;
-    QList<StudentRecord *> filteredStudents;
-    QList<long long> allIDs;
 
+    QList<StudentRecord *> baseStudents;
+    QList<long long> allIDs;
     for(auto &student : students) {
-        //only add students which are in the current section being grouped
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             allIDs << student.ID;
-            QString fullName = student.firstname + " " + student.lastname;
-            qDebug() << searchBarText;
-            if (fullName.contains(searchBarText, Qt::CaseInsensitive)) { // Case-insensitive match
-                filteredStudents << (&student);
-            }
             baseStudents << &student;
         }
     }
-
-    std::sort(filteredStudents.begin(), filteredStudents.end(), [](const StudentRecord *const A, const StudentRecord *const B)
+    std::sort(baseStudents.begin(), baseStudents.end(), [](const StudentRecord *const A, const StudentRecord *const B)
               {return ((A->lastname+A->firstname) < (B->lastname+B->firstname));});
 
     int row = 0;
-    for(auto *filteredStudent : std::as_const(filteredStudents)) {
+    for(auto *baseStudent : qAsConst(baseStudents)) {
         bool atLeastOneTeammate = false;
         column = 0;
 
         table->setRowCount(row+1);
-        table->setVerticalHeaderItem(row, new QTableWidgetItem(filteredStudent->firstname + "  " + filteredStudent->lastname)); // using two spaces so that can split later
+        table->setVerticalHeaderItem(row, new QTableWidgetItem(baseStudent->firstname + "  " + baseStudent->lastname)); // using two spaces so that can split later
 
         if(requestsInSurvey) {
             auto *stuPrefText = new QLabel(this);
             stuPrefText->setStyleSheet("QLabel {font-size: 10pt; font-family: 'DM Sans'; font-style: italic; color: black;}");
             if(typeOfTeammates == TypeOfTeammates::prevented) {
-                stuPrefText->setText(filteredStudent->prefNonTeammates);
+                stuPrefText->setText(baseStudent->prefNonTeammates);
             }
             else {
-                stuPrefText->setText(filteredStudent->prefTeammates);
+                stuPrefText->setText(baseStudent->prefTeammates);
             }
             table->setCellWidget(row, column, stuPrefText);
             column++;
         }
 
         bool printStudent;
-        for(const auto studentBID : std::as_const(allIDs)) {
+        for(const auto studentBID : qAsConst(allIDs)) {
             if(typeOfTeammates == TypeOfTeammates::required) {
-                printStudent = filteredStudent->requiredWith.contains(studentBID);
+                printStudent = baseStudent->requiredWith.contains(studentBID);
             }
             else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                printStudent = filteredStudent->preventedWith.contains(studentBID);
+                printStudent = baseStudent->preventedWith.contains(studentBID);
             }
             else {
-                printStudent = filteredStudent->requestedWith.contains(studentBID);
+                printStudent = baseStudent->requestedWith.contains(studentBID);
             }
-            // add students who X (prevented/required/requested) teammates of baseStudent
             if(printStudent) {
                 atLeastOneTeammate = true;
                 *teammatesSpecified = true;
@@ -472,44 +320,26 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
                 auto *box = new QHBoxLayout;
                 auto *label = new QLabel(studentB->firstname + "  " + studentB->lastname, this);        // using two spaces so can split later
                 label->setStyleSheet("QLabel {font-size: 10pt; font-family: 'DM Sans'; color: black;}");
-                //remover should only appear when the text is valid!
                 auto *remover = new QPushButton(QIcon(":/icons_new/trashButton.png"), "", this);
                 remover->setFlat(true);
                 remover->setIconSize(ICONSIZE);
                 if(typeOfTeammates == TypeOfTeammates::required) {
-                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText]
-                                                            {
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                                                            filteredStudent->requiredWith.remove(studentB->ID);
-                                                             studentB->requiredWith.remove(filteredStudent->ID);
-                                                             refreshDisplay(TypeOfTeammates::required, verticalScrollPos, horizontalScrollPos, searchBarText);
-                                                             initializeTableHeaders(TypeOfTeammates::required, searchBarText);
-                    });
+                    connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
+                                                            {baseStudent->requiredWith.remove(studentB->ID);
+                                                             studentB->requiredWith.remove(baseStudent->ID);
+                                                             refreshDisplay(TypeOfTeammates::required);});
                 }
                 else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText]
-                                                            {
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                    filteredStudent->preventedWith.remove(studentB->ID);
-                                                             studentB->preventedWith.remove(filteredStudent->ID);
-                                                             refreshDisplay(TypeOfTeammates::prevented, verticalScrollPos, horizontalScrollPos, searchBarText);
-                                                             initializeTableHeaders(TypeOfTeammates::prevented, searchBarText);
-                    });
+                    connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
+                                                            {baseStudent->preventedWith.remove(studentB->ID);
+                                                             studentB->preventedWith.remove(baseStudent->ID);
+                                                             refreshDisplay(TypeOfTeammates::prevented);});
                 }
                 else {
-                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText]
-                                                            {
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                        filteredStudent->requestedWith.remove(studentB->ID);
-                                                             refreshDisplay(TypeOfTeammates::requested, verticalScrollPos, horizontalScrollPos, searchBarText);
-                                                             initializeTableHeaders(TypeOfTeammates::required, searchBarText);
-
-                    });
+                    connect(remover, &QPushButton::clicked, this, [this, baseStudent, studentB]
+                                                            {baseStudent->requestedWith.remove(studentB->ID);
+                                                             refreshDisplay(TypeOfTeammates::requested);});
                 }
-
                 box->addWidget(label);
                 box->addWidget(remover, 0, Qt::AlignLeft);
                 box->setSpacing(0);
@@ -524,211 +354,14 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
             clearButton->setEnabled(true);
             clearAllValuesButton->setEnabled(true);
         }
-
-        //Add the LineEdit in Final Column
-        if(table->columnCount() < column+1) {
-            table->setColumnCount(column+1);
-            table->setHorizontalHeaderItem(column, new QTableWidgetItem(typeText + "\n" + tr("Teammate #") +
-                                                                        QString::number(column + (requestsInSurvey? 0:1))));
+        else {
+            table->setItem(row, column, new QTableWidgetItem("--"));
         }
-
-        //Create Elements for Final Column
-        auto *cellWidget = new QWidget(this);
-        auto *box = new QHBoxLayout();
-        //Set up lineEdit
-        auto *lineEdit = new QLineEdit(this);
-        lineEdit->setPlaceholderText("Enter a student.."); // Set initial value
-        lineEdit->setStyleSheet("QLineEdit {font-size: 10pt; font-family: 'DM Sans'; color: black;}");
-
-        // Set up the completer with all student names
-        QMap<QString, StudentRecord*> studentNameToIdMap;
-        QStringList studentNames;
-
-        //get all names from baseStudents
-        for (auto *student : baseStudents) {
-            QString fullName = student->firstname + " " + student->lastname;
-            studentNames.append(fullName);
-            studentNameToIdMap[fullName] = student;  // Store name → ID mapping
-        }
-        //pressing enter also cancels the dialog
-
-        auto *model = new QStringListModel(studentNames, this);
-        auto *completer = new QCompleter(model, this);
-        completer->setCaseSensitivity(Qt::CaseInsensitive);
-        completer->setFilterMode(Qt::MatchContains);
-        lineEdit->setCompleter(completer);
-
-        QPushButton *confirmButton = new QPushButton(this);
-        confirmButton->setIcon(QIcon(":/icons_new/Checkmark.png"));
-
-        if(typeOfTeammates == TypeOfTeammates::required) {
-            connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
-                QString newText = lineEdit->text(); //get the current text
-                //check that the student name is valid and that user is not adding the student itself to the list.
-                if (studentNameToIdMap.contains(newText)){
-                    if (studentNameToIdMap[newText]->ID != filteredStudent->ID){
-                        StudentRecord *pairedStudent = studentNameToIdMap[newText];
-                        filteredStudent->requiredWith.insert(pairedStudent->ID);
-                        pairedStudent->requiredWith.insert(filteredStudent->ID);
-                        //keep the current scroll position for user
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                        refreshDisplay(TypeOfTeammates::required, verticalScrollPos, horizontalScrollPos, searchBarText);
-                        initializeTableHeaders(TypeOfTeammates::required, searchBarText);
-                    } else {
-                        showToast(this, "Cannot prevent a student with themselves.");
-                    }
-
-                } else {
-                    //turn the text red, print a toast message
-                    showToast(this, "The student name does not exist, please double check your input.", 2000);
-                    lineEdit->setStyleSheet("QLineEdit {font-size: 10pt; font-family: 'DM Sans'; color: darkred;}");
-                }
-            });
-        } else if(typeOfTeammates == TypeOfTeammates::prevented){
-            connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
-                QString newText = lineEdit->text(); //get the current text
-                //check that the student name is valid and that user is not adding the student itself to the list.
-                if (studentNameToIdMap.contains(newText)){
-                    if (studentNameToIdMap[newText]->ID != filteredStudent->ID ){
-                        StudentRecord *pairedStudent = studentNameToIdMap[newText];
-                        filteredStudent->preventedWith.insert(pairedStudent->ID);
-                        pairedStudent->preventedWith.insert(filteredStudent->ID);
-                        //keep the current scroll position for user
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                        refreshDisplay(TypeOfTeammates::prevented, verticalScrollPos, horizontalScrollPos, searchBarText);
-                        initializeTableHeaders(TypeOfTeammates::prevented, searchBarText);
-                    } else {
-                        showToast(this, "Cannot prevent a student with themselves.");
-                    }
-                } else {
-                    //turn the text red, print a toast message
-                    showToast(this, "The student name does not exist, please double check your input.", 2000);
-                    lineEdit->setStyleSheet("QLineEdit {font-size: 10pt; font-family: 'DM Sans'; color: darkred;}");
-                }
-            });
-        } else if(typeOfTeammates == TypeOfTeammates::requested){
-            connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
-                QString newText = lineEdit->text(); //get the current text
-                //check that the student name is valid and that user is not adding the student filteredStudent to the list.
-                if (studentNameToIdMap.contains(newText) && studentNameToIdMap[newText]->ID != filteredStudent->ID ){
-                    if (studentNameToIdMap[newText]->ID != filteredStudent->ID ){
-                        StudentRecord *pairedStudent = studentNameToIdMap[newText];
-                        filteredStudent->requestedWith.insert(pairedStudent->ID);
-                        pairedStudent->requestedWith.insert(filteredStudent->ID);
-                        //keep the current scroll position for user
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                        refreshDisplay(TypeOfTeammates::requested, verticalScrollPos, horizontalScrollPos, searchBarText);
-                        initializeTableHeaders(TypeOfTeammates::requested, searchBarText);
-                    } else {
-                        showToast(this, "Cannot prevent a student with themselves.");
-                    }
-                } else {
-                    //turn the text red, print a toast message
-                    showToast(this, "The student name does not exist, please double check your input.", 2000);
-                    lineEdit->setStyleSheet("QLineEdit {font-size: 10pt; font-family: 'DM Sans'; color: darkred;}");
-                }
-            });
-        }
-        box->addWidget(lineEdit);
-        box->addWidget(confirmButton);
-        cellWidget->setLayout(box);
-        table->setCellWidget(row, column, cellWidget);
         row++;
     }
     table->resizeColumnsToContents();
     table->resizeRowsToContents();
-    table->verticalScrollBar()->setValue(verticalScrollPos);
-    table->horizontalScrollBar()->setValue(horizontalScrollPos);
-}
 
-void TeammatesRulesDialog::initializeTableHeaders(TypeOfTeammates typeOfTeammates, QString searchBarText, bool initializeStatus){
-    //headerLayout
-    //initialize TypeOfTeammates::required header
-    //Initialize each table column as a label
-    QString typeText;
-    QHBoxLayout *headerLayout;
-    QTableWidget *table;
-    QWidget *headerWidget;
-    if(typeOfTeammates == TypeOfTeammates::required) {
-        typeText = tr("Required");
-        table = required_tableWidget;
-        headerLayout = headerLayoutRequiredTeammates;
-        headerWidget = headerRequiredTeammates;
-        clearLayout(headerLayoutRequiredTeammates);
-    }
-    else if (typeOfTeammates == TypeOfTeammates::prevented) {
-        typeText = tr("Prevented");
-        table = prevented_tableWidget;
-        headerLayout = headerLayoutPreventedTeammates;
-        headerWidget = headerPreventedTeammates;
-        clearLayout(headerLayoutPreventedTeammates);
-    }
-    else {
-        typeText = tr("Requested");
-        table = requested_tableWidget;
-        headerLayout = headerLayoutRequestedTeammates;
-        headerWidget = headerRequestedTeammates;
-        clearLayout(headerLayoutRequestedTeammates);
-    }
-
-    auto *topLeftHeaderLayout = new QVBoxLayout();
-    topLeftHeaderLayout->setSpacing(0);
-    auto *topLeftHeaderWidget = new QWidget(this);
-    int width = table->verticalHeader()->sizeHint().width(); //width of abstract button
-    if (initializeStatus == true){ //don't update the size of this apart from the first intialization (avoid weird layout issues)
-        table->verticalHeader()->setFixedWidth(width);
-        this->initialWidthStudentHeader = width;
-    }
-    //if not fixed width, the header may change according to the students filtered
-
-    //createSearchBar
-    auto *studentSearchBar = new QLineEdit(this);
-    studentSearchBar->setFocusPolicy(Qt::StrongFocus);
-    //for some reason the text does not update either
-    studentSearchBar->setPlaceholderText("Filter by name");
-
-    studentSearchBar->setText(searchBarText);
-    studentSearchBar->setStyleSheet("QLineEdit { font-size: 10pt; font-family: 'DM Sans'; color: black; background-color: white; border: 1px solid lightGray; border-radius: 5px}");
-    connect(studentSearchBar, &QLineEdit::textChanged, this, [this, typeOfTeammates, studentSearchBar](){
-        refreshDisplay(typeOfTeammates, 0, 0, studentSearchBar->text());
-    });
-    headerWidget->setFixedHeight(studentSearchBar->sizeHint().height() + 35);
-
-    auto *label = new QLabel(tr("Student"), this);
-    label->setStyleSheet("QLabel{border-top: none; border-left: none; border-right: none; "
-                         "border-bottom: none; background-color:" DEEPWATERHEX "; "
-                         "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
-    topLeftHeaderWidget->setStyleSheet("QWidget{border-top: none; border-left: none; border-right: 1px solid lightGray; "
-                                       "border-bottom: none; background-color:" DEEPWATERHEX "; "
-                                       "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center; padding:2px;}");
-
-    topLeftHeaderLayout->addWidget(label);
-    topLeftHeaderLayout->addWidget(studentSearchBar);
-    topLeftHeaderLayout->setSpacing(2);
-    topLeftHeaderWidget->setLayout(topLeftHeaderLayout);
-    topLeftHeaderWidget->setFixedWidth(initialWidthStudentHeader);
-    topLeftHeaderWidget->setFixedHeight(studentSearchBar->sizeHint().height() + 35);
-    headerLayout->addWidget(topLeftHeaderWidget, Qt::AlignCenter);
-
-    for (int col = 0; col < table->columnCount(); ++col) { //get the size as well
-        auto *label = new QLabel(table->horizontalHeaderItem(col)->text());
-        label->setStyleSheet("QLabel{border-top: none; border-left: none; border-right: 1px solid lightGray; "
-                             "border-bottom: none; background-color:" DEEPWATERHEX "; "
-                             "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
-        int width = table->columnWidth(col);
-        label->setFixedWidth(width);
-        label->setFixedHeight(studentSearchBar->sizeHint().height() + 35);
-        headerLayout->addWidget(label, Qt::AlignCenter);
-    }
-    QLabel *spacerLabel = new QLabel();
-    spacerLabel->setStyleSheet("QLabel { background-color: " DEEPWATERHEX "; }");
-    spacerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    // Add the spacer label and stretch to push all widgets to the left
-    headerLayout->addWidget(spacerLabel);
 }
 
 void TeammatesRulesDialog::addTeammateSelector(TypeOfTeammates typeOfTeammates)
@@ -750,7 +383,7 @@ void TeammatesRulesDialog::addTeammateSelector(TypeOfTeammates typeOfTeammates)
 
     auto *studentcombobox = new QComboBox(this);
     studentcombobox->setStyleSheet(COMBOBOXSTYLE);
-    for(const auto &student : std::as_const(students)) {
+    for(const auto &student : qAsConst(students)) {
         studentcombobox->setPlaceholderText(comboBoxes->first()->placeholderText());
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             studentcombobox->addItem(student.lastname + ", " + student.firstname, student.ID);
@@ -775,7 +408,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         comboBoxes = possibleRequestedTeammates;
     }
     QList<int> IDs;
-    for(const auto &comboBox : std::as_const(comboBoxes)) {
+    for(const auto &comboBox : qAsConst(comboBoxes)) {
         //If a student is selected in this combobox, load their ID into an array that holds all the selections
         if(comboBox->currentIndex() != -1) {
             IDs << comboBox->currentData().toInt();
@@ -839,7 +472,7 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         if(index < numStudents) {
             baseStudent = &students[index];
 
-            for(const int ID : std::as_const(IDs)) {
+            for(const int ID : qAsConst(IDs)) {
                 if(baseStudentID != ID) {
                     //we have at least one requested teammate pair!
                     baseStudent->requestedWith << ID;
@@ -850,7 +483,8 @@ void TeammatesRulesDialog::addOneTeammateSet(TypeOfTeammates typeOfTeammates)
         //Reset combobox
         ui->requested_studentSelectComboBox->setCurrentIndex(-1);
     }
-    refreshDisplay(typeOfTeammates, 0, 0);
+
+    refreshDisplay(typeOfTeammates);
 }
 
 void TeammatesRulesDialog::clearAllValues()
@@ -915,7 +549,7 @@ void TeammatesRulesDialog::clearValues(TypeOfTeammates typeOfTeammates, bool ver
     if(!ui->required_clearButton->isEnabled() && !ui->requested_clearButton->isEnabled() && !ui->prevented_clearButton->isEnabled()) {
         clearAllValuesButton->setEnabled(false);
     }
-    refreshDisplay(typeOfTeammates, 0, 0);
+    refreshDisplay(typeOfTeammates);
 }
 
 bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
@@ -1063,7 +697,7 @@ bool TeammatesRulesDialog::loadCSVFile(TypeOfTeammates typeOfTeammates)
         }
     }
 
-    refreshDisplay(typeOfTeammates, 0, 0);
+    refreshDisplay(typeOfTeammates);
     return true;
 }
 
@@ -1151,7 +785,7 @@ bool TeammatesRulesDialog::loadStudentPrefs(TypeOfTeammates typeOfTeammates)
         }
     }
 
-    refreshDisplay(typeOfTeammates, 0, 0);
+    refreshDisplay(typeOfTeammates);
     return true;
 }
 
@@ -1208,7 +842,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
     // Now we have list of teams and corresponding lists of teammates by name
     // Need to convert names to IDs and then work through all teammate pairings
     QList<long long> IDs;
-    for(const auto &teammateList : std::as_const(teammateLists)) {
+    for(const auto &teammateList : qAsConst(teammateLists)) {
         IDs.clear();
         IDs.reserve(teammateList.size());
         for(const auto &searchStudent : teammateList) {     // searchStudent is the name we're looking for
@@ -1279,7 +913,7 @@ bool TeammatesRulesDialog::loadSpreadsheetFile(TypeOfTeammates typeOfTeammates)
         }
     }
 
-    refreshDisplay(typeOfTeammates, 0, 0);
+    refreshDisplay(typeOfTeammates);
     return true;
 }
 
@@ -1399,6 +1033,6 @@ bool TeammatesRulesDialog::loadExistingTeamset(TypeOfTeammates typeOfTeammates)
         }
     }
 */
-    refreshDisplay(typeOfTeammates, 0, 0);
+    refreshDisplay(typeOfTeammates);
     return true;
 }

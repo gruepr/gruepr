@@ -120,7 +120,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
         hbox->setSpacing(12);
         hbox->setContentsMargins(0, 0, 0, 0);
         int optionNum = 0;
-        for(const auto &option : std::as_const(genderOptions)) {
+        for(const auto &option : qAsConst(genderOptions)) {
             auto *optionCheckBox = new QCheckBox(option);
             optionCheckBox->setChecked(student.gender.contains(static_cast<Gender>(optionNum)));
             hbox->addWidget(optionCheckBox);
@@ -255,7 +255,7 @@ editOrAddStudentDialog::editOrAddStudentDialog(StudentRecord &student, const Dat
                 int responseNum = 0;
                 bool first = true;
                 QString responsesText = "<html>";    //hanging indent
-                for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
+                for(const auto &response : qAsConst(dataOptions->attributeQuestionResponses[attribute])) {
                     if(!first) {
                         responsesText += "<br>";
                     }

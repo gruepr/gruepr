@@ -224,7 +224,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     //set values
     for(int teammate = 0; teammate < size; teammate++) {
         const StudentRecord* stu = nullptr;
-        for(auto &student : std::as_const(students)) {
+        for(auto &student : qAsConst(students)) {
             if(student.ID == studentIDs.at(teammate)) {
                 stu = &student;
             }

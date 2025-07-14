@@ -383,7 +383,7 @@ QStringList GoogleHandler::sendSurveyToFinalizeScript(const GoogleForm &form){
     QStringList urlsInReply = data.split(' ');
     // parse the URLs from the reply
     QString editURL, responseURL, csvURL;
-    for(const auto &urlInReply : std::as_const(urlsInReply)) {
+    for(const auto &urlInReply : qAsConst(urlsInReply)) {
         if(urlInReply.contains("editURL")) {
             editURL = urlInReply.mid(urlInReply.indexOf('=') + 1);
         }
@@ -422,7 +422,7 @@ QStringList GoogleHandler::getSurveyList() {
                                                            QDateTime::fromString(rhs.createdTime,Qt::ISODate));});
     QStringList formNames;
     formNames.reserve(formsList.size());
-    for(const auto &form : std::as_const(formsList)) {
+    for(const auto &form : qAsConst(formsList)) {
         formNames.append(form.name);
     }
 
@@ -432,7 +432,7 @@ QStringList GoogleHandler::getSurveyList() {
 QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //get the ID
     QString ID;
-    for(const auto &form : std::as_const(formsList)) {
+    for(const auto &form : qAsConst(formsList)) {
         if(form.name == surveyName) {
             ID = form.ID;
         }
@@ -481,7 +481,7 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
 
     //save the header row
     out << "Timestamp";
-    for(const auto &question : std::as_const(questions)) {
+    for(const auto &question : qAsConst(questions)) {
         out << ",\"" << question.text << "\"";
     }
     out << Qt::endl;
@@ -498,16 +498,16 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     //pull out each response and save as a row in the file, save the submitted time as a time stamp, and get the question answer(s)
     const QJsonArray responses = json_doc["responses"].toArray();
     QStringList allValuesInField;
-    for(const auto &response : std::as_const(responses)) {
+    for(const auto &response : qAsConst(responses)) {
         out << response.toObject()["lastSubmittedTime"].toString();
 
         //pull out the answer(s) to each question in order, joining the answers with a semicolon if >1
         const QJsonObject answers = response.toObject()["answers"].toObject();
-        for(const auto &question : std::as_const(questions)) {
+        for(const auto &question : qAsConst(questions)) {
             const QJsonArray nestedAnswers = answers[question.ID]["textAnswers"]["answers"].toArray();
             allValuesInField.clear();
             allValuesInField.reserve(nestedAnswers.size());
-            for(const auto &nestedAnswer : std::as_const(nestedAnswers)) {
+            for(const auto &nestedAnswer : qAsConst(nestedAnswers)) {
                 const auto answerObject = nestedAnswer.toObject();
                 allValuesInField << answerObject["value"].toString().replace('"', '\'');  // stray quotation marks in field can confuse the csv parser --> replace with apostrophe
             }
@@ -549,7 +549,7 @@ void GoogleHandler::postToGoogleGetSingleResult(const QString &URL, const QByteA
         return;
     }
 
-    for(const auto &value : std::as_const(json_array)) {
+    for(const auto &value : qAsConst(json_array)) {
         QJsonObject json_obj = value.toObject();
         for(int i = 0; i < stringParams.size(); i++) {
             *(stringVals[i]) << json_obj[stringParams.at(i)].toString("");
