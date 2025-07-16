@@ -1,5 +1,4 @@
 #include "gruepr_globals.h"
-#include "qjsonarray.h"
 #include <QEvent>
 #include <QGridLayout>
 #include <QMessageBox>
@@ -56,32 +55,6 @@ bool grueprGlobal::internetIsGood() {
     }
     return !weGotProblems;
 }
-
-QJsonArray grueprGlobal::genderListToJsonArray(const QList<Gender>& genders) {
-    QJsonArray jsonArray;
-    for (Gender gender : genders) {
-        switch (gender) {
-        case Gender::woman: jsonArray.append("woman"); break;
-        case Gender::man: jsonArray.append("man"); break;
-        case Gender::nonbinary: jsonArray.append("nonbinary"); break;
-        case Gender::unknown: jsonArray.append("unknown"); break;
-        }
-    }
-    return jsonArray;
-}
-
-QList<Gender> grueprGlobal::jsonArrayToGenderList(const QJsonArray& jsonArray) {
-    QList<Gender> genders;
-    for (const QJsonValue& value : jsonArray) {
-        QString genderStr = value.toString().toLower();
-        if (genderStr == "woman") genders.append(Gender::woman);
-        else if (genderStr == "man") genders.append(Gender::man);
-        else if (genderStr == "nonbinary") genders.append(Gender::nonbinary);
-        else genders.append(Gender::unknown);  // Fallback for unrecognized values
-    }
-    return genders;
-}
-
 
 QString grueprGlobal::genderToString(Gender gender) {
     switch (gender) {

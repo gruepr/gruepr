@@ -46,8 +46,8 @@ gatherURMResponsesDialog::gatherURMResponsesDialog(const QStringList &URMRespons
         theTable->setCellWidget(response, 1, responses.last());
         rowHeight = std::max(rowHeight, std::max(enableValue.last()->height(), responses.last()->height()));
         connect(responses.last(), &QPushButton::clicked, enableValue.last(), &QCheckBox::toggle);
-        connect(enableValue.last(), &QCheckBox::stateChanged, this, [this, thisResponse=responses.last()](int state){
-                                                                                 if(state == Qt::Checked) {
+        connect(enableValue.last(), &QCheckBox::checkStateChanged, this, [this, thisResponse=responses.last()](Qt::CheckState state){
+                                                                                 if(state == Qt::CheckState::Checked) {
                                                                                     URMResponsesConsideredUR << thisResponse->text();
                                                                                      thisResponse->setStyleSheet(QString(SMALLBUTTONSTYLETRANSPARENTFLAT)
                                                                                                                     .replace("12pt", "12pt; font-weight: bold"));

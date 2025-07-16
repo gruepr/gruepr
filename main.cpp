@@ -41,12 +41,13 @@
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
 //  - attribute response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
-//  - Pulling in the ***incredible*** dissertation work by Nikhen:
-//    -
 //
 // INPROG:
+//  - Pulling in the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - export of teams should include the section number if that's being displayed (having trouble re-creating)
 //  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
+//  From Nikhen's work:
+//  - split the required/prev/request. teammates window into three spearate windows
 //
 // TO DO:
 //    BUGFIXES:
@@ -54,7 +55,6 @@
 //    NEW FEATURES:
 //  From Nikhen's work:
 //  - allow "balance of values" among all teams as a criterion condition
-//  - split the required/prev/request. teammates window into three spearate windows
 //  - identity rules add >, >=, <, <=
 //  - bar graphs for the MCQ student counts
 //  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points

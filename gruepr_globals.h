@@ -42,6 +42,7 @@ inline static const char16_t BULLET = u'\u2022';
 #define OPENWATERHEX "#13a9b2"
 #define AQUAHEX "#41d2ca"
 #define BUBBLYHEX "#dcf2f4"
+#define FOAMHEX "#ecf8f9"
 #define GOGREEN "#d9ffdc"
 #define STOPRED "#ffbdbd"
 
@@ -53,13 +54,13 @@ inline static const char TITLESTYLE[] = "font-size: 12pt; font-family: 'DM Sans'
 inline static const char TOPLABELSTYLE[] = "color: white; font-size: 14pt; font-family: 'DM Sans';"
                                            "border-image: url(:/icons_new/surveyMakerWizardTopLabelBackground.png); height: 50px;";
 inline static const char WHITEDIALOGSTYLE[] = "QDialog{background-color: white;}";
-inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 8px; border-color: #D0D0D0; /* Soft grey for subtle elevation */"
-                                                                  "color: " DEEPWATERHEX "; background-color: white;} "
-                                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX ";}";
+inline static const char STARTDIALODBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 3px; border-radius: 8px; border-color:" DEEPWATERHEX ";"
+                                                                  "color: " DEEPWATERHEX "; background-color: " BUBBLYHEX ";} "
+                                                    "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " FOAMHEX ";}";
 inline static const char INFOBUTTONSTYLE[] = "QToolButton {border-style: outset; border-width: 2px; border-radius: 3px; border-color: " DEEPWATERHEX "; "
                                                            "padding-top: 2px; padding-left: 2px; padding-right: 10px; padding-bottom: 2px; "
-                                                           "color: " DEEPWATERHEX "; background-color: white;} "
-                                             "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " BUBBLYHEX "}"
+                                                           "color: " DEEPWATERHEX "; background-color: " BUBBLYHEX ";} "
+                                             "QToolButton:hover {border-color: " OPENWATERHEX "; background-color: " FOAMHEX ";} "
                                              "QToolButton::menu-indicator {subcontrol-origin: border; subcontrol-position: bottom right;}";
 inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
                                                          "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
@@ -67,18 +68,14 @@ inline static const char STDBUTTONSTYLE[] = "QPushButton {background-color: " DE
 inline static const char SMALLBUTTONSTYLE[] = "QPushButton {background-color: " DEEPWATERHEX "; "
                                                            "border-style: solid; border-width: 2px; border-radius: 5px; border-color: white; "
                                                            "color: white; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
-                                              "QPushButton:hover {"
-                                              "    background-color: #204a70; /* Adjusted shade for hover effect */"
-                                              "}"
+                                              "QPushButton:hover {background-color: #204a70; /* Adjusted shade for hover effect */}"
                                               "QPushButton:disabled {background-color: lightGray; "
                                                                     "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                     "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
 inline static const char SMALLBUTTONSTYLEINVERTED[] = "QPushButton {background-color: white; "
                                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; "
                                                                    "color: " DEEPWATERHEX "; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}"
-                                                      "QPushButton:hover {"
-                                                      "    background-color: #f0f0f0; /* Light grey on hover */"
-                                                      "}"
+                                                      "QPushButton:hover {background-color: " FOAMHEX ";}"
                                                       "QPushButton:disabled {background-color: lightGray; "
                                                                             "border-style: solid; border-width: 2px; border-radius: 5px; border-color: darkGray; "
                                                                             "color: darkGray; font-family: 'DM Sans'; font-size: 12pt; padding: 5px;}";
@@ -730,9 +727,6 @@ namespace grueprGlobal {
      */
     float timeStringToHours(const QString &timeStr);
 
-    //Converts List with Gender Enum type, to Json Array
-    QJsonArray genderListToJsonArray(const QList<Gender>& genders);
-    QList<Gender> jsonArrayToGenderList(const QJsonArray& jsonArray);
     QString genderToString(Gender gender);
     Gender stringToGender(const QString& genderStr);
 }

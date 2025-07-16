@@ -67,6 +67,11 @@ public:
     QStringList dayNames;
     QStringList timeNames;
     QString saveStateFileName;
+
+private:
+    //Converts List with Gender Enum type, to Json Array
+    QJsonArray genderListToJsonArray(const QList<Gender>& genders) const;
+    QList<Gender> jsonArrayToGenderList(const QJsonArray& jsonArray) const;
 };
 
 #endif // DATAOPTIONS_H

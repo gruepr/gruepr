@@ -1216,7 +1216,7 @@ bool loadDataDialog::readData()
             dataOptions->sectionNames << student.section;
         }
 
-        for(auto gender: student.gender){
+        for(auto gender : student.gender){
             if(!dataOptions->Genders.contains(gender)) {
                 dataOptions->Genders << gender;
             }

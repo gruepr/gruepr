@@ -7,8 +7,7 @@
 gruepr_version = 13.0
 copyright_year = 2019-2025
 
-QT       += core gui widgets concurrent network printsupport charts networkauth
-QT       += designer
+QT += core gui widgets concurrent network printsupport charts networkauth designer
 
 TARGET = gruepr
 TEMPLATE = app
@@ -26,9 +25,6 @@ DEFINES += GRUEPRHOMEPAGE='\\"gruepr.com\\"'
 DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between homepage and this, but cannot include "#" in the define here
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'
 DEFINES += GRUEPRHELPEMAIL='\\"info@gruepr.com\\"'
-
-#Set Config
-CONFIG += no_moc_predefs #Added to avoid file name conflicts
 
 # set application properties
 VERSION = $$gruepr_version
@@ -66,6 +62,17 @@ macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
 #macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib #needed for homebrew clang
 
 SOURCES += \
+        csvfile.cpp \
+        dataOptions.cpp \
+        GA.cpp \
+        gruepr.cpp \
+        gruepr_globals.cpp \
+        Levenshtein.cpp \
+        main.cpp \
+        studentRecord.cpp \
+        surveyMakerWizard.cpp \
+        teamingOptions.cpp \
+        teamRecord.cpp \
         criteria/criterion.cpp \
         criteria/gradebalancecriterion.cpp \
         criteria/mixedgendercriterion.cpp \
@@ -76,33 +83,21 @@ SOURCES += \
         criteria/schedulecriterion.cpp \
         criteria/singlegendercriterion.cpp \
         criteria/singleurmidentitycriterion.cpp \
-        csvfile.cpp \
-        dataOptions.cpp \
-        dialogs/categorizingdialog.cpp \
-        dialogs/dataTypesTableDialog.cpp \
-        dialogs/identityrulesdialog.cpp \
-        dialogs/loaddatadialog.cpp \
-        gruepr_globals.cpp \
-        gruepr.cpp \
-        GA.cpp \
-        Levenshtein.cpp \
-        main.cpp \
-        studentRecord.cpp \
-        surveyMakerWizard.cpp \
-        teamRecord.cpp \
-        teamingOptions.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
+        dialogs/categorizingdialog.cpp \
         dialogs/customResponseOptionsDialog.cpp \
         dialogs/customTeamnamesDialog.cpp \
         dialogs/customTeamsizesDialog.cpp \
+        dialogs/dataTypesTableDialog.cpp \
         dialogs/dayNamesDialog.cpp \
         dialogs/editOrAddStudentDialog.cpp \
         dialogs/editSectionNamesDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
         dialogs/gatherURMResponsesDialog.cpp \
-        dialogs/getGrueprDataDialog.cpp \
+        dialogs/identityrulesdialog.cpp \
         dialogs/listTableDialog.cpp \
+        dialogs/loaddatadialog.cpp \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
@@ -130,6 +125,17 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+        csvfile.h \
+        dataOptions.h \
+        GA.h \
+        gruepr.h \
+        gruepr_globals.h \
+        Levenshtein.h \
+        studentRecord.h \
+        survey.h \
+        surveyMakerWizard.h \
+        teamingOptions.h \
+        teamRecord.h \
         criteria/criterion.h \
         criteria/gradebalancecriterion.h \
         criteria/mixedgendercriterion.h \
@@ -140,33 +146,21 @@ HEADERS += \
         criteria/schedulecriterion.h \
         criteria/singlegendercriterion.h \
         criteria/singleurmidentitycriterion.h \
-        csvfile.h \
-        dataOptions.h \
-        dialogs/categorizingdialog.h \
-        dialogs/dataTypesTableDialog.h \
-        dialogs/identityrulesdialog.h \
-        dialogs/loaddatadialog.h \
-        gruepr.h \
-        GA.h \
-        gruepr_globals.h \
-        Levenshtein.h \
-        studentRecord.h \
-        survey.h \
-        surveyMakerWizard.h \
-        teamRecord.h \
-        teamingOptions.h \
         dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \
+        dialogs/categorizingdialog.h \
         dialogs/customResponseOptionsDialog.h \
         dialogs/customTeamnamesDialog.h \
         dialogs/customTeamsizesDialog.h \
+        dialogs/dataTypesTableDialog.h \
         dialogs/dayNamesDialog.h \
         dialogs/editOrAddStudentDialog.h \
         dialogs/editSectionNamesDialog.h \
         dialogs/findMatchingNameDialog.h \
         dialogs/gatherURMResponsesDialog.h \
-        dialogs/getGrueprDataDialog.h \
+        dialogs/identityrulesdialog.h \
         dialogs/listTableDialog.h \
+        dialogs/loaddatadialog.h \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
         dialogs/sampleQuestionsDialog.h \
@@ -195,7 +189,6 @@ HEADERS += \
 
 FORMS += \
       dialogs/attributeRulesDialog.ui \
-      dialogs/getGrueprDataDialog.ui \
       dialogs/sampleQuestionsDialog.ui \
       dialogs/teammatesRulesDialog.ui \
       dialogs/whichFilesDialog.ui \

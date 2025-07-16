@@ -33,6 +33,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     }
     URM = jsonStudentRecord["URM"].toBool();
     timezone = jsonStudentRecord["timezone"].toDouble();
+    grade = jsonStudentRecord["grade"].toDouble();
     ambiguousSchedule = jsonStudentRecord["ambiguousSchedule"].toBool();
     surveyTimestamp = QDateTime::fromString(jsonStudentRecord["surveyTimestamp"].toString(), Qt::ISODate);
     firstname = jsonStudentRecord["firstname"].toString();
@@ -158,7 +159,7 @@ void StudentRecord::clear() {
 ////////////////////////////////////////////
 void StudentRecord::parseRecordFromStringList(const QStringList &fields, const DataOptions &dataOptions)
 {
-    qDebug() << fields;
+    //qDebug() << fields;
     const int numFields = fields.size();
 
     // Timestamp
@@ -227,7 +228,7 @@ void StudentRecord::parseRecordFromStringList(const QStringList &fields, const D
         email = fields.at(fieldnum).trimmed();
     }
 
-    // Email
+    // Grade
     fieldnum = dataOptions.gradeField;
     if((fieldnum >= 0) && (fieldnum < numFields)) {
         grade = fields.at(fieldnum).trimmed().toFloat();

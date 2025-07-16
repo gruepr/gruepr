@@ -814,7 +814,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
                 newGenderCard->criterion = new MixedGenderCriterion(0.0, false);
                 //initialize checkbox
                 QCheckBox* mixedGenderCheckBox = new QCheckBox("Require Mixed Gender", this);
-                connect(mixedGenderCheckBox, &QCheckBox::stateChanged, this, [this](){
+                connect(mixedGenderCheckBox, &QCheckBox::checkStateChanged, this, [this](){
                     teamingOptions->singleGenderPrevented = true;
                 });
                 uiCheckBoxMap["RequireMixedGenderCheckBox"] = mixedGenderCheckBox;
@@ -851,7 +851,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
                 preventedIsolatedCheckBox->setChecked(teamingOptions->identityRules[genderString]["!="].contains(1));
             });
             //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
-            connect(preventedIsolatedCheckBox, &QCheckBox::stateChanged, this, [this, genderString, preventedIsolatedCheckBox](){
+            connect(preventedIsolatedCheckBox, &QCheckBox::checkStateChanged, this, [this, genderString, preventedIsolatedCheckBox](){
                 teamingOptions->isolatedIndentityPrevented[genderString] = (preventedIsolatedCheckBox->checkState() == Qt::Checked);
                 if (preventedIsolatedCheckBox->isChecked()) {
                     if (!teamingOptions->identityRules[genderString]["!="].contains(1)){
@@ -906,7 +906,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
                 window->exec();
             });
             //Connect the simple UI items to a single function that simply reads all of the items and updates the teamingOptions
-            connect(preventedIsolatedCheckBox, &QCheckBox::stateChanged, this, [this, urmResponse, preventedIsolatedCheckBox](){
+            connect(preventedIsolatedCheckBox, &QCheckBox::checkStateChanged, this, [this, urmResponse, preventedIsolatedCheckBox](){
                 teamingOptions->isolatedIndentityPrevented[urmResponse] = (preventedIsolatedCheckBox->checkState() == Qt::Checked);
                 if (preventedIsolatedCheckBox->isChecked()) {
                     if (!teamingOptions->identityRules[urmResponse]["!="].contains(1)){

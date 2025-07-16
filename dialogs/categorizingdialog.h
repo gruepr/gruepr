@@ -1,26 +1,26 @@
 #ifndef CATEGORIZINGDIALOG_H
 #define CATEGORIZINGDIALOG_H
 
+#include <QDialog>
 #include "csvfile.h"
 #include "dataOptions.h"
-#include "qcombobox.h"
-#include "qdialog.h"
-#include "qtablewidget.h"
+#include <QComboBox>
+#include <QTableWidget>
+
 class CategorizingDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit CategorizingDialog(QWidget* parent = nullptr, CsvFile* surveyFile = nullptr, DataOptions::DataSource dataSource = DataOptions::DataSource::fromUploadFile);
-    QTableWidget* datasetTableWidget;
-    QHBoxLayout* datasetTableHeaderLayout;
-    CsvFile* surveyFile;
+    QTableWidget* datasetTableWidget = nullptr;
+    QHBoxLayout* datasetTableHeaderLayout = nullptr;
+    CsvFile* surveyFile = nullptr;
     DataOptions::DataSource source;
     QList<QComboBox*> dataTypeComboBoxes;
     QList<QWidget*> columnWidgets;
-    QDialogButtonBox* confirmCancelButtonBox;
+    QDialogButtonBox* confirmCancelButtonBox = nullptr;
     bool initializeComboBoxes();
     void validateFieldSelectorBoxes(int callingRow);
-
 
     void populateTable();
 public slots:
@@ -30,7 +30,6 @@ private:
     inline static const QString CATEGORYTEXT = QObject::tr("Category");
     inline static const QString ROW1TEXT = QObject::tr("First Row of Data");
     inline static const QString UNUSEDTEXT = QObject::tr("Unused");
-
 };
 
 #endif // CATEGORIZINGDIALOG_H

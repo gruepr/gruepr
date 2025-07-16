@@ -40,6 +40,11 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
         }
     }
 
+    const QJsonArray gradeValsArray = jsonTeamRecord["gradeVals"].toArray();
+    for (const auto &val : gradeValsArray) {
+        gradeVals << val.toDouble();
+    }
+
     if(jsonTeamRecord["studentIDs"].type() != QJsonValue::Undefined) {
         const QJsonArray studentIDsArray = jsonTeamRecord["studentIDs"].toArray();
         for (const auto &val : studentIDsArray) {
@@ -210,7 +215,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
     numURM = 0;
     numStudentsWithAmbiguousSchedules = 0;
     numMeetingTimes = 0;
-    gradeVals = {};
+    gradeVals.clear();
     for(int attribute = 0; attribute < teamSetDataOptions->numAttributes; attribute++) {
         attributeVals[attribute].clear();
     }
@@ -302,7 +307,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
 
 QJsonObject TeamRecord::toJson() const
 {
-    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, studentIDsArray;
+    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, gradeValsArray, studentIDsArray;
     for(const auto &attributeVal : attributeVals) {
         QJsonArray attributeValsArraySubArray;
         for (const auto &val : attributeVal) {
@@ -319,6 +324,9 @@ QJsonObject TeamRecord::toJson() const
             numStudentsAvailableArraySubArray.append(numStudentsAvailableNow);
         }
         numStudentsAvailableArray.append(numStudentsAvailableArraySubArray);
+    }
+    for(const auto &grade : gradeVals) {
+        gradeValsArray.append(grade);
     }
     for(const auto &studentID : studentIDs) {
         studentIDsArray.append(studentID);
@@ -339,6 +347,7 @@ QJsonObject TeamRecord::toJson() const
         {"numStudentsAvailable", numStudentsAvailableArray},
         {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
         {"numMeetingTimes", numMeetingTimes},
+        {"gradeVals", gradeValsArray},
         {"studentIDs", studentIDsArray},
         {"name", name},
         {"tooltip", tooltip},

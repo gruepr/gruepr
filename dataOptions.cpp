@@ -148,7 +148,7 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
-    Genders = grueprGlobal::jsonArrayToGenderList(GendersArray);
+    Genders = jsonArrayToGenderList(GendersArray);
 
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
     URMResponses.reserve(URMResponsesArray.size());
@@ -258,7 +258,7 @@ QJsonObject DataOptions::toJson() const
         {"attributeQuestionResponses", attributeQuestionResponsesArray},
         {"attributeQuestionResponseCounts", attributeQuestionResponseCountsArray},
         {"attributeVals", attributeValsArray},
-        {"Genders", grueprGlobal::genderListToJsonArray(Genders)},
+        {"Genders", genderListToJsonArray(Genders)},
         {"URMResponses", QJsonArray::fromStringList(URMResponses)},
         {"dataSourceName", dataSourceName},
         {"dataSource", static_cast<int>(dataSource)},
@@ -268,4 +268,36 @@ QJsonObject DataOptions::toJson() const
     };
 
     return content;
+}
+
+
+QJsonArray DataOptions::genderListToJsonArray(const QList<Gender>& genders) const {
+    QJsonArray jsonArray;
+    for (Gender gender : genders) {
+        switch (gender) {
+        case Gender::woman: jsonArray.append("woman"); break;
+        case Gender::man: jsonArray.append("man"); break;
+        case Gender::nonbinary: jsonArray.append("nonbinary"); break;
+        case Gender::unknown: jsonArray.append("unknown"); break;
+        }
+    }
+    if (jsonArray.isEmpty()) {
+        jsonArray.append("unknown");
+    }
+    return jsonArray;
+}
+
+QList<Gender> DataOptions::jsonArrayToGenderList(const QJsonArray& jsonArray) const {
+    QList<Gender> genders;
+    for (const QJsonValue& value : jsonArray) {
+        QString genderStr = value.toString().toLower();
+        if (genderStr == "woman") genders.append(Gender::woman);
+        else if (genderStr == "man") genders.append(Gender::man);
+        else if (genderStr == "nonbinary") genders.append(Gender::nonbinary);
+        else genders.append(Gender::unknown);  // Fallback for unrecognized values
+    }
+    if (genders.isEmpty()) {
+        genders.append(Gender::unknown);
+    }
+    return genders;
 }

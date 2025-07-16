@@ -1,9 +1,8 @@
 #include "startDialog.h"
-#include "dialogs/categorizingdialog.h"
 #include "dialogs/loaddatadialog.h"
+#include "dialogs/registerDialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"
-#include "dialogs/registerDialog.h"
 #include "surveyMakerWizard.h"
 #include <QApplication>
 #include <QCryptographicHash>
@@ -48,6 +47,7 @@ StartDialog::StartDialog(QWidget *parent)
     theGrid->setRowMinimumHeight(row++, TOPSPACERHEIGHT);
 
     auto *topLabel = new QLabel(tr("What would you like to do?"), this);
+    //commented FROMDEV:
     // int fontId = QFontDatabase::addApplicationFont(":/fonts/PaytoneOne-Regular.ttf");
     // QString fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
     // QFont paytoneFont(fontFamily, 16); // Set size 16

@@ -3,11 +3,11 @@
 
 #include <QDialog>
 #include "dataOptions.h"
-#include "qabstractbutton.h"
-#include "qboxlayout.h"
-#include "qtablewidget.h"
 #include "studentRecord.h"
 #include "teamingOptions.h"
+#include <QAbstractButton>
+#include <QBoxLayout>
+#include <QTableWidget>
 #include <QComboBox>
 
 namespace Ui {
@@ -29,13 +29,13 @@ public:
     TeammatesRulesDialog(TeammatesRulesDialog&&) = delete;
     TeammatesRulesDialog& operator= (TeammatesRulesDialog&&) = delete;
 
-    QHBoxLayout *headerLayoutRequiredTeammates;
-    QHBoxLayout *headerLayoutPreventedTeammates;
-    QHBoxLayout *headerLayoutRequestedTeammates;
-    QWidget *headerRequiredTeammates;
-    QWidget *headerPreventedTeammates;
-    QWidget *headerRequestedTeammates;
-    QAbstractButton *topLeftTableHeaderButton;
+    QHBoxLayout *headerLayoutRequiredTeammates = nullptr;
+    QHBoxLayout *headerLayoutPreventedTeammates = nullptr;
+    QHBoxLayout *headerLayoutRequestedTeammates = nullptr;
+    QWidget *headerRequiredTeammates = nullptr;
+    QWidget *headerPreventedTeammates = nullptr;
+    QWidget *headerRequestedTeammates = nullptr;
+    QAbstractButton *topLeftTableHeaderButton = nullptr;
     int initialWidthStudentHeader;
 
     QList<StudentRecord> students;
