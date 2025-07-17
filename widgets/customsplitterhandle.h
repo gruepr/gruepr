@@ -1,15 +1,20 @@
 #ifndef CUSTOMSPLITTERHANDLE_H
 #define CUSTOMSPLITTERHANDLE_H
 
-#include "qsplitter.h"
-#include "qtoolbutton.h"
-class CustomSplitterHandle : public QSplitterHandle {
+#include <QSplitter>
+#include <QToolButton>
+
+class CustomSplitterHandle : public QSplitterHandle
+{
+
 public:
     CustomSplitterHandle(Qt::Orientation orientation, QSplitter *parent);
+
 protected:
     void paintEvent(QPaintEvent *);
     void resizeEvent(QResizeEvent *event);
     void toggleCollapse();
+
 private:
     QToolButton *button;
     bool collapsed = false;

@@ -44,7 +44,6 @@
 //
 // INPROG:
 //  - Pulling in the ***incredible*** dissertation work by Nikhen to modernize the UI
-//  - export of teams should include the section number if that's being displayed (having trouble re-creating)
 //  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //  From Nikhen's work:
 //  - split the required/prev/request. teammates window into three spearate windows
@@ -53,13 +52,13 @@
 //    BUGFIXES:
 //
 //    NEW FEATURES:
-//  From Nikhen's work:
+//  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
 //  - allow "balance of values" among all teams as a criterion condition
 //  - identity rules add >, >=, <, <=
 //  - bar graphs for the MCQ student counts
 //  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
-//  - heterogeneous should always go towards most number of values, as with categorical MCQs, not (just?) the range of values, as is currently done with ordered MCQs
+//  - diverse should always go towards most number of values, as with categorical MCQs, not (just?) the range of values, as is currently done with ordered MCQs
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)

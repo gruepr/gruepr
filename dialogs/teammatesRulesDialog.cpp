@@ -406,7 +406,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             allIDs << student.ID;
             QString fullName = student.firstname + " " + student.lastname;
-            qDebug() << searchBarText;
+            //qDebug() << searchBarText;
             if (fullName.contains(searchBarText, Qt::CaseInsensitive)) { // Case-insensitive match
                 filteredStudents << (&student);
             }

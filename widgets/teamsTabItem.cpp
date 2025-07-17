@@ -80,12 +80,14 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     auto *summaryAndDataLayout = new QHBoxLayout();
 
     teamDataTree = new TeamTreeWidget(this);
+//FROMDEV
+/*
     //create a new table
     auto *summaryLayout = new QVBoxLayout();
     summaryTable = new QTableWidget();
     auto* legendLayout = new QHBoxLayout();
     auto* summaryLabel = new QLabel("Criterion Achievement Summary Table");
-    //initialize header and vertical header
+    //initialize header and vertical  (If implementing this, careful with direct access to header--it is subclassed to allow eliding!!!)
     summaryTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     summaryTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     //tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -177,11 +179,11 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     summaryLayout->addWidget(summaryTable);
     summaryLayout->addLayout(legendLayout);
     summaryAndDataLayout->addLayout(summaryLayout);
-
+*/
     QVBoxLayout* dataLayout = new QVBoxLayout();
-    auto* dataLabel = new QLabel("Student Data Table");
-    dataLabel->setStyleSheet(LABEL14PTSTYLE);
-    dataLayout->addWidget(dataLabel, 0, Qt::AlignCenter);
+//    auto* dataLabel = new QLabel("Student Data Table");
+//    dataLabel->setStyleSheet(LABEL14PTSTYLE);
+//    dataLayout->addWidget(dataLabel, 0, Qt::AlignCenter);
     dataLayout->addWidget(teamDataTree);
     summaryAndDataLayout->addLayout(dataLayout);
     teamDataLayout->addLayout(summaryAndDataLayout);
@@ -319,11 +321,11 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
     if(tabType == TabType::newTab) {
         teamDataTree->sortByColumn(0, Qt::AscendingOrder);
-        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/blank_arrow.png"));
+        teamDataTree->setColumnHeaderIcon(0, QIcon(":/icons_new/blank_arrow.png"));
     }
     else {
         teamDataTree->sortByColumn(teamDataTree->columnCount() - 1, Qt::AscendingOrder);
-        teamDataTree->headerItem()->setIcon(0, QIcon(":/icons_new/upDownButton_white.png"));
+        teamDataTree->setColumnHeaderIcon(0, QIcon(":/icons_new/upDownButton_white.png"));
     }
     refreshTeamDisplay();
     refreshDisplayOrder();
@@ -344,6 +346,8 @@ TeamsTabItem::~TeamsTabItem()
     delete teamingOptions;
 }
 
+//FROMDEV
+/*
 QLabel* getLabelFromCriterionScore(float score) {
     QLabel* label = new QLabel();
     if (score >= 1) {
@@ -422,8 +426,8 @@ void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
         float averageScore = 0;
         for (int criterion = 0; criterion < teamingOptions.realNumScoringFactors; criterion++){
             //auto* _criterionBeingScored = teamingOptions->criterionTypes[criterion];
-            summaryTable->setCellWidget(row, criterion+1, getLabelFromCriterionScore(teams[row].criterionScores[criterion])); //critrion+1 since overall rating is in the first column
-            averageScore = averageScore + teams[row].criterionScores[criterion];
+            summaryTable->setCellWidget(row, criterion+1, getLabelFromCriterionScore(teams[row].criteriaScores[criterion])); //critrion+1 since overall rating is in the first column
+            averageScore = averageScore + teams[row].criteriaScores[criterion];
         }
         averageScore = averageScore/teamingOptions.realNumScoringFactors;
         summaryTable->setCellWidget(row, 0, getLabelFromCriterionScore(averageScore)); //overall rating is in the first column
@@ -432,7 +436,7 @@ void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
     summaryTable->resizeRowsToContents();
     //summaryTable->adjustSize();
 }
-
+*/
 
 QJsonObject TeamsTabItem::toJson() const
 {
@@ -711,7 +715,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
 
     //hold current sort order
     refreshDisplayOrder();
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
+    teamDataTree->setColumnHeaderIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     if(studentATeamNum == studentBTeamNum) {
@@ -828,8 +832,9 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             }
         }
     }
-    refreshSummaryTable(*teamingOptions);
+//FROMDEV    refreshSummaryTable(*teamingOptions);
     teamDataTree->setUpdatesEnabled(true);
+    teamDataTree->repaint();
     emit saveState();
 }
 
@@ -876,7 +881,7 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
 
     //hold current sort order
     refreshDisplayOrder();
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
+    teamDataTree->setColumnHeaderIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
 
     //remove student from old team and add to new team
@@ -957,8 +962,9 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
             newTeamItem->addChild(childItemsNewTeam[studentNum]);
         }
     }
-    refreshSummaryTable(*teamingOptions);
+//FROMDEV    refreshSummaryTable(*teamingOptions);
     teamDataTree->setUpdatesEnabled(true);
+    teamDataTree->repaint();
     emit saveState();
 }
 
@@ -1021,7 +1027,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     teamDataTree->setUpdatesEnabled(false);
 
     //hold current sort order, then adjust sort data for teamA and teamB, then resort
-    teamDataTree->headerItem()->setIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
+    teamDataTree->setColumnHeaderIcon(teamDataTree->sortColumn(), QIcon(":/icons_new/upDownButton_white.png"));
     teamDataTree->sortByColumn(teamDataTree->columnCount()-1, Qt::AscendingOrder);
     if(teamASortOrder > teamBSortOrder) {
         // dragging team onto a team listed earlier in the table
@@ -1079,6 +1085,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     refreshDisplayOrder();
 
     teamDataTree->setUpdatesEnabled(true);
+    teamDataTree->repaint();
     emit saveState();
 }
 
@@ -1428,6 +1435,7 @@ void TeamsTabItem::refreshTeamDisplay()
     }
     teamDataTree->setUpdatesEnabled(true);
     teamDataTree->setSortingEnabled(true);
+    teamDataTree->repaint();
 }
 
 
@@ -1511,10 +1519,10 @@ QStringList TeamsTabItem::createStdFileContents()
         instructorsFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
                                    + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
         // Check the attribute diversity type explicitly
-        if (teamingOptions->attributeDiversity[attrib] == 1) {
-            instructorsFileContents += ", " + tr("homogeneous");
-        } else if (teamingOptions->attributeDiversity[attrib] == 0) {
-            instructorsFileContents += ", " + tr("heterogeneous");
+        if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::similar) {
+            instructorsFileContents += ", " + tr("similar");
+        } else if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::diverse) {
+            instructorsFileContents += ", " + tr("diverse");
         } else {
             instructorsFileContents += ", " + tr("ignored");
         }
@@ -1716,10 +1724,10 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         for(int attrib = 0; attrib < teams.dataOptions.numAttributes; attrib++) {
             customFileContents += "\n" + tr("Multiple choice Q") + QString::number(attrib+1) + ": "
                                   + tr("weight") + " = " + QString::number(double(teamingOptions->attributeWeights[attrib]));
-            if (teamingOptions->attributeDiversity[attrib] == 1) {
-                customFileContents += ", " + tr("homogeneous");
-            } else if (teamingOptions->attributeDiversity[attrib] == 0) {
-                customFileContents += ", " + tr("heterogeneous");
+            if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::similar) {
+                customFileContents += ", " + tr("similar");
+            } else if (teamingOptions->attributeDiversity[attrib] == Criterion::AttributeDiversity::diverse) {
+                customFileContents += ", " + tr("diverse");
             } else {
                 customFileContents += ", " + tr("ignored");
             }

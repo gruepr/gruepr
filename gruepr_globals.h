@@ -101,6 +101,8 @@ inline static const char ATTRIBBUTTONONSTYLE[] = "QPushButton {background-color:
                                                                "border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; "
                                                                "color: white; font-family: 'DM Sans'; font-size: 12pt; "
                                                                "padding-top: 5px; padding-bottom: 5px; padding-left: 15px; padding-right: 15px;}";
+inline static const char RADIOBUTTONCARDUNSELECTEDSSTYLE[] = "QFrame {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: " BUBBLYHEX ";}";
+inline static const char RADIOBUTTONCARDSELECTEDSSTYLE[] = "QFrame {border-color: " DEEPWATERHEX "; color: " DEEPWATERHEX "; background-color: white;}";
 inline static const char ATTRIBBUTTONOFFSTYLE[] = "QPushButton {background-color: white; "
                                                                 "border-style: solid; border-width: 1px; border-color: lightGray; "
                                                                 "border-top-left-radius: 0px; border-top-right-radius: 0px; "
@@ -140,6 +142,9 @@ inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; fo
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL10PTMANDATORYSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: #ffcccc; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL10PTWHITEBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: white; font-size: 10pt; font-family: 'DM Sans'; "
+                                                            "border-style: solid; border-width: 1px; border-color: " OPENWATERHEX "}"
+                                                   "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL12PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 12pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL14PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 14pt; font-family: 'DM Sans'; border: none;}"

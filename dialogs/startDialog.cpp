@@ -1,5 +1,5 @@
 #include "startDialog.h"
-#include "dialogs/loaddatadialog.h"
+#include "dialogs/loadDataDialog.h"
 #include "dialogs/registerDialog.h"
 #include "gruepr.h"
 #include "gruepr_globals.h"

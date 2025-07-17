@@ -40,7 +40,7 @@ public:
     bool penaltyStatus[MAX_CRITERIA] = {};
     Criterion* criterionTypes[MAX_CRITERIA] = {};
     int attributeSelected[MAX_ATTRIBUTES]; //array that stores attribute values which the user included, and therefore should be grouped by.
-    int attributeDiversity[MAX_ATTRIBUTES]; 			// if true/false, tries to make all students on a team have similar/different levels of each attribute
+    Criterion::AttributeDiversity attributeDiversity[MAX_ATTRIBUTES]; 	// whether all students on a team have similar/different levels of each attribute
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
     float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight
     bool haveAnyRequiredAttributes[MAX_ATTRIBUTES];

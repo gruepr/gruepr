@@ -23,7 +23,8 @@
 #include "groupingCriteriaCardWidget.h"
 
 GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool draggable, CriteriaType criteriaType)
-    : QFrame(parent) {
+    : QFrame(parent)
+{
 
     //make it draggable and droppable
     //setAcceptDrops(draggable);
@@ -106,14 +107,14 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     priorityOrderLabel->setFixedWidth(75);
     priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     priorityOrderLabel->setToolTip("Priority of the Criteria");
-    priorityOrderLabel->setStyleSheet("border: 1px solid");
+    priorityOrderLabel->setStyleSheet("border: none");
 
     headerRowLayout = new QHBoxLayout();
     QHBoxLayout* contentRowLayout = new QHBoxLayout();
     mainVerticalLayout->addLayout(headerRowLayout);
 
     deleteGroupingCriteriaCardButton = new QPushButton(this);
-    deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/close_square.png"));
+    deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/trashButton.png"));
     deleteGroupingCriteriaCardButton->setStyleSheet(R"(
             QPushButton {
                 border: none;
@@ -163,7 +164,8 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
 
 
 
-void GroupingCriteriaCard::setDraggable(bool draggable){
+void GroupingCriteriaCard::setDraggable(bool draggable)
+{
     // Clear and Rebuild Layout
     while (headerRowLayout->count() > 1) {
         headerRowLayout->removeItem(headerRowLayout->itemAt(1));
@@ -191,7 +193,8 @@ void GroupingCriteriaCard::setDraggable(bool draggable){
     }
 }
 
-void GroupingCriteriaCard::toggle(bool collapsed) {
+void GroupingCriteriaCard::toggle(bool collapsed)
+{
     toggleButton->setArrowType(collapsed ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
     toggleAnimation->setDirection(collapsed ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
     toggleAnimation->start();
@@ -199,7 +202,8 @@ void GroupingCriteriaCard::toggle(bool collapsed) {
 
 
 //Sets ContentLayout for the contentArea, this function always needs to be called otherwise, the expanded portion does not have a layout
-void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout) {
+void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
+{
     delete contentArea->layout();
 
     //if cannot cast contentLayout to VBoxLayout, then
@@ -280,7 +284,8 @@ void GroupingCriteriaCard::dragStarted() {
     drag->exec(Qt::MoveAction);
 }
 
-QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local) {
+QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local)
+{
     QAbstractScrollArea *vp = nullptr;
     for (QWidget *w = parentWidget(); w; w = w->parentWidget())
         if ((vp = qobject_cast<QAbstractScrollArea*>(w)))
@@ -289,7 +294,8 @@ QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local) {
 }
 
 
-void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event) {
+void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
+{
     if (event->mimeData()->hasText()) {
         event->acceptProposedAction();
         m_lastPos = mapToViewport(event->position());
@@ -303,7 +309,8 @@ void GroupingCriteriaCard::dragMoveEvent(QDragMoveEvent *e)
     m_lastPos = mapToViewport(e->position()); // just refresh the cached pos
 }
 
-void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
+void GroupingCriteriaCard::dropEvent(QDropEvent *event)
+{
     // Get the widget ID (pointer stored in mime data)
     QString widgetID = event->mimeData()->text();
     GroupingCriteriaCard *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
@@ -322,10 +329,13 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event) {
     }
 }
 
-int GroupingCriteriaCard::getPriorityOrder(){
+int GroupingCriteriaCard::getPriorityOrder()
+{
     return this->priorityOrder;
 }
-void GroupingCriteriaCard::setPriorityOrder(int priorityOrder){
+
+void GroupingCriteriaCard::setPriorityOrder(int priorityOrder)
+{
     //qDebug() << "set priority for " << priorityOrder;
     this->priorityOrder = priorityOrder;
     priorityOrderLabel->setText("Priority #" + QString::number(this->priorityOrder+1)); //priorityOrder starts with 0, so add 1 to make more clear
@@ -333,7 +343,7 @@ void GroupingCriteriaCard::setPriorityOrder(int priorityOrder){
 }
 
 // --------------------------------------------------------------------------------
-//                          QCustomWidget methods
+//                          QCustomWidget nneded methods
 // --------------------------------------------------------------------------------
 
 QString GroupingCriteriaCard::name() const {

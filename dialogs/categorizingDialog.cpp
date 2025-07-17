@@ -1,4 +1,4 @@
-#include "categorizingdialog.h"
+#include "categorizingDialog.h"
 #include "csvfile.h"
 #include "dialogs/dataTypesTableDialog.h"
 #include "gruepr_globals.h"

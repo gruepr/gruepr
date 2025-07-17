@@ -31,7 +31,7 @@ baseTimezoneDialog::baseTimezoneDialog(QWidget *parent)
     theGrid->setRowMinimumHeight(1, DIALOG_SPACER_ROWHEIGHT);
 
     const QDateTime local(QDateTime::currentDateTime());
-    const QDateTime UTC(local.date(), local.time(), Qt::UTC);
+    const QDateTime UTC(local.date(), local.time(), QTimeZone(0));
     const float hoursToGMTFromHere = (float(local.secsTo(UTC))/3600.0F) - (local.isDaylightTime()? 1.0F : 0.0F);
 
     QStringList timeZoneNames = QString(TIMEZONENAMES).split(";");

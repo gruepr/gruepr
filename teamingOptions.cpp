@@ -1,13 +1,14 @@
 #include "teamingOptions.h"
 #include <QJsonArray>
+#include <QMetaEnum>
 #include <QString>
 
 TeamingOptions::TeamingOptions()
 {
-    // initialize all attribute weights to 1, desires to heterogeneous, and incompatible attribute values to none
+    // initialize all attributes to unselected, diversity to diverse (i.e., heterogeneous), weights to 1, and incompatible attribute values to none
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
-        attributeDiversity[i] = 0;
         attributeSelected[i] = 0;
+        attributeDiversity[i] = Criterion::AttributeDiversity::diverse;
         attributeWeights[i] = 1;
         realAttributeWeights[i] = 1;
         haveAnyRequiredAttributes[i] = false;
@@ -35,22 +36,23 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
     const QJsonArray attributeSelectedArray = jsonTeamingOptions["attributeSelected"].toArray();
-    const QJsonArray attributeDiversityArray = jsonTeamingOptions["attributeDiversity"].toArray();
     int i = 0;
-    for(const auto &item : attributeDiversityArray) {
-        attributeDiversity[i] = item.toInt();
-        i++;
-    }
-    for(int j = i; j < MAX_ATTRIBUTES; j++) {
-        attributeDiversity[j] = 0;
-    }
-    i = 0;
     for(const auto &item : attributeSelectedArray) {
         attributeSelectedArray[i] = item.toInt();
         i++;
     }
     for(int j = i; j < MAX_ATTRIBUTES; j++) {
         attributeSelectedArray[j] = 0;
+    }
+    const QJsonArray attributeDiversityArray = jsonTeamingOptions["attributeDiversity"].toArray();
+    auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
+    i = 0;
+    for(const auto &item : attributeDiversityArray) {
+        attributeDiversity[i] = static_cast<Criterion::AttributeDiversity>(diversity.keyToValue(qPrintable(item.toString())));
+        i++;
+    }
+    for(int j = i; j < MAX_ATTRIBUTES; j++) {
+        attributeDiversity[j] = Criterion::AttributeDiversity::diverse;
     }
     const QJsonArray attributeWeightsArray = jsonTeamingOptions["attributeWeights"].toArray();
     i = 0;
@@ -163,10 +165,11 @@ QJsonObject TeamingOptions::toJson() const
 {
     QJsonArray attributeSelectedArray, attributeDiversityArray, attributeWeightsArray, realAttributeWeightsArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
                incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray;
+    auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
 
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         attributeSelectedArray.append(attributeSelected[i]);
-        attributeDiversityArray.append(attributeDiversity[i]);
+        attributeDiversityArray.append(diversity.valueToKey(static_cast<int>(attributeDiversity[i])));
         attributeWeightsArray.append(attributeWeights[i]);
         realAttributeWeightsArray.append(realAttributeWeights[i]);
         haveAnyRequiredAttributesArray.append(haveAnyRequiredAttributes[i]);

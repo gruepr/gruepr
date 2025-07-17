@@ -2,15 +2,15 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
-#include "criteria/gradebalancecriterion.h"
-#include "criteria/mixedgendercriterion.h"
-#include "criteria/multiplechoicestylecriterion.h"
-#include "criteria/preventedteammatescriterion.h"
-#include "criteria/requestedteammatescriterion.h"
-#include "criteria/requiredteammatescriterion.h"
-#include "criteria/schedulecriterion.h"
-#include "criteria/singlegendercriterion.h"
-#include "criteria/singleurmidentitycriterion.h"
+#include "criteria/gradeBalanceCriterion.h"
+#include "criteria/mixedGenderCriterion.h"
+#include "criteria/multipleChoiceStyleCriterion.h"
+#include "criteria/preventedTeammatesCriterion.h"
+#include "criteria/requestedTeammatesCriterion.h"
+#include "criteria/requiredTeammatesCriterion.h"
+#include "criteria/scheduleCriterion.h"
+#include "criteria/singleGenderCriterion.h"
+#include "criteria/singleURMIdentityCriterion.h"
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
@@ -113,6 +113,7 @@ private:
     QList<AttributeWidget *> attributeWidgets = {};
     QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards = {};
     QList<CriteriaType> teammateRulesExistence;
+
         // team set optimization
     QList<int> studentIndexes;                                    // the indexes of students to be placed on teams
     QList<int> optimizeTeams(const QList<int> studentIndexes);    // return value is a single permutation-of-indexes
@@ -123,7 +124,7 @@ private:
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                float _teamScores[], float **_criterionScore, bool **_availabilityChart, int *_penaltyPoints);
+                                float _teamScores[], float **_criteriaScores, bool **_availabilityChart, int *_penaltyPoints);
     inline static void getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, MultipleChoiceStyleCriterion *criterion, float *_criterionScore,
                                          const int attribute, std::multiset<int> &attributeLevelsInTeam, std::multiset<float> &timezoneLevelsInTeam,
@@ -167,12 +168,11 @@ private:
     TeamSet finalTeams;
 
     //Extra refactoring
-    QPushButton *letsDoItButton;
-    QPushButton *addGroupingCriteriaButton;
+    QPushButton *letsDoItButton = nullptr;
+    QPushButton *addGroupingCriteriaButton = nullptr;
     void initializeCriteriaCardPriorities();
-    QPushButton* createAddNewCriteriaButton(bool hoverToSee);
-    //QList<QPushButton*> addNewCriteriaCardButtons;
-    QPushButton* addNewCriteriaCardButton;
+    QPushButton *createAddNewCriteriaButton(bool hoverToSee);
+    QPushButton *addNewCriteriaCardButton = nullptr;
     void updateIdentityCriteriaCard(GroupingCriteriaCard *identityCard, QString identity, bool addNewCriteria);
     void refreshCriteriaLayout();
 
@@ -188,14 +188,14 @@ private:
     QList<GroupingCriteriaCard*> criteriaCardsList;
 
     //Single: Team Size Criteria Card
-    GroupingCriteriaCard* teamSizeCriteriaCard = nullptr;
-    QHBoxLayout* teamSizeContentAreaLayout;
-    QComboBox* teamSizeBox = nullptr;
-    QSpinBox* idealTeamSizeBox = nullptr;
+    GroupingCriteriaCard *teamSizeCriteriaCard = nullptr;
+    QHBoxLayout *teamSizeContentAreaLayout = nullptr;
+    QComboBox *teamSizeBox = nullptr;
+    QSpinBox *idealTeamSizeBox = nullptr;
 
     //Single: Section Criteria Card
-    GroupingCriteriaCard* sectionCriteriaCard = nullptr;
-    QHBoxLayout* sectionContentLayout = nullptr;
+    GroupingCriteriaCard *sectionCriteriaCard = nullptr;
+    QHBoxLayout *sectionContentLayout = nullptr;
     QPushButton *editSectionNameButton = nullptr;
     QComboBox *sectionSelectionBox = nullptr;
 
@@ -207,13 +207,13 @@ private:
     QMap<QString, bool> uiCheckBoxMap;
 
     //Single: Meeting Schedule Criteria Card
-    GroupingCriteriaCard* meetingScheduleCriteriaCard = nullptr;
-    GroupingCriteriaCard* gradeBalanceCriteriaCard = nullptr;
-    QDoubleSpinBox* minimumMeanGradeSpinBox = nullptr;
-    QDoubleSpinBox* maximumMeanGradeSpinBox = nullptr;
-    QSpinBox* minMeetingTimes = nullptr;
-    QSpinBox* desiredMeetingTimes = nullptr;
-    QDoubleSpinBox* meetingLengthSpinBox = nullptr;
+    GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
+    GroupingCriteriaCard *gradeBalanceCriteriaCard = nullptr;
+    QDoubleSpinBox *minimumMeanGradeSpinBox = nullptr;
+    QDoubleSpinBox *maximumMeanGradeSpinBox = nullptr;
+    QSpinBox *minMeetingTimes = nullptr;
+    QSpinBox *desiredMeetingTimes = nullptr;
+    QDoubleSpinBox *meetingLengthSpinBox = nullptr;
 };
 
 #endif // GRUEPR_H

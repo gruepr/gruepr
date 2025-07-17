@@ -74,18 +74,18 @@ SOURCES += \
         teamingOptions.cpp \
         teamRecord.cpp \
         criteria/criterion.cpp \
-        criteria/gradebalancecriterion.cpp \
-        criteria/mixedgendercriterion.cpp \
-        criteria/multiplechoicestylecriterion.cpp \
-        criteria/preventedteammatescriterion.cpp \
-        criteria/requestedteammatescriterion.cpp \
-        criteria/requiredteammatescriterion.cpp \
-        criteria/schedulecriterion.cpp \
-        criteria/singlegendercriterion.cpp \
-        criteria/singleurmidentitycriterion.cpp \
+        criteria/gradeBalanceCriterion.cpp \
+        criteria/mixedGenderCriterion.cpp \
+        criteria/multipleChoiceStyleCriterion.cpp \
+        criteria/preventedTeammatesCriterion.cpp \
+        criteria/requestedTeammatesCriterion.cpp \
+        criteria/requiredTeammatesCriterion.cpp \
+        criteria/scheduleCriterion.cpp \
+        criteria/singleGenderCriterion.cpp \
+        criteria/singleURMIdentityCriterion.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
-        dialogs/categorizingdialog.cpp \
+        dialogs/categorizingDialog.cpp \
         dialogs/customResponseOptionsDialog.cpp \
         dialogs/customTeamnamesDialog.cpp \
         dialogs/customTeamsizesDialog.cpp \
@@ -95,9 +95,9 @@ SOURCES += \
         dialogs/editSectionNamesDialog.cpp \
         dialogs/findMatchingNameDialog.cpp \
         dialogs/gatherURMResponsesDialog.cpp \
-        dialogs/identityrulesdialog.cpp \
+        dialogs/identityRulesDialog.cpp \
         dialogs/listTableDialog.cpp \
-        dialogs/loaddatadialog.cpp \
+        dialogs/loadDataDialog.cpp \
         dialogs/progressDialog.cpp \
         dialogs/registerDialog.cpp \
         dialogs/sampleQuestionsDialog.cpp \
@@ -113,6 +113,7 @@ SOURCES += \
         widgets/customsplitter.cpp \
         widgets/customsplitterhandle.cpp \
         widgets/dropcsvframe.cpp \
+        widgets/frameThatForwardsMouseClicks.cpp \
         widgets/groupingCriteriaCardWidget.cpp \
         widgets/labelThatForwardsMouseClicks.cpp \
         widgets/labelWithInstantTooltip.cpp \
@@ -137,18 +138,18 @@ HEADERS += \
         teamingOptions.h \
         teamRecord.h \
         criteria/criterion.h \
-        criteria/gradebalancecriterion.h \
-        criteria/mixedgendercriterion.h \
-        criteria/multiplechoicestylecriterion.h \
-        criteria/preventedteammatescriterion.h \
-        criteria/requestedteammatescriterion.h \
-        criteria/requiredteammatescriterion.h \
-        criteria/schedulecriterion.h \
-        criteria/singlegendercriterion.h \
-        criteria/singleurmidentitycriterion.h \
+        criteria/gradeBalanceCriterion.h \
+        criteria/mixedGenderCriterion.h \
+        criteria/multipleChoiceStyleCriterion.h \
+        criteria/preventedTeammatesCriterion.h \
+        criteria/requestedTeammatesCriterion.h \
+        criteria/requiredTeammatesCriterion.h \
+        criteria/scheduleCriterion.h \
+        criteria/singleGenderCriterion.h \
+        criteria/singleURMIdentityCriterion.h \
         dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \
-        dialogs/categorizingdialog.h \
+        dialogs/categorizingDialog.h \
         dialogs/customResponseOptionsDialog.h \
         dialogs/customTeamnamesDialog.h \
         dialogs/customTeamsizesDialog.h \
@@ -158,9 +159,9 @@ HEADERS += \
         dialogs/editSectionNamesDialog.h \
         dialogs/findMatchingNameDialog.h \
         dialogs/gatherURMResponsesDialog.h \
-        dialogs/identityrulesdialog.h \
+        dialogs/identityRulesDialog.h \
         dialogs/listTableDialog.h \
-        dialogs/loaddatadialog.h \
+        dialogs/loadDataDialog.h \
         dialogs/progressDialog.h \
         dialogs/registerDialog.h \
         dialogs/sampleQuestionsDialog.h \
@@ -176,6 +177,7 @@ HEADERS += \
         widgets/customsplitter.h \
         widgets/customsplitterhandle.h \
         widgets/dropcsvframe.h \
+        widgets/frameThatForwardsMouseClicks.h \
         widgets/groupingCriteriaCardWidget.h \
         widgets/labelThatForwardsMouseClicks.h \
         widgets/labelWithInstantTooltip.h \

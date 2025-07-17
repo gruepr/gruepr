@@ -1,4 +1,4 @@
-#include "identityrulesdialog.h"
+#include "identityRulesDialog.h"
 #include "qcombobox.h"
 #include "qheaderview.h"
 #include "qmessagebox.h"

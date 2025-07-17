@@ -1,10 +1,12 @@
 #ifndef DROPCSVFRAME_H
 #define DROPCSVFRAME_H
 
-#include "qframe.h"
+#include <QFrame>
+
 class DropCSVFrame : public QFrame
 {
     Q_OBJECT
+
 public:
     DropCSVFrame(QWidget *parent = nullptr);
     void dragEnterEvent(QDragEnterEvent *event = nullptr);

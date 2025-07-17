@@ -1,9 +1,10 @@
 #include "customsplitterhandle.h"
 #include "gruepr_globals.h"
-#include "qpainter.h"
+#include <QPainter>
 
 CustomSplitterHandle::CustomSplitterHandle(Qt::Orientation orientation, QSplitter *parent)
-    : QSplitterHandle(orientation, parent) {
+    : QSplitterHandle(orientation, parent)
+{
     button = new QToolButton(this);
     button->setAutoRaise(true);
     button->setCursor(Qt::PointingHandCursor);
@@ -18,7 +19,8 @@ CustomSplitterHandle::CustomSplitterHandle(Qt::Orientation orientation, QSplitte
     connect(button, &QToolButton::clicked, this, &CustomSplitterHandle::toggleCollapse);
 }
 
-void CustomSplitterHandle::resizeEvent(QResizeEvent *event)  {
+void CustomSplitterHandle::resizeEvent(QResizeEvent *event)
+{
     QSplitterHandle::resizeEvent(event);
     // Center the button in the handle
     button->move((width() - button->width()) / 2, (height() - button->height()) / 2);
@@ -34,7 +36,8 @@ void CustomSplitterHandle::resizeEvent(QResizeEvent *event)  {
 }
 
 
-void CustomSplitterHandle::toggleCollapse() {
+void CustomSplitterHandle::toggleCollapse()
+{
     QSplitter *splitter = qobject_cast<QSplitter*>(parent());
 
     QList<int> sizes = splitter->sizes();
@@ -43,8 +46,9 @@ void CustomSplitterHandle::toggleCollapse() {
     if (!collapsed) {
         sizes[0] = 0;
         sizes[1] = splitter->size().width();  // or height for vertical
-       button->setIcon(QIcon(":/icons_new/right-collapse.png"));
-    } else {
+        button->setIcon(QIcon(":/icons_new/right-collapse.png"));
+    }
+    else {
         sizes[0] = splitter->size().width();
         sizes[1] = 0;
         button->setIcon(QIcon(":/icons_new/left-collapse.png"));
@@ -54,7 +58,8 @@ void CustomSplitterHandle::toggleCollapse() {
     splitter->setSizes(sizes);
 }
 
-void CustomSplitterHandle::paintEvent(QPaintEvent *) {
+void CustomSplitterHandle::paintEvent(QPaintEvent *)
+{
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
@@ -73,15 +78,18 @@ void CustomSplitterHandle::paintEvent(QPaintEvent *) {
         // int xStart = center.x() - 10;
         // for (int i = 0; i < 3; ++i)
         //     painter.drawEllipse(QPoint(xStart + i * 6, y), 2, 2);
-    } else {
+    }
+    else {
         int x = width() / 2;
 
         int yStartTop = height() / 4 - 12;
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 4; ++i) {
             painter.drawEllipse(QPoint(x, yStartTop + i * 6), 2, 2);
+        }
         x = center.x();
         int yStartBottom = (3 * height() / 4) - 12;
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 4; ++i) {
             painter.drawEllipse(QPoint(x, yStartBottom + i * 6), 2, 2);
+        }
     }
 }
