@@ -19,10 +19,9 @@ class TeammatesRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum class TypeOfTeammates{required, prevented, requested};
+    enum class TypeOfTeammates{required = 0, prevented = 1, requested = 2}; // int values correspond to the ui's tabwidget tab index
     explicit TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                  const QString &sectionname, const QStringList &currTeamSets, QWidget *parent = nullptr,
-                                  bool autoLoadRequired = false, bool autoLoadPrevented = false, bool autoLoadRequested = false, int initialTabIndex = 0);
+                                  const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, QWidget *parent = nullptr);
     ~TeammatesRulesDialog() override;
     TeammatesRulesDialog(const TeammatesRulesDialog&) = delete;
     TeammatesRulesDialog operator= (const TeammatesRulesDialog&) = delete;
@@ -72,7 +71,6 @@ private:
     void clearValues(TypeOfTeammates typeOfTeammates, bool verify = true);
 
     // these all return true on success, false on fail
-    //bool saveCSVFile(TypeOfTeammates typeOfTeammates);    // removed the save button once autosaving implemented
     bool loadCSVFile(TypeOfTeammates typeOfTeammates);
     bool loadStudentPrefs(TypeOfTeammates typeOfTeammates);
     bool loadSpreadsheetFile(TypeOfTeammates typeOfTeammates);

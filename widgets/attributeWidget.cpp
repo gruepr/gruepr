@@ -1,6 +1,7 @@
 #include "attributeWidget.h"
 #include <QButtonGroup>
 #include <QGridLayout>
+#include <QPainter>
 
 AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
 {
@@ -10,19 +11,21 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     mainLayout->setSpacing(4);
     auto *attributeSettingsLayout = new QVBoxLayout(this);
     attributeSettingsLayout->setSpacing(2);
+    auto *attributeResponsesLayout = new QVBoxLayout(this);
+    attributeResponsesLayout->setSpacing(2);
     setLayout(mainLayout);
 
-    responsesLabel = new QLabel(this);
-    responsesLabel->setTextFormat(Qt::RichText);
-    responsesLabel->setWordWrap(true);
-    responsesLabel->setIndent(10);
-    responsesLabel->setStyleSheet(LABEL10PTWHITEBGSTYLE);
     auto *responsesFrame = new QFrame(this);
-    responsesFrame->setLineWidth(1);
-    responsesFrame->setFrameStyle(QFrame::Box | QFrame::Plain);
-    auto *hlay = new QHBoxLayout(responsesFrame);
-    hlay->addWidget(responsesLabel);
-    mainLayout->addWidget(responsesFrame, 7);
+    responsesFrame->setStyleSheet(BLUEFRAME);
+    responsesLayout = new QVBoxLayout(responsesFrame);
+    responsesLayout->setContentsMargins(2, 2, 2, 2);
+    responsesLayout->setSpacing(4);
+    auto *responsesText = new QLabel(tr("Responses"));
+    responsesText->setStyleSheet(LABEL12PTSTYLE);
+    responsesLayout->addWidget(responsesText);
+    attributeResponsesLayout->addWidget(responsesFrame);
+    attributeResponsesLayout->addStretch();
+    mainLayout->addLayout(attributeResponsesLayout, 7);
 
     // Create a horizontal layout
     auto *attributeDiversityLayout = new QHBoxLayout(this);
@@ -31,7 +34,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     diverseCard = new FrameThatForwardsMouseClicks(this);
     diverseCard->setFixedSize(100, 100);
     diverseCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    diverseCard->setToolTip("Teammates will have a range of responses to this question.");
+    diverseCard->setToolTip(DIVERSETOOLTIP);
     diverseButton = new QRadioButton(this);
     diverseButton->setIcon(QIcon(":/icons_new/diverse.png"));
     diverseButton->setIconSize(QSize(50, 50));
@@ -49,7 +52,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     similarCard = new FrameThatForwardsMouseClicks(this);
     similarCard->setFixedSize(100, 100);
     similarCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    similarCard->setToolTip("Teammates will have similar responses to this question.");
+    similarCard->setToolTip(SIMILARTOOLTIP);
     similarButton = new QRadioButton(this);
     similarButton->setIcon(QIcon(":/icons_new/similar.png"));
     similarButton->setIconSize(QSize(50, 50));
@@ -102,8 +105,6 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
 void AttributeWidget::setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions)
 {
     if(attribute >= dataOptions->numAttributes) {
-        responsesLabel->setText(tr("N/A"));
-        // weight->setEnabled(false);
         diverseCard->setEnabled(false);
         similarCard->setEnabled(false);
         setRequiredValuesButton->setEnabled(false);
@@ -111,54 +112,71 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
         return;
     }
 
-    updateQuestionAndResponses(attribute, dataOptions);
+    updateResponses(attribute, dataOptions);
 
     if(dataOptions->attributeVals[attribute].size() == 1) {
         teamingOptions->attributeWeights[attribute] = 0;
-        // weight->setEnabled(false);
-        // weight->setToolTip(ONLYONETOOLTIP);
         diverseCard->setEnabled(true);
         similarCard->setEnabled(true);
         setRequiredValuesButton->setEnabled(true);
         setIncompatibleValuesButton->setEnabled(true);
     }
     else {
-        // weight->setEnabled(true);
-        // weight->setToolTip(TeamingOptions::WEIGHTTOOLTIP);
         diverseCard->setEnabled(true);
         similarCard->setEnabled(true);
         setRequiredValuesButton->setEnabled(true);
         setIncompatibleValuesButton->setEnabled(true);
     }
 
-    // weight->setValue(double(teamingOptions->attributeWeights[attribute]));
     bool similar = (teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar);
     diverseButton->setChecked(!similar);
     similarButton->setChecked(similar);
 }
 
-void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts)
+void AttributeWidget::updateResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts)
 {
+    setUpdatesEnabled(false);
+
+    // clear the responsesLayout
+    for(auto &responseRow : responseRows) {
+        responsesLayout->removeWidget(responseRow);
+        responseRow->deleteLater();
+    }
+    responseRows.clear();
+
     const auto type = dataOptions->attributeType[attribute];
 
     static const QRegularExpression startsWithInteger(R"(^(\d++)([\.\,]?$|[\.\,]\D|[^\.\,]))");
     QRegularExpressionMatch match;
-    int responseNum = 0;
 
-    QString responsesText = "";
-    //Create Table to store text
-    responsesText += tr("<u>Responses</u>");
+    auto &responseCountRef = responseCounts.empty() ? dataOptions->attributeQuestionResponseCounts[attribute] : responseCounts;
+    int totNumResponses = 0;
+    for (const auto& pair : responseCountRef) {
+        totNumResponses += pair.second;
+    }
+
+    int responseNum = 0;
     for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
-        responsesText += "<br><b>";
+        QWidget *row = new QWidget(this);
+        QHBoxLayout *rowLayout = new QHBoxLayout(row);
+        rowLayout->setContentsMargins(0, 0, 0, 0);
+        rowLayout->setSpacing(0);
+
+        // Response count bar graph
+        auto *responseBarGraph = new ResponseLabelBarGraph(responseCountRef.at(response), totNumResponses, BARGRAPHWIDTH, row);
+
+        // Response value
+        QString label, text;
         if((type == DataOptions::AttributeType::ordered) || (type == DataOptions::AttributeType::multiordered)) {
             // show response with starting number
             match = startsWithInteger.match(response);
-            responsesText += match.captured(1) + "</b>" + response.mid(match.capturedLength(1));
+            label = match.captured(1);
+            text = " " + response.mid(match.capturedLength(1));
         }
         else if((type == DataOptions::AttributeType::categorical) || (type == DataOptions::AttributeType::multicategorical)) {
             // show response with a preceding letter (letter repeated for responses after 26)
-            responsesText += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
-            responsesText += "</b>. " + response;
+            label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+            text = ". " + response;
         }
         else {
             // timezone, show response with GMT
@@ -166,67 +184,55 @@ void AttributeWidget::updateQuestionAndResponses(int attribute, const DataOption
             float hours=0, minutes=0, offsetFromGMT=0;
             if(DataOptions::parseTimezoneInfoFromText(response, timezoneName, hours, minutes, offsetFromGMT)) {
                 const QString GMTtext = QString("[GMT %1%2:%3]").arg(hours >= 0 ? "+" : "").arg(int(hours)).arg(int(minutes), 2, 10, QChar('0'));
-                responsesText += GMTtext + "</b> " + timezoneName;
+                label = GMTtext;
+                text = " " + timezoneName;
             }
             else {
-                responsesText += (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
-                responsesText += "</b>. " + response;
+                label = (responseNum < 26 ? QString(char(responseNum + 'A')) : QString(char(responseNum%26 + 'A')).repeated(1 + (responseNum/26)));
+                text = ". " + response;
             }
         }
+        auto *responseLabel = new QLabel(QString("<b>%1</b>%2").arg(label, text), row);
+        responseLabel->setStyleSheet(LABEL10PTSTYLE);
+        responseLabel->setWordWrap(true);
 
-        // Display response count
-        responsesText += " (" + QString::number(responseCounts.empty() ?
-                                              (dataOptions->attributeQuestionResponseCounts[attribute].at(response)) :
-                                              (responseCounts.at(response))) +
-                         " " + tr("students") + ")";
+        rowLayout->addWidget(responseBarGraph);
+        rowLayout->addWidget(responseLabel);
+        row->setToolTip(QString::number(responseCountRef.at(response)) + tr(" students gave response ") + label + ".");
+
+        responseRows << row;
+        responsesLayout->addWidget(row);
         responseNum++;
-
-        /*
-            Label with Bar Graph
-            // Create a widget to hold labels with bars
-            QWidget *container = new QWidget;
-            QVBoxLayout *layout = new QVBoxLayout(container);
-
-            // Data
-            QStringList labels = {"Item A", "Item B", "Item C", "Item D"};
-            QList<int> values = {75, 45, 90, 60};
-            int maxValue = 100;
-
-            // Create labels with bars
-            for (int i = 0; i < labels.size(); ++i) {
-                QWidget *row = new QWidget;
-                QHBoxLayout *rowLayout = new QHBoxLayout(row);
-                rowLayout->setContentsMargins(0, 0, 0, 0);
-
-                // Label
-                QLabel *label = new QLabel(labels[i]);
-                label->setFixedWidth(100);
-                rowLayout->addWidget(label);
-
-                // Bar container with overlay capability
-                QWidget *barContainer = new QWidget;
-                barContainer->setFixedSize(150, 20);  // Fixed size for all bars
-
-                // Create bar as child of container
-                QFrame *bar = new QFrame(barContainer);
-                bar->setFrameStyle(QFrame::NoFrame);
-                bar->setStyleSheet("background-color: #4CAF50; border-radius: 2px;");
-                int barWidth = (values[i] * 150) / maxValue;
-                bar->setGeometry(0, 0, barWidth, 20);
-
-                // Create value label on top of bar
-                QLabel *valueLabel = new QLabel(QString::number(values[i]), barContainer);
-                valueLabel->setAlignment(Qt::AlignCenter);
-                valueLabel->setStyleSheet("color: white; font-weight: bold;");
-                valueLabel->setGeometry(0, 0, 150, 20);  // Full width for centering
-
-                rowLayout->addWidget(barContainer);
-                rowLayout->addStretch();
-                layout->addWidget(row);
-            }
-
-        */
-
     }
-    responsesLabel->setText(responsesText);
+    setUpdatesEnabled(true);
+}
+
+
+ResponseLabelBarGraph::ResponseLabelBarGraph(int value, int maxValue, int barWidth, QWidget *parent)
+    : QWidget(parent), m_value(value), m_barWidth(barWidth)
+{
+    setFixedSize(barWidth, 20);
+    if(maxValue == 0) {
+        m_maxValue = 1;
+        return;
+    }
+    m_maxValue = maxValue;
+}
+
+void ResponseLabelBarGraph::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    const int barHeight = height();
+
+    // Draw bar background
+    painter.fillRect(0, 0, m_barWidth, barHeight, QColor(Qt::white));
+
+    // Draw filled portion
+    painter.fillRect(0, 0, m_barWidth * m_value / m_maxValue, barHeight, QColor(DEEPWATERHEX));
+
+    // Draw border
+    painter.setPen(OPENWATERHEX);
+    painter.drawRect(0, 0, m_barWidth, barHeight);
 }

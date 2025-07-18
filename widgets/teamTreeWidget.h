@@ -94,6 +94,7 @@ private:
     mutable QMap<int, bool> m_wordWrappeds;
     int m_lineCount;
     QSize m_iconSize;
+    static const int ICONSIZE = 16;
 };
 
 ///////////////////////////////////////////////////////////////////////

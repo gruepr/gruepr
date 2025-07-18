@@ -1,21 +1,20 @@
 #include "teammatesRulesDialog.h"
-#include "qcompleter.h"
-#include "qheaderview.h"
-#include "qlineedit.h"
-#include "qscrollbar.h"
-#include "qstringlistmodel.h"
-#include "qtimer.h"
 #include "ui_teammatesRulesDialog.h"
 #include "csvfile.h"
 #include "gruepr_globals.h"
 #include "dialogs/findMatchingNameDialog.h"
 #include "studentRecord.h"
+#include <QCompleter>
+#include <QHeaderView>
+#include <QLineEdit>
+#include <QScrollBar>
+#include <QStringListModel>
+#include <QTimer>
 #include <QMenu>
 #include <QMessageBox>
 
 TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
-                                           const QString &sectionname, const QStringList &currTeamSets, QWidget *parent,
-                                           bool autoLoadRequired, bool autoLoadPrevented, bool autoLoadRequested, int initialTabIndex) :
+                                           const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::TeammatesRulesDialog),
     numStudents(incomingStudents.size())
@@ -27,7 +26,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
 
-    ui->tabWidget->setCurrentIndex(initialTabIndex);
+    ui->tabWidget->setCurrentIndex(static_cast<int>(typeOfTeammates));
     //copy data into local versions, including full database of students
     sectionName = sectionname;
     teamSets = currTeamSets;
@@ -278,25 +277,8 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     initializeTableHeaders(TypeOfTeammates::prevented, "", true);
     initializeTableHeaders(TypeOfTeammates::requested, "", true);
 
-    // the following options are for when this window was opened by gruepr immediately after starting, when the survey contained prefteammate or prefnonteammate questions
     QTabBar *tabBar = ui->tabWidget->tabBar();
     tabBar->hide();  // Hides the tab header area
-
-    if(autoLoadRequired) {
-        ui->tabWidget->setCurrentIndex(0);
-        loadStudentPrefs(TypeOfTeammates::required);
-    }
-    if(autoLoadPrevented) {
-        ui->tabWidget->setCurrentIndex(1);
-        loadStudentPrefs(TypeOfTeammates::prevented);
-    }
-    if(autoLoadRequested) {
-        ui->tabWidget->setCurrentIndex(2);
-        loadStudentPrefs(TypeOfTeammates::requested);
-    }
-    if(autoLoadRequired || autoLoadPrevented || autoLoadRequested) {
-        accept();
-    }
 }
 
 TeammatesRulesDialog::~TeammatesRulesDialog()
@@ -545,7 +527,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         QStringList studentNames;
 
         //get all names from baseStudents
-        for (auto *student : baseStudents) {
+        for (auto *const student : std::as_const(baseStudents)) {
             QString fullName = student->firstname + " " + student->lastname;
             studentNames.append(fullName);
             studentNameToIdMap[fullName] = student;  // Store name → ID mapping
@@ -556,10 +538,14 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         auto *completer = new QCompleter(model, this);
         completer->setCaseSensitivity(Qt::CaseInsensitive);
         completer->setFilterMode(Qt::MatchContains);
-        lineEdit->setCompleter(completer);
+        lineEdit->setCompleter(completer);        
 
         QPushButton *confirmButton = new QPushButton(this);
         confirmButton->setIcon(QIcon(":/icons_new/Checkmark.png"));
+        confirmButton->setVisible(false);
+
+        connect(completer, QOverload<const QString &>::of(&QCompleter::activated), confirmButton, [confirmButton](const QString &text){
+            confirmButton->setVisible(true);});
 
         if(typeOfTeammates == TypeOfTeammates::required) {
             connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
@@ -616,7 +602,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
                     if (studentNameToIdMap[newText]->ID != filteredStudent->ID ){
                         StudentRecord *pairedStudent = studentNameToIdMap[newText];
                         filteredStudent->requestedWith.insert(pairedStudent->ID);
-                        pairedStudent->requestedWith.insert(filteredStudent->ID);
+                        //pairedStudent->requestedWith.insert(filteredStudent->ID);  ***Don't auto-add the opposite pair for requested teammates
                         //keep the current scroll position for user
                         int verticalScrollPos = table->verticalScrollBar()->value();
                         int horizontalScrollPos = table->horizontalScrollBar()->value();
@@ -1316,89 +1302,6 @@ bool TeammatesRulesDialog::loadExistingTeamset(TypeOfTeammates typeOfTeammates)
         }
     }
 
-    //INPROG - copied from other function--not functional
-    /*
-    // Process each row by loading unique base names into basenames and other names in the row into corresponding teammates list
-    QStringList basenames;
-    QList<QStringList> teammates;
-
-    // Now we have list of basenames and corresponding lists of teammates by name
-    // Need to convert names to IDs and then add each teammate to the basename
-
-    // First prepend the basenames to each list of teammates
-    for(int basestudent = 0; basestudent < basenames.size(); basestudent++) {
-        teammates[basestudent].prepend(basenames.at(basestudent));
-    }
-
-    QList<int> IDs;
-    for(int basename = 0; basename < basenames.size(); basename++) {
-        IDs.clear();
-        for(int searchStudent = 0; searchStudent < teammates.at(basename).size(); searchStudent++) { // searchStudent is the name we're looking for
-            int knownStudent = 0;     // start at first student in database and look until we find a matching first+last name
-            while((knownStudent < numStudents) &&
-                  (teammates.at(basename).at(searchStudent).compare(students[knownStudent].firstname +
-                    " " + students[knownStudent].lastname, Qt::CaseInsensitive) != 0)) {
-                knownStudent++;
-            }
-
-            if(knownStudent != numStudents) {
-                // Exact match found
-                IDs << students[knownStudent].ID;
-            }
-            else {
-                // No exact match, so list possible matches sorted by Levenshtein distance
-                auto *choiceWindow = new findMatchingNameDialog(numStudents, student, teammates.at(basename).at(searchStudent), this);
-                if(choiceWindow->exec() == QDialog::Accepted) {
-                    IDs << choiceWindow->currSurveyID;
-                }
-                delete choiceWindow;
-            }
-        }
-
-        // find the baseStudent
-        int index = 0;
-        StudentRecord *baseStudent = nullptr, *student2 = nullptr;
-        while((students[index].ID != IDs[0]) && (index < numStudents)) {
-            index++;
-        }
-        if(index < numStudents) {
-            baseStudent = &students[index];
-        }
-        else {
-            continue;
-        }
-
-        //Add to the first ID (the basename) in each set all of the subsequent IDs in the set as a required / prevented / requested pairing
-        for(int ID2 = 1; ID2 < IDs.size(); ID2++) {
-            if(IDs[0] != IDs[ID2]) {
-                // find the student with ID2
-                index = 0;
-                while((students[index].ID != IDs[ID2]) && (index < numStudents)) {
-                    index++;
-                }
-                if(index < numStudents) {
-                    student2 = &students[index];
-                }
-                else {
-                    continue;
-                }
-
-                //we have at least one specified teammate pair!
-                if(whatType == required) {
-                    baseStudent->requiredWith[IDs[ID2]] = true;
-                    student2->requiredWith[IDs[0]] = true;
-                }
-                else if(whatType == prevented) {
-                    baseStudent->preventedWith[IDs[ID2]] = true;
-                    student2->preventedWith[IDs[0]] = true;
-                }
-                else {   //whatType == requested
-                    baseStudent->requestedWith[IDs[ID2]] = true;
-                }
-            }
-        }
-    }
-*/
     refreshDisplay(typeOfTeammates, 0, 0);
     return true;
 }

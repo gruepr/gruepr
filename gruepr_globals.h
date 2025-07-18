@@ -142,8 +142,7 @@ inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; fo
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL10PTMANDATORYSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: #ffcccc; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
-inline static const char LABEL10PTWHITEBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: white; font-size: 10pt; font-family: 'DM Sans'; "
-                                                            "border-style: solid; border-width: 1px; border-color: " OPENWATERHEX "}"
+inline static const char LABEL10PTWHITEBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: white; font-size: 10pt; font-family: 'DM Sans'; border-style: none;}"
                                                    "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL12PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 12pt; font-family: 'DM Sans'; border: none;}";
@@ -354,9 +353,9 @@ inline static const char TEAMTREEWIDGETHEADERSTYLE[] = "QHeaderView {border-top:
                                                          "QHeaderView::section {border-top: none; border-left: none; border-right: 1px solid gray; "
                                                          "   border-bottom: none; background-color:" DEEPWATERHEX "; font-family: 'DM Sans'; "
                                                          "   font-size: 12pt; color: white; text-align:left;}"
-                                                         "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 15px;"
+                                                         "QHeaderView::down-arrow{image: url(:/icons_new/downButton_white.png); width: 12px;"
                                                          "   subcontrol-origin: padding; subcontrol-position: bottom left;}"
-                                                         "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 15px;"
+                                                         "QHeaderView::up-arrow{image: url(:/icons_new/upButton_white.png); width: 12px;"
                                                          "   subcontrol-origin: padding; subcontrol-position: top left;}";
 inline static const char FAKETABLEHEADERWIDGETSTYLE[] = "QWidget{border-top: none; border-left: none; border-right: 1px solid lightGray; "
                                                   "border-bottom: none; background-color:" DEEPWATERHEX "; "

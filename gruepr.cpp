@@ -10,7 +10,6 @@
 #include "criteria/singleGenderCriterion.h"
 #include "criteria/singleURMIdentityCriterion.h"
 #include "dialogs/identityRulesDialog.h"
-#include "dialogs/attributeRulesDialog.h"
 #include "dialogs/customTeamsizesDialog.h"
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/editSectionNamesDialog.h"
@@ -107,7 +106,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Section Criteria Card
 
     if (dataOptions.sectionIncluded){
-        sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), true, CriteriaType::section);
+        sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), false, CriteriaType::section);
         sectionCriteriaCard->criteriaType = CriteriaType::section;
         sectionCriteriaCard->criterion = new Criterion(0.0, true);
         sectionContentLayout = new QHBoxLayout();
@@ -490,7 +489,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                                                      ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                     teamTabNames, this, false, false, false, 0);
+                                                     teamTabNames, TeammatesRulesDialog::TypeOfTeammates::required, this);
                 //If user clicks OK, replace student database with copy that has had pairings added
                 const int reply = win->exec();
                 if(reply == QDialog::Accepted) {
@@ -546,7 +545,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                                                      ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                     teamTabNames, this, false, false, false, 1);
+                                                     teamTabNames, TeammatesRulesDialog::TypeOfTeammates::prevented, this);
                 //If user clicks OK, replace student database with copy that has had pairings added
                 const int reply = win->exec();
                 if(reply == QDialog::Accepted) {
@@ -602,7 +601,7 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
                                                      ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
                                                       (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                     teamTabNames, this, false, false, false, 2);
+                                                     teamTabNames, TeammatesRulesDialog::TypeOfTeammates::requested, this);
                 //If user clicks OK, replace student database with copy that has had pairings added
                 const int reply = win->exec();
                 if(reply == QDialog::Accepted) {
@@ -1135,7 +1134,7 @@ void gruepr::changeSection(int index)
             }
 
             // put this new tally in the responses textbox of the attribute tab
-            attributeWidgets[attribute]->updateQuestionAndResponses(attribute, dataOptions, currentResponseCounts);
+            attributeWidgets[attribute]->updateResponses(attribute, dataOptions, currentResponseCounts);
         }
     }
 
@@ -1730,12 +1729,12 @@ void gruepr::selectURMResponses()
 }
 
 //Set Rules Button Clicked
-void gruepr::responsesRulesButton_clicked(int attribute, int tabIndex)
+void gruepr::responsesRulesButton_clicked(int attribute, AttributeRulesDialog::TypeOfRules typeOfRules)
 {
     const int currAttribute = attribute;
 
     //Open specialized dialog box to collect attribute values that are required on each team
-    auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, this, tabIndex);
+    auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, typeOfRules, this);
 
     //If user clicks OK, replace with new sets of values
     const int reply = win->exec();
@@ -1745,38 +1744,6 @@ void gruepr::responsesRulesButton_clicked(int attribute, int tabIndex)
 
         teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
         teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
-
-        saveState();
-    }
-
-    delete win;
-}
-
-
-void gruepr::makeTeammatesRules()
-{
-    const int numTabs = ui->dataDisplayTabWidget->count();
-    QStringList teamTabNames;
-    teamTabNames.reserve(numTabs);
-    for(int tab = 1; tab < numTabs; tab++) {
-        teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
-    }
-
-    auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
-                                         ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
-                                          (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
-                                          (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                         teamTabNames, this);
-    //If user clicks OK, replace student database with copy that has had pairings added
-    const int reply = win->exec();
-    if(reply == QDialog::Accepted) {
-        for(int index = 0; index < students.size(); index++) {
-            this->students[index] = win->students[index];
-        }
-        teamingOptions->haveAnyRequiredTeammates = win->required_teammatesSpecified;
-        teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
-        teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
-        teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
 
         saveState();
     }
@@ -2440,10 +2407,10 @@ void gruepr::loadUI()
         connect(attributeWidgets.last()->similarButton, &QRadioButton::clicked,
                 this, [this, attribute](){teamingOptions->attributeDiversity[attribute] = Criterion::AttributeDiversity::similar;});
         connect(attributeWidgets.last()->setRequiredValuesButton, &QPushButton::clicked, this, [this, attribute](){
-            this->responsesRulesButton_clicked(attribute, 0);
+            this->responsesRulesButton_clicked(attribute, AttributeRulesDialog::TypeOfRules::required);
         });
         connect(attributeWidgets.last()->setIncompatibleValuesButton, &QPushButton::clicked, this, [this, attribute](){
-            this->responsesRulesButton_clicked(attribute, 1);
+            this->responsesRulesButton_clicked(attribute, AttributeRulesDialog::TypeOfRules::incompatible);
         });
 
         //(re)set the weight to zero for any attributes with just one value in the data

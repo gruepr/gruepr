@@ -42,6 +42,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
 
     //initialize parts of section
     toggleButton = new QToolButton(this);
+    titleLabel = new LabelThatForwardsMouseClicks(this);
     toggleAnimation = new QParallelAnimationGroup(this);
     contentArea = new QScrollArea(this);
     dragHandleButton = new QPushButton(this);
@@ -61,10 +62,23 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     )");
     toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toggleButton->setArrowType(Qt::ArrowType::RightArrow);
-    toggleButton->setText(title);
     toggleButton->setCheckable(true);
     toggleButton->setChecked(false);
-    toggleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    toggleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    titleLabel->setText(title);
+    titleLabel->setWordWrap(true);
+    titleLabel->setStyleSheet(R"(
+        QLabel {
+            border: none;
+            font-family: 'DM Sans';  /* Set font family to DM Sans */
+            font-size: 12pt;         /* Set font size to 12 */
+        }
+        QLabel:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
+    )");
+    connect(titleLabel, &LabelThatForwardsMouseClicks::mousePressed, toggleButton, &QToolButton::click);
     //set initial toggle to true
 
     //dragHandleButton settings
@@ -81,7 +95,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     }
     )");
     // Ensure dragHandleButton only takes as much space as its content
-    dragHandleButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    dragHandleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     dragHandleButton->setMinimumWidth(24);
     dragHandleButton->setMinimumHeight(24);
 
@@ -124,19 +138,21 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
                 border-radius: 1px;
             }
         )");
-    deleteGroupingCriteriaCardButton->setFixedSize(25, 25);
+    deleteGroupingCriteriaCardButton->setFixedSize(40, 40);
 
-    if (criteriaType == CriteriaType::teamSize || criteriaType == CriteriaType::section){
+    if (draggable){
+        setDraggable(true);
+    }
+    else {
         setAcceptDrops(false);
         headerRowLayout->addWidget(lockButton);
         lockButton->setVisible(true);
         dragHandleButton->setVisible(false);
         headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignLeft);
         headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
+        headerRowLayout->addWidget(titleLabel, Qt::AlignLeft);
         headerRowLayout->addStretch();
         deleteGroupingCriteriaCardButton->setVisible(false);
-    } else {
-        setDraggable(true);
     }
 
     contentRowLayout->addWidget(contentArea);
@@ -171,23 +187,25 @@ void GroupingCriteriaCard::setDraggable(bool draggable)
         headerRowLayout->removeItem(headerRowLayout->itemAt(1));
     }
 
-    if (draggable == false){
-        setAcceptDrops(false);
-        dragHandleButton->setVisible(false);
-        lockButton->setVisible(true);
-        headerRowLayout->addWidget(lockButton);
-        headerRowLayout->addWidget(priorityOrderLabel);
-        headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
-        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
-        headerRowLayout->addStretch();
-    } else {
-        //Frame can be dragged
+    if (draggable) {
         setAcceptDrops(true);
         dragHandleButton->setVisible(true);
         lockButton->setVisible(false);
         headerRowLayout->addWidget(dragHandleButton);
         headerRowLayout->addWidget(priorityOrderLabel);
         headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
+        headerRowLayout->addWidget(titleLabel, Qt::AlignLeft);
+        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
+        headerRowLayout->addStretch();
+    }
+    else {
+        setAcceptDrops(false);
+        dragHandleButton->setVisible(false);
+        lockButton->setVisible(true);
+        headerRowLayout->addWidget(lockButton);
+        headerRowLayout->addWidget(priorityOrderLabel);
+        headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
+        headerRowLayout->addWidget(titleLabel, Qt::AlignLeft);
         headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
         headerRowLayout->addStretch();
     }
@@ -378,5 +396,5 @@ bool GroupingCriteriaCard::isContainer() const
 
 QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
 {
-    return new GroupingCriteriaCard( parent);
+    return new GroupingCriteriaCard(parent);
 }

@@ -3,18 +3,19 @@
 #include <QPushButton>
 #include <QTabBar>
 
-AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions, QWidget *parent, int tabIndex) :
+AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
+                                           TypeOfRules typeOfRules, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AttributeRulesDialog)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
-    setWindowTitle(tr("Response rules - Q") + QString::number(attribute + 1));
+    setWindowTitle((typeOfRules == TypeOfRules::required? tr("Required") : tr("Incompatible")) + tr(" responses"));
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 4 / 6);
 
     ui->tabWidget->tabBar()->setExpanding(true);
     ui->tabWidget->setStyleSheet(QString(TABWIDGETSTYLE) + LABEL10PTSTYLE);
-    ui->tabWidget->setCurrentIndex(tabIndex);
+    ui->tabWidget->setCurrentIndex(static_cast<int>(typeOfRules));
 
     ui->reqScrollArea->setStyleSheet(QString("QScrollArea{background-color: " BUBBLYHEX "; color: " DEEPWATERHEX "; "
                                                           "border: 1px solid; border-color: " AQUAHEX ";}") + SCROLLBARSTYLE);
@@ -44,8 +45,6 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     attributeValues.append({-1, tr("Unknown / no response")});
     numPossibleValues = int(attributeValues.size());
 
-    ui->questionNumLabel->setText(tr("Multiple choice question ") + QString::number(attribute + 1));
-    ui->questionNumLabel_2->setText(tr("Multiple choice question ") + QString::number(attribute + 1));
     ui->questionTextLabel->setText(dataOptions.attributeQuestionText.at(attribute));
     ui->questionTextLabel->setStyleSheet(LABEL12PTSTYLE);
     ui->questionTextLabel_2->setText(dataOptions.attributeQuestionText.at(attribute));
@@ -68,9 +67,11 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
     ui->responseValuesLabel->setText(responses);
     ui->responseValuesLabel_2->setText(responses);
 
-    ui->reqExplanationLabel->setText(tr("Select the response(s) for which each team must have at least one student."));
+    ui->reqExplanationLabel->setText(tr("Select the response(s) for which each team must have at least one student.\n"));
+    ui->reqExplanationLabel->setStyleSheet(LABEL12PTSTYLE);
     ui->incompExplanationLabel->setText(tr("For each response, select the other response(s) that should "
-                                           "prevent two students from being placed on the same team."));
+                                           "prevent two students from being placed on the same team.\n"));
+    ui->incompExplanationLabel->setStyleSheet(LABEL12PTSTYLE);
     QList<QFrame *> incompFrames;
     incompFrames.reserve(numPossibleValues);
     QList<QVBoxLayout *> incompFrameLayouts;
@@ -129,6 +130,9 @@ AttributeRulesDialog::AttributeRulesDialog(const int attribute, const DataOption
         ui->incompScrollAreaLayout->addWidget(incompFrames.last(), 0, Qt::AlignTop);
     }
     ui->reqVerticalLayout->addStretch(0);
+
+    QTabBar *tabBar = ui->tabWidget->tabBar();
+    tabBar->hide();  // Hides the tab header area
 }
 
 AttributeRulesDialog::~AttributeRulesDialog()

@@ -14,6 +14,7 @@
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/progressDialog.h"
+#include "dialogs/attributeRulesDialog.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
@@ -74,10 +75,9 @@ private slots:
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
     void simpleUIItemUpdate(QObject *sender = nullptr);
     void selectURMResponses();
-    void responsesRulesButton_clicked(int attribute, int tabIndex);
+    void responsesRulesButton_clicked(int attribute, AttributeRulesDialog::TypeOfRules typeOfRules);
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
-    void makeTeammatesRules();
     void startOptimization();
     void updateOptimizationProgress(const float *const allScores, const int *const orderedIndex,
                                     const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
@@ -85,10 +85,11 @@ private slots:
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
     void saveState();
-private slots:
+
     void swapCriteriaCards(int draggedIndex, int targetIndex);
     void deleteCriteriaCard(int deletedIndex);
     void doAutoScroll(QPoint point);
+
 private:
         // setup
     Ui::gruepr *ui;

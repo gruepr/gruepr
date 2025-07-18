@@ -169,7 +169,7 @@ void TeamTreeWidget::resetDisplay(const DataOptions *const dataOptions, const Te
         m_header->setColumnElideMode(i++, Qt::ElideRight);
     }
     if(!dataOptions->dayNames.isEmpty()) {
-        headerLabels << tr("No. of Meeting times");
+        headerLabels << tr("No. of meeting times");
         m_header->setColumnElideMode(i++, Qt::ElideMiddle);
     }
     headerLabels << tr("display_order");
@@ -868,7 +868,7 @@ void TeamTreeWidget::leaveEvent(QEvent *event)
 ///////////////////////////////////////////////////////////////////////
 
 TeamTreeHeaderView::TeamTreeHeaderView(Qt::Orientation orientation, TeamTreeWidget *parent)
-    :QHeaderView(orientation, parent), m_elideMode(Qt::ElideMiddle), m_lineCount(1), m_iconSize(16, 16)
+    :QHeaderView(orientation, parent), m_elideMode(Qt::ElideMiddle), m_lineCount(1), m_iconSize(ICONSIZE, ICONSIZE)
 {
     setAttribute(Qt::WA_Hover);
     setMouseTracking(true);
@@ -878,6 +878,7 @@ TeamTreeHeaderView::TeamTreeHeaderView(Qt::Orientation orientation, TeamTreeWidg
     setStyleSheet(TEAMTREEWIDGETHEADERSTYLE);
 
     connect(this, &TeamTreeHeaderView::sectionClicked, parent, &TeamTreeWidget::resorting);
+    connect(this, &TeamTreeHeaderView::sectionResized, this, &TeamTreeHeaderView::updateHeaderHeight);
 }
 
 void TeamTreeHeaderView::setElideMode(Qt::TextElideMode mode) {
@@ -961,7 +962,7 @@ QSize TeamTreeHeaderView::sectionSizeFromContents(int logicalIndex) const {
     QSize size = QHeaderView::sectionSizeFromContents(logicalIndex);
     if (m_wordWrappeds.contains(logicalIndex) && m_wordWrappeds[logicalIndex]) {
         // Need 2 lines
-        int height = fontMetrics().height() * 2 + 16; // 2 lines + padding
+        int height = (fontMetrics().height() * 2) + 12; // 2 lines + padding
         size.setHeight(qMax(size.height(), height));
     }
     return size;
@@ -1007,14 +1008,15 @@ void TeamTreeHeaderView::updateHeaderHeight()
 
     QList<bool> values = m_wordWrappeds.values();
     bool anyWrappedHeaders = std::any_of(values.constBegin(), values.constEnd(), [](bool val){return val;});
-    int maxHeight = (fontMetrics().height() * (anyWrappedHeaders? 2 : 1)) + 16; // minimum height
+    int maxHeight = (fontMetrics().height() * (anyWrappedHeaders? 2 : 1)) + 12; // minimum height
 
-    setFixedHeight(maxHeight);
+    setMinimumHeight(maxHeight);
+    updateGeometry();
 }
 
 QString TeamTreeHeaderView::wrapTextToTwoLines(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const
 {
-    int midPoint = text.length() / 2;
+    long long midPoint = text.length() / 2;
 
     // Find all space positions
     std::vector<int> spaces;
@@ -1031,7 +1033,7 @@ QString TeamTreeHeaderView::wrapTextToTwoLines(int logicalIndex, const QString &
     }
 
     // Find the space closest to midpoint and split into two strings
-    auto closestSpace = *std::min_element(spaces.begin(), spaces.end(),
+    auto closestSpace = *std::min_element(spaces.cbegin(), spaces.cend(),
                                           [midPoint](int a, int b) {return std::abs(a - midPoint) < std::abs(b - midPoint);});
     QString line1 = text.left(closestSpace);
     QString line2 = text.mid(closestSpace + 1);
@@ -1046,7 +1048,6 @@ QString TeamTreeHeaderView::wrapTextToTwoLines(int logicalIndex, const QString &
 
     m_wordWrappeds[logicalIndex] = true;
     return line1 + "\n" + line2;
-
 }
 
 

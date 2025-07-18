@@ -23,6 +23,7 @@
 
 #include "criteria/criterion.h"
 #include "gruepr_globals.h"
+#include "widgets/labelThatForwardsMouseClicks.h"
 #include <QFrame>
 #include <QGridLayout>
 #include <QParallelAnimationGroup>
@@ -41,12 +42,13 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
 
 private:
 
-    QVBoxLayout* mainVerticalLayout;
-    QToolButton* toggleButton;
-    QPushButton* dragHandleButton;
-    QPushButton *lockButton;
-    QParallelAnimationGroup* toggleAnimation;
-    QScrollArea* contentArea;
+    QVBoxLayout* mainVerticalLayout = nullptr;
+    QToolButton* toggleButton = nullptr;
+    LabelThatForwardsMouseClicks* titleLabel = nullptr;
+    QPushButton* dragHandleButton = nullptr;
+    QPushButton *lockButton = nullptr;
+    QParallelAnimationGroup* toggleAnimation = nullptr;
+    QScrollArea* contentArea = nullptr;
     int animationDuration = 100;
     QString title;
 
