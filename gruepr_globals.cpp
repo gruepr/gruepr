@@ -60,7 +60,7 @@ QString grueprGlobal::genderToString(Gender gender) {
     switch (gender) {
         case Gender::woman: return "Woman";
         case Gender::man: return "Man";
-        case Gender::nonbinary: return "Non-binary";
+        case Gender::nonbinary: return "Nonbinary";
         case Gender::unknown: return "Unknown";
         default: return "Unknown";
     }
@@ -70,7 +70,7 @@ QString grueprGlobal::genderToString(Gender gender) {
 Gender grueprGlobal::stringToGender(const QString& genderStr) {
     if (genderStr == "Woman") return Gender::woman;
     if (genderStr == "Man") return Gender::man;
-    if (genderStr == "Non-binary") return Gender::nonbinary;
+    if (genderStr == "Nonbinary") return Gender::nonbinary;
     return Gender::unknown; // Default to unknown if input is invalid
 }
 

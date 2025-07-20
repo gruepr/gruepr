@@ -48,9 +48,9 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
 
     auto *datasetTableScrollArea = new QScrollArea(this);
     datasetTableScrollArea->setStyleSheet(SCROLLBARSTYLE);
+
     auto *datasetTableScrollAreaWidget = new QWidget(this);
     auto *datasetTableScrollAreaLayout = new QVBoxLayout();
-
     datasetTableHeaderLayout->setSpacing(0);
     datasetTableHeaderLayout->setContentsMargins(0, 0, 0, 0);
     dataSetTableHeaderWidget->setLayout(datasetTableHeaderLayout);
@@ -119,10 +119,12 @@ void CategorizingDialog::populateTable(){
         columnWidget->setLayout(columnWidgetLayout);
         QLabel *columnName = new QLabel(columnNames[column], this);
         QComboBox *columnComboBox = new QComboBox(this);
+        columnComboBox->setStyleSheet(COMBOBOXSTYLE);
+        columnComboBox->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
+        columnComboBox->installEventFilter(new MouseWheelBlocker(columnComboBox));  // as it's too easy to mistake scrolling through the rows with changing the value
         columnWidgetLayout->addWidget(columnName);
         columnWidgetLayout->addWidget(columnComboBox);
         columnName->setStyleSheet(FAKETABLEHEADERWIDGETSTYLE);
-        columnComboBox->setStyleSheet(COMBOBOXSTYLE);
         datasetTableHeaderLayout->addWidget(columnWidget);
         dataTypeComboBoxes.append(columnComboBox);
         columnWidgets.append(columnWidget);
@@ -232,9 +234,6 @@ bool CategorizingDialog::initializeComboBoxes()
     // a label and combobox for each column
     for(int column = 0; column < surveyFile->numFields; column++) {
         auto *selector = dataTypeComboBoxes[column];
-        selector->setStyleSheet(COMBOBOXSTYLE);
-        selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-        selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
         for(const auto &meaning : std::as_const(surveyFieldOptions)) {
             selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
         }
@@ -276,7 +275,7 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
     std::map<QString, int> fullyUsedValues; // mapping the same, but saving how many extra fields with this meaning
     for(auto row : rows) {
         // get the selected fieldMeaning
-        const auto *box = qobject_cast<QComboBox *>(dataTypeComboBoxes[row]);
+        const auto *box = dataTypeComboBoxes[row];
         if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
             continue;
         }
@@ -319,7 +318,7 @@ void CategorizingDialog::validateFieldSelectorBoxes(int callingRow)
     // Then:
     //  4) clearing formatting of all items unchosen in any box (except "Unused").
     for(auto row = rows.rbegin(); row != rows.rend(); ++row) {
-        auto *box = qobject_cast<QComboBox *>(dataTypeComboBoxes[*row]);
+        auto *box = dataTypeComboBoxes[*row];
         if((box->currentText() == "**IGNORE**") || (box->currentText() == "**LMSID**")) {
             continue;
         }

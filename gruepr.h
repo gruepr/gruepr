@@ -2,14 +2,13 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
+#include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
-#include "criteria/mixedGenderCriterion.h"
 #include "criteria/multipleChoiceStyleCriterion.h"
 #include "criteria/preventedTeammatesCriterion.h"
 #include "criteria/requestedTeammatesCriterion.h"
 #include "criteria/requiredTeammatesCriterion.h"
 #include "criteria/scheduleCriterion.h"
-#include "criteria/singleGenderCriterion.h"
 #include "criteria/singleURMIdentityCriterion.h"
 #include "csvfile.h"
 #include "dataOptions.h"
@@ -136,10 +135,8 @@ private:
                                        int *_penaltyPoints);
     inline static void getTeammatePenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                             const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
-    inline static void getMixedGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                           const TeamingOptions *const _teamingOptions, MixedGenderCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
-    inline static void getSingleGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                            const TeamingOptions *const _teamingOptions, SingleGenderCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
+    inline static void getGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                            const TeamingOptions *const _teamingOptions, GenderCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
     inline static void getSingleURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                          const TeamingOptions *const _teamingOptions, SingleURMIdentityCriterion *criterion, float *_criterionScore, int *_penaltyPoints);
     inline static void getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
@@ -176,11 +173,9 @@ private:
 
     //make an enum criteria type.
     void addCriteriaCard(CriteriaType criteriaType);
-    void addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requireMixed = false);
-    void addCriteriaCard(CriteriaType criteriaType, QString urmResponse);
     void addCriteriaCard(CriteriaType criteriaType, int attribute);
 
-    QMenu *mainMenu;
+    QMenu *addNewCriteriaMenu;
 
     //Criteria Cards
     QList<GroupingCriteriaCard*> criteriaCardsList;
@@ -200,9 +195,16 @@ private:
     //MCQ Criteria Card //likert scale or categorical?
     QList<int> addedAttributeNumbersList;
 
-    //Identity Options Card (these are all objects that can be created)
-    QList<GroupingCriteriaCard*> identityOptionsCardList;
-    QMap<QString, bool> uiCheckBoxMap;
+    //Single: Gender Identity Card
+    GroupingCriteriaCard *genderIdentityCard = nullptr;
+    QCheckBox *isolatedWomen = nullptr;
+    QCheckBox *isolatedMen = nullptr;
+    QCheckBox *isolatedNonbinary = nullptr;
+    QCheckBox *mixedGender = nullptr;
+    QPushButton *complicatedGenderRule = nullptr;
+
+    //Single: URM Identity Card
+    GroupingCriteriaCard *urmIdentityCard = nullptr;
 
     //Single: Meeting Schedule Criteria Card
     GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;

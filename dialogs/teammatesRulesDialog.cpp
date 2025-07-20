@@ -527,6 +527,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         QStringList studentNames;
 
         //get all names from baseStudents
+        studentNames.reserve(baseStudents.size());
         for (auto *const student : std::as_const(baseStudents)) {
             QString fullName = student->firstname + " " + student->lastname;
             studentNames.append(fullName);

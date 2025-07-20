@@ -784,7 +784,7 @@ inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone 
                                               "<p>&nbsp; &nbsp;To optimize the teams, a genetic algorithm is used. A good distribution of students into teams is determined by a "
                                                  "numerical \"compatibility score\". The instructor uses gruepr to determine how this score is calculated. Options include:</p>"
                                               "<ul style=\"margin-top: 2px; margin-bottom: 0px; margin-left: 15px; margin-right: 0px; -qt-list-indent: 0;\">"
-                                                "<li>Preventing isolated women, isolated men, and/or isolated non-binary persons;</li>"
+                                                "<li>Preventing isolated women, isolated men, and/or isolated nonbinary persons;</li>"
                                                 "<li>Requiring mixed gender teams;</li>"
                                                 "<li>Preventing isolated students from underrepresented racial/ethnic groups</li>"
                                                 "<li>Achieving within each team either homogeneity or heterogeneity of the student's responses to up to 15 multiple choice questions. "

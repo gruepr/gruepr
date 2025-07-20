@@ -42,7 +42,7 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
 
 public:
     enum class Precedence{need, want};
-    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = QString("Title"), bool draggable = false,
+    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = "", bool draggable = false,
                                   CriteriaType criteriaType = CriteriaType::teamSize, Precedence precedence = Precedence::want);
 
     Criterion *criterion = nullptr;

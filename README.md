@@ -11,7 +11,7 @@ Description of gruepr:
 
      Data about the students are collected and the students are split into teams of any desired size(s). A
      good distribution of students into teams is determined by a numerical score. The score can be based on:
-        1) preventing isolated women, isolated men, isolated non-binary persons, and/or single-gender teams;
+        1) preventing isolated women, isolated men, isolated nonbinary persons, and/or single-gender teams;
         2) preventing isolated URM students;
         3) achieving within each team either homogeneity or heterogeneity of up to 15 "attributes", which 
            could be skills assessments, work preferences, attitudes, major, topic preference(s), or any 

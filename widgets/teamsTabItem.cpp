@@ -1499,9 +1499,9 @@ QStringList TeamsTabItem::createStdFileContents()
     }
     instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
     if(teams.dataOptions.genderIncluded) {
-        instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
-        instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
-        instructorsFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
+        //instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
+        //instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
+        //instructorsFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
         instructorsFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
     }
     if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
@@ -1705,10 +1705,10 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
     if(customFileOptions.includeTeamingData) {
         customFileContents += tr("Teaming Options") + ":";
         if(teams.dataOptions.genderIncluded) {
-            customFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
-            customFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
-            customFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
-            customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
+            //customFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
+            //customFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
+            //customFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
+            //customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
         }
         if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
             customFileContents += "\n" + tr("Isolated URM students prevented");

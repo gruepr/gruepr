@@ -62,6 +62,7 @@ macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
 #macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib #needed for homebrew clang
 
 SOURCES += \
+        criteria/genderCriterion.cpp \
         csvfile.cpp \
         dataOptions.cpp \
         GA.cpp \
@@ -75,13 +76,11 @@ SOURCES += \
         teamRecord.cpp \
         criteria/criterion.cpp \
         criteria/gradeBalanceCriterion.cpp \
-        criteria/mixedGenderCriterion.cpp \
         criteria/multipleChoiceStyleCriterion.cpp \
         criteria/preventedTeammatesCriterion.cpp \
         criteria/requestedTeammatesCriterion.cpp \
         criteria/requiredTeammatesCriterion.cpp \
         criteria/scheduleCriterion.cpp \
-        criteria/singleGenderCriterion.cpp \
         criteria/singleURMIdentityCriterion.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
@@ -126,6 +125,7 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+        criteria/genderCriterion.h \
         csvfile.h \
         dataOptions.h \
         GA.h \
@@ -139,13 +139,11 @@ HEADERS += \
         teamRecord.h \
         criteria/criterion.h \
         criteria/gradeBalanceCriterion.h \
-        criteria/mixedGenderCriterion.h \
         criteria/multipleChoiceStyleCriterion.h \
         criteria/preventedTeammatesCriterion.h \
         criteria/requestedTeammatesCriterion.h \
         criteria/requiredTeammatesCriterion.h \
         criteria/scheduleCriterion.h \
-        criteria/singleGenderCriterion.h \
         criteria/singleURMIdentityCriterion.h \
         dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \

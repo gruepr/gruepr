@@ -20,9 +20,9 @@ TeamingOptions::TeamingOptions()
 
 TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
 {
-    isolatedWomenPrevented = jsonTeamingOptions["isolatedWomenPrevented"].toBool();
-    isolatedMenPrevented = jsonTeamingOptions["isolatedMenPrevented"].toBool();
-    isolatedNonbinaryPrevented = jsonTeamingOptions["isolatedNonbinaryPrevented"].toBool();
+    //isolatedWomenPrevented = jsonTeamingOptions["isolatedWomenPrevented"].toBool();
+    //isolatedMenPrevented = jsonTeamingOptions["isolatedMenPrevented"].toBool();
+    //isolatedNonbinaryPrevented = jsonTeamingOptions["isolatedNonbinaryPrevented"].toBool();
     singleGenderPrevented = jsonTeamingOptions["singleGenderPrevented"].toBool();
     isolatedURMPrevented = jsonTeamingOptions["isolatedURMPrevented"].toBool();
     const QJsonArray URMResponsesConsideredURArray = jsonTeamingOptions["URMResponsesConsideredUR"].toArray();
@@ -199,9 +199,9 @@ QJsonObject TeamingOptions::toJson() const
     }
 
     QJsonObject content {
-        {"isolatedWomenPrevented", isolatedWomenPrevented},
-        {"isolatedMenPrevented", isolatedMenPrevented},
-        {"isolatedNonbinaryPrevented", isolatedNonbinaryPrevented},
+        //{"isolatedWomenPrevented", isolatedWomenPrevented},
+        //{"isolatedMenPrevented", isolatedMenPrevented},
+        //{"isolatedNonbinaryPrevented", isolatedNonbinaryPrevented},
         {"singleGenderPrevented", singleGenderPrevented},
         {"isolatedURMPrevented", isolatedURMPrevented},
         {"URMResponsesConsideredUR", QJsonArray::fromStringList(URMResponsesConsideredUR)},

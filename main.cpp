@@ -39,14 +39,14 @@
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
-//  - attribute response counts now correctly account for added / removed / edited students
+//  - now shows bar graphs indicating how many students selected each multiple choice response
+//  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
+//  - Pulling in the ***incredible*** dissertation work by Nikhen to modernize the UI
+//  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //
 // INPROG:
-//  - Pulling in the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
-//  From Nikhen's work:
-//  - split the required/prev/request. teammates window into three spearate windows
 //
 // TO DO:
 //    BUGFIXES:
@@ -55,10 +55,8 @@
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
 //  - allow "balance of values" among all teams as a criterion condition
 //  - identity rules add >, >=, <, <=
-//  - bar graphs for the MCQ student counts
 //  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
-//  - diverse should always go towards most number of values, as with categorical MCQs, not (just?) the range of values, as is currently done with ordered MCQs
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
@@ -75,7 +73,7 @@
 //  - analyze for memory leaks
 //      - memory leak -> crash when loading large file, unloading, then repeating a few times
 //  - compile for webassembly, turn into a webapp
-//      - move from OpenMP to QThread?
+//      - move from OpenMP to QThread or c++17 threads?
 //
 //    NETWORK IMPLEMENTATION:
 //  - create timeout function to more nicely handle LMS connections
@@ -85,7 +83,7 @@
 //  - errors when trying to connect to Google on home network when IPv6 is enabled (IPv6? eero-network?)
 //
 //    WAYS THAT MIGHT IMPROVE THE GENETIC ALGORITHM IN FUTURE:
-//  - preferentially mutate the lowest scoring team(s) within a genome
+//  - preferentially mutate the lowest scoring team(s) within a genome by getGenomeScore 'outputting' the worst team (or worst location in genePool[genome])
 //  - use multiple genepools with limited cross-breeding
 //  - to get around the redundancy-of-genome issue, store each genome as std::set< std::set< int > >. Each team is set of indexes to the students; each section is set of teams.
 //      - would also allow sorting teams within set by ascending score and thus mutations preferentially at front

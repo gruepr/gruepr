@@ -205,7 +205,7 @@ bool loadDataDialog::getFromDropFile(QString filePathString){
     const QPixmap icon(":/icons_new/file.png");
     QFileInfo fileInfo(filePathString);
     if (fileInfo.suffix().toLower() != "csv") {
-        qDebug() << "Error: The dropped file is not a CSV file.";
+        //qDebug() << "Error: The dropped file is not a CSV file.";
         return false;
     }
 
@@ -215,11 +215,11 @@ bool loadDataDialog::getFromDropFile(QString filePathString){
 
     try {
         if (!surveyFile->openExistingFile(filePathString)) {
-            qDebug() << "Error: Failed to open CSV file.";
+            //qDebug() << "Error: Failed to open CSV file.";
             return false;
         }
     } catch (const std::exception &e) {
-        qDebug() << "Failed to open CSV File: " << e.what();
+        //qDebug() << "Failed to open CSV File: " << e.what();
         return false;
     }
 
@@ -641,6 +641,10 @@ bool loadDataDialog::getFromPrevWork()
 
 
 void loadDataDialog::accept() {
+    if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
+        QDialog::accept();
+        return;
+    }
 
     if((dataOptions->dataSource == DataOptions::DataSource::fromUploadFile) ||
        (dataOptions->dataSource == DataOptions::DataSource::fromDragDropFile) ||
@@ -649,17 +653,20 @@ void loadDataDialog::accept() {
         auto categorizing_result = categorizingDataDialog->exec();
         if (categorizing_result != QDialog::Accepted){
             return;
-        } else if(!readData()){  //NEED THIS READDATA TO HAPPEN W/O CATEGORIZINGDATADIALOG WHEN SOURCE IS CANVAS OR GOOGLE
-            confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-            dataSourceFrame->setEnabled(false);
-            dataSourceLabel->setEnabled(false);
-            dataSourceLabel->setText(tr("No survey loaded"));
-            students.clear();
-            return;
-        } else {
-            QDialog::accept();
         }
     }
+
+    if(!readData()) {
+        confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+        dataSourceFrame->setEnabled(false);
+        dataSourceLabel->setEnabled(false);
+        dataSourceLabel->setText(tr("No survey loaded"));
+        students.clear();
+        return;
+    } else {
+        QDialog::accept();
+    }
+
     QDialog::accept();
 }
 
@@ -1127,7 +1134,7 @@ bool loadDataDialog::readData()
     }
     loadingProgressDialog->setValue(2 + numStudents + MAX_ATTRIBUTES);
     // gather all unique URM and section question responses and sort
-    for(auto &student : students) {
+    for(const auto &student : std::as_const(students)) {
         if(!dataOptions->URMResponses.contains(student.URMResponse, Qt::CaseInsensitive)) {
             dataOptions->URMResponses << student.URMResponse;
         }
@@ -1135,7 +1142,7 @@ bool loadDataDialog::readData()
             dataOptions->sectionNames << student.section;
         }
 
-        for(auto gender : student.gender){
+        for(const auto gender : std::as_const(student.gender)){
             if(!dataOptions->Genders.contains(gender)) {
                 dataOptions->Genders << gender;
             }
@@ -1144,13 +1151,15 @@ bool loadDataDialog::readData()
         QString studentFirstGender = grueprGlobal::genderToString(student.gender.values()[0]);
         if (dataOptions->numberOfIdentitiesInPopulation.contains(studentFirstGender)){
             dataOptions->numberOfIdentitiesInPopulation[studentFirstGender] += 1;
-        } else{
+        }
+        else {
             dataOptions->numberOfIdentitiesInPopulation[studentFirstGender] = 0;
         }
 
         if (dataOptions->numberOfIdentitiesInPopulation.contains(student.URMResponse)){
             dataOptions->numberOfIdentitiesInPopulation[student.URMResponse] += 1;
-        } else{
+        }
+        else {
             dataOptions->numberOfIdentitiesInPopulation[student.URMResponse] = 0;
         }
     }

@@ -22,10 +22,9 @@ public:
     //these need to be converted, otherwise save will not work.
     QMap<QString, bool> isolatedIndentityPrevented;
     QMap<QString, QMap<QString, QList<int>>> identityRules;
-
-    bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
-    bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
-    bool isolatedNonbinaryPrevented = false;            // if true, will prevent teams with an isolated nonbinary student
+    //bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
+    //bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
+    //bool isolatedNonbinaryPrevented = false;            // if true, will prevent teams with an isolated nonbinary student
     bool singleGenderPrevented = false;                 // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
     QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented
