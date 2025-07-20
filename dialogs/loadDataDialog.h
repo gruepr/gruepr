@@ -4,9 +4,9 @@
 #include "csvfile.h"
 #include "dataOptions.h"
 #include "dialogs/startDialog.h"
-#include "qcombobox.h"
-#include "qdialog.h"
 #include "studentRecord.h"
+#include <QComboBox>
+#include <QDialog>
 
 class loadDataDialog : public QDialog
 {
@@ -17,6 +17,7 @@ public:
     DataOptions *dataOptions = nullptr;
     QList<StudentRecord> students;
     CsvFile* getSurveyFile();
+
 public slots:
     void accept() override;
 
@@ -32,10 +33,10 @@ private:
     bool readData();
     bool readQuestionsFromHeader();
     DataOptions::DataSource source = DataOptions::DataSource::fromUploadFile;
-    QDialogButtonBox* confirmCancelButtonBox;
-    QFrame* dataSourceFrame;
-    QPushButton* dataSourceLabel;
-    QComboBox *prevWorkComboBox;
+    QDialogButtonBox *confirmCancelButtonBox = nullptr;
+    QFrame *dataSourceFrame = nullptr;
+    QPushButton *dataSourceLabel = nullptr;
+    QComboBox *prevWorkComboBox = nullptr;
     QList<StudentRecord> roster;
     inline static const QString HEADERTEXT = QObject::tr("Question text");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");

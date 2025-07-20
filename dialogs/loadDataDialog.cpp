@@ -3,32 +3,27 @@
 #include "LMS/googlehandler.h"
 #include "dialogs/baseTimeZoneDialog.h"
 #include "dialogs/categorizingDialog.h"
-#include "qcollator.h"
-#include "qcombobox.h"
-#include "qdir.h"
-#include "qjsonarray.h"
-#include "qjsondocument.h"
-#include "qsettings.h"
-#include "qstandardpaths.h"
-#include "qtimer.h"
 #include "widgets/dropcsvframe.h"
+#include <QCollator>
+#include <QComboBox>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QTimer>
 
-loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(parent){
+loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
     setWindowTitle(tr("gruepr - Form teams"));
     setWindowIcon(QIcon(":/icons_new/icon.svg"));
     //setMinimumSize(BASEWINDOWWIDTH, BASEWINDOWHEIGHT);
     QSettings savedSettings;
     setStyleSheet("background-color: white");
-    //set background image same as the beginning page?
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(5);
-    QPushButton *previousScreenButton = new QPushButton(this);
-    previousScreenButton->setIcon(QIcon(":/icons_new/left.png"));
-    previousScreenButton->setStyleSheet(STANDARDBUTTON);
 
     QLabel *headerLabel = new QLabel("Load your student data to form teams");
-    QLabel *headerLabel2 = new QLabel("GruePR does not collect any student data - it is stored in your computer.");
 
     headerLabel->setStyleSheet(LABEL14PTSTYLE);
     DropCSVFrame *dropCSVFileFrame = new DropCSVFrame(this);
@@ -67,7 +62,7 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(pa
     googleFormFrame->setLayout(googleFormFrameLayout);
     //add Label, button
     QPushButton* googleFormLabel = new QPushButton(this);
-    googleFormLabel->setIcon(QIcon(":/icons_new/googleform.png"));
+    googleFormLabel->setIcon(QIcon(":/icons_new/google.png"));
     googleFormLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
     googleFormLabel->setText("Google Form");
     googleFormLabel->setStyleSheet(LABELONLYBUTTON);
@@ -194,11 +189,8 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(parent), parent(pa
     });
     connect(confirmCancelButtonBox, &QDialogButtonBox::accepted, this, &loadDataDialog::accept);
     connect(confirmCancelButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    connect(previousScreenButton, &QPushButton::clicked, this, &QDialog::reject);
 
-    mainLayout->addWidget(previousScreenButton, 0, Qt::AlignLeft);
     mainLayout->addWidget(headerLabel, 0, Qt::AlignCenter);
-    mainLayout->addWidget(headerLabel2, 0, Qt::AlignCenter);
     mainLayout->addWidget(dropCSVFileFrame);
     mainLayout->addStretch(1);
     mainLayout->addWidget(otherDataSourcesLabel, 0, Qt::AlignLeft);
@@ -220,7 +212,6 @@ bool loadDataDialog::getFromDropFile(QString filePathString){
     QSettings savedSettings;
     QFileInfo dataFileLocation;
     dataFileLocation.setFile(savedSettings.value("saveFileLocation", "").toString());
-    qDebug() << "Trying to open file!";
 
     try {
         if (!surveyFile->openExistingFile(filePathString)) {
@@ -247,10 +238,7 @@ void loadDataDialog::loadData(QString filePathString)
         surveyFile->close((source == DataOptions::DataSource::fromGoogle) || (source == DataOptions::DataSource::fromCanvas));
         surveyFile->deleteLater();
     }
-    //ui->tableWidget->clearContents();
-    //ui->tableWidget->setRowCount(0);
     delete dataOptions;
-    //roster.clear();
 
     bool fileLoaded = false;
 
@@ -304,31 +292,6 @@ void loadDataDialog::loadData(QString filePathString)
     dataSourceFrame->setEnabled(true);
     dataSourceLabel->setEnabled(true);
     dataSourceLabel->setText(tr("Data source: ") + dataOptions->dataSourceName);
-
-    //ui->fieldsExplainer->setEnabled(true);
-    //ui->headerRowCheckBox->setEnabled(true);
-    //ui->tableWidget->setEnabled(true);
-    // QString buttonStyle = QString(R"(
-    //             QPushButton {
-    //                 font-weight: bold;
-    //                 color: white;
-    //                 background-color: %1;
-    //                 border-radius: 10px;
-    //                 border: none;
-    //             }
-    //             QPushButton:hover {
-    //                 color: %1;
-    //                 background-color: white;
-    //             }
-    //         )").arg(DEEPWATERHEX);
-    // categoryHelpButton->setStyleSheet(buttonStyle);
-    // ui->tableWidget->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color: " OPENWATERHEX "; color: white; padding: 5px; "
-    //                                                    "border-top: none; border-bottom: none; border-left: none; "
-    //                                                    "border-right: 1px solid white; "
-    //                                                    "font-family: 'DM Sans'; font-size: 12pt;}");
-    // ui->tableWidget->setStyleSheet("QTableView{background-color: white; alternate-background-color: lightGray; border: none;}"
-    //                                "QTableView::item{border-top: none; border-bottom: none; border-left: none; border-right: 1px solid darkGray; padding: 3px;}" +
-    //                                QString(SCROLLBARSTYLE).replace(DEEPWATERHEX, OPENWATERHEX));
 
     confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
@@ -413,45 +376,6 @@ bool loadDataDialog::readQuestionsFromHeader()
             }
         }
     }
-
-    //ui->tableWidget->setRowCount(surveyFile->numFields);
-    // a label and combobox for each column
-    // for(int row = 0; row < surveyFile->numFields; row++) {
-    //     auto *label = new QLabel("\n" + surveyFile->headerValues.at(row) + "\n", this);
-    //     label->setStyleSheet(LABEL10PTSTYLE);
-    //     label->setWordWrap(true);
-    //     ui->tableWidget->setCellWidget(row, 0, label);
-
-    //     auto *selector = new QComboBox(this);
-    //     selector->setStyleSheet(COMBOBOXSTYLE);
-    //     selector->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
-    //     selector->installEventFilter(new MouseWheelBlocker(selector)); // as it's too easy to mistake scrolling through the rows with changing the value
-    //     for(const auto &meaning : std::as_const(surveyFieldOptions)) {
-    //         selector->addItem(meaning.nameShownToUser, meaning.maxNumOfFields);
-    //     }
-    //     selector->insertItem(0, UNUSEDTEXT);
-    //     auto *model = qobject_cast<QStandardItemModel *>(selector->model());
-    //     model->item(0)->setForeground(Qt::darkRed);
-    //     selector->insertSeparator(1);
-    //     if((surveyFile->fieldMeanings.at(row) == "**IGNORE**") || (surveyFile->fieldMeanings.at(row) == "**LMSID**")) {
-    //         selector->addItem(surveyFile->fieldMeanings.at(row));
-    //         selector->setCurrentText(surveyFile->fieldMeanings.at(row));
-    //         ui->tableWidget->hideRow(row);
-    //     }
-    //     else {
-    //         selector->setCurrentText(surveyFile->fieldMeanings.at(row));
-    //     }
-    //     selector->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
-    //     const int width = selector->minimumSizeHint().width();
-    //     selector->setMinimumWidth(width);
-    //     selector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    //     ui->tableWidget->setCellWidget(row, 1, selector);
-    //     connect(selector, &QComboBox::currentTextChanged, this, [this, row]{validateFieldSelectorBoxes(row);});
-    // }
-    // validateFieldSelectorBoxes();
-    // ui->tableWidget->resizeColumnsToContents();
-    // ui->tableWidget->resizeRowsToContents();
-    // ui->tableWidget->adjustSize();
 
     return true;
 }
@@ -718,23 +642,18 @@ bool loadDataDialog::getFromPrevWork()
 
 void loadDataDialog::accept() {
 
-    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
+    if((dataOptions->dataSource == DataOptions::DataSource::fromUploadFile) ||
+       (dataOptions->dataSource == DataOptions::DataSource::fromDragDropFile) ||
+       (false /* Checkbox to manually choose to select categories */)) {
         const QScopedPointer<CategorizingDialog> categorizingDataDialog(new CategorizingDialog(this, surveyFile, source));
         auto categorizing_result = categorizingDataDialog->exec();
         if (categorizing_result != QDialog::Accepted){
-            //spawnNewWindow = false;
-            //emit closeDataDialogProgressBar();
             return;
-        } else if(!readData()){
+        } else if(!readData()){  //NEED THIS READDATA TO HAPPEN W/O CATEGORIZINGDATADIALOG WHEN SOURCE IS CANVAS OR GOOGLE
             confirmCancelButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
             dataSourceFrame->setEnabled(false);
             dataSourceLabel->setEnabled(false);
             dataSourceLabel->setText(tr("No survey loaded"));
-            // ui->hLine->setEnabled(false);
-            //still missing the checkbox to indicate first row is header + missing explanation
-            // ui->fieldsExplainer->setEnabled(false);
-            // ui->headerRowCheckBox->setEnabled(false);
-            // ui->tableWidget->setEnabled(false);
             students.clear();
             return;
         } else {
@@ -756,7 +675,7 @@ bool loadDataDialog::readData()
     loadingProgressDialog->setWindowModality(Qt::ApplicationModal);
     loadingProgressDialog->setStyleSheet(QString(LABEL10PTSTYLE) + PROGRESSBARSTYLE + SMALLBUTTONSTYLEINVERTED);
 
-    // set field values now according to user's selection of field meanings (defaulting to FIELDNOTPRESENT if not chosen)
+    // set field values now according to user's selection of field meanings (defaulting to FIELDNOTPRESENT (i.e., -1) if not chosen)
     dataOptions->timestampField = int(surveyFile->fieldMeanings.indexOf("Timestamp"));
     dataOptions->LMSIDField = int(surveyFile->fieldMeanings.indexOf("**LMSID**"));
     dataOptions->firstNameField = int(surveyFile->fieldMeanings.indexOf("First Name"));

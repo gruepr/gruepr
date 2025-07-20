@@ -544,8 +544,8 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         confirmButton->setIcon(QIcon(":/icons_new/Checkmark.png"));
         confirmButton->setVisible(false);
 
-        connect(completer, QOverload<const QString &>::of(&QCompleter::activated), confirmButton, [confirmButton](const QString &text){
-            confirmButton->setVisible(true);});
+        connect(completer, QOverload<const QString &>::of(&QCompleter::activated), confirmButton, [confirmButton](){
+                confirmButton->setVisible(true);});
 
         if(typeOfTeammates == TypeOfTeammates::required) {
             connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){

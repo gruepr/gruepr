@@ -40,26 +40,10 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
     Q_INTERFACES(QDesignerCustomWidgetInterface)
     //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSection")
 
-private:
-
-    QVBoxLayout* mainVerticalLayout = nullptr;
-    QToolButton* toggleButton = nullptr;
-    LabelThatForwardsMouseClicks* titleLabel = nullptr;
-    QPushButton* dragHandleButton = nullptr;
-    QPushButton *lockButton = nullptr;
-    QParallelAnimationGroup* toggleAnimation = nullptr;
-    QScrollArea* contentArea = nullptr;
-    int animationDuration = 100;
-    QString title;
-
-
-public slots:
-
-    void toggle(bool collapsed);
-
-
 public:
-    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = QString("Title"), bool draggable = false, CriteriaType criteriaType = CriteriaType::teamSize);
+    enum class Precedence{need, want};
+    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = QString("Title"), bool draggable = false,
+                                  CriteriaType criteriaType = CriteriaType::teamSize, Precedence precedence = Precedence::want);
 
     Criterion *criterion = nullptr;
     CriteriaType criteriaType;
@@ -86,17 +70,34 @@ public:
     QPoint mapToViewport(const QPointF &local);
     void dragMoveEvent(QDragMoveEvent *event);
     void dropEvent(QDropEvent *event);
-    int getPriorityOrder();
+    int getPriorityOrder() const;
     void setPriorityOrder(int priorityOrder);
-    signals:
-        void criteriaCardMoved(QPoint point);
-        void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
-        void deleteCardRequested(int deletedIndex);
-        void includePenaltyStateChanged();
+    Precedence getPrecedence() const;
+    void setPrecedence(Precedence precedence);
+
+signals:
+    void criteriaCardMoved(QPoint point);
+    void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
+    void deleteCardRequested(int deletedIndex);
+    void includePenaltyStateChanged();
+
+public slots:
+    void toggle(bool collapsed);
+
 private:
     int priorityOrder = 0;
-    QTimer  m_dragTimer;
-    QPoint  m_lastPos;
+    Precedence m_precedence;
+    QString title;
+    QVBoxLayout* mainVerticalLayout = nullptr;
+    QToolButton* toggleButton = nullptr;
+    LabelThatForwardsMouseClicks* titleLabel = nullptr;
+    QPushButton* dragHandleButton = nullptr;
+    QPushButton *lockButton = nullptr;
+    QParallelAnimationGroup* toggleAnimation = nullptr;
+    QScrollArea* contentArea = nullptr;
+    int animationDuration = 100;
+    QTimer m_dragTimer;
+    QPoint m_lastPos;
 };
 
 #endif // SECTION_H

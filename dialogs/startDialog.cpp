@@ -181,8 +181,8 @@ StartDialog::StartDialog(QWidget *parent)
 
 void StartDialog::openSurveyMaker() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    this->hide();
     const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard);
+    this->hide();
     QApplication::restoreOverrideCursor();
     surveyMakerWizard->exec();
     this->show();
@@ -191,32 +191,24 @@ void StartDialog::openSurveyMaker() {
 
 void StartDialog::openGruepr() {
     QApplication::setOverrideCursor(Qt::BusyCursor);
-
-    bool spawnNewWindow = true;
-    while(spawnNewWindow) {
-        const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
+    const QScopedPointer<loadDataDialog> getDataDialog(new loadDataDialog(this));
+    this->hide();
+    QApplication::restoreOverrideCursor();
+    auto result = getDataDialog->exec();
+    if(result == QDialog::Accepted) {
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+        const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this));
+        grueprWindow->show();
+        emit closeDataDialogProgressBar();
         QApplication::restoreOverrideCursor();
-        this->hide();
-        auto result = getDataDialog->exec();
-        if(result == QDialog::Accepted) {
-            //where is the surveyFile stored?
-            QApplication::setOverrideCursor(Qt::BusyCursor);
-            const QScopedPointer<gruepr> grueprWindow(new gruepr(*getDataDialog->dataOptions, getDataDialog->students, this));
-            this->hide();
-            grueprWindow->show();
-            emit closeDataDialogProgressBar();
-            QApplication::restoreOverrideCursor();
-            QEventLoop loop;
-            connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
-            loop.exec();
-            spawnNewWindow = grueprWindow->restartRequested;
-        }
-        else {
-            spawnNewWindow = false;
-            emit closeDataDialogProgressBar();
-            this->show();
-        }
+        QEventLoop loop;
+        connect(grueprWindow.data(), &gruepr::closed, &loop, &QEventLoop::quit);
+        loop.exec();
     }
+    else {
+        emit closeDataDialogProgressBar();
+    }
+    this->show();
 }
 
 

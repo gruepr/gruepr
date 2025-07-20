@@ -47,8 +47,6 @@ public:
     static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
                                TeamSet &_teams, const TeamingOptions *const _teamingOptions);
 
-    bool restartRequested = false;
-
     inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
     inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
     inline static const int MAINWINDOWBUTTONFONT = 4;          // increase in font size for main window button text
@@ -64,7 +62,6 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void restartWithNewData();
     void changeSection(int index);
     void editSectionNames();
     void editAStudent();
@@ -111,8 +108,8 @@ private:
     int prevSortColumn = 0;                             // column sorting the student table, used when trying to sort by edit info or remove student column
     Qt::SortOrder prevSortOrder = Qt::AscendingOrder;   // order of sorting the student table, used when trying to sort by edit info or remove student column
     QList<QPushButton *> attributeSelectorButtons;
-    QList<AttributeWidget *> attributeWidgets = {};
-    QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards = {};
+    QList<AttributeWidget *> attributeWidgets;
+    QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards;
     QList<CriteriaType> teammateRulesExistence;
 
         // team set optimization

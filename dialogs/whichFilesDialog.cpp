@@ -57,7 +57,7 @@ WhichFilesDialog::WhichFilesDialog(const Action saveOrPrint, const DataOptions *
     }
     const bool sched = !dataOptions->dayNames.isEmpty();
     ui->schedulecheckBox->setVisible(sched);
-    connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSechedule = checked;});
+    connect(ui->schedulecheckBox, &QCheckBox::toggled, this, [this](bool checked){customFileOptions.includeSchedule = checked;});
 
     ui->multipleChoiceLabel->setVisible(anyMultiChoice);
     ui->teammateGroupBox->setVisible(first || last || email || gender || urm || sect || anyMultiChoice);

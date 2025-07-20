@@ -41,7 +41,6 @@ private:
     class SwitchBackground;
     void _update();
 
-private:
     bool _value;
     int  _duration;
 

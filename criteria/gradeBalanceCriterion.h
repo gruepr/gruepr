@@ -5,7 +5,7 @@
 class GradeBalanceCriterion : public Criterion
 {
 public:
-    GradeBalanceCriterion(float weight, int penaltyStatus);
+    GradeBalanceCriterion(float weight, bool penaltyStatus);
 };
 
 #endif // GRADEBALANCECRITERION_H

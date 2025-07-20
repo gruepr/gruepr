@@ -20,7 +20,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     responsesLayout = new QVBoxLayout(responsesFrame);
     responsesLayout->setContentsMargins(2, 2, 2, 2);
     responsesLayout->setSpacing(4);
-    auto *responsesText = new QLabel(tr("Responses"));
+    auto *responsesText = new QLabel(tr(" Responses:"));
     responsesText->setStyleSheet(LABEL12PTSTYLE);
     responsesLayout->addWidget(responsesText);
     attributeResponsesLayout->addWidget(responsesFrame);
@@ -159,8 +159,8 @@ void AttributeWidget::updateResponses(int attribute, const DataOptions *const da
     for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
         QWidget *row = new QWidget(this);
         QHBoxLayout *rowLayout = new QHBoxLayout(row);
-        rowLayout->setContentsMargins(0, 0, 0, 0);
-        rowLayout->setSpacing(0);
+        rowLayout->setContentsMargins(0, 0, 2, 2);
+        rowLayout->setSpacing(4);
 
         // Response count bar graph
         auto *responseBarGraph = new ResponseLabelBarGraph(responseCountRef.at(response), totNumResponses, BARGRAPHWIDTH, row);
@@ -230,7 +230,7 @@ void ResponseLabelBarGraph::paintEvent(QPaintEvent *)
     painter.fillRect(0, 0, m_barWidth, barHeight, QColor(Qt::white));
 
     // Draw filled portion
-    painter.fillRect(0, 0, m_barWidth * m_value / m_maxValue, barHeight, QColor(DEEPWATERHEX));
+    painter.fillRect(1, 1, 1 + (((m_barWidth * m_value) - 1) / m_maxValue), barHeight - 1, QColor(DEEPWATERHEX));   // using ceiling division
 
     // Draw border
     painter.setPen(OPENWATERHEX);

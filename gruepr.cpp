@@ -38,7 +38,7 @@
 
 
 gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget *parent) :
-    QMainWindow(parent),
+    QMainWindow(),
     ui(new Ui::gruepr),
     dataOptions(new DataOptions(std::move(dataOptions))),
     students(std::move(students))
@@ -53,7 +53,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     ui->dataSourceFrame->setStyleSheet(DATASOURCEFRAMESTYLE);
     ui->dataSourcePrelabel->setStyleSheet(DATASOURCEPRELABELSTYLE);
     ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
-    ui->newDataSourceButton->setStyleSheet(DATASOURCEBUTTONSTYLE);
 
     CustomSplitter *splitter = new CustomSplitter(Qt::Horizontal);
     splitter->setStyleSheet(R"(
@@ -106,7 +105,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     //Section Criteria Card
 
     if (dataOptions.sectionIncluded){
-        sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), false, CriteriaType::section);
+        sectionCriteriaCard = new GroupingCriteriaCard(this, QString("Section"), false, CriteriaType::section, GroupingCriteriaCard::Precedence::need);
         sectionCriteriaCard->criteriaType = CriteriaType::section;
         sectionCriteriaCard->criterion = new Criterion(0.0, true);
         sectionContentLayout = new QHBoxLayout();
@@ -134,7 +133,7 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     }
 
     //Team Size Criteria Card
-    teamSizeCriteriaCard = new GroupingCriteriaCard(this, QString("Team Size"), false, CriteriaType::teamSize);
+    teamSizeCriteriaCard = new GroupingCriteriaCard(this, QString("Team Size"), false, CriteriaType::teamSize, GroupingCriteriaCard::Precedence::need);
     teamSizeCriteriaCard->criteriaType = CriteriaType::teamSize;
     teamSizeCriteriaCard->criterion = new Criterion(0.0, true);
 
@@ -316,7 +315,6 @@ gruepr::gruepr(DataOptions &dataOptions, QList<StudentRecord> &students, QWidget
     }
 
     //connecting the buttons that are always shown
-    connect(ui->newDataSourceButton, &QPushButton::clicked, this, &gruepr::restartWithNewData);
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
     connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
     // connect(ui->URMResponsesButton, &QPushButton::clicked, this, &gruepr::selectURMResponses);
@@ -398,7 +396,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
     if (criteriaType == CriteriaType::scheduleMeetingTimes){
         if (meetingScheduleCriteriaCard==nullptr){
             //Meeting Schedule Criteria Card Styling
-            meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true, criteriaType);
+            meetingScheduleCriteriaCard = new GroupingCriteriaCard(this, QString("Number of weekly meeting times"), true,
+                                                                   criteriaType, GroupingCriteriaCard::Precedence::want);
             meetingScheduleCriteriaCard->criterion = new ScheduleCriterion(0.0, false);
             QVBoxLayout* meetingScheduleContentLayout = new QVBoxLayout();
             QHBoxLayout* minimumAndDesiredButtonLayout = new QHBoxLayout();
@@ -470,7 +469,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         if (!teammateRulesExistence.contains(criteriaType)){
             //Create Gender Criteria Card Styling
             teammateRulesExistence.append(criteriaType);
-            GroupingCriteriaCard* newRequiredTeammatesCard = new GroupingCriteriaCard(this, QString("Required Teammates"), true, criteriaType);
+            GroupingCriteriaCard* newRequiredTeammatesCard = new GroupingCriteriaCard(this, QString("Required Teammates"), true,
+                                                                                      criteriaType, GroupingCriteriaCard::Precedence::want);
             newRequiredTeammatesCard->criteriaType = criteriaType;
             newRequiredTeammatesCard->criterion = new RequiredTeammatesCriterion(0.0, false);
             QVBoxLayout* requiredTeammatesContentAreaLayout = new QVBoxLayout();
@@ -526,7 +526,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         if (!teammateRulesExistence.contains(criteriaType)){
             //Create Gender Criteria Card Styling
             teammateRulesExistence.append(criteriaType);
-            GroupingCriteriaCard* newPreventedTeammatesCard = new GroupingCriteriaCard(this, QString("Prevented Teammates"), true, criteriaType);
+            GroupingCriteriaCard* newPreventedTeammatesCard = new GroupingCriteriaCard(this, QString("Prevented Teammates"), true,
+                                                                                       criteriaType, GroupingCriteriaCard::Precedence::want);
             newPreventedTeammatesCard->criteriaType = criteriaType;
             newPreventedTeammatesCard->criterion = new PreventedTeammatesCriterion(0.0, false);
             QVBoxLayout* preventedTeammatesContentAreaLayout = new QVBoxLayout();
@@ -582,7 +583,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
         if (!teammateRulesExistence.contains(criteriaType)){
             //Create Gender Criteria Card Styling
             teammateRulesExistence.append(criteriaType);
-            GroupingCriteriaCard* newRequestedTeammatesCard = new GroupingCriteriaCard(this, QString("Requested Teammates"), true, criteriaType);
+            GroupingCriteriaCard* newRequestedTeammatesCard = new GroupingCriteriaCard(this, QString("Requested Teammates"), true,
+                                                                                       criteriaType, GroupingCriteriaCard::Precedence::want);
             newRequestedTeammatesCard->criteriaType = criteriaType;
             newRequestedTeammatesCard->criterion = new RequestedTeammatesCriterion(0.0, false);
             QVBoxLayout* requestedTeammatesContentAreaLayout = new QVBoxLayout();
@@ -633,9 +635,9 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType){
             msgBox.exec();
         }
     } else if (criteriaType == CriteriaType::gradeBalance){
-        if (gradeBalanceCriteriaCard==nullptr){
+        if (gradeBalanceCriteriaCard == nullptr){
             //Meeting Schedule Criteria Card Styling
-            gradeBalanceCriteriaCard = new GroupingCriteriaCard(this, QString("Grade Balance"), true, criteriaType);
+            gradeBalanceCriteriaCard = new GroupingCriteriaCard(this, QString("Grade Balance"), true, criteriaType, GroupingCriteriaCard::Precedence::want);
             gradeBalanceCriteriaCard->criterion = new GradeBalanceCriterion(0.0, false);
 
             QHBoxLayout* gradeBalanceContentLayout = new QHBoxLayout();
@@ -808,7 +810,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
         if (requireMixed){
             //add mixed gender rule
             if (!uiCheckBoxMap.contains("RequireMixedGenderCheckBox")){
-                GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Mixed Gender Identity"), true, criteriaType);
+                GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Mixed Gender Identity"), true,
+                                                                               criteriaType, GroupingCriteriaCard::Precedence::want);
                 QVBoxLayout* genderCardContentAreaLayout = new QVBoxLayout();
                 newGenderCard->criterion = new MixedGenderCriterion(0.0, false);
                 //initialize checkbox
@@ -834,7 +837,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, Gender gender, bool requ
         }
         else if (!uiCheckBoxMap.contains(genderString + "PreventIsolatedCheckBox")){
             //Create Gender Criteria Card Styling
-            GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Gender Identity: " + genderString), true, criteriaType);
+            GroupingCriteriaCard* newGenderCard = new GroupingCriteriaCard(this, QString("Gender Identity: " + genderString), true,
+                                                                           criteriaType, GroupingCriteriaCard::Precedence::want);
             newGenderCard->criteriaType = criteriaType;
             QVBoxLayout* genderCardContentAreaLayout = new QVBoxLayout();
             newGenderCard->criterion = new SingleGenderCriterion(genderString, 0.0, false);
@@ -888,7 +892,8 @@ void gruepr::addCriteriaCard(CriteriaType criteriaType, QString urmResponse){
     if (criteriaType == CriteriaType::urmIdentity){ //how to check if gender has been added
         if (!uiCheckBoxMap.contains(urmResponse + "PreventIsolatedCheckBox")){
             //Create Gender Criteria Card Styling
-            GroupingCriteriaCard* newIdentityCard = new GroupingCriteriaCard(this, QString("Identity: " + urmResponse), true, criteriaType);
+            GroupingCriteriaCard* newIdentityCard = new GroupingCriteriaCard(this, QString("Identity: " + urmResponse), true,
+                                                                             criteriaType, GroupingCriteriaCard::Precedence::want);
             newIdentityCard->criteriaType = criteriaType;
             newIdentityCard->criterion = new SingleURMIdentityCriterion(urmResponse, 0.0, false);
             QVBoxLayout* identityCardContentAreaLayout = new QVBoxLayout();
@@ -1052,13 +1057,6 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     }
     delete[] criteriaScores;
     delete[] teamScores;
-}
-
-
-void gruepr::restartWithNewData()
-{
-    restartRequested = true;
-    close();
 }
 
 
@@ -2390,7 +2388,8 @@ void gruepr::loadUI()
         attributeWidgets << new AttributeWidget(this);
         teamingOptions->attributeSelected[attribute] = 0;
         QString title = "Multiple Choice: "+ dataOptions->attributeQuestionText.at(attribute);
-        initializedAttributeCriteriaCards << new GroupingCriteriaCard(this, title, true, CriteriaType::attributeQuestion);
+        initializedAttributeCriteriaCards << new GroupingCriteriaCard(this, title, true,
+                                                                      CriteriaType::attributeQuestion, GroupingCriteriaCard::Precedence::want);
         GroupingCriteriaCard *currentMultipleChoiceCard = this->initializedAttributeCriteriaCards.last();
         currentMultipleChoiceCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
         QHBoxLayout* mcqContentLayout = new QHBoxLayout();
@@ -3842,12 +3841,6 @@ void gruepr::closeEvent(QCloseEvent *event)
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
     saveState();    // save current work for possible future use
-
-    if(restartRequested) {
-        event->accept();
-        emit closed();
-        return;
-    }
 
     bool dontActuallyExit = false;
     bool saveSettings = savedSettings.value("saveDefaultsOnExit", false).toBool();

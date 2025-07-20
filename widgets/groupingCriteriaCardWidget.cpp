@@ -22,8 +22,9 @@
 
 #include "groupingCriteriaCardWidget.h"
 
-GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool draggable, CriteriaType criteriaType)
-    : QFrame(parent)
+GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool draggable,
+                                           CriteriaType criteriaType, GroupingCriteriaCard::Precedence precedence)
+    : QFrame(parent), m_precedence(precedence)
 {
 
     //make it draggable and droppable
@@ -117,10 +118,10 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
 
     QString priorityOrder = QString::number(this->priorityOrder);
-    priorityOrderLabel = new QLabel("Priority #" + priorityOrder); //how to update this?
+    priorityOrderLabel = new QLabel((m_precedence == GroupingCriteriaCard::Precedence::need? tr("Need") : tr("Want")) + " #" + priorityOrder);
     priorityOrderLabel->setFixedWidth(75);
     priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-    priorityOrderLabel->setToolTip("Priority of the Criteria");
+    priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
     priorityOrderLabel->setStyleSheet("border: none");
 
     headerRowLayout = new QHBoxLayout();
@@ -347,7 +348,7 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event)
     }
 }
 
-int GroupingCriteriaCard::getPriorityOrder()
+int GroupingCriteriaCard::getPriorityOrder() const
 {
     return this->priorityOrder;
 }
@@ -356,7 +357,19 @@ void GroupingCriteriaCard::setPriorityOrder(int priorityOrder)
 {
     //qDebug() << "set priority for " << priorityOrder;
     this->priorityOrder = priorityOrder;
-    priorityOrderLabel->setText("Priority #" + QString::number(this->priorityOrder+1)); //priorityOrder starts with 0, so add 1 to make more clear
+    priorityOrderLabel->setText((m_precedence == GroupingCriteriaCard::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
+    headerRowLayout->update();
+}
+
+GroupingCriteriaCard::Precedence GroupingCriteriaCard::getPrecedence() const
+{
+    return m_precedence;
+}
+
+void GroupingCriteriaCard::setPrecedence(Precedence precedence)
+{
+    m_precedence = precedence;
+    priorityOrderLabel->setText((precedence == GroupingCriteriaCard::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
     headerRowLayout->update();
 }
 

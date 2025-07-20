@@ -24,6 +24,7 @@ public:
     explicit IdentityRulesDialog(QWidget *parent = nullptr,const QString &identity = "", TeamingOptions *teamingOptions = nullptr, DataOptions *dataOptions = nullptr);
     QMap<QString, QMap<QString, QList<int>>> getIdentityRules() const; //also in teamingOptions
     QHBoxLayout* createIdentityOperatorRule(QString identity, QString operatorString, int noOfIdentity);
+
 private slots:
     void addNewIdentityRule();
     void removeIdentityRule(const QString &operatorString, int noOfIdentity);
@@ -31,14 +32,14 @@ private slots:
 private:
     void updateDialog();
     void populateTable();
-    QTableWidget *rulesTable;
-    QScrollArea *scrollArea;
-    QWidget *scrollContentWidget;
-    QVBoxLayout *rulesLayout;
+    QTableWidget *rulesTable = nullptr;
+    QScrollArea *scrollArea = nullptr;
+    QWidget *scrollContentWidget = nullptr;
+    QVBoxLayout *rulesLayout = nullptr;
 
     QString identity;
     QMap<QString, QMap<QString, QList<int>>> identityRules;
-    QVBoxLayout *mainLayout;
+    QVBoxLayout *mainLayout = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     DataOptions *dataOptions = nullptr;
 };

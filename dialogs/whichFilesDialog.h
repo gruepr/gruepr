@@ -38,7 +38,7 @@ public:
         bool includeURM = false;
         bool includeSect = false;
         QList<bool> includeMultiChoice;
-        bool includeSechedule = false;
+        bool includeSchedule = false;
     } customFileOptions;
 
 private:

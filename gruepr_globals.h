@@ -144,6 +144,8 @@ inline static const char LABEL10PTMANDATORYSTYLE[] = "QLabel {color: " DEEPWATER
                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL10PTWHITEBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: white; font-size: 10pt; font-family: 'DM Sans'; border-style: none;}"
                                                    "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
+inline static const char LABEL10PTBUBBLYBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none; background-color: " BUBBLYHEX "}"
+                                            "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL12PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 12pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 12pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL14PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 14pt; font-family: 'DM Sans'; border: none;}"
@@ -309,8 +311,6 @@ inline static const char DATASOURCEPRELABELSTYLE[] = "QLabel {background-color: 
                                                        "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
 inline static const char DATASOURCELABELSTYLE[] = "QLabel {background-color: " TRANSPARENT "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt;}"
                                                     "QLabel::disabled {background-color: " TRANSPARENT "; color: darkGray; font-family:'DM Sans'; font-size: 10pt;}";
-inline static const char DATASOURCEBUTTONSTYLE[] = "QPushButton {background-color: " STARFISHHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
-                                                    "border-style: solid; border-width: 1px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
 inline static const char INSTRUCTIONSLABELSTYLE[] = "QLabel {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; font-family:'DM Sans'; font-size: 10pt; "
                                                    "border-style: solid; border-width: 2px; border-radius: 5px; border-color: " DEEPWATERHEX "; padding: 5px;}";
 inline static const char UPLOADBUTTONSTYLE[] =  "QPushButton {"
@@ -324,14 +324,14 @@ inline static const char UPLOADBUTTONSTYLE[] =  "QPushButton {"
                                                 "    background-color: rgba(100, 100, 100, 200); /* Darker Grey on Hover */"
                                                 "}";
 inline static const char STANDARDBUTTON[] = "QPushButton {"
-                                            "    background-color: rgba(180, 180, 180, 180); /* Lighter Grey */"
+                                            "    background-color: rgba(180, 180, 180, 100); /* Lighter Grey */"
                                             "    padding: 5px;"
                                             "    border-radius: 8px;"
-                                            "    border: none;"
+                                            "    border: 1px solid" DEEPWATERHEX ";"
                                             "    font-size: 10pt;"
                                             "}"
                                             "QPushButton:hover {"
-                                            "    background-color: rgba(100, 100, 100, 200); /* Darker Grey on Hover */"
+                                            "    background-color: rgba(180, 180, 180, 140); /* Darker Grey on Hover */"
                                             "}";
 inline static const char LABELONLYBUTTON[] = "QPushButton {"
                                             "    background-color: none; "

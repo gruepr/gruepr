@@ -21,10 +21,8 @@ public:
     QDialogButtonBox* confirmCancelButtonBox = nullptr;
     bool initializeComboBoxes();
     void validateFieldSelectorBoxes(int callingRow);
-
     void populateTable();
-public slots:
-    void accept() override;
+
 private:
     inline static const QString HEADERTEXT = QObject::tr("Question text");
     inline static const QString CATEGORYTEXT = QObject::tr("Category");

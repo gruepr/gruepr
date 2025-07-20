@@ -669,7 +669,6 @@ void TeamsTabItem::updateTeamNamesInTableAndTooltips()
     }
 
     teamDataTree->resizeColumnToContents(0);
-    return;
 }
 
 
@@ -1879,7 +1878,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
             }
             customFileContents += "\n";
         }
-        if(!teams.dataOptions.dayNames.isEmpty() & customFileOptions.includeSechedule) {
+        if(!teams.dataOptions.dayNames.isEmpty() && customFileOptions.includeSchedule) {
             customFileContents += "\n" + tr("Availability:") + "\n            ";
 
             for(const auto &dayName : std::as_const(teams.dataOptions.dayNames)) {

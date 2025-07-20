@@ -333,7 +333,7 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
-    if (dataOptions->gradeIncluded){
+    if (dataOptions->gradeIncluded) {
         float total = 0.0;
         //team grades
         for (float grade : team.gradeVals){
@@ -343,60 +343,68 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
         teamItem->setText(column, QString::number(average));
         teamItem->setTextAlignment(column, Qt::AlignCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, "");
-        teamItem->setData(column, TEAMINFO_SORT_ROLE, 0);
+        teamItem->setData(column, TEAMINFO_SORT_ROLE, average);
         teamItem->setToolTip(column, team.tooltip);
         column++;
     }
     const int numAttributesWOTimezone = dataOptions->numAttributes - (dataOptions->timezoneIncluded? 1 : 0);
     for(int attribute = 0; attribute < numAttributesWOTimezone; attribute++) {
         QString attributeText;
-        int sortData;
+        double sortData;
         auto firstTeamVal = team.attributeVals[attribute].cbegin();
         auto lastTeamVal = team.attributeVals[attribute].crbegin();
         if((dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
             (dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
             // attribute is ordered/numbered, so important info is the range of values (but ignore any "unset/unknown" values of -1)
-            //find average
-            // if(*firstTeamVal == -1) {
-            //     firstTeamVal++;
-            // }
-            float sum = 0.0f;
-            int count = 0;
+            //FROMDEV
+            // //find average
+            // // if(*firstTeamVal == -1) {
+            // //     firstTeamVal++;
+            // // }
+            // float sum = 0.0f;
+            // int count = 0;
 
-            for (auto it = team.attributeVals[attribute].cbegin(); it != team.attributeVals[attribute].cend(); ++it) {
-                sum += *it;  // Add the current value to the sum
-                count++;  // Increment the count
+            // for (auto it = team.attributeVals[attribute].cbegin(); it != team.attributeVals[attribute].cend(); ++it) {
+            //     sum += *it;  // Add the current value to the sum
+            //     count++;  // Increment the count
+            // }
+
+            // // Check if there are any values to avoid division by zero
+            // float average = (count > 0) ? sum / count : 0.0f;
+            // attributeText = QString("Average: ") + QString::number(average);
+            // sortData = average;
+
+            if(firstTeamVal != team.attributeVals[attribute].cend()) {
+                attributeText = QString::number(*firstTeamVal);
+                sortData = *firstTeamVal;
+                double divisor = 100;
+                if(*firstTeamVal != *lastTeamVal) {
+                    for(auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++) {
+                        attributeText += ", ";
+                        attributeText += QString::number(*val);
+                        sortData += *val / divisor;
+                        divisor *= 100;
+                    }
+                }
             }
-
-            // Check if there are any values to avoid division by zero
-            float average = (count > 0) ? sum / count : 0.0f;
-            attributeText = QString("Average: ") + QString::number(average);
-            sortData = average;
-            // if(firstTeamVal != team.attributeVals[attribute].cend()) {
-            //     if(*firstTeamVal == *lastTeamVal) {
-            //         attributeText = QString::number(*firstTeamVal);
-            //     }
-            //     else {
-            //         attributeText = QString::number(*firstTeamVal) + " - " + QString::number(*lastTeamVal);
-            //     }
-            //     sortData = *firstTeamVal * 100 + *lastTeamVal;
-            // }
-            // else {
-            //     //only attribute value was -1
-            //     attributeText = "?";
-            //     sortData = -1;
-            // }
+            else {
+                //only attribute value was -1
+                attributeText = "?";
+                sortData = -1;
+            }
         }
         else {
             // attribute is categorical or multicategorical, so important info is the list of values
             // if attribute has "unset/unknown" value of -1, char is nicely '?'; if attribute value is > 26, letters are repeated as needed
             attributeText = (*firstTeamVal <= 26 ? QString(char(*firstTeamVal - 1 + 'A')) : QString(char((*firstTeamVal - 1)%26 + 'A')).repeated(1+((*firstTeamVal - 1)/26)));
+            sortData = *firstTeamVal;
+            double divisor = 10;
             for(auto val = std::next(firstTeamVal); val != team.attributeVals[attribute].end(); val++) {
                 attributeText += ", ";
                 attributeText += (*val <= 26 ? QString(char(*val - 1 + 'A')) : QString(char((*val - 1)%26 + 'A')).repeated(1+((*val - 1)/26)));
+                sortData += *val / divisor;
+                divisor *= 100;
             }
-            // sort by first item, then number of items, then second item
-            sortData = (*firstTeamVal * 10000) + (int(team.attributeVals[attribute].size()) * 100) + (int(team.attributeVals[attribute].size()) > 1 ? *lastTeamVal : 0);
         }
         teamItem->setText(column, attributeText);
         teamItem->setTextAlignment(column, Qt::AlignCenter);
@@ -1088,7 +1096,7 @@ bool TeamTreeWidgetItem::operator <(const QTreeWidgetItem &other) const
     const int sortColumn = treeWidget()->sortColumn();
 
     // sort using sortorder data in column, and use existing order to break ties
-    return((data(sortColumn, TEAMINFO_SORT_ROLE).toInt() != other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt()) ?
-                (data(sortColumn, TEAMINFO_SORT_ROLE).toInt() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toInt()) :
+    return((data(sortColumn, TEAMINFO_SORT_ROLE).toDouble() != other.data(sortColumn, TEAMINFO_SORT_ROLE).toDouble()) ?
+                (data(sortColumn, TEAMINFO_SORT_ROLE).toDouble() < other.data(sortColumn, TEAMINFO_SORT_ROLE).toDouble()) :
                 (data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt() < other.data(columnCount()-1, TEAMINFO_SORT_ROLE).toInt()));
 }
