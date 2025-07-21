@@ -1143,24 +1143,24 @@ bool loadDataDialog::readData()
         }
 
         for(const auto gender : std::as_const(student.gender)){
-            if(!dataOptions->Genders.contains(gender)) {
-                dataOptions->Genders << gender;
+            if(!dataOptions->genderValues.contains(gender)) {
+                dataOptions->genderValues << gender;
             }
         }
         //Only take the first gender, otherwise numOfIdentities > numOfStudents
-        QString studentFirstGender = grueprGlobal::genderToString(student.gender.values()[0]);
-        if (dataOptions->numberOfIdentitiesInPopulation.contains(studentFirstGender)){
-            dataOptions->numberOfIdentitiesInPopulation[studentFirstGender] += 1;
+        Gender &studentFirstGender = student.gender.values()[0];
+        if (dataOptions->countOfGenderIdentities.contains(studentFirstGender)){
+            dataOptions->countOfGenderIdentities[studentFirstGender] += 1;
         }
         else {
-            dataOptions->numberOfIdentitiesInPopulation[studentFirstGender] = 0;
+            dataOptions->countOfGenderIdentities[studentFirstGender] = 0;
         }
 
-        if (dataOptions->numberOfIdentitiesInPopulation.contains(student.URMResponse)){
-            dataOptions->numberOfIdentitiesInPopulation[student.URMResponse] += 1;
+        if (dataOptions->countOfURMIdentities.contains(student.URMResponse)){
+            dataOptions->countOfURMIdentities[student.URMResponse] += 1;
         }
         else {
-            dataOptions->numberOfIdentitiesInPopulation[student.URMResponse] = 0;
+            dataOptions->countOfURMIdentities[student.URMResponse] = 0;
         }
     }
 

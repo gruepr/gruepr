@@ -27,17 +27,19 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     sectionIncluded = jsonDataOptions["sectionIncluded"].toBool();
     sectionField = jsonDataOptions["sectionField"].toInt();
     scheduleDataIsFreetime = jsonDataOptions["scheduleDataIsFreetime"].toBool();
+    earlyTimeAsked = jsonDataOptions["earlyTimeAsked"].toDouble();
+    lateTimeAsked = jsonDataOptions["lateTimeAsked"].toDouble();
+    scheduleResolution = jsonDataOptions["scheduleResolution"].toDouble();
     numAttributes = jsonDataOptions["numAttributes"].toInt();
     timezoneIncluded = jsonDataOptions["timezoneIncluded"].toBool();
     timezoneField = jsonDataOptions["timezoneField"].toInt();
     homeTimezoneUsed = jsonDataOptions["homeTimezoneUsed"].toBool();
     baseTimezone = jsonDataOptions["baseTimezone"].toDouble();
-    earlyTimeAsked = jsonDataOptions["earlyTimeAsked"].toDouble();
-    lateTimeAsked = jsonDataOptions["lateTimeAsked"].toDouble();
-    scheduleResolution = jsonDataOptions["scheduleResolution"].toDouble();
     dataSourceName = jsonDataOptions["dataSourceName"].toString();
     dataSource = static_cast<DataSource>(jsonDataOptions["dataSource"].toInt());
     saveStateFileName = jsonDataOptions["saveStateFileName"].toString();
+    gradeIncluded = jsonDataOptions["gradeIncluded"].toBool();
+    gradeField = jsonDataOptions["gradeField"].toInt();
 
     const QJsonArray notesFieldArray = jsonDataOptions["notesField"].toArray();
     notesFields.reserve(notesFieldArray.size());
@@ -117,6 +119,9 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
         }
         i++;
     }
+    for(int j = i; j < MAX_ATTRIBUTES; j++) {
+        attributeQuestionResponses[j].clear();
+    }
 
     const QJsonArray attributeQuestionResponseCountsArray = jsonDataOptions["attributeQuestionResponseCounts"].toArray();
     i = 0;
@@ -148,7 +153,10 @@ DataOptions::DataOptions(const QJsonObject &jsonDataOptions)
     }
 
     const QJsonArray GendersArray = jsonDataOptions["Genders"].toArray();
-    Genders = jsonArrayToGenderList(GendersArray);
+    genderValues.reserve(GendersArray.size());
+    for(const auto &item : GendersArray) {
+        genderValues << grueprGlobal::stringToGender(item.toString());
+    }
 
     const QJsonArray URMResponsesArray = jsonDataOptions["URMResponses"].toArray();
     URMResponses.reserve(URMResponsesArray.size());
@@ -195,7 +203,7 @@ bool DataOptions::parseTimezoneInfoFromText(const QString &fullText, QString &ti
 QJsonObject DataOptions::toJson() const
 {
     QJsonArray notesFieldArray, scheduleFieldArray, attributeFieldArray, attributeTypeArray, prefTeammatesFieldArray, prefNonTeammatesFieldArray,
-        attributeQuestionResponsesArray, attributeQuestionResponseCountsArray, attributeValsArray;
+        attributeQuestionResponsesArray, attributeQuestionResponseCountsArray, attributeValsArray, gendersArray;
 
     for (const int field : notesFields) {
         notesFieldArray.append(field);
@@ -224,6 +232,12 @@ QJsonObject DataOptions::toJson() const
         }
         attributeValsArray.append(attributeValsArraySubArray);
     }
+    for (const Gender genderValue : genderValues) {
+        gendersArray.append(grueprGlobal::genderToString(genderValue));
+    }
+    if (gendersArray.isEmpty()) {
+        gendersArray.append("unknown");
+    }
 
     QJsonObject content {
         {"timestampField", timestampField},
@@ -241,15 +255,17 @@ QJsonObject DataOptions::toJson() const
         {"notesField", notesFieldArray},
         {"scheduleDataIsFreetime", scheduleDataIsFreetime},
         {"scheduleField", scheduleFieldArray},
+        {"earlyTimeAsked", earlyTimeAsked},
+        {"lateTimeAsked", lateTimeAsked},
+        {"scheduleResolution", scheduleResolution},
         {"numAttributes", numAttributes},
         {"attributeField", attributeFieldArray},
         {"timezoneIncluded", timezoneIncluded},
         {"timezoneField", timezoneField},
         {"homeTimezoneUsed", homeTimezoneUsed},
         {"baseTimezone", baseTimezone},
-        {"earlyTimeAsked", earlyTimeAsked},
-        {"lateTimeAsked", lateTimeAsked},
-        {"scheduleResolution", scheduleResolution},
+        {"gradeIncluded", gradeIncluded},
+        {"gradeField", gradeField},
         {"attributeType", attributeTypeArray},
         {"prefTeammatesField", prefTeammatesFieldArray},
         {"prefNonTeammatesField", prefNonTeammatesFieldArray},
@@ -258,8 +274,8 @@ QJsonObject DataOptions::toJson() const
         {"attributeQuestionResponses", attributeQuestionResponsesArray},
         {"attributeQuestionResponseCounts", attributeQuestionResponseCountsArray},
         {"attributeVals", attributeValsArray},
-        {"Genders", genderListToJsonArray(Genders)},
         {"URMResponses", QJsonArray::fromStringList(URMResponses)},
+        {"Genders", gendersArray},
         {"dataSourceName", dataSourceName},
         {"dataSource", static_cast<int>(dataSource)},
         {"dayNames", QJsonArray::fromStringList(dayNames)},
@@ -268,36 +284,4 @@ QJsonObject DataOptions::toJson() const
     };
 
     return content;
-}
-
-
-QJsonArray DataOptions::genderListToJsonArray(const QList<Gender>& genders) const {
-    QJsonArray jsonArray;
-    for (Gender gender : genders) {
-        switch (gender) {
-        case Gender::woman: jsonArray.append("woman"); break;
-        case Gender::man: jsonArray.append("man"); break;
-        case Gender::nonbinary: jsonArray.append("nonbinary"); break;
-        case Gender::unknown: jsonArray.append("unknown"); break;
-        }
-    }
-    if (jsonArray.isEmpty()) {
-        jsonArray.append("unknown");
-    }
-    return jsonArray;
-}
-
-QList<Gender> DataOptions::jsonArrayToGenderList(const QJsonArray& jsonArray) const {
-    QList<Gender> genders;
-    for (const QJsonValue& value : jsonArray) {
-        QString genderStr = value.toString().toLower();
-        if (genderStr == "woman") genders.append(Gender::woman);
-        else if (genderStr == "man") genders.append(Gender::man);
-        else if (genderStr == "nonbinary") genders.append(Gender::nonbinary);
-        else genders.append(Gender::unknown);  // Fallback for unrecognized values
-    }
-    if (genders.isEmpty()) {
-        genders.append(Gender::unknown);
-    }
-    return genders;
 }

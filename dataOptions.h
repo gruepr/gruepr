@@ -32,8 +32,6 @@ public:
     int lastNameField = FIELDNOTPRESENT;
     bool genderIncluded = false;                    // is gender data included in the survey?
     GenderType genderType = GenderType::adult;
-    int gradeField = FIELDNOTPRESENT;               // which field in surveyFile has gradeInfo?
-    bool gradeIncluded = false;                     // is grade data included in the survey?
     int genderField = FIELDNOTPRESENT;              // which field in surveyFile has the gender info?
     bool URMIncluded = false;                       // is URM data included in the survey?
     int URMField = FIELDNOTPRESENT;                 // which field in surveyFile has the ethnicity info?
@@ -42,15 +40,17 @@ public:
     QList<int> notesFields;                         // which field(s) in surveyFile has additional notes?
     bool scheduleDataIsFreetime = false;            // was the survey set up so that students are indicating their freetime in the schedule?
     QList<int> scheduleField;                       // which field(s) in surveyFile have schedule info?
+    float earlyTimeAsked = 0;                       // earliest time asked in survey (in hours since midnight)
+    float lateTimeAsked = 24;                       // latest time asked in survey (in hours since midnight)
+    float scheduleResolution = 1;                   // how finely resolved the schedule is (in hours)
     int numAttributes = 0;                          // how many attribute questions are in the survey?
     int attributeField[MAX_ATTRIBUTES];             // which field(s) in surveyFile have attribute info?
     bool timezoneIncluded = false;                  // is timezone data included in the survey?
     int timezoneField = FIELDNOTPRESENT;            // which field has the timezone info?
     bool homeTimezoneUsed = false;                  // whether the students' schedules refer to their own timezone
     float baseTimezone = 0;                         // offset from GMT for baseline timezone
-    float earlyTimeAsked = 0;                       // earliest time asked in survey (in hours since midnight)
-    float lateTimeAsked = 24;                       // latest time asked in survey (in hours since midnight)
-    float scheduleResolution = 1;                   // how finely resolved the schedule is (in hours)
+    bool gradeIncluded = false;                     // is grade data included in the survey?
+    int gradeField = FIELDNOTPRESENT;               // which field in surveyFile has gradeInfo?
     enum class AttributeType {ordered, timezone, categorical, multicategorical, multiordered} attributeType[MAX_ATTRIBUTES];    // is each attribute ordered (numerical), timezone, or categorical? Are multiple values allowed?
     QList<int> prefTeammatesField;                  // which field(s) in surveyFile has the preferred teammates info?
     QList<int> prefNonTeammatesField;               // which field(s) in surveyFile has the preferred non-teammates info?
@@ -60,18 +60,14 @@ public:
     std::map<QString, int> attributeQuestionResponseCounts[MAX_ATTRIBUTES];  // a count of how many students gave each response
     std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
-    QList<Gender> Genders;
-    QMap<QString, int> numberOfIdentitiesInPopulation; //Identity : Number in Population
+    QList<Gender> genderValues;
+    QMap<Gender, int> countOfGenderIdentities;      //Identity : Number in Population ***Need to add to JSON to/from
+    QMap<QString, int> countOfURMIdentities;        //Identity : Number in Population ***Need to add to JSON to/from
     QString dataSourceName;
     enum class DataSource{fromUploadFile, fromDragDropFile, fromGoogle, fromCanvas, fromPrevWork} dataSource = DataOptions::DataSource::fromUploadFile;
     QStringList dayNames;
     QStringList timeNames;
     QString saveStateFileName;
-
-private:
-    //Converts List with Gender Enum type, to Json Array
-    QJsonArray genderListToJsonArray(const QList<Gender>& genders) const;
-    QList<Gender> jsonArrayToGenderList(const QJsonArray& jsonArray) const;
 };
 
 #endif // DATAOPTIONS_H

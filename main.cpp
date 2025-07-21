@@ -42,18 +42,54 @@
 //  - now shows bar graphs indicating how many students selected each multiple choice response
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
-//  - Pulling in the ***incredible*** dissertation work by Nikhen to modernize the UI
+//  - Pulling in much of the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //
 // INPROG:
-//  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
+/*
+
+MELDING CHANGES FROM NIKHEN'S WORK:
+-- do for urm everything in parallel to gender:
+  -- update addCriteriaCard for CriteriaType::urmIdentity
+  -- do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
+-- install mousewheelblocker on items in groupingcards
+-- attributeSelected in teamingOptions should be bool instead of int?
+-- in dataOptions:
+    QMap<Gender, int> countOfGenderIdentities; ***Need to add to JSON to/from
+    QMap<QString, int> countOfURMIdentities;   ***Need to add to JSON to/from
+-- in teamingOptions, teamsTabITem, studentRecord, teamRecord: double check every item gets JSON to/from
+
+dialogs/loaddatadialog.cpp: needs complete overhaul
+            ----->  --line 651, add checkbox for manual categorization with google or canvas
+
+
+dialogs/identityrulesdialog: needs complete overhaul, must accept wider variety of rules (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
+
+
+widgets/groupingCriteriaCardWidget: too tall (when expanded)
+
+
+gruepr.cpp:
+- NEED TO GO THROUGH!
+- ***attribute divers/similar is functional, but required/incompatible rules are not!
+- geometry bug when 'minimizing' the criterioncards (add new criteria button shrinks behind lower cards)
+Related to groupingCriteriaCardWidget:
+- fully implement "need" vs "want"
+- Make sure attribute weights are determined by card order
+
+
+Removed lines marked //FROMDEV
+Does teamingoptions now include which criteria are being scored?
+Make criteriaType enum (in criterion.h) and use to unify void addCriteriaCard() in gruepr.h/cpp
+Implement avg. grade question/criterion
+
+*/
 //
 // TO DO:
 //    BUGFIXES:
 //
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
-//  - allow "balance of values" among all teams as a criterion condition
 //  - identity rules add >, >=, <, <=
 //  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
@@ -64,6 +100,7 @@
 //  - in teammatesRules dialog, enable the 'load from teamsTab' action
 //  - add an option to specify 'characteristics' of the off-sized teams (low or high value of attribute; particular student on it)
 //  - add integration with Blackboard, Qualtrics, others
+//  - add motion to the LMS busy dialog so that it doesn't appear frozen (LMS.cpp line 118)
 //
 //    INTERNAL:
 //  - continue removing c-style arrays, non-range-based for loops, and pointer arithmetic everywhere except in intensive optimization steps
