@@ -21,9 +21,8 @@ class IdentityRulesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit IdentityRulesDialog(QWidget *parent = nullptr,const QString &identity = "", TeamingOptions *teamingOptions = nullptr, DataOptions *dataOptions = nullptr);
-    QMap<QString, QMap<QString, QList<int>>> getIdentityRules() const; //also in teamingOptions
-    QHBoxLayout* createIdentityOperatorRule(QString identity, QString operatorString, int noOfIdentity);
+    explicit IdentityRulesDialog(QWidget *parent = nullptr, const Gender identity = Gender::woman, TeamingOptions *teamingOptions = nullptr, DataOptions *dataOptions = nullptr);
+    QHBoxLayout* createIdentityOperatorRule(Gender identity, QString operatorString, int noOfIdentity);
 
 private slots:
     void addNewIdentityRule();
@@ -37,8 +36,8 @@ private:
     QWidget *scrollContentWidget = nullptr;
     QVBoxLayout *rulesLayout = nullptr;
 
-    QString identity;
-    QMap<QString, QMap<QString, QList<int>>> identityRules;
+    Gender m_identity;
+    QMap<Gender, TeamingOptions::identityRule> identityRules;
     QVBoxLayout *mainLayout = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     DataOptions *dataOptions = nullptr;

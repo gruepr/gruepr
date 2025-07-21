@@ -1499,10 +1499,15 @@ QStringList TeamsTabItem::createStdFileContents()
     }
     instructorsFileContents += "\n\n" + tr("Teaming Options") + ":";
     if(teams.dataOptions.genderIncluded) {
-        //instructorsFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
-        //instructorsFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
-        //instructorsFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
-        instructorsFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
+        for(const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
+            for(const auto [operation, values] : valMap.asKeyValueRange()) {
+                for(const auto value : values) {
+                    instructorsFileContents += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
+                                                          operation + " " + QString::number(value);
+                }
+            }
+        }
+        instructorsFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Mixed gender teams required")) : "");
     }
     if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
         instructorsFileContents += "\n" + tr("Isolated URM students prevented");
@@ -1705,10 +1710,15 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
     if(customFileOptions.includeTeamingData) {
         customFileContents += tr("Teaming Options") + ":";
         if(teams.dataOptions.genderIncluded) {
-            //customFileContents += (teamingOptions->isolatedWomenPrevented? ("\n" + tr("Isolated women prevented")) : "");
-            //customFileContents += (teamingOptions->isolatedMenPrevented? ("\n" + tr("Isolated men prevented")) : "");
-            //customFileContents += (teamingOptions->isolatedNonbinaryPrevented? ("\n" + tr("Isolated nonbinary students prevented")) : "");
-            //customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Single gender teams prevented")) : "");
+            for(const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
+                for(const auto [operation, values] : valMap.asKeyValueRange()) {
+                    for(const auto value : values) {
+                        customFileContents += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
+                                              operation + " " + QString::number(value);
+                    }
+                }
+            }
+            customFileContents += (teamingOptions->singleGenderPrevented? ("\n" + tr("Mixed gender teams required")) : "");
         }
         if(teams.dataOptions.URMIncluded && teamingOptions->isolatedURMPrevented) {
             customFileContents += "\n" + tr("Isolated URM students prevented");

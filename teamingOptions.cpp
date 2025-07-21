@@ -20,9 +20,14 @@ TeamingOptions::TeamingOptions()
 
 TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
 {
-    //isolatedWomenPrevented = jsonTeamingOptions["isolatedWomenPrevented"].toBool();
-    //isolatedMenPrevented = jsonTeamingOptions["isolatedMenPrevented"].toBool();
-    //isolatedNonbinaryPrevented = jsonTeamingOptions["isolatedNonbinaryPrevented"].toBool();
+    const QJsonArray genderIdentityRulesArray = jsonTeamingOptions["genderIdentityRules"].toArray();
+    int i = 0;
+    for (const auto &val : genderIdentityRulesArray) {
+        QStringList ruleVal = val.toString().split(',');
+        if(ruleVal.size() == 3) {
+            genderIdentityRules[grueprGlobal::stringToGender(ruleVal.at(0))][ruleVal.at(1)].append(ruleVal.at(2).toInt());
+        }
+    }
     singleGenderPrevented = jsonTeamingOptions["singleGenderPrevented"].toBool();
     isolatedURMPrevented = jsonTeamingOptions["isolatedURMPrevented"].toBool();
     const QJsonArray URMResponsesConsideredURArray = jsonTeamingOptions["URMResponsesConsideredUR"].toArray();
@@ -36,7 +41,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
     meetingBlockSize = jsonTeamingOptions["meetingBlockSize"].toDouble();
     realMeetingBlockSize = jsonTeamingOptions["realMeetingBlockSize"].toInt();
     const QJsonArray attributeSelectedArray = jsonTeamingOptions["attributeSelected"].toArray();
-    int i = 0;
+    i = 0;
     for(const auto &item : attributeSelectedArray) {
         attributeSelectedArray[i] = item.toInt();
         i++;
@@ -163,8 +168,10 @@ void TeamingOptions::reset()
 
 QJsonObject TeamingOptions::toJson() const
 {
-    QJsonArray attributeSelectedArray, attributeDiversityArray, attributeWeightsArray, realAttributeWeightsArray, haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
-               incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray;
+    QJsonArray attributeSelectedArray, attributeDiversityArray, attributeWeightsArray, realAttributeWeightsArray,
+               haveAnyRequiredAttributesArray, requiredAttributeValuesArray, haveAnyIncompatibleAttributesArray,
+               incompatibleAttributeValuesArray, smallerTeamsSizesArray, largerTeamsSizesArray, teamSizesDesiredArray,
+               genderIdentityRulesArray;
     auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
 
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
@@ -197,11 +204,17 @@ QJsonObject TeamingOptions::toJson() const
     for(const auto size : teamSizesDesired) {
         teamSizesDesiredArray.append(size);
     }
+    for(const auto [gender, valMap] : genderIdentityRules.asKeyValueRange()) {
+        for(const auto [operation, values] : valMap.asKeyValueRange()) {
+            for(const auto value : values) {
+                genderIdentityRulesArray.append(grueprGlobal::genderToString(gender) + "," +
+                                                operation + "," + QString::number(value));
+            }
+        }
+    }
 
     QJsonObject content {
-        //{"isolatedWomenPrevented", isolatedWomenPrevented},
-        //{"isolatedMenPrevented", isolatedMenPrevented},
-        //{"isolatedNonbinaryPrevented", isolatedNonbinaryPrevented},
+        {"genderIdentityRules", genderIdentityRulesArray},
         {"singleGenderPrevented", singleGenderPrevented},
         {"isolatedURMPrevented", isolatedURMPrevented},
         {"URMResponsesConsideredUR", QJsonArray::fromStringList(URMResponsesConsideredUR)},

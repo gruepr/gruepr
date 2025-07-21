@@ -19,12 +19,9 @@ public:
 
     QJsonObject toJson() const;
 
-    //these need to be converted, otherwise save will not work.
-    QMap<QString, bool> isolatedIndentityPrevented;
-    QMap<QString, QMap<QString, QList<int>>> identityRules;
-    //bool isolatedWomenPrevented = false;                // if true, will prevent teams with an isolated woman
-    //bool isolatedMenPrevented = false;                  // if true, will prevent teams with an isolated man
-    //bool isolatedNonbinaryPrevented = false;            // if true, will prevent teams with an isolated nonbinary student
+    typedef QMap<QString, QList<int>> identityRule;
+    QMap<Gender, identityRule> genderIdentityRules;     // for example: [Gender::woman  -->  ["!="  --> 0, 1]] means no team can have 0 or 1 woman (all must have 2+)
+    QMap<QString, identityRule> urmIdentityRules;       // for example: ["latino"  -->  ["!="  --> 2]] means no team can have 2 latino students (0, 1, or 3 ok)
     bool singleGenderPrevented = false;                 // if true, will penalize teams with all men or all women
     bool isolatedURMPrevented = false;                  // if true, will prevent teams with an isolated URM student
     QStringList URMResponsesConsideredUR;               // the list of responses to the race/ethnicity/culture question that are considered underrepresented

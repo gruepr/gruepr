@@ -948,13 +948,13 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
     if (columnElideMode == Qt::ElideMiddle && wouldElide) {
         QString wrappedText = wrapTextToTwoLines(logicalIndex, fullText, textWidth, fm);
         opt.text = wrappedText;
-        opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
     }
     else {
         // Use normal eliding for other modes
         m_wordWrappeds[logicalIndex] = false;
         opt.text = fm.elidedText(fullText, columnElideMode, textWidth);
     }
+    opt.textAlignment = Qt::AlignLeft | Qt::AlignVCenter;
 
     // Set icon in the option if we have one
     if (hasIcon) {

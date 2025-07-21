@@ -9,9 +9,9 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
 
     auto *mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(4);
-    auto *attributeSettingsLayout = new QVBoxLayout(this);
+    auto *attributeSettingsLayout = new QVBoxLayout();
     attributeSettingsLayout->setSpacing(2);
-    auto *attributeResponsesLayout = new QVBoxLayout(this);
+    auto *attributeResponsesLayout = new QVBoxLayout();
     attributeResponsesLayout->setSpacing(2);
     setLayout(mainLayout);
 
@@ -28,7 +28,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     mainLayout->addLayout(attributeResponsesLayout, 7);
 
     // Create a horizontal layout
-    auto *attributeDiversityLayout = new QHBoxLayout(this);
+    auto *attributeDiversityLayout = new QHBoxLayout();
 
     // Create the "Diverse" card
     diverseCard = new FrameThatForwardsMouseClicks(this);
