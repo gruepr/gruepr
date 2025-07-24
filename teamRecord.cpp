@@ -19,6 +19,15 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
     name = jsonTeamRecord["name"].toString();
     tooltip = jsonTeamRecord["tooltip"].toString();
 
+    if(jsonTeamRecord["criteriaScores"].type() != QJsonValue::Undefined) {
+        int i = 0;
+        const QJsonArray criteriaScoresArray = jsonTeamRecord["criteriaScores"].toArray();
+        for (const auto &val : criteriaScoresArray) {
+            criteriaScores[i] = val.toDouble();
+            i++;
+        }
+    }
+
     const QJsonArray attributeValsArray = jsonTeamRecord["attributeVals"].toArray();
     for(int i = 0; i < MAX_ATTRIBUTES; i++) {
         const QJsonArray attributeValsArraySubArray = attributeValsArray[i].toArray();
@@ -32,17 +41,17 @@ TeamRecord::TeamRecord(const DataOptions *const teamSetDataOptions, const QJsonO
         timezoneVals.insert(val.toDouble());
     }
 
+    const QJsonArray gradeValsArray = jsonTeamRecord["gradeVals"].toArray();
+    for (const auto &val : gradeValsArray) {
+        gradeVals << val.toDouble();
+    }
+
     const QJsonArray numStudentsAvailableArray = jsonTeamRecord["numStudentsAvailable"].toArray();
     for(int i = 0; i < MAX_DAYS; i++) {
         const QJsonArray numStudentsAvailableArraySubArray = numStudentsAvailableArray[i].toArray();
         for(int j = 0; j < MAX_BLOCKS_PER_DAY; j++) {
             numStudentsAvailable[i][j] = numStudentsAvailableArraySubArray[j].toInt();
         }
-    }
-
-    const QJsonArray gradeValsArray = jsonTeamRecord["gradeVals"].toArray();
-    for (const auto &val : gradeValsArray) {
-        gradeVals << val.toDouble();
     }
 
     if(jsonTeamRecord["studentIDs"].type() != QJsonValue::Undefined) {

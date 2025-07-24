@@ -6,9 +6,11 @@
 
 class SingleURMIdentityCriterion : public Criterion {
 public:
+    using Criterion::Criterion;
+
     QString urmName;
 
-    SingleURMIdentityCriterion(const QString& urmName, float weight, bool penaltyStatus);
+    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
 };
 
 #endif // SINGLEURMIDENTITYCRITERION_H

@@ -1150,14 +1150,14 @@ bool loadDataDialog::readData()
         //Only take the first gender, otherwise numOfIdentities > numOfStudents
         Gender &studentFirstGender = student.gender.values()[0];
         if (dataOptions->countOfGenderIdentities.contains(studentFirstGender)){
-            dataOptions->countOfGenderIdentities[studentFirstGender] += 1;
+            dataOptions->countOfGenderIdentities[studentFirstGender]++;
         }
         else {
             dataOptions->countOfGenderIdentities[studentFirstGender] = 0;
         }
 
         if (dataOptions->countOfURMIdentities.contains(student.URMResponse)){
-            dataOptions->countOfURMIdentities[student.URMResponse] += 1;
+            dataOptions->countOfURMIdentities[student.URMResponse]++;
         }
         else {
             dataOptions->countOfURMIdentities[student.URMResponse] = 0;

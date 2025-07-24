@@ -45,7 +45,7 @@ Description of gruepr:
      Canvas course, can directly import the survey results, and can upload the created teams as groups in
      the Canvas course.
 
-     COMPILING NOTES: Need C++17 and OpenMP on all systems. Needs OpenSSL on Windows. Enabling the speed
+     COMPILING NOTES: Need C++20 and OpenMP on all systems. Needs OpenSSL on Windows. Enabling the speed
      optimization switch -O2 seems to offer significant speed boost; -O3 does not seem to offer any
      improvement.
 

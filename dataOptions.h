@@ -61,8 +61,8 @@ public:
     std::set<int> attributeVals[MAX_ATTRIBUTES];    // what values can each attribute have? There is a value corresponding to each attributeQuestionResponse; they are indexed at 1 but -1 represents "unknown"
     QStringList URMResponses;                       // the list of responses to the race/ethnicity/culture question
     QList<Gender> genderValues;
-    QMap<Gender, int> countOfGenderIdentities;      //Identity : Number in Population ***Need to add to JSON to/from
-    QMap<QString, int> countOfURMIdentities;        //Identity : Number in Population ***Need to add to JSON to/from
+    std::map<Gender, int> countOfGenderIdentities;      //Identity : Number in Population
+    std::map<QString, int> countOfURMIdentities;        //Identity : Number in Population
     QString dataSourceName;
     enum class DataSource{fromUploadFile, fromDragDropFile, fromGoogle, fromCanvas, fromPrevWork} dataSource = DataOptions::DataSource::fromUploadFile;
     QStringList dayNames;

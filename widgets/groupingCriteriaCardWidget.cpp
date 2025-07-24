@@ -18,18 +18,61 @@
     along with Elypson/qt-collapsible-section. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "groupingCriteriaCardWidget.h"
+#include "criteria/genderCriterion.h"
+#include "criteria/gradeBalanceCriterion.h"
+#include "criteria/multipleChoiceCriterion.h"
+#include "criteria/TeammatesCriterion.h"
+#include "criteria/scheduleCriterion.h"
+#include "criteria/sectionCriterion.h"
+#include "criteria/singleURMIdentityCriterion.h"
+#include "criteria/teamsizeCriterion.h"
 #include <QPropertyAnimation>
 
-#include "groupingCriteriaCardWidget.h"
-
-GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool draggable,
-                                           CriteriaType criteriaType, GroupingCriteriaCard::Precedence precedence)
-    : QFrame(parent), m_precedence(precedence)
+GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, QWidget *parent, QString title, bool draggable, const DataOptions *const dataOptions)
+    : QFrame(parent)
 {
+    switch(criterionType) {
+    case Criterion::CriteriaType::section:
+        criterion = new SectionCriterion(Criterion::CriteriaType::section, 0, true, this);
+        break;
+    case Criterion::CriteriaType::teamSize:
+        criterion = new TeamsizeCriterion(Criterion::CriteriaType::teamSize, 0, true, this);
+        break;
+    case Criterion::CriteriaType::genderIdentity:
+        criterion = new GenderCriterion(Criterion::CriteriaType::genderIdentity, 0, false, this);
+        break;
+    case Criterion::CriteriaType::urmIdentity:
+        //criterion = new SingleURMIdentityCriterion(Criterion::CriteriaType::urmIdentity, 0, true, this);
+        break;
+    case Criterion::CriteriaType::attributeQuestion:
+        criterion = new MultipleChoiceStyleCriterion(Criterion::CriteriaType::attributeQuestion, 0, false, this);
+        break;
+    case Criterion::CriteriaType::scheduleMeetingTimes:
+        if(dataOptions != nullptr) {
+            criterion = new ScheduleCriterion(dataOptions, Criterion::CriteriaType::scheduleMeetingTimes, 0, false, this);
+            break;
+        }
+        else {
+            return;
+        }
+    case Criterion::CriteriaType::requiredTeammates:
+        criterion = new TeammatesCriterion(Criterion::CriteriaType::requiredTeammates, 0, true, this);
+        break;
+    case Criterion::CriteriaType::preventedTeammates:
+        criterion = new TeammatesCriterion(Criterion::CriteriaType::preventedTeammates, 0, true, this);
+        break;
+    case Criterion::CriteriaType::requestedTeammates:
+        criterion = new TeammatesCriterion(Criterion::CriteriaType::requestedTeammates, 0, true, this);
+        break;
+    case Criterion::CriteriaType::gradeBalance:
+        criterion = new GradeBalanceCriterion(Criterion::CriteriaType::gradeBalance, 0, false, this);
+        break;
+    }
+    criterion->setParent(this);
 
     //make it draggable and droppable
     //setAcceptDrops(draggable);
-    this->criteriaType = criteriaType;
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     //initialize timer
@@ -118,7 +161,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(QWidget *parent, QString title, bool 
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
 
     QString priorityOrder = QString::number(this->priorityOrder);
-    priorityOrderLabel = new QLabel((m_precedence == GroupingCriteriaCard::Precedence::need? tr("Need") : tr("Want")) + " #" + priorityOrder);
+    priorityOrderLabel = new QLabel((criterion->precedence == Criterion::Precedence::need? tr("Need") : tr("Want")) + " #" + priorityOrder);
     priorityOrderLabel->setFixedWidth(75);
     priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
@@ -350,26 +393,26 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event)
 
 int GroupingCriteriaCard::getPriorityOrder() const
 {
-    return this->priorityOrder;
+    return priorityOrder;
 }
 
 void GroupingCriteriaCard::setPriorityOrder(int priorityOrder)
 {
     //qDebug() << "set priority for " << priorityOrder;
     this->priorityOrder = priorityOrder;
-    priorityOrderLabel->setText((m_precedence == GroupingCriteriaCard::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
+    priorityOrderLabel->setText((criterion->precedence == Criterion::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
     headerRowLayout->update();
 }
 
-GroupingCriteriaCard::Precedence GroupingCriteriaCard::getPrecedence() const
+Criterion::Precedence GroupingCriteriaCard::getPrecedence() const
 {
-    return m_precedence;
+    return criterion->precedence;
 }
 
-void GroupingCriteriaCard::setPrecedence(Precedence precedence)
+void GroupingCriteriaCard::setPrecedence(Criterion::Precedence precedence)
 {
-    m_precedence = precedence;
-    priorityOrderLabel->setText((precedence == GroupingCriteriaCard::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
+    criterion->precedence = precedence;
+    priorityOrderLabel->setText((precedence == Criterion::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
     headerRowLayout->update();
 }
 
@@ -409,5 +452,5 @@ bool GroupingCriteriaCard::isContainer() const
 
 QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
 {
-    return new GroupingCriteriaCard(parent);
+    return new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, parent);
 }

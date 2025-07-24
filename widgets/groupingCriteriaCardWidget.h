@@ -22,7 +22,7 @@
 #define GROUPINGCRITERIACARDWIDGET_H
 
 #include "criteria/criterion.h"
-#include "gruepr_globals.h"
+#include "dataOptions.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
 #include <QFrame>
 #include <QGridLayout>
@@ -41,12 +41,10 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
     //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSection")
 
 public:
-    enum class Precedence{need, want};
-    explicit GroupingCriteriaCard(QWidget* parent = nullptr, QString title = "", bool draggable = false,
-                                  CriteriaType criteriaType = CriteriaType::teamSize, Precedence precedence = Precedence::want);
+    explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, QWidget *parent = nullptr, QString title = "", bool draggable = false,
+                                  const DataOptions *const dataOptions = nullptr);
 
     Criterion *criterion = nullptr;
-    CriteriaType criteriaType;
 
     //QCheckBox *includePenaltyCheckBox = nullptr;
     void setContentAreaLayout(QLayout & contentLayout);
@@ -72,8 +70,8 @@ public:
     void dropEvent(QDropEvent *event);
     int getPriorityOrder() const;
     void setPriorityOrder(int priorityOrder);
-    Precedence getPrecedence() const;
-    void setPrecedence(Precedence precedence);
+    Criterion::Precedence getPrecedence() const;
+    void setPrecedence(Criterion::Precedence precedence);
 
 signals:
     void criteriaCardMoved(QPoint point);
@@ -86,7 +84,6 @@ public slots:
 
 private:
     int priorityOrder = 0;
-    Precedence m_precedence;
     QString title;
     QVBoxLayout* mainVerticalLayout = nullptr;
     QToolButton* toggleButton = nullptr;

@@ -2,10 +2,20 @@
 #define GENDERCRITERION_H
 
 #include "criterion.h"
-#include <QString>
+#include <QCheckBox>
+#include <QPushButton>
+
 class GenderCriterion : public Criterion {
 public:
-    GenderCriterion(float weight, bool penaltyStatus);
+    using Criterion::Criterion;
+
+    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
+
+    QCheckBox *isolatedWomen = nullptr;
+    QCheckBox *isolatedMen = nullptr;
+    QCheckBox *isolatedNonbinary = nullptr;
+    QCheckBox *mixedGender = nullptr;
+    QPushButton *complicatedGenderRule = nullptr;
 };
 
 #endif // GENDERCRITERION_H

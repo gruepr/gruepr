@@ -56,7 +56,7 @@ bool grueprGlobal::internetIsGood() {
     return !weGotProblems;
 }
 
-QString grueprGlobal::genderToString(Gender gender) {
+QString grueprGlobal::genderToString(const Gender gender) {
     switch (gender) {
         case Gender::woman: return "Woman";
         case Gender::man: return "Man";

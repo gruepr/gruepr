@@ -2,23 +2,20 @@
 #define GRUEPR_H
 
 #include <QMainWindow>
-#include "criteria/genderCriterion.h"
-#include "criteria/gradeBalanceCriterion.h"
-#include "criteria/multipleChoiceStyleCriterion.h"
-#include "criteria/preventedTeammatesCriterion.h"
-#include "criteria/requestedTeammatesCriterion.h"
-#include "criteria/requiredTeammatesCriterion.h"
-#include "criteria/scheduleCriterion.h"
-#include "criteria/singleURMIdentityCriterion.h"
 #include "csvfile.h"
 #include "dataOptions.h"
+#include "criteria/genderCriterion.h"
+#include "criteria/gradeBalanceCriterion.h"
+#include "criteria/multipleChoiceCriterion.h"
+#include "criteria/scheduleCriterion.h"
+#include "criteria/singleURMIdentityCriterion.h"
+#include "criteria/teammatesCriterion.h"
 #include "dialogs/progressDialog.h"
 #include "dialogs/attributeRulesDialog.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
-#include "widgets/attributeWidget.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QFuture>
@@ -120,7 +117,7 @@ private:
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                 float _teamScores[], float **_criteriaScores, bool **_availabilityChart, int *_penaltyPoints);
     inline static void getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, MultipleChoiceStyleCriterion *criterion,
+                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, MultipleChoiceCriterion *criterion,
                                          float *_criterionScore, const int attribute, std::multiset<int> &attributeLevelsInTeam,
                                          std::multiset<float> &timezoneLevelsInTeam, int *_penaltyPoints);
     inline static void getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
@@ -139,13 +136,13 @@ private:
                                          const TeamingOptions *const _teamingOptions, SingleURMIdentityCriterion *criterion,
                                          float *_criterionScore, int *_penaltyPoints);
     inline static void getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                  const TeamingOptions *const _teamingOptions, PreventedTeammatesCriterion *criterion,
+                                                  const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
                                                   float *_criterionScore, int *_penaltyPoints);
     inline static void getRequiredTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                 const TeamingOptions *const _teamingOptions, RequiredTeammatesCriterion *criterion,
+                                                 const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
                                                  float *_criterionScore, int *_penaltyPoints);
     inline static void getRequestedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                 const TeamingOptions *const _teamingOptions, RequestedTeammatesCriterion *criterion,
+                                                 const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
                                                   float *_criterionScore, int *_penaltyPoints);
     inline static void getGradeBalanceScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                   const TeamingOptions *const _teamingOptions, GradeBalanceCriterion *criterion,
@@ -167,54 +164,32 @@ private:
 
 
         //Criteria Cards
+    GroupingCriteriaCard *teamsizeCriteriaCard = nullptr;
+        QComboBox *teamSizeBox = nullptr;
+        QSpinBox *idealTeamSizeBox = nullptr;
+    GroupingCriteriaCard *sectionCriteriaCard = nullptr;
+        QComboBox *sectionSelectionBox = nullptr;
+    GroupingCriteriaCard *genderIdentityCriteriaCard = nullptr;
+    GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
+    QList<Criterion::CriteriaType> teammateRulesExistence;
+    QList<GroupingCriteriaCard*> initializedAttributeCriteriaCards;
+    QList<AttributeWidget*> attributeWidgets;
+        QList<int> addedAttributeNumbersList;
     QList<GroupingCriteriaCard*> criteriaCardsList;
     QPushButton *addNewCriteriaCardButton = nullptr;
     QMenu *addNewCriteriaMenu = nullptr;
-    void addCriteriaCard(CriteriaType criteriaType);
-    void addCriteriaCard(CriteriaType criteriaType, int attribute);
+    void addCriteriaCard(Criterion::CriteriaType criteriaType);
+    void addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute);
     void initializeCriteriaCardPriorities();
-    void updateIdentityCriteriaCard(GroupingCriteriaCard *identityCard, QString identity, bool addNewCriteria);
     void refreshCriteriaLayout();
-
-        //Single: Team Size Criteria Card
-    GroupingCriteriaCard *teamSizeCriteriaCard = nullptr;
-    QHBoxLayout *teamSizeContentAreaLayout = nullptr;
-    QComboBox *teamSizeBox = nullptr;
-    QSpinBox *idealTeamSizeBox = nullptr;
-
-        //Single: Section Criteria Card
-    GroupingCriteriaCard *sectionCriteriaCard = nullptr;
-    QHBoxLayout *sectionContentLayout = nullptr;
-    QPushButton *editSectionNameButton = nullptr;
-    QComboBox *sectionSelectionBox = nullptr;
-
-        //Multiple: Attribute Criteria Cards
-    QList<GroupingCriteriaCard *> initializedAttributeCriteriaCards;
-    QList<AttributeWidget *> attributeWidgets;          // these are 'hosted' on the attribute criteria cards
-    QList<int> addedAttributeNumbersList;
-
-        //Single: Gender Identity Card
-    GroupingCriteriaCard *genderIdentityCard = nullptr;
-    QCheckBox *isolatedWomen = nullptr;
-    QCheckBox *isolatedMen = nullptr;
-    QCheckBox *isolatedNonbinary = nullptr;
-    QCheckBox *mixedGender = nullptr;
-    QPushButton *complicatedGenderRule = nullptr;
 
         //Single: URM Identity Card
     GroupingCriteriaCard *urmIdentityCard = nullptr;
 
-        //Single: Meeting Schedule Criteria Card
-    GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
+        //Single: Grade Balance Criteria Card
     GroupingCriteriaCard *gradeBalanceCriteriaCard = nullptr;
     QDoubleSpinBox *minimumMeanGradeSpinBox = nullptr;
     QDoubleSpinBox *maximumMeanGradeSpinBox = nullptr;
-    QSpinBox *minMeetingTimes = nullptr;
-    QSpinBox *desiredMeetingTimes = nullptr;
-    QDoubleSpinBox *meetingLengthSpinBox = nullptr;
-
-        //Multiple: Required / Prevented / Requested Teammates
-    QList<CriteriaType> teammateRulesExistence;
 };
 
 #endif // GRUEPR_H

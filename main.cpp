@@ -35,6 +35,7 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
+//  - updated Qt to v6.9.1; updated c++ to c++20
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values in the studentRecord)
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
@@ -52,12 +53,10 @@ MELDING CHANGES FROM NIKHEN'S WORK:
 -- do for urm everything in parallel to gender:
   -- update addCriteriaCard for CriteriaType::urmIdentity
   -- do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
+  -- replace isolatedURMPrevented with urmIdentityRule != 1
 -- install mousewheelblocker on items in groupingcards
--- attributeSelected in teamingOptions should be bool instead of int?
--- in dataOptions:
-    QMap<Gender, int> countOfGenderIdentities; ***Need to add to JSON to/from
-    QMap<QString, int> countOfURMIdentities;   ***Need to add to JSON to/from
--- in teamingOptions, teamsTabITem, studentRecord, teamRecord: double check every item gets JSON to/from
+-- This seems incorrect: QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
+-- All the sizecriterion->ui should be moved into sizeCriterion functions
 
 dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
@@ -110,7 +109,7 @@ Implement avg. grade question/criterion
 //  - analyze for memory leaks
 //      - memory leak -> crash when loading large file, unloading, then repeating a few times
 //  - compile for webassembly, turn into a webapp
-//      - move from OpenMP to QThread or c++17 threads?
+//      - move from OpenMP to QThread or c++ threads?
 //
 //    NETWORK IMPLEMENTATION:
 //  - create timeout function to more nicely handle LMS connections

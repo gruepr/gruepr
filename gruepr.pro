@@ -42,7 +42,7 @@ macx: QMAKE_TARGET_BUNDLE_PREFIX = com.gruepr
 
 DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060500
 
-CONFIG += c++17
+CONFIG += c++20
 
 # remove possible other optimization flags
 QMAKE_CXXFLAGS_RELEASE -= -O
@@ -63,6 +63,10 @@ macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
 
 SOURCES += \
         criteria/genderCriterion.cpp \
+        criteria/multipleChoiceCriterion.cpp \
+        criteria/sectionCriterion.cpp \
+        criteria/teammatesCriterion.cpp \
+        criteria/teamsizeCriterion.cpp \
         csvfile.cpp \
         dataOptions.cpp \
         GA.cpp \
@@ -74,12 +78,7 @@ SOURCES += \
         surveyMakerWizard.cpp \
         teamingOptions.cpp \
         teamRecord.cpp \
-        criteria/criterion.cpp \
         criteria/gradeBalanceCriterion.cpp \
-        criteria/multipleChoiceStyleCriterion.cpp \
-        criteria/preventedTeammatesCriterion.cpp \
-        criteria/requestedTeammatesCriterion.cpp \
-        criteria/requiredTeammatesCriterion.cpp \
         criteria/scheduleCriterion.cpp \
         criteria/singleURMIdentityCriterion.cpp \
         dialogs/attributeRulesDialog.cpp \
@@ -126,6 +125,10 @@ SOURCES += \
 
 HEADERS += \
         criteria/genderCriterion.h \
+        criteria/multipleChoiceCriterion.h \
+        criteria/sectionCriterion.h \
+        criteria/teammatesCriterion.h \
+        criteria/teamsizeCriterion.h \
         csvfile.h \
         dataOptions.h \
         GA.h \
@@ -139,10 +142,6 @@ HEADERS += \
         teamRecord.h \
         criteria/criterion.h \
         criteria/gradeBalanceCriterion.h \
-        criteria/multipleChoiceStyleCriterion.h \
-        criteria/preventedTeammatesCriterion.h \
-        criteria/requestedTeammatesCriterion.h \
-        criteria/requiredTeammatesCriterion.h \
         criteria/scheduleCriterion.h \
         criteria/singleURMIdentityCriterion.h \
         dialogs/attributeRulesDialog.h \

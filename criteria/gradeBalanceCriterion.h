@@ -5,7 +5,9 @@
 class GradeBalanceCriterion : public Criterion
 {
 public:
-    GradeBalanceCriterion(float weight, bool penaltyStatus);
+    using Criterion::Criterion;
+
+    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
 };
 
 #endif // GRADEBALANCECRITERION_H

@@ -375,7 +375,6 @@ inline static const int TEAMINFO_SORT_ROLE = Qt::UserRole + 1;        // used wh
 inline static const int TEAM_NUMBER_ROLE = Qt::UserRole + 2;          // column 0 of the team info display tree, used when swapping teams or teammates
 inline static const int SORT_TO_END = MAX_TEAMS + 100;                // flag to indicate moving this team to the end in the display table
 
-enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion, scheduleMeetingTimes, requiredTeammates, preventedTeammates, requestedTeammates, gradeBalance};
 enum class GenderType {biol, adult, child, pronoun};
 //order of enum below MUST match order of options within the subsequent strings
 enum class Gender {woman, man, nonbinary, unknown};
@@ -731,7 +730,7 @@ namespace grueprGlobal {
      */
     float timeStringToHours(const QString &timeStr);
 
-    QString genderToString(Gender gender);
+    QString genderToString(const Gender gender);
     Gender stringToGender(const QString& genderStr);
 }
 

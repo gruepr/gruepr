@@ -24,7 +24,12 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         const QJsonArray gendersArray = jsonStudentRecord["genders"].toArray();
         gender.clear();
         for (const auto &val : gendersArray) {
-            gender << static_cast<Gender>(val.toInt());
+            if(val.isDouble()) {
+                gender << static_cast<Gender>(val.toInt());
+            }
+            else if(val.isString()) {
+                gender << grueprGlobal::stringToGender(val.toString());
+            }
         }
     }
     else {
@@ -33,13 +38,13 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
     }
     URM = jsonStudentRecord["URM"].toBool();
     timezone = jsonStudentRecord["timezone"].toDouble();
-    grade = jsonStudentRecord["grade"].toDouble();
     ambiguousSchedule = jsonStudentRecord["ambiguousSchedule"].toBool();
     surveyTimestamp = QDateTime::fromString(jsonStudentRecord["surveyTimestamp"].toString(), Qt::ISODate);
     firstname = jsonStudentRecord["firstname"].toString();
     lastname = jsonStudentRecord["lastname"].toString();
     email = jsonStudentRecord["email"].toString();
     section = jsonStudentRecord["section"].toString();
+    grade = jsonStudentRecord["grade"].toDouble();
     prefTeammates = jsonStudentRecord["prefTeammates"].toString();
     prefNonTeammates = jsonStudentRecord["prefNonTeammates"].toString();
     notes = jsonStudentRecord["notes"].toString();
@@ -621,7 +626,6 @@ QJsonObject StudentRecord::toJson() const
         {"URM", URM},
         {"unavailable", unavailableArray},
         {"timezone", timezone},
-        {"grade", grade},
         {"ambiguousSchedule", ambiguousSchedule},
         {"preventedWithIDs", preventedWithArray},
         {"requiredWithIDs", requiredWithArray},
@@ -632,6 +636,7 @@ QJsonObject StudentRecord::toJson() const
         {"lastname", lastname},
         {"email", email},
         {"section", section},
+        {"grade", grade},
         {"prefTeammates", prefTeammates},
         {"prefNonTeammates", prefNonTeammates},
         {"notes", notes},
