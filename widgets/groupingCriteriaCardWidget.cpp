@@ -21,7 +21,7 @@
 #include "groupingCriteriaCardWidget.h"
 #include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
-#include "criteria/multipleChoiceCriterion.h"
+#include "criteria/attributeCriterion.h"
 #include "criteria/TeammatesCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/sectionCriterion.h"
@@ -29,47 +29,50 @@
 #include "criteria/teamsizeCriterion.h"
 #include <QPropertyAnimation>
 
-GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, QWidget *parent, QString title, bool draggable, const DataOptions *const dataOptions)
+GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
+                                           QWidget *parent, QString title, bool draggable)
     : QFrame(parent)
 {
     switch(criterionType) {
     case Criterion::CriteriaType::section:
-        criterion = new SectionCriterion(Criterion::CriteriaType::section, 0, true, this);
+        criterion = new SectionCriterion(criterionType, 0, true, this);
+        criterion->precedence = Criterion::Precedence::need;
         break;
     case Criterion::CriteriaType::teamSize:
-        criterion = new TeamsizeCriterion(Criterion::CriteriaType::teamSize, 0, true, this);
+        criterion = new TeamsizeCriterion(criterionType, 0, true, this);
+        criterion->precedence = Criterion::Precedence::need;
         break;
     case Criterion::CriteriaType::genderIdentity:
-        criterion = new GenderCriterion(Criterion::CriteriaType::genderIdentity, 0, false, this);
+        criterion = new GenderCriterion(criterionType, 0, false, this);
         break;
     case Criterion::CriteriaType::urmIdentity:
-        //criterion = new SingleURMIdentityCriterion(Criterion::CriteriaType::urmIdentity, 0, true, this);
+        criterion = new SingleURMIdentityCriterion(criterionType, 0, false, this);
         break;
     case Criterion::CriteriaType::attributeQuestion:
-        criterion = new MultipleChoiceStyleCriterion(Criterion::CriteriaType::attributeQuestion, 0, false, this);
-        break;
+        if(dataOptions != nullptr) {
+            criterion = new AttributeCriterion(dataOptions, criterionType, 0, false, this);
+            break;
+        }
+        else {
+            return;
+        }
     case Criterion::CriteriaType::scheduleMeetingTimes:
         if(dataOptions != nullptr) {
-            criterion = new ScheduleCriterion(dataOptions, Criterion::CriteriaType::scheduleMeetingTimes, 0, false, this);
+            criterion = new ScheduleCriterion(dataOptions, criterionType, 0, false, this);
             break;
         }
         else {
             return;
         }
     case Criterion::CriteriaType::requiredTeammates:
-        criterion = new TeammatesCriterion(Criterion::CriteriaType::requiredTeammates, 0, true, this);
-        break;
     case Criterion::CriteriaType::preventedTeammates:
-        criterion = new TeammatesCriterion(Criterion::CriteriaType::preventedTeammates, 0, true, this);
-        break;
     case Criterion::CriteriaType::requestedTeammates:
-        criterion = new TeammatesCriterion(Criterion::CriteriaType::requestedTeammates, 0, true, this);
+        criterion = new TeammatesCriterion(criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::gradeBalance:
-        criterion = new GradeBalanceCriterion(Criterion::CriteriaType::gradeBalance, 0, false, this);
+        criterion = new GradeBalanceCriterion(criterionType, 0, false, this);
         break;
     }
-    criterion->setParent(this);
 
     //make it draggable and droppable
     //setAcceptDrops(draggable);
@@ -212,6 +215,13 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     connect(dragHandleButton, &QToolButton::released, this, &QFrame::unsetCursor);
     //set initial toggle to be true
     toggleButton->setChecked(true);
+
+    if(criterion != nullptr) {
+        criterion->setParent(this);
+        if(teamingOptions != nullptr) {
+            criterion->generateCriteriaCard(teamingOptions);
+        }
+    }
 }
 
 // QPushButton* GroupingCriteriaCard::getDeleteButton(){
@@ -452,5 +462,5 @@ bool GroupingCriteriaCard::isContainer() const
 
 QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
 {
-    return new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, parent);
+    return new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, nullptr, nullptr, parent);
 }

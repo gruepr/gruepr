@@ -7,11 +7,13 @@
 #include <QSpinBox>
 
 class ScheduleCriterion : public Criterion {
+    Q_OBJECT
+
 public:
     ScheduleCriterion(const DataOptions *const dataOptions, CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr) :
         Criterion(criteriaType, weight, penaltyStatus, parent), dataOptions(dataOptions){ };
 
-    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
+    void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
 
     const DataOptions *const dataOptions;
     QSpinBox *minMeetingTimes = nullptr;

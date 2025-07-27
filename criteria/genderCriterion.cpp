@@ -3,7 +3,7 @@
 #include "teamingOptions.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 
-void GenderCriterion::generateCriteriaCard(const TeamingOptions *const teamingOptions)
+void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *genderContentLayout = new QVBoxLayout();

@@ -14,7 +14,6 @@
 #include <QMap>
 #include <QList>
 #include <QString>
-#include <QDebug>
 
 class IdentityRulesDialog : public QDialog
 {

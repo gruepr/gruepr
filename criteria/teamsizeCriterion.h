@@ -6,10 +6,12 @@
 #include <QSpinBox>
 
 class TeamsizeCriterion : public Criterion {
+    Q_OBJECT
+
 public:
     using Criterion::Criterion;
 
-    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
+    void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
 
     QComboBox *teamSizeBox = nullptr;
     QSpinBox *idealTeamSizeBox = nullptr;

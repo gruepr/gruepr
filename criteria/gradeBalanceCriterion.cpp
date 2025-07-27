@@ -1,4 +1,14 @@
 #include "gradeBalanceCriterion.h"
+#include "gruepr_globals.h"
+#include "teamingOptions.h"
+#include "widgets/groupingCriteriaCardWidget.h"
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
-GradeBalanceCriterion::GradeBalanceCriterion(float weight, bool penaltyStatus)
-    : Criterion(weight, penaltyStatus) {}
+void GradeBalanceCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
+{
+    parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
+
+    QVBoxLayout *ContentLayout = new QVBoxLayout();
+    parentCard->setContentAreaLayout(*ContentLayout);
+}

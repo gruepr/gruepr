@@ -2,12 +2,13 @@
 #define GRADEBALANCECRITERION_H
 
 #include "criteria/criterion.h"
-class GradeBalanceCriterion : public Criterion
-{
+class GradeBalanceCriterion : public Criterion {
+    Q_OBJECT
+
 public:
     using Criterion::Criterion;
 
-    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
+    void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
 };
 
 #endif // GRADEBALANCECRITERION_H

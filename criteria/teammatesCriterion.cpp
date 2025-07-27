@@ -3,7 +3,7 @@
 #include "widgets/groupingCriteriaCardWidget.h"
 #include <QVBoxLayout>
 
-void TeammatesCriterion::generateCriteriaCard(const TeamingOptions *const teamingOptions)
+void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
     auto *requiredTeammatesContentAreaLayout = new QVBoxLayout();

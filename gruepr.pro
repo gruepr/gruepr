@@ -62,8 +62,8 @@ macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
 #macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib #needed for homebrew clang
 
 SOURCES += \
+        criteria/attributeCriterion.cpp \
         criteria/genderCriterion.cpp \
-        criteria/multipleChoiceCriterion.cpp \
         criteria/sectionCriterion.cpp \
         criteria/teammatesCriterion.cpp \
         criteria/teamsizeCriterion.cpp \
@@ -124,8 +124,8 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+        criteria/attributeCriterion.h \
         criteria/genderCriterion.h \
-        criteria/multipleChoiceCriterion.h \
         criteria/sectionCriterion.h \
         criteria/teammatesCriterion.h \
         criteria/teamsizeCriterion.h \

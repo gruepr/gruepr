@@ -22,10 +22,10 @@ public:
     CriteriaType criteriaType;
 
     Criterion(CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr) :
-                weight(weight), penaltyStatus(penaltyStatus), criteriaType(criteriaType), parentCard(parent) {};
+        weight(weight), penaltyStatus(penaltyStatus), criteriaType(criteriaType), parentCard(parent) {};
     virtual ~Criterion() = default;
 
-    virtual void generateCriteriaCard(const TeamingOptions *const teamingOptions) = 0;
+    virtual void generateCriteriaCard(TeamingOptions *const teamingOptions) = 0;
 
 protected:
     GroupingCriteriaCard *parentCard;

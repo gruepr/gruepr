@@ -23,6 +23,7 @@
 
 #include "criteria/criterion.h"
 #include "dataOptions.h"
+#include "teamingOptions.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
 #include <QFrame>
 #include <QGridLayout>
@@ -41,8 +42,12 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
     //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSection")
 
 public:
-    explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, QWidget *parent = nullptr, QString title = "", bool draggable = false,
-                                  const DataOptions *const dataOptions = nullptr);
+    explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
+                                  QWidget *parent = nullptr, QString title = "", bool draggable = false);
+    GroupingCriteriaCard(const GroupingCriteriaCard&) = delete;
+    GroupingCriteriaCard operator= (const GroupingCriteriaCard&) = delete;
+    GroupingCriteriaCard(GroupingCriteriaCard&&) = delete;
+    GroupingCriteriaCard& operator= (GroupingCriteriaCard&&) = delete;
 
     Criterion *criterion = nullptr;
 

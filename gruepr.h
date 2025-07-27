@@ -6,7 +6,7 @@
 #include "dataOptions.h"
 #include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
-#include "criteria/multipleChoiceCriterion.h"
+#include "criteria/attributeCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/singleURMIdentityCriterion.h"
 #include "criteria/teammatesCriterion.h"
@@ -117,7 +117,7 @@ private:
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
                                 float _teamScores[], float **_criteriaScores, bool **_availabilityChart, int *_penaltyPoints);
     inline static void getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, MultipleChoiceCriterion *criterion,
+                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, AttributeCriterion *criterion,
                                          float *_criterionScore, const int attribute, std::multiset<int> &attributeLevelsInTeam,
                                          std::multiset<float> &timezoneLevelsInTeam, int *_penaltyPoints);
     inline static void getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],

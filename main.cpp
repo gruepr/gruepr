@@ -55,7 +55,6 @@ MELDING CHANGES FROM NIKHEN'S WORK:
   -- do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
   -- replace isolatedURMPrevented with urmIdentityRule != 1
 -- install mousewheelblocker on items in groupingcards
--- This seems incorrect: QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
 -- All the sizecriterion->ui should be moved into sizeCriterion functions
 
 dialogs/loaddatadialog.cpp: needs complete overhaul
@@ -79,7 +78,6 @@ Related to groupingCriteriaCardWidget:
 
 Removed lines marked //FROMDEV
 Does teamingoptions now include which criteria are being scored?
-Make criteriaType enum (in criterion.h) and use to unify void addCriteriaCard() in gruepr.h/cpp
 Implement avg. grade question/criterion
 
 */

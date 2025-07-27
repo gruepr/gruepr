@@ -7,10 +7,12 @@
 #include <QComboBox>
 
 class SectionCriterion : public Criterion {
+    Q_OBJECT
+
 public:
     using Criterion::Criterion;
 
-    void generateCriteriaCard(const TeamingOptions *const teamingOptions) override;
+    void generateCriteriaCard(TeamingOptions *const teamingOptions) override;
 
     DataOptions *dataOptions = nullptr;
     QPushButton *editSectionNameButton = nullptr;

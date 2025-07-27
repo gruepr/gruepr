@@ -5,7 +5,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-void ScheduleCriterion::generateCriteriaCard(const TeamingOptions *const teamingOptions)
+void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
@@ -37,7 +37,6 @@ void ScheduleCriterion::generateCriteriaCard(const TeamingOptions *const teaming
     meetingLengthSpinBox->setDecimals(2);
     parentCard->setContentAreaLayout(*meetingScheduleContentLayout);
 
-    //from loadUI()
     if(!dataOptions->dayNames.isEmpty()) {
         minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
         minMeetingTimes->setValue(teamingOptions->minTimeBlocksOverlap);
@@ -59,4 +58,27 @@ void ScheduleCriterion::generateCriteriaCard(const TeamingOptions *const teaming
         meetingLengthSpinBox->setMinimum(dataOptions->scheduleResolution);
         //ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
     }
+
+    connect(minMeetingTimes, &QSpinBox::valueChanged, this, [this, &teamingOptions]() {
+        teamingOptions->minTimeBlocksOverlap = (minMeetingTimes->value());
+        if (desiredMeetingTimes->value() < (minMeetingTimes->value())) {
+            desiredMeetingTimes->setValue(minMeetingTimes->value());
+        }
+    });
+
+    connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this, &teamingOptions]() {
+        teamingOptions->desiredTimeBlocksOverlap = (desiredMeetingTimes->value());
+        if (minMeetingTimes->value() > (desiredMeetingTimes->value())) {
+            minMeetingTimes->setValue(desiredMeetingTimes->value());
+        }
+    });
+
+    connect(meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this, &teamingOptions]() {
+        teamingOptions->meetingBlockSize = (meetingLengthSpinBox->value());
+        meetingLengthSpinBox->setSuffix(meetingLengthSpinBox->value() > 1 ? tr(" hours") : tr(" hour"));
+        if (dataOptions && !dataOptions->timeNames.empty() && !dataOptions->dayNames.empty()) {
+            minMeetingTimes->setMaximum(std::max(0.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
+            desiredMeetingTimes->setMaximum(std::max(1.0, int(dataOptions->timeNames.size() * dataOptions->dayNames.size()) / (meetingLengthSpinBox->value())));
+        }
+    });
 }
