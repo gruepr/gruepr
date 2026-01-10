@@ -59,21 +59,21 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
         //ui->scheduleWeight->setValue(teamingOptions->scheduleWeight);
     }
 
-    connect(minMeetingTimes, &QSpinBox::valueChanged, this, [this, &teamingOptions]() {
+    connect(minMeetingTimes, &QSpinBox::valueChanged, this, [this, teamingOptions]() {
         teamingOptions->minTimeBlocksOverlap = (minMeetingTimes->value());
         if (desiredMeetingTimes->value() < (minMeetingTimes->value())) {
             desiredMeetingTimes->setValue(minMeetingTimes->value());
         }
     });
 
-    connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this, &teamingOptions]() {
+    connect(desiredMeetingTimes, &QSpinBox::valueChanged, this, [this, teamingOptions]() {
         teamingOptions->desiredTimeBlocksOverlap = (desiredMeetingTimes->value());
         if (minMeetingTimes->value() > (desiredMeetingTimes->value())) {
             minMeetingTimes->setValue(desiredMeetingTimes->value());
         }
     });
 
-    connect(meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this, &teamingOptions]() {
+    connect(meetingLengthSpinBox, &QDoubleSpinBox::valueChanged, this, [this, teamingOptions]() {
         teamingOptions->meetingBlockSize = (meetingLengthSpinBox->value());
         meetingLengthSpinBox->setSuffix(meetingLengthSpinBox->value() > 1 ? tr(" hours") : tr(" hour"));
         if (dataOptions && !dataOptions->timeNames.empty() && !dataOptions->dayNames.empty()) {

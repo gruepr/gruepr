@@ -1564,7 +1564,7 @@ QStringList TeamsTabItem::createStdFileContents()
         genderOptions = QString(CHILDGENDERS7CHAR).split('/');
     }
     else { //if(teams.dataOptions.genderType == GenderType::pronoun)
-        genderOptions = QString(PRONOUNS7CHAR).split('/');
+        genderOptions = QString(PRONOUNS9CHAR).split('/');
     }
 
     // get team numbers in the order that they are currently displayed/sorted
@@ -1775,7 +1775,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         genderOptions = QString(CHILDGENDERS7CHAR).split('/');
     }
     else { //if(teams.dataOptions.genderType == GenderType::pronoun)
-        genderOptions = QString(PRONOUNS7CHAR).split('/');
+        genderOptions = QString(PRONOUNS9CHAR).split('/');
     }
 
     // get team numbers in the order that they are currently displayed/sorted

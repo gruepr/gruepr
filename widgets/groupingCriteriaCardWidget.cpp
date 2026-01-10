@@ -36,14 +36,14 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     switch(criterionType) {
     case Criterion::CriteriaType::section:
         criterion = new SectionCriterion(criterionType, 0, true, this);
-        criterion->precedence = Criterion::Precedence::need;
+        criterion->precedence = Criterion::Precedence::fixed;
         break;
     case Criterion::CriteriaType::teamSize:
         criterion = new TeamsizeCriterion(criterionType, 0, true, this);
-        criterion->precedence = Criterion::Precedence::need;
+        criterion->precedence = Criterion::Precedence::fixed;
         break;
     case Criterion::CriteriaType::genderIdentity:
-        criterion = new GenderCriterion(criterionType, 0, false, this);
+        criterion = new GenderCriterion(criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::urmIdentity:
         criterion = new SingleURMIdentityCriterion(criterionType, 0, false, this);
@@ -164,10 +164,26 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
 
     QString priorityOrder = QString::number(this->priorityOrder);
-    priorityOrderLabel = new QLabel((criterion->precedence == Criterion::Precedence::need? tr("Need") : tr("Want")) + " #" + priorityOrder);
-    priorityOrderLabel->setFixedWidth(75);
+    priorityOrderLabel = new QLabel;
+    QString labelText;
+    switch(criterion->precedence) {
+        case Criterion::Precedence::fixed:
+            labelText = "";
+            priorityOrderLabel->setFixedWidth(5);
+        break;
+        case Criterion::Precedence::need:
+            labelText = "# " + priorityOrder + " - " + tr("Need");
+            priorityOrderLabel->setFixedWidth(75);
+            priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+        case Criterion::Precedence::want:
+            labelText = "# " + priorityOrder + " - " + tr("Want");
+            priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+            priorityOrderLabel->setFixedWidth(75);
+        break;
+    }
+    priorityOrderLabel->setText(labelText);
     priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-    priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
     priorityOrderLabel->setStyleSheet("border: none");
 
     headerRowLayout = new QHBoxLayout();
@@ -410,7 +426,21 @@ void GroupingCriteriaCard::setPriorityOrder(int priorityOrder)
 {
     //qDebug() << "set priority for " << priorityOrder;
     this->priorityOrder = priorityOrder;
-    priorityOrderLabel->setText((criterion->precedence == Criterion::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
+    QString labelText;
+    switch(criterion->precedence) {
+    case Criterion::Precedence::fixed:
+        labelText = "";
+        break;
+    case Criterion::Precedence::need:
+        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
+        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    case Criterion::Precedence::want:
+        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Want");
+        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    }
+    priorityOrderLabel->setText(labelText);
     headerRowLayout->update();
 }
 
@@ -422,12 +452,24 @@ Criterion::Precedence GroupingCriteriaCard::getPrecedence() const
 void GroupingCriteriaCard::setPrecedence(Criterion::Precedence precedence)
 {
     criterion->precedence = precedence;
-    priorityOrderLabel->setText((precedence == Criterion::Precedence::need? tr("Need") : tr("Want")) + " #" + QString::number(this->priorityOrder+1));
-    headerRowLayout->update();
+    QString labelText;
+    switch(criterion->precedence) {
+    case Criterion::Precedence::fixed:
+        labelText = "";
+        break;
+    case Criterion::Precedence::need:
+        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
+        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    case Criterion::Precedence::want:
+        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Want");
+        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        break;
+    }    headerRowLayout->update();
 }
 
 // --------------------------------------------------------------------------------
-//                          QCustomWidget nneded methods
+//                          QCustomWidget needed methods
 // --------------------------------------------------------------------------------
 
 QString GroupingCriteriaCard::name() const {

@@ -31,7 +31,7 @@ class SurveyMakerWizard : public QWizard
     Q_OBJECT
 
 public:
-    SurveyMakerWizard(QWidget *parent = nullptr);
+    SurveyMakerWizard();
     ~SurveyMakerWizard() override;
     SurveyMakerWizard(const SurveyMakerWizard&) = delete;
     SurveyMakerWizard operator= (const SurveyMakerWizard&) = delete;
@@ -66,9 +66,11 @@ public:
 
     QFileInfo saveFileLocation;
     bool previewPageVisited = false;
+    bool surveyHasBeenExported = false;
 
 public slots:
     void loadSurvey(int customButton);
+    void reject() override;
 };
 
 /**
@@ -579,7 +581,6 @@ private:
     QRadioButton *destinationCanvas = nullptr;
     QRadioButton *destinationTextFiles = nullptr;
     QRadioButton *destinationGrueprFile = nullptr;
-    bool surveyHasBeenExported = false;
 };
 
 

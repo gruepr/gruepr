@@ -1,7 +1,7 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // gruepr
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2019 - 2025
+// Copyright (C) 2019 - 2026
 // Joshua Hertz, Giovanni Assad, Nikhen Nyo
 // info@gruepr.com
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
 //  - updated Qt to v6.9.1; updated c++ to c++20
+//  - removed dark mode in windows
 //  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values in the studentRecord)
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
@@ -48,6 +49,9 @@
 //
 // INPROG:
 /*
+
+- move all of the connects related to ui of gender identity card (gruepr.cpp lines 299-345) into criteria/genderCriterion.cpp, using model found in scheduleCriterion.cpp
+- make diverse / similar radio button filled in when selected
 
 MELDING CHANGES FROM NIKHEN'S WORK:
 -- do for urm everything in parallel to gender:
@@ -83,8 +87,6 @@ Implement avg. grade question/criterion
 */
 //
 // TO DO:
-//    BUGFIXES:
-//
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
 //  - identity rules add >, >=, <, <=
@@ -134,6 +136,10 @@ Implement avg. grade question/criterion
 int main(int argc, char *argv[])
 {
     // Set up application
+    #if (defined (Q_OS_WIN) || defined (Q_OS_WIN32) || defined (Q_OS_WIN64))
+        // remove darkmode on Windows
+        qputenv("QT_QPA_PLATFORM", "windows:darkmode=0");
+    #endif
     const QApplication a(argc, argv);
     QApplication::setOrganizationName("gruepr");
     QApplication::setApplicationName("gruepr");

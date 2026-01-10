@@ -391,7 +391,7 @@ bool CanvasHandler::createSurvey(const QString &courseName, const Survey *const 
                 for(const auto &dayName : survey->schedDayNames) {
                     scheduleIntroStatement += " <u>[" + dayName + "]</u> ";
                 }
-                scheduleIntroStatement += "</strong>:";
+                scheduleIntroStatement += "</strong>. " + SCHEDULEQUESTIONINTRO3;
                 query.addQueryItem("question[question_text]", scheduleIntroStatement);
                 // post the question and then add a question for each day (final day will get posted outside of switch/case)
                 for(const auto &dayName : survey->schedDayNames) {

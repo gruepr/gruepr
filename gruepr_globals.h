@@ -140,7 +140,7 @@ inline static const char EDITREMOVEBUTTONSELECTEDSTYLE[] = "QPushButton {backgro
 inline static const char EDITREMOVEBUTTONDUPLICATESTYLE[] = "QPushButton {background-color: " STARFISHHEX "; border: none;}";
 inline static const char LABEL10PTSTYLE[] = "QLabel {color: " DEEPWATERHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                              "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
-inline static const char LABEL10PTMANDATORYSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: #ffcccc; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
+inline static const char LABEL10PTFIXEDSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: " TROPICALHEX "; font-size: 10pt; font-family: 'DM Sans'; border: none;}"
                                             "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
 inline static const char LABEL10PTWHITEBGSTYLE[] = "QLabel {color: " DEEPWATERHEX "; background-color: white; font-size: 10pt; font-family: 'DM Sans'; border-style: none;}"
                                                    "QLabel:disabled {color: darkGray; background-color: " TRANSPARENT "; font-size: 10pt; font-family: 'DM Sans'; border: none;}";
@@ -297,12 +297,12 @@ inline static const char BASICFRAME[] = "QFrame {"
                                        "    border: 2px solid rgba(128, 128, 128, 150);" // Grey dotted border
                                        "    border-radius: 10px;"  // Rounded corners
                                        "}";
-inline static const char MANDATORYFRAME[] = "QFrame {background-color: #ffcccc ; color: #ffcccc ; "
-                                       "border-top: 1px solid; border-right: 1px solid; "
-                                       "border-bottom: 1px solid; border-left: 1px solid;}"
-                                       "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
-                                       "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
-                                       "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
+inline static const char FIXEDCRITERIAFRAME[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; "
+                                                    "border-top: 1px solid; border-right: 1px solid; "
+                                                    "border-bottom: 1px solid; border-left: 1px solid;}"
+                                            "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;"
+                                                    "border-top: 1px solid #bebebe; border-right: 1px solid #bebebe; "
+                                                    "border-bottom: 1px solid #bebebe; border-left: 1px solid #bebebe;}";
 inline static const char BORDERLESSBLUEFRAME[] = "QFrame {background-color: " BUBBLYHEX "; color: " DEEPWATERHEX ";}"
                                                    "QFrame::disabled {background-color: #e6e6e6; color: #bebebe;}";
 inline static const char DATASOURCEFRAMESTYLE[] = "QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
@@ -391,7 +391,7 @@ inline static const char CHILDGENDERSPLURAL[] {"girls/boys/nonbinary/unknown"};
 inline static const char CHILDGENDERS7CHAR[] {" Girl  /  Boy  /Nonbin./Unknown"};
 inline static const char CHILDGENDERSINITIALS[] {"G/B/X/?"};
 inline static const char PRONOUNS[] {"she - her/he - him/they - them/unknown"};
-inline static const char PRONOUNS7CHAR[] {"she-her/he-him /they-th/Unknown"};
+inline static const char PRONOUNS9CHAR[] {" she-her / he-him  /they-them/ unknown "};
 inline static const char PRONOUNSINITIALS[] {"S/H/T/?"};
 //next two used to replace "unknown" for the response option in the survey
 inline static const char UNKNOWNVALUE[] {"unknown"};

@@ -37,6 +37,7 @@ public:
 
     inline static const QString SCHEDULEQUESTIONINTRO1{QObject::tr("The following ")};
     inline static const QString SCHEDULEQUESTIONINTRO2{QObject::tr(" questions ask about your schedule on ")};
+    inline static const QString SCHEDULEQUESTIONINTRO3{QObject::tr("You may leave a question blank as appropriate.")};
 
 private:
     void authenticateWithManualToken(const QString &token);

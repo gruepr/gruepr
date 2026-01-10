@@ -1,6 +1,6 @@
 gruepr
 
-Copyright (C) 2019-2025, Joshua Hertz < info@gruepr.com >, Giovanni Assad, Nikhen Nyo
+Copyright (C) 2019-2026, Joshua Hertz < info@gruepr.com >, Giovanni Assad, Nikhen Nyo
 
 ---------------
 Description of gruepr:

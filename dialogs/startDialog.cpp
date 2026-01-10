@@ -180,11 +180,14 @@ StartDialog::StartDialog(QWidget *parent)
 
 
 void StartDialog::openSurveyMaker() {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard);
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+    const QScopedPointer<SurveyMakerWizard> surveyMakerWizard(new SurveyMakerWizard());
+    surveyMakerWizard->show();
     this->hide();
     QApplication::restoreOverrideCursor();
-    surveyMakerWizard->exec();
+    QEventLoop loop;
+    connect(surveyMakerWizard.data(), &QWizard::finished, &loop, &QEventLoop::quit);
+    loop.exec();
     this->show();
 }
 

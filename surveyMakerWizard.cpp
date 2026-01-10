@@ -17,15 +17,15 @@
 #include <QTimer>
 #include <QToolTip>
 
-SurveyMakerWizard::SurveyMakerWizard(QWidget *parent)
-    : QWizard(parent)
+SurveyMakerWizard::SurveyMakerWizard()
+    : QWizard()
 {
     setWindowTitle(tr("gruepr - Make a survey"));
     setWizardStyle(QWizard::ModernStyle);
     setMinimumWidth(800);
     setMinimumHeight(600);
     setWindowFlag(Qt::CustomizeWindowHint, true);
-    setWindowFlag(Qt::WindowCloseButtonHint, false);
+    //setWindowFlag(Qt::WindowCloseButtonHint, false);
 
     const QSettings savedSettings;
     restoreGeometry(savedSettings.value("surveyMakerWindowGeometry").toByteArray());
@@ -261,6 +261,20 @@ void SurveyMakerWizard::loadSurvey(int customButton)
     }
 }
 
+void SurveyMakerWizard::reject() {
+    if(!previewPageVisited || surveyHasBeenExported) {
+        QDialog::reject();
+    }
+    else {
+        const bool okClose = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                          tr("You have not yet exported or saved this survey.\n"
+                                                             "Do you want to close?"),
+                                                          tr("Close"), tr("Go back"));
+        if(okClose) {
+            QDialog::reject();
+        }
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2026,14 +2040,13 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
 void PreviewAndExportPage::initializePage()
 {
     survey = new Survey;
-    surveyHasBeenExported = false;
     auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
     wiz->previewPageVisited = true;
     QList<QWizard::WizardButton> buttonLayout;
     buttonLayout << QWizard::CancelButton << QWizard::Stretch << QWizard::BackButton << QWizard::NextButton;
     wiz->setButtonLayout(buttonLayout);
     wiz->button(QWizard::NextButton)->setStyleSheet(INVISBUTTONSTYLE);
-    wizard()->button(QWizard::CancelButton)->disconnect();
+/*    wizard()->button(QWizard::CancelButton)->disconnect();
     connect(wizard()->button(QWizard::CancelButton), &QPushButton::clicked, this, [this] {if(surveyHasBeenExported) {wizard()->reject();}
                                                                                           else {
                                                                                             const bool okClose = grueprGlobal::warningMessage(this, "Are you sure?",
@@ -2043,7 +2056,7 @@ void PreviewAndExportPage::initializePage()
                                                                                             if(okClose) {
                                                                                                 wizard()->reject();
                                                                                             }
-                                                                                          }});
+                                                                                          }});*/
     //Survey title
     const QString title = field("SurveyTitle").toString().trimmed();
     preSectionSpacer[0]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2560,7 +2573,8 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
             const QJsonDocument saveDoc(saveObject);
             saveFile.write(saveDoc.toJson());
             saveFile.close();
-            surveyHasBeenExported = true;
+            auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
+            wiz->surveyHasBeenExported = true;
         }
         else {
             grueprGlobal::errorMessage(this, tr("No Files Saved"), tr("This survey was not saved.\nThere was an issue writing the file to disk."));
@@ -2646,7 +2660,8 @@ void PreviewAndExportPage::exportSurveyDestinationTextFile()
     output2 << csvFileContents;
     saveFile.close();
     saveFile2.close();
-    surveyHasBeenExported = true;
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
+    wiz->surveyHasBeenExported = true;
 }
 
 /*
@@ -2722,7 +2737,8 @@ void PreviewAndExportPage::exportSurveyDestinationGoogle()
     });
     successDialog->exec();
     successDialog->deleteLater();
-    surveyHasBeenExported = true;
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
+    wiz->surveyHasBeenExported = true;
 }
 
 /*
@@ -2813,5 +2829,6 @@ void PreviewAndExportPage::exportSurveyDestinationCanvas()
     successDialog->setStandardButtons(QMessageBox::Ok);
     successDialog->exec();
     successDialog->deleteLater();
-    surveyHasBeenExported = true;
+    auto *wiz = qobject_cast<SurveyMakerWizard *>(wizard());
+    wiz->surveyHasBeenExported = true;
 }

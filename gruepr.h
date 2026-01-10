@@ -10,8 +10,8 @@
 #include "criteria/scheduleCriterion.h"
 #include "criteria/singleURMIdentityCriterion.h"
 #include "criteria/teammatesCriterion.h"
-#include "dialogs/progressDialog.h"
 #include "dialogs/attributeRulesDialog.h"
+#include "dialogs/progressDialog.h"
 #include "gruepr_globals.h"
 #include "studentRecord.h"
 #include "teamRecord.h"
@@ -66,7 +66,6 @@ private slots:
     void addAStudent();
     void compareStudentsToRoster();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
-    void simpleUIItemUpdate(QObject *sender = nullptr);
     void selectURMResponses();
     void responsesRulesButton_clicked(int attribute, AttributeRulesDialog::TypeOfRules typeOfRules);
     void changeIdealTeamSize();
@@ -114,42 +113,33 @@ private:
     progressDialog *progressWindow = nullptr;
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                float _teamScores[], float **_criteriaScores, bool **_availabilityChart, int *_penaltyPoints);
+                                const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
+                                std::vector<std::vector<float>> &_criteriaScores, std::vector<std::vector<bool>> &_availabilityChart, std::vector<int> &_penaltyPoints);
     inline static void getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                          const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, AttributeCriterion *criterion,
-                                         float *_criterionScore, const int attribute, std::multiset<int> &attributeLevelsInTeam,
-                                         std::multiset<float> &timezoneLevelsInTeam, int *_penaltyPoints);
-    inline static void getScheduleScores(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions,
-                                         float *_schedScore, bool **_availabilityChart, int *_penaltyPoints);
-    inline static void getGenderPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                          const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
-    inline static void getURMPenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                       int *_penaltyPoints);
-    inline static void getTeammatePenalties(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                            const TeamingOptions *const _teamingOptions, int *_penaltyPoints);
+                                         std::vector<float> &_criterionScore, const int attribute, std::multiset<int> &attributeLevelsInTeam,
+                                         std::multiset<float> &timezoneLevelsInTeam, std::vector<int> &_penaltyPoints);
+    inline static void getScheduleScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                        const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, ScheduleCriterion *criterion,
+                                        std::vector<float> &_criterionScore, std::vector<std::vector<bool>> &_availabilityChart, std::vector<int> &_penaltyPoints);
     inline static void getGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                       const TeamingOptions *const _teamingOptions, GenderCriterion *criterion,
-                                      float *_criterionScore, int *_penaltyPoints);
-    inline static void getSingleURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                         const TeamingOptions *const _teamingOptions, SingleURMIdentityCriterion *criterion,
-                                         float *_criterionScore, int *_penaltyPoints);
+                                      std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
+    inline static void getURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
+                                   const TeamingOptions *const _teamingOptions, SingleURMIdentityCriterion *criterion,
+                                   std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     inline static void getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                   const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                                  float *_criterionScore, int *_penaltyPoints);
+                                                  std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     inline static void getRequiredTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                  const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                                 float *_criterionScore, int *_penaltyPoints);
+                                                 std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     inline static void getRequestedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                  const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                                  float *_criterionScore, int *_penaltyPoints);
+                                                  std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     inline static void getGradeBalanceScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                   const TeamingOptions *const _teamingOptions, GradeBalanceCriterion *criterion,
-                                                  float *_criterionScore, int *_penaltyPoints);
-    inline static void getScheduleScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                  const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, ScheduleCriterion *criterion,
-                                                  float *_criterionScore, bool **_availabilityChart, int *_penaltyPoints);
+                                                  std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
