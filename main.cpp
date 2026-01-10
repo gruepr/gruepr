@@ -50,8 +50,6 @@
 // INPROG:
 /*
 
-- move all of the connects related to ui of gender identity card (gruepr.cpp lines 299-345) into criteria/genderCriterion.cpp, using model found in scheduleCriterion.cpp
-- make diverse / similar radio button filled in when selected
 
 MELDING CHANGES FROM NIKHEN'S WORK:
 -- do for urm everything in parallel to gender:
@@ -60,6 +58,8 @@ MELDING CHANGES FROM NIKHEN'S WORK:
   -- replace isolatedURMPrevented with urmIdentityRule != 1
 -- install mousewheelblocker on items in groupingcards
 -- All the sizecriterion->ui should be moved into sizeCriterion functions
+-- move all of the connects related to ui of gender identity card (gruepr.cpp lines 299-345) into criteria/genderCriterion.cpp, using model found in scheduleCriterion.cpp
+-- make diverse / similar radio button filled in when selected
 
 dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
@@ -90,7 +90,7 @@ Implement avg. grade question/criterion
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
 //  - identity rules add >, >=, <, <=
-//  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points
+//  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points)
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so

@@ -2397,9 +2397,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto *scores = new float[ga.populationsize];
     float *unusedTeamScores = nullptr;
-    std::vector<std::vector<float>> criteriaScores(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
-    std::vector<int> penaltyPoints(numTeams);
-    std::vector<std::vector<bool>> availabilityChart(dataOptions->dayNames.size(), std::vector<bool>(dataOptions->timeNames.size()));
+    std::vector<std::vector<float>> criteriaScores;
+    std::vector<std::vector<bool>> availabilityChart;
+    std::vector<int> penaltyPoints;
     bool unpenalizedGenomePresent = false;
     auto sharedStudents = students;
     auto sharedNumTeams = numTeams;
@@ -2413,6 +2413,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
         private(unusedTeamScores, criteriaScores, availabilityChart, penaltyPoints)
     {
         unusedTeamScores = new float[sharedNumTeams];
+        criteriaScores.resize(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
+        availabilityChart.resize(dataOptions->dayNames.size(), std::vector<bool>(dataOptions->timeNames.size()));
+        penaltyPoints.resize(numTeams);
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
@@ -2482,6 +2485,9 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
                 private(unusedTeamScores, criteriaScores, availabilityChart, penaltyPoints)
             {
                 unusedTeamScores = new float[sharedNumTeams];
+                criteriaScores.resize(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
+                availabilityChart.resize(dataOptions->dayNames.size(), std::vector<bool>(dataOptions->timeNames.size()));
+                penaltyPoints.resize(numTeams);
 #pragma omp for nowait
                 for(int genome = 0; genome < ga.populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
