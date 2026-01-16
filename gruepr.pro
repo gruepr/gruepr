@@ -62,6 +62,7 @@ macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
 #macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib #needed for homebrew clang
 
 SOURCES += \
+        criteria/URMIdentityCriterion.cpp \
         criteria/attributeCriterion.cpp \
         criteria/genderCriterion.cpp \
         criteria/sectionCriterion.cpp \
@@ -80,7 +81,6 @@ SOURCES += \
         teamRecord.cpp \
         criteria/gradeBalanceCriterion.cpp \
         criteria/scheduleCriterion.cpp \
-        criteria/singleURMIdentityCriterion.cpp \
         dialogs/attributeRulesDialog.cpp \
         dialogs/baseTimeZoneDialog.cpp \
         dialogs/categorizingDialog.cpp \
@@ -124,6 +124,7 @@ SOURCES += \
         widgets/teamTreeWidget.cpp
 
 HEADERS += \
+        criteria/URMIdentityCriterion.h \
         criteria/attributeCriterion.h \
         criteria/genderCriterion.h \
         criteria/sectionCriterion.h \
@@ -143,7 +144,6 @@ HEADERS += \
         criteria/criterion.h \
         criteria/gradeBalanceCriterion.h \
         criteria/scheduleCriterion.h \
-        criteria/singleURMIdentityCriterion.h \
         dialogs/attributeRulesDialog.h \
         dialogs/baseTimeZoneDialog.h \
         dialogs/categorizingDialog.h \

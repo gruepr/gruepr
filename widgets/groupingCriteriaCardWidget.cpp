@@ -25,12 +25,12 @@
 #include "criteria/TeammatesCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/sectionCriterion.h"
-#include "criteria/singleURMIdentityCriterion.h"
+#include "criteria/URMIdentityCriterion.h"
 #include "criteria/teamsizeCriterion.h"
 #include <QPropertyAnimation>
 
 GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
-                                           QWidget *parent, QString title, bool draggable)
+                                           QWidget *parent, QString title, bool draggable, const int attribute)
     : QFrame(parent)
 {
     switch(criterionType) {
@@ -43,14 +43,14 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         criterion->precedence = Criterion::Precedence::fixed;
         break;
     case Criterion::CriteriaType::genderIdentity:
-        criterion = new GenderCriterion(criterionType, 0, true, this);
+        criterion = new GenderCriterion(dataOptions, criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::urmIdentity:
-        criterion = new SingleURMIdentityCriterion(criterionType, 0, false, this);
+        criterion = new URMIdentityCriterion(dataOptions, criterionType, 0, false, this);
         break;
     case Criterion::CriteriaType::attributeQuestion:
-        if(dataOptions != nullptr) {
-            criterion = new AttributeCriterion(dataOptions, criterionType, 0, false, this);
+        if(dataOptions != nullptr && attribute != -1) {
+            criterion = new AttributeCriterion(dataOptions, criterionType, 0, false, this, attribute);
             break;
         }
         else {

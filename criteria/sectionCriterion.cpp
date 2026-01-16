@@ -20,6 +20,8 @@ void SectionCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions
     editSectionNameButton->setMinimumWidth(34);
     editSectionNameButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sectionSelectionBox = new QComboBox(parentCard);
+    sectionSelectionBox->installEventFilter(new MouseWheelBlocker(sectionSelectionBox));
+    sectionSelectionBox->setFocusPolicy(Qt::StrongFocus);
     sectionSelectionBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     sectionContentLayout->addWidget(sectionSelectionBox);

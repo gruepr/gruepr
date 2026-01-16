@@ -24,8 +24,10 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     }
 
     setTeammateRulesButton = new QPushButton(tr("Set") + type + tr("Teammate Rules"), parentCard);
+    setTeammateRulesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     setTeammateRulesButton->setMinimumHeight(30);
-
+    setTeammateRulesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     requiredTeammatesContentAreaLayout->addWidget(setTeammateRulesButton);
+    parentCard->setContentAreaLayout(*requiredTeammatesContentAreaLayout);
 }
 

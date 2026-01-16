@@ -8,7 +8,7 @@
 #include "criteria/gradeBalanceCriterion.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/scheduleCriterion.h"
-#include "criteria/singleURMIdentityCriterion.h"
+#include "criteria/URMIdentityCriterion.h"
 #include "criteria/teammatesCriterion.h"
 #include "dialogs/attributeRulesDialog.h"
 #include "dialogs/progressDialog.h"
@@ -66,8 +66,6 @@ private slots:
     void addAStudent();
     void compareStudentsToRoster();
     void rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable();
-    void selectURMResponses();
-    void responsesRulesButton_clicked(int attribute, AttributeRulesDialog::TypeOfRules typeOfRules);
     void changeIdealTeamSize();
     void chooseTeamSizes(int index);
     void startOptimization();
@@ -126,7 +124,7 @@ private:
                                       const TeamingOptions *const _teamingOptions, GenderCriterion *criterion,
                                       std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     inline static void getURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                   const TeamingOptions *const _teamingOptions, SingleURMIdentityCriterion *criterion,
+                                   const TeamingOptions *const _teamingOptions, URMIdentityCriterion *criterion,
                                    std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
     inline static void getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                                   const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,

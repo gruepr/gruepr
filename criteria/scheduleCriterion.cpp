@@ -21,6 +21,10 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
     desiredMeetingTimes->setPrefix(QString("Desired: "));
     desiredMeetingTimes->setValue(8);
     desiredMeetingTimes->setMinimum(1);
+    desiredMeetingTimes->installEventFilter(new MouseWheelBlocker(desiredMeetingTimes));
+    desiredMeetingTimes->setFocusPolicy(Qt::StrongFocus);
+    minMeetingTimes->installEventFilter(new MouseWheelBlocker(minMeetingTimes));
+    minMeetingTimes->setFocusPolicy(Qt::StrongFocus);
     minimumAndDesiredButtonLayout->addWidget(minMeetingTimes);
     minimumAndDesiredButtonLayout->addWidget(desiredMeetingTimes);
 
@@ -35,6 +39,8 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
     meetingLengthSpinBox->setSingleStep(0.25);
     meetingLengthSpinBox->setValue(1.0);
     meetingLengthSpinBox->setDecimals(2);
+    meetingLengthSpinBox->installEventFilter(new MouseWheelBlocker(meetingLengthSpinBox));
+    meetingLengthSpinBox->setFocusPolicy(Qt::StrongFocus);
     parentCard->setContentAreaLayout(*meetingScheduleContentLayout);
 
     if(!dataOptions->dayNames.isEmpty()) {

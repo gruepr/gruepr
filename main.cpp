@@ -50,48 +50,32 @@
 // INPROG:
 /*
 
-
 MELDING CHANGES FROM NIKHEN'S WORK:
--- do for urm everything in parallel to gender:
-  -- update addCriteriaCard for CriteriaType::urmIdentity
-  -- do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
-  -- replace isolatedURMPrevented with urmIdentityRule != 1
--- install mousewheelblocker on items in groupingcards
--- All the sizecriterion->ui should be moved into sizeCriterion functions
--- move all of the connects related to ui of gender identity card (gruepr.cpp lines 299-345) into criteria/genderCriterion.cpp, using model found in scheduleCriterion.cpp
--- make diverse / similar radio button filled in when selected
 
 dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
-
-dialogs/identityrulesdialog: needs complete overhaul, must accept wider variety of rules (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
-
-
-widgets/groupingCriteriaCardWidget: too tall (when expanded)
-
-
 gruepr.cpp:
-- NEED TO GO THROUGH!
-- ***attribute divers/similar is functional, but required/incompatible rules are not!
 - geometry bug when 'minimizing' the criterioncards (add new criteria button shrinks behind lower cards)
 Related to groupingCriteriaCardWidget:
 - fully implement "need" vs "want"
 - Make sure attribute weights are determined by card order
-
-
-Removed lines marked //FROMDEV
-Does teamingoptions now include which criteria are being scored?
-Implement avg. grade question/criterion
 
 */
 //
 // TO DO:
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
+//  -- do for urm everything in parallel to gender:
+//    - update addCriteriaCard for CriteriaType::urmIdentity
+//    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
+//    - replace isolatedURMPrevented with urmIdentityRule != 1
+//  - dialogs/identityrulesdialog: must accept wider variety of rules (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
 //  - identity rules add >, >=, <, <=
 //  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points)
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
+//  - make criteria disappear / reappear from add criteria button menu as they are added / deleted, rather than the clunky "already added" message
+//  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)

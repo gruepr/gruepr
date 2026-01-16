@@ -5,7 +5,8 @@
 #include "qscrollarea.h"
 #include "qspinbox.h"
 
-IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity, TeamingOptions *teamingOptions, DataOptions *dataOptions)
+IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
+                                         TeamingOptions *teamingOptions, const DataOptions *dataOptions)
     : QDialog(parent), mainLayout(new QVBoxLayout(this))
 {
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);

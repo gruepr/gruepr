@@ -9,17 +9,17 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
-class ResponseLabelBarGraph;
 
 class AttributeWidget : public QWidget
 {
 Q_OBJECT
 
 public:
-    explicit AttributeWidget(QWidget *parent = nullptr);
+    explicit AttributeWidget(int attribute, const DataOptions *const incomingDataOptions,
+                             TeamingOptions *const incomingTeamingOptions, QWidget *parent = nullptr);
 
-    void setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions);
-    void updateResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts={});
+    void setValues();
+    void updateResponses(const std::map<QString, int> &responseCounts={});
 
     QPushButton *setRequiredValuesButton = nullptr;
     QPushButton *setIncompatibleValuesButton = nullptr;
@@ -31,6 +31,9 @@ public:
 private:
     QVBoxLayout *responsesLayout = nullptr;
     QList<QWidget*> responseRows;
+    const int attribute;
+    const DataOptions *const dataOptions;
+    TeamingOptions *const teamingOptions;
 
     inline static const int BARGRAPHWIDTH = 40;
     inline static const QString DIVERSETOOLTIP = QObject::tr("Teammates will have a range of responses to this question.");

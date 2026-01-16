@@ -9,12 +9,12 @@ class AttributeCriterion : public Criterion {
     Q_OBJECT
 
 public:
-    AttributeCriterion(const DataOptions *const dataOptions, CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr) :
-        Criterion(criteriaType, weight, penaltyStatus, parent), dataOptions(dataOptions){ };
+    AttributeCriterion(const DataOptions *const dataOptions, CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr, const int attribute = 0) :
+        Criterion(criteriaType, weight, penaltyStatus, parent), dataOptions(dataOptions), attributeIndex(attribute){ };
 
     const DataOptions *const dataOptions;
     DataOptions::AttributeType typeOfAttribute;
-    int attributeIndex;
+    const int attributeIndex;
     AttributeWidget *attributeWidget = nullptr;
 
     void generateCriteriaCard(TeamingOptions *const teamingOptions) override;

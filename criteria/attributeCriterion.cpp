@@ -6,7 +6,7 @@ void AttributeCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
     auto *attributeContentLayout = new QHBoxLayout();
-    attributeWidget = new AttributeWidget(parentCard);
+    attributeWidget = new AttributeWidget(attributeIndex, dataOptions, teamingOptions, parentCard);
     attributeContentLayout->addWidget(attributeWidget);
 
     parentCard->setContentAreaLayout(*attributeContentLayout);

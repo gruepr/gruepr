@@ -1,9 +1,12 @@
 #include "attributeWidget.h"
+#include "dialogs/attributeRulesDialog.h"
 #include <QButtonGroup>
 #include <QGridLayout>
 #include <QPainter>
 
-AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
+AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomingDataOptions,
+                                 TeamingOptions *const incomingTeamingOptions, QWidget *parent)
+    : QWidget(parent), attribute(attribute), dataOptions(incomingDataOptions), teamingOptions(incomingTeamingOptions)
 {
     setContentsMargins(0,0,0,0);
 
@@ -44,7 +47,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     diverseButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     diverseLayout->addWidget(diverseButton, 0, Qt::AlignTop);
     diverseLayout->addWidget(diverseLabel,0,Qt::AlignBottom);
-    diverseCard->setStyleSheet(RADIOBUTTONCARDSELECTEDSSTYLE);
+    diverseCard->setStyleSheet(QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE);
     diverseButton->setChecked(true);
     connect(diverseCard, &FrameThatForwardsMouseClicks::clicked, diverseButton, &QRadioButton::click);
 
@@ -62,7 +65,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     similarButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     similarLayout->addWidget(similarButton, 0, Qt::AlignTop);
     similarLayout->addWidget(similarLabel,0,Qt::AlignBottom);
-    similarCard->setStyleSheet(RADIOBUTTONCARDUNSELECTEDSSTYLE);
+    similarCard->setStyleSheet(QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE);
     similarButton->setChecked(false);
     connect(similarCard, &FrameThatForwardsMouseClicks::clicked, similarButton, &QRadioButton::click);
 
@@ -75,15 +78,21 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     radioButtonGroup->addButton(diverseButton);
     connect(diverseButton, &QRadioButton::toggled, diverseCard, [this](bool checked) {
         diverseCard->setStyleSheet(checked ?
-                                       RADIOBUTTONCARDSELECTEDSSTYLE :
-                                       RADIOBUTTONCARDUNSELECTEDSSTYLE
+                                       QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
+                                       QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
                                    );
     });
     connect(similarButton, &QRadioButton::toggled, similarCard, [this](bool checked) {
         similarCard->setStyleSheet(checked ?
-                                       RADIOBUTTONCARDSELECTEDSSTYLE :
-                                       RADIOBUTTONCARDUNSELECTEDSSTYLE
+                                       QString() + RADIOBUTTONCARDSELECTEDSSTYLE + RADIOBUTTONSTYLE :
+                                       QString() + RADIOBUTTONCARDUNSELECTEDSSTYLE + RADIOBUTTONSTYLE
                                    );
+    });
+    connect(diverseButton, &QRadioButton::clicked, this, [this, attribute]() {
+        teamingOptions->attributeDiversity[attribute] = Criterion::AttributeDiversity::diverse;
+    });
+    connect(similarButton, &QRadioButton::clicked, this, [this, attribute]() {
+        teamingOptions->attributeDiversity[attribute] = Criterion::AttributeDiversity::similar;
     });
 
     attributeSettingsLayout->addLayout(attributeDiversityLayout, 2);
@@ -94,6 +103,42 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     setIncompatibleValuesButton = new QPushButton(tr("Separated Students"), this);
     setIncompatibleValuesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     setIncompatibleValuesButton->setToolTip(INCOMPATTOOLTIP);
+    connect(setRequiredValuesButton, &QPushButton::clicked, this, [this] {
+        const int currAttribute = this->attribute;
+
+        //Open specialized dialog box to collect attribute values that are required on each team
+        auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::required, this);
+
+        //If user clicks OK, replace with new sets of values
+        const int reply = win->exec();
+        if(reply == QDialog::Accepted) {
+            teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
+            teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+
+            teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
+            teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+        }
+
+        delete win;
+    });
+    connect(setIncompatibleValuesButton, &QPushButton::clicked, this, [this] {
+        const int currAttribute = this->attribute;
+
+        //Open specialized dialog box to collect attribute values that are required on each team
+        auto *win = new AttributeRulesDialog(currAttribute, *dataOptions, *teamingOptions, AttributeRulesDialog::TypeOfRules::incompatible, this);
+
+        //If user clicks OK, replace with new sets of values
+        const int reply = win->exec();
+        if(reply == QDialog::Accepted) {
+            teamingOptions->haveAnyRequiredAttributes[currAttribute] = !(win->requiredValues.isEmpty());
+            teamingOptions->requiredAttributeValues[currAttribute] = win->requiredValues;
+
+            teamingOptions->haveAnyIncompatibleAttributes[currAttribute] = !(win->incompatibleValues.isEmpty());
+            teamingOptions->incompatibleAttributeValues[currAttribute] = win->incompatibleValues;
+        }
+
+        delete win;
+    });
 
     attributeSettingsLayout->addWidget(setRequiredValuesButton, 1);
     QSpacerItem *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -102,7 +147,7 @@ AttributeWidget::AttributeWidget(QWidget *parent) : QWidget(parent)
     mainLayout->addLayout(attributeSettingsLayout, 3);
 }
 
-void AttributeWidget::setValues(int attribute, const DataOptions *const dataOptions, TeamingOptions *teamingOptions)
+void AttributeWidget::setValues()
 {
     if(attribute >= dataOptions->numAttributes) {
         diverseCard->setEnabled(false);
@@ -112,7 +157,7 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
         return;
     }
 
-    updateResponses(attribute, dataOptions);
+    updateResponses();
 
     if(dataOptions->attributeVals[attribute].size() == 1) {
         teamingOptions->attributeWeights[attribute] = 0;
@@ -133,7 +178,7 @@ void AttributeWidget::setValues(int attribute, const DataOptions *const dataOpti
     similarButton->setChecked(similar);
 }
 
-void AttributeWidget::updateResponses(int attribute, const DataOptions *const dataOptions, const std::map<QString, int> &responseCounts)
+void AttributeWidget::updateResponses(const std::map<QString, int> &responseCounts)
 {
     setUpdatesEnabled(false);
 

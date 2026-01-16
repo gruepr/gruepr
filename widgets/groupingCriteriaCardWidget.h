@@ -43,7 +43,7 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
 
 public:
     explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
-                                  QWidget *parent = nullptr, QString title = "", bool draggable = false);
+                                  QWidget *parent = nullptr, QString title = "", bool draggable = false, const int attribute = -1);
     GroupingCriteriaCard(const GroupingCriteriaCard&) = delete;
     GroupingCriteriaCard operator= (const GroupingCriteriaCard&) = delete;
     GroupingCriteriaCard(GroupingCriteriaCard&&) = delete;

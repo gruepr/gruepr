@@ -13,6 +13,8 @@ void TeamsizeCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
     teamSizeBox = new QComboBox(parentCard);
     teamSizeBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     teamSizeBox->setMinimumHeight(30);
+    teamSizeBox->installEventFilter(new MouseWheelBlocker(teamSizeBox));
+    teamSizeBox->setFocusPolicy(Qt::StrongFocus);
 
     idealTeamSizeBox = new QSpinBox(parentCard);
     idealTeamSizeBox->setValue(4);
@@ -21,6 +23,8 @@ void TeamsizeCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
     idealTeamSizeBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     idealTeamSizeBox->setMinimumHeight(30);
     idealTeamSizeBox->setMinimumWidth(50);
+    idealTeamSizeBox->installEventFilter(new MouseWheelBlocker(idealTeamSizeBox));
+    idealTeamSizeBox->setFocusPolicy(Qt::StrongFocus);
 
     teamSizeContentAreaLayout->addWidget(idealTeamSizeBox);
     teamSizeContentAreaLayout->addWidget(teamSizeBox);
