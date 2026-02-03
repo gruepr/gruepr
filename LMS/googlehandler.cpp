@@ -499,10 +499,10 @@ QString GoogleHandler::downloadSurveyResult(const QString &surveyName) {
     const QJsonArray responses = json_doc["responses"].toArray();
     QStringList allValuesInField;
     for(const auto &response : std::as_const(responses)) {
-        out << response.toObject()["lastSubmittedTime"].toString();
+        out << response.toObject().value("lastSubmittedTime").toString();
 
         //pull out the answer(s) to each question in order, joining the answers with a semicolon if >1
-        const QJsonObject answers = response.toObject()["answers"].toObject();
+        const QJsonObject answers = response.toObject().value("answers").toObject();
         for(const auto &question : std::as_const(questions)) {
             const QJsonArray nestedAnswers = answers[question.ID]["textAnswers"]["answers"].toArray();
             allValuesInField.clear();

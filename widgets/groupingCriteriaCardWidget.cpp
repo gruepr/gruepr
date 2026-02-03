@@ -22,7 +22,7 @@
 #include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
 #include "criteria/attributeCriterion.h"
-#include "criteria/TeammatesCriterion.h"
+#include "criteria/teammatesCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/sectionCriterion.h"
 #include "criteria/URMIdentityCriterion.h"

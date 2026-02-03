@@ -44,6 +44,7 @@
 //  - now shows bar graphs indicating how many students selected each multiple choice response
 //  - multiple choice response counts now correctly account for added / removed / edited students
 //  - several bugfixes related to resorting teams
+//  - added free response questions to surveymaker
 //  - Pulling in much of the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //
@@ -58,7 +59,6 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 gruepr.cpp:
 - geometry bug when 'minimizing' the criterioncards (add new criteria button shrinks behind lower cards)
 Related to groupingCriteriaCardWidget:
-- fully implement "need" vs "want"
 - Make sure attribute weights are determined by card order
 
 */
@@ -66,6 +66,7 @@ Related to groupingCriteriaCardWidget:
 // TO DO:
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
+//  - fully implement "need" vs "want"
 //  -- do for urm everything in parallel to gender:
 //    - update addCriteriaCard for CriteriaType::urmIdentity
 //    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString

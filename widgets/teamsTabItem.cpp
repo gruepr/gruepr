@@ -1501,7 +1501,7 @@ QStringList TeamsTabItem::createStdFileContents()
     if(teams.dataOptions.genderIncluded) {
         for(const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
             for(const auto [operation, values] : valMap.asKeyValueRange()) {
-                for(const auto value : values) {
+                for(const auto value : std::as_const(values)) {
                     instructorsFileContents += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
                                                           operation + " " + QString::number(value);
                 }
@@ -1712,7 +1712,7 @@ QString TeamsTabItem::createCustomFileContents(WhichFilesDialog::CustomFileOptio
         if(teams.dataOptions.genderIncluded) {
             for(const auto [gender, valMap] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
                 for(const auto [operation, values] : valMap.asKeyValueRange()) {
-                    for(const auto value : values) {
+                    for(const auto value : std::as_const(values)) {
                         customFileContents += "\n" + tr("Gender identity rule: ") + grueprGlobal::genderToString(gender) + " " +
                                               operation + " " + QString::number(value);
                     }

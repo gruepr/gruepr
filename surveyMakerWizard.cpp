@@ -43,6 +43,7 @@ SurveyMakerWizard::SurveyMakerWizard()
     setPage(Page::multichoice, new MultipleChoicePage);
     setPage(Page::schedule, new SchedulePage);
     setPage(Page::courseinfo, new CourseInfoPage);
+    setPage(Page::freeresponse, new FreeResponsePage);
     setPage(Page::previewexport, new PreviewAndExportPage);
 
     QList<QWizard::WizardButton> buttonLayout;
@@ -249,6 +250,20 @@ void SurveyMakerWizard::loadSurvey(int customButton)
                 setField("StudentNames", loadObject["StudentNames"].toString().split(','));
             }
 
+            if(loadObject.contains("numFreeResponseQuestions") && loadObject["numFreeResponseQuestions"].isDouble()) {
+                const int numFreeResponseQuestions = loadObject["numFreeResponseQuestions"].toInt();
+                setField("freeResponseNumQuestions", numFreeResponseQuestions);   // need to set the number before setting the texts, responses, or multis
+                QList<QString> freeResponseQuestionTexts;
+                for(int question = 0; question < numFreeResponseQuestions; question++) {
+                    freeResponseQuestionTexts << "";
+                    if(loadObject.contains("FreeResponse" + QString::number(question+1)+"Question") &&
+                        loadObject["FreeResponse" + QString::number(question+1)+"Question"].isString()) {
+                        freeResponseQuestionTexts.last() = loadObject["FreeResponse" + QString::number(question+1)+"Question"].toString();
+                    }
+                }
+                setField("freeResponseQuestionTexts", freeResponseQuestionTexts);
+            }
+
             loadFile.close();
 
             while(currentId() != SurveyMakerWizard::Page::previewexport) {
@@ -349,7 +364,7 @@ SurveyMakerPage::SurveyMakerPage(SurveyMakerWizard::Page page, QWidget *parent)
         layout->setColumnStretch(0,1);
         layout->setColumnStretch(1,1);
 
-        if(page != SurveyMakerWizard::Page::multichoice) {
+        if(page != SurveyMakerWizard::Page::multichoice && page != SurveyMakerWizard::Page::freeresponse) {
             for(int i = 0; i < numQuestions; i++) {
                 questions << new SurveyMakerQuestionWithSwitch;
                 questionPreviews << new QWidget;
@@ -424,7 +439,7 @@ IntroPage::IntroPage(QWidget *parent)
                               "<span style=\"font-family: 'Paytone One'; font-size: 24pt; color: white;\">"
                               "Make a survey with gruepr</span><br>"
                               "<span style=\"font-family: 'DM Sans'; font-size: 16pt; color: white;\">"
-                              "Creating optimal grueps is easy! Get started with our five step survey-making flow below.</span>"
+                              "Creating optimal grueps is easy! Get started with our survey-making flow below.</span>"
                               "</body></html>";
     banner->setText(labelText);
     banner->setAlignment(Qt::AlignCenter);
@@ -590,7 +605,7 @@ DemographicsPage::DemographicsPage(QWidget *parent)
     questionPreviews[gender]->hide();
     registerField("Gender", questions[gender], "value", "valueChanged");
     registerField("genderOptions", genderResponsesComboBox);
-    registerField("genderAllowMulti", genderResponsesAllowMulti);
+    registerField("GenderAllowMulti", genderResponsesAllowMulti);
 
     questions[urm]->setLabel(tr("Race / ethnicity"));
     questionPreviewTopLabels[urm]->setText(URMQUESTION);
@@ -855,7 +870,7 @@ void MultipleChoicePage::setQuestionTexts(const QList<QString> &newQuestionTexts
         multichoiceQuestions[i]->setQuestion(textWOQuotes);
         i++;
     }
-    while(i < MAX_ATTRIBUTES-1) {
+    while(i < (MAX_ATTRIBUTES - 1)) {
         multichoiceQuestions[i++]->setQuestion("");
     }
     emit questionTextsChanged(questionTexts);
@@ -1923,6 +1938,204 @@ bool CourseInfoPage::uploadRoster()
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+FreeResponsePage::FreeResponsePage(QWidget *parent)
+    : SurveyMakerPage(SurveyMakerWizard::Page::freeresponse, parent)
+{
+    auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
+
+    freeResponseInfoFrame = new QFrame(this);
+    freeResponseInfoFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
+    freeResponseInfoIcon = new LabelWithInstantTooltip("", this);
+    freeResponseInfoIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(20,20,Qt::KeepAspectRatio,Qt::SmoothTransformation));
+    freeResponseInfoIcon->setStyleSheet(BIGTOOLTIPSTYLE);
+    freeResponseInfoLabel = new LabelWithInstantTooltip(tr("These questions will not be used for grouping"));
+    freeResponseInfoLabel->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
+    freeResponseInfoLabel->setWordWrap(true);
+    const QString helpText = tr("<html><span style=\"color: black;\">You can ask your students any additional questions "
+                                "that you'd like here. The responses will be shown in gruepr, but cannot "
+                                "be used directly to help form the teams.</span></html>");
+    freeResponseInfoIcon->setToolTipText(helpText);
+    freeResponseInfoLabel->setToolTipText(helpText);
+    freeResponseInfoLayout = new QHBoxLayout(freeResponseInfoFrame);
+    freeResponseInfoLayout->addWidget(freeResponseInfoIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    freeResponseInfoLayout->addWidget(freeResponseInfoLabel, 1, Qt::AlignVCenter);
+    questionLayout->insertWidget(1, freeResponseInfoFrame);
+    questionLayout->insertSpacing(2, 10);
+
+    questionTexts.reserve(MAX_NOTES);
+    registerField("freeResponseNumQuestions", this, "numQuestions", "numQuestionsChanged");
+    registerField("freeResponseQuestionTexts", this, "questionTexts", "questionTextsChanged");
+
+    for(int i = 0; i < MAX_NOTES; i++) {
+        //add the question
+        spacers << new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        questionLayout->addSpacerItem(spacers.last());
+        freeResponseQuestions << new SurveyMakerFreeResponseQuestion(i + 1);
+        questionLayout->addWidget(freeResponseQuestions.last());
+        freeResponseQuestions.last()->hide();
+
+        //add the preview
+        questionPreviews << new QWidget;
+        questionPreviews.last()->setAttribute(Qt::WA_TransparentForMouseEvents);
+        questionPreviews.last()->setFocusPolicy(Qt::NoFocus);
+        questionPreviewLayouts << new QVBoxLayout;
+        questionPreviews.last()->setLayout(questionPreviewLayouts.last());
+        const QString fillInQuestion = "[" + tr("Question") + " " + QString::number(i + 1) + "]";
+        questionPreviewTopLabels << new QLabel(fillInQuestion);
+        questionPreviewTopLabels.last()->setStyleSheet(LABEL12PTSTYLE);
+        questionPreviewTopLabels.last()->setWordWrap(true);
+        questionPreviewLayouts.last()->addWidget(questionPreviewTopLabels.last());
+        questionPreviewLayouts.last()->addWidget(freeResponseQuestions.last()->previewWidget);
+        previewSeparators << new QFrame;
+        previewSeparators.last()->setStyleSheet("border-color: " DEEPWATERHEX);
+        previewSeparators.last()->setLineWidth(1);
+        previewSeparators.last()->setMidLineWidth(1);
+        previewSeparators.last()->setFrameShape(QFrame::HLine);
+        previewSeparators.last()->setFrameShadow(QFrame::Plain);
+        questionPreviewLayouts.last()->addWidget(previewSeparators.last());
+        previewLayout->insertWidget(i, questionPreviews.last());
+        questionPreviews.last()->hide();
+
+        //connect question to delete action and to updating the wizard fields and the preview
+        connect(freeResponseQuestions.last(), &SurveyMakerFreeResponseQuestion::deleteRequested, this, [this, i]{deleteAQuestion(i);});
+        questionTexts << "";
+        connect(freeResponseQuestions.last(), &SurveyMakerFreeResponseQuestion::questionChanged, this, [this, i, fillInQuestion](const QString &newText) {
+            QString textWOQuotes = newText;
+            textWOQuotes.replace('"', '\'');
+            questionTexts[i] = textWOQuotes;
+            questionPreviewTopLabels[i]->setText(newText.isEmpty()? fillInQuestion : textWOQuotes);
+        });
+    }
+
+    addQuestionButtonFrame = new QFrame(this);
+    addQuestionButtonFrame->setStyleSheet(BLUEFRAME);
+    addQuestionButtonLayout = new QHBoxLayout(addQuestionButtonFrame);
+    addQuestionButton = new QPushButton;
+    addQuestionButton->setStyleSheet(ADDBUTTONSTYLE);
+    addQuestionButton->setText(tr("Create another question"));
+    addQuestionButton->setIcon(QIcon(":/icons_new/addButton.png"));
+    connect(addQuestionButton, &QPushButton::clicked, this, &FreeResponsePage::addQuestion);
+    addQuestionButtonLayout->addWidget(addQuestionButton, 0, Qt::AlignVCenter);
+    questionLayout->addSpacing(10);
+    questionLayout->addWidget(addQuestionButtonFrame);
+    questionLayout->addItem(stretch);
+
+    addQuestion();
+}
+
+void FreeResponsePage::initializePage()
+{
+}
+
+void FreeResponsePage::cleanupPage()
+{
+}
+
+bool FreeResponsePage::validatePage()
+{
+    int freeResponsePageWOQuestionText = 0;
+    for(int questionNum = 0; questionNum < numQuestions; questionNum++) {
+        if(freeResponseQuestions[questionNum]->getQuestion().isEmpty()) {
+            freeResponsePageWOQuestionText++;
+        }
+    }
+
+    if(numQuestions == 1 && freeResponsePageWOQuestionText == 1) {
+        // just one empty question; default starting of this page, so assume they just clicked next and no problem
+        return true;
+    }
+
+    if(freeResponsePageWOQuestionText > 0) {
+        const bool continueOrNah = grueprGlobal::warningMessage(this, "Are you sure?",
+                                                                tr("You have one or more questions missing\nthe question text.") + ".\n",
+                                                                tr("Continue"), tr("Go back"));
+        if(!continueOrNah) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void FreeResponsePage::setNumQuestions(const int newNumQuestions)
+{
+    while(numQuestions > 0) {
+        deleteAQuestion(0);
+    }
+    while(numQuestions < newNumQuestions) {
+        addQuestion();
+    }
+    emit numQuestionsChanged(numQuestions);
+}
+
+int FreeResponsePage::getNumQuestions() const
+{
+    return numQuestions;
+}
+
+void FreeResponsePage::setQuestionTexts(const QList<QString> &newQuestionTexts)
+{
+    int i = 0;
+    for(const auto &newQuestionText : newQuestionTexts) {
+        if(i >= numQuestions) {
+            addQuestion();
+        }
+        QString textWOQuotes = newQuestionText;
+        textWOQuotes.replace('"', '\'');
+        freeResponseQuestions[i]->setQuestion(textWOQuotes);
+        i++;
+    }
+    while(i < MAX_NOTES) {
+        freeResponseQuestions[i++]->setQuestion("");
+    }
+    emit questionTextsChanged(questionTexts);
+}
+
+QList<QString> FreeResponsePage::getQuestionTexts() const
+{
+    return questionTexts;
+}
+
+void FreeResponsePage::addQuestion()
+{
+    spacers[numQuestions]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    freeResponseQuestions[numQuestions]->show();
+    questionPreviews[numQuestions]->show();
+
+    numQuestions++;
+
+    if(numQuestions == MAX_NOTES) {
+        addQuestionButton->setEnabled(false);
+        addQuestionButton->setToolTip(tr("Maximum number of questions reached."));
+    }
+}
+
+void FreeResponsePage::deleteAQuestion(int questionNum)
+{
+    //bump the data from every subsequent question up one
+    for(int i = questionNum; i < (numQuestions - 1); i++) {
+        freeResponseQuestions[i]->setQuestion(freeResponseQuestions[i+1]->getQuestion());
+    }
+
+    //clear the last question currently displayed, then hide it
+    freeResponseQuestions[numQuestions - 1]->setQuestion("");
+
+    spacers[numQuestions - 1]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    freeResponseQuestions[numQuestions - 1]->hide();
+    questionPreviews[numQuestions - 1]->hide();
+
+    numQuestions--;
+
+    if(numQuestions < MAX_NOTES) {
+        addQuestionButton->setEnabled(true);
+        addQuestionButton->setToolTip("");
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::previewexport, parent)
 {
@@ -2137,7 +2350,7 @@ void PreviewAndExportPage::initializePage()
         }
         for(const auto &genderOption : std::as_const(genderOptions)) {
             QWidget *option;
-            if(field("genderAllowMulti").toBool()) {
+            if(field("GenderAllowMulti").toBool()) {
                 option = new QCheckBox(genderOption);
             }
             else {
@@ -2146,7 +2359,7 @@ void PreviewAndExportPage::initializePage()
             section[SurveyMakerWizard::demographics]->questionGroupLayout[3]->addWidget(option);
         }
         section[SurveyMakerWizard::demographics]->questionGroupBox[3]->show();
-        survey->questions << Question(questionText, (field("genderAllowMulti").toBool()? Question::QuestionType::checkbox : Question::QuestionType::radiobutton), genderOptions);
+        survey->questions << Question(questionText, (field("GenderAllowMulti").toBool()? Question::QuestionType::checkbox : Question::QuestionType::radiobutton), genderOptions);
     }
     else {
         section[SurveyMakerWizard::demographics]->preQuestionSpacer[3]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -2453,6 +2666,44 @@ void PreviewAndExportPage::initializePage()
         preSectionSpacer[4]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         section[SurveyMakerWizard::courseinfo]->hide();
     }
+
+
+    //Free response
+    const int freeResponseNumQuestions = field("freeResponseNumQuestions").toInt();
+    const QStringList freeResponseQuestionTexts = field("freeResponseQuestionTexts").toStringList();
+
+    int actualNumFreeResponseQuestions = 0;
+    for(int questionNum = 0; questionNum < freeResponseNumQuestions; questionNum++) {
+        if(!freeResponseQuestionTexts[questionNum].isEmpty()) {
+            actualNumFreeResponseQuestions++;
+            section[SurveyMakerWizard::freeresponse]->preQuestionSpacer[questionNum]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            section[SurveyMakerWizard::freeresponse]->questionLabel[questionNum]->show();
+            section[SurveyMakerWizard::freeresponse]->questionLabel[questionNum]->setText(freeResponseQuestionTexts[questionNum]);
+            section[SurveyMakerWizard::freeresponse]->questionLineEdit[questionNum]->show();
+            survey->questions << Question(freeResponseQuestionTexts[questionNum], Question::QuestionType::longtext);
+        }
+        else {
+            section[SurveyMakerWizard::freeresponse]->preQuestionSpacer[questionNum]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+            section[SurveyMakerWizard::freeresponse]->questionLabel[questionNum]->hide();
+        }
+        section[SurveyMakerWizard::freeresponse]->questionGroupBox[questionNum]->hide();
+        section[SurveyMakerWizard::freeresponse]->questionComboBox[questionNum]->hide();
+    }
+    for(int i = actualNumFreeResponseQuestions; i < MAX_NOTES; i++) {
+        section[SurveyMakerWizard::freeresponse]->preQuestionSpacer[i]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::freeresponse]->questionLabel[i]->hide();
+        section[SurveyMakerWizard::freeresponse]->questionComboBox[i]->hide();
+        section[SurveyMakerWizard::freeresponse]->questionGroupBox[i]->hide();
+    }
+
+    if(actualNumFreeResponseQuestions > 0) {
+        preSectionSpacer[2]->changeSize(0, 10, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::freeresponse]->show();
+    }
+    else {
+        preSectionSpacer[2]->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        section[SurveyMakerWizard::freeresponse]->hide();
+    }
 }
 
 void PreviewAndExportPage::cleanupPage()
@@ -2569,6 +2820,13 @@ void PreviewAndExportPage::exportSurveyDestinationGrueprFile()
             saveObject["PreferredNonTeammates"] = field("PrefNonTeammate").toBool();
             saveObject["numPrefTeammates"] = field("numPrefTeammates").toInt();
             saveObject["StudentNames"] = field("StudentNames").toStringList().join(',');
+
+            const int numFreeResponseQuestions = field("freeResponseNumQuestions").toInt();
+            saveObject["numFreeResponseQuestions"] = numFreeResponseQuestions;
+            QList<QString> freeResponseQuestionTexts = field("freeResponseQuestionTexts").toStringList();
+            for(int question = 0; question < numFreeResponseQuestions; question++) {
+                saveObject["FreeResponse" + QString::number(question+1)+"Question"] = freeResponseQuestionTexts[question];
+            }
 
             const QJsonDocument saveDoc(saveObject);
             saveFile.write(saveDoc.toJson());

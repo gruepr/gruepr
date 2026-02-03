@@ -6,7 +6,6 @@
 void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-    auto *requiredTeammatesContentAreaLayout = new QVBoxLayout();
 
     QString type;
     switch(criteriaType) {
@@ -22,6 +21,8 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
     default:
         return;
     }
+
+    auto *requiredTeammatesContentAreaLayout = new QVBoxLayout();
 
     setTeammateRulesButton = new QPushButton(tr("Set") + type + tr("Teammate Rules"), parentCard);
     setTeammateRulesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);

@@ -38,13 +38,14 @@ public:
     SurveyMakerWizard(SurveyMakerWizard&&) = delete;
     SurveyMakerWizard& operator= (SurveyMakerWizard&&) = delete;
 
-    static inline const int numPages = 6;
-    enum Page{introtitle, demographics, multichoice, schedule, courseinfo, previewexport};
-    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 2, 3, 0};
+    static inline const int numPages = 7;
+    enum Page{introtitle, demographics, multichoice, schedule, courseinfo, freeresponse, previewexport};
+    static inline const QList<int> numOfQuestionsInPage = {0, 5, MAX_ATTRIBUTES, 2, 3, MAX_NOTES, 0};
     static inline const QStringList pageNames = {QObject::tr("Survey Name"), QObject::tr("Demographics"), QObject::tr("Multiple Choice"),
-                                                 QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Preview & Export")};
+                                                 QObject::tr("Scheduling"), QObject::tr("Course Info"), QObject::tr("Free Response"),
+                                                 QObject::tr("Preview & Export")};
 
-    static inline const auto sundayMidnight = QDateTime(QDate(2017, 1, 1), QTime(0, 0));
+    static inline const auto sundayMidnight = QDateTime(QDate(2017, 1, 1), QTime(0, 0));    // 2017/1/1 just happens to be a Sunday
     static inline const auto locale = QLocale::system();
     static inline const QStringList defaultDayNames = {locale.toString(SurveyMakerWizard::sundayMidnight.addDays(0), "dddd"),
                                                        locale.toString(SurveyMakerWizard::sundayMidnight.addDays(1), "dddd"),
@@ -528,6 +529,80 @@ private:
     void deleteASection(int sectionNum, bool pauseVisualUpdate = false);
     void addASection(bool pauseVisualUpdate = false);
     bool uploadRoster();
+};
+
+/**
+ * @brief The FreeResponsePage class is responsible for displaying the free response questions page portion of the survey maker part of Gruepr.
+ */
+class FreeResponsePage : public SurveyMakerPage
+{
+    Q_OBJECT
+    Q_PROPERTY(int numQuestions READ getNumQuestions WRITE setNumQuestions NOTIFY numQuestionsChanged)
+    Q_PROPERTY(QList<QString> questionTexts READ getQuestionTexts WRITE setQuestionTexts NOTIFY questionTextsChanged)
+
+public:
+    FreeResponsePage(QWidget *parent = nullptr);
+
+    /**
+     * @brief initializePage CURRENTLY AN EMPTY METHOD.
+     */
+    void initializePage() override;
+
+    /**
+     * @brief cleanupPage CURRENTLY AN EMPTY METHOD.
+     */
+    void cleanupPage() override;
+
+    /**
+     * @brief validatePage Makes sure that the user is aware of the current state of a free response page for their survey.
+     * @return True or false depending on what the user wants after double checking thanks to warning displayed by this method.
+     */
+    bool validatePage() override;
+
+    /**
+     * @brief setNumQuestions
+     * @param newNumQuestions
+     */
+    void setNumQuestions(const int newNumQuestions);
+
+    /**
+     * @brief getNumQuestions is a getter that returns the number of questions for the current multiple choice page.
+     * @return The number of questions on this multiple choice page.
+     */
+    int getNumQuestions() const;
+
+    /**
+     * @brief setQuestionTexts Adds question text boxes based on the nubmer of questions the user wants on this multiple choice page.
+     * @param newQuestionTexts A list of questions that the user wants on this multiple choice page.
+     */
+    void setQuestionTexts(const QList<QString> &newQuestionTexts);
+
+    /**
+     * @brief getQuestionTexts Returns the list of questions the user wants for this multiple choice page (getter for field of this class).
+     * @return The list of strings corresponding to questions the user wants on this multiple choice page.
+     */
+    QList<QString> getQuestionTexts() const;
+
+signals:
+    void numQuestionsChanged(int newNumQuestions);
+    void questionTextsChanged(const QList<QString> &newQuestionTexts);
+
+private:
+    QFrame *freeResponseInfoFrame = nullptr;
+    QHBoxLayout *freeResponseInfoLayout = nullptr;
+    LabelWithInstantTooltip *freeResponseInfoIcon = nullptr;
+    LabelWithInstantTooltip *freeResponseInfoLabel = nullptr;
+    QList<SurveyMakerFreeResponseQuestion *> freeResponseQuestions;
+    QList<QSpacerItem *> spacers;
+    QList<QFrame *> previewSeparators;
+    QFrame *addQuestionButtonFrame = nullptr;
+    QHBoxLayout *addQuestionButtonLayout = nullptr;
+    QPushButton *addQuestionButton = nullptr;
+    QStringList questionTexts;
+
+    int numQuestions = 0;
+    void addQuestion();
+    void deleteAQuestion(int questionNum);
 };
 
 /**

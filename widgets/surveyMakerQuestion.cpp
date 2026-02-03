@@ -349,6 +349,109 @@ void SurveyMakerMultichoiceQuestion::updatePreviewWidget()
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+SurveyMakerFreeResponseQuestion::SurveyMakerFreeResponseQuestion(int questionNum, QWidget *parent)
+    : QFrame{parent}
+{
+    setStyleSheet(QString(BLUEFRAME) + SCROLLBARSTYLE);
+
+    label = new QLabel(this);
+    label->setStyleSheet(LABEL12PTSTYLE);
+    setNumber(questionNum);
+    deleteButton = new QPushButton(this);
+    deleteButton->setStyleSheet(DELBUTTONSTYLE);
+    deleteButton->setText(tr("Delete"));
+    deleteButton->setIcon(QIcon(":/icons_new/trashButton.png"));
+
+    auto *questionLabel = new QLabel(tr("Question"), this);
+    questionLabel->setStyleSheet(LABEL10PTSTYLE);
+    questionPlainTextEdit = new QPlainTextEdit;
+    questionPlainTextEdit->setStyleSheet(PLAINTEXTEDITSTYLE);
+    questionPlainTextEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    questionPlainTextEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    resizeQuestionPlainTextEdit();
+    questionPlainTextEdit->setPlaceholderText(tr("Type your question..."));
+
+    connect(deleteButton, &QPushButton::clicked, this, &SurveyMakerFreeResponseQuestion::deleteRequest);
+    connect(questionPlainTextEdit, &QPlainTextEdit::textChanged, this, &SurveyMakerFreeResponseQuestion::questionChange);
+
+    auto *layout = new QGridLayout(this);
+    int row = 0;
+    layout->addWidget(label, row, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(deleteButton, row++, 1, 1, 1, Qt::AlignRight | Qt::AlignVCenter);
+    layout->setRowMinimumHeight(row++, 10);
+    layout->addWidget(questionLabel, row++, 0, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(questionPlainTextEdit, row++, 0, 1, -1, Qt::AlignVCenter);
+    layout->setRowMinimumHeight(row++, 10);
+    layout->setColumnStretch(0, 1);
+
+    previewWidget = new QWidget(this);
+    previewWidget->setStyleSheet(QString() + "QWidget{border-style:none;}" + SCROLLBARSTYLE);
+    previewLayout = new QVBoxLayout;
+    previewLayout->setSpacing(0);
+    previewLayout->setContentsMargins(20, 0, 0, 0);
+    previewWidget->setLayout(previewLayout);
+}
+
+void SurveyMakerFreeResponseQuestion::resizeEvent(QResizeEvent *event)
+{
+    resizeQuestionPlainTextEdit();
+    QWidget::resizeEvent(event);
+}
+
+void SurveyMakerFreeResponseQuestion::setNumber(const int questionNum)
+{
+    label->setText(tr("Question ") + QString::number(questionNum));
+}
+
+void SurveyMakerFreeResponseQuestion::deleteRequest()
+{
+    emit deleteRequested();
+}
+
+void SurveyMakerFreeResponseQuestion::questionChange()
+{
+    resizeQuestionPlainTextEdit();
+    emit questionChanged(questionPlainTextEdit->toPlainText());
+}
+
+void SurveyMakerFreeResponseQuestion::setQuestion(const QString &newQuestion)
+{
+    questionPlainTextEdit->setPlainText(newQuestion);
+}
+
+QString SurveyMakerFreeResponseQuestion::getQuestion() const
+{
+    return questionPlainTextEdit->toPlainText();
+}
+
+void SurveyMakerFreeResponseQuestion::resizeQuestionPlainTextEdit()
+{
+    // make the edit box at least 2 rows of text tall but as big as needed to show all text
+    const auto *const doc = questionPlainTextEdit->document();
+    const QFontMetrics font(doc->defaultFont());
+    const auto margins = questionPlainTextEdit->contentsMargins();
+    const int height = (font.lineSpacing() * std::max(2.0, doc->size().height())) +
+                       (doc->documentMargin() + questionPlainTextEdit->frameWidth()) * 2 + margins.top() + margins.bottom();
+    questionPlainTextEdit->setFixedHeight(height);
+}
+
+void SurveyMakerFreeResponseQuestion::updatePreviewWidget()
+{
+    previewWidget->setUpdatesEnabled(false);
+    QLayoutItem *child;
+    while ((child = previewLayout->takeAt(0)) != nullptr) {
+        delete child->widget(); // delete the widget
+        delete child;   // delete the layout item
+    }
+
+    previewWidget->setUpdatesEnabled(true);
+    previewWidget->update();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 SurveyMakerPreviewSection::SurveyMakerPreviewSection(const int pageNum, const QString &titleText, const int numQuestions, QWidget *parent)
     : QFrame{parent}
 {

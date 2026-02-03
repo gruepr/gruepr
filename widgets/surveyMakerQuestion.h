@@ -98,6 +98,43 @@ private:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+class SurveyMakerFreeResponseQuestion : public QFrame
+{
+    Q_OBJECT
+    Q_PROPERTY(QString question READ getQuestion WRITE setQuestion NOTIFY questionChanged)
+
+public:
+    explicit SurveyMakerFreeResponseQuestion(int questionNum, QWidget *parent = nullptr);
+
+    void resizeEvent(QResizeEvent *event) override;
+
+    void setNumber(const int questionNum);
+    QWidget *previewWidget = nullptr;
+
+    void setQuestion(const QString &newQuestion);
+    QString getQuestion() const;
+
+signals:
+    void deleteRequested();
+    void questionChanged(const QString &newQuestion);
+
+private slots:
+    void deleteRequest();
+    void questionChange();
+
+private:
+    QLabel *label = nullptr;
+    QPushButton *deleteButton = nullptr;
+    QPlainTextEdit *questionPlainTextEdit = nullptr;
+    void resizeQuestionPlainTextEdit();
+    QVBoxLayout *previewLayout = nullptr;
+    void updatePreviewWidget();
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 class SurveyMakerPreviewSection : public QFrame
 {
     Q_OBJECT

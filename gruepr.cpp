@@ -1460,7 +1460,7 @@ void gruepr::startOptimization()
     float weight = 10;
     float sumOfWeights = 0;
     int index = 0;
-    for (auto *criteriaCard : criteriaCardsList){
+    for (auto *const criteriaCard : std::as_const(criteriaCardsList)){
         if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
             criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
             continue;
@@ -1596,8 +1596,6 @@ void gruepr::updateOptimizationProgress(const float *const allScores, const int 
     if((generation % (BoxWhiskerPlot::PLOTFREQUENCY)) == 0) {
         progressChart->loadNextVals(allScores, orderedIndex, ga.populationsize, unpenalizedGenomePresent);
     }
-
-    float maxScore = *std::max_element(allScores, allScores + ga.populationsize);
 
     if(generation > GA::MAX_GENERATIONS) {
         progressWindow->setText(tr("We have reached ") + QString::number(GA::MAX_GENERATIONS) + tr(" generations."),
@@ -2529,7 +2527,7 @@ void gruepr::getAttributeScore(const StudentRecord *const _students, const int _
     const bool thisIsTimezone = criterion->typeOfAttribute == DataOptions::AttributeType::timezone; //(_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
     const bool penaltyStatus = criterion->penaltyStatus || _teamingOptions->haveAnyRequiredAttributes[attribute] ||
                                _teamingOptions->haveAnyIncompatibleAttributes[attribute];
-    const int totNumAttributeLevels = _dataOptions->attributeVals[attribute].size();
+    const int totNumAttributeLevels = int(_dataOptions->attributeVals[attribute].size());
     const int totRangeAttributeLevels = *(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin());
 
     int studentNum = 0;
@@ -2792,8 +2790,8 @@ void gruepr::getGenderScore(const StudentRecord *const _students, const int _tea
             studentNum++;
         }
 
-        if(!_teamingOptions->genderIdentityRules[Gender::woman]["!="].isEmpty()) {
-            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules[Gender::woman]["!="];
+        if(!_teamingOptions->genderIdentityRules.value(Gender::woman).value("!=").isEmpty()) {
+            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules.value(Gender::woman).value("!=");
             for (const int unallowed_value : std::as_const(unallowed_values)) {
                 if (numWomen == unallowed_value){
                     if (criterion->penaltyStatus){
@@ -2804,8 +2802,8 @@ void gruepr::getGenderScore(const StudentRecord *const _students, const int _tea
             }
         }
 
-        if(!_teamingOptions->genderIdentityRules[Gender::man]["!="].isEmpty()) {
-            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules[Gender::man]["!="];
+        if(!_teamingOptions->genderIdentityRules.value(Gender::man).value("!=").isEmpty()) {
+            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules.value(Gender::man).value("!=");
             for (const int unallowed_value : std::as_const(unallowed_values)) {
                 if (numMen == unallowed_value){
                     if (criterion->penaltyStatus){
@@ -2816,8 +2814,8 @@ void gruepr::getGenderScore(const StudentRecord *const _students, const int _tea
             }
         }
 
-        if(!_teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].isEmpty()) {
-            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules[Gender::nonbinary]["!="];
+        if(!_teamingOptions->genderIdentityRules.value(Gender::nonbinary).value("!=").isEmpty()) {
+            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules.value(Gender::nonbinary).value("!=");
             for (const int unallowed_value : std::as_const(unallowed_values)) {
                 if (numNonbinary == unallowed_value){
                     if (criterion->penaltyStatus){

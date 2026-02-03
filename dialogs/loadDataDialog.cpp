@@ -218,7 +218,7 @@ bool loadDataDialog::getFromDropFile(QString filePathString){
             //qDebug() << "Error: Failed to open CSV file.";
             return false;
         }
-    } catch (const std::exception &e) {
+    } catch (const std::exception /*&e*/) {
         //qDebug() << "Failed to open CSV File: " << e.what();
         return false;
     }
@@ -342,7 +342,7 @@ bool loadDataDialog::readQuestionsFromHeader()
                                                   {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
                                                   {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
                                                   {"Multiple Choice", ".*", MAX_ATTRIBUTES},
-                                                  {"Notes", "", 99}};
+                                                  {"Notes", "", MAX_NOTES}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {
         const QString &headerVal = surveyFile->headerValues.at(i);
@@ -725,7 +725,15 @@ bool loadDataDialog::readData()
     dataOptions->numAttributes = int(surveyFile->fieldMeanings.count("Multiple Choice"));
     for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
         dataOptions->attributeField[attribute] = int(surveyFile->fieldMeanings.indexOf("Multiple Choice", lastFoundIndex));
-        dataOptions->attributeQuestionText << surveyFile->headerValues.at(dataOptions->attributeField[attribute]);
+        QString questionText = surveyFile->headerValues.at(dataOptions->attributeField[attribute]);
+        // if this is coming from Canvas, remove the leading integer (a prepended Canvas question ID number) from the question
+        if(source == DataOptions::DataSource::fromCanvas) {
+            static const QRegularExpression startsWithInteger(R"(^(\d++: ))");
+            QRegularExpressionMatch match;
+            match = startsWithInteger.match(questionText);
+            questionText = questionText.mid(match.capturedLength(1));
+        }
+        dataOptions->attributeQuestionText << questionText;
         lastFoundIndex = std::max(lastFoundIndex, 1 + int(surveyFile->fieldMeanings.indexOf("Multiple Choice", lastFoundIndex)));
     }
     if(dataOptions->timezoneIncluded) {

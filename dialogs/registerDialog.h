@@ -21,7 +21,7 @@ private:
     QLineEdit *nameLineEdit = nullptr;
     QLineEdit *institutionLineEdit = nullptr;
     QLineEdit *emailLineEdit = nullptr;
-    inline static const QString EMAILADDRESSREGEX = "^[A-Z0-9.!#$%&*+_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$";
+    inline static const QString EMAILADDRESSREGEX = "^[A-Z0-9.!#$%&*+\-_-~]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$";
 };
 
 #endif // REGISTERDIALOG_H
