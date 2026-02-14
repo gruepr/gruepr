@@ -1,0 +1,51 @@
+name: Build
+ 
+on: workflow_dispatch # when to trigger this. Here, manually
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        aqtversion: '==3.1.*'
+        version: '6.9.1'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2022_64'
+        modules: 'qtcharts qtnetworkauth'
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: actions/checkout@v3
+    
+    - name: Install jom
+      run: choco install jom
+
+    - name: Install NSIS
+      run: choco install nsis
+      
+    - name: QMake
+      run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info" && C:/Qt/Tools/QtCreator/bin/jom/jom.exe qmake_all
+
+    - name: Compile
+      run: jom
+      
+    - name: Clean
+      run: jom clean
+          
+    - name: Deploy
+      run: |
+           mkdir bin
+           move build\gruepr.exe bin
+           windeployqt gruepr.exe
+
+    - name: Make installer
+      run: |
+           & "C:\Program Files (x86)\NSIS\makensis.exe" windows\gruepr_InstallScript.nsi
+
+    - name: Upload installer
+      uses: actions/upload-artifact@v6
+      with:
+        name: gruepr
+        path: gruepr.exe
+        compression-level: 9
