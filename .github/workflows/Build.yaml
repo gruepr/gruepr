@@ -43,9 +43,28 @@ jobs:
       run: |
            & "C:\Program Files (x86)\NSIS\makensis.exe" windows\gruepr_InstallScript.nsi
 
-    - name: Upload installer
+    - name: Upload unsigned installer
       uses: actions/upload-artifact@v6
       with:
         name: gruepr
         path: gruepr.exe
-        compression-level: 9
+        compression-level: 0
+        
+    - name: Sign with SignPath
+      id: sign
+      uses: signpath/github-action-submit-signing-request@v2
+      with:
+          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+          organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
+          project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
+          signing-policy-slug: 'test-signing'
+          github-artifact-id: '${{ steps.upload-unsigned.outputs.artifact-id }}'
+          wait-for-completion: true
+          output-artifact-directory: 'signed'
+
+    - name: Upload signed installer
+      uses: actions/upload-artifact@v6
+      with:
+          name: qt-qmake-test-installer-signed
+          path: signed/qt-qmake-test-installer.exe
+          compression-level: 0
