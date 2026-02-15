@@ -62,9 +62,14 @@ QMAKE_CXXFLAGS_RELEASE += -O2
 
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp
-macx: QMAKE_CXXFLAGS += -Xclang -fopenmp #use -Xpreprocessor -fopenmp -I/usr/local/include for homebrew clang
-macx: QMAKE_LFLAGS += -lomp
-macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
+macx {
+    HOMEBREW_PREFIX = $$system(brew --prefix)
+    OMP_PREFIX = $$system(brew --prefix libomp)
+    QMAKE_CXXFLAGS += -Xclang -fopenmp
+    QMAKE_LFLAGS += -lomp
+    INCLUDEPATH += $$OMP_PREFIX/include
+    LIBS += -L$$OMP_PREFIX/lib -lomp
+}
 
 SOURCES += \
         csvfile.cpp \
