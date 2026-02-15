@@ -53,7 +53,7 @@
 
   VIProductVersion "${LONGVERSION}"
   VIAddVersionKey "ProductName" "${APPNAME}"
-  VIAddVersionKey "LegalCopyright" "(c) 2019-2024"
+  VIAddVersionKey "LegalCopyright" "(c) 2019-2026"
   VIAddVersionKey "FileDescription" "${APPNAME} Installer"
   VIAddVersionKey "FileVersion" "${VERSION}"
   VIAddVersionKey "ProductVersion" "${VERSION}"
