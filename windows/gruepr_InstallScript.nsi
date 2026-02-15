@@ -6,8 +6,13 @@
 ;--------------------------------
 
   !define APPNAME "gruepr"
-  !define BASELOCATION "\"
+  !ifndef BASELOCATION
+    !define BASELOCATION "\"
+  !endif
   !define APPLOCATION "${BASELOCATION}\gruepr"
+  !ifndef BUILDDIR
+    !define BUILDDIR "${BASELOCATION}\gruepr"
+  !endif
   !define BUILDLOCATION "${BUILDDIR}\release"
   !define VCREDIST "vc_redist.x64.exe"
 
