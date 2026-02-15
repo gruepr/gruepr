@@ -25,7 +25,7 @@ jobs:
       run: choco install nsis
       
     - name: QMake
-      run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info"
+      run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info" "DEFINES+=GITHUB_SECRETS=\\\"true\\\"" "DEFINES+=SECRET_GOOGLE_CLIENT_ID=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_ID }}\\\"" "DEFINES+=SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\""
       
     - name: QMake All
       run: jom qmake_all
