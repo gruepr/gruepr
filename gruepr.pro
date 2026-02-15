@@ -58,12 +58,9 @@ QMAKE_CXXFLAGS_RELEASE += -O2
 
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp
-win32: LIBS += -L"C:\msys64\home\jhertz\openssl-1.1.1d\dist\bin"
 macx: QMAKE_CXXFLAGS += -Xclang -fopenmp #use -Xpreprocessor -fopenmp -I/usr/local/include for homebrew clang
 macx: QMAKE_LFLAGS += -lomp
 macx: LIBS += -L /usr/local/lib/ /usr/local/lib/libomp.dylib
-#macx: LIBS += -L /usr/local/lib #needed for homebrew clang
-#macx: LIBS += -L /usr/local/Cellar/llvm/9.0.1/lib/libomp.dylib #needed for homebrew clang
 
 SOURCES += \
         csvfile.cpp \
