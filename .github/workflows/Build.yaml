@@ -25,7 +25,10 @@ jobs:
       run: choco install nsis
       
     - name: QMake
-      run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info" && C:/Qt/Tools/QtCreator/bin/jom/jom.exe qmake_all
+      run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info"
+      
+    - name: QMake All
+      run: jom qmake_all
 
     - name: Compile
       run: jom
