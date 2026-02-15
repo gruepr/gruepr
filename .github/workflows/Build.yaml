@@ -46,9 +46,7 @@ jobs:
 
     - name: Deploy
       run: |
-           mkdir bin
-           move release\gruepr.exe bin
-           windeployqt bin\gruepr.exe
+           windeployqt release\gruepr.exe
 
     - name: Download VC++ Redistributable
       run: |
@@ -56,7 +54,7 @@ jobs:
 
     - name: Make installer
       run: |
-           & "C:\Program Files (x86)\NSIS\makensis.exe" windows\gruepr_InstallScript.nsi
+           & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR=. windows\gruepr_InstallScript.nsi
 
     - name: Upload unsigned installer
       uses: actions/upload-artifact@v6
