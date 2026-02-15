@@ -27,6 +27,10 @@ DEFINES += GRUEPRDOWNLOADSUBPAGE='\\"Download\\"'   # Need to add hash between h
 DEFINES += BUGREPORTPAGE='\\"https://github.com/gruepr/gruepr/issues\\"'
 DEFINES += GRUEPRHELPEMAIL='\\"info@gruepr.com\\"'
 
+# Secrets - CI or local, whichever exists
+exists(ci_secrets.pri): include(ci_secrets.pri)
+exists(local_secrets.pri): include(local_secrets.pri)
+
 #Set Config
 CONFIG += no_moc_predefs #Added to avoid file name conflicts
 
