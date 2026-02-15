@@ -38,7 +38,7 @@
 ; Basics
 
   Name "${APPNAME}"
-  OutFile "install_${APPNAME}V${VERSION}.exe"
+  OutFile "install_${APPNAME}.exe"
   InstallDir "$PROGRAMFILES\${APPNAME}"
   InstallDirRegKey HKCU "Software\${APPNAME}" "Install_Dir"
 
