@@ -60,7 +60,7 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: gruepr
-        path: gruepr.exe
+        path: install_gruepr.exe
         compression-level: 0
         
 #    - name: Sign with SignPath
