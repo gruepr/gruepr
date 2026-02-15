@@ -48,7 +48,7 @@ jobs:
       run: |
            mkdir bin
            move release\gruepr.exe bin
-           windeployqt gruepr.exe
+           windeployqt bin\gruepr.exe
 
     - name: Download VC++ Redistributable
       run: |
