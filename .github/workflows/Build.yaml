@@ -54,7 +54,7 @@ jobs:
       id: upload-unsigned-exe
       uses: actions/upload-artifact@v6
       with:
-        name: gruepr-unsigned-exe
+        name: unsigned-windows-executable
         path: release\gruepr.exe
         compression-level: 0
 
@@ -93,7 +93,7 @@ jobs:
       id: upload-unsigned-installer
       uses: actions/upload-artifact@v6
       with:
-        name: gruepr-windows-installer
+        name: unsigned-windows-installer
         path: windows\install_gruepr.exe
         compression-level: 0
         
@@ -113,6 +113,6 @@ jobs:
     - name: Upload signed installer
       uses: actions/upload-artifact@v6
       with:
-          name: gruepr-signed
+          name: gruepr-signed-windows-installer
           path: signed-installer\install_gruepr.exe
           compression-level: 0
