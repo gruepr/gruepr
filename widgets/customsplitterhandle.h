@@ -11,8 +11,8 @@ public:
     CustomSplitterHandle(Qt::Orientation orientation, QSplitter *parent);
 
 protected:
-    void paintEvent(QPaintEvent *);
-    void resizeEvent(QResizeEvent *event);
+    void paintEvent(QPaintEvent *) override;
+    void resizeEvent(QResizeEvent *event) override;
     void toggleCollapse();
 
 private:

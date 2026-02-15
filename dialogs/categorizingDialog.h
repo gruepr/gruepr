@@ -1,10 +1,10 @@
 #ifndef CATEGORIZINGDIALOG_H
 #define CATEGORIZINGDIALOG_H
 
-#include <QDialog>
 #include "csvfile.h"
 #include "dataOptions.h"
 #include <QComboBox>
+#include <QDialog>
 #include <QTableWidget>
 
 class CategorizingDialog : public QDialog

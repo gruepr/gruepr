@@ -23,7 +23,7 @@ public:
 
     Criterion(CriteriaType criteriaType, float weight = 0, bool penaltyStatus = false, GroupingCriteriaCard *parent = nullptr) :
         weight(weight), penaltyStatus(penaltyStatus), criteriaType(criteriaType), parentCard(parent) {};
-    virtual ~Criterion() = default;
+    ~Criterion() override = default;
 
     virtual void generateCriteriaCard(TeamingOptions *const teamingOptions) = 0;
 

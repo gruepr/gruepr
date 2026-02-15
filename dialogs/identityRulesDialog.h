@@ -5,15 +5,15 @@
 #include "qscrollarea.h"
 #include "qtablewidget.h"
 #include "teamingOptions.h"
+#include <QCheckBox>
 #include <QDialog>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QMap>
 #include <QList>
+#include <QMap>
+#include <QPushButton>
 #include <QString>
+#include <QVBoxLayout>
 
 class IdentityRulesDialog : public QDialog
 {

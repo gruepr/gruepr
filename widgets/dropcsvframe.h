@@ -9,9 +9,9 @@ class DropCSVFrame : public QFrame
 
 public:
     DropCSVFrame(QWidget *parent = nullptr);
-    void dragEnterEvent(QDragEnterEvent *event = nullptr);
-    void dropEvent(QDropEvent *event = nullptr);
-    void dragLeaveEvent(QDragLeaveEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event = nullptr) override;
+    void dropEvent(QDropEvent *event = nullptr) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
 
 signals:
     void itemDropped(const QString &filePathString);

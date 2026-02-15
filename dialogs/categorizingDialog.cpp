@@ -13,7 +13,7 @@
 
 CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, DataOptions::DataSource dataSource): QDialog (parent) {
     this->source = dataSource;
-    QVBoxLayout* mainLayout = new QVBoxLayout();
+    auto *mainLayout = new QVBoxLayout();
     this->surveyFile = surveyFile;
     setMinimumSize(QSize(790, 450));
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
@@ -38,7 +38,7 @@ CategorizingDialog::CategorizingDialog(QWidget* parent, CsvFile* surveyFile, Dat
     titleLayout->setSpacing(5);
 
     connect(categoryHelpButton, &QPushButton::clicked, this, [this](){
-        dataTypesTableDialog *dialog = new dataTypesTableDialog(this);
+        auto *dialog = new dataTypesTableDialog(this);
         dialog->show();
     });
 
@@ -112,13 +112,13 @@ void CategorizingDialog::populateTable(){
     surveyFile->readDataRow(CsvFile::ReadLocation::beginningOfFile);
     QStringList columnNames = surveyFile->fieldValues;
     for (int column = 0; column < columnNames.count(); column++){
-        QWidget *columnWidget = new QWidget(this);
-        QVBoxLayout *columnWidgetLayout = new QVBoxLayout();
+        auto *columnWidget = new QWidget(this);
+        auto *columnWidgetLayout = new QVBoxLayout();
         columnWidgetLayout->setSpacing(0);
         columnWidgetLayout->setContentsMargins(0, 0, 0, 0);
         columnWidget->setLayout(columnWidgetLayout);
-        QLabel *columnName = new QLabel(columnNames[column], this);
-        QComboBox *columnComboBox = new QComboBox(this);
+        auto *columnName = new QLabel(columnNames[column], this);
+        auto *columnComboBox = new QComboBox(this);
         columnComboBox->setStyleSheet(COMBOBOXSTYLE);
         columnComboBox->setFocusPolicy(Qt::StrongFocus);  // remove scrollwheel from affecting the value,
         columnComboBox->installEventFilter(new MouseWheelBlocker(columnComboBox));  // as it's too easy to mistake scrolling through the rows with changing the value

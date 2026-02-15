@@ -1,6 +1,6 @@
 #include "teamsTabItem.h"
-#include "dialogs/customTeamnamesDialog.h"
 #include "gruepr.h"
+#include "dialogs/customTeamnamesDialog.h"
 #include "LMS/canvashandler.h"
 #include "widgets/labelWithInstantTooltip.h"
 #include <QApplication>
@@ -180,7 +180,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     summaryLayout->addLayout(legendLayout);
     summaryAndDataLayout->addLayout(summaryLayout);
 */
-    QVBoxLayout* dataLayout = new QVBoxLayout();
+    auto *dataLayout = new QVBoxLayout();
 //    auto* dataLabel = new QLabel("Student Data Table");
 //    dataLabel->setStyleSheet(LABEL14PTSTYLE);
 //    dataLayout->addWidget(dataLabel, 0, Qt::AlignCenter);
@@ -192,7 +192,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     rowsLayout->setSpacing(6);
     teamDataLayout->addLayout(rowsLayout);
 
-    auto helpIcon = new LabelWithInstantTooltip("", this);
+    auto *helpIcon = new LabelWithInstantTooltip("", this);
     helpIcon->setStyleSheet(QString(LABEL10PTSTYLE) + BIGTOOLTIPSTYLE);
     helpIcon->setPixmap(QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     rowsLayout->addWidget(helpIcon);
@@ -467,9 +467,13 @@ QJsonObject TeamsTabItem::toJson() const
 }
 
 
-void TeamsTabItem::changeTeamNames(int index)
+void TeamsTabItem::changeTeamNames(const int index)
 {
     static int prevIndex = 0;   // hold on to previous index, so we can go back to it if cancelling custom team name dialog box
+
+    if(index < 0) {
+        return;
+    }
 
     if(index != prevIndex) {     // reset the randomize teamnames checkbox if we just moved to a new index
         randTeamnamesCheckBox->setChecked(false);
@@ -653,10 +657,10 @@ void TeamsTabItem::randomizeTeamnames(bool random)
 
 void TeamsTabItem::updateTeamNamesInTableAndTooltips()
 {
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     while(item != nullptr) {
         if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
-            int teamNum = item->data(0, TEAM_NUMBER_ROLE).toInt();
+            const int teamNum = item->data(0, TEAM_NUMBER_ROLE).toInt();
             teams[teamNum].createTooltip();
             item->setText(0, tr("Team ") + teams[teamNum].name);
             item->setTextAlignment(0, Qt::AlignLeft | Qt::AlignVCenter);
@@ -728,7 +732,7 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         teams[studentATeamNum].createTooltip();
 
         //get the team item in the tree
-        auto teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+        auto *teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
         while((teamItem != nullptr) &&
                ((teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
                 (teamItem->data(0, TEAM_NUMBER_ROLE).toInt() != studentATeamNum))) {
@@ -760,13 +764,13 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
         studentBTeam.studentIDs.replace(studentBTeam.studentIDs.indexOf(studentB->ID), studentA->ID);
 
         //get the team items in the tree
-        auto studentATeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+        auto *studentATeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
         while((studentATeamItem != nullptr) &&
                ((studentATeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
                 (studentATeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != studentATeamNum))) {
             studentATeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(studentATeamItem));
         }
-        auto studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+        auto *studentBTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
         while((studentBTeamItem != nullptr) &&
                ((studentBTeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
                 (studentBTeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != studentBTeamNum))) {
@@ -890,13 +894,13 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
     newTeam.size++;
 
     //get the team items in the tree
-    auto oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     while((oldTeamItem != nullptr) &&
            ((oldTeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
             (oldTeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != oldTeamNum))) {
         oldTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(oldTeamItem));
     }
-    auto newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *newTeamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     while((newTeamItem != nullptr) &&
            ((newTeamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
             (newTeamItem->data(0, TEAM_NUMBER_ROLE).toInt() != newTeamNum))) {
@@ -984,14 +988,14 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     }
 
     // find the teamA and teamB items in teamDataTree, saving a pointer to the item and their visual order# in the display
-    auto teamAItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *teamAItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     while((teamAItem != nullptr) &&
            ((teamAItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
             (teamAItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamANum))) {
         teamAItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
     }
     const int teamASortOrder = ((teamAItem != nullptr) ? (teamAItem->data(teamDataTree->columnCount()-1, TEAMINFO_SORT_ROLE).toInt()) : -1);
-    auto teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *teamBItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     int largestSortOrder = 0;
     while((teamBItem != nullptr) &&
            ((teamBItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
@@ -1009,7 +1013,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     }
 
     //Load undo onto stack and clear redo stack
-    auto itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
+    auto *itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
     while((itemBelowTeamA != nullptr) && (itemBelowTeamA->treeItemType != TeamTreeWidgetItem::TreeItemType::team)) {
         itemBelowTeamA = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(itemBelowTeamA));
     }
@@ -1031,7 +1035,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     if(teamASortOrder > teamBSortOrder) {
         // dragging team onto a team listed earlier in the table
         // backwards from item above teamA up to teamB, increment sort column data for every team item
-        auto teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemAbove(teamAItem));
+        auto *teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemAbove(teamAItem));
         while((teamItem != nullptr) &&
                ((teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
                 (teamItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamBNum))) {
@@ -1055,7 +1059,7 @@ void TeamsTabItem::moveATeam(const QList<int> &arguments)  // QList<int> argumen
     else {
         // dragging team onto a team listed later in the table (possibly bottom of the table)
         // from item below teamA down to teamB, decrement sort column data for every team item
-        auto teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
+        auto *teamItem = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->itemBelow(teamAItem));
         while((teamItem != nullptr) &&
                ((teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) ||
                 (teamItem->data(0, TEAM_NUMBER_ROLE).toInt() != teamBNum))) {
@@ -1442,7 +1446,7 @@ void TeamsTabItem::refreshDisplayOrder()
 {
     // Any time teams have been reordered, refresh the hidden display order column
     const int lastCol = teamDataTree->columnCount()-1;
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *item = dynamic_cast<TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     int teamRow = 0;
     while(item != nullptr) {
         if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
@@ -1462,7 +1466,7 @@ QList<int> TeamsTabItem::getTeamNumbersInDisplayOrder() const
     // this is not a problem currently because: a) teams are top level items, or b) teams have the section as parent and sections are prevented from being collapsed
     QList<int> teamDisplayNums;
     teamDisplayNums.reserve(teams.size());
-    auto item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
+    auto *item = dynamic_cast<const TeamTreeWidgetItem*>(teamDataTree->topLevelItem(0));
     while(item != nullptr) {
         if(item->treeItemType == TeamTreeWidgetItem::TreeItemType::team) {
             teamDisplayNums << item->data(0, TEAM_NUMBER_ROLE).toInt();
@@ -1935,7 +1939,7 @@ void TeamsTabItem::printFiles(const QStringList &fileContents, WhichFilesDialog:
     QEventLoop loop;
     connect(this, &TeamsTabItem::connectedToPrinter, &loop, &QEventLoop::quit);
     QPrinter *printer = nullptr;
-    QFuture<QPrinter*> future = QtConcurrent::run(&TeamsTabItem::setupPrinter, this);
+    const QFuture<QPrinter*> future = QtConcurrent::run(&TeamsTabItem::setupPrinter, this);
     loop.exec();
     printer = future.result();
     msgBox->close();

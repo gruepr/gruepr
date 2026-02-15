@@ -3,8 +3,8 @@
 
 // a subclassed QPushButton that passes mouse enter events to its parent
 
-#include <QPushButton>
 #include <QEnterEvent>
+#include <QPushButton>
 
 
 class PushButtonWithMouseEnter : public QPushButton

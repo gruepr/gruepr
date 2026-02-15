@@ -1,25 +1,25 @@
 #ifndef GRUEPR_H
 #define GRUEPR_H
 
-#include <QMainWindow>
 #include "csvfile.h"
 #include "dataOptions.h"
+#include "gruepr_globals.h"
+#include "studentRecord.h"
+#include "teamRecord.h"
+#include "teamingOptions.h"
 #include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/URMIdentityCriterion.h"
 #include "criteria/teammatesCriterion.h"
-#include "dialogs/attributeRulesDialog.h"
 #include "dialogs/progressDialog.h"
-#include "gruepr_globals.h"
-#include "studentRecord.h"
-#include "teamRecord.h"
-#include "teamingOptions.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
+#include <QComboBox>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QMainWindow>
 #include <QPrinter>
 
 

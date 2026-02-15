@@ -2,16 +2,16 @@
 #include "ui_teammatesRulesDialog.h"
 #include "csvfile.h"
 #include "gruepr_globals.h"
-#include "dialogs/findMatchingNameDialog.h"
 #include "studentRecord.h"
+#include "dialogs/findMatchingNameDialog.h"
 #include <QCompleter>
 #include <QHeaderView>
 #include <QLineEdit>
+#include <QMenu>
+#include <QMessageBox>
 #include <QScrollBar>
 #include <QStringListModel>
 #include <QTimer>
-#include <QMenu>
-#include <QMessageBox>
 
 TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingStudents, const DataOptions &dataOptions, const TeamingOptions &teamingOptions,
                                            const QString &sectionname, const QStringList &currTeamSets, TypeOfTeammates typeOfTeammates, QWidget *parent) :
@@ -195,7 +195,7 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
     }
 
     auto clearButtons = {ui->required_clearButton, ui->prevented_clearButton, ui->requested_clearButton};
-    for(auto clearButton : clearButtons) {
+    for(auto *clearButton : clearButtons) {
         clearButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
         connect(clearButton, &QPushButton::clicked, this, [this](){clearValues(static_cast<TypeOfTeammates>(ui->tabWidget->currentIndex()));});
     }
@@ -300,7 +300,7 @@ void clearLayout(QHBoxLayout *layout) {
 
 void TeammatesRulesDialog::showToast(QWidget *parent, const QString &message, int duration) {
     // Create label for the toast message
-    QLabel *toast = new QLabel(parent);
+    auto *toast = new QLabel(parent);
     toast->setText(message);
     toast->setStyleSheet("background-color: rgba(0, 0, 0, 180);"
                          "color: white;"
@@ -311,8 +311,8 @@ void TeammatesRulesDialog::showToast(QWidget *parent, const QString &message, in
 
     // Position it at the bottom
     toast->adjustSize();
-    int x = (this->width()) / 2;  // Center horizontally
-    int y = parent->height() - toast->height() - 20; // Bottom with some margin
+    const int x = (this->width()) / 2;  // Center horizontally
+    const int y = parent->height() - toast->height() - 20; // Bottom with some margin
     toast->move(x, y);
     toast->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
     toast->setAttribute(Qt::WA_DeleteOnClose);
@@ -387,7 +387,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         //only add students which are in the current section being grouped
         if(((sectionName == "") || (sectionName == student.section)) && !student.deleted) {
             allIDs << student.ID;
-            QString fullName = student.firstname + " " + student.lastname;
+            const QString fullName = student.firstname + " " + student.lastname;
             //qDebug() << searchBarText;
             if (fullName.contains(searchBarText, Qt::CaseInsensitive)) { // Case-insensitive match
                 filteredStudents << (&student);
@@ -459,36 +459,32 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
                 remover->setFlat(true);
                 remover->setIconSize(ICONSIZE);
                 if(typeOfTeammates == TypeOfTeammates::required) {
-                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText]
-                                                            {
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                                                            filteredStudent->requiredWith.remove(studentB->ID);
-                                                             studentB->requiredWith.remove(filteredStudent->ID);
-                                                             refreshDisplay(TypeOfTeammates::required, verticalScrollPos, horizontalScrollPos, searchBarText);
-                                                             initializeTableHeaders(TypeOfTeammates::required, searchBarText);
+                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText] {
+                        const int verticalScrollPos = table->verticalScrollBar()->value();
+                        const int horizontalScrollPos = table->horizontalScrollBar()->value();
+                        filteredStudent->requiredWith.remove(studentB->ID);
+                        studentB->requiredWith.remove(filteredStudent->ID);
+                        refreshDisplay(TypeOfTeammates::required, verticalScrollPos, horizontalScrollPos, searchBarText);
+                        initializeTableHeaders(TypeOfTeammates::required, searchBarText);
                     });
                 }
                 else if(typeOfTeammates == TypeOfTeammates::prevented) {
-                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText]
-                                                            {
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
-                    filteredStudent->preventedWith.remove(studentB->ID);
-                                                             studentB->preventedWith.remove(filteredStudent->ID);
-                                                             refreshDisplay(TypeOfTeammates::prevented, verticalScrollPos, horizontalScrollPos, searchBarText);
-                                                             initializeTableHeaders(TypeOfTeammates::prevented, searchBarText);
+                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText] {
+                        const int verticalScrollPos = table->verticalScrollBar()->value();
+                        const int horizontalScrollPos = table->horizontalScrollBar()->value();
+                        filteredStudent->preventedWith.remove(studentB->ID);
+                        studentB->preventedWith.remove(filteredStudent->ID);
+                        refreshDisplay(TypeOfTeammates::prevented, verticalScrollPos, horizontalScrollPos, searchBarText);
+                        initializeTableHeaders(TypeOfTeammates::prevented, searchBarText);
                     });
                 }
                 else {
-                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText]
-                                                            {
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
+                    connect(remover, &QPushButton::clicked, this, [this, filteredStudent, studentB, table, searchBarText] {
+                        const int verticalScrollPos = table->verticalScrollBar()->value();
+                        const int horizontalScrollPos = table->horizontalScrollBar()->value();
                         filteredStudent->requestedWith.remove(studentB->ID);
-                                                             refreshDisplay(TypeOfTeammates::requested, verticalScrollPos, horizontalScrollPos, searchBarText);
-                                                             initializeTableHeaders(TypeOfTeammates::required, searchBarText);
-
+                        refreshDisplay(TypeOfTeammates::requested, verticalScrollPos, horizontalScrollPos, searchBarText);
+                        initializeTableHeaders(TypeOfTeammates::required, searchBarText);
                     });
                 }
 
@@ -529,7 +525,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         //get all names from baseStudents
         studentNames.reserve(baseStudents.size());
         for (auto *const student : std::as_const(baseStudents)) {
-            QString fullName = student->firstname + " " + student->lastname;
+            const QString fullName = student->firstname + " " + student->lastname;
             studentNames.append(fullName);
             studentNameToIdMap[fullName] = student;  // Store name → ID mapping
         }
@@ -541,7 +537,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
         completer->setFilterMode(Qt::MatchContains);
         lineEdit->setCompleter(completer);        
 
-        QPushButton *confirmButton = new QPushButton(this);
+        auto *confirmButton = new QPushButton(this);
         confirmButton->setIcon(QIcon(":/icons_new/Checkmark.png"));
         confirmButton->setVisible(false);
 
@@ -550,7 +546,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
 
         if(typeOfTeammates == TypeOfTeammates::required) {
             connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
-                QString newText = lineEdit->text(); //get the current text
+                const QString newText = lineEdit->text(); //get the current text
                 //check that the student name is valid and that user is not adding the student itself to the list.
                 if (studentNameToIdMap.contains(newText)){
                     if (studentNameToIdMap[newText]->ID != filteredStudent->ID){
@@ -558,8 +554,8 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
                         filteredStudent->requiredWith.insert(pairedStudent->ID);
                         pairedStudent->requiredWith.insert(filteredStudent->ID);
                         //keep the current scroll position for user
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
+                        const int verticalScrollPos = table->verticalScrollBar()->value();
+                        const int horizontalScrollPos = table->horizontalScrollBar()->value();
                         refreshDisplay(TypeOfTeammates::required, verticalScrollPos, horizontalScrollPos, searchBarText);
                         initializeTableHeaders(TypeOfTeammates::required, searchBarText);
                     } else {
@@ -574,7 +570,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
             });
         } else if(typeOfTeammates == TypeOfTeammates::prevented){
             connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
-                QString newText = lineEdit->text(); //get the current text
+                const QString newText = lineEdit->text(); //get the current text
                 //check that the student name is valid and that user is not adding the student itself to the list.
                 if (studentNameToIdMap.contains(newText)){
                     if (studentNameToIdMap[newText]->ID != filteredStudent->ID ){
@@ -582,8 +578,8 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
                         filteredStudent->preventedWith.insert(pairedStudent->ID);
                         pairedStudent->preventedWith.insert(filteredStudent->ID);
                         //keep the current scroll position for user
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
+                        const int verticalScrollPos = table->verticalScrollBar()->value();
+                        const int horizontalScrollPos = table->horizontalScrollBar()->value();
                         refreshDisplay(TypeOfTeammates::prevented, verticalScrollPos, horizontalScrollPos, searchBarText);
                         initializeTableHeaders(TypeOfTeammates::prevented, searchBarText);
                     } else {
@@ -597,16 +593,16 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
             });
         } else if(typeOfTeammates == TypeOfTeammates::requested){
             connect(confirmButton, &QPushButton::clicked, this, [this, table, lineEdit, filteredStudent, studentNameToIdMap, searchBarText](){
-                QString newText = lineEdit->text(); //get the current text
+                const QString newText = lineEdit->text(); //get the current text
                 //check that the student name is valid and that user is not adding the student filteredStudent to the list.
                 if (studentNameToIdMap.contains(newText) && studentNameToIdMap[newText]->ID != filteredStudent->ID ){
                     if (studentNameToIdMap[newText]->ID != filteredStudent->ID ){
-                        StudentRecord *pairedStudent = studentNameToIdMap[newText];
+                        const StudentRecord *pairedStudent = studentNameToIdMap[newText];
                         filteredStudent->requestedWith.insert(pairedStudent->ID);
                         //pairedStudent->requestedWith.insert(filteredStudent->ID);  ***Don't auto-add the opposite pair for requested teammates
                         //keep the current scroll position for user
-                        int verticalScrollPos = table->verticalScrollBar()->value();
-                        int horizontalScrollPos = table->horizontalScrollBar()->value();
+                        const int verticalScrollPos = table->verticalScrollBar()->value();
+                        const int horizontalScrollPos = table->horizontalScrollBar()->value();
                         refreshDisplay(TypeOfTeammates::requested, verticalScrollPos, horizontalScrollPos, searchBarText);
                         initializeTableHeaders(TypeOfTeammates::requested, searchBarText);
                     } else {
@@ -664,7 +660,7 @@ void TeammatesRulesDialog::initializeTableHeaders(TypeOfTeammates typeOfTeammate
     auto *topLeftHeaderLayout = new QVBoxLayout();
     topLeftHeaderLayout->setSpacing(0);
     auto *topLeftHeaderWidget = new QWidget(this);
-    int width = table->verticalHeader()->sizeHint().width(); //width of abstract button
+    const int width = table->verticalHeader()->sizeHint().width(); //width of abstract button
     if (initializeStatus == true){ //don't update the size of this apart from the first intialization (avoid weird layout issues)
         table->verticalHeader()->setFixedWidth(width);
         this->initialWidthStudentHeader = width;
@@ -705,12 +701,12 @@ void TeammatesRulesDialog::initializeTableHeaders(TypeOfTeammates typeOfTeammate
         label->setStyleSheet("QLabel{border-top: none; border-left: none; border-right: 1px solid lightGray; "
                              "border-bottom: none; background-color:" DEEPWATERHEX "; "
                              "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
-        int width = table->columnWidth(col);
+        const int width = table->columnWidth(col);
         label->setFixedWidth(width);
         label->setFixedHeight(studentSearchBar->sizeHint().height() + 35);
         headerLayout->addWidget(label, Qt::AlignCenter);
     }
-    QLabel *spacerLabel = new QLabel();
+    auto *spacerLabel = new QLabel();
     spacerLabel->setStyleSheet("QLabel { background-color: " DEEPWATERHEX "; }");
     spacerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 

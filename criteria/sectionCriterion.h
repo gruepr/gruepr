@@ -3,8 +3,8 @@
 
 #include "criterion.h"
 #include "dataOptions.h"
-#include <QPushButton>
 #include <QComboBox>
+#include <QPushButton>
 
 class SectionCriterion : public Criterion {
     Q_OBJECT

@@ -1,14 +1,14 @@
 #ifndef TEAMMATESRULESDIALOG_H
 #define TEAMMATESRULESDIALOG_H
 
-#include <QDialog>
 #include "dataOptions.h"
 #include "studentRecord.h"
 #include "teamingOptions.h"
 #include <QAbstractButton>
 #include <QBoxLayout>
-#include <QTableWidget>
 #include <QComboBox>
+#include <QDialog>
+#include <QTableWidget>
 
 namespace Ui {
 class TeammatesRulesDialog;

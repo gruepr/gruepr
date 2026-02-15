@@ -67,6 +67,12 @@ macx {
     LIBS += -L$$OMP_PREFIX/lib -lomp
 }
 
+# Run ASan:
+# win32: QMAKE_CXXFLAGS += /fsanitize=address /Zi
+# win32: QMAKE_LFLAGS += /DEBUG
+# macx: QMAKE_CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
+# macx: QMAKE_LFLAGS += -fsanitize=address
+
 SOURCES += \
         criteria/URMIdentityCriterion.cpp \
         criteria/attributeCriterion.cpp \

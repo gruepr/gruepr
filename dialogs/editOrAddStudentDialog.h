@@ -1,10 +1,10 @@
 #ifndef EDITORADDSTUDENTDIALOG_H
 #define EDITORADDSTUDENTDIALOG_H
 
-#include <QDialog>
 #include "dataOptions.h"
 #include "studentRecord.h"
 #include <QComboBox>
+#include <QDialog>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>

@@ -1,9 +1,9 @@
 #ifndef FINDMATCHINGNAMEDIALOG_H
 #define FINDMATCHINGNAMEDIALOG_H
 
-#include <QDialog>
 #include "studentRecord.h"
 #include <QComboBox>
+#include <QDialog>
 #include <QRadioButton>
 
 class findMatchingNameDialog : public QDialog

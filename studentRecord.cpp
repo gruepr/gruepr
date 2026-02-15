@@ -69,7 +69,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs.
         // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
         const QJsonArray preventedWithArray = jsonStudentRecord["preventedWith"].toArray();
-        const long long MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
+        const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
         for(int i = 0; i < MAX_IDS; i++) {
             if(preventedWithArray[i].toBool()) {
                 preventedWith << i;
@@ -87,7 +87,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         // this is for backwards compatability--studentRecord formerly saved a bool array of all possible IDs.
         // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
         const QJsonArray requiredWithArray = jsonStudentRecord["requiredWith"].toArray();
-        const long long MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
+        const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
         for(int i = 0; i < MAX_IDS; i++) {
             if(requiredWithArray[i].toBool()) {
                 requiredWith << i;
@@ -105,7 +105,7 @@ StudentRecord::StudentRecord(const QJsonObject &jsonStudentRecord)
         // this is for backwards compatability--teamRecord formerly saved the students as their indexes in the students array rather than IDs
         // In order to use work saved from prev. versions of gruepr, now must convert these indexes to the IDs
         const QJsonArray requestedWithArray = jsonStudentRecord["requestedWith"].toArray();
-        const long long MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
+        const int MAX_IDS = 2 * MAX_STUDENTS;             // since students can be removed and added yet IDs always increase, need more IDs than possible students
         for(int i = 0; i < MAX_IDS; i++) {
             if(requestedWithArray[i].toBool()) {
                 requestedWith << i;

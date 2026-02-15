@@ -34,7 +34,7 @@ TeamTreeWidget::TeamTreeWidget(QWidget *parent)
 void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
 {
     // only collapse teams (not students or sections)
-    auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
+    auto *newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
     if(newItem == nullptr) {
         return;
     }
@@ -52,7 +52,7 @@ void TeamTreeWidget::itemCollapse(QTreeWidgetItem *item)
 
 void TeamTreeWidget::itemExpand(QTreeWidgetItem *item)
 {
-    auto newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
+    auto *newItem = dynamic_cast<TeamTreeWidgetItem*>(item);
     if(newItem == nullptr) {
         return;
     }
@@ -67,7 +67,7 @@ void TeamTreeWidget::collapseAll()
     setUpdatesEnabled(false);
 
     // iterate through tree, collapsing only the teams
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
+    auto *item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
     while(item != nullptr) {
         const bool itemIsTeam = (item->treeItemType == TeamTreeWidgetItem::TreeItemType::team);
         if(itemIsTeam) {
@@ -89,7 +89,7 @@ void TeamTreeWidget::expandAll()
     setUpdatesEnabled(false);
 
     // iterate through tree, expanding every section and team
-    auto item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
+    auto *item = dynamic_cast<TeamTreeWidgetItem*>(topLevelItem(0));
     while(item != nullptr) {
         const bool itemIsStudent = (item->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
         if(!itemIsStudent) {
@@ -336,10 +336,10 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
     if (dataOptions->gradeIncluded) {
         float total = 0.0;
         //team grades
-        for (float grade : team.gradeVals){
+        for (const float grade : team.gradeVals){
             total += grade;
         }
-        float average = total / team.size;
+        const float average = total / team.size;
         teamItem->setText(column, QString::number(average));
         teamItem->setTextAlignment(column, Qt::AlignCenter);
         teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, "");
@@ -649,8 +649,8 @@ void TeamTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 
     const bool draggedItemIsStudent = (draggedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
     const bool droppedItemIsStudent = (droppedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
-    const auto draggedItemParent = draggedItem->parent();
-    const auto droppedItemParent = droppedItem->parent();
+    const auto *const draggedItemParent = draggedItem->parent();
+    const auto *const droppedItemParent = droppedItem->parent();
 
     if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItemParent == droppedItem)) {
         // ignore if dragging item onto self, team->student, or student->own team
@@ -758,11 +758,12 @@ void TeamTreeWidget::dropEvent(QDropEvent *event)
 
     const bool draggedItemIsStudent = (draggedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
     const bool droppedItemIsStudent = (droppedItem->treeItemType == TeamTreeWidgetItem::TreeItemType::student);
-    const auto draggedItemParent = draggedItem->parent();
-    const auto droppedItemParent = droppedItem->parent();
+    const auto *const draggedItemParent = draggedItem->parent();
+    const auto *const droppedItemParent = droppedItem->parent();
 
-    if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItem->parent() == droppedItem)) {
-        // ignore if dragging item onto self, team->student, or student->own team
+    if((draggedItem == droppedItem) || (!draggedItemIsStudent && droppedItemIsStudent) || (draggedItem->parent() == droppedItem) ||
+        (draggedItemParent == nullptr) || (droppedItemParent == nullptr)) {
+        // ignore if dragging item onto self, team->student, or student->own team, or if something went wrong looking up the team for this student
         event->setDropAction(Qt::IgnoreAction);
         event->ignore();
     }
@@ -916,7 +917,7 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
         return;
 
     // Get the full text
-    QString fullText = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
+    const QString fullText = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
     m_fullTexts[logicalIndex] = fullText;
 
     // Prepare style option
@@ -926,7 +927,7 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
     opt.section = logicalIndex;
 
     // Check if we have an icon
-    bool hasIcon = m_columnIcons.contains(logicalIndex) && !m_columnIcons[logicalIndex].isNull();
+    const bool hasIcon = m_columnIcons.contains(logicalIndex) && !m_columnIcons[logicalIndex].isNull();
 
     // Calculate available text width
     int textWidth = rect.width() - 4; // padding
@@ -941,12 +942,12 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
     }
 
     // Check if text would be elided
-    QFontMetrics fm(font());
-    bool wouldElide = fm.horizontalAdvance(fullText) > textWidth;
+    const QFontMetrics fm(font());
+    const bool wouldElide = fm.horizontalAdvance(fullText) > textWidth;
 
     // For middle eliding, switch to word wrap if text would be elided
     if (columnElideMode == Qt::ElideMiddle && wouldElide) {
-        QString wrappedText = wrapTextToTwoLines(logicalIndex, fullText, textWidth, fm);
+        const QString wrappedText = wrapTextToTwoLines(logicalIndex, fullText, textWidth, fm);
         opt.text = wrappedText;
     }
     else {
@@ -970,7 +971,7 @@ QSize TeamTreeHeaderView::sectionSizeFromContents(int logicalIndex) const {
     QSize size = QHeaderView::sectionSizeFromContents(logicalIndex);
     if (m_wordWrappeds.contains(logicalIndex) && m_wordWrappeds[logicalIndex]) {
         // Need 2 lines
-        int height = (fontMetrics().height() * 2) + 12; // 2 lines + padding
+        const int height = (fontMetrics().height() * 2) + 12; // 2 lines + padding
         size.setHeight(qMax(size.height(), height));
     }
     return size;
@@ -979,14 +980,14 @@ QSize TeamTreeHeaderView::sectionSizeFromContents(int logicalIndex) const {
 bool TeamTreeHeaderView::event(QEvent *e)
 {
     if (e->type() == QEvent::ToolTip) {
-        QHelpEvent *helpEvent = static_cast<QHelpEvent *>(e);
-        int column = logicalIndexAt(helpEvent->pos());
+        const auto *const helpEvent = static_cast<QHelpEvent *>(e);
+        const int column = logicalIndexAt(helpEvent->pos());
 
         if (column >= 0 && m_fullTexts.contains(column)) {
-            QString fullText = m_fullTexts[column];
+            const QString fullText = m_fullTexts[column];
 
             // Only show tooltip if text is elided
-            QFontMetrics fm(font());
+            const QFontMetrics fm(font());
             int sectionWidth = sectionSize(column) - 4;
             if (m_columnIcons.contains(column)) {
                 sectionWidth -= m_iconSize.width() + 4;
@@ -1014,9 +1015,9 @@ void TeamTreeHeaderView::updateHeaderHeight()
     if (!model())
         return;
 
-    QList<bool> values = m_wordWrappeds.values();
-    bool anyWrappedHeaders = std::any_of(values.constBegin(), values.constEnd(), [](bool val){return val;});
-    int maxHeight = (fontMetrics().height() * (anyWrappedHeaders? 2 : 1)) + 12; // minimum height
+    const QList<bool> values = m_wordWrappeds.values();
+    const bool anyWrappedHeaders = std::any_of(values.constBegin(), values.constEnd(), [](bool val){return val;});
+    const int maxHeight = (fontMetrics().height() * (anyWrappedHeaders? 2 : 1)) + 12; // minimum height
 
     setMinimumHeight(maxHeight);
     updateGeometry();
@@ -1024,7 +1025,7 @@ void TeamTreeHeaderView::updateHeaderHeight()
 
 QString TeamTreeHeaderView::wrapTextToTwoLines(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const
 {
-    long long midPoint = text.length() / 2;
+    const long long midPoint = text.length() / 2;
 
     // Find all space positions
     std::vector<int> spaces;

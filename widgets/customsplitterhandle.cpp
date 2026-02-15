@@ -38,7 +38,7 @@ void CustomSplitterHandle::resizeEvent(QResizeEvent *event)
 
 void CustomSplitterHandle::toggleCollapse()
 {
-    QSplitter *splitter = qobject_cast<QSplitter*>(parent());
+    auto *splitter = qobject_cast<QSplitter*>(parent());
 
     QList<int> sizes = splitter->sizes();
     savedSize = splitter->size().width()/2;
@@ -63,10 +63,10 @@ void CustomSplitterHandle::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    QRect r = rect();
-    QPoint center = r.center();
+    const QRect r = rect();
+    const QPoint center = r.center();
 
-    QColor bgColor = QColor("lightgray");
+    const auto bgColor = QColor("lightgray");
     painter.fillRect(rect(), bgColor);
 
     painter.setBrush(QColor(0x505050));
@@ -82,12 +82,12 @@ void CustomSplitterHandle::paintEvent(QPaintEvent *)
     else {
         int x = width() / 2;
 
-        int yStartTop = height() / 4 - 12;
+        const int yStartTop = height() / 4 - 12;
         for (int i = 0; i < 4; ++i) {
             painter.drawEllipse(QPoint(x, yStartTop + i * 6), 2, 2);
         }
         x = center.x();
-        int yStartBottom = (3 * height() / 4) - 12;
+        const int yStartBottom = (3 * height() / 4) - 12;
         for (int i = 0; i < 4; ++i) {
             painter.drawEllipse(QPoint(x, yStartBottom + i * 6), 2, 2);
         }

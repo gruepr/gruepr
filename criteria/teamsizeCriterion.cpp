@@ -7,7 +7,7 @@ void TeamsizeCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
-    auto teamSizeContentAreaLayout = new QHBoxLayout();
+    auto *teamSizeContentAreaLayout = new QHBoxLayout();
     teamSizeContentAreaLayout->setSpacing(2);
 
     teamSizeBox = new QComboBox(parentCard);

@@ -22,14 +22,14 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
 {
     const QJsonArray genderIdentityRulesArray = jsonTeamingOptions["genderIdentityRules"].toArray();
     for (const auto &val : genderIdentityRulesArray) {
-        QStringList ruleVal = val.toString().split(',');
+        const QStringList ruleVal = val.toString().split(',');
         if(ruleVal.size() == 3) {
             genderIdentityRules[grueprGlobal::stringToGender(ruleVal.at(0))][ruleVal.at(1)].append(ruleVal.at(2).toInt());
         }
     }
     const QJsonArray urmIdentityRulesArray = jsonTeamingOptions["urmIdentityRules"].toArray();
     for (const auto &val : urmIdentityRulesArray) {
-        QStringList ruleVal = val.toString().split(',');
+        const QStringList ruleVal = val.toString().split(',');
         if(ruleVal.size() == 3) {
             urmIdentityRules[ruleVal.at(0)][ruleVal.at(1)].append(ruleVal.at(2).toInt());
         }

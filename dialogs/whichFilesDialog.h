@@ -1,9 +1,9 @@
 #ifndef WHICHFILESDIALOG_H
 #define WHICHFILESDIALOG_H
 
-#include <QDialog>
 #include "dataOptions.h"
 #include "teamingOptions.h"
+#include <QDialog>
 
 namespace Ui {
 class WhichFilesDialog;

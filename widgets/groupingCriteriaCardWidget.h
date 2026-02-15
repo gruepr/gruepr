@@ -21,9 +21,9 @@
 #ifndef GROUPINGCRITERIACARDWIDGET_H
 #define GROUPINGCRITERIACARDWIDGET_H
 
-#include "criteria/criterion.h"
 #include "dataOptions.h"
 #include "teamingOptions.h"
+#include "criteria/criterion.h"
 #include "widgets/labelThatForwardsMouseClicks.h"
 #include <QFrame>
 #include <QGridLayout>
@@ -32,8 +32,8 @@
 #include <QScrollArea>
 #include <QToolButton>
 #include <QWidget>
+#include <QTimer>
 #include <QtUiPlugin/customwidget.h>
-#include <QtDesigner>
 
 
 class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterface {
@@ -53,14 +53,14 @@ public:
 
     //QCheckBox *includePenaltyCheckBox = nullptr;
     void setContentAreaLayout(QLayout & contentLayout);
-    QString name() const;
-    QString includeFile() const;
-    QString group() const;
-    QIcon icon() const;
-    QString toolTip() const;
-    QString whatsThis() const;
-    bool isContainer() const;
-    QWidget *createWidget(QWidget *parent);
+    QString name() const override;
+    QString includeFile() const override;
+    QString group() const override;
+    QIcon icon() const override;
+    QString toolTip() const override;
+    QString whatsThis() const override;
+    bool isContainer() const override;
+    QWidget *createWidget(QWidget *parent) override;
     QLabel *priorityOrderLabel;
     QHBoxLayout* headerRowLayout;
     QPushButton *deleteGroupingCriteriaCardButton;
@@ -69,10 +69,10 @@ public:
     void setDraggable(bool draggable);
     //QPushButton* getDeleteButton();
     void dragStarted();
-    void dragEnterEvent(QDragEnterEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event) override;
     QPoint mapToViewport(const QPointF &local);
-    void dragMoveEvent(QDragMoveEvent *event);
-    void dropEvent(QDropEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
     int getPriorityOrder() const;
     void setPriorityOrder(int priorityOrder);
     Criterion::Precedence getPrecedence() const;

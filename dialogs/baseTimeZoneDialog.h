@@ -1,8 +1,8 @@
 #ifndef BASETIMEZONEDIALOG_H
 #define BASETIMEZONEDIALOG_H
 
-#include <QDialog>
 #include <QComboBox>
+#include <QDialog>
 
 class baseTimezoneDialog : public QDialog
 {

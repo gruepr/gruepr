@@ -9,7 +9,7 @@ void SectionCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
-    auto sectionContentLayout = new QHBoxLayout();
+    auto *sectionContentLayout = new QHBoxLayout();
     sectionContentLayout->setSpacing(1);
 
     editSectionNameButton = new QPushButton(parentCard);

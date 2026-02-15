@@ -43,7 +43,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     diverseButton->setIconSize(QSize(50, 50));
     diverseButton->setStyleSheet("font-size: 15px;");
     auto *diverseLayout = new QVBoxLayout(diverseCard);
-    QLabel *diverseLabel = new QLabel("Diverse\nTeammates", this);
+    auto *diverseLabel = new QLabel("Diverse\nTeammates", this);
     diverseButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     diverseLayout->addWidget(diverseButton, 0, Qt::AlignTop);
     diverseLayout->addWidget(diverseLabel,0,Qt::AlignBottom);
@@ -61,7 +61,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     similarButton->setIconSize(QSize(50, 50));
     similarButton->setStyleSheet("font-size: 15px;");
     auto *similarLayout = new QVBoxLayout(similarCard);
-    QLabel *similarLabel = new QLabel("Similar\nTeammates", this);
+    auto *similarLabel = new QLabel("Similar\nTeammates", this);
     similarButton->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
     similarLayout->addWidget(similarButton, 0, Qt::AlignTop);
     similarLayout->addWidget(similarLabel,0,Qt::AlignBottom);
@@ -73,7 +73,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     attributeDiversityLayout->addWidget(diverseCard);
     attributeDiversityLayout->addSpacing(4);
     attributeDiversityLayout->addWidget(similarCard);
-    QButtonGroup *radioButtonGroup = new QButtonGroup(this);
+    auto *radioButtonGroup = new QButtonGroup(this);
     radioButtonGroup->addButton(similarButton);
     radioButtonGroup->addButton(diverseButton);
     connect(diverseButton, &QRadioButton::toggled, diverseCard, [this](bool checked) {
@@ -141,7 +141,7 @@ AttributeWidget::AttributeWidget(int attribute, const DataOptions *const incomin
     });
 
     attributeSettingsLayout->addWidget(setRequiredValuesButton, 1);
-    QSpacerItem *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    auto *buttonSpacer = new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     attributeSettingsLayout->addItem(buttonSpacer);
     attributeSettingsLayout->addWidget(setIncompatibleValuesButton, 1);
     mainLayout->addLayout(attributeSettingsLayout, 3);
@@ -173,7 +173,7 @@ void AttributeWidget::setValues()
         setIncompatibleValuesButton->setEnabled(true);
     }
 
-    bool similar = (teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar);
+    const bool similar = (teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar);
     diverseButton->setChecked(!similar);
     similarButton->setChecked(similar);
 }
@@ -202,8 +202,8 @@ void AttributeWidget::updateResponses(const std::map<QString, int> &responseCoun
 
     int responseNum = 0;
     for(const auto &response : std::as_const(dataOptions->attributeQuestionResponses[attribute])) {
-        QWidget *row = new QWidget(this);
-        QHBoxLayout *rowLayout = new QHBoxLayout(row);
+        auto *row = new QWidget(this);
+        auto *rowLayout = new QHBoxLayout(row);
         rowLayout->setContentsMargins(0, 0, 2, 2);
         rowLayout->setSpacing(4);
 

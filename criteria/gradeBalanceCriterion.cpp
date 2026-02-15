@@ -9,6 +9,6 @@ void GradeBalanceCriterion::generateCriteriaCard(TeamingOptions *const teamingOp
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
-    QVBoxLayout *ContentLayout = new QVBoxLayout();
+    auto *ContentLayout = new QVBoxLayout();
     parentCard->setContentAreaLayout(*ContentLayout);
 }

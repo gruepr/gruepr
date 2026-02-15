@@ -1,8 +1,6 @@
 #ifndef SURVEYMAKERWIZARD_H
 #define SURVEYMAKERWIZARD_H
 
-#include <QWizard>
-#include <QWizardPage>
 #include "gruepr_globals.h"
 #include "survey.h"
 #include "dialogs/dayNamesDialog.h"
@@ -21,6 +19,8 @@
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QWizard>
+#include <QWizardPage>
 
 
 /**

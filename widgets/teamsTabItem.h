@@ -43,7 +43,7 @@ signals:
 
 private slots:
 //FROMDEV    QWidget* createScoreLegend();
-    void changeTeamNames(int index);
+    void changeTeamNames(const int index);
     void toggleSectionsInTeamNames(bool addSectionNames);
     void randomizeTeamnames(bool random);
     void updateTeamNamesInTableAndTooltips();

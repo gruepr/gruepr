@@ -20,29 +20,29 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
     QSettings savedSettings;
     setStyleSheet("background-color: white");
 
-    QVBoxLayout *mainLayout = new QVBoxLayout();
+    auto *mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(5);
 
-    QLabel *headerLabel = new QLabel("Load your student data to form teams");
+    auto *headerLabel = new QLabel("Load your student data to form teams");
 
     headerLabel->setStyleSheet(LABEL14PTSTYLE);
-    DropCSVFrame *dropCSVFileFrame = new DropCSVFrame(this);
+    auto *dropCSVFileFrame = new DropCSVFrame(this);
     dropCSVFileFrame->setStyleSheet(DROPFRAME);
     dropCSVFileFrame->setMinimumWidth(0);
     dropCSVFileFrame->setMinimumHeight(200);
     dropCSVFileFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    QPushButton* uploadButton = new QPushButton(this);
+    auto *uploadButton = new QPushButton(this);
     uploadButton->setIcon(QIcon(":/icons_new/upload.png"));
     uploadButton->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
     uploadButton->setStyleSheet(UPLOADBUTTONSTYLE);
 
-    QLabel *uploadSourceLabel = new QLabel("Drag & drop or Choose file to upload.", this);
-    QLabel *acceptedFormatsLabel = new QLabel("Accepted format: .csv");
+    auto *uploadSourceLabel = new QLabel("Drag & drop or Choose file to upload.", this);
+    auto *acceptedFormatsLabel = new QLabel("Accepted format: .csv");
     uploadSourceLabel->setStyleSheet(LABEL10PTSTYLE);
     acceptedFormatsLabel->setStyleSheet(LABEL10PTSTYLE);
 
-    QVBoxLayout* dropCSVFileFrameLayout = new QVBoxLayout();
+    auto *dropCSVFileFrameLayout = new QVBoxLayout();
 
     dropCSVFileFrameLayout->addWidget(uploadButton, 0, Qt::AlignCenter);
     dropCSVFileFrameLayout->addWidget(uploadSourceLabel, 0, Qt::AlignCenter);
@@ -52,22 +52,22 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
 
     dropCSVFileFrame->setLayout(dropCSVFileFrameLayout);
 
-    QHBoxLayout *otherDataSourcesLayout = new QHBoxLayout();
-    QLabel *otherDataSourcesLabel = new QLabel("Other data sources", this);
+    auto *otherDataSourcesLayout = new QHBoxLayout();
+    auto *otherDataSourcesLabel = new QLabel("Other data sources", this);
     otherDataSourcesLabel->setStyleSheet(LABEL12PTSTYLE);
 
-    QFrame *googleFormFrame = new QFrame(this);
+    auto *googleFormFrame = new QFrame(this);
     googleFormFrame->setStyleSheet(BASICFRAME);
-    QVBoxLayout* googleFormFrameLayout = new QVBoxLayout();
+    auto *googleFormFrameLayout = new QVBoxLayout();
     googleFormFrame->setLayout(googleFormFrameLayout);
     //add Label, button
-    QPushButton* googleFormLabel = new QPushButton(this);
+    auto *googleFormLabel = new QPushButton(this);
     googleFormLabel->setIcon(QIcon(":/icons_new/google.png"));
     googleFormLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
     googleFormLabel->setText("Google Form");
     googleFormLabel->setStyleSheet(LABELONLYBUTTON);
 
-    QPushButton* loadDataFromGoogleFormButton = new QPushButton(this);
+    auto *loadDataFromGoogleFormButton = new QPushButton(this);
     loadDataFromGoogleFormButton->setIcon(QIcon(":/icons_new/upload.png"));
     loadDataFromGoogleFormButton->setIconSize(QSize(SMALLERICONSIZE,SMALLERICONSIZE));
     loadDataFromGoogleFormButton->setText("Load data from google form results");
@@ -76,17 +76,17 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
     googleFormFrameLayout->addWidget(loadDataFromGoogleFormButton, 0, Qt::AlignLeft);
 
     //Canvas Survey Frame
-    QFrame *canvasSurveyFrame = new QFrame(this);
+    auto *canvasSurveyFrame = new QFrame(this);
     canvasSurveyFrame->setStyleSheet(BASICFRAME);
-    QVBoxLayout* canvasSurveyFrameLayout = new QVBoxLayout();
+    auto *canvasSurveyFrameLayout = new QVBoxLayout();
     canvasSurveyFrame->setLayout(canvasSurveyFrameLayout);
-    QPushButton* canvasSurveyLabel = new QPushButton(this);
+    auto *canvasSurveyLabel = new QPushButton(this);
     canvasSurveyLabel->setIcon(QIcon(":/icons_new/canvas.png"));
     canvasSurveyLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
     canvasSurveyLabel->setText("Canvas Survey");
     canvasSurveyLabel->setStyleSheet(LABELONLYBUTTON);
 
-    QPushButton* loadDataFromCanvasSurveyButton = new QPushButton(this);
+    auto *loadDataFromCanvasSurveyButton = new QPushButton(this);
     loadDataFromCanvasSurveyButton->setIcon(QIcon(":/icons_new/upload.png"));
     loadDataFromCanvasSurveyButton->setIconSize(QSize(SMALLERICONSIZE,SMALLERICONSIZE));
     loadDataFromCanvasSurveyButton->setText("Load data from canvas survey results");
@@ -95,20 +95,20 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
     canvasSurveyFrameLayout->addWidget(loadDataFromCanvasSurveyButton, 0, Qt::AlignLeft);
 
     //Reopen Prev Work Frame
-    QFrame *reopenPrevWorkFrame = new QFrame(this);
+    auto *reopenPrevWorkFrame = new QFrame(this);
     reopenPrevWorkFrame->setStyleSheet(BASICFRAME);
-    QVBoxLayout* reopenPrevWorkFrameLayout = new QVBoxLayout();
+    auto *reopenPrevWorkFrameLayout = new QVBoxLayout();
     reopenPrevWorkFrame->setLayout(reopenPrevWorkFrameLayout);
 
-    QPushButton* reopenPrevWorkLabel = new QPushButton(this);
+    auto *reopenPrevWorkLabel = new QPushButton(this);
     reopenPrevWorkLabel->setIcon(QIcon(":/icons_new/save.png"));
     reopenPrevWorkLabel->setIconSize(QSize(BASICICONSIZE,BASICICONSIZE));
     reopenPrevWorkLabel->setText("Reopen previous work");
     reopenPrevWorkLabel->setStyleSheet(LABELONLYBUTTON);
 
-    QHBoxLayout *prevWorkComboBoxLayout = new QHBoxLayout();
+    auto *prevWorkComboBoxLayout = new QHBoxLayout();
     prevWorkComboBox = new QComboBox(this);
-    QPushButton *loadPrevWorkButton = new QPushButton (this);
+    auto *loadPrevWorkButton = new QPushButton (this);
     loadPrevWorkButton->setIcon(QIcon(":/icons_new/upload.png"));
     loadPrevWorkButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     prevWorkComboBoxLayout->addWidget(prevWorkComboBox, 3);
@@ -147,7 +147,7 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
 
     dataSourceFrame = new QFrame(this);
     dataSourceLabel = new QPushButton(this);
-    QHBoxLayout* dataSourceFrameLayout = new QHBoxLayout();
+    auto *dataSourceFrameLayout = new QHBoxLayout();
     dataSourceFrameLayout->addWidget(dataSourceLabel);
     dataSourceFrame->setLayout(dataSourceFrameLayout);
     dataSourceFrame->setStyleSheet("QFrame {background-color: " TROPICALHEX "; color: " DEEPWATERHEX "; border: none;}"
@@ -203,7 +203,7 @@ loadDataDialog::loadDataDialog(StartDialog *parent) : QDialog(), parent(parent){
 
 bool loadDataDialog::getFromDropFile(QString filePathString){
     const QPixmap icon(":/icons_new/file.png");
-    QFileInfo fileInfo(filePathString);
+    const QFileInfo fileInfo(filePathString);
     if (fileInfo.suffix().toLower() != "csv") {
         //qDebug() << "Error: The dropped file is not a CSV file.";
         return false;
@@ -330,19 +330,19 @@ bool loadDataDialog::readQuestionsFromHeader()
     }
 
     // Ask user what the columns mean
-    QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
-                                                  {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
-                                                  {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
-                                                  {"Email Address", "(e).*(mail)", 1},
-                                                  {"Gender", "((gender)|(pronouns))", 1},
-                                                  {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
-                                                  {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
-                                                  {"Section", "which section are you enrolled", 1},
-                                                  {"Timezone","(time zone)", 1},
-                                                  {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
-                                                  {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
-                                                  {"Multiple Choice", ".*", MAX_ATTRIBUTES},
-                                                  {"Notes", "", MAX_NOTES}};
+    const QList<possFieldMeaning> surveyFieldOptions = {{"Timestamp", "(timestamp)|(^submitted$)", 1},
+                                                        {"First Name", "((first)|(given)|(preferred))(?!.*last).*(name)", 1},
+                                                        {"Last Name", "^(?!.*first).*((last)|(sur)|(family)).*(name)", 1},
+                                                        {"Email Address", "(e).*(mail)", 1},
+                                                        {"Gender", "((gender)|(pronouns))", 1},
+                                                        {"Racial/ethnic identity", "((minority)|(ethnic))", 1},
+                                                        {"Schedule", "((check)|(select)).+(times)", MAX_DAYS},
+                                                        {"Section", "which section are you enrolled", 1},
+                                                        {"Timezone","(time zone)", 1},
+                                                        {"Preferred Teammates", "(like to have on your team)|(want to work with)", MAX_PREFTEAMMATES},
+                                                        {"Preferred Non-teammates", "(like to not have on your team)|(want to avoid working with)", MAX_PREFTEAMMATES},
+                                                        {"Multiple Choice", ".*", MAX_ATTRIBUTES},
+                                                        {"Notes", "", MAX_NOTES}};
     // see if each field is a value to be ignored; if not and the fieldMeaning is empty, preload with possibleFieldMeaning based on matches to the patterns
     for(int i = 0; i < surveyFile->numFields; i++) {
         const QString &headerVal = surveyFile->headerValues.at(i);

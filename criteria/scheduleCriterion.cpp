@@ -9,8 +9,8 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 
-    QVBoxLayout *meetingScheduleContentLayout = new QVBoxLayout();
-    QHBoxLayout *minimumAndDesiredButtonLayout = new QHBoxLayout();
+    auto *meetingScheduleContentLayout = new QVBoxLayout();
+    auto *minimumAndDesiredButtonLayout = new QHBoxLayout();
     minMeetingTimes = new QSpinBox(parentCard);
     desiredMeetingTimes = new QSpinBox(parentCard);
     minMeetingTimes->setMinimumHeight(40);

@@ -1,10 +1,10 @@
 #ifndef ATTRIBUTERULESDIALOG_H
 #define ATTRIBUTERULESDIALOG_H
 
-#include <QDialog>
 #include "dataOptions.h"
 #include "teamingOptions.h"
 #include <QCheckBox>
+#include <QDialog>
 
 namespace Ui {
 class AttributeRulesDialog;

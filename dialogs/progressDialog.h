@@ -1,9 +1,9 @@
 #ifndef PROGRESSDIALOG_H
 #define PROGRESSDIALOG_H
 
-#include <QDialog>
 #include <QChartView>
 #include <QCheckBox>
+#include <QDialog>
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>

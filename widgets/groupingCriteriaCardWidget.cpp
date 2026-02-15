@@ -19,14 +19,20 @@
 */
 
 #include "groupingCriteriaCardWidget.h"
+#include "criteria/attributeCriterion.h"
 #include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
-#include "criteria/attributeCriterion.h"
-#include "criteria/teammatesCriterion.h"
 #include "criteria/scheduleCriterion.h"
 #include "criteria/sectionCriterion.h"
-#include "criteria/URMIdentityCriterion.h"
+#include "criteria/teammatesCriterion.h"
 #include "criteria/teamsizeCriterion.h"
+#include "criteria/URMIdentityCriterion.h"
+#include <QDrag>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QPainter>
 #include <QPropertyAnimation>
 
 GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
@@ -163,7 +169,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
 
-    QString priorityOrder = QString::number(this->priorityOrder);
+    const QString priorityOrder = QString::number(this->priorityOrder);
     priorityOrderLabel = new QLabel;
     QString labelText;
     switch(criterion->precedence) {
@@ -187,7 +193,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     priorityOrderLabel->setStyleSheet("border: none");
 
     headerRowLayout = new QHBoxLayout();
-    QHBoxLayout* contentRowLayout = new QHBoxLayout();
+    auto *contentRowLayout = new QHBoxLayout();
     mainVerticalLayout->addLayout(headerRowLayout);
 
     deleteGroupingCriteriaCardButton = new QPushButton(this);
@@ -295,7 +301,7 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
     delete contentArea->layout();
 
     //if cannot cast contentLayout to VBoxLayout, then
-    QVBoxLayout *mainLayout = new QVBoxLayout();
+    auto *mainLayout = new QVBoxLayout();
     //don't allow user to set penalty checkbox if it criteria is teamsize or section
 
     mainLayout->addLayout(&contentLayout);
@@ -328,13 +334,13 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
     const auto collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
 
     for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i) {
-        QPropertyAnimation *SectionAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(i));
+        auto *SectionAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(i));
         SectionAnimation->setDuration(animationDuration);
         SectionAnimation->setStartValue(collapsedHeight);
         SectionAnimation->setEndValue(collapsedHeight + contentHeight);
     }
 
-    QPropertyAnimation *contentAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(
+    auto *contentAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(
         toggleAnimation->animationCount() - 1));
     contentAnimation->setDuration(animationDuration);
     contentAnimation->setStartValue(0);
@@ -349,12 +355,12 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
 
 void GroupingCriteriaCard::dragStarted() {
     setCursor(Qt::ClosedHandCursor);
-    QDrag *drag = new QDrag(this);
-    QMimeData *mimeData = new QMimeData;
+    auto *drag = new QDrag(this);
+    auto *mimeData = new QMimeData;
     mimeData->setText(QString::number(reinterpret_cast<quintptr>(this)));
     //qDebug() << mimeData;
     drag->setMimeData(mimeData);
-    QPixmap pixmap = grab();
+    const QPixmap pixmap = grab();
 
     // Create a transparentPixmap over which we will paint the pixmap in 50% opacity
     QPixmap transparentPixmap(pixmap.size());
@@ -367,14 +373,14 @@ void GroupingCriteriaCard::dragStarted() {
 
     drag->setPixmap(transparentPixmap); //Capture the widget's appearance
 
-    QPoint hotSpot = QPoint(10, 10);
+    const QPoint hotSpot = QPoint(10, 10);
     drag->setHotSpot(hotSpot);
     drag->exec(Qt::MoveAction);
 }
 
 QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local)
 {
-    QAbstractScrollArea *vp = nullptr;
+    const QAbstractScrollArea *vp = nullptr;
     for (QWidget *w = parentWidget(); w; w = w->parentWidget())
         if ((vp = qobject_cast<QAbstractScrollArea*>(w)))
             return vp->viewport()->mapFromGlobal(mapToGlobal(local.toPoint()));
@@ -400,13 +406,13 @@ void GroupingCriteriaCard::dragMoveEvent(QDragMoveEvent *e)
 void GroupingCriteriaCard::dropEvent(QDropEvent *event)
 {
     // Get the widget ID (pointer stored in mime data)
-    QString widgetID = event->mimeData()->text();
-    GroupingCriteriaCard *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
+    const QString widgetID = event->mimeData()->text();
+    const auto *draggedFrame = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
     m_dragTimer.stop();
-    if (draggedFrame!=this) {
+    if (draggedFrame != this) {
         // Find the index of both frames in the layout
-        int draggedPriorityOrder = draggedFrame->getPriorityOrder();
-        int targetPriorityOrder = this->getPriorityOrder();
+        const int draggedPriorityOrder = draggedFrame->getPriorityOrder();
+        const int targetPriorityOrder = this->getPriorityOrder();
 
         //qDebug() << this->getPriorityOrder();
         //qDebug() << draggedFrame->getPriorityOrder();

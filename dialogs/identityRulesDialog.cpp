@@ -22,7 +22,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
     // identityTitleLabel->setAlignment(Qt::AlignCenter);
     // mainLayout->addWidget(identityTitleLabel);
 
-    QLabel* instructions = new QLabel("<b><u>Identity Rules for: " + grueprGlobal::genderToString(m_identity) +
+    auto *instructions = new QLabel("<b><u>Identity Rules for: " + grueprGlobal::genderToString(m_identity) +
                                           "</u></b> <i>Click \"Add New Identity Rule\" to begin. Set " +
                                           grueprGlobal::genderToString(m_identity) +" != 1 to prevent the identity from being isolated in a team.</i>", this);
     instructions->setStyleSheet(QString(INSTRUCTIONSLABELSTYLE));
@@ -69,11 +69,11 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
     scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mainLayout->addWidget(scrollArea);
 
-    QPushButton* addNewIdentityRuleButton = new QPushButton(this);
+    auto *addNewIdentityRuleButton = new QPushButton(this);
     addNewIdentityRuleButton->setText("Add New Identity Rule");
     connect(addNewIdentityRuleButton, &QPushButton::clicked, this, &IdentityRulesDialog::addNewIdentityRule);
 
-    QPushButton* okayButton = new QPushButton(this);
+    auto *okayButton = new QPushButton(this);
     okayButton->setText("Save and Close");
     connect(okayButton, &QPushButton::clicked, this, [teamingOptions, identity, this](){
         QList<int> rowValues;
@@ -83,9 +83,9 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
         QList<int> uniqueNumbersList;
         // Get the 3rd row (index 2) of the rulesTable and iterate over the spinbox values
         for (int row = 0; row < rulesTable->rowCount(); ++row) {
-            QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));  // 3rd row, index 2
+            const QSpinBox *spinBox = qobject_cast<QSpinBox *>(rulesTable->cellWidget(row, 2));  // 3rd row, index 2
             if (spinBox) {
-                int value = spinBox->value();
+                const int value = spinBox->value();
                 //qDebug() << "Checking each spinBox, row:" << row << "value:" << value;
                 rowValues.append(value);
 
@@ -114,13 +114,13 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
         }
         if (!hasDuplicates && !hasPlaceholder) {
             teamingOptions->genderIdentityRules[m_identity]["!="] = {};
-            for (int num : uniqueNumbersList) {
+            for (const int num : uniqueNumbersList) {
                 teamingOptions->genderIdentityRules[m_identity]["!="].append(num);
             }
             this->accept();  // Close the dialog
         }
     });
-    QHBoxLayout* buttonsLayout = new QHBoxLayout(this);
+    auto *buttonsLayout = new QHBoxLayout(this);
     buttonsLayout->addWidget(addNewIdentityRuleButton);
     buttonsLayout->addWidget(okayButton);
     //to do: cancel button
@@ -133,12 +133,12 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
 }
 
 void IdentityRulesDialog::addNewIdentityRule() {
-    int row = rulesTable->rowCount();
+    const int row = rulesTable->rowCount();
     rulesTable->insertRow(row);
     // QLabel* identityLabel = new QLabel("No. " + identity);
     // QLabel* operatorLabel = new QLabel("!=", this);
 
-    QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
+    auto *noOfIdentitySpinBox = new QSpinBox(this);
     noOfIdentitySpinBox->setMinimum(-1);
     noOfIdentitySpinBox->setValue(-1);
     noOfIdentitySpinBox->setSpecialValueText("...");
@@ -149,17 +149,17 @@ void IdentityRulesDialog::addNewIdentityRule() {
     // newIdentityRuleLayout->addWidget(operatorLabel);
     // newIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
 
-    QPushButton* removeRuleButton = new QPushButton(this);
+    auto *removeRuleButton = new QPushButton(this);
     removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
     connect(removeRuleButton, &QPushButton::clicked, this, [this, row, noOfIdentitySpinBox]() mutable {
         removeIdentityRule("!=", noOfIdentitySpinBox->value());
         rulesTable->removeRow(row);
     });
 
-    QTableWidgetItem* identityItem = new QTableWidgetItem(grueprGlobal::genderToString(m_identity));
+    auto *identityItem = new QTableWidgetItem(grueprGlobal::genderToString(m_identity));
     identityItem->setFlags(identityItem->flags() & ~Qt::ItemIsEditable);
 
-    QTableWidgetItem* operatorItem = new QTableWidgetItem("!=");
+    auto *operatorItem = new QTableWidgetItem("!=");
     operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
 
     rulesTable->setItem(row, 0, identityItem);
@@ -180,26 +180,26 @@ void IdentityRulesDialog::populateTable() {
     rulesTable->setRowCount(0);  // Clear table first
     for (const QString &operatorString : teamingOptions->genderIdentityRules[m_identity].keys()) {
         const QList<int> &noInRule = teamingOptions->genderIdentityRules[m_identity].value(operatorString);
-        for (int noOfIdentity : noInRule) {
-            int row = rulesTable->rowCount();
+        for (const int noOfIdentity : noInRule) {
+            const int row = rulesTable->rowCount();
             rulesTable->insertRow(row);
 
-            QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
+            auto *noOfIdentitySpinBox = new QSpinBox(this);
             noOfIdentitySpinBox->setMinimum(0);
             noOfIdentitySpinBox->setValue(noOfIdentity);
             noOfIdentitySpinBox->setStyleSheet(SPINBOXSTYLE);
 
-            QPushButton* removeRuleButton = new QPushButton(this);
+            auto *removeRuleButton = new QPushButton(this);
             removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
             connect(removeRuleButton, &QPushButton::clicked, this, [this, row, noOfIdentitySpinBox]() mutable {
                 removeIdentityRule("!=", noOfIdentitySpinBox->value());
                 rulesTable->removeRow(row);
             });
 
-            QTableWidgetItem* identityItem = new QTableWidgetItem(grueprGlobal::genderToString(m_identity));
+            auto *identityItem = new QTableWidgetItem(grueprGlobal::genderToString(m_identity));
             identityItem->setFlags(identityItem->flags() & ~Qt::ItemIsEditable);
 
-            QTableWidgetItem* operatorItem = new QTableWidgetItem("!=");
+            auto *operatorItem = new QTableWidgetItem("!=");
             operatorItem->setFlags(operatorItem->flags() & ~Qt::ItemIsEditable);
 
             rulesTable->setItem(row, 0, identityItem);
@@ -221,21 +221,21 @@ void IdentityRulesDialog::updateDialog(){
     //recreate the rulesLayout
     for (const QString &operatorString : teamingOptions->genderIdentityRules[m_identity].keys()) {
         QList<int> noInRule = teamingOptions->genderIdentityRules[m_identity].value(operatorString);
-        for (int noOfIdentity : std::as_const(noInRule)){
+        for (const int noOfIdentity : std::as_const(noInRule)){
 
-            QLabel* identityLabel = new QLabel("No. " + grueprGlobal::genderToString(m_identity));
-            QLabel* operatorLabel = new QLabel(operatorString, this);
+            auto *identityLabel = new QLabel("No. " + grueprGlobal::genderToString(m_identity));
+            auto *operatorLabel = new QLabel(operatorString, this);
 
-            QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
+            auto *noOfIdentitySpinBox = new QSpinBox(this);
             noOfIdentitySpinBox->setMinimum(0);
             noOfIdentitySpinBox->setValue(noOfIdentity);
 
-            QHBoxLayout* newIdentityRuleLayout = new QHBoxLayout();
+            auto *newIdentityRuleLayout = new QHBoxLayout();
             newIdentityRuleLayout->addWidget(identityLabel);
             newIdentityRuleLayout->addWidget(operatorLabel);
             newIdentityRuleLayout->addWidget(noOfIdentitySpinBox);
 
-            QPushButton* removeRuleButton = new QPushButton(this);
+            auto *removeRuleButton = new QPushButton(this);
             removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
             connect(removeRuleButton, &QPushButton::clicked, this, [this, operatorString, noOfIdentity]() mutable {
                 teamingOptions->genderIdentityRules[m_identity][operatorString].removeOne(noOfIdentity);
@@ -254,9 +254,9 @@ void IdentityRulesDialog::updateDialog(){
 }
 
 QHBoxLayout* IdentityRulesDialog::createIdentityOperatorRule(Gender identity, QString operatorString, int noOfIdentity){
-    QHBoxLayout* eachIdentityRuleLayout = new QHBoxLayout();
-    QLabel* currentIdentityLabel = new QLabel(grueprGlobal::genderToString(identity));
-    QComboBox* operatorComboBox = new QComboBox(this);
+    auto *eachIdentityRuleLayout = new QHBoxLayout();
+    auto *currentIdentityLabel = new QLabel(grueprGlobal::genderToString(identity));
+    auto *operatorComboBox = new QComboBox(this);
     //operatorComboBox->addItem(">");    // Greater than
     operatorComboBox->addItem("=");    // Equal to
     //operatorComboBox->addItem(">=");   // Greater than or equal to
@@ -264,19 +264,19 @@ QHBoxLayout* IdentityRulesDialog::createIdentityOperatorRule(Gender identity, QS
     //operatorComboBox->addItem("<");    // Less than
     operatorComboBox->addItem("!=");   // Not equal to
 
-    int operatorIndex = operatorComboBox->findText(operatorString);
+    const int operatorIndex = operatorComboBox->findText(operatorString);
     if (operatorIndex != -1) {
         operatorComboBox->setCurrentIndex(operatorIndex);
     }
 
-    QSpinBox* noOfIdentitySpinBox = new QSpinBox(this);
+    auto *noOfIdentitySpinBox = new QSpinBox(this);
     noOfIdentitySpinBox->setMinimum(0);
     noOfIdentitySpinBox->setValue(noOfIdentity); //initialize to passed parameter
     // Connect combobox to update identityRules
 
     connect(operatorComboBox, &QComboBox::currentTextChanged, this, [this, operatorComboBox, identity, noOfIdentitySpinBox](const QString &newOperator) {
         if (teamingOptions->genderIdentityRules.contains(identity)) {
-            int currentValue = noOfIdentitySpinBox->value(); //how is this initialized?
+            const int currentValue = noOfIdentitySpinBox->value(); //how is this initialized?
             //remove the old value
             teamingOptions->genderIdentityRules[identity][operatorComboBox->currentText()].remove(currentValue);
             //remove the old operator if it is now empty
@@ -291,8 +291,8 @@ QHBoxLayout* IdentityRulesDialog::createIdentityOperatorRule(Gender identity, QS
     // Connect spinbox to update identityRules
     connect(noOfIdentitySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, identity, operatorComboBox, noOfIdentitySpinBox](int newValue) {
         if (teamingOptions->genderIdentityRules.contains(identity)) {
-            int currentValue = noOfIdentitySpinBox->value();
-            QString currentOperator = operatorComboBox->currentText();
+            const int currentValue = noOfIdentitySpinBox->value();
+            const QString currentOperator = operatorComboBox->currentText();
             teamingOptions->genderIdentityRules[identity][currentOperator].remove(currentValue);
             teamingOptions->genderIdentityRules[identity][currentOperator].append(newValue);
         }

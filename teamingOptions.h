@@ -19,7 +19,7 @@ public:
 
     QJsonObject toJson() const;
 
-    typedef QMap<QString, QList<int>> identityRule;
+    using identityRule = QMap<QString, QList<int>>;
     QMap<Gender, identityRule> genderIdentityRules;     // for example: [Gender::woman  -->  ["!="  --> 0, 1]] means no team can have 0 or 1 woman (all must have 2+)
     QMap<QString, identityRule> urmIdentityRules;       // for example: ["latino"  -->  ["!="  --> 2]] means no team can have 2 latino students (0, 1, or 3 ok)
     bool singleGenderPrevented = false;                 // if true, will penalize teams with all men or all women

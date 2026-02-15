@@ -710,7 +710,7 @@ void DemographicsPage::update()
 MultipleChoicePage::MultipleChoicePage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::multichoice, parent)
 {
-    auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
+    auto *stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     sampleQuestionsFrame = new QFrame(this);
     sampleQuestionsFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
     sampleQuestionsIcon = new QLabel;
@@ -1003,7 +1003,7 @@ SchedulePage::SchedulePage(QWidget *parent)
     }
     for(int time = 1; time <= MAX_BLOCKS_PER_DAY; time++) {
         for(int day = 1; day <= 7; day++) {
-            auto check = new QCheckBox;
+            auto *check = new QCheckBox;
             check->setChecked(true);
             scLayout->addWidget(check, time, day);
         }
@@ -1862,7 +1862,7 @@ bool CourseInfoPage::uploadRoster()
 {
     // Open the roster file
     CsvFile rosterFile;
-    QFileInfo *saveFilePath = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
+    const QFileInfo *saveFilePath = &(qobject_cast<SurveyMakerWizard *>(wizard()))->saveFileLocation;
     if(!rosterFile.open(this, CsvFile::Operation::read, tr("Open Student Roster File"), saveFilePath->canonicalFilePath(), tr("Roster File"))) {
         return false;
     }
@@ -1941,7 +1941,7 @@ bool CourseInfoPage::uploadRoster()
 FreeResponsePage::FreeResponsePage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::freeresponse, parent)
 {
-    auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
+    auto *stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
     freeResponseInfoFrame = new QFrame(this);
     freeResponseInfoFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
     freeResponseInfoIcon = new LabelWithInstantTooltip("", this);
@@ -2153,7 +2153,7 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     auto *saveExporttitle = new QLabel("<span style=\"color: white; font-family:'DM Sans'; font-size:14pt;\">" + tr("Export Survey As:") + "</span>");
     auto *destination = new QGroupBox("");
     destination->setStyleSheet("border-style:none;");
-    auto helpIcon = new LabelWithInstantTooltip("", this);
+    auto *helpIcon = new LabelWithInstantTooltip("", this);
     helpIcon->setStyleSheet(BIGTOOLTIPSTYLE);
     QPixmap whiteLightbulb = QPixmap(":/icons_new/lightbulb.png").scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QPainter painter(&whiteLightbulb);
@@ -2161,10 +2161,10 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     painter.fillRect(whiteLightbulb.rect(), QColor("white"));
     painter.end();
     helpIcon->setPixmap(whiteLightbulb);
-    auto helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"), this);
+    auto *helpLabel = new LabelWithInstantTooltip(tr(" Help me choose!"), this);
     helpLabel->setStyleSheet(QString(LABEL12PTSTYLE).replace(DEEPWATERHEX, "white") + BIGTOOLTIPSTYLE);
     helpLabel->setWordWrap(true);
-    auto helpLayout = new QHBoxLayout;
+    auto *helpLayout = new QHBoxLayout;
     helpLayout->addWidget(helpIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
     helpLayout->addWidget(helpLabel, 1, Qt::AlignVCenter);
     const QString helpText = tr("<html><span style=\"color: black;\">gruepr offers the following ways to use the survey you've created:"
@@ -2236,7 +2236,7 @@ PreviewAndExportPage::PreviewAndExportPage(QWidget *parent)
     }
     for(int time = 1; time <= MAX_BLOCKS_PER_DAY; time++) {
         for(int day = 1; day <= MAX_DAYS; day++) {
-            auto check = new QCheckBox;
+            auto *check = new QCheckBox;
             schedGridLayout->addWidget(check, time, day);
         }
     }

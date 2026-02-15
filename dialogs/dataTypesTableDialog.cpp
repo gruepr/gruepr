@@ -9,7 +9,7 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
     setMinimumSize(LG_DLG_SIZE, LG_DLG_SIZE);
     setMaximumSize(SCREENWIDTH * 5 / 6, SCREENHEIGHT * 5 / 6);
     setAttribute(Qt::WA_DeleteOnClose);
-    QTableWidget *rulesTable = new QTableWidget(this);
+    auto *rulesTable = new QTableWidget(this);
     rulesTable->setColumnCount(5);
     rulesTable->setHorizontalHeaderLabels({"Data Type", "Description", "Grouping Rules", "Format", "Example"});
     rulesTable->setRowCount(15);
@@ -103,7 +103,7 @@ dataTypesTableDialog::dataTypesTableDialog(QWidget *parent) : QDialog(parent) {
                               "border: none;"
                               "}") + SCROLLBARSTYLE);
 
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    auto *layout = new QVBoxLayout(this);
     layout->addWidget(rulesTable);
     setLayout(layout);
 }
