@@ -52,8 +52,8 @@ private:
                                       "email "
                                       "https://www.googleapis.com/auth/drive.file"};
     inline static const char ICON[]{":/icons_new/google.png"};
-    inline static const char CLIENT_ID[]{"SECRET_GOOGLE_CLIENT_ID"};
-    inline static const char CLIENT_SECRET[]{"SECRET_GOOGLE_CLIENT_SECRET"};
+    inline static const char CLIENT_ID[]{SECRET_GOOGLE_CLIENT_ID};
+    inline static const char CLIENT_SECRET[]{SECRET_GOOGLE_CLIENT_SECRET};
 };
 
 #endif // GOOGLEHANDLER_H
