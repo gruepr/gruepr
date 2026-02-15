@@ -59,8 +59,8 @@ jobs:
     - name: Upload unsigned installer
       uses: actions/upload-artifact@v6
       with:
-        name: gruepr
-        path: install_gruepr.exe
+        name: gruepr-windows-installer
+        path: windows\install_gruepr.exe
         compression-level: 0
         
 #    - name: Sign with SignPath
