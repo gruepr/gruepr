@@ -43,12 +43,16 @@ jobs:
       
     - name: Clean
       run: jom clean
-          
+
     - name: Deploy
       run: |
            mkdir bin
-           move build\gruepr.exe bin
+           move release\gruepr.exe bin
            windeployqt gruepr.exe
+
+    - name: Download VC++ Redistributable
+      run: |
+        Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile vc_redist.x64.exe
 
     - name: Make installer
       run: |
