@@ -90,6 +90,7 @@ jobs:
 # --- Sign the installer ---
 
     - name: Upload unsigned installer
+      id: upload-unsigned-installer
       uses: actions/upload-artifact@v6
       with:
         name: gruepr-windows-installer
