@@ -1,5 +1,4 @@
 #include "googlehandler.h"
-#include "googlesecrets.h"
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
