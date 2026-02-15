@@ -5,7 +5,9 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      
+
+# --- Get all the tools ---
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
@@ -31,7 +33,9 @@ jobs:
         DEFINES += SECRET_GOOGLE_CLIENT_ID=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_ID }}\\\"
         DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
         "@ | Out-File -FilePath ci_secrets.pri -Encoding utf8
-      
+
+# --- Compile the exe ---
+
     - name: QMake
       run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info"
       
@@ -43,6 +47,33 @@ jobs:
       
     - name: Clean
       run: jom clean
+
+# --- Sign the exe ---
+
+    - name: Upload unsigned exe
+      id: upload-unsigned-exe
+      uses: actions/upload-artifact@v6
+      with:
+        name: gruepr-unsigned-exe
+        path: release\gruepr.exe
+        compression-level: 0
+
+    - name: Sign exe
+      uses: signpath/github-action-submit-signing-request@v2
+      with:
+        api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+        organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
+        project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
+        signing-policy-slug: 'test-signing'
+        artifact-configuration-slug: 'Windows_executable'
+        github-artifact-id: '${{ steps.upload-unsigned-exe.outputs.artifact-id }}'
+        wait-for-completion: true
+        output-artifact-directory: 'signed-exe'
+
+    - name: Replace exe with signed version
+      run: copy signed-exe\gruepr.exe release\gruepr.exe
+
+# --- Deploy and build installer ---
 
     - name: Deploy
       run: |
@@ -56,6 +87,8 @@ jobs:
       run: |
            & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." windows\gruepr_InstallScript.nsi
 
+# --- Sign the installer ---
+
     - name: Upload unsigned installer
       uses: actions/upload-artifact@v6
       with:
@@ -63,21 +96,22 @@ jobs:
         path: windows\install_gruepr.exe
         compression-level: 0
         
-#    - name: Sign with SignPath
-#      id: sign
-#      uses: signpath/github-action-submit-signing-request@v2
-#      with:
-#          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-#          organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
-#          project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
-#          signing-policy-slug: 'test-signing'
-#          github-artifact-id: '${{ steps.upload-unsigned.outputs.artifact-id }}'
-#          wait-for-completion: true
-#          output-artifact-directory: 'signed'
-#
-#    - name: Upload signed installer
-#      uses: actions/upload-artifact@v6
-#      with:
-#          name: qt-qmake-test-installer-signed
-#          path: signed/qt-qmake-test-installer.exe
-#          compression-level: 0
+    - name: Sign with SignPath
+      id: sign
+      uses: signpath/github-action-submit-signing-request@v2
+      with:
+          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+          organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
+          project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
+          signing-policy-slug: 'test-signing'
+          artifact-configuration-slug: 'Windows_Installer'
+          github-artifact-id: '${{ steps.upload-unsigned-installer.outputs.artifact-id }}'
+          wait-for-completion: true
+          output-artifact-directory: 'signed-installer'
+
+    - name: Upload signed installer
+      uses: actions/upload-artifact@v6
+      with:
+          name: gruepr-signed
+          path: signed-installer\install_gruepr.exe
+          compression-level: 0
