@@ -7,8 +7,8 @@ prev_versions/*
 macOS/*
 !macOS/MyAppInfo.plist
 windows/*
-googlesecrets.h
-LMS/googlesecrets.h
+ci_secrets.pri
+local_secrets.pri
 LMS/canvasScopes.txt
 Brandbook-Gruepr.pdf
 hecvatlite305.xlsx
