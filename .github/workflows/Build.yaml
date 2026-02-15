@@ -85,7 +85,7 @@ jobs:
 
     - name: Make installer
       run: |
-           & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." windows\gruepr_InstallScript.nsi
+           & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." /DCI windows\gruepr_InstallScript.nsi
 
 # --- Sign the installer ---
 
