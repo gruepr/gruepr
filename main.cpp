@@ -35,9 +35,9 @@
 //    All fonts are licensed under SIL OPEN FONT LICENSE V1.1.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DONE:
-//  - updated Qt to v6.9.1; updated c++ to c++20
+//  - updated Qt to v6.9.1; updated c++ to c++20; updated build to allow CI with GitHub Action & SignPath codesigning
 //  - removed dark mode in windows
-//  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values in the studentRecord)
+//  - changed handling of gender, allowing it to be multi-valued (students can select >1 in survey; set of values saved in the studentRecord)
 //  - somewhat inconsequential mistake in GA::mate where startteam could be > endteam
 //  - now correctly resizes columns in the team display tree whenever expanding an individual team
 //  - now correctly reports duplicate students when the names and emails are auto-derived from Canvas roster
@@ -58,8 +58,9 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 
 gruepr.cpp:
 - geometry bug when 'minimizing' the criterioncards (add new criteria button shrinks behind lower cards)
-Related to groupingCriteriaCardWidget:
-- Make sure attribute weights are determined by card order
+- need to load criteria cards when re-opening prev. gruepr work
+- need to reset teamingoptions when not re-opening prev. gruepr work
+- graphical display of in team tooltip? to show point/penalty
 
 */
 //

@@ -1942,7 +1942,6 @@ FreeResponsePage::FreeResponsePage(QWidget *parent)
     : SurveyMakerPage(SurveyMakerWizard::Page::freeresponse, parent)
 {
     auto stretch = questionLayout->takeAt(0);   // will put this back at the end of the layout after adding everything
-
     freeResponseInfoFrame = new QFrame(this);
     freeResponseInfoFrame->setStyleSheet("background-color: " TROPICALHEX "; color: " DEEPWATERHEX ";");
     freeResponseInfoIcon = new LabelWithInstantTooltip("", this);
@@ -1959,8 +1958,8 @@ FreeResponsePage::FreeResponsePage(QWidget *parent)
     freeResponseInfoLayout = new QHBoxLayout(freeResponseInfoFrame);
     freeResponseInfoLayout->addWidget(freeResponseInfoIcon, 0, Qt::AlignLeft | Qt::AlignVCenter);
     freeResponseInfoLayout->addWidget(freeResponseInfoLabel, 1, Qt::AlignVCenter);
-    questionLayout->insertWidget(1, freeResponseInfoFrame);
-    questionLayout->insertSpacing(2, 10);
+    questionLayout->addSpacing(10);
+    questionLayout->addWidget(freeResponseInfoFrame);
 
     questionTexts.reserve(MAX_NOTES);
     registerField("freeResponseNumQuestions", this, "numQuestions", "numQuestionsChanged");

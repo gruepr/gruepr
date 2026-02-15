@@ -1156,7 +1156,7 @@ bool loadDataDialog::readData()
             }
         }
         //Only take the first gender, otherwise numOfIdentities > numOfStudents
-        Gender &studentFirstGender = student.gender.values()[0];
+        const Gender &studentFirstGender = student.gender.values().at(0);
         if (dataOptions->countOfGenderIdentities.contains(studentFirstGender)){
             dataOptions->countOfGenderIdentities[studentFirstGender]++;
         }

@@ -2474,9 +2474,10 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     // Bring together for a final score for each team:
     // Score is normalized to be out of 100 (but with possible "extra credit" for more than desiredTimeBlocksOverlap hours w/ 100% team availability)
     for(int team = 0; team < _numTeams; team++) {
-        // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
         for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
+            // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
             if(_teamingOptions->criterionTypes[criterion]->criteriaType == Criterion::CriteriaType::scheduleMeetingTimes &&
+                _criteriaScores[criterion][team] > _teamingOptions->criterionTypes[criterion]->weight &&
                 _penaltyPoints[team] > 0) {
                 _teamScores[team] += _teamingOptions->criterionTypes[criterion]->weight;
             }

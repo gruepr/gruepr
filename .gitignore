@@ -7,8 +7,12 @@ prev_versions/*
 macOS/*
 !macOS/MyAppInfo.plist
 windows/*
-googlesecrets.h
-LMS/googlesecrets.h
+!windows/gruepr_InstallScript.nsi
+!windows/install.bmp
+!windows/uninstall.bmp
+ci_secrets.pri
+local_secrets.pri
 LMS/canvasScopes.txt
 Brandbook-Gruepr.pdf
 hecvatlite305.xlsx
+build/*
