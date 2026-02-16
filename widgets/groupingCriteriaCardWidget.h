@@ -29,11 +29,11 @@
 #include <QGridLayout>
 #include <QParallelAnimationGroup>
 #include <QPushButton>
-#include <QScrollArea>
-#include <QToolButton>
-#include <QWidget>
+#include <QSplitter>
 #include <QTimer>
+#include <QToolButton>
 #include <QtUiPlugin/customwidget.h>
+#include <QWidget>
 
 
 class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterface {
@@ -42,8 +42,9 @@ class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterfac
     //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSection")
 
 public:
-    explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions, TeamingOptions *const teamingOptions,
-                                  QWidget *parent = nullptr, QString title = "", bool draggable = false, const int attribute = -1);
+    explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions,
+                                  TeamingOptions *const teamingOptions, QWidget *parent = nullptr,
+                                  QString title = "", bool draggable = false, const int attribute = -1);
     GroupingCriteriaCard(const GroupingCriteriaCard&) = delete;
     GroupingCriteriaCard operator= (const GroupingCriteriaCard&) = delete;
     GroupingCriteriaCard(GroupingCriteriaCard&&) = delete;
@@ -61,6 +62,7 @@ public:
     QString whatsThis() const override;
     bool isContainer() const override;
     QWidget *createWidget(QWidget *parent) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     QLabel *priorityOrderLabel;
     QHBoxLayout* headerRowLayout;
     QPushButton *deleteGroupingCriteriaCardButton;
@@ -90,13 +92,16 @@ public slots:
 private:
     int priorityOrder = 0;
     QString title;
-    QVBoxLayout* mainVerticalLayout = nullptr;
-    QToolButton* toggleButton = nullptr;
-    LabelThatForwardsMouseClicks* titleLabel = nullptr;
-    QPushButton* dragHandleButton = nullptr;
+    QVBoxLayout *mainVerticalLayout = nullptr;
+    QToolButton *toggleButton = nullptr;
+    LabelThatForwardsMouseClicks *titleLabel = nullptr;
+    QHBoxLayout *toggleLayout = nullptr;
+    QPushButton *dragHandleButton = nullptr;
     QPushButton *lockButton = nullptr;
-    QParallelAnimationGroup* toggleAnimation = nullptr;
-    QScrollArea* contentArea = nullptr;
+    QParallelAnimationGroup *toggleAnimation = nullptr;
+    QSplitter *parentSplitter = nullptr;
+    void refreshParentLayout();
+    QWidget *contentArea = nullptr;
     int animationDuration = 100;
     QTimer m_dragTimer;
     QPoint m_lastPos;

@@ -54,15 +54,13 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
 
     auto *settingTeamCriteriaWidget = new QWidget(this);
     ui->criteriaLabel->setStyleSheet(LABEL12PTSTYLE);
-    const QWidget *scrollWidget = ui->teamingOptionsScrollArea->widget();
     ui->teamingOptionsScrollArea->setWidgetResizable(true);
     ui->teamingOptionsScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->teamingOptionsScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->teamingOptionsScrollArea->viewport()->installEventFilter(this);
 
-    auto *scrollLayout = qobject_cast<QVBoxLayout*>(scrollWidget->layout());
+    auto *scrollLayout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollArea->widget()->layout());
     scrollLayout->setSpacing(5);
-    scrollLayout->setAlignment(Qt::AlignTop);
     ui->topLayout->addWidget(splitter);
 
     auto *teamingCriteriaLayout = new QVBoxLayout();
@@ -112,7 +110,8 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
 
     //Section Criteria Card
     if (dataOptions->sectionIncluded) {
-        sectionCriteriaCard = new GroupingCriteriaCard(Criterion::CriteriaType::section, dataOptions, teamingOptions, this, QString("Section"), false);
+        sectionCriteriaCard = new GroupingCriteriaCard(Criterion::CriteriaType::section, dataOptions, teamingOptions, this,
+                                                       QString("Section"), false);
         const auto &sectionCriterion = qobject_cast<SectionCriterion*>(sectionCriteriaCard->criterion);
         sectionSelectionBox = sectionCriterion->sectionSelectionBox;
         connect(sectionCriterion->editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
@@ -124,7 +123,8 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     }
 
     //Team Size Criteria Card
-    teamsizeCriteriaCard = new GroupingCriteriaCard(Criterion::CriteriaType::teamSize, dataOptions, teamingOptions, this, QString("Team Size"), false);
+    teamsizeCriteriaCard = new GroupingCriteriaCard(Criterion::CriteriaType::teamSize, dataOptions, teamingOptions, this,
+                                                    QString("Team Size"), false);
     const auto &teamSizeCriterion = qobject_cast<TeamsizeCriterion*>(teamsizeCriteriaCard->criterion);
     idealTeamSizeBox = teamSizeCriterion->idealTeamSizeBox;
     teamSizeBox = teamSizeCriterion->teamSizeBox;
@@ -294,7 +294,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
     switch(criteriaType) {
         case Criterion::CriteriaType::genderIdentity: {
             if(genderIdentityCriteriaCard == nullptr) {
-                genderIdentityCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this, QString("Gender identity"), true);
+                genderIdentityCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
+                                                                      QString("Gender identity"), true);
                 connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
                 connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
@@ -308,7 +309,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
         }
         case Criterion::CriteriaType::urmIdentity: {
             if(urmIdentityCard == nullptr) {
-                urmIdentityCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this, QString("Racial/Ethnic/Cultural Identity"), true);
+                urmIdentityCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
+                                                           QString("Racial/Ethnic/Cultural Identity"), true);
                 connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
                 connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(urmIdentityCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
@@ -322,7 +324,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
         }
         case Criterion::CriteriaType::scheduleMeetingTimes: {
             if (meetingScheduleCriteriaCard == nullptr){
-                meetingScheduleCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this, QString("Number of weekly meeting times"), true);
+                meetingScheduleCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
+                                                                       QString("Number of weekly meeting times"), true);
                 connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
                 connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
@@ -352,7 +355,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             }
             if (!teammateRulesExistence.contains(criteriaType)){
                 teammateRulesExistence.append(criteriaType);
-                auto *teammatesCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this, typeString + tr(" Teammates"), true);
+                auto *teammatesCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
+                                                               typeString + tr(" Teammates"), true);
                 const auto &teammatesCriterion = qobject_cast<TeammatesCriterion*>(teammatesCard->criterion);
                 const int numTabs = ui->dataDisplayTabWidget->count();
                 QStringList teamTabNames;
@@ -554,9 +558,12 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
 }
 
 void gruepr::refreshCriteriaLayout(){
-    QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
+    auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
     while (layout->count() > 1) {
-        layout->removeItem(layout->itemAt(1));
+        auto *item = layout->takeAt(1);
+        if (item->spacerItem() != nullptr) {
+            delete item;
+        }
     }
     for (auto *const criteriaCard : std::as_const(criteriaCardsList)) {
         if (criteriaCard->criterion->precedence == Criterion::Precedence::fixed) {
@@ -588,6 +595,7 @@ void gruepr::refreshCriteriaLayout(){
         //prevCriteriaCard = criteriaCard;
     }
     layout->addWidget(addNewCriteriaCardButton);
+    layout->addStretch(1);
 }
 
 ////////////////////
@@ -1855,7 +1863,8 @@ void gruepr::loadUI()
     for (int attribute = 0; attribute < dataOptions->numAttributes; attribute++){
         teamingOptions->attributeSelected.removeAll(attribute);
         const QString title = "Multiple Choice: "+ dataOptions->attributeQuestionText.at(attribute);
-        initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions, teamingOptions, this, title, true, attribute);
+        initializedAttributeCriteriaCards << new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, dataOptions, teamingOptions, this,
+                                                                      title, true, attribute);
         auto *currentAttributeCard = initializedAttributeCriteriaCards.last();
         const auto &currentAttributeCriterion = qobject_cast<AttributeCriterion*>(currentAttributeCard->criterion);
         attributeWidgets << currentAttributeCriterion->attributeWidget;

@@ -57,10 +57,9 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
 gruepr.cpp:
-- geometry bug when 'minimizing' the criterioncards (add new criteria button shrinks behind lower cards)
 - need to load criteria cards when re-opening prev. gruepr work
 - need to reset teamingoptions when not re-opening prev. gruepr work
-- graphical display of in team tooltip? to show point/penalty
+- graphical display of in team tooltip? to show points/penalties
 
 */
 //

@@ -27,6 +27,7 @@
 #include "criteria/teammatesCriterion.h"
 #include "criteria/teamsizeCriterion.h"
 #include "criteria/URMIdentityCriterion.h"
+#include <QAbstractScrollArea>
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
@@ -61,6 +62,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         }
         else {
             return;
+            break;
         }
     case Criterion::CriteriaType::scheduleMeetingTimes:
         if(dataOptions != nullptr) {
@@ -69,6 +71,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         }
         else {
             return;
+            break;
         }
     case Criterion::CriteriaType::requiredTeammates:
     case Criterion::CriteriaType::preventedTeammates:
@@ -80,24 +83,23 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         break;
     }
 
-    //make it draggable and droppable
-    //setAcceptDrops(draggable);
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 
     //initialize timer
     m_dragTimer.setInterval(50);
     m_dragTimer.setSingleShot(false);
 
-    connect(&m_dragTimer, &QTimer::timeout, this, [this]()
-            {
-                emit criteriaCardMoved(m_lastPos);
-            });
+    connect(&m_dragTimer, &QTimer::timeout, this, [this]() {
+        emit criteriaCardMoved(m_lastPos);
+    });
 
     //initialize parts of section
     toggleButton = new QToolButton(this);
     titleLabel = new LabelThatForwardsMouseClicks(this);
-    toggleAnimation = new QParallelAnimationGroup(this);
-    contentArea = new QScrollArea(this);
+    contentArea = new QWidget(this);
+    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    contentArea->setMaximumHeight(0);
+    contentArea->setMinimumHeight(0);
     dragHandleButton = new QPushButton(this);
     mainVerticalLayout = new QVBoxLayout();
 
@@ -114,7 +116,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         }
     )");
     toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toggleButton->setArrowType(Qt::ArrowType::RightArrow);
+    toggleButton->setArrowType(Qt::ArrowType::DownArrow);
     toggleButton->setCheckable(true);
     toggleButton->setChecked(false);
     toggleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -132,20 +134,26 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         }
     )");
     connect(titleLabel, &LabelThatForwardsMouseClicks::mousePressed, toggleButton, &QToolButton::click);
-    //set initial toggle to true
+    toggleLayout = new QHBoxLayout();
+    toggleLayout->setSpacing(0);
+    toggleLayout->setContentsMargins(0, 0, 0, 0);
+    toggleLayout->addWidget(toggleButton);
+    toggleLayout->addWidget(titleLabel);
+    toggleButton->installEventFilter(this);
+    titleLabel->installEventFilter(this);
 
     //dragHandleButton settings
     dragHandleButton->setIcon(QIcon(":/icons_new/drag-handle.png"));
     dragHandleButton->setToolTip(QString("Drag and drop to reorder"));
     dragHandleButton->setStyleSheet(R"(
-    QPushButton {
-        background-color: transparent;
-        border: none;
-    }
-    QPushButton:hover {
-        background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
-        border-radius: 1px;
-    }
+        QPushButton {
+            background-color: transparent;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
     )");
     // Ensure dragHandleButton only takes as much space as its content
     dragHandleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -157,7 +165,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     lockButton->setIcon(QIcon(":/icons_new/lock.png"));
 
     //contentArea settings
-    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     contentArea->setStyleSheet("QScrollArea { border: none; }");
 
     //start out collapsed
@@ -165,9 +173,15 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     contentArea->setMinimumHeight(0);
 
     // let the entire widget grow and shrink with its content
+    toggleAnimation = new QParallelAnimationGroup(this);
     toggleAnimation->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
     toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
     toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
+    connect(toggleAnimation, &QAbstractAnimation::finished, this, [this]() {
+        QTimer::singleShot(animationDuration + 10, this, [this]() {
+            refreshParentLayout();
+        });
+    });
 
     const QString priorityOrder = QString::number(this->priorityOrder);
     priorityOrderLabel = new QLabel;
@@ -199,14 +213,14 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     deleteGroupingCriteriaCardButton = new QPushButton(this);
     deleteGroupingCriteriaCardButton->setIcon(QIcon(":/icons_new/trashButton.png"));
     deleteGroupingCriteriaCardButton->setStyleSheet(R"(
-            QPushButton {
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
-                border-radius: 1px;
-            }
-        )");
+        QPushButton {
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* subtle darkening */
+            border-radius: 1px;
+        }
+    )");
     deleteGroupingCriteriaCardButton->setFixedSize(40, 40);
 
     if (draggable){
@@ -214,13 +228,11 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     }
     else {
         setAcceptDrops(false);
-        headerRowLayout->addWidget(lockButton);
+        headerRowLayout->addWidget(lockButton, 0, Qt::AlignLeft);
         lockButton->setVisible(true);
         dragHandleButton->setVisible(false);
-        headerRowLayout->addWidget(priorityOrderLabel, Qt::AlignLeft);
-        headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
-        headerRowLayout->addWidget(titleLabel, Qt::AlignLeft);
-        headerRowLayout->addStretch();
+        headerRowLayout->addWidget(priorityOrderLabel, 0, Qt::AlignLeft);
+        headerRowLayout->addLayout(toggleLayout, 1);
         deleteGroupingCriteriaCardButton->setVisible(false);
     }
 
@@ -235,8 +247,11 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     connect(toggleButton, &QToolButton::toggled, this, &GroupingCriteriaCard::toggle);
     connect(dragHandleButton, &QToolButton::pressed, this, &GroupingCriteriaCard::dragStarted);
     connect(dragHandleButton, &QToolButton::released, this, &QFrame::unsetCursor);
+
     //set initial toggle to be true
+    toggleButton->blockSignals(true);
     toggleButton->setChecked(true);
+    toggleButton->blockSignals(false);
 
     if(criterion != nullptr) {
         criterion->setParent(this);
@@ -245,15 +260,6 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         }
     }
 }
-
-// QPushButton* GroupingCriteriaCard::getDeleteButton(){
-//     return deleteGroupingCriteriaCardButton;
-// }
-
-//delete button! and checkbox button!
-
-//if draggable is false, it locks the criteria!
-
 
 
 void GroupingCriteriaCard::setDraggable(bool draggable)
@@ -267,23 +273,19 @@ void GroupingCriteriaCard::setDraggable(bool draggable)
         setAcceptDrops(true);
         dragHandleButton->setVisible(true);
         lockButton->setVisible(false);
-        headerRowLayout->addWidget(dragHandleButton);
-        headerRowLayout->addWidget(priorityOrderLabel);
-        headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
-        headerRowLayout->addWidget(titleLabel, Qt::AlignLeft);
-        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
-        headerRowLayout->addStretch();
+        headerRowLayout->addWidget(dragHandleButton, 0, Qt::AlignLeft);
+        headerRowLayout->addWidget(priorityOrderLabel, 0, Qt::AlignLeft);
+        headerRowLayout->addLayout(toggleLayout,1);
+        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, 0, Qt::AlignRight);
     }
     else {
         setAcceptDrops(false);
         dragHandleButton->setVisible(false);
         lockButton->setVisible(true);
-        headerRowLayout->addWidget(lockButton);
-        headerRowLayout->addWidget(priorityOrderLabel);
-        headerRowLayout->addWidget(toggleButton, Qt::AlignLeft);
-        headerRowLayout->addWidget(titleLabel, Qt::AlignLeft);
-        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, Qt::AlignRight);
-        headerRowLayout->addStretch();
+        headerRowLayout->addWidget(lockButton, 0, Qt::AlignLeft);
+        headerRowLayout->addWidget(priorityOrderLabel, 0, Qt::AlignLeft);
+        headerRowLayout->addLayout(toggleLayout,1);
+        headerRowLayout->addWidget(deleteGroupingCriteriaCardButton, 0, Qt::AlignRight);
     }
 }
 
@@ -294,16 +296,31 @@ void GroupingCriteriaCard::toggle(bool collapsed)
     toggleAnimation->start();
 }
 
+void GroupingCriteriaCard::refreshParentLayout()
+{
+    if (parentSplitter == nullptr) {
+        auto *w = parentWidget();
+        while (w != nullptr && qobject_cast<QSplitter*>(w) == nullptr) {
+            w = w->parentWidget();
+        }
+        parentSplitter = qobject_cast<QSplitter*>(w);
+    }
+    if (parentSplitter != nullptr) {
+        QList<int> sizes = parentSplitter->sizes();
+        static int direction = -1;
+        sizes[0] += direction;
+        sizes[1] -= direction;
+        direction = -direction;
+        parentSplitter->setSizes(sizes);
+    }
+}
 
 //Sets ContentLayout for the contentArea, this function always needs to be called otherwise, the expanded portion does not have a layout
 void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
 {
     delete contentArea->layout();
 
-    //if cannot cast contentLayout to VBoxLayout, then
     auto *mainLayout = new QVBoxLayout();
-    //don't allow user to set penalty checkbox if it criteria is teamsize or section
-
     mainLayout->addLayout(&contentLayout);
 
     // if (criteriaType == CriteriaType::teamSize || criteriaType == CriteriaType::section){
@@ -330,24 +347,25 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
 
     contentArea->setLayout(mainLayout);
 
-    auto contentHeight = mainLayout->sizeHint().height();
-    const auto collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
+    const int contentHeight = mainLayout->sizeHint().height();
+    const int collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
 
     for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i) {
-        auto *SectionAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(i));
+        auto *SectionAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(i));
         SectionAnimation->setDuration(animationDuration);
         SectionAnimation->setStartValue(collapsedHeight);
         SectionAnimation->setEndValue(collapsedHeight + contentHeight);
     }
 
-    auto *contentAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(
-        toggleAnimation->animationCount() - 1));
+    auto *contentAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(toggleAnimation->animationCount() - 1));
     contentAnimation->setDuration(animationDuration);
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
 
     if (toggleButton->isChecked()) {
         contentArea->setMaximumHeight(contentHeight);
+        setMinimumHeight(collapsedHeight + contentHeight);
+        setMaximumHeight(collapsedHeight + contentHeight);
     }
 }
 
@@ -380,10 +398,14 @@ void GroupingCriteriaCard::dragStarted() {
 
 QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local)
 {
-    const QAbstractScrollArea *vp = nullptr;
-    for (QWidget *w = parentWidget(); w; w = w->parentWidget())
-        if ((vp = qobject_cast<QAbstractScrollArea*>(w)))
-            return vp->viewport()->mapFromGlobal(mapToGlobal(local.toPoint()));
+    QWidget *w = parentWidget();
+    while (w != nullptr && qobject_cast<QAbstractScrollArea*>(w) == nullptr) {
+        w = w->parentWidget();
+    }
+    auto *vp = qobject_cast<QAbstractScrollArea*>(w);
+    if (vp != nullptr) {
+        return vp->viewport()->mapFromGlobal(mapToGlobal(local.toPoint()));
+    }
     return local.toPoint();
 }
 
@@ -483,7 +505,7 @@ QString GroupingCriteriaCard::name() const {
 }
 
 QString GroupingCriteriaCard::includeFile() const {
-    return "Section.h";
+    return "groupingCriteriaCardWidget.h";
 }
 
 QString GroupingCriteriaCard::group() const {
@@ -491,7 +513,7 @@ QString GroupingCriteriaCard::group() const {
 }
 
 QIcon GroupingCriteriaCard::icon() const {
-    return QIcon("icon.png");
+    return QIcon();
 }
 
 QString GroupingCriteriaCard::toolTip() const {
@@ -500,7 +522,7 @@ QString GroupingCriteriaCard::toolTip() const {
 
 QString GroupingCriteriaCard::whatsThis() const
 {
-    return tr("Cool collapsible and expandable section widget");
+    return tr("A collapsible and expandable section widget");
 }
 
 bool GroupingCriteriaCard::isContainer() const
@@ -511,4 +533,51 @@ bool GroupingCriteriaCard::isContainer() const
 QWidget *GroupingCriteriaCard::createWidget(QWidget *parent)
 {
     return new GroupingCriteriaCard(Criterion::CriteriaType::attributeQuestion, nullptr, nullptr, parent);
+}
+
+bool GroupingCriteriaCard::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == toggleButton || watched == titleLabel) {
+        if (event->type() == QEvent::Enter) {
+            toggleButton->setStyleSheet(R"(
+                QToolButton {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+            titleLabel->setStyleSheet(R"(
+                QLabel {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+        }
+        else if (event->type() == QEvent::Leave) {
+            toggleButton->setStyleSheet(R"(
+                QToolButton {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                }
+                QToolButton:hover {
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+            titleLabel->setStyleSheet(R"(
+                QLabel {
+                    border: none;
+                    font-family: 'DM Sans';
+                    font-size: 12pt;
+                }
+                QLabel:hover {
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-radius: 1px;
+                })");
+        }
+    }
+    return QFrame::eventFilter(watched, event);
 }
