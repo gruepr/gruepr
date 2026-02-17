@@ -56,6 +56,7 @@ signals:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void changeSection(int index);
@@ -76,7 +77,9 @@ private slots:
     void editDataDisplayTabName(int tabIndex);
     void saveState();
 
-    void swapCriteriaCards(int draggedIndex, int targetIndex);
+    void moveCriteriaCard(int draggedIndex, int targetIndex);
+    void showDropIndicator(int targetIndex);
+    void hideDropIndicator();
     void deleteCriteriaCard(int deletedIndex);
     void doAutoScroll(QPoint point);
 
@@ -166,10 +169,20 @@ private:
     QList<GroupingCriteriaCard*> criteriaCardsList;
     QPushButton *addNewCriteriaCardButton = nullptr;
     QMenu *addNewCriteriaMenu = nullptr;
+    QAction *genderMenuAction = nullptr;
+    QAction *urmMenuAction = nullptr;
+    QAction *gradeMenuAction = nullptr;
+    QAction *scheduleMenuAction = nullptr;
+    QAction *requiredTeammatesMenuAction = nullptr;
+    QAction *preventedTeammatesMenuAction = nullptr;
+    QAction *requestedTeammatesMenuAction = nullptr;
+    QList<QAction*> attributeMenuActions;
     void addCriteriaCard(Criterion::CriteriaType criteriaType);
     void addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute);
     void initializeCriteriaCardPriorities();
     void refreshCriteriaLayout();
+    QFrame *m_dropIndicator = nullptr;
+    QWidget *m_bottomDropZone = nullptr;
 
         //Single: URM Identity Card
     GroupingCriteriaCard *urmIdentityCard = nullptr;

@@ -23,6 +23,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QMetaEnum>
+#include <QMimeData>
 #include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
@@ -105,6 +106,18 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         loadDefaultSettings();
     }
 
+    // Create the drop indicator for drag-and-drop visual feedback
+    m_dropIndicator = new QFrame(this);
+    m_dropIndicator->setFixedHeight(4);
+    m_dropIndicator->setStyleSheet("background-color: " DEEPWATERHEX "; border-radius: 2px; margin: 0px 10px;");
+    m_dropIndicator->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    m_dropIndicator->hide();
+    m_bottomDropZone = new QWidget(this);
+    m_bottomDropZone->setFixedHeight(40);
+    m_bottomDropZone->setAcceptDrops(true);
+    m_bottomDropZone->installEventFilter(this);
+    m_bottomDropZone->hide();
+
     //Defining all criteria cards
     criteriaCardsList.clear();
 
@@ -116,7 +129,10 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         sectionSelectionBox = sectionCriterion->sectionSelectionBox;
         connect(sectionCriterion->editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
         connect(sectionCriterion->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+        connect(sectionCriteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
         connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
         connect(sectionCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
         criteriaCardsList.append(sectionCriteriaCard);
@@ -147,41 +163,40 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         addNewCriteriaMenu->popup(QPoint(centerOfCriteriaButton.x() - addNewCriteriaMenu->sizeHint().width()/1.8, centerOfCriteriaButton.y()+10));
     });
     if (dataOptions->genderIncluded){
-        const QAction *genderAction = addNewCriteriaMenu->addAction(tr("Gender"));
-        connect(genderAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
+        genderMenuAction = addNewCriteriaMenu->addAction(tr("Gender"));
+        connect(genderMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
             gruepr::addCriteriaCard(Criterion::CriteriaType::genderIdentity);});
     }
     if (dataOptions->URMIncluded){
-        const QAction *urmAction = addNewCriteriaMenu->addAction(tr("Racial/Ethnic/Cultural Identity"));
-        connect(urmAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
+        urmMenuAction = addNewCriteriaMenu->addAction(tr("Racial/Ethnic/Cultural Identity"));
+        connect(urmMenuAction, &QAction::triggered, addNewCriteriaCardButton, [this](){
             gruepr::addCriteriaCard(Criterion::CriteriaType::urmIdentity);});
     }
     if (dataOptions->numAttributes > 0){
-        //add an action for each question
         for(int attribute = 0; attribute < dataOptions->numAttributes; attribute++) {
-            const QAction *currentMCQAction = addNewCriteriaMenu->addAction(dataOptions->attributeQuestionText[attribute]);
+            QAction *currentMCQAction = addNewCriteriaMenu->addAction(dataOptions->attributeQuestionText[attribute]);
             connect(currentMCQAction, &QAction::triggered, addNewCriteriaCardButton, [this, attribute](){
                 gruepr::addCriteriaCard(Criterion::CriteriaType::attributeQuestion, attribute);});
+            attributeMenuActions.append(currentMCQAction);
         }
     }
     if (dataOptions->gradeIncluded){
-        QAction *gradeAction = addNewCriteriaMenu->addAction("Grade");
-        connect(gradeAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::gradeBalance);});
-        addNewCriteriaMenu->addAction(gradeAction);
+        gradeMenuAction = addNewCriteriaMenu->addAction("Grade");
+        connect(gradeMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::gradeBalance);});
     }
     if (!dataOptions->scheduleField.empty()){
-        auto *scheduleMeetingTimesAction = new QAction("Meeting Times", this);
-        connect(scheduleMeetingTimesAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
-        addNewCriteriaMenu->addAction(scheduleMeetingTimesAction);
+        scheduleMenuAction = new QAction("Meeting Times", this);
+        connect(scheduleMenuAction, &QAction::triggered, this, [this](){gruepr::addCriteriaCard(Criterion::CriteriaType::scheduleMeetingTimes);});
+        addNewCriteriaMenu->addAction(scheduleMenuAction);
     }
-    const QAction *requiredTeammatesAction = addNewCriteriaMenu->addAction("Required Teammates");
-    connect(requiredTeammatesAction, &QAction::triggered, this, [this](){
+    requiredTeammatesMenuAction = addNewCriteriaMenu->addAction("Required Teammates");
+    connect(requiredTeammatesMenuAction, &QAction::triggered, this, [this](){
         gruepr::addCriteriaCard(Criterion::CriteriaType::requiredTeammates);});
-    const QAction *preventedTeammatesAction = addNewCriteriaMenu->addAction("Prevented Teammates");
-    connect(preventedTeammatesAction, &QAction::triggered, this, [this](){
+    preventedTeammatesMenuAction = addNewCriteriaMenu->addAction("Prevented Teammates");
+    connect(preventedTeammatesMenuAction, &QAction::triggered, this, [this](){
         gruepr::addCriteriaCard(Criterion::CriteriaType::preventedTeammates);});
-    const QAction *requestedTeammatesAction = addNewCriteriaMenu->addAction("Requested Teammates");
-    connect(requestedTeammatesAction, &QAction::triggered, this, [this](){
+    requestedTeammatesMenuAction = addNewCriteriaMenu->addAction("Requested Teammates");
+    connect(requestedTeammatesMenuAction, &QAction::triggered, this, [this](){
         gruepr::addCriteriaCard(Criterion::CriteriaType::requestedTeammates);});
 
     ui->teamingOptionsScrollArea->setStyleSheet(SCROLLBARSTYLE);
@@ -221,8 +236,11 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     //Connect other UI items to more involved actions
     // Connect signals from each draggableQFrame to swapFrames
     for(auto &criteriaCard : criteriaCardsList) {
-        connect(criteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(criteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
         connect(criteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
+        connect(criteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+        connect(criteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+        connect(criteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
     }
 
     //connecting the buttons that are always shown
@@ -268,26 +286,99 @@ void gruepr::initializeCriteriaCardPriorities(){
     }
 }
 
-void gruepr::swapCriteriaCards(int draggedIndex, int targetIndex) {
-    // Access the existing layout (verticalLayout_2)
+void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
     QLayout* layout = ui->teamingOptionsScrollAreaWidget->layout();
     layout->setSpacing(5);
-    if (draggedIndex < 0 || targetIndex < 0 || draggedIndex >= criteriaCardsList.size() || targetIndex >= criteriaCardsList.size()) {
-        //qDebug() << "Invalid indices for swapping!";
+    if (draggedIndex < 0 || targetIndex < 0 ||
+        draggedIndex >= criteriaCardsList.size() ||
+        targetIndex > criteriaCardsList.size() ||   // note: > not >=, to allow end position
+        draggedIndex == targetIndex) {
         return;
     }
-    // Remove the frames from the layout
-    GroupingCriteriaCard* draggedCard = criteriaCardsList[draggedIndex];
-    GroupingCriteriaCard* targetCard = criteriaCardsList[targetIndex];
-    // qDebug() << "criteriaCardsList size:" << criteriaCardsList.size();
-    // qDebug() << "draggedIndex:" << draggedIndex << "targetIndex:" << targetIndex;
-    // qDebug() << "draggedCard pointer:" << draggedCard << "targetCard pointer:" << targetCard;
-    criteriaCardsList[targetIndex] = draggedCard;
-    criteriaCardsList[draggedIndex] = targetCard;
-    criteriaCardsList[targetIndex]->setPriorityOrder(targetIndex);
 
-    criteriaCardsList[draggedIndex]->setPriorityOrder(draggedIndex);
+    hideDropIndicator();
+
+    GroupingCriteriaCard* draggedCard = criteriaCardsList.takeAt(draggedIndex);
+
+    int insertIndex;
+    if (targetIndex == criteriaCardsList.size() + 1) {
+        // Was the end position; after takeAt, list shrank by 1
+        insertIndex = criteriaCardsList.size();
+    } else {
+        insertIndex = (draggedIndex < targetIndex) ? targetIndex - 1 : targetIndex;
+    }
+
+    criteriaCardsList.insert(insertIndex, draggedCard);
+
+    initializeCriteriaCardPriorities();
     refreshCriteriaLayout();
+}
+
+bool gruepr::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_bottomDropZone) {
+        if (event->type() == QEvent::DragEnter) {
+            auto *e = static_cast<QDragEnterEvent*>(event);
+            if (e->mimeData()->hasText()) {
+                e->acceptProposedAction();
+                showDropIndicator(criteriaCardsList.size());
+            }
+            return true;
+        }
+        if (event->type() == QEvent::DragMove) {
+            auto *e = static_cast<QDragMoveEvent*>(event);
+            e->acceptProposedAction();
+            return true;
+        }
+        if (event->type() == QEvent::Drop) {
+            auto *e = static_cast<QDropEvent*>(event);
+            const QString widgetID = e->mimeData()->text();
+            const auto *draggedCard = reinterpret_cast<GroupingCriteriaCard*>(widgetID.toULongLong());
+            e->acceptProposedAction();
+            moveCriteriaCard(draggedCard->getPriorityOrder(), criteriaCardsList.size());
+            return true;
+        }
+    }
+
+    return QMainWindow::eventFilter(watched, event);
+}
+
+void gruepr::showDropIndicator(int targetIndex) {
+    auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
+    if (layout == nullptr) {
+        return;
+    }
+
+    layout->removeWidget(m_dropIndicator);
+
+    if (targetIndex >= 0 && targetIndex < criteriaCardsList.size()) {
+        // Insert indicator above the target card
+        const int layoutIndex = layout->indexOf(criteriaCardsList[targetIndex]);
+        if (layoutIndex >= 0) {
+            layout->insertWidget(layoutIndex, m_dropIndicator);
+            m_dropIndicator->show();
+        }
+    }
+    else if (targetIndex == criteriaCardsList.size()) {
+        // Insert indicator after the last card (above the bottom drop zone)
+        const int layoutIndex = layout->indexOf(m_bottomDropZone);
+        if (layoutIndex >= 0) {
+            layout->insertWidget(layoutIndex, m_dropIndicator);
+            m_dropIndicator->show();
+        }
+    }
+}
+
+void gruepr::hideDropIndicator() {
+    if (m_dropIndicator == nullptr) {
+        return;
+    }
+    auto *layout = qobject_cast<QVBoxLayout*>(ui->teamingOptionsScrollAreaWidget->layout());
+    if (layout != nullptr) {
+        layout->removeWidget(m_dropIndicator);
+    }
+    m_dropIndicator->hide();
+    m_bottomDropZone->hide();
 }
 
 void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
@@ -296,14 +387,15 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             if(genderIdentityCriteriaCard == nullptr) {
                 genderIdentityCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                       QString("Gender identity"), true);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
+                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
                 connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
                 connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(genderIdentityCriteriaCard);
-            }
-            else {
-                grueprGlobal::errorMessage(this, tr("Criterion already exists"), tr("Gender identity criteria already exists"));
+                if(genderMenuAction != nullptr) { genderMenuAction->setVisible(false); }
             }
             break;
         }
@@ -311,14 +403,15 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             if(urmIdentityCard == nullptr) {
                 urmIdentityCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                            QString("Racial/Ethnic/Cultural Identity"), true);
-                connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+                connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
+                connect(urmIdentityCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+                connect(urmIdentityCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+                connect(urmIdentityCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
                 connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(urmIdentityCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
                 connect(urmIdentityCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(urmIdentityCard);
-            }
-            else {
-                grueprGlobal::errorMessage(this, tr("Criterion already exists"), tr("URM Identity Criteria already exists"));
+                if(urmMenuAction != nullptr) { urmMenuAction->setVisible(false); }
             }
             break;
         }
@@ -326,13 +419,15 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             if (meetingScheduleCriteriaCard == nullptr){
                 meetingScheduleCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                        QString("Number of weekly meeting times"), true);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
+                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
                 connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
                 connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(meetingScheduleCriteriaCard);
-            } else {
-                grueprGlobal::errorMessage(this, tr("Criterion already exists"), tr("Schedule Meeting Times Criteria already exists"));
+                if(scheduleMenuAction != nullptr) { scheduleMenuAction->setVisible(false); }
             }
             break;
         }
@@ -386,13 +481,21 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
 
                     delete win;
                 });
-                connect(teammatesCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+                connect(teammatesCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
+                connect(teammatesCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+                connect(teammatesCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+                connect(teammatesCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
                 connect(teammatesCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(teammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
                 connect(teammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(teammatesCard);
-            } else {
-                grueprGlobal::errorMessage(this, tr("Criterion already exists"), typeString + tr(" Teammates Criteria Card already exists"));
+                if(criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction != nullptr) {
+                    requiredTeammatesMenuAction->setVisible(false);
+                } else if(criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction != nullptr) {
+                    preventedTeammatesMenuAction->setVisible(false);
+                } else if(criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction != nullptr) {
+                    requestedTeammatesMenuAction->setVisible(false);
+                }
             }
             break;
         }
@@ -467,10 +570,8 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
                 connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
                 connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
                 connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
+                if(gradeMenuAction != nullptr) { gradeMenuAction->setVisible(false); }
             */
-            }
-            else {
-                grueprGlobal::errorMessage(this, tr("Criterion already exists"), tr("Grade Balance Criteria already exists"));
             }
             break;
         }
@@ -491,9 +592,9 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute
             addedAttributeNumbersList.append(attribute);
             criteriaCardsList.append(currentMultipleChoiceCard);
             teamingOptions->attributeSelected.contains(attribute);
-        } else {
-            const QString message = tr("This criteria has already been added.");
-            grueprGlobal::errorMessage(this, tr("Criterion already added"), message);
+            if(attribute < attributeMenuActions.size() && attributeMenuActions[attribute] != nullptr) {
+                attributeMenuActions[attribute]->setVisible(false);
+            }
         }
     }
     initializeCriteriaCardPriorities();
@@ -514,6 +615,7 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
     if (criteriaType == Criterion::CriteriaType::genderIdentity){
         delete cardToDelete;
         genderIdentityCriteriaCard = nullptr;
+        if(genderMenuAction != nullptr) { genderMenuAction->setVisible(true); }
     }
     else if (criteriaType == Criterion::CriteriaType::urmIdentity){
         //FROMDEV
@@ -522,6 +624,7 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
         // uiCheckBoxMap.remove(urmResponse + "PreventIsolatedCheckBox");
         delete cardToDelete;
         urmIdentityCard = nullptr;
+        if(urmMenuAction != nullptr) { urmMenuAction->setVisible(true); }
     }
     else if (criteriaType == Criterion::CriteriaType::attributeQuestion){
         auto *criterion = qobject_cast<AttributeCriterion*>(cardToDelete->criterion);
@@ -529,15 +632,14 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
         const int indexToRemove = addedAttributeNumbersList.indexOf(attributeIndex);
         addedAttributeNumbersList.remove(indexToRemove);
         cardToDelete->setVisible(false);
-        //setVisible to false?
-    }
-    else if (criteriaType == Criterion::CriteriaType::section){
-        delete cardToDelete;
-        sectionCriteriaCard = nullptr;
+        if(attributeIndex < attributeMenuActions.size() && attributeMenuActions[attributeIndex] != nullptr) {
+            attributeMenuActions[attributeIndex]->setVisible(true);
+        }
     }
     else if (criteriaType == Criterion::CriteriaType::scheduleMeetingTimes){
         delete cardToDelete;
         meetingScheduleCriteriaCard = nullptr;
+        if(scheduleMenuAction != nullptr) { scheduleMenuAction->setVisible(true); }
     }
     else if ((criteriaType == Criterion::CriteriaType::requiredTeammates ||
               criteriaType == Criterion::CriteriaType::preventedTeammates) ||
@@ -545,10 +647,18 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
         const int indexToRemove = teammateRulesExistence.indexOf(criteriaType);
         teammateRulesExistence.remove(indexToRemove);
         delete cardToDelete;
+        if(criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction != nullptr) {
+            requiredTeammatesMenuAction->setVisible(true);
+        } else if(criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction != nullptr) {
+            preventedTeammatesMenuAction->setVisible(true);
+        } else if(criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction != nullptr) {
+            requestedTeammatesMenuAction->setVisible(true);
+        }
     }
     else if (criteriaType == Criterion::CriteriaType::gradeBalance){
         delete cardToDelete;
         gradeBalanceCriteriaCard = nullptr;
+        if(gradeMenuAction != nullptr) { gradeMenuAction->setVisible(true); }
     }
     else {
         //qDebug() << deletedIndex << " does not exist.";
@@ -594,6 +704,7 @@ void gruepr::refreshCriteriaLayout(){
         layout->addWidget(criteriaCard);
         //prevCriteriaCard = criteriaCard;
     }
+    layout->addWidget(m_bottomDropZone);
     layout->addWidget(addNewCriteriaCardButton);
     layout->addStretch(1);
 }
@@ -1869,7 +1980,10 @@ void gruepr::loadUI()
         const auto &currentAttributeCriterion = qobject_cast<AttributeCriterion*>(currentAttributeCard->criterion);
         attributeWidgets << currentAttributeCriterion->attributeWidget;
         currentAttributeCriterion->attributeWidget->setValues(); //update issue
-        connect(currentAttributeCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
+        connect(currentAttributeCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
+        connect(currentAttributeCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
+        connect(currentAttributeCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
+        connect(currentAttributeCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
         connect(currentAttributeCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
         connect(currentAttributeCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
         connect(currentAttributeCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);

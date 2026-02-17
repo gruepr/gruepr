@@ -7,7 +7,7 @@ CustomSplitterHandle::CustomSplitterHandle(Qt::Orientation orientation, QSplitte
 {
     button = new QToolButton(this);
     button->setAutoRaise(true);
-    button->setCursor(Qt::PointingHandCursor);
+    button->setCursor(makeArrowCursor(ArrowDirection::left));
     button->setFixedSize(16, 48);
     button->setStyleSheet(
         "QToolButton { background-color: white; border: 1px solid #ccc; color: black; padding: 4px; }"
@@ -45,13 +45,15 @@ void CustomSplitterHandle::toggleCollapse()
 
     if (!collapsed) {
         sizes[0] = 0;
-        sizes[1] = splitter->size().width();  // or height for vertical
+        sizes[1] = splitter->size().width();
         button->setIcon(QIcon(":/icons_new/right-collapse.png"));
+        button->setCursor(makeArrowCursor(ArrowDirection::right));
     }
     else {
         sizes[0] = splitter->size().width();
         sizes[1] = 0;
         button->setIcon(QIcon(":/icons_new/left-collapse.png"));
+        button->setCursor(makeArrowCursor(ArrowDirection::left));
     }
 
     collapsed = !collapsed;
@@ -92,4 +94,32 @@ void CustomSplitterHandle::paintEvent(QPaintEvent *)
             painter.drawEllipse(QPoint(x, yStartBottom + i * 6), 2, 2);
         }
     }
+}
+
+QCursor CustomSplitterHandle::makeArrowCursor(ArrowDirection direction)
+{
+    const int size = 24;
+    QPixmap pix(size, size);
+    pix.fill(Qt::transparent);
+
+    QPainter p(&pix);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setPen(QPen(QColor(DEEPWATERHEX), 2));
+    p.setBrush(QColor(AQUAHEX));
+
+    QPolygon arrow;
+    if (direction == ArrowDirection::left) {
+        arrow << QPoint(4, size / 2)
+        << QPoint(size - 4, 4)
+        << QPoint(size - 4, size - 4);
+    } else {
+        arrow << QPoint(size - 4, size / 2)
+        << QPoint(4, 4)
+        << QPoint(4, size - 4);
+    }
+    p.drawPolygon(arrow);
+    p.end();
+
+    const int hotX = (direction == ArrowDirection::left) ? 4 : size - 4;
+    return QCursor(pix, hotX, size / 2);
 }

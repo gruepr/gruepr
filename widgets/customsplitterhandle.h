@@ -19,6 +19,8 @@ private:
     QToolButton *button;
     bool collapsed = false;
     int savedSize = 200;  // Default fallback width
+    enum class ArrowDirection {left, right};
+    static QCursor makeArrowCursor(ArrowDirection direction);
 };
 
 #endif // CUSTOMSPLITTERHANDLE_H

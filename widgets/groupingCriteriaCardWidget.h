@@ -82,9 +82,12 @@ public:
 
 signals:
     void criteriaCardMoved(QPoint point);
-    void criteriaCardSwapRequested(int draggedIndex, int targetIndex);
+    void criteriaCardMoveRequested(int draggedIndex, int targetIndex);
     void deleteCardRequested(int deletedIndex);
     void includePenaltyStateChanged();
+    void dragStarting();
+    void dragEnteredCard(int targetIndex);
+    void dragFinished();
 
 public slots:
     void toggle(bool collapsed);

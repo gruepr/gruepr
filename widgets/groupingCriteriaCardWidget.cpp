@@ -159,6 +159,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
     dragHandleButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     dragHandleButton->setMinimumWidth(24);
     dragHandleButton->setMinimumHeight(24);
+    dragHandleButton->setCursor(Qt::OpenHandCursor);
 
     lockButton = new QPushButton(this);
     lockButton->setStyleSheet("border: none;");
@@ -376,7 +377,6 @@ void GroupingCriteriaCard::dragStarted() {
     auto *drag = new QDrag(this);
     auto *mimeData = new QMimeData;
     mimeData->setText(QString::number(reinterpret_cast<quintptr>(this)));
-    //qDebug() << mimeData;
     drag->setMimeData(mimeData);
     const QPixmap pixmap = grab();
 
@@ -393,7 +393,12 @@ void GroupingCriteriaCard::dragStarted() {
 
     const QPoint hotSpot = QPoint(10, 10);
     drag->setHotSpot(hotSpot);
+
+    this->hide();  // hide card from layout during drag so the gap appears naturally
+    emit dragStarting();
     drag->exec(Qt::MoveAction);
+    this->show();  // restore visibility after drag ends (refreshCriteriaLayout will reposition)
+    emit dragFinished();
 }
 
 QPoint GroupingCriteriaCard::mapToViewport(const QPointF &local)
@@ -417,6 +422,7 @@ void GroupingCriteriaCard::dragEnterEvent(QDragEnterEvent *event)
         m_lastPos = mapToViewport(event->position());
         if (!m_dragTimer.isActive())
             m_dragTimer.start();
+        emit dragEnteredCard(this->priorityOrder);
     }
 }
 
@@ -441,7 +447,7 @@ void GroupingCriteriaCard::dropEvent(QDropEvent *event)
 
         // Insert the widgets back at their new positions
         event->acceptProposedAction();
-        emit criteriaCardSwapRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
+        emit criteriaCardMoveRequested(draggedPriorityOrder, targetPriorityOrder);  // Emitting the signal
     }
 }
 
