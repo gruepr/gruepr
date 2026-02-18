@@ -146,6 +146,7 @@ TeamingOptions::TeamingOptions(const QJsonObject &jsonTeamingOptions)
         }
     }
     numTeamsDesired = jsonTeamingOptions["numTeamsDesired"].toInt();
+    idealTeamSize = jsonTeamingOptions["idealTeamSize"].toInt(4);
     sectionName = jsonTeamingOptions["sectionName"].toString();
     sectionType = static_cast<SectionType>(jsonTeamingOptions["sectionType"].toInt());
     teamsetNumber = jsonTeamingOptions["teamsetNumber"].toInt();
@@ -249,6 +250,7 @@ QJsonObject TeamingOptions::toJson() const
         {"haveAnyPreventedTeammates", haveAnyPreventedTeammates},
         {"haveAnyRequestedTeammates", haveAnyRequestedTeammates},
         {"numberRequestedTeammatesGiven", numberRequestedTeammatesGiven},
+        {"idealTeamSize", idealTeamSize},
         {"smallerTeamsSizes", smallerTeamsSizesArray},
         {"smallerTeamsNumTeams", smallerTeamsNumTeams},
         {"largerTeamsSizes", largerTeamsSizesArray},

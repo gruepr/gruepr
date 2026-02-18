@@ -57,7 +57,6 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
 gruepr.cpp:
-- need to load criteria cards when re-opening prev. gruepr work
 - need to reset teamingoptions when not re-opening prev. gruepr work
 - graphical display of in team tooltip? to show points/penalties
 
@@ -75,7 +74,6 @@ gruepr.cpp:
 //  - identity rules add >, >=, <, <=
 //  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points)
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
-//  - make criteria disappear / reappear from add criteria button menu as they are added / deleted, rather than the clunky "already added" message
 //  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so

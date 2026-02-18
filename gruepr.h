@@ -86,7 +86,6 @@ private slots:
 private:
         // setup
     Ui::gruepr *ui;
-    void loadDefaultSettings();
     void loadUI();
     DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;

@@ -81,6 +81,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     splitter->setSizes({this->width()/2, this->width()/2});
 
     teamingOptions = nullptr;
+    QJsonArray savedCriteriaCards;
     if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
         QFile savedFile(dataOptions->saveStateFileName, this);
         if(savedFile.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
@@ -96,6 +97,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
                 numTeams = int(teams.size());
                 connect(teamTab, &TeamsTabItem::saveState, this, &gruepr::saveState);
             }
+            savedCriteriaCards = content["criteriaCards"].toArray();
         }
         else {
             grueprGlobal::errorMessage(this, tr("Error"), tr("There was an error loading the previous data."));
@@ -103,7 +105,6 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     }
     if(teamingOptions == nullptr) {             // either not from previous work, or loading from previous work failed
         teamingOptions = new TeamingOptions;
-        loadDefaultSettings();
     }
 
     // Create the drop indicator for drag-and-drop visual feedback
@@ -144,7 +145,9 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     const auto &teamSizeCriterion = qobject_cast<TeamsizeCriterion*>(teamsizeCriteriaCard->criterion);
     idealTeamSizeBox = teamSizeCriterion->idealTeamSizeBox;
     teamSizeBox = teamSizeCriterion->teamSizeBox;
-    if(dataOptions->dataSource != DataOptions::DataSource::fromPrevWork) {
+    if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
+        idealTeamSizeBox->setValue(teamingOptions->idealTeamSize);
+    } else {
         const QSettings savedSettings;
         idealTeamSizeBox->setValue(savedSettings.value("idealTeamSize", 4).toInt());
     }
@@ -223,6 +226,19 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     ui->dataDisplayTabWidget->setFont(altFont);
 
     loadUI();
+    // Restore additional criteria cards from previous work (savedCriteriaCards is empty if not loading from prevWork)
+    for (const auto &cardJsonVal : std::as_const(savedCriteriaCards)) {
+        const QJsonObject cardJson = cardJsonVal.toObject();
+        const auto type = static_cast<Criterion::CriteriaType>(cardJson["criteriaType"].toInt());
+        if (type == Criterion::CriteriaType::section || type == Criterion::CriteriaType::teamSize) {
+            continue; // already created
+        }
+        if (type == Criterion::CriteriaType::attributeQuestion) {
+            addCriteriaCard(type, cardJson["attributeIndex"].toInt());
+        } else {
+            addCriteriaCard(type);
+        }
+    }
 
     // initialize the priority order of criteria cards
     initializeCriteriaCardPriorities();
@@ -1352,6 +1368,7 @@ void gruepr::rebuildDuplicatesTeamsizeURMAndSectionDataAndRefreshStudentTable()
 void gruepr::changeIdealTeamSize()
 {
     const int idealSize = idealTeamSizeBox->value();
+    teamingOptions->idealTeamSize = idealSize;
 
     // First, make sure we don't end up penalizing teams for having fewer requested teammates than the team size allows
     if(teamingOptions->numberRequestedTeammatesGiven > idealSize) {
@@ -1856,59 +1873,6 @@ void gruepr::editDataDisplayTabName(int tabIndex)
 
 
 //////////////////
-//Load window geometry and default teaming options saved from previous run. If non-existant, load app defaults.
-//////////////////
-void gruepr::loadDefaultSettings()
-{
-    QSettings savedSettings;
-    //Restore teaming options
-    const int numGenderRules = savedSettings.beginReadArray("genderIdentityRules");
-    for(int rule = 0; rule < numGenderRules; rule++) {
-        savedSettings.setArrayIndex(rule);
-        const QStringList ruleVal = savedSettings.value("ruleVal", "").toString().split(',');
-        if(ruleVal.size() == 3) {
-            teamingOptions->genderIdentityRules[grueprGlobal::stringToGender(ruleVal.at(0))][ruleVal.at(1)].append(ruleVal.at(2).toInt());
-        }
-    }
-    savedSettings.endArray();
-    teamingOptions->singleGenderPrevented = savedSettings.value("singleGenderPrevented", false).toBool();
-    teamingOptions->isolatedURMPrevented = savedSettings.value("isolatedURMPrevented", false).toBool();
-    teamingOptions->minTimeBlocksOverlap = savedSettings.value("minTimeBlocksOverlap", 4).toInt();
-    teamingOptions->desiredTimeBlocksOverlap = savedSettings.value("desiredTimeBlocksOverlap", 8).toInt();
-    teamingOptions->meetingBlockSize = savedSettings.value("meetingBlockSize", 1).toFloat();
-    teamingOptions->realMeetingBlockSize = savedSettings.value("realMeetingBlockSize", 1).toInt();
-    teamingOptions->scheduleWeight = savedSettings.value("scheduleWeight", 4).toFloat();
-    savedSettings.beginReadArray("Attributes");
-    auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
-    for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {
-        savedSettings.setArrayIndex(attribNum);
-        teamingOptions->attributeDiversity[attribNum] =
-                static_cast<Criterion::AttributeDiversity>(diversity.keyToValue(qPrintable(savedSettings.value("attributeDiversity", 0).toString())));
-        teamingOptions->attributeWeights[attribNum] = savedSettings.value("Weight", 1).toFloat();
-        // Shouldn't re-load the incompatible and required responses if working with new survey data
-        if(dataOptions->dataSource == DataOptions::DataSource::fromPrevWork) {
-            const int numIncompats = savedSettings.beginReadArray("incompatibleResponses");
-            for(int incompResp = 0; incompResp < numIncompats; incompResp++) {
-                savedSettings.setArrayIndex(incompResp);
-                const QStringList incompats = savedSettings.value("incompatibleResponses", "").toString().split(',');
-                teamingOptions->incompatibleAttributeValues[attribNum].append({incompats.at(0).toInt(),incompats.at(1).toInt()});
-            }
-            savedSettings.endArray();
-            const int numRequireds = savedSettings.beginReadArray("requiredResponses");
-            for(int requiredResp = 0; requiredResp < numRequireds; requiredResp++) {
-                savedSettings.setArrayIndex(requiredResp);
-                const int required = savedSettings.value("requiredResponse", "").toInt();
-                teamingOptions->requiredAttributeValues[attribNum] << required;
-            }
-            savedSettings.endArray();
-        }
-    }
-    savedSettings.endArray();
-    teamingOptions->numberRequestedTeammatesGiven = savedSettings.value("requestedTeammateNumber", 1).toInt();
-}
-
-
-//////////////////
 //Enable the appropriate UI settings when loading a set of students
 //////////////////
 void gruepr::loadUI()
@@ -2029,6 +1993,17 @@ void gruepr::saveState()
             teamsetjsons.append(tab->toJson());
         }
         content["teamsets"] = teamsetjsons;
+        QJsonArray criteriacardsjsons;
+        for (const auto *card : std::as_const(criteriaCardsList)) {
+            QJsonObject cardjson;
+            cardjson["criteriaType"] = static_cast<int>(card->criterion->criteriaType);
+            if (card->criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
+                const auto *attrCriterion = qobject_cast<AttributeCriterion*>(card->criterion);
+                cardjson["attributeIndex"] = attrCriterion->attributeIndex;
+            }
+            criteriacardsjsons.append(cardjson);
+        }
+        content["criteriaCards"] = criteriacardsjsons;
         const QJsonDocument doc(content);
         saveFile.write(doc.toJson(QJsonDocument::Compact));
         saveFile.close();
@@ -3240,101 +3215,6 @@ void gruepr::closeEvent(QCloseEvent *event)
     QSettings savedSettings;
     savedSettings.setValue("windowGeometry", saveGeometry());
     saveState();    // save current work for possible future use
-
-    bool dontActuallyExit = false;
-    bool saveSettings = savedSettings.value("saveDefaultsOnExit", false).toBool();
-
-    if(savedSettings.value("askToSaveDefaultsOnExit", true).toBool()) {
-        QApplication::beep();
-        auto *saveOptionsOnClose = new QMessageBox(this);
-        saveOptionsOnClose->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint);
-        saveOptionsOnClose->setStyleSheet(LABEL10PTSTYLE);
-        auto *neverShowAgain = new QCheckBox(tr("Don't ask me this again"), saveOptionsOnClose);
-        neverShowAgain->setStyleSheet(CHECKBOXSTYLE);
-
-        saveOptionsOnClose->setIconPixmap(QPixmap(":/icons_new/question.png").scaled(MSGBOX_ICON_SIZE, MSGBOX_ICON_SIZE,
-                                                                              Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        saveOptionsOnClose->setWindowTitle(tr("Save Options?"));
-        saveOptionsOnClose->setText(tr("Before exiting, should we save the\ncurrent teaming options as defaults?"));
-        saveOptionsOnClose->setCheckBox(neverShowAgain);
-        saveOptionsOnClose->setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
-        auto *dontSave = saveOptionsOnClose->addButton(tr("Don't Save"), QMessageBox::DestructiveRole);
-        saveOptionsOnClose->button(QMessageBox::Save)->setStyleSheet(SMALLBUTTONSTYLE);
-        saveOptionsOnClose->button(QMessageBox::Cancel)->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        dontSave->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
-        saveOptionsOnClose->exec();
-
-        if(saveOptionsOnClose->result() == QMessageBox::Save) {
-            saveSettings = true;
-        }
-        else if(saveOptionsOnClose->result() == QMessageBox::Cancel) {
-            dontActuallyExit = true;
-        }
-
-        if(neverShowAgain->checkState() == Qt::Checked) {
-            savedSettings.setValue("askToSaveDefaultsOnExit", false);
-            savedSettings.setValue("saveDefaultsOnExit", saveSettings);
-        }
-        saveOptionsOnClose->deleteLater();
-    }
-
-    if(dontActuallyExit) {
-        event->ignore();
-    }
-    else {
-        if(saveSettings) {
-            savedSettings.setValue("idealTeamSize", qobject_cast<TeamsizeCriterion*>(teamsizeCriteriaCard->criterion)->idealTeamSizeBox->value());
-            savedSettings.remove("genderIdentityRules");  //clear any existing values
-            savedSettings.beginWriteArray("genderIdentityRules");
-            int rule = 0;
-            for(const auto [gender, identityRule] : teamingOptions->genderIdentityRules.asKeyValueRange()) {
-                for(const auto [operation, values] : identityRule.asKeyValueRange()) {
-                    for(const auto value : std::as_const(values)) {
-                        savedSettings.setArrayIndex(rule);
-                        savedSettings.setValue("ruleVal", grueprGlobal::genderToString(gender) + "," +
-                                                          operation + "," + QString::number(value));
-                        rule++;
-                    }
-                }
-            }
-            savedSettings.endArray();
-            savedSettings.setValue("singleGenderPrevented", teamingOptions->singleGenderPrevented);
-            savedSettings.setValue("isolatedURMPrevented", teamingOptions->isolatedURMPrevented);
-            savedSettings.setValue("minTimeBlocksOverlap", teamingOptions->minTimeBlocksOverlap);
-            savedSettings.setValue("desiredTimeBlocksOverlap", teamingOptions->desiredTimeBlocksOverlap);
-            savedSettings.setValue("meetingBlockSize", teamingOptions->meetingBlockSize);
-            savedSettings.setValue("realMeetingBlockSize", teamingOptions->realMeetingBlockSize);
-            savedSettings.setValue("scheduleWeight", teamingOptions->scheduleWeight);
-            savedSettings.beginWriteArray("Attributes");
-            auto diversity = QMetaEnum::fromType<Criterion::AttributeDiversity>();
-            for (int attribNum = 0; attribNum < MAX_ATTRIBUTES; ++attribNum) {
-                savedSettings.setArrayIndex(attribNum);
-                savedSettings.setValue("attributeDiversity", diversity.valueToKey(static_cast<int>(teamingOptions->attributeDiversity[attribNum])));
-                savedSettings.setValue("weight", teamingOptions->attributeWeights[attribNum]);
-                savedSettings.remove("incompatibleResponses");  //clear any existing values
-                savedSettings.beginWriteArray("incompatibleResponses");
-                for(int incompResp = 0; incompResp < teamingOptions->incompatibleAttributeValues[attribNum].size(); incompResp++) {
-                    savedSettings.setArrayIndex(incompResp);
-                    savedSettings.setValue("incompatibleResponses",
-                                           (QString::number(teamingOptions->incompatibleAttributeValues[attribNum].at(incompResp).first) + "," +
-                                            QString::number(teamingOptions->incompatibleAttributeValues[attribNum].at(incompResp).second)));
-                }
-                savedSettings.endArray();
-                savedSettings.remove("requiredResponses");  //clear any existing values
-                savedSettings.beginWriteArray("requiredResponses");
-                for(int requiredResp = 0; requiredResp < teamingOptions->requiredAttributeValues[attribNum].size(); requiredResp++) {
-                    savedSettings.setArrayIndex(requiredResp);
-                    savedSettings.setValue("requiredResponse",
-                                           (QString::number(teamingOptions->requiredAttributeValues[attribNum].at(requiredResp))));
-                }
-                savedSettings.endArray();
-            }
-            savedSettings.endArray();
-            savedSettings.setValue("requestedTeammateNumber", teamingOptions->numberRequestedTeammatesGiven);
-        }
-
-        event->accept();
-        emit closed();
-    }
+    event->accept();
+    emit closed();
 }
-

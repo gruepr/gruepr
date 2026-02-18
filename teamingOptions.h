@@ -50,6 +50,7 @@ public:
     bool haveAnyPreventedTeammates = false;
     bool haveAnyRequestedTeammates = false;
     int numberRequestedTeammatesGiven = 1;
+    int idealTeamSize = 4;
     QList<int> smallerTeamsSizes;
     int smallerTeamsNumTeams = 1;
     QList<int> largerTeamsSizes;
