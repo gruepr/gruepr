@@ -75,3 +75,57 @@ void GenderCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
     //     isolatedNonbinary->setChecked(teamingOptions->genderIdentityRules[Gender::nonbinary]["!="].contains(1));
     // });
 }
+
+void GenderCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
+                                     const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
+                                     std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+{
+    int studentNum = 0;
+    for(int team = 0; team < numTeams; team++) {
+        criteriaScores[team] = 0;  // was (1 * criterion->weight), but for now no positive "score", just penalties related to gender
+
+        if(teamSizes[team] == 1) {
+            studentNum++;
+            continue;
+        }
+
+        // Count how many of each gender on the team
+        int numWomen = 0;
+        int numMen = 0;
+        int numNonbinary = 0;
+        for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
+            if(students[teammates[studentNum]].gender.contains(Gender::man)) {
+                numMen++;
+            }
+            else if(students[teammates[studentNum]].gender.contains(Gender::woman)) {
+                numWomen++;
+            }
+            else if(students[teammates[studentNum]].gender.contains(Gender::nonbinary)) {
+                numNonbinary++;
+            }
+            studentNum++;
+        }
+
+        auto applyRule = [&](Gender g, int count) {
+            const auto& unallowed = teamingOptions->genderIdentityRules.value(g).value("!=");
+            for (int val : unallowed) {
+                if (count == val) {
+                    if (penaltyStatus) {
+                        penaltyPoints[team]++;
+                        break;
+                    }
+                }
+            }
+        };
+
+        applyRule(Gender::woman, numWomen);
+        applyRule(Gender::man, numMen);
+        applyRule(Gender::nonbinary, numNonbinary);
+
+        if (teamingOptions->singleGenderPrevented && (numMen == 0 || numWomen == 0)) {
+            if (penaltyStatus) {
+                penaltyPoints[team]++;
+            }
+        }
+    }
+}

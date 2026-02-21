@@ -46,19 +46,19 @@ TeammatesRulesDialog::TeammatesRulesDialog(const QList<StudentRecord> &incomingS
                                   SCROLLBARSTYLE);
     }
     headerRequiredTeammates = new QWidget(this);
-    headerLayoutRequiredTeammates = new QHBoxLayout(this);
+    headerLayoutRequiredTeammates = new QHBoxLayout;
     headerLayoutRequiredTeammates->setContentsMargins(0, 0, 0, 0);
     headerLayoutRequiredTeammates->setSpacing(0);
     headerRequiredTeammates->setLayout(headerLayoutRequiredTeammates);
 
     headerPreventedTeammates = new QWidget(this);
-    headerLayoutPreventedTeammates = new QHBoxLayout(this);
+    headerLayoutPreventedTeammates = new QHBoxLayout;
     headerLayoutPreventedTeammates->setContentsMargins(0, 0, 0, 0);
     headerLayoutPreventedTeammates->setSpacing(0);
     headerPreventedTeammates->setLayout(headerLayoutPreventedTeammates);
 
     headerRequestedTeammates = new QWidget(this);
-    headerLayoutRequestedTeammates = new QHBoxLayout(this);
+    headerLayoutRequestedTeammates = new QHBoxLayout;
     headerLayoutRequestedTeammates->setContentsMargins(0, 0, 0, 0);
     headerLayoutRequestedTeammates->setSpacing(0);
     headerRequestedTeammates->setLayout(headerLayoutRequestedTeammates);
@@ -512,7 +512,7 @@ void TeammatesRulesDialog::refreshDisplay(TypeOfTeammates typeOfTeammates, int v
 
         //Create Elements for Final Column
         auto *cellWidget = new QWidget(this);
-        auto *box = new QHBoxLayout();
+        auto *box = new QHBoxLayout;
         //Set up lineEdit
         auto *lineEdit = new QLineEdit(this);
         lineEdit->setPlaceholderText("Enter a student.."); // Set initial value

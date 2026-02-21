@@ -6,8 +6,6 @@
 #include "dialogs/editOrAddStudentDialog.h"
 #include "dialogs/editSectionNamesDialog.h"
 #include "dialogs/findMatchingNameDialog.h"
-#include "dialogs/teammatesRulesDialog.h"
-#include "widgets/customsplitter.h"
 #include "widgets/groupingCriteriaCardWidget.h"
 #include "widgets/pushButtonWithMouseEnter.h"
 #include "widgets/sortableTableWidgetItem.h"
@@ -28,15 +26,16 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QSlider>
+#include <QSplitter>
 #include <QtConcurrentRun>
 #include <QTextBrowser>
 
 
 gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     QMainWindow(),
-    ui(new Ui::gruepr),
+    students(std::move(_students)),
     dataOptions(new DataOptions(std::move(_dataOptions))),
-    students(std::move(_students))
+    ui(new Ui::gruepr)
 {
     //Setup the main window
     ui->setupUi(this);
@@ -49,8 +48,9 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     ui->dataSourcePrelabel->setStyleSheet(DATASOURCEPRELABELSTYLE);
     ui->dataSourceLabel->setStyleSheet(DATASOURCELABELSTYLE);
 
-    auto *splitter = new CustomSplitter(Qt::Horizontal);
-    splitter->setStyleSheet("QSplitter::handle {background: lightgray;}");
+    auto *splitter = new QSplitter(Qt::Horizontal);
+    splitter->setStyleSheet("QSplitter::handle {border: 1px solid lightgrey; border-radius: 4px; background-color: " OPENWATERHEX "; "
+                                                "image: url(:/icons_new/drag-handle.png);}");
     splitter->setHandleWidth(8);
 
     auto *settingTeamCriteriaWidget = new QWidget(this);
@@ -79,6 +79,7 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     splitter->addWidget(settingTeamCriteriaWidget);
     splitter->addWidget(ui->dataDisplayTabWidget);
     splitter->setSizes({this->width()/2, this->width()/2});
+    splitter->handle(1)->setCursor(Qt::SplitHCursor);
 
     teamingOptions = nullptr;
     QJsonArray savedCriteriaCards;
@@ -130,12 +131,6 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
         sectionSelectionBox = sectionCriterion->sectionSelectionBox;
         connect(sectionCriterion->editSectionNameButton, &QPushButton::clicked, this, &gruepr::editSectionNames);
         connect(sectionCriterion->sectionSelectionBox, &QComboBox::currentIndexChanged, this, &gruepr::changeSection);
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-        connect(sectionCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
         criteriaCardsList.append(sectionCriteriaCard);
     }
 
@@ -249,16 +244,6 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     }
     ui->dataSourceIcon->setFixedSize(STD_ICON_SIZE, STD_ICON_SIZE);
 
-    //Connect other UI items to more involved actions
-    // Connect signals from each draggableQFrame to swapFrames
-    for(auto &criteriaCard : criteriaCardsList) {
-        connect(criteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-        connect(criteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-        connect(criteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-        connect(criteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-        connect(criteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-    }
-
     //connecting the buttons that are always shown
     connect(ui->addStudentPushButton, &QPushButton::clicked, this, &gruepr::addAStudent);
     connect(ui->compareRosterPushButton, &QPushButton::clicked, this, &gruepr::compareStudentsToRoster);
@@ -328,6 +313,10 @@ void gruepr::moveCriteriaCard(int draggedIndex, int targetIndex) {
 
     initializeCriteriaCardPriorities();
     refreshCriteriaLayout();
+
+    for (auto *card : std::as_const(criteriaCardsList)) {
+        card->stopDragTimer();
+    }
 }
 
 bool gruepr::eventFilter(QObject *watched, QEvent *event)
@@ -385,6 +374,10 @@ void gruepr::showDropIndicator(int targetIndex) {
     }
 }
 
+void gruepr::showBottomDropZone() {
+    m_bottomDropZone->show();
+}
+
 void gruepr::hideDropIndicator() {
     if (m_dropIndicator == nullptr) {
         return;
@@ -398,20 +391,16 @@ void gruepr::hideDropIndicator() {
 }
 
 void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
+    // Note: standard drag/drop/delete signals are connected automatically in GroupingCriteriaCard constructor
     switch(criteriaType) {
         case Criterion::CriteriaType::genderIdentity: {
             if(genderIdentityCriteriaCard == nullptr) {
                 genderIdentityCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                       QString("Gender identity"), true);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-                connect(genderIdentityCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(genderIdentityCriteriaCard);
-                if(genderMenuAction != nullptr) { genderMenuAction->setVisible(false); }
+                if(genderMenuAction != nullptr) {
+                    genderMenuAction->setVisible(false);
+                }
             }
             break;
         }
@@ -419,15 +408,10 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             if(urmIdentityCard == nullptr) {
                 urmIdentityCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                            QString("Racial/Ethnic/Cultural Identity"), true);
-                connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-                connect(urmIdentityCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-                connect(urmIdentityCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-                connect(urmIdentityCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-                connect(urmIdentityCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-                connect(urmIdentityCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-                connect(urmIdentityCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(urmIdentityCard);
-                if(urmMenuAction != nullptr) { urmMenuAction->setVisible(false); }
+                if(urmMenuAction != nullptr) {
+                    urmMenuAction->setVisible(false);
+                }
             }
             break;
         }
@@ -435,159 +419,40 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType){
             if (meetingScheduleCriteriaCard == nullptr){
                 meetingScheduleCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                        QString("Number of weekly meeting times"), true);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-                connect(meetingScheduleCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(meetingScheduleCriteriaCard);
-                if(scheduleMenuAction != nullptr) { scheduleMenuAction->setVisible(false); }
+                if(scheduleMenuAction != nullptr) {
+                    scheduleMenuAction->setVisible(false);
+                }
             }
             break;
         }
         case Criterion::CriteriaType::requiredTeammates:
         case Criterion::CriteriaType::preventedTeammates:
         case Criterion::CriteriaType::requestedTeammates: {
-            QString typeString;
-            TeammatesRulesDialog::TypeOfTeammates type;
-            if(criteriaType == Criterion::CriteriaType::requiredTeammates) {
-                typeString = "Required";
-                type = TeammatesRulesDialog::TypeOfTeammates::required;
-            }
-            else if(criteriaType == Criterion::CriteriaType::preventedTeammates) {
-                typeString = "Prevented";
-                type = TeammatesRulesDialog::TypeOfTeammates::prevented;
-            }
-            else {
-                typeString = "Requested";
-                type = TeammatesRulesDialog::TypeOfTeammates::requested;
-            }
-            if (!teammateRulesExistence.contains(criteriaType)){
+            if (!teammateRulesExistence.contains(criteriaType)) {
                 teammateRulesExistence.append(criteriaType);
+                const QString typeString = (criteriaType == Criterion::CriteriaType::requiredTeammates) ? "Required" :
+                                               (criteriaType == Criterion::CriteriaType::preventedTeammates) ? "Prevented" : "Requested";
                 auto *teammatesCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
                                                                typeString + tr(" Teammates"), true);
-                const auto &teammatesCriterion = qobject_cast<TeammatesCriterion*>(teammatesCard->criterion);
-                const int numTabs = ui->dataDisplayTabWidget->count();
-                QStringList teamTabNames;
-                teamTabNames.reserve(numTabs);
-                for(int tab = 1; tab < numTabs; tab++) {
-                    teamTabNames << ui->dataDisplayTabWidget->tabText(tab);
-                }
-                connect(teammatesCriterion->setTeammateRulesButton, &QPushButton::clicked, this, [this, type, teamTabNames]() {
-                    auto *win = new TeammatesRulesDialog(students, *dataOptions, *teamingOptions,
-                                                         ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
-                                                          (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
-                                                          (teamingOptions->sectionType == TeamingOptions::SectionType::noSections))? "" : teamingOptions->sectionName,
-                                                         teamTabNames, type, this);
-                    //If user clicks OK, replace student database with copy that has had pairings added
-                    const int reply = win->exec();
-                    if(reply == QDialog::Accepted) {
-                        for(int index = 0; index < students.size(); index++) {
-                            students[index] = win->students[index];
-                        }
-                        teamingOptions->haveAnyRequiredTeammates = win->required_teammatesSpecified;
-                        teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
-                        teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
-                        teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
-
-                        saveState();
-                    }
-
-                    delete win;
-                });
-                connect(teammatesCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-                connect(teammatesCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-                connect(teammatesCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-                connect(teammatesCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-                connect(teammatesCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-                connect(teammatesCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-                connect(teammatesCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
                 criteriaCardsList.append(teammatesCard);
-                if(criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction != nullptr) {
+                if (criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction)
                     requiredTeammatesMenuAction->setVisible(false);
-                } else if(criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction != nullptr) {
+                else if (criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction)
                     preventedTeammatesMenuAction->setVisible(false);
-                } else if(criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction != nullptr) {
+                else if (criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction)
                     requestedTeammatesMenuAction->setVisible(false);
-                }
             }
             break;
         }
         case Criterion::CriteriaType::gradeBalance: {
             if (gradeBalanceCriteriaCard == nullptr) {
-                /*FROMDEV
-                //Meeting Schedule Criteria Card Styling
-                gradeBalanceCriteriaCard = new GroupingCriteriaCard(this, QString("Grade Balance"), true, criteriaType, GroupingCriteriaCard::Precedence::want);
-                gradeBalanceCriteriaCard->criterion = new GradeBalanceCriterion(0.0, false);
-
-                QHBoxLayout* gradeBalanceContentLayout = new QHBoxLayout();
-                QFrame *gradeInfoFrame = new QFrame();
-                gradeBalanceContentLayout->addWidget(gradeInfoFrame, 1);
-                //mean grade box that is elevated + distribution of student grades
-
-                QVBoxLayout* spinBoxVLayout = new QVBoxLayout();
-                QHBoxLayout* spinBoxHLayout = new QHBoxLayout();
-                gradeBalanceContentLayout->addLayout(spinBoxVLayout, 3);
-
-                QLabel* gradeRangeLabel = new QLabel("Target group average grade range: ");
-                spinBoxVLayout->addWidget(gradeRangeLabel);
-                spinBoxVLayout->addLayout(spinBoxHLayout);
-
-                minimumMeanGradeSpinBox = new QDoubleSpinBox(this);
-                maximumMeanGradeSpinBox = new QDoubleSpinBox(this);
-
-                spinBoxHLayout->addWidget(minimumMeanGradeSpinBox);
-                spinBoxHLayout->addWidget(maximumMeanGradeSpinBox);
-
-
-                minimumMeanGradeSpinBox->setPrefix(QString("Min: "));
-                minimumMeanGradeSpinBox->setMinimum(0.0);
-                minimumMeanGradeSpinBox->setValue(0.0);
-                minimumMeanGradeSpinBox->setSingleStep(1.0);
-                minimumMeanGradeSpinBox->setDecimals(2);
-                minimumMeanGradeSpinBox->setMinimumHeight(40);
-
-                maximumMeanGradeSpinBox->setPrefix(QString("Max: "));
-                maximumMeanGradeSpinBox->setMinimum(0.0);
-                maximumMeanGradeSpinBox->setMaximum(100.0);
-                maximumMeanGradeSpinBox->setValue(100.0);
-                maximumMeanGradeSpinBox->setSingleStep(1.0);
-                maximumMeanGradeSpinBox->setDecimals(2);
-                maximumMeanGradeSpinBox->setMinimumHeight(40);
-                //add standard deviation and average data of grade based on population
-
-                //mean grade?
-                float meangrade = 0.0;
-                for (const auto &student : std::as_const(students)){
-                    meangrade += student.grade;
-                }
-                meangrade = meangrade / students.size();
-
-                gradeInfoFrame->setFrameShadow(QFrame::Raised);
-                QVBoxLayout *gradeInfoFrameLayout = new QVBoxLayout();
-                gradeInfoFrameLayout->addWidget(new QLabel("<u>Mean Student Grade</u>"));
-                gradeInfoFrameLayout->addWidget(new QLabel(QString::number(meangrade, 'f', 2)));
-                gradeInfoFrame->setLayout(gradeInfoFrameLayout);
-
-                //students over total students for mean grade
-
-                gradeBalanceCriteriaCard->setContentAreaLayout(*gradeBalanceContentLayout);
-                gradeBalanceCriteriaCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
-
-                //adding to criteria card list
+                gradeBalanceCriteriaCard = new GroupingCriteriaCard(criteriaType, dataOptions, teamingOptions, this,
+                                                                    QString("Grade Balance"), true);
                 criteriaCardsList.append(gradeBalanceCriteriaCard);
-
-                connect(minimumMeanGradeSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(minimumMeanGradeSpinBox);});
-                connect(maximumMeanGradeSpinBox, &QDoubleSpinBox::valueChanged, this, [this](){simpleUIItemUpdate(maximumMeanGradeSpinBox);});
-                //adding to layout
-                connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::criteriaCardSwapRequested, this, &gruepr::swapCriteriaCards);
-                connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-                connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-                connect(gradeBalanceCriteriaCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
-                if(gradeMenuAction != nullptr) { gradeMenuAction->setVisible(false); }
-            */
+                if (gradeMenuAction != nullptr) {
+                    gradeMenuAction->setVisible(false);
+                }
             }
             break;
         }
@@ -628,57 +493,71 @@ void gruepr::deleteCriteriaCard(int deletedIndex)
     // Remove the card from the list and delete it
     criteriaCardsList.removeAt(deletedIndex);
 
-    if (criteriaType == Criterion::CriteriaType::genderIdentity){
-        delete cardToDelete;
-        genderIdentityCriteriaCard = nullptr;
-        if(genderMenuAction != nullptr) { genderMenuAction->setVisible(true); }
-    }
-    else if (criteriaType == Criterion::CriteriaType::urmIdentity){
-        //FROMDEV
-        // SingleURMIdentityCriterion *criterion = dynamic_cast<SingleURMIdentityCriterion*>(cardToDelete->criterion);
-        // QString urmResponse = criterion->urmName;
-        // uiCheckBoxMap.remove(urmResponse + "PreventIsolatedCheckBox");
-        delete cardToDelete;
-        urmIdentityCard = nullptr;
-        if(urmMenuAction != nullptr) { urmMenuAction->setVisible(true); }
-    }
-    else if (criteriaType == Criterion::CriteriaType::attributeQuestion){
-        auto *criterion = qobject_cast<AttributeCriterion*>(cardToDelete->criterion);
-        const int attributeIndex = criterion->attributeIndex;
-        const int indexToRemove = addedAttributeNumbersList.indexOf(attributeIndex);
-        addedAttributeNumbersList.remove(indexToRemove);
-        cardToDelete->setVisible(false);
-        if(attributeIndex < attributeMenuActions.size() && attributeMenuActions[attributeIndex] != nullptr) {
-            attributeMenuActions[attributeIndex]->setVisible(true);
+    switch(criteriaType) {
+        case Criterion::CriteriaType::genderIdentity: {
+            delete cardToDelete;
+            genderIdentityCriteriaCard = nullptr;
+            if(genderMenuAction != nullptr) {
+                genderMenuAction->setVisible(true);
+            }
+            break;
+        }
+        case Criterion::CriteriaType::urmIdentity: {
+            delete cardToDelete;
+            urmIdentityCard = nullptr;
+            if(urmMenuAction != nullptr) {
+                urmMenuAction->setVisible(true);
+            }
+            break;
+        }
+        case Criterion::CriteriaType::attributeQuestion: {
+            auto *criterion = qobject_cast<AttributeCriterion*>(cardToDelete->criterion);
+            const int attributeIndex = criterion->attributeIndex;
+            const int indexToRemove = addedAttributeNumbersList.indexOf(attributeIndex);
+            addedAttributeNumbersList.remove(indexToRemove);
+            cardToDelete->setVisible(false);
+            if(attributeIndex < attributeMenuActions.size() && attributeMenuActions[attributeIndex] != nullptr) {
+                attributeMenuActions[attributeIndex]->setVisible(true);
+            }
+            break;
+        }
+        case Criterion::CriteriaType::scheduleMeetingTimes: {
+            delete cardToDelete;
+            meetingScheduleCriteriaCard = nullptr;
+            if(scheduleMenuAction != nullptr) {
+                scheduleMenuAction->setVisible(true);
+            }
+            break;
+        }
+        case Criterion::CriteriaType::requiredTeammates:
+        case Criterion::CriteriaType::preventedTeammates:
+        case Criterion::CriteriaType::requestedTeammates: {
+            const int indexToRemove = teammateRulesExistence.indexOf(criteriaType);
+            teammateRulesExistence.remove(indexToRemove);
+            delete cardToDelete;
+            if(criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction != nullptr) {
+                requiredTeammatesMenuAction->setVisible(true);
+            } else if(criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction != nullptr) {
+                preventedTeammatesMenuAction->setVisible(true);
+            } else if(criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction != nullptr) {
+                requestedTeammatesMenuAction->setVisible(true);
+            }
+            break;
+        }
+        case Criterion::CriteriaType::gradeBalance: {
+            delete cardToDelete;
+            gradeBalanceCriteriaCard = nullptr;
+            if(gradeMenuAction != nullptr) {
+                gradeMenuAction->setVisible(true);
+            }
+            break;
+        }
+        default: {
+            return;
+            //qDebug() << deletedIndex << " does not exist or is non-deletable section or teamsize card.";
         }
     }
-    else if (criteriaType == Criterion::CriteriaType::scheduleMeetingTimes){
-        delete cardToDelete;
-        meetingScheduleCriteriaCard = nullptr;
-        if(scheduleMenuAction != nullptr) { scheduleMenuAction->setVisible(true); }
-    }
-    else if ((criteriaType == Criterion::CriteriaType::requiredTeammates ||
-              criteriaType == Criterion::CriteriaType::preventedTeammates) ||
-              criteriaType == Criterion::CriteriaType::requestedTeammates){
-        const int indexToRemove = teammateRulesExistence.indexOf(criteriaType);
-        teammateRulesExistence.remove(indexToRemove);
-        delete cardToDelete;
-        if(criteriaType == Criterion::CriteriaType::requiredTeammates && requiredTeammatesMenuAction != nullptr) {
-            requiredTeammatesMenuAction->setVisible(true);
-        } else if(criteriaType == Criterion::CriteriaType::preventedTeammates && preventedTeammatesMenuAction != nullptr) {
-            preventedTeammatesMenuAction->setVisible(true);
-        } else if(criteriaType == Criterion::CriteriaType::requestedTeammates && requestedTeammatesMenuAction != nullptr) {
-            requestedTeammatesMenuAction->setVisible(true);
-        }
-    }
-    else if (criteriaType == Criterion::CriteriaType::gradeBalance){
-        delete cardToDelete;
-        gradeBalanceCriteriaCard = nullptr;
-        if(gradeMenuAction != nullptr) { gradeMenuAction->setVisible(true); }
-    }
-    else {
-        //qDebug() << deletedIndex << " does not exist.";
-    }
+
     initializeCriteriaCardPriorities();
     refreshCriteriaLayout();
 }
@@ -738,7 +617,6 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     std::vector<float>teamScores(_numTeams);
     std::vector<std::vector<float>> criteriaScores(_teamingOptions->realNumScoringFactors, std::vector<float>(_numTeams));
     std::vector<int> penaltyPoints(_numTeams);
-    std::vector<std::vector<bool>> availabilityChart(_dataOptions.dayNames.size(), std::vector<bool>(_dataOptions.timeNames.size()));
     std::vector<int> teamSizes(_numTeams);
     std::vector<int> genome(_numStudents);
     int ID = 0;
@@ -755,14 +633,13 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     }
 
     getGenomeScore(_students.constData(), genome.data(), _numTeams, teamSizes.data(),
-                   _teamingOptions, &_dataOptions, teamScores.data(),
-                   criteriaScores, availabilityChart, penaltyPoints);
+                   _teamingOptions, &_dataOptions, teamScores.data(), criteriaScores, penaltyPoints);
 
     for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++){
         for (int team = 0; team <_numTeams; team++){
             _teams[team].criteriaScores[criterion] = criteriaScores[criterion][team];
             //penalty
-            int penaltyScore = -penaltyPoints[criterion];
+            const int penaltyScore = -penaltyPoints[criterion];
             //unweighted score
             const float actualScore = criteriaScores[criterion][team]/_teamingOptions->weights[criterion];
             //qDebug() << "weight from weights[]:" << _teamingOptions->weights[criterion];
@@ -786,6 +663,12 @@ void gruepr::calcTeamScores(const QList<StudentRecord> &_students, const long lo
     }
 }
 
+QStringList gruepr::getTeamTabNames() const {
+    QStringList names;
+    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++)
+        names << ui->dataDisplayTabWidget->tabText(tab);
+    return names;
+}
 
 void gruepr::changeSection(int index)
 {
@@ -1944,13 +1827,7 @@ void gruepr::loadUI()
         const auto &currentAttributeCriterion = qobject_cast<AttributeCriterion*>(currentAttributeCard->criterion);
         attributeWidgets << currentAttributeCriterion->attributeWidget;
         currentAttributeCriterion->attributeWidget->setValues(); //update issue
-        connect(currentAttributeCard, &GroupingCriteriaCard::criteriaCardMoveRequested, this, &gruepr::moveCriteriaCard);
-        connect(currentAttributeCard, &GroupingCriteriaCard::dragStarting, this, [this]{ m_bottomDropZone->show(); });
-        connect(currentAttributeCard, &GroupingCriteriaCard::dragEnteredCard, this, &gruepr::showDropIndicator);
-        connect(currentAttributeCard, &GroupingCriteriaCard::dragFinished, this, &gruepr::hideDropIndicator);
-        connect(currentAttributeCard, &GroupingCriteriaCard::criteriaCardMoved, this, &gruepr::doAutoScroll);
-        connect(currentAttributeCard, &GroupingCriteriaCard::deleteCardRequested, this, &gruepr::deleteCriteriaCard);
-        connect(currentAttributeCard, &GroupingCriteriaCard::includePenaltyStateChanged, this, &gruepr::refreshCriteriaLayout);
+        // Standard drag/drop/delete signals connected automatically in GroupingCriteriaCard constructor
 
         //(re)set the weight to zero for any attributes with just one value in the data
         if(dataOptions->attributeVals[attribute].size() == 1) {
@@ -2325,7 +2202,6 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
     // calculate this first generation's scores (multi-threaded using OpenMP, preallocating one set of scoring variables per thread)
     auto *scores = new float[ga.populationsize];
     std::vector<std::vector<float>> criteriaScores;
-    std::vector<std::vector<bool>> availabilityChart;
     std::vector<int> penaltyPoints;
     std::vector<float> unusedTeamScores;
     bool unpenalizedGenomePresent = false;
@@ -2338,17 +2214,16 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 #pragma omp parallel \
         default(none) \
         shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-        private(unusedTeamScores, criteriaScores, availabilityChart, penaltyPoints)
+        private(unusedTeamScores, criteriaScores, penaltyPoints)
     {
         unusedTeamScores.resize(sharedNumTeams);
         criteriaScores.resize(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
-        availabilityChart.resize(dataOptions->dayNames.size(), std::vector<bool>(dataOptions->timeNames.size()));
         penaltyPoints.resize(numTeams);
 #pragma omp for nowait
         for(int genome = 0; genome < ga.populationsize; genome++) {
             scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                             sharedTeamingOptions, sharedDataOptions, unusedTeamScores.data(),
-                                            criteriaScores, availabilityChart, penaltyPoints);
+                                            criteriaScores, penaltyPoints);
             int totalPenaltyPoints = 0;
             for(int team = 0; team < sharedNumTeams; team++) {
                 totalPenaltyPoints += penaltyPoints[team];
@@ -2409,17 +2284,16 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 #pragma omp parallel \
             default(none) \
                 shared(scores, sharedStudents, genePool, sharedNumTeams, teamSizes, sharedTeamingOptions, sharedDataOptions, unpenalizedGenomePresent) \
-                private(unusedTeamScores, criteriaScores, availabilityChart, penaltyPoints)
+                private(unusedTeamScores, criteriaScores, penaltyPoints)
             {
                 unusedTeamScores.resize(sharedNumTeams);
                 criteriaScores.resize(teamingOptions->realNumScoringFactors, std::vector<float>(numTeams));
-                availabilityChart.resize(dataOptions->dayNames.size(), std::vector<bool>(dataOptions->timeNames.size()));
                 penaltyPoints.resize(numTeams);
 #pragma omp for nowait
                 for(int genome = 0; genome < ga.populationsize; genome++) {
                     scores[genome] = getGenomeScore(sharedStudents.constData(), genePool[genome], sharedNumTeams, teamSizes,
                                                     sharedTeamingOptions, sharedDataOptions, unusedTeamScores.data(),
-                                                    criteriaScores, availabilityChart, penaltyPoints);
+                                                    criteriaScores, penaltyPoints);
                     int totalPenaltyPoints = 0;
                     for(int team = 0; team < sharedNumTeams; team++) {
                         totalPenaltyPoints += penaltyPoints[team];
@@ -2498,7 +2372,7 @@ QList<int> gruepr::optimizeTeams(QList<int> studentIndexes)
 //////////////////
 float gruepr::getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                             std::vector<std::vector<float>> &_criteriaScores, std::vector<std::vector<bool>> &_availabilityChart, std::vector<int> &_penaltyPoints)
+                             std::vector<std::vector<float>> &_criteriaScores, std::vector<int> &_penaltyPoints)
 {
     // Initialize each component and team score
     for(auto &penalty : _penaltyPoints) {
@@ -2513,63 +2387,9 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
         _teamScores[team] = 0;
     }
 
-    // Calculate attribute scores and / or penalties for each attribute for each team:
-    std::multiset<int> attributeLevelsInTeam;
-    std::multiset<float> timezoneLevelsInTeam;
-
-    for (int i = 0; i< _teamingOptions->realNumScoringFactors; i++) {
-        auto *_criterionBeingScored = _teamingOptions->criterionTypes[i];
-        switch(_criterionBeingScored->criteriaType) {
-            case Criterion::CriteriaType::genderIdentity: {
-                auto *criterionCasted = qobject_cast<GenderCriterion*>(_criterionBeingScored);
-                getGenderScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criteriaScores[i], _penaltyPoints);
-                break;
-            }
-            case Criterion::CriteriaType::urmIdentity: {
-                /* FROMDEV
-                auto criterionCasted = dynamic_cast<SingleURMIdentityCriterion*>(_criterionBeingScored);
-                getURMScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criteriaScores[i], _penaltyPoints);
-                */
-                break;
-            }
-            case Criterion::CriteriaType::attributeQuestion: {
-                auto *criterionCasted = qobject_cast<AttributeCriterion*>(_criterionBeingScored);
-                getAttributeScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, criterionCasted, _criteriaScores[i],
-                                  criterionCasted->attributeIndex, attributeLevelsInTeam, timezoneLevelsInTeam, _penaltyPoints);
-                break;
-            }
-            case Criterion::CriteriaType::scheduleMeetingTimes: {
-                auto *criterionCasted = qobject_cast<ScheduleCriterion*>(_criterionBeingScored);
-                getScheduleScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, _dataOptions, criterionCasted, _criteriaScores[i], _availabilityChart, _penaltyPoints);
-                break;
-            }
-            case Criterion::CriteriaType::requiredTeammates: {
-                auto *criterionCasted = qobject_cast<TeammatesCriterion*>(_criterionBeingScored);
-                getRequiredTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criteriaScores[i], _penaltyPoints);
-                break;
-            }
-            case Criterion::CriteriaType::preventedTeammates: {
-                auto *criterionCasted = qobject_cast<TeammatesCriterion*>(_criterionBeingScored);
-                getPreventedTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criteriaScores[i], _penaltyPoints);
-                break;
-            }
-            case Criterion::CriteriaType::requestedTeammates: {
-                auto *criterionCasted = qobject_cast<TeammatesCriterion*>(_criterionBeingScored);
-                getRequestedTeammatesScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criteriaScores[i], _penaltyPoints);
-                break;
-            }
-            case Criterion::CriteriaType::gradeBalance: {
-                /* FROMDEV
-                auto *criterionCasted = dynamic_cast<GradeBalanceCriterion*>(_criterionBeingScored);
-                getGradeBalanceScore(_students, _teammates, _numTeams, _teamSizes, _teamingOptions, criterionCasted, _criteriaScores[i], _penaltyPoints);
-                */
-                break;
-            }
-            case Criterion::CriteriaType::section:
-            case Criterion::CriteriaType::teamSize: {
-                break;
-            }
-        }
+    for (int i = 0; i < _teamingOptions->realNumScoringFactors; i++) {
+        _teamingOptions->criterionTypes[i]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
+                                                           _teamingOptions, _dataOptions, _criteriaScores[i], _penaltyPoints);
     }
 
     // Bring together for a final score for each team:
@@ -2616,594 +2436,9 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     if(allTeamsPositive) {
         return(float(numTeamsScored)/harmonicSum);      //harmonic mean
     }
+
     const float mean = regularSum / float(numTeamsScored);
     return(mean - (std::abs(mean)/2));   //"punished" arithmetic mean
-}
-
-//function to get a score for an attribute type
-void gruepr::getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                               const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, AttributeCriterion *criterion,
-                               std::vector<float> &_criteriaScores, const int attribute, std::multiset<int> &attributeLevelsInTeam,
-                               std::multiset<float> &timezoneLevelsInTeam, std::vector<int> &_penaltyPoints)
-{
-    const bool thisIsTimezone = criterion->typeOfAttribute == DataOptions::AttributeType::timezone; //(_dataOptions->attributeField[attribute] == _dataOptions->timezoneField);
-    const bool penaltyStatus = criterion->penaltyStatus || _teamingOptions->haveAnyRequiredAttributes[attribute] ||
-                               _teamingOptions->haveAnyIncompatibleAttributes[attribute];
-    const int totNumAttributeLevels = int(_dataOptions->attributeVals[attribute].size());
-    const int totRangeAttributeLevels = *(_dataOptions->attributeVals[attribute].crbegin()) - *(_dataOptions->attributeVals[attribute].cbegin());
-
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-        // gather all the attribute values on the team
-        attributeLevelsInTeam.clear();
-        timezoneLevelsInTeam.clear();
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            attributeLevelsInTeam.insert(_students[_teammates[studentNum]].attributeVals[attribute].constBegin(),
-                                         _students[_teammates[studentNum]].attributeVals[attribute].constEnd());
-            if(thisIsTimezone) {
-                timezoneLevelsInTeam.insert(_students[_teammates[studentNum]].timezone);
-            }
-            studentNum++;
-        }
-
-        if (penaltyStatus){
-/*            if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
-                //get the values of all, put a penalty for each
-                if (_teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar){ //homogenous
-                    if(thisIsTimezone) { //similar, penalize if uniqueItems > 1 (we can only have 1 unique)
-                        std::set<int> uniqueItems(timezoneLevelsInTeam.begin(), timezoneLevelsInTeam.end());
-                        int duplicatedValues = timezoneLevelsInTeam.size() - uniqueItems.size();  // Count unique values
-                        int uniqueCount = uniqueItems.size();
-                        if (uniqueCount > 1) {
-                            _penaltyPoints[team] += uniqueCount - 1; // Penalize for extra unique values
-                        }
-                    } else { //if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                        //(_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
-                        std::set<int> uniqueItems(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
-                        int duplicatedValues = attributeLevelsInTeam.size() - uniqueItems.size();  // Count unique values
-                        int uniqueCount = uniqueItems.size();
-                        if (uniqueCount > 1) {
-                            _penaltyPoints[team] += uniqueCount - 1; // Penalize for extra unique values
-                        }
-                    }
-                } else { //heterogenous, penalize same values
-                    if(thisIsTimezone) {
-                        std::set<int> uniqueItems(timezoneLevelsInTeam.begin(), timezoneLevelsInTeam.end());
-                        int duplicatedValues = std::max(0, int(timezoneLevelsInTeam.size() - uniqueItems.size()));
-                        _penaltyPoints[team] += duplicatedValues;
-
-                    } else { //if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                        //(_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)){
-                        std::set<int> uniqueItems(attributeLevelsInTeam.begin(), attributeLevelsInTeam.end());
-                        int duplicatedValues = std::max(0, int(attributeLevelsInTeam.size() - uniqueItems.size()));
-                        _penaltyPoints[team] += duplicatedValues;
-
-                    }
-                }
-            }*/
-
-            if(_teamingOptions->haveAnyIncompatibleAttributes[attribute]) {
-                // go through each pair found in teamingOptions->incompatibleAttributeValues[attribute] list and see if both are found in attributeLevelsInTeam
-                for(const auto &pair : std::as_const(_teamingOptions->incompatibleAttributeValues[attribute])) {
-                    //getting the attribute level count for each incompatible attribute value
-                    const int n = int(attributeLevelsInTeam.count(pair.first));
-                    if(pair.first == pair.second) {
-                        _penaltyPoints[team] += (n * (n-1))/ 2;  // number of incompatible pairings is the sum 1 -> n-1 (0 if n == 0 or n == 1)
-                    }
-                    else {
-                        const int m = int(attributeLevelsInTeam.count(pair.second));
-                        _penaltyPoints[team] += n * m;           // number of incompatible pairings is the # of n -> m interactions (0 if n == 0 or m == 0)
-                    }
-                }
-            }
-
-            // Add a penalty per required attribute response not found
-            if(_teamingOptions->haveAnyRequiredAttributes[attribute]) {
-                // go through each value found in teamingOptions->requiredAttributeValues[attrib] list and see whether it's found in attributeLevelsInTeam
-                for(const auto value : std::as_const(_teamingOptions->requiredAttributeValues[attribute])) {
-                    if(attributeLevelsInTeam.count(value) == 0) {
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-        }
-
-        // Remove attribute values of -1 (unknown/not set) and then determine attribute scores
-        attributeLevelsInTeam.erase(-1);
-
-        //calculating score from homogeneity/heterogeneity
-        if((criterion->weight > 0) && (!attributeLevelsInTeam.empty())) {
-            if(thisIsTimezone) {
-                // "attribute" is timezone, so use range of timezone values
-                _criteriaScores[team] = (*timezoneLevelsInTeam.crbegin() - *timezoneLevelsInTeam.cbegin()) / totRangeAttributeLevels;
-            }
-            else if((_dataOptions->attributeType[attribute] == DataOptions::AttributeType::ordered) ||
-                    (_dataOptions->attributeType[attribute] == DataOptions::AttributeType::multiordered)) {
-                // attribute has meaningful ordering/numerical values--diverse range means mostly
-                // max. spread between max and min values BUT ALSO, to a lesser extent, the number of unique values
-                const int rangeOfVals = *attributeLevelsInTeam.crbegin() - *attributeLevelsInTeam.cbegin();  // crbegin is last = largest val; cbegin is 1st = smallest
-                int numUniqueVals = 0;
-                int prevVal = -1;
-                for(const auto currVal : attributeLevelsInTeam) {
-                    if(currVal != prevVal) {
-                        numUniqueVals++;
-                    }
-                    prevVal = currVal;
-                }
-                _criteriaScores[team] = (0.75 * rangeOfVals / totRangeAttributeLevels) + (0.25 * (numUniqueVals - 1) / (totNumAttributeLevels - 1));
-            }
-            else {
-                // attribute is categorical or multicategorical--diverse range means maximum number of unique values
-                int numUniqueVals = 0;
-                int prevVal = -1;
-                for(const auto currVal : attributeLevelsInTeam) {
-                    if(currVal != prevVal) {
-                        numUniqueVals++;
-                    }
-                    prevVal = currVal;
-                }
-                _criteriaScores[team] = (numUniqueVals - 1.0f) / (totNumAttributeLevels - 1.0f);
-            }
-
-            //Calculation assumes diverse (i.e., 0 if team is fully similar and +1 if fully diverse); flip it if want similar
-            if(_teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::similar) {
-                _criteriaScores[team] = 1 - _criteriaScores[team];
-            }
-            else if(_teamingOptions->attributeDiversity[attribute] == Criterion::AttributeDiversity::ignored) {
-                _criteriaScores[team] = 0;
-            }
-        }
-    }
-}
-
-
-void gruepr::getScheduleScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                              const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, ScheduleCriterion *criterion,
-                              std::vector<float> &_criteriaScores, std::vector<std::vector<bool>> &_availabilityChart, std::vector<int> &_penaltyPoints)
-{
-    const int numDays = int(_dataOptions->dayNames.size());
-    const int numTimes = int(_dataOptions->timeNames.size());
-    const int numBlocksNeeded = _teamingOptions->realMeetingBlockSize;
-
-    // combine each student's schedule array into a team schedule array
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-        if(_teamSizes[team] == 1) {
-            studentNum++;
-            continue;
-        }
-
-        // start compiling a team availability chart; begin with that of the first student on team (unless they have ambiguous schedule)
-        int numStudentsWithAmbiguousSchedules = 0;
-        const auto &firstStudentOnTeam = _students[_teammates[studentNum]];
-        if(!firstStudentOnTeam.ambiguousSchedule) {
-            const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
-            for(int day = 0; day < numDays; day++) {
-                const auto &firstStudentUnavailabilityThisDay = firstStudentUnavailability[day];
-                auto &_availabilityChartThisDay = _availabilityChart[day];
-                for(int time = 0; time < numTimes; time++) {
-                    _availabilityChartThisDay[time] = !firstStudentUnavailabilityThisDay[time];
-                }
-            }
-        }
-        else {
-            // ambiguous schedule, so note it and start with all timeslots available
-            numStudentsWithAmbiguousSchedules++;
-            for(int day = 0; day < numDays; day++) {
-                auto &_availabilityChartThisDay = _availabilityChart[day];
-                for(int time = 0; time < numTimes; time++) {
-                    _availabilityChartThisDay[time] = true;
-                }
-            }
-        }
-        studentNum++;
-
-        // now move on to each subsequent student and, unless they have ambiguous schedule, merge their availability into the team's
-        for(int teammate = 1; teammate < _teamSizes[team]; teammate++) {
-            const auto &currStudent = _students[_teammates[studentNum]];
-            if(currStudent.ambiguousSchedule) {
-                numStudentsWithAmbiguousSchedules++;
-                studentNum++;
-                continue;
-            }
-            const auto &currStudentUnavailability = currStudent.unavailable;
-            for(int day = 0; day < numDays; day++) {
-                const auto &currStudentUnavailabilityThisDay = currStudentUnavailability[day];
-                auto &_availabilityChartThisDay = _availabilityChart[day];
-                for(int time = 0; time < numTimes; time++) {
-                    // "and" each student's not-unavailability
-                    _availabilityChartThisDay[time] = _availabilityChartThisDay[time] && !currStudentUnavailabilityThisDay[time];
-                }
-            }
-            studentNum++;
-        }
-
-        // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
-        if((_teamSizes[team] - numStudentsWithAmbiguousSchedules) < 2) {
-            _criteriaScores[team] = 0;
-            continue;
-        }
-
-        //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
-        for(int day = 0; day < numDays; day++) {
-            const auto &_availabilityChartThisDay = _availabilityChart[day];
-            for(int time = 0; time < numTimes; time++) {
-                int block = 0;
-                while((_availabilityChartThisDay[time]) && (block < numBlocksNeeded) && (time < numTimes)) {
-                    block++;
-                    if(block < numBlocksNeeded) {
-                        time++;
-                    }
-                }
-
-                if((block == numBlocksNeeded) && (block > 0)){
-                    _criteriaScores[team]++;
-                }
-            }
-        }
-
-        // convert counts to a schedule score
-        // normal schedule score is number of overlaps / desired number of overlaps
-        if(_criteriaScores[team] > _teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, each added overlap counts less
-            const int numAdditionalOverlaps = int(_criteriaScores[team]) - _teamingOptions->desiredTimeBlocksOverlap;
-            _criteriaScores[team] = _teamingOptions->desiredTimeBlocksOverlap;
-            float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-            for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
-                _criteriaScores[team] += factor;
-                factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
-            }
-        }
-        else if(_criteriaScores[team] < _teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
-            _criteriaScores[team] = 0;
-            _penaltyPoints[team]++;
-        }
-        _criteriaScores[team] /= _teamingOptions->desiredTimeBlocksOverlap;
-        _criteriaScores[team] *= criterion->weight;
-    }
-}
-
-void gruepr::getGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                            const TeamingOptions *const _teamingOptions, GenderCriterion *criterion,
-                            std::vector<float> &_criteriaScores, std::vector<int> &_penaltyPoints)
-{
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-        _criteriaScores[team] = 0;  // was (1 * criterion->weight), but for now no positive "score", just penalties related to gender
-
-        if(_teamSizes[team] == 1) {
-            studentNum++;
-            continue;
-        }
-
-        // Count how many of each gender on the team
-        int numWomen = 0;
-        int numMen = 0;
-        int numNonbinary = 0;
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            if(_students[_teammates[studentNum]].gender.contains(Gender::man)) {
-                numMen++;
-            }
-            else if(_students[_teammates[studentNum]].gender.contains(Gender::woman)) {
-                numWomen++;
-            }
-            else if(_students[_teammates[studentNum]].gender.contains(Gender::nonbinary)) {
-                numNonbinary++;
-            }
-            studentNum++;
-        }
-
-        if(!_teamingOptions->genderIdentityRules.value(Gender::woman).value("!=").isEmpty()) {
-            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules.value(Gender::woman).value("!=");
-            for (const int unallowed_value : std::as_const(unallowed_values)) {
-                if (numWomen == unallowed_value){
-                    if (criterion->penaltyStatus){
-                        _penaltyPoints[team]++;
-                    }
-                    break;
-                }
-            }
-        }
-
-        if(!_teamingOptions->genderIdentityRules.value(Gender::man).value("!=").isEmpty()) {
-            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules.value(Gender::man).value("!=");
-            for (const int unallowed_value : std::as_const(unallowed_values)) {
-                if (numMen == unallowed_value){
-                    if (criterion->penaltyStatus){
-                        _penaltyPoints[team]++;
-                    }
-                    break;
-                }
-            }
-        }
-
-        if(!_teamingOptions->genderIdentityRules.value(Gender::nonbinary).value("!=").isEmpty()) {
-            const QList<int> &unallowed_values = _teamingOptions->genderIdentityRules.value(Gender::nonbinary).value("!=");
-            for (const int unallowed_value : std::as_const(unallowed_values)) {
-                if (numNonbinary == unallowed_value){
-                    if (criterion->penaltyStatus){
-                        _penaltyPoints[team]++;
-                    }
-                    break;
-                }
-            }
-        }
-
-        if(_teamingOptions->singleGenderPrevented && (numMen == 0 || numWomen == 0)) {
-            if (criterion->penaltyStatus){
-                _penaltyPoints[team]++;
-            }
-        }
-    }
-}
-
-void gruepr::getURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                         const TeamingOptions *const _teamingOptions, URMIdentityCriterion *criterion,
-                         std::vector<float> &_criteriaScores, std::vector<int> &_penaltyPoints)
-{
-    if(!_teamingOptions->isolatedURMPrevented) {
-        return;
-    }
-
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-         //for now no positive "score", just penalties related to URM isolation
-        _criteriaScores[team] = criterion->weight;
-        if(_teamSizes[team] == 1) {
-            studentNum++;
-            continue;
-        }
-
-        // Count how many URM students on the team
-        int numURM = 0;
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            if(_students[_teammates[studentNum]].URM) {
-                numURM++;
-            }
-            studentNum++;
-        }
-
-        if(numURM == 1) {
-            _penaltyPoints[team]++;
-        }
-/*
-        // Count how many URM on the team
-        QMap <QString, int> urmToCount;
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            if (urmToCount.contains(_students[_teammates[studentNum]].URMResponse)){
-                urmToCount[_students[_teammates[studentNum]].URMResponse] += 1;
-            } else {
-                urmToCount[_students[_teammates[studentNum]].URMResponse] = 1;
-            }
-            studentNum++;
-        }
-
-        const QList<int> &unallowed_values = _teamingOptions->urmIdentityRules[criterion->urmName]["!="];
-        for (int unallowed_value : unallowed_values) {
-            if (urmToCount[criterion->urmName] == unallowed_value) {
-                if (criterion->penaltyStatus){
-                    _penaltyPoints[team]++;
-                }
-                break;
-            }
-        }
-*/
-    }
-}
-
-
-void gruepr::getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                        const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                        std::vector<float> &_criteriaScores, std::vector<int> &_penaltyPoints)
-{
-    std::set<long long> IDsBeingTeamed, IDsOnTeam;
-    std::multiset<long long> preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
-
-    // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            IDsBeingTeamed.insert(_students[_teammates[studentNum]].ID);
-            studentNum++;
-        }
-    }
-
-    // Loop through each team
-    studentNum = 0;
-    const StudentRecord *currStudent = nullptr;
-    for(int team = 0; team < _numTeams; team++) {
-        IDsOnTeam.clear();
-        preventedIDsOnTeam.clear();
-        //loop through each student on team and collect their ID and their required/prevented/requested IDs
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            currStudent = &_students[_teammates[studentNum]];
-            IDsOnTeam.insert(currStudent->ID);
-            for(const auto ID : IDsBeingTeamed) {
-                if(currStudent->preventedWith.contains(ID)) {
-                    preventedIDsOnTeam.insert(ID);
-                }
-            }
-            studentNum++;
-        }
-
-        _criteriaScores[team] = 1;
-
-        if(_teamingOptions->haveAnyPreventedTeammates) {
-            //loop through all the prevented IDs to see if each is missing on the team--if not, increment penalty
-            for(const auto preventedIDOnTeam : preventedIDsOnTeam) {
-                if(IDsOnTeam.count(preventedIDOnTeam) != 0) {
-                    _criteriaScores[team] = 0;
-                    if (criterion->penaltyStatus){
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-        }
-        _criteriaScores[team] *= criterion->weight;
-    }
-}
-
-void gruepr::getGradeBalanceScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                  const TeamingOptions *const _teamingOptions, GradeBalanceCriterion *criterion,
-                                  std::vector<float> &_criteriaScores, std::vector<int> &_penaltyPoints){
-    // optimize based on _teamingOptions->maximumDeviationOfGroupGradeAverage;
-
-    // calculate group average grade. if absolute (overallmeangrade - currentgroupaveragegrade) > standarddeviationallowed, this group has a lower score
-
-    int studentNum = 0;
-    float overallMeanGrade = 0.0;
-    QList<float> meanGroupGrades(_numTeams);
-    //calculate grade average of each team
-    for(int team = 0; team < _numTeams; team++) {
-        float totalGroupGrade = 0.0;
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            totalGroupGrade += _students[_teammates[studentNum]].grade;
-            studentNum++;
-        }
-        meanGroupGrades[team] = totalGroupGrade / _teamSizes[team];
-        overallMeanGrade += meanGroupGrades[team];
-    }
-    overallMeanGrade = overallMeanGrade / _numTeams;
-
-    //get overall mean grade
-    for(int team = 0; team < _numTeams; team++){
-        if (meanGroupGrades[team] > _teamingOptions->targetMaximumGroupGradeAverage || meanGroupGrades[team] < _teamingOptions->targetMinimumGroupGradeAverage){
-            _criteriaScores[team] = 0;
-        } else {
-            _criteriaScores[team] = 1;
-        }
-        _criteriaScores[team] *= criterion->weight;
-    }
-}
-
-void gruepr::getRequiredTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                       const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                       std::vector<float> &_criteriaScores, std::vector<int> &_penaltyPoints)
-{
-    std::set<long long> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
-    std::multiset<long long> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
-    std::vector< std::set<long long> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
-
-    // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            IDsBeingTeamed.insert(_students[_teammates[studentNum]].ID);
-            studentNum++;
-        }
-    }
-
-    // Loop through each team
-    studentNum = 0;
-    const StudentRecord *currStudent = nullptr;
-    for(int team = 0; team < _numTeams; team++) {
-        IDsOnTeam.clear();
-        requiredIDsOnTeam.clear();
-        preventedIDsOnTeam.clear();
-        requestedIDs.clear();
-        //loop through each student on team and collect their ID and their required/prevented/requested IDs
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            currStudent = &_students[_teammates[studentNum]];
-            IDsOnTeam.insert(currStudent->ID);
-            requestedIDsByStudent.clear();
-            for(const auto ID : IDsBeingTeamed) {
-                if(currStudent->requiredWith.contains(ID)) {
-                    requiredIDsOnTeam.insert(ID);
-                }
-                if(currStudent->preventedWith.contains(ID)) {
-                    preventedIDsOnTeam.insert(ID);
-                }
-                if(currStudent->requestedWith.contains(ID)) {
-                    requestedIDsByStudent.insert(ID);
-                }
-            }
-            requestedIDs.push_back(requestedIDsByStudent);
-            studentNum++;
-        }
-
-        _criteriaScores[team] = 1;
-
-        if(_teamingOptions->haveAnyRequiredTeammates) {
-            //loop through all the required IDs to see if each is present on the team--if not, increment penalty
-            for(const auto requiredIDOnTeam : requiredIDsOnTeam) {
-                if(IDsOnTeam.count(requiredIDOnTeam) == 0) {
-                    _criteriaScores[team] = 0;
-                    if (criterion->penaltyStatus){
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-        }
-        _criteriaScores[team] *= criterion->weight;
-    }
-}
-
-void gruepr::getRequestedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                        const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                        std::vector<float> &_criteriaScores, std::vector<int> &_penaltyPoints)
-{
-    std::set<long long> IDsBeingTeamed, IDsOnTeam, requestedIDsByStudent;
-    std::multiset<long long> requiredIDsOnTeam, preventedIDsOnTeam;   //multiset so that penalties are in proportion to number of missed requirements
-    std::vector< std::set<long long> > requestedIDs;  // each set is the requests of one student; vector is all the students on the team
-
-    // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
-    int studentNum = 0;
-    for(int team = 0; team < _numTeams; team++) {
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            IDsBeingTeamed.insert(_students[_teammates[studentNum]].ID);
-            studentNum++;
-        }
-    }
-
-    // Loop through each team
-    studentNum = 0;
-    const StudentRecord *currStudent = nullptr;
-    for(int team = 0; team < _numTeams; team++) {
-        IDsOnTeam.clear();
-        requiredIDsOnTeam.clear();
-        preventedIDsOnTeam.clear();
-        requestedIDs.clear();
-        //loop through each student on team and collect their ID and their required/prevented/requested IDs
-        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
-            currStudent = &_students[_teammates[studentNum]];
-            IDsOnTeam.insert(currStudent->ID);
-            requestedIDsByStudent.clear();
-            for(const auto ID : IDsBeingTeamed) {
-                if(currStudent->requiredWith.contains(ID)) {
-                    requiredIDsOnTeam.insert(ID);
-                }
-                if(currStudent->preventedWith.contains(ID)) {
-                    preventedIDsOnTeam.insert(ID);
-                }
-                if(currStudent->requestedWith.contains(ID)) {
-                    requestedIDsByStudent.insert(ID);
-                }
-            }
-            requestedIDs.push_back(requestedIDsByStudent);
-            studentNum++;
-        }
-
-        _criteriaScores[team] = 1;
-
-        if(_teamingOptions->haveAnyRequestedTeammates) {
-            for(const auto &requestedIDSet : requestedIDs) {
-                int numRequestedTeammates = 0, numRequestedTeammatesFound = 0;
-                for(const auto requestedIDOnTeam : requestedIDSet) {
-                    numRequestedTeammates++;
-                    if(IDsOnTeam.count(requestedIDOnTeam) != 0) {
-                        numRequestedTeammatesFound++;
-                    }
-                }
-                //apply penalty if student has unfulfilled requests that exceed the number allowed
-                if(numRequestedTeammatesFound < std::min(numRequestedTeammates, _teamingOptions->numberRequestedTeammatesGiven)) {
-                    _criteriaScores[team] = 0;
-                    if (criterion->penaltyStatus){
-                        _penaltyPoints[team]++;
-                    }
-                }
-            }
-        }
-        _criteriaScores[team] *= criterion->weight;
-    }
 }
 
 

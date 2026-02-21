@@ -5,7 +5,7 @@
 #include <QComboBox>
 #include <QPushButton>
 
-void SectionCriterion::generateCriteriaCard(TeamingOptions *const teamingOptions)
+void SectionCriterion::generateCriteriaCard(TeamingOptions *const /*teamingOptions*/)
 {
     parentCard->setStyleSheet(QString(BLUEFRAME) + LABEL10PTSTYLE + CHECKBOXSTYLE + COMBOBOXSTYLE + SPINBOXSTYLE + DOUBLESPINBOXSTYLE + SMALLBUTTONSTYLETRANSPARENT);
 

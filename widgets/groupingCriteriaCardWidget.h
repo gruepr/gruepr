@@ -35,11 +35,9 @@
 #include <QtUiPlugin/customwidget.h>
 #include <QWidget>
 
-
 class GroupingCriteriaCard : public QFrame, public QDesignerCustomWidgetInterface {
     Q_OBJECT
     Q_INTERFACES(QDesignerCustomWidgetInterface)
-    //Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSection")
 
 public:
     explicit GroupingCriteriaCard(Criterion::CriteriaType criterionType, const DataOptions *const dataOptions,
@@ -79,6 +77,7 @@ public:
     void setPriorityOrder(int priorityOrder);
     Criterion::Precedence getPrecedence() const;
     void setPrecedence(Criterion::Precedence precedence);
+    void stopDragTimer();
 
 signals:
     void criteriaCardMoved(QPoint point);
@@ -101,6 +100,7 @@ private:
     QHBoxLayout *toggleLayout = nullptr;
     QPushButton *dragHandleButton = nullptr;
     QPushButton *lockButton = nullptr;
+    QWidget *m_dragPlaceholder = nullptr;
     QParallelAnimationGroup *toggleAnimation = nullptr;
     QSplitter *parentSplitter = nullptr;
     void refreshParentLayout();

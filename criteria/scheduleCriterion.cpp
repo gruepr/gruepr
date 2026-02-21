@@ -88,3 +88,112 @@ void ScheduleCriterion::generateCriteriaCard(TeamingOptions *const teamingOption
         }
     });
 }
+
+void ScheduleCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
+                              const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                              std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+{
+    const int numDays = int(dataOptions->dayNames.size());
+    const int numTimes = int(dataOptions->timeNames.size());
+    const int numBlocksNeeded = teamingOptions->realMeetingBlockSize;
+
+    // Allocated once per thread; subsequent calls just reuse the memory.
+    // Using vector<uint8_t> rather than vector<bool> to avoid bit-packing overhead.
+    thread_local std::vector<uint8_t> availabilityChart;
+    const int chartSize = numDays * numTimes;
+    if (int(availabilityChart.size()) < chartSize) {
+        availabilityChart.resize(chartSize);
+    }
+
+    // combine each student's schedule array into a team schedule array
+    int studentNum = 0;
+    for(int team = 0; team < numTeams; team++) {
+        if(teamSizes[team] == 1) {
+            studentNum++;
+            continue;
+        }
+
+        // start compiling a team availability chart; begin with that of the first student on team (unless they have ambiguous schedule)
+        int numStudentsWithAmbiguousSchedules = 0;
+        const auto &firstStudentOnTeam = students[teammates[studentNum]];
+        if(!firstStudentOnTeam.ambiguousSchedule) {
+            const auto &firstStudentUnavailability = firstStudentOnTeam.unavailable;
+            for(int day = 0; day < numDays; day++) {
+                const auto &firstStudentUnavailabilityThisDay = firstStudentUnavailability[day];
+                for(int time = 0; time < numTimes; time++) {
+                    availabilityChart[day * numTimes + time] = !firstStudentUnavailabilityThisDay[time];
+                }
+            }
+        }
+        else {
+            // ambiguous schedule, so note it and start with all timeslots available
+            numStudentsWithAmbiguousSchedules++;
+            for(int day = 0; day < numDays; day++) {
+                for(int time = 0; time < numTimes; time++) {
+                    availabilityChart[day * numTimes + time] = true;
+                }
+            }
+        }
+        studentNum++;
+
+        // now move on to each subsequent student and, unless they have ambiguous schedule, merge their availability into the team's
+        for(int teammate = 1; teammate < teamSizes[team]; teammate++) {
+            const auto &currStudent = students[teammates[studentNum]];
+            if(currStudent.ambiguousSchedule) {
+                numStudentsWithAmbiguousSchedules++;
+                studentNum++;
+                continue;
+            }
+            const auto &currStudentUnavailability = currStudent.unavailable;
+            for(int day = 0; day < numDays; day++) {
+                const auto &currStudentUnavailabilityThisDay = currStudentUnavailability[day];
+                for(int time = 0; time < numTimes; time++) {
+                    // "and" each student's not-unavailability
+                    availabilityChart[day * numTimes + time] = availabilityChart[day * numTimes + time] && !currStudentUnavailabilityThisDay[time];
+                }
+            }
+            studentNum++;
+        }
+
+        // keep schedule score at 0 unless 2+ students have unambiguous sched (avoid runaway score by grouping students w/ambiguous scheds)
+        if((teamSizes[team] - numStudentsWithAmbiguousSchedules) < 2) {
+            criteriaScores[team] = 0;
+            continue;
+        }
+
+        //count when there's the correct number of consecutive time blocks, but don't count wrap-around past end of 1 day!
+        for(int day = 0; day < numDays; day++) {
+            for(int time = 0; time < numTimes; time++) {
+                int block = 0;
+                while(availabilityChart[day * numTimes + time] && (block < numBlocksNeeded) && (time < numTimes)) {
+                    block++;
+                    if(block < numBlocksNeeded) {
+                        time++;
+                    }
+                }
+
+                if((block == numBlocksNeeded) && (block > 0)){
+                    criteriaScores[team]++;
+                }
+            }
+        }
+
+        // convert counts to a schedule score
+        // normal schedule score is number of overlaps / desired number of overlaps
+        if(criteriaScores[team] > teamingOptions->desiredTimeBlocksOverlap) {     // if team has > desiredTimeBlocksOverlap, each added overlap counts less
+            const int numAdditionalOverlaps = int(criteriaScores[team]) - teamingOptions->desiredTimeBlocksOverlap;
+            criteriaScores[team] = teamingOptions->desiredTimeBlocksOverlap;
+            float factor = 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+            for(int n = 1 ; n <= numAdditionalOverlaps; n++) {
+                criteriaScores[team] += factor;
+                factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
+            }
+        }
+        else if(criteriaScores[team] < teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
+            criteriaScores[team] = 0;
+            penaltyPoints[team]++;
+        }
+        criteriaScores[team] /= teamingOptions->desiredTimeBlocksOverlap;
+        criteriaScores[team] *= weight;
+    }
+}

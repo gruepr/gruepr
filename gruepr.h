@@ -7,12 +7,7 @@
 #include "studentRecord.h"
 #include "teamRecord.h"
 #include "teamingOptions.h"
-#include "criteria/genderCriterion.h"
-#include "criteria/gradeBalanceCriterion.h"
 #include "criteria/attributeCriterion.h"
-#include "criteria/scheduleCriterion.h"
-#include "criteria/URMIdentityCriterion.h"
-#include "criteria/teammatesCriterion.h"
 #include "dialogs/progressDialog.h"
 #include "widgets/boxwhiskerplot.h"
 #include "widgets/groupingCriteriaCardWidget.h"
@@ -21,6 +16,7 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QPrinter>
+#include <QSpinBox>
 
 
 namespace Ui {class gruepr;}
@@ -42,6 +38,10 @@ public:
 
     static void calcTeamScores(const QList<StudentRecord> &_students, const long long _numStudents,
                                TeamSet &_teams, const TeamingOptions *const _teamingOptions);
+    QStringList getTeamTabNames() const;
+
+    QList<StudentRecord> students;
+    DataOptions *dataOptions = nullptr;
 
     inline static const int MAINWINDOWPADDING = 20;            // pixels of padding in buttons and above status message
     inline static const int MAINWINDOWFONT = 8;                // increase in font size for main window text
@@ -53,6 +53,16 @@ signals:
                             const int generation, const float scoreStability, const bool unpenalizedGenomePresent);
     void sectionOptimizationFullyComplete();
     void turnOffBusyCursor();
+
+public slots:
+    void moveCriteriaCard(int draggedIndex, int targetIndex);
+    void showDropIndicator(int targetIndex);
+    void showBottomDropZone();
+    void hideDropIndicator();
+    void deleteCriteriaCard(int deletedIndex);
+    void doAutoScroll(QPoint point);
+    void refreshCriteriaLayout();
+    void saveState();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -75,19 +85,11 @@ private slots:
     void optimizationComplete();
     void dataDisplayTabClose(int closingTabIndex);
     void editDataDisplayTabName(int tabIndex);
-    void saveState();
-
-    void moveCriteriaCard(int draggedIndex, int targetIndex);
-    void showDropIndicator(int targetIndex);
-    void hideDropIndicator();
-    void deleteCriteriaCard(int deletedIndex);
-    void doAutoScroll(QPoint point);
 
 private:
         // setup
     Ui::gruepr *ui;
     void loadUI();
-    DataOptions *dataOptions = nullptr;
     TeamingOptions *teamingOptions = nullptr;
     int numTeams = 1;
     inline void setTeamSizes(const QList<int> &teamSizes);
@@ -96,7 +98,6 @@ private:
 
         // reading survey data
     long long numActiveStudents = MAX_STUDENTS;
-    QList<StudentRecord> students;
     inline StudentRecord* findStudentFromID(const long long ID);
     bool loadRosterData(CsvFile &rosterFile, QStringList &names, QStringList &emails);   // returns false if file is invalid; checks names and emails against roster
     void refreshStudentDisplay();
@@ -114,32 +115,8 @@ private:
     GA ga;                                                        // class for genetic algorithm optimization
     static float getGenomeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
                                 const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, float _teamScores[],
-                                std::vector<std::vector<float>> &_criteriaScores, std::vector<std::vector<bool>> &_availabilityChart, std::vector<int> &_penaltyPoints);
-    inline static void getAttributeScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                         const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, AttributeCriterion *criterion,
-                                         std::vector<float> &_criterionScore, const int attribute, std::multiset<int> &attributeLevelsInTeam,
-                                         std::multiset<float> &timezoneLevelsInTeam, std::vector<int> &_penaltyPoints);
-    inline static void getScheduleScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                        const TeamingOptions *const _teamingOptions, const DataOptions *const _dataOptions, ScheduleCriterion *criterion,
-                                        std::vector<float> &_criterionScore, std::vector<std::vector<bool>> &_availabilityChart, std::vector<int> &_penaltyPoints);
-    inline static void getGenderScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                      const TeamingOptions *const _teamingOptions, GenderCriterion *criterion,
-                                      std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
-    inline static void getURMScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                   const TeamingOptions *const _teamingOptions, URMIdentityCriterion *criterion,
-                                   std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
-    inline static void getPreventedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                  const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                                  std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
-    inline static void getRequiredTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                 const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                                 std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
-    inline static void getRequestedTeammatesScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                 const TeamingOptions *const _teamingOptions, TeammatesCriterion *criterion,
-                                                  std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
-    inline static void getGradeBalanceScore(const StudentRecord *const _students, const int _teammates[], const int _numTeams, const int _teamSizes[],
-                                                  const TeamingOptions *const _teamingOptions, GradeBalanceCriterion *criterion,
-                                                  std::vector<float> &_criterionScore, std::vector<int> &_penaltyPoints);
+                                std::vector<std::vector<float>> &_criteriaScores, std::vector<int> &_penaltyPoints);
+
     float teamSetScore = 0;
     int finalGeneration = 1;
     QMutex optimizationStoppedmutex;
@@ -161,6 +138,8 @@ private:
         QComboBox *sectionSelectionBox = nullptr;
     GroupingCriteriaCard *genderIdentityCriteriaCard = nullptr;
     GroupingCriteriaCard *meetingScheduleCriteriaCard = nullptr;
+    GroupingCriteriaCard *urmIdentityCard = nullptr;
+    GroupingCriteriaCard *gradeBalanceCriteriaCard = nullptr;
     QList<Criterion::CriteriaType> teammateRulesExistence;
     QList<GroupingCriteriaCard*> initializedAttributeCriteriaCards;
     QList<AttributeWidget*> attributeWidgets;
@@ -179,17 +158,8 @@ private:
     void addCriteriaCard(Criterion::CriteriaType criteriaType);
     void addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute);
     void initializeCriteriaCardPriorities();
-    void refreshCriteriaLayout();
     QFrame *m_dropIndicator = nullptr;
     QWidget *m_bottomDropZone = nullptr;
-
-        //Single: URM Identity Card
-    GroupingCriteriaCard *urmIdentityCard = nullptr;
-
-        //Single: Grade Balance Criteria Card
-    GroupingCriteriaCard *gradeBalanceCriteriaCard = nullptr;
-    QDoubleSpinBox *minimumMeanGradeSpinBox = nullptr;
-    QDoubleSpinBox *maximumMeanGradeSpinBox = nullptr;
 };
 
 #endif // GRUEPR_H

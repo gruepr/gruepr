@@ -739,7 +739,7 @@ inline static const char GRUEPRDOWNLOADPAGE[] {"https://www." GRUEPRHOMEPAGE "/#
 
 inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                                "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
-                                               "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>, Giovanni Assad, Nikhen Nyo"
+                                               "<br>Joshua Hertz, Giovanni Assad, Nikhen Nyo<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
                                                "<p>gruepr is an open source project. The source code is freely available at "
                                                "the project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
                                                "<br><br>gruepr incorporates:"
@@ -767,7 +767,7 @@ inline static const char ABOUTWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone
 
 inline static const char HELPWINDOWCONTENT[] {"<h1 style=\"font-family:'Paytone One';\">gruepr</h1>"
                                               "<p>v" GRUEPR_VERSION_NUMBER " &copy; " GRUEPR_COPYRIGHT_YEAR
-                                              "<br>Joshua Hertz<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>, Giovanni Assad, Nikhen Nyo"
+                                              "<br>Joshua Hertz, Giovanni Assad, Nikhen Nyo<br><a href=\"mailto:" GRUEPRHELPEMAIL "\">" GRUEPRHELPEMAIL "</a>"
                                               "<p>Project homepage: <a href=\"https://" GRUEPRHOMEPAGE "\">" GRUEPRHOMEPAGE "</a>"
                                               "<p>&nbsp; &nbsp;gruepr is a program for splitting a section of 4-1000 students into optimized teams. It was originally based on "
                                                  "CATME's team forming routine as described in "

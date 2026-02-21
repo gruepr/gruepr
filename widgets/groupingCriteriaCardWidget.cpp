@@ -19,6 +19,7 @@
 */
 
 #include "groupingCriteriaCardWidget.h"
+#include "gruepr.h"
 #include "criteria/attributeCriterion.h"
 #include "criteria/genderCriterion.h"
 #include "criteria/gradeBalanceCriterion.h"
@@ -79,7 +80,7 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         criterion = new TeammatesCriterion(criterionType, 0, true, this);
         break;
     case Criterion::CriteriaType::gradeBalance:
-        criterion = new GradeBalanceCriterion(criterionType, 0, false, this);
+        criterion = new GradeBalanceCriterion(dataOptions, criterionType, 0, false, this);
         break;
     }
 
@@ -184,28 +185,23 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         });
     });
 
-    const QString priorityOrder = QString::number(this->priorityOrder);
     priorityOrderLabel = new QLabel;
-    QString labelText;
+    priorityOrderLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    priorityOrderLabel->setStyleSheet("border: none");
     switch(criterion->precedence) {
         case Criterion::Precedence::fixed:
-            labelText = "";
+            priorityOrderLabel->setText("");
             priorityOrderLabel->setFixedWidth(5);
         break;
         case Criterion::Precedence::need:
-            labelText = "# " + priorityOrder + " - " + tr("Need");
-            priorityOrderLabel->setFixedWidth(75);
-            priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+            priorityOrderLabel->setText(tr("Requirement"));// "# " + priorityOrder + " - " + tr("Need");
+            priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
         break;
         case Criterion::Precedence::want:
-            labelText = "# " + priorityOrder + " - " + tr("Want");
+            priorityOrderLabel->setText(tr("Preference") + " # " + QString::number(this->priorityOrder)); // + " - " + tr("Want");
             priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
-            priorityOrderLabel->setFixedWidth(75);
         break;
     }
-    priorityOrderLabel->setText(labelText);
-    priorityOrderLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-    priorityOrderLabel->setStyleSheet("border: none");
 
     headerRowLayout = new QHBoxLayout();
     auto *contentRowLayout = new QHBoxLayout();
@@ -259,6 +255,16 @@ GroupingCriteriaCard::GroupingCriteriaCard(Criterion::CriteriaType criterionType
         if(teamingOptions != nullptr) {
             criterion->generateCriteriaCard(teamingOptions);
         }
+    }
+
+    if (auto *grueprParent = qobject_cast<gruepr*>(parent)) {
+        connect(this, &GroupingCriteriaCard::criteriaCardMoveRequested, grueprParent, &gruepr::moveCriteriaCard);
+        connect(this, &GroupingCriteriaCard::dragStarting, grueprParent, &gruepr::showBottomDropZone);
+        connect(this, &GroupingCriteriaCard::dragEnteredCard, grueprParent, &gruepr::showDropIndicator);
+        connect(this, &GroupingCriteriaCard::dragFinished, grueprParent, &gruepr::hideDropIndicator);
+        connect(this, &GroupingCriteriaCard::criteriaCardMoved, grueprParent, &gruepr::doAutoScroll);
+        connect(this, &GroupingCriteriaCard::deleteCardRequested, grueprParent, &gruepr::deleteCriteriaCard);
+        connect(this, &GroupingCriteriaCard::includePenaltyStateChanged, grueprParent, &gruepr::refreshCriteriaLayout);
     }
 }
 
@@ -373,7 +379,7 @@ void GroupingCriteriaCard::setContentAreaLayout(QLayout &contentLayout)
 // Drag and Drop Methods
 
 void GroupingCriteriaCard::dragStarted() {
-    setCursor(Qt::ClosedHandCursor);
+    QApplication::setOverrideCursor(Qt::ClosedHandCursor);
     auto *drag = new QDrag(this);
     auto *mimeData = new QMimeData;
     mimeData->setText(QString::number(reinterpret_cast<quintptr>(this)));
@@ -394,9 +400,27 @@ void GroupingCriteriaCard::dragStarted() {
     const QPoint hotSpot = QPoint(10, 10);
     drag->setHotSpot(hotSpot);
 
+    // Insert a placeholder where this card is, then hide the card
+    auto *parentLayout = qobject_cast<QVBoxLayout*>(parentWidget()->layout());
+    if (parentLayout != nullptr) {
+        const int layoutIndex = parentLayout->indexOf(this);
+        m_dragPlaceholder = new QWidget(parentWidget());
+        m_dragPlaceholder->setFixedHeight(height());
+        m_dragPlaceholder->setStyleSheet("background-color: rgba(0, 0, 0, 0.05); border: 2px dashed rgba(0, 0, 0, 0.15); border-radius: 4px;");
+        parentLayout->insertWidget(layoutIndex, m_dragPlaceholder);
+    }
+
     this->hide();  // hide card from layout during drag so the gap appears naturally
     emit dragStarting();
     drag->exec(Qt::MoveAction);
+
+    // Remove placeholder
+    if (m_dragPlaceholder != nullptr) {
+        delete m_dragPlaceholder;
+        m_dragPlaceholder = nullptr;
+    }
+
+    QApplication::restoreOverrideCursor();
     this->show();  // restore visibility after drag ends (refreshCriteriaLayout will reposition)
     emit dragFinished();
 }
@@ -466,11 +490,11 @@ void GroupingCriteriaCard::setPriorityOrder(int priorityOrder)
         labelText = "";
         break;
     case Criterion::Precedence::need:
-        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
-        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        labelText = tr("Requirement");// "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
+        priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
         break;
     case Criterion::Precedence::want:
-        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Want");
+        labelText = tr("Preference") + " # " + QString::number(this->priorityOrder+1); // + " - " + tr("Want");
         priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
         break;
     }
@@ -492,14 +516,21 @@ void GroupingCriteriaCard::setPrecedence(Criterion::Precedence precedence)
         labelText = "";
         break;
     case Criterion::Precedence::need:
-        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
-        priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
+        labelText = tr("Requirement");// "# " + QString::number(this->priorityOrder+1) + " - " + tr("Need");
+        priorityOrderLabel->setToolTip("gruepr will optimize for this as a requirement above all preferences");
         break;
     case Criterion::Precedence::want:
-        labelText = "# " + QString::number(this->priorityOrder+1) + " - " + tr("Want");
+        labelText = tr("Preference") + " # " + QString::number(this->priorityOrder+1); // + " - " + tr("Want");
         priorityOrderLabel->setToolTip("Precedence of this criterion when creating teams");
         break;
-    }    headerRowLayout->update();
+    }
+    priorityOrderLabel->setText(labelText);
+    headerRowLayout->update();
+}
+
+void GroupingCriteriaCard::stopDragTimer()
+{
+    m_dragTimer.stop();
 }
 
 // --------------------------------------------------------------------------------

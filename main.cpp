@@ -57,8 +57,9 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
 gruepr.cpp:
-- need to reset teamingoptions when not re-opening prev. gruepr work
 - graphical display of in team tooltip? to show points/penalties
+
+- Teammate rules dialog: clear values button vs. clear all rules button; load from tams tab not working?
 
 */
 //

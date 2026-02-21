@@ -36,7 +36,7 @@ private:
     QWidget *scrollContentWidget = nullptr;
     QVBoxLayout *rulesLayout = nullptr;
 
-    Gender m_identity;
+    Gender genderIdentity;
     QMap<Gender, TeamingOptions::identityRule> identityRules;
     QVBoxLayout *mainLayout = nullptr;
     TeamingOptions *teamingOptions = nullptr;

@@ -12,7 +12,7 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
     setMinimumSize(LG_DLG_SIZE, SM_DLG_SIZE);
     this->teamingOptions = teamingOptions;
     this->dataOptions = dataOptions;
-    m_identity = identity;
+    genderIdentity = identity;
     //number of each identity calculated where?
     setWindowTitle("Edit Identity Rules");
     //initialize labels
@@ -22,9 +22,9 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
     // identityTitleLabel->setAlignment(Qt::AlignCenter);
     // mainLayout->addWidget(identityTitleLabel);
 
-    auto *instructions = new QLabel("<b><u>Identity Rules for: " + grueprGlobal::genderToString(m_identity) +
+    auto *instructions = new QLabel("<b><u>Identity Rules for: " + grueprGlobal::genderToString(genderIdentity) +
                                           "</u></b> <i>Click \"Add New Identity Rule\" to begin. Set " +
-                                          grueprGlobal::genderToString(m_identity) +" != 1 to prevent the identity from being isolated in a team.</i>", this);
+                                          grueprGlobal::genderToString(genderIdentity) +" != 1 to prevent the identity from being isolated in a team.</i>", this);
     instructions->setStyleSheet(QString(INSTRUCTIONSLABELSTYLE));
     instructions->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(instructions);
@@ -113,9 +113,9 @@ IdentityRulesDialog::IdentityRulesDialog(QWidget *parent, const Gender identity,
             msgBox.exec();
         }
         if (!hasDuplicates && !hasPlaceholder) {
-            teamingOptions->genderIdentityRules[m_identity]["!="] = {};
+            teamingOptions->genderIdentityRules[genderIdentity]["!="] = {};
             for (const int num : uniqueNumbersList) {
-                teamingOptions->genderIdentityRules[m_identity]["!="].append(num);
+                teamingOptions->genderIdentityRules[genderIdentity]["!="].append(num);
             }
             this->accept();  // Close the dialog
         }
@@ -156,7 +156,7 @@ void IdentityRulesDialog::addNewIdentityRule() {
         rulesTable->removeRow(row);
     });
 
-    auto *identityItem = new QTableWidgetItem(grueprGlobal::genderToString(m_identity));
+    auto *identityItem = new QTableWidgetItem(grueprGlobal::genderToString(genderIdentity));
     identityItem->setFlags(identityItem->flags() & ~Qt::ItemIsEditable);
 
     auto *operatorItem = new QTableWidgetItem("!=");
@@ -170,16 +170,16 @@ void IdentityRulesDialog::addNewIdentityRule() {
 }
 
 void IdentityRulesDialog::removeIdentityRule(const QString &operatorString, int noOfIdentity) {
-    teamingOptions->genderIdentityRules[m_identity]["!="].removeOne(noOfIdentity);
-    if (teamingOptions->genderIdentityRules[m_identity]["!="].isEmpty()){
-        teamingOptions->genderIdentityRules[m_identity].remove("!=");
+    teamingOptions->genderIdentityRules[genderIdentity]["!="].removeOne(noOfIdentity);
+    if (teamingOptions->genderIdentityRules[genderIdentity]["!="].isEmpty()){
+        teamingOptions->genderIdentityRules[genderIdentity].remove("!=");
     }
 }
 
 void IdentityRulesDialog::populateTable() {
     rulesTable->setRowCount(0);  // Clear table first
-    for (const QString &operatorString : teamingOptions->genderIdentityRules[m_identity].keys()) {
-        const QList<int> &noInRule = teamingOptions->genderIdentityRules[m_identity].value(operatorString);
+    for (const QString &operatorString : teamingOptions->genderIdentityRules[genderIdentity].keys()) {
+        const QList<int> &noInRule = teamingOptions->genderIdentityRules[genderIdentity].value(operatorString);
         for (const int noOfIdentity : noInRule) {
             const int row = rulesTable->rowCount();
             rulesTable->insertRow(row);
@@ -196,7 +196,7 @@ void IdentityRulesDialog::populateTable() {
                 rulesTable->removeRow(row);
             });
 
-            auto *identityItem = new QTableWidgetItem(grueprGlobal::genderToString(m_identity));
+            auto *identityItem = new QTableWidgetItem(grueprGlobal::genderToString(genderIdentity));
             identityItem->setFlags(identityItem->flags() & ~Qt::ItemIsEditable);
 
             auto *operatorItem = new QTableWidgetItem("!=");
@@ -219,11 +219,11 @@ void IdentityRulesDialog::updateDialog(){
     }
 
     //recreate the rulesLayout
-    for (const QString &operatorString : teamingOptions->genderIdentityRules[m_identity].keys()) {
-        QList<int> noInRule = teamingOptions->genderIdentityRules[m_identity].value(operatorString);
+    for (const QString &operatorString : teamingOptions->genderIdentityRules[genderIdentity].keys()) {
+        QList<int> noInRule = teamingOptions->genderIdentityRules[genderIdentity].value(operatorString);
         for (const int noOfIdentity : std::as_const(noInRule)){
 
-            auto *identityLabel = new QLabel("No. " + grueprGlobal::genderToString(m_identity));
+            auto *identityLabel = new QLabel("No. " + grueprGlobal::genderToString(genderIdentity));
             auto *operatorLabel = new QLabel(operatorString, this);
 
             auto *noOfIdentitySpinBox = new QSpinBox(this);
@@ -238,9 +238,9 @@ void IdentityRulesDialog::updateDialog(){
             auto *removeRuleButton = new QPushButton(this);
             removeRuleButton->setIcon(QIcon(":/icons_new/trashButton.png"));
             connect(removeRuleButton, &QPushButton::clicked, this, [this, operatorString, noOfIdentity]() mutable {
-                teamingOptions->genderIdentityRules[m_identity][operatorString].removeOne(noOfIdentity);
-                if (teamingOptions->genderIdentityRules[m_identity][operatorString].isEmpty()){
-                    teamingOptions->genderIdentityRules[m_identity].remove(operatorString);
+                teamingOptions->genderIdentityRules[genderIdentity][operatorString].removeOne(noOfIdentity);
+                if (teamingOptions->genderIdentityRules[genderIdentity][operatorString].isEmpty()){
+                    teamingOptions->genderIdentityRules[genderIdentity].remove(operatorString);
                 }
                 updateDialog();
             });

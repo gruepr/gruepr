@@ -45,3 +45,57 @@ void URMIdentityCriterion::generateCriteriaCard(TeamingOptions *const teamingOpt
     //     isolatedURM->setChecked(teamingOptions->URMIdentityRules[/*Gender::woman*/]["!="].contains(1));
     // });
 }
+
+void URMIdentityCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
+                                          const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                          std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
+{
+    if(!teamingOptions->isolatedURMPrevented) {
+        return;
+    }
+
+    int studentNum = 0;
+    for(int team = 0; team < numTeams; team++) {
+        //for now no positive "score", just penalties related to URM isolation
+        criteriaScores[team] = weight;
+        if(teamSizes[team] == 1) {
+            studentNum++;
+            continue;
+        }
+
+        // Count how many URM students on the team
+        int numURM = 0;
+        for(int teammate = 0; teammate < teamSizes[team]; teammate++) {
+            if(students[teammates[studentNum]].URM) {
+                numURM++;
+            }
+            studentNum++;
+        }
+
+        if(numURM == 1) {
+            penaltyPoints[team]++;
+        }
+        /*
+        // Count how many URM on the team
+        QMap <QString, int> urmToCount;
+        for(int teammate = 0; teammate < _teamSizes[team]; teammate++) {
+            if (urmToCount.contains(_students[_teammates[studentNum]].URMResponse)){
+                urmToCount[_students[_teammates[studentNum]].URMResponse] += 1;
+            } else {
+                urmToCount[_students[_teammates[studentNum]].URMResponse] = 1;
+            }
+            studentNum++;
+        }
+
+        const QList<int> &unallowed_values = _teamingOptions->urmIdentityRules[criterion->urmName]["!="];
+        for (int unallowed_value : unallowed_values) {
+            if (urmToCount[criterion->urmName] == unallowed_value) {
+                if (criterion->penaltyStatus){
+                    _penaltyPoints[team]++;
+                }
+                break;
+            }
+        }
+*/
+    }
+}
