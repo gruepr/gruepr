@@ -2,6 +2,7 @@
 #define TEAMMATESCRITERION_H
 
 #include "criterion.h"
+#include <QLabel>
 #include <QPushButton>
 
 class TeammatesCriterion : public Criterion {
@@ -16,6 +17,7 @@ public:
                         std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints) override;
 
     QPushButton *setTeammateRulesButton = nullptr;
+    QLabel *pairingCountLabel = nullptr;
 };
 
 #endif // TEAMMATESCRITERION_H

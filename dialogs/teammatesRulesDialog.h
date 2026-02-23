@@ -11,7 +11,7 @@
 #include <QTableWidget>
 
 namespace Ui {
-class TeammatesRulesDialog;
+    class TeammatesRulesDialog;
 }
 
 class TeammatesRulesDialog : public QDialog
@@ -28,55 +28,50 @@ public:
     TeammatesRulesDialog(TeammatesRulesDialog&&) = delete;
     TeammatesRulesDialog& operator= (TeammatesRulesDialog&&) = delete;
 
-    QHBoxLayout *headerLayoutRequiredTeammates = nullptr;
-    QHBoxLayout *headerLayoutPreventedTeammates = nullptr;
-    QHBoxLayout *headerLayoutRequestedTeammates = nullptr;
-    QWidget *headerRequiredTeammates = nullptr;
-    QWidget *headerPreventedTeammates = nullptr;
-    QWidget *headerRequestedTeammates = nullptr;
-    QAbstractButton *topLeftTableHeaderButton = nullptr;
-    int initialWidthStudentHeader;
-
     QList<StudentRecord> students;
-    bool required_teammatesSpecified = false;
-    bool prevented_teammatesSpecified = false;
-    bool requested_teammatesSpecified = false;
+    bool teammatesSpecified = false;
     int numberRequestedTeammatesGiven = 1;
-    QTableWidget* required_tableWidget;
-    QTableWidget* prevented_tableWidget;
-    QTableWidget* requested_tableWidget;
 
-private slots:
-    void clearAllValues();
+    // Header widgets (public so layout can be managed)
+    QHBoxLayout *headerLayout = nullptr;
+    QWidget *headerWidget = nullptr;
+    QAbstractButton *topLeftTableHeaderButton = nullptr;
+    int initialWidthStudentHeader = 0;
+    QTableWidget *tableWidget = nullptr;
 
 private:
     Ui::TeammatesRulesDialog *ui;
-    QPushButton *clearAllValuesButton = nullptr;
+    const TypeOfTeammates m_type;
+    const QString m_typeText;
 
-    bool positiverequestsInSurvey = false;
-    bool negativerequestsInSurvey = false;
+    bool requestsInSurvey = false;
     const int numStudents;
     QString sectionName;
     QStringList teamSets;
 
-    QList <QComboBox *> possibleRequiredTeammates;
-    QList <QComboBox *> possiblePreventedTeammates;
-    QList <QComboBox *> possibleRequestedTeammates;
+    QList <QComboBox *> possibleTeammates;
 
     void showToast(QWidget *parent, const QString &message, int duration = 3000);
-    void initializeTableHeaders(TypeOfTeammates typeOfTeammates, QString searchBarText = "", bool initializeStatus = false);
-    void addTeammateSelector(TypeOfTeammates typeOfTeammates);
-    void refreshDisplay(TypeOfTeammates typeOfTeammates, int verticalScrollPos, int horizontalScrollPos, QString searchBarText="");
-    void addOneTeammateSet(TypeOfTeammates typeOfTeammates);
-    void clearValues(TypeOfTeammates typeOfTeammates, bool verify = true);
+    void initializeTableHeaders(QString searchBarText = "", bool initializeStatus = false);
+    void refreshDisplay(int verticalScrollPos, int horizontalScrollPos, QString searchBarText="");
+    void clearValues(bool verify = true);
 
     // these all return true on success, false on fail
-    bool loadCSVFile(TypeOfTeammates typeOfTeammates);
-    bool loadStudentPrefs(TypeOfTeammates typeOfTeammates);
-    bool loadSpreadsheetFile(TypeOfTeammates typeOfTeammates);
-    bool loadExistingTeamset(TypeOfTeammates typeOfTeammates);
+    bool loadCSVFile();
+    bool loadStudentPrefs();
+    bool loadSpreadsheetFile();
+    bool loadExistingTeamset();
 
     const QSize ICONSIZE = QSize(15,15);
+
+    static QString typeToString(TypeOfTeammates type) {
+        switch(type) {
+        case TypeOfTeammates::required:  return tr("Required");
+        case TypeOfTeammates::prevented: return tr("Prevented");
+        case TypeOfTeammates::requested: return tr("Requested");
+        }
+        return {};
+    }
 };
 
 #endif // TEAMMATESRULESDIALOG_H

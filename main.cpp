@@ -59,8 +59,6 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 gruepr.cpp:
 - graphical display of in team tooltip? to show points/penalties
 
-- Teammate rules dialog: clear values button vs. clear all rules button; load from tams tab not working?
-
 */
 //
 // TO DO:

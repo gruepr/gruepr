@@ -28,14 +28,18 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
         return;
     }
 
-    auto *requiredTeammatesContentAreaLayout = new QVBoxLayout();
+    auto *teammatesContentAreaLayout = new QVBoxLayout();
 
     setTeammateRulesButton = new QPushButton(tr("Set") + typeString + tr("Teammate Rules"), parentCard);
     setTeammateRulesButton->setStyleSheet(SMALLBUTTONSTYLEINVERTED);
     setTeammateRulesButton->setMinimumHeight(30);
     setTeammateRulesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    requiredTeammatesContentAreaLayout->addWidget(setTeammateRulesButton);
-    parentCard->setContentAreaLayout(*requiredTeammatesContentAreaLayout);
+    teammatesContentAreaLayout->addWidget(setTeammateRulesButton);
+
+    pairingCountLabel = new QLabel(parentCard);
+    teammatesContentAreaLayout->addWidget(pairingCountLabel);
+
+    parentCard->setContentAreaLayout(*teammatesContentAreaLayout);
 
     // Connect button to open dialog
     auto *grueprParent = qobject_cast<gruepr*>(parentCard->parent());
@@ -43,7 +47,26 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
         return;
     }
 
-    connect(setTeammateRulesButton, &QPushButton::clicked, parentCard, [grueprParent, teamingOptions, type]() {
+    auto updatePairingCount = [this, grueprParent, type]() {
+        int count = 0;
+        for (const auto &student : std::as_const(grueprParent->students)) {
+            if (!student.deleted) {
+                switch (type) {
+                case TeammatesRulesDialog::TypeOfTeammates::required:  count += student.requiredWith.size();  break;
+                case TeammatesRulesDialog::TypeOfTeammates::prevented: count += student.preventedWith.size(); break;
+                case TeammatesRulesDialog::TypeOfTeammates::requested: count += student.requestedWith.size(); break;
+                }
+            }
+        }
+        if (type != TeammatesRulesDialog::TypeOfTeammates::requested)
+            count /= 2;
+        pairingCountLabel->setText(count == 0 ? tr("No pairings set")
+                                              : QString::number(count) + (count == 1 ? tr(" pairing set") : tr(" pairings set")));
+    };
+
+    updatePairingCount();
+
+    connect(setTeammateRulesButton, &QPushButton::clicked, parentCard, [grueprParent, teamingOptions, type, updatePairingCount]() {
         const QStringList teamTabNames = grueprParent->getTeamTabNames();
         const QString sectionName = ((teamingOptions->sectionType == TeamingOptions::SectionType::allTogether) ||
                                      (teamingOptions->sectionType == TeamingOptions::SectionType::allSeparately) ||
@@ -56,11 +79,20 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
             for (int i = 0; i < grueprParent->students.size(); i++) {
                 grueprParent->students[i] = win->students[i];
             }
-            teamingOptions->haveAnyRequiredTeammates  = win->required_teammatesSpecified;
-            teamingOptions->haveAnyPreventedTeammates = win->prevented_teammatesSpecified;
-            teamingOptions->haveAnyRequestedTeammates = win->requested_teammatesSpecified;
-            teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
+            switch (type) {
+                case TeammatesRulesDialog::TypeOfTeammates::required:
+                    teamingOptions->haveAnyRequiredTeammates = win->teammatesSpecified;
+                    break;
+                case TeammatesRulesDialog::TypeOfTeammates::prevented:
+                    teamingOptions->haveAnyPreventedTeammates = win->teammatesSpecified;
+                    break;
+                case TeammatesRulesDialog::TypeOfTeammates::requested:
+                    teamingOptions->haveAnyRequestedTeammates = win->teammatesSpecified;
+                    teamingOptions->numberRequestedTeammatesGiven = win->numberRequestedTeammatesGiven;
+                    break;
+            }
             grueprParent->saveState();
+            updatePairingCount();
         }
         delete win;
     });
@@ -68,7 +100,7 @@ void TeammatesCriterion::generateCriteriaCard(TeamingOptions *const teamingOptio
 
 
 void TeammatesCriterion::calculateScore(const StudentRecord *const students, const int teammates[], const int numTeams, const int teamSizes[],
-                                        const TeamingOptions *const teamingOptions, const DataOptions *const dataOptions,
+                                        const TeamingOptions *const teamingOptions, const DataOptions *const /*dataOptions*/,
                                         std::vector<float> &criteriaScores, std::vector<int> &penaltyPoints)
 {
     // Get all IDs being teamed (so that we can make sure we only check the requireds/prevented/requesteds that are actually within this teamset)
