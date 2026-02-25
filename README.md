@@ -1,6 +1,7 @@
 gruepr
 
-Copyright (C) 2019-2026, Joshua Hertz < info@gruepr.com >, Giovanni Assad, Nikhen Nyo
+Copyright (C) 2019-2026, Joshua Hertz, Giovanni Assad, Nikhen Nyo
+< info@gruepr.com >
 
 ---------------
 Description of gruepr:
@@ -114,3 +115,12 @@ DISCLAIMER:
      DM Sans (C) 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and
      Paytone One (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
      All fonts are licensed according to the SIL OPEN FONT LICENSE Version 1.1; 
+
+---------------
+## Code Signing Policy
+
+     Code signing is provided by SignPath Foundation.
+     
+     - Committers: Joshua Hertz
+     - Reviewers: Joshua Hertz
+     - Approvers: Joshua Hertz

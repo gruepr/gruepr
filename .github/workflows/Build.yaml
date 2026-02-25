@@ -64,7 +64,7 @@ jobs:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
         project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
-        signing-policy-slug: 'test-signing'
+        signing-policy-slug: 'release-signing'
         artifact-configuration-slug: 'Windows_executable'
         github-artifact-id: '${{ steps.upload-unsigned-exe.outputs.artifact-id }}'
         wait-for-completion: true
@@ -104,7 +104,7 @@ jobs:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
           project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
-          signing-policy-slug: 'test-signing'
+          signing-policy-slug: 'release-signing'
           artifact-configuration-slug: 'Windows_Installer'
           github-artifact-id: '${{ steps.upload-unsigned-installer.outputs.artifact-id }}'
           wait-for-completion: true
