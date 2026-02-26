@@ -3,6 +3,11 @@ gruepr
 Copyright (C) 2019-2025, Joshua Hertz < info@gruepr.com >
 
 ---------------
+SPONSORS:
+
+     Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
+
+---------------
 Description of gruepr:
 
      Gruepr is a program for splitting a section of 4-1000 students into optimized teams.
@@ -115,3 +120,5 @@ DISCLAIMER:
      DM Sans (C) 2014-2017 Indian Type Foundry (info@indiantypefoundry.com); and
      Paytone One (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
      All fonts are licensed according to the SIL OPEN FONT LICENSE Version 1.1; 
+
+     Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
