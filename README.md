@@ -4,6 +4,11 @@ Copyright (C) 2019-2026, Joshua Hertz, Giovanni Assad, Nikhen Nyo
 < info@gruepr.com >
 
 ---------------
+SPONSORS:
+
+     Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
+
+---------------
 Description of gruepr:
 
      Gruepr is a program for splitting a section of 4-1000 students into optimized teams.
@@ -116,11 +121,4 @@ DISCLAIMER:
      Paytone One (C) 2011 The Paytone Project Authors (https://github.com/googlefonts/paytoneFont).
      All fonts are licensed according to the SIL OPEN FONT LICENSE Version 1.1; 
 
----------------
-## Code Signing Policy
-
-     Code signing is provided by SignPath Foundation.
-     
-     - Committers: Joshua Hertz
-     - Reviewers: Joshua Hertz
-     - Approvers: Joshua Hertz
+     Free code signing on Windows provided by SignPath.io, certificate by SignPath Foundation.
