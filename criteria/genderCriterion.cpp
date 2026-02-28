@@ -82,7 +82,8 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
 {
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
-        criteriaScores[team] = 0;  // was (1 * criterion->weight), but for now no positive "score", just penalties related to gender
+        criteriaScores[team] = 1;
+        bool penaltyApplied = false;
 
         if(teamSizes[team] == 1) {
             studentNum++;
@@ -110,10 +111,11 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
             const auto& unallowed = teamingOptions->genderIdentityRules.value(g).value("!=");
             for (int val : unallowed) {
                 if (count == val) {
+                    penaltyApplied = true;
                     if (penaltyStatus) {
                         penaltyPoints[team]++;
-                        break;
                     }
+                    break;
                 }
             }
         };
@@ -123,9 +125,15 @@ void GenderCriterion::calculateScore(const StudentRecord *const students, const 
         applyRule(Gender::nonbinary, numNonbinary);
 
         if (teamingOptions->singleGenderPrevented && (numMen == 0 || numWomen == 0)) {
+            penaltyApplied = true;
             if (penaltyStatus) {
                 penaltyPoints[team]++;
             }
         }
+
+        if (penaltyApplied) {
+            criteriaScores[team] = 0;
+        }
+        criteriaScores[team] *= weight;
     }
 }

@@ -56,8 +56,7 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
 
     int studentNum = 0;
     for(int team = 0; team < numTeams; team++) {
-        //for now no positive "score", just penalties related to URM isolation
-        criteriaScores[team] = weight;
+        criteriaScores[team] = 1;
         if(teamSizes[team] == 1) {
             studentNum++;
             continue;
@@ -73,6 +72,7 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
         }
 
         if(numURM == 1) {
+            criteriaScores[team] = 0;
             penaltyPoints[team]++;
         }
         /*
@@ -97,5 +97,6 @@ void URMIdentityCriterion::calculateScore(const StudentRecord *const students, c
             }
         }
 */
+        criteriaScores[team] *= weight;
     }
 }

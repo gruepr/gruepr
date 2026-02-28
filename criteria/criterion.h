@@ -14,10 +14,11 @@ class Criterion : public QObject {
 public:
     enum class CriteriaType {section, teamSize, genderIdentity, urmIdentity, attributeQuestion, scheduleMeetingTimes,
                              requiredTeammates, preventedTeammates, requestedTeammates, gradeBalance};
-    enum class Precedence{fixed, need, want};
+    enum class Precedence {fixed, need, want};
     enum class AttributeDiversity {diverse, ignored, similar};  // diverse = heterogeneous (i.e., teammates have a range of values)
                                                                 // similar = homogeneous (i.e., all teammates have the same value)
     Q_ENUM(AttributeDiversity)
+    Q_ENUM(CriteriaType)
 
     float weight;
     Precedence precedence = Precedence::want;

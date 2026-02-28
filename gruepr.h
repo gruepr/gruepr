@@ -158,6 +158,7 @@ private:
     void addCriteriaCard(Criterion::CriteriaType criteriaType);
     void addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute);
     void initializeCriteriaCardPriorities();
+    void populateCriterionTypes();
     QFrame *m_dropIndicator = nullptr;
     QWidget *m_bottomDropZone = nullptr;
 };

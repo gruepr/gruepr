@@ -143,5 +143,6 @@ void AttributeCriterion::calculateScore(const StudentRecord *const students, con
                 criteriaScores[team] = 0;
             }
         }
+        criteriaScores[team] *= weight;
     }
 }

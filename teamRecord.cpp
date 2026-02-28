@@ -316,7 +316,7 @@ void TeamRecord::refreshTeamInfo(const QList<StudentRecord> &students, const int
 
 QJsonObject TeamRecord::toJson() const
 {
-    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, gradeValsArray, studentIDsArray;
+    QJsonArray attributeValsArray, timezoneValsArray, numStudentsAvailableArray, gradeValsArray, studentIDsArray, criteriaScoresArray;
     for(const auto &attributeVal : attributeVals) {
         QJsonArray attributeValsArraySubArray;
         for (const auto &val : attributeVal) {
@@ -340,6 +340,9 @@ QJsonObject TeamRecord::toJson() const
     for(const auto &studentID : studentIDs) {
         studentIDsArray.append(studentID);
     }
+    for (int i = 0; i < MAX_CRITERIA; i++) {
+        criteriaScoresArray.append(criteriaScores[i]);
+    }
 
     QJsonObject content {
         {"LMSID", LMSID},
@@ -357,6 +360,7 @@ QJsonObject TeamRecord::toJson() const
         {"numStudentsWithAmbiguousSchedules", numStudentsWithAmbiguousSchedules},
         {"numMeetingTimes", numMeetingTimes},
         {"gradeVals", gradeValsArray},
+        {"criteriaScores", criteriaScoresArray},
         {"studentIDs", studentIDsArray},
         {"name", name},
         {"tooltip", tooltip},

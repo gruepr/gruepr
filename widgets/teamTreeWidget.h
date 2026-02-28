@@ -57,7 +57,11 @@ signals:
     void updateTeamOrder();
 
 private:
-    TeamTreeHeaderView *m_header = nullptr;
+
+    static QColor scoreToColor(float score);
+    static std::optional<float> findCriterionScore(const TeamRecord &team, const TeamingOptions *teamingOptions,
+                                                   Criterion::CriteriaType type, int attributeIndex);
+    TeamTreeHeaderView *headerView = nullptr;
     TeamTreeWidgetItem *draggedItem = nullptr;
     TeamTreeWidgetItem *droppedItem = nullptr;
     QLabel *dragDropEventLabel = nullptr;
@@ -85,13 +89,14 @@ protected:
 
 private:
     void updateHeaderHeight();
-    QString wrapTextToTwoLines(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const;
+    QString wrapText(int logicalIndex, const QString &text, int availableWidth, const QFontMetrics &fm) const;
+    static const int MAX_SECTION_WIDTH = 200;
 
     Qt::TextElideMode m_elideMode;
     QMap<int, Qt::TextElideMode> m_columnElideModes;
     mutable QMap<int, QString> m_fullTexts;
     QMap<int, QIcon> m_columnIcons;
-    mutable QMap<int, bool> m_wordWrappeds;
+    mutable QMap<int, int> m_lineCountPerColumn;
     int m_lineCount;
     QSize m_iconSize;
     static const int ICONSIZE = 16;

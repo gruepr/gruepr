@@ -34,7 +34,7 @@ public:
 
     float weights[MAX_CRITERIA] = {};
     bool penaltyStatus[MAX_CRITERIA] = {};
-    Criterion* criterionTypes[MAX_CRITERIA] = {};
+    Criterion* criteria[MAX_CRITERIA] = {};
     QList<int> attributeSelected;                       //which attributes the user selected for use in grouping
     Criterion::AttributeDiversity attributeDiversity[MAX_ATTRIBUTES]; 	// whether all students on a team have similar/different levels of each attribute
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)

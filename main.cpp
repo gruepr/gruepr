@@ -56,8 +56,8 @@ MELDING CHANGES FROM NIKHEN'S WORK:
 dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
-gruepr.cpp:
-- graphical display of in team tooltip? to show points/penalties
+teamstabwidget.cpp:
+    - auto re-size columns on first show
 
 */
 //
@@ -75,6 +75,7 @@ gruepr.cpp:
 //  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
 //  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
+//  - unify required and requested teammates
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)

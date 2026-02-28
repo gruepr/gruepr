@@ -12,6 +12,7 @@
 #include <QJsonArray>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QMetaEnum>
 #include <QPainter>
 #include <QPrintDialog>
 #include <QTextDocument>
@@ -43,6 +44,7 @@ TeamsTabItem::TeamsTabItem(const QJsonObject &jsonTeamsTab, TeamingOptions &inco
     :QWidget(parent)
 {
     teamingOptions = new TeamingOptions(jsonTeamsTab["teamingOptions"].toObject());
+    savedCriterionMap = jsonTeamsTab["criterionMap"].toArray();
     sectionNames = incomingSectionNames;
     numStudents = jsonTeamsTab["numStudents"].toInt();
     const QJsonArray studentsArray = jsonTeamsTab["students"].toArray();
@@ -425,7 +427,7 @@ void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
     for (int row = 0; row < teamingOptions.numTeamsDesired; row++){
         float averageScore = 0;
         for (int criterion = 0; criterion < teamingOptions.realNumScoringFactors; criterion++){
-            //auto* _criterionBeingScored = teamingOptions->criterionTypes[criterion];
+            //auto* _criterionBeingScored = teamingOptions->criteria[criterion];
             summaryTable->setCellWidget(row, criterion+1, getLabelFromCriterionScore(teams[row].criteriaScores[criterion])); //critrion+1 since overall rating is in the first column
             averageScore = averageScore + teams[row].criteriaScores[criterion];
         }
@@ -453,8 +455,26 @@ QJsonObject TeamsTabItem::toJson() const
         studentsArray.append(student.toJson());
     }
 
+    auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
+    QJsonArray criterionMapArray;
+    for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
+        QJsonObject entry;
+        if (teamingOptions->criteria[i] != nullptr) {
+            entry["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(teamingOptions->criteria[i]->criteriaType));
+            if (teamingOptions->criteria[i]->criteriaType == Criterion::CriteriaType::attributeQuestion) {
+                const auto *attrCrit = qobject_cast<AttributeCriterion*>(teamingOptions->criteria[i]);
+                if (attrCrit != nullptr) {
+                    entry["attributeIndex"] = attrCrit->attributeIndex;
+                }
+            }
+        }
+        criterionMapArray.append(entry);
+    }
+
+
     QJsonObject content {
         {"teamingOptions", teamingOptions->toJson()},
+        {"criterionMap", criterionMapArray},
         {"teams", teamsArray},
         {"students", studentsArray},
         {"numStudents", numStudents},
@@ -466,6 +486,39 @@ QJsonObject TeamsTabItem::toJson() const
     return content;
 }
 
+void TeamsTabItem::restoreCriterionTypes(const QList<GroupingCriteriaCard*> &criteriaCards)
+{
+    auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
+
+    for (int i = 0; i < savedCriterionMap.size() && i < teamingOptions->realNumScoringFactors; i++) {
+        const QJsonObject entry = savedCriterionMap[i].toObject();
+        const int typeInt = criteriaTypeEnum.keyToValue(qPrintable(entry["criteriaType"].toString()));
+        if (typeInt == -1) {
+            teamingOptions->criteria[i] = nullptr;
+            continue;
+        }
+        const auto type = static_cast<Criterion::CriteriaType>(typeInt);
+        const int attrIndex = entry.contains("attributeIndex") ? entry["attributeIndex"].toInt() : -1;
+
+        teamingOptions->criteria[i] = nullptr;
+
+        for (auto *card : criteriaCards) {
+            if (card->criterion == nullptr || card->criterion->criteriaType != type) {
+                continue;
+            }
+            if (type == Criterion::CriteriaType::attributeQuestion) {
+                const auto *attrCrit = qobject_cast<AttributeCriterion*>(card->criterion);
+                if (attrCrit == nullptr || attrCrit->attributeIndex != attrIndex) {
+                    continue;
+                }
+            }
+            teamingOptions->criteria[i] = card->criterion;
+            break;
+        }
+    }
+    savedCriterionMap = QJsonArray();
+    refreshTeamDisplay();
+}
 
 void TeamsTabItem::changeTeamNames(const int index)
 {

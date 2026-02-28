@@ -224,7 +224,12 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
     // Restore additional criteria cards from previous work (savedCriteriaCards is empty if not loading from prevWork)
     for (const auto &cardJsonVal : std::as_const(savedCriteriaCards)) {
         const QJsonObject cardJson = cardJsonVal.toObject();
-        const auto type = static_cast<Criterion::CriteriaType>(cardJson["criteriaType"].toInt());
+        auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
+        const int typeInt = criteriaTypeEnum.keyToValue(qPrintable(cardJson["criteriaType"].toString()));
+        if (typeInt == -1) {
+            continue;
+        }
+        const auto type = static_cast<Criterion::CriteriaType>(typeInt);
         if (type == Criterion::CriteriaType::section || type == Criterion::CriteriaType::teamSize) {
             continue; // already created
         }
@@ -237,6 +242,16 @@ gruepr::gruepr(DataOptions &_dataOptions, QList<StudentRecord> &_students) :
 
     // initialize the priority order of criteria cards
     initializeCriteriaCardPriorities();
+
+    // Restore criterion types for each saved team tab
+    QList<GroupingCriteriaCard*> allCards = criteriaCardsList + initializedAttributeCriteriaCards;
+    for (int tab = 1; tab < ui->dataDisplayTabWidget->count(); tab++) {
+        auto *teamTab = qobject_cast<TeamsTabItem*>(ui->dataDisplayTabWidget->widget(tab));
+        if (teamTab != nullptr) {
+            teamTab->restoreCriterionTypes(allCards);
+        }
+    }
+    populateCriterionTypes();
 
     QList<QPushButton *> buttons = {letsDoItButton, ui->addStudentPushButton, ui->compareRosterPushButton};
     for(auto &button : buttons) {
@@ -480,6 +495,20 @@ void gruepr::addCriteriaCard(Criterion::CriteriaType criteriaType, int attribute
     }
     initializeCriteriaCardPriorities();
     refreshCriteriaLayout();
+}
+
+void gruepr::populateCriterionTypes()
+{
+    int index = 0;
+    for (auto *const criteriaCard : std::as_const(criteriaCardsList)) {
+        if (criteriaCard->criterion->criteriaType == Criterion::CriteriaType::section ||
+            criteriaCard->criterion->criteriaType == Criterion::CriteriaType::teamSize) {
+            continue;
+        }
+        teamingOptions->criteria[index] = criteriaCard->criterion;
+        index++;
+    }
+    teamingOptions->realNumScoringFactors = index;
 }
 
 void gruepr::deleteCriteriaCard(int deletedIndex)
@@ -1490,7 +1519,7 @@ void gruepr::startOptimization()
             teamingOptions->weights[index] = weight;
             criteriaCard->criterion->weight = weight;
             teamingOptions->penaltyStatus[index] = criteriaCard->criterion->penaltyStatus;
-            teamingOptions->criterionTypes[index] = criteriaCard->criterion;
+            teamingOptions->criteria[index] = criteriaCard->criterion;
         }
         sumOfWeights = sumOfWeights + weight;
         weight = weight/2;
@@ -1512,7 +1541,7 @@ void gruepr::startOptimization()
     // convert weights to realWeights
     for (int i = 0; i < teamingOptions->realNumScoringFactors; i++) {
         teamingOptions->weights[i] *= normFactor;
-        teamingOptions->criterionTypes[i]->weight = teamingOptions->weights[i];
+        teamingOptions->criteria[i]->weight = teamingOptions->weights[i];
     }
 
     teamingOptions->realMeetingBlockSize = std::ceil(teamingOptions->meetingBlockSize / dataOptions->scheduleResolution); // divide by length of time block in hours, rounded up
@@ -1873,7 +1902,8 @@ void gruepr::saveState()
         QJsonArray criteriacardsjsons;
         for (const auto *card : std::as_const(criteriaCardsList)) {
             QJsonObject cardjson;
-            cardjson["criteriaType"] = static_cast<int>(card->criterion->criteriaType);
+            auto criteriaTypeEnum = QMetaEnum::fromType<Criterion::CriteriaType>();
+            cardjson["criteriaType"] = criteriaTypeEnum.valueToKey(static_cast<int>(card->criterion->criteriaType));
             if (card->criterion->criteriaType == Criterion::CriteriaType::attributeQuestion) {
                 const auto *attrCriterion = qobject_cast<AttributeCriterion*>(card->criterion);
                 cardjson["attributeIndex"] = attrCriterion->attributeIndex;
@@ -2388,7 +2418,7 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     }
 
     for (int i = 0; i < _teamingOptions->realNumScoringFactors; i++) {
-        _teamingOptions->criterionTypes[i]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
+        _teamingOptions->criteria[i]->calculateScore(_students, _teammates, _numTeams, _teamSizes,
                                                            _teamingOptions, _dataOptions, _criteriaScores[i], _penaltyPoints);
     }
 
@@ -2397,10 +2427,10 @@ float gruepr::getGenomeScore(const StudentRecord *const _students, const int _te
     for(int team = 0; team < _numTeams; team++) {
         for(int criterion = 0; criterion < _teamingOptions->realNumScoringFactors; criterion++) {
             // remove the schedule extra credit if any penalties are being applied, so that a very high schedule overlap doesn't cancel out the penalty
-            if(_teamingOptions->criterionTypes[criterion]->criteriaType == Criterion::CriteriaType::scheduleMeetingTimes &&
-                _criteriaScores[criterion][team] > _teamingOptions->criterionTypes[criterion]->weight &&
+            if(_teamingOptions->criteria[criterion]->criteriaType == Criterion::CriteriaType::scheduleMeetingTimes &&
+                _criteriaScores[criterion][team] > _teamingOptions->criteria[criterion]->weight &&
                 _penaltyPoints[team] > 0) {
-                _teamScores[team] += _teamingOptions->criterionTypes[criterion]->weight;
+                _teamScores[team] += _teamingOptions->criteria[criterion]->weight;
             }
             else {
                 _teamScores[team] += _criteriaScores[criterion][team];

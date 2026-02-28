@@ -5,9 +5,11 @@
 #include "teamRecord.h"
 #include "teamingOptions.h"
 #include "dialogs/whichFilesDialog.h"
+#include "widgets/groupingCriteriaCardWidget.h"
 #include "widgets/teamTreeWidget.h"
 #include <QCheckBox>
 #include <QComboBox>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QLabel>
 #include <QPrinter>
@@ -34,6 +36,7 @@ public:
     TeamsTabItem& operator= (TeamsTabItem&&) = delete;
 
     QJsonObject toJson() const;
+    void restoreCriterionTypes(const QList<GroupingCriteriaCard*> &criteriaCards);
 
     QString tabName;
 
@@ -89,6 +92,9 @@ private:
     QCheckBox *addSectionToTeamnamesCheckBox = nullptr;
     bool randomizedTeamNames = false;
     bool sectionsInTeamNames = false;
+
+    // used to save and restore the teamsTab when gruepr is closed/reopened
+    QJsonArray savedCriterionMap;
 
     //pointers to items back out in gruepr, so they can be used for "create new teams with all new teammates"
     TeamingOptions *externalTeamingOptions = nullptr;

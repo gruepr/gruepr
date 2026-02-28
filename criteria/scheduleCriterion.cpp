@@ -189,8 +189,7 @@ void ScheduleCriterion::calculateScore(const StudentRecord *const students, cons
                 factor *= 1.0f / (HIGHSCHEDULEOVERLAPSCALE);
             }
         }
-        else if(criteriaScores[team] < teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, zero out the score and apply penalty
-            criteriaScores[team] = 0;
+        else if(criteriaScores[team] < teamingOptions->minTimeBlocksOverlap) {    // if team has fewer than minTimeBlocksOverlap, apply penalty
             penaltyPoints[team]++;
         }
         criteriaScores[team] /= teamingOptions->desiredTimeBlocksOverlap;
