@@ -37,33 +37,21 @@ jobs:
           DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
           EOF
 
-      - name: Debug mkspec
-        run: |
-          MKSPEC_DIR=$(qmake -query QT_INSTALL_DATA)/mkspecs/macx-clang
-          echo "=== qmake.conf ==="
-          cat "$MKSPEC_DIR/qmake.conf"
-          echo "=== Searching for arch in all mkspec files ==="
-          grep -r "x86_64\|QMAKE_APPLE_DEVICE_ARCHS\|arch" "$MKSPEC_DIR"/ || true
-          grep -r "x86_64\|QMAKE_APPLE_DEVICE_ARCHS\|arch" "$(qmake -query QT_INSTALL_DATA)/mkspecs/common"/ || true
-          exit 1
-
       # --- Build ARM ---
       - name: Build ARM
         run: |
-          MKSPEC=$(qmake -query QT_INSTALL_DATA)/mkspecs/macx-clang/qmake.conf
-          cp "$MKSPEC" "$MKSPEC.bak"
-          sed -i '' 's/x86_64/arm64/g' "$MKSPEC"
-          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          qmake gruepr.pro CONFIG+=release CONFIG-=only_active_arch \
+            "OMP_PREFIX=$PWD/libomp-universal" "QMAKE_APPLE_DEVICE_ARCHS=arm64"
           make -j$(sysctl -n hw.ncpu)
           file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-arm64
           make clean
-          cp "$MKSPEC.bak" "$MKSPEC"
 
       # --- Build Intel ---
       - name: Build Intel
         run: |
-          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          qmake gruepr.pro CONFIG+=release CONFIG-=only_active_arch \
+            "OMP_PREFIX=$PWD/libomp-universal" "QMAKE_APPLE_DEVICE_ARCHS=x86_64"
           make -j$(sysctl -n hw.ncpu)
           file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-x86_64
