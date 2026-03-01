@@ -40,19 +40,20 @@ jobs:
       # --- Build ARM ---
       - name: Build ARM
         run: |
-          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal" \
-            "QMAKE_CFLAGS-=-arch x86_64" "QMAKE_CXXFLAGS-=-arch x86_64" "QMAKE_LFLAGS-=-arch x86_64" \
-            "QMAKE_CFLAGS+=-arch arm64" "QMAKE_CXXFLAGS+=-arch arm64" "QMAKE_LFLAGS+=-arch arm64"
+          MKSPEC=$(qmake -query QT_INSTALL_DATA)/mkspecs/macx-clang/qmake.conf
+          cp "$MKSPEC" "$MKSPEC.bak"
+          sed -i '' 's/x86_64/arm64/g' "$MKSPEC"
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
           make -j$(sysctl -n hw.ncpu)
           file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-arm64
           make clean
+          cp "$MKSPEC.bak" "$MKSPEC"
 
       # --- Build Intel ---
       - name: Build Intel
         run: |
-          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal" \
-            "QMAKE_CFLAGS+=-arch x86_64" "QMAKE_CXXFLAGS+=-arch x86_64" "QMAKE_LFLAGS+=-arch x86_64"
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
           make -j$(sysctl -n hw.ncpu)
           file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-x86_64
