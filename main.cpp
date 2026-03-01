@@ -58,6 +58,8 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 
 teamstabwidget.cpp:
     - auto re-size columns on first show
+    - bug: reopening work doesn't show columns
+    - bug: color of attributes are off
 
 */
 //

@@ -59,10 +59,10 @@ QMAKE_CXXFLAGS_RELEASE += -O2
 # add OpenMP
 win32: QMAKE_CXXFLAGS += -openmp
 macx {
-    HOMEBREW_PREFIX = $$system(brew --prefix)
-    OMP_PREFIX = $$system(brew --prefix libomp)
+    isEmpty(OMP_PREFIX) {
+        OMP_PREFIX = $$system(brew --prefix libomp)
+    }
     QMAKE_CXXFLAGS += -Xclang -fopenmp
-    QMAKE_LFLAGS += -lomp
     INCLUDEPATH += $$OMP_PREFIX/include
     LIBS += -L$$OMP_PREFIX/lib -lomp
 }
@@ -203,11 +203,6 @@ FORMS += \
 
 RESOURCES += \
           gruepr.qrc
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
     macOS/MyAppInfo.plist
