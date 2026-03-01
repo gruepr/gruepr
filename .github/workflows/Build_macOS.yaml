@@ -37,6 +37,16 @@ jobs:
           DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
           EOF
 
+      - name: Debug mkspec
+        run: |
+          MKSPEC_DIR=$(qmake -query QT_INSTALL_DATA)/mkspecs/macx-clang
+          echo "=== qmake.conf ==="
+          cat "$MKSPEC_DIR/qmake.conf"
+          echo "=== Searching for arch in all mkspec files ==="
+          grep -r "x86_64\|QMAKE_APPLE_DEVICE_ARCHS\|arch" "$MKSPEC_DIR"/ || true
+          grep -r "x86_64\|QMAKE_APPLE_DEVICE_ARCHS\|arch" "$(qmake -query QT_INSTALL_DATA)/mkspecs/common"/ || true
+          exit 1
+
       # --- Build ARM ---
       - name: Build ARM
         run: |
