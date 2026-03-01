@@ -37,6 +37,15 @@ jobs:
           DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
           EOF
 
+      - name: Debug
+        run: |
+          qmake gruepr.pro CONFIG+=release CONFIG-=only_active_arch \
+            "OMP_PREFIX=$PWD/libomp-universal" "QMAKE_APPLE_DEVICE_ARCHS=arm64"
+          grep -i "arch" Makefile | head -20
+          echo "==="
+          qmake -query
+          exit 1
+
       # --- Build ARM ---
       - name: Build ARM
         run: |
