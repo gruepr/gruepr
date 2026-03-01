@@ -37,21 +37,11 @@ jobs:
           DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
           EOF
 
-      - name: Debug
-        run: |
-          qmake gruepr.pro CONFIG+=release CONFIG-=only_active_arch \
-            "OMP_PREFIX=$PWD/libomp-universal" "QMAKE_APPLE_DEVICE_ARCHS=arm64"
-          grep -i "arch" Makefile | head -20
-          echo "==="
-          qmake -query
-          exit 1
-
       # --- Build ARM ---
       - name: Build ARM
         run: |
-          qmake gruepr.pro CONFIG+=release CONFIG-=only_active_arch \
-            "OMP_PREFIX=$PWD/libomp-universal" "QMAKE_APPLE_DEVICE_ARCHS=arm64"
-          make -j$(sysctl -n hw.ncpu)
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS=arm64 EXPORT_DEFAULT_ARCHS=arm64
           file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-arm64
           make clean
@@ -59,9 +49,8 @@ jobs:
       # --- Build Intel ---
       - name: Build Intel
         run: |
-          qmake gruepr.pro CONFIG+=release CONFIG-=only_active_arch \
-            "OMP_PREFIX=$PWD/libomp-universal" "QMAKE_APPLE_DEVICE_ARCHS=x86_64"
-          make -j$(sysctl -n hw.ncpu)
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS=x86_64 EXPORT_DEFAULT_ARCHS=x86_64
           file gruepr.app/Contents/MacOS/gruepr
           cp gruepr.app/Contents/MacOS/gruepr gruepr-x86_64
 
