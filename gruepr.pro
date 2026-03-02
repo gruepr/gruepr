@@ -12,7 +12,6 @@ QT += core gui widgets concurrent network printsupport charts networkauth design
 TARGET = gruepr
 TEMPLATE = app
 macx: QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
-macx: QMAKE_APPLE_DEVICE_ARCHS = x86_64
 
 DEFINES += GRUEPR_VERSION_NUMBER='\\"$$gruepr_version\\"'
 DEFINES += GRUEPR_COPYRIGHT_YEAR='\\"$$copyright_year\\"'
@@ -206,7 +205,9 @@ RESOURCES += \
 
 DISTFILES += \
     .github/workflows/Build.yaml \
+    .github/workflows/Build_Windows.yaml \
     .github/workflows/Build_macOS.yaml \
     .signpath/policies/gruepr/release-signing.yml \
     .signpath/policies/gruepr/test-signing.yml \
+    macOS/DMG_background.png \
     macOS/MyAppInfo.plist

@@ -217,34 +217,41 @@ jobs:
             gruepr.app
 
       # --- Create DMG ---
-      - name: Create DMG
-        run: |
-          mkdir -p dmg-staging
-          cp -R gruepr.app dmg-staging/
-          ln -s /Applications dmg-staging/Applications
-          hdiutil create -volname "gruepr" \
-            -srcfolder dmg-staging \
-            -ov -format UDZO \
-            gruepr.dmg
+
+     - name: Install create-dmg
+       run: brew install create-dmg
+
+     - name: Create DMG
+       run: |
+         create-dmg \
+           --volname "Install gruepr" \
+           --background "macOS/DMG_background.png" \
+           --window-pos 200 120 \
+           --window-size 400 350 \
+           --icon-size 64 \
+           --icon "gruepr.app" 100 64 \
+           --app-drop-link 275 64 \
+           "Install gruepr.dmg" \
+           gruepr.app
 
       # --- Sign the DMG ---
       - name: Sign DMG
         run: |
           codesign --force \
             --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
-            gruepr.dmg
+            "Install gruepr.dmg"
 
       # --- Notarize ---
       - name: Notarize
         run: |
-          xcrun notarytool submit gruepr.dmg \
+          xcrun notarytool submit "Install gruepr.dmg" \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "${{ secrets.APPLE_ID_PASSWORD }}" \
             --team-id "${{ secrets.APPLE_TEAM_ID }}" \
             --wait
 
       - name: Staple
-        run: xcrun stapler staple gruepr.dmg
+        run: xcrun stapler staple "Install gruepr.dmg"
 
       # --- Cleanup keychain ---
       - name: Cleanup
@@ -256,5 +263,5 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: gruepr-macos-universal
-          path: gruepr.dmg
+          path: "Install gruepr.dmg"
           compression-level: 0
