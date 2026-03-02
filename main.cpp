@@ -48,10 +48,8 @@
 //  - Pulling in much of the ***incredible*** dissertation work by Nikhen to modernize the UI
 //  - diversity criteria for multiple choice questions now optimizes for most number of values (in addition to widest range of values for ordered questions)
 //
-// INPROG:
+// TO DO FOR V13:
 /*
-
-MELDING CHANGES FROM NIKHEN'S WORK:
 
 dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
@@ -59,23 +57,24 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
 teamstabwidget.cpp:
     - bug: color of attributes are off in second tab when reopening from saved work, all are red
 
+//  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points)
+//  - unify required and requested teammates
+//  - remove deprecated qtnetwork function calls
+//  - bugfixes on adjusting teams
 */
+
 //
 // TO DO:
 //    NEW FEATURES:
 //  From Nikhen's work (some disabled ones currently commented "//FROMDEV":
-//  - fully implement "need" vs "want"
+//  - fully implement "need" vs "want" (or "requirement" vs "preference"?)
 //  -- do for urm everything in parallel to gender:
 //    - update addCriteriaCard for CriteriaType::urmIdentity
 //    - do for teamingOptions->urmIdentity what was done for genderIdentity, but in QMap Gender --> QString
 //    - replace isolatedURMPrevented with urmIdentityRule != 1
-//  - dialogs/identityrulesdialog: must accept wider variety of rules (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
-//  - identity rules add >, >=, <, <=
-//  - graphical display of which mandatory rule failed (scoring function will need to broadcast back the source(s) of any penalty points)
-//  - better vocabulary / UI for "set criteria as mandatory": maybe “musts” vs “wants”
+//  - dialogs/identityrulesdialog: must accept wider variety of rules (>, >=, <, <=) (see gruepr.cpp line 361 or so); generalize to be relevant to gender or race/ethnicity/culture identity rules (curr. just works with gender i think?)
 //  - Implement avg. grade question/criterion
 //  Pre-dating Nikhen's work
-//  - unify required and requested teammates
 //  - add to windows installer a check on whether gruepr is currently running; provide error message and clean quit if so
 //  - add ranked option as a question type (set of drop downs? select 1st, select 2nd, select 3rd, etc.)
 //  - add free response number as a question type (could be done in Canvas but not in Google Form, as it requires response validation added to the API)
