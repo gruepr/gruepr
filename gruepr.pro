@@ -205,4 +205,8 @@ RESOURCES += \
           gruepr.qrc
 
 DISTFILES += \
+    .github/workflows/Build.yaml \
+    .github/workflows/Build_macOS.yaml \
+    .signpath/policies/gruepr/release-signing.yml \
+    .signpath/policies/gruepr/test-signing.yml \
     macOS/MyAppInfo.plist

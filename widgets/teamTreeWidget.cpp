@@ -4,6 +4,7 @@
 #include <QDropEvent>
 #include <QPainter>
 #include <QTextLayout>
+#include <QTimer>
 #include <QToolTip>
 
 
@@ -204,7 +205,7 @@ void TeamTreeWidget::refreshSection(TeamTreeWidgetItem *sectionItem, const QStri
 
 
 void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *teamItem, const TeamRecord &team, const int teamNum,
-                                 const QString &firstStudentName, const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
+                                 const DataOptions *const dataOptions, const TeamingOptions *const teamingOptions)
 {
     if(teamItem->treeItemType != TeamTreeWidgetItem::TreeItemType::team) {
         return;
@@ -370,7 +371,9 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
                     teamItem->setToolTip(column, team.tooltip);
                 }
                 const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::attributeQuestion, attribute);
-                if (score != std::nullopt) { teamItem->setBackground(column, scoreToColor(*score)); }
+                if (score != std::nullopt) {
+                    teamItem->setBackground(column, scoreToColor(*score));
+                }
                 column++;
                 break;
             }
@@ -382,7 +385,9 @@ void TeamTreeWidget::refreshTeam(RefreshType refreshType, TeamTreeWidgetItem *te
                 teamItem->setData(column, TEAMINFO_SORT_ROLE, numAvailTimes);
                 teamItem->setToolTip(column, team.tooltip);
                 const auto score = findCriterionScore(team, teamingOptions, Criterion::CriteriaType::scheduleMeetingTimes, -1);
-                if (score != std::nullopt) { teamItem->setBackground(column, scoreToColor(*score)); }
+                if (score != std::nullopt) {
+                    teamItem->setBackground(column, scoreToColor(*score));
+                }
                 column++;
                 break;
             }
@@ -872,6 +877,10 @@ std::optional<float> TeamTreeWidget::findCriterionScore(const TeamRecord &team, 
                 continue;
             }
         }
+        // qDebug() << "findCriterionScore: type=" << (int)type
+        //          << "attrIdx=" << attributeIndex
+        //          << "found at i=" << i
+        //          << "score=" << team.criteriaScores[i];
         return team.criteriaScores[i];
     }
     return std::nullopt;
@@ -951,8 +960,14 @@ void TeamTreeHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
 
     // For middle eliding, switch to word wrap if text would be elided
     if (wouldElide) {
+        const int prevLineCount = m_lineCountPerColumn.value(logicalIndex, 1);
         const QString wrappedText = wrapText(logicalIndex, fullText, textWidth, fm);
         opt.text = wrappedText;
+
+        if (m_lineCountPerColumn.value(logicalIndex, 1) != prevLineCount) {
+            QTimer::singleShot(0, const_cast<TeamTreeHeaderView*>(this),
+                               &TeamTreeHeaderView::updateHeaderHeight);
+        }
     }
     else {
         // Use normal eliding for other modes

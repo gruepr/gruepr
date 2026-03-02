@@ -38,7 +38,6 @@ public:
     QList<int> attributeSelected;                       //which attributes the user selected for use in grouping
     Criterion::AttributeDiversity attributeDiversity[MAX_ATTRIBUTES]; 	// whether all students on a team have similar/different levels of each attribute
     float attributeWeights[MAX_ATTRIBUTES];             // weights for each attribute as displayed to the user (i.e., non-normalized values)
-    float realAttributeWeights[MAX_ATTRIBUTES];         // scoring weight of each attribute, normalized to total weight
     bool haveAnyRequiredAttributes[MAX_ATTRIBUTES];
     QList<int> requiredAttributeValues[MAX_ATTRIBUTES]; // for each attribute, a list of required attribute value
     bool haveAnyIncompatibleAttributes[MAX_ATTRIBUTES];

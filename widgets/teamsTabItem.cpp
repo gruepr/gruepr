@@ -82,110 +82,7 @@ void TeamsTabItem::init(TeamingOptions &incomingTeamingOptions, QList<StudentRec
     auto *summaryAndDataLayout = new QHBoxLayout();
 
     teamDataTree = new TeamTreeWidget(this);
-//FROMDEV
-/*
-    //create a new table
-    auto *summaryLayout = new QVBoxLayout();
-    summaryTable = new QTableWidget();
-    auto* legendLayout = new QHBoxLayout();
-    auto* summaryLabel = new QLabel("Criterion Achievement Summary Table");
-    //initialize header and vertical  (If implementing this, careful with direct access to header--it is subclassed to allow eliding!!!)
-    summaryTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    summaryTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    summaryTable->setStyleSheet("QTableView{gridline-color: lightGray; background-color: " TRANSPARENT "; border: none; "
-                               "font-size: 12pt; font-family: 'DM Sans';}"
-                               "QTableWidget:item {border-right: 1px solid lightGray; color: black;}" + QString(SCROLLBARSTYLE));
-    summaryTable->horizontalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: 1px solid lightGray; "
-                                                   "border-bottom: none; background-color:" DEEPWATERHEX "; "
-                                                   "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}"
-                                                   "QHeaderView::section{border-top: none; border-left: none; border-right: 1px solid lightGray; "
-                                                   "border-bottom: none; background-color:" DEEPWATERHEX "; "
-                                                   "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:left;}");
-    summaryTable->verticalHeader()->setStyleSheet("QHeaderView{border-top: none; border-left: none; border-right: none; border-bottom: none;"
-                                                 "background-color:" DEEPWATERHEX "; "
-                                                 "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}"
-                                                 "QHeaderView::section{border-top: none; border-left: none; border-right: none; border-bottom: none;"
-                                                 "background-color:" DEEPWATERHEX "; "
-                                                 "font-family: 'DM Sans'; font-size: 12pt; color: white; text-align:center;}");
-    //below is stupid way needed to get text in the top-left corner cell
-    summaryTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    summaryTable->setColumnCount(teamingOptions->realNumScoringFactors + 1); //+1 for overall score
-    summaryTable->setRowCount(incomingTeamingOptions.numTeamsDesired);
-    QStringList headerLabels;
-    //add all the criterion being scored, each as a column
-    headerLabels << tr(" Overall Rating ");
-    for (auto* _criterionBeingScored : teamingOptions->criterionTypes){
-        if (dynamic_cast<MultipleChoiceStyleCriterion*>(_criterionBeingScored)){
-            auto criterionCasted = dynamic_cast<MultipleChoiceStyleCriterion*>(_criterionBeingScored);
-            QString MCQtext = " MCQ: " + teams.dataOptions.attributeQuestionText.at(criterionCasted->attributeIndex) + " ";
-            headerLabels << tr(MCQtext.toUtf8());
-        } else if (dynamic_cast<MixedGenderCriterion*>(_criterionBeingScored)){
-            headerLabels << tr (" Mixed Gender ");
-        } else if (dynamic_cast<SingleGenderCriterion*>(_criterionBeingScored)){
-            auto criterionCasted = dynamic_cast<SingleGenderCriterion*>(_criterionBeingScored);
-            QString singleGenderText = " Single Gender: " + criterionCasted->genderName + " ";
-            headerLabels << tr(singleGenderText.toUtf8());
-        } else if (dynamic_cast<SingleURMIdentityCriterion*>(_criterionBeingScored)){
-            auto criterionCasted = dynamic_cast<SingleURMIdentityCriterion*>(_criterionBeingScored);
-            QString singleURMText = " Single URM: " + criterionCasted->urmName + " ";
-            headerLabels << tr(singleURMText.toUtf8());
-        } else if (dynamic_cast<ScheduleCriterion*>(_criterionBeingScored)){
-            headerLabels << tr (" Schedule Criterion ");
-        } else if (dynamic_cast<PreventedTeammatesCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Prevented Teammates ");
-        } else if (dynamic_cast<RequestedTeammatesCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Requested Teammates ");
-        } else if (dynamic_cast<RequiredTeammatesCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Required Teammates ");
-        } else if (dynamic_cast<GradeBalanceCriterion*>(_criterionBeingScored)){
-            headerLabels << tr(" Grade Balance ");
-        }//else not possible
-    }
-    QStringList verticalHeaders;
-
-    // Iterate through teams and add their names to the vertical headers
-    for (const auto& team : teams) {
-        verticalHeaders << QString("Team " + team.name);
-    }
-
-    // Set the vertical header labels
-    summaryTable->setVerticalHeaderLabels(verticalHeaders);
-    summaryTable->setHorizontalHeaderLabels(headerLabels);
-    //below is stupid way needed to get text in the top-left corner cell
-    summaryTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    summaryTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    summaryTable->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    auto* topLeftTableHeaderButton = summaryTable->findChild<QAbstractButton *>();
-    if (topLeftTableHeaderButton != nullptr) {
-        topLeftTableHeaderButton->setStyleSheet("background-color: " DEEPWATERHEX "; color: white; border: none;");
-        auto *lay = new QVBoxLayout(topLeftTableHeaderButton);
-        lay->setContentsMargins(0, 0, 0, 0);
-        lay->setSpacing(0);
-        lay->setAlignment(Qt::AlignCenter);
-        auto *label = new QLabel(tr("Name"), this);
-        label->setAlignment(Qt::AlignCenter);
-        label->setStyleSheet("QLabel {font-size: 12pt; font-family: 'DM Sans'; color: white;}");
-        label->setContentsMargins(0, 0, 0, 0);
-        label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        lay->addWidget(label);
-    }
-
-    refreshSummaryTable(incomingTeamingOptions);
-    summaryLabel->setStyleSheet(LABEL14PTSTYLE);
-    auto* legend = createScoreLegend();
-    legendLayout->addWidget(legend);
-    //score range
-    summaryLayout->addWidget(summaryLabel, 0, Qt::AlignCenter);
-    summaryLayout->addWidget(summaryTable);
-    summaryLayout->addLayout(legendLayout);
-    summaryAndDataLayout->addLayout(summaryLayout);
-*/
     auto *dataLayout = new QVBoxLayout();
-//    auto* dataLabel = new QLabel("Student Data Table");
-//    dataLabel->setStyleSheet(LABEL14PTSTYLE);
-//    dataLayout->addWidget(dataLabel, 0, Qt::AlignCenter);
     dataLayout->addWidget(teamDataTree);
     summaryAndDataLayout->addLayout(dataLayout);
     teamDataLayout->addLayout(summaryAndDataLayout);
@@ -348,98 +245,6 @@ TeamsTabItem::~TeamsTabItem()
     delete teamingOptions;
 }
 
-//FROMDEV
-/*
-QLabel* getLabelFromCriterionScore(float score) {
-    QLabel* label = new QLabel();
-    if (score >= 1) {
-        label->setText("PERFECT");
-        label->setStyleSheet(QString("background-color: #00875A; color: white; font-weight:bold;font-size: 10pt; font-family: 'DM Sans';"));
-    } else if (score >= 0.75) {
-        label->setText("GOOD");
-        label->setStyleSheet(QString("background-color: #6F975C; color: white; font-weight:bold;font-size: 10pt; font-family: 'DM Sans';"));
-    } else if (score >= 0.5) {
-        label->setText("OKAY");
-        label->setStyleSheet(QString("background-color: #FFC400; color: white; font-weight:bold;font-size: 10pt; font-family: 'DM Sans';"));
-    } else if (score >= 0) {
-        label->setText("POOR");
-        label->setStyleSheet(QString("background-color: #FF5630; color: white; font-weight:bold;font-size: 10pt; font-family: 'DM Sans';"));
-    } else {
-        label->setText("VERY POOR");
-        label->setStyleSheet(QString("background-color: #C51162; color: white; font-weight:bold;font-size: 10pt; font-family: 'DM Sans';"));
-    }
-    label->setAlignment(Qt::AlignCenter);
-    return label;
-}
-
-QWidget* TeamsTabItem::createScoreLegend() {
-    QVBoxLayout *mainLayout = new QVBoxLayout();
-    QFrame* legendWidget = new QFrame();
-    QHBoxLayout* labelsLayout = new QHBoxLayout();
-    QLabel *worstLabel = new QLabel("worst");
-    QLabel *bestLabel = new QLabel("best");
-    worstLabel->setStyleSheet("border:none");
-    bestLabel->setStyleSheet("border:none");
-    labelsLayout->addWidget(worstLabel, 0, Qt::AlignLeft);
-    labelsLayout->addWidget(bestLabel, 0, Qt::AlignRight);
-    QHBoxLayout* legendColoursLayout = new QHBoxLayout();
-    mainLayout->addLayout(legendColoursLayout);
-    mainLayout->addLayout(labelsLayout);
-    struct ScoreLegend {
-        QString text;
-        QString color;
-    };
-
-    // Define legend items from worst to best
-    QVector<ScoreLegend> legends = {
-        {"VERY POOR", "#C51162"},
-        {"POOR", "#FF5630"},
-        {"OKAY", "#FFC400"},
-        {"GOOD", "#FFAB00"},
-        {"PERFECT", "#00875A"}
-    };
-
-    for (const auto& item : legends) {
-        QLabel* label = new QLabel(item.text);
-        label->setStyleSheet("background-color: " + item.color + "; color: white; padding: 5px; "
-                                                                 "border-radius: 5px; font-size: 10pt; font-weight: bold; font-family: 'DM Sans';");
-        label->setAlignment(Qt::AlignCenter);
-        legendColoursLayout->addWidget(label);
-    }
-
-    legendWidget->setLayout(mainLayout);
-    legendWidget->setStyleSheet(LEGENDFRAME);
-    return legendWidget;
-}
-
-
-void TeamsTabItem::refreshSummaryTable(TeamingOptions teamingOptions){
-    //Column 2 is the score
-    // teamItem->setText(column, ((team.size > 1)? (QString::number(double(team.score), 'f', 2)) : ("  --  ")));
-    // teamItem->setTextAlignment(column, Qt::AlignLeft | Qt::AlignVCenter);
-    // teamItem->setData(column, TEAMINFO_DISPLAY_ROLE, QString::number(double(team.score), 'f', 2));
-    // teamItem->setData(column, TEAMINFO_SORT_ROLE, team.score);
-    // teamItem->setToolTip(column, team.tooltip);
-    // column++;
-
-    //initialize the headers (priority, criterion names and final overall rating)
-    //initialize the vertical headers to be the team numbers
-    for (int row = 0; row < teamingOptions.numTeamsDesired; row++){
-        float averageScore = 0;
-        for (int criterion = 0; criterion < teamingOptions.realNumScoringFactors; criterion++){
-            //auto* _criterionBeingScored = teamingOptions->criteria[criterion];
-            summaryTable->setCellWidget(row, criterion+1, getLabelFromCriterionScore(teams[row].criteriaScores[criterion])); //critrion+1 since overall rating is in the first column
-            averageScore = averageScore + teams[row].criteriaScores[criterion];
-        }
-        averageScore = averageScore/teamingOptions.realNumScoringFactors;
-        summaryTable->setCellWidget(row, 0, getLabelFromCriterionScore(averageScore)); //overall rating is in the first column
-    }
-    summaryTable->resizeColumnsToContents();
-    summaryTable->resizeRowsToContents();
-    //summaryTable->adjustSize();
-}
-*/
-
 QJsonObject TeamsTabItem::toJson() const
 {
     // Get team numbers in the order that they are currently displayed/sorted
@@ -517,7 +322,13 @@ void TeamsTabItem::restoreCriterionTypes(const QList<GroupingCriteriaCard*> &cri
         }
     }
     savedCriterionMap = QJsonArray();
+
+    teamDataTree->resetDisplay(&teams.dataOptions, teamingOptions);
+    teamDataTree->sortByColumn(teamDataTree->columnCount() - 1, Qt::AscendingOrder);
+    teamDataTree->setColumnHeaderIcon(0, QIcon(":/icons_new/upDownButton_white.png"));
+
     refreshTeamDisplay();
+    refreshDisplayOrder();
 }
 
 void TeamsTabItem::changeTeamNames(const int index)
@@ -840,14 +651,12 @@ void TeamsTabItem::swapStudents(const QList<int> &arguments) // QList<int> argum
             studentBTeam.createTooltip();
             for(const auto &stu : std::as_const(students)) {
                 if(studentATeam.studentIDs.first() == stu.ID) {
-                    const QString firstStudentName = stu.lastname + stu.firstname;
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentATeamItem, studentATeam,
-                                              studentATeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                                              studentATeamNum, &teams.dataOptions, teamingOptions);
                 }
                 else if(studentBTeam.studentIDs.first() == stu.ID) {
-                    const QString firstStudentName = stu.lastname + stu.firstname;
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, studentBTeamItem, studentBTeam,
-                                              studentBTeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                                              studentBTeamNum, &teams.dataOptions, teamingOptions);
                 }
             }
             studentATeamItem->setScoreColor(studentATeam.score);
@@ -970,14 +779,12 @@ void TeamsTabItem::moveAStudent(const QList<int> &arguments) // QList<int> argum
         newTeam.createTooltip();
         for(const auto &stu : std::as_const(students)) {
             if(oldTeam.studentIDs.first() == stu.ID) {
-                const QString firstStudentName = stu.lastname + stu.firstname;
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, oldTeamItem, oldTeam,
-                                          oldTeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                                          oldTeamNum, &teams.dataOptions, teamingOptions);
             }
             else if(newTeam.studentIDs.first() == stu.ID) {
-                const QString firstStudentName = stu.lastname + stu.firstname;
                 teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::existingTeam, newTeamItem, newTeam,
-                                          newTeamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                                          newTeamNum, &teams.dataOptions, teamingOptions);
             }
         }
         oldTeamItem->setScoreColor(oldTeam.score);
@@ -1392,6 +1199,28 @@ void TeamsTabItem::postTeamsToCanvas()
 
 void TeamsTabItem::refreshTeamDisplay()
 {
+    // Recalculate scores before rendering to ensure criteriaScores[i] is aligned
+    // with whatever criterion is currently at criteria[i]. Without this, if
+    // criteria[] order has changed since the last calcTeamScores call, the wrong
+    // score gets mapped to the wrong column.
+    //
+    // Two conditions must hold before it's safe to recalculate:
+    //   1. No null criteria pointers  -- rules out the fromJSON init path, where
+    //      criteria[] is all null until restoreCriterionTypes() runs.
+    //   2. No zero weights            -- rules out old saves that predate weights[]
+    //      being persisted to JSON (those tabs keep their stored criteriaScores).
+    bool canRecalculate = (teamingOptions->realNumScoringFactors > 0);
+    for (int i = 0; i < teamingOptions->realNumScoringFactors && canRecalculate; i++) {
+        canRecalculate = (teamingOptions->criteria[i] != nullptr)
+        && (teamingOptions->weights[i] > 0.f);
+    }
+    if (canRecalculate) {
+        gruepr::calcTeamScores(students, numStudents, teams, teamingOptions);
+        for (auto &team : teams) {
+            team.refreshTeamInfo(students, teamingOptions->realMeetingBlockSize);
+        }
+    }
+
     //Create TeamTreeWidgetItems for the sections, teams, and students
     QList<TeamTreeWidgetItem*> sectionItems;
     sectionItems.reserve(sectionNames.size());
@@ -1420,7 +1249,7 @@ void TeamsTabItem::refreshTeamDisplay()
                 if(firstStudent->section == sectionName) {
                     teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
                     teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::newTeam, teamItems.last(), team, teamNum,
-                                              firstStudentName, &teams.dataOptions, teamingOptions);
+                                              &teams.dataOptions, teamingOptions);
 
                     //remove all student items in the team
                     for(auto &studentItem : teamItems.last()->takeChildren()) {
@@ -1448,10 +1277,8 @@ void TeamsTabItem::refreshTeamDisplay()
         int teamNum = 0;
         for(const auto &team : std::as_const(teams)) {
             teamItems << new TeamTreeWidgetItem(TeamTreeWidgetItem::TreeItemType::team, teamDataTree->columnCount(), team.score);
-            const StudentRecord *const firstStudent = findStudentFromID(team.studentIDs.at(0));
-            const QString firstStudentName = firstStudent->lastname + firstStudent->firstname;
             teamDataTree->refreshTeam(TeamTreeWidget::RefreshType::newTeam, teamItems.last(), team,
-                                      teamNum, firstStudentName, &teams.dataOptions, teamingOptions);
+                                      teamNum, &teams.dataOptions, teamingOptions);
 
             //remove all student items in the team
             for(auto &studentItem : teamItems.last()->takeChildren()) {
@@ -1486,11 +1313,12 @@ void TeamsTabItem::refreshTeamDisplay()
         }
     }
 
+    teamDataTree->setUpdatesEnabled(true);
+    teamDataTree->setSortingEnabled(true);
+
     for(int column = 0; column < teamDataTree->columnCount(); column++) {
         teamDataTree->resizeColumnToContents(column);
     }
-    teamDataTree->setUpdatesEnabled(true);
-    teamDataTree->setSortingEnabled(true);
     teamDataTree->repaint();
 }
 

@@ -57,9 +57,7 @@ dialogs/loaddatadialog.cpp: needs complete overhaul
             ----->  --line 651, add checkbox for manual categorization with google or canvas
 
 teamstabwidget.cpp:
-    - auto re-size columns on first show
-    - bug: reopening work doesn't show columns
-    - bug: color of attributes are off
+    - bug: color of attributes are off in second tab when reopening from saved work, all are red
 
 */
 //
