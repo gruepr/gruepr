@@ -1,12 +1,16 @@
 name: Build
  
-on: workflow_dispatch # when to trigger this. Here, manually
+on: workflow_dispatch
+
 jobs:
+
+# ==================== WINDOWS ====================
+
   build-windows:
     runs-on: windows-latest
     steps:
 
-# --- Get all the tools ---
+    # --- Get all the tools ---
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
@@ -34,7 +38,7 @@ jobs:
         DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
         "@ | Out-File -FilePath ci_secrets.pri -Encoding utf8
 
-# --- Compile the exe ---
+    # --- Compile the exe ---
 
     - name: QMake
       run: qmake gruepr.pro -spec win32-msvc "CONFIG-=qml_debug" "CONFIG+=qtquickcompiler" "CONFIG-=separate_debug_info"
@@ -48,7 +52,7 @@ jobs:
     - name: Clean
       run: jom clean
 
-# --- Sign the exe ---
+    # --- Sign the exe ---
 
     - name: Upload unsigned exe
       id: upload-unsigned-exe
@@ -57,6 +61,7 @@ jobs:
         name: unsigned-windows-executable
         path: release\gruepr.exe
         compression-level: 0
+        retention-days: 1
 
     - name: Sign exe
       uses: signpath/github-action-submit-signing-request@v2
@@ -64,7 +69,7 @@ jobs:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
         project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
-        signing-policy-slug: 'test-signing'
+        signing-policy-slug: 'release-signing'
         artifact-configuration-slug: 'Windows_executable'
         github-artifact-id: '${{ steps.upload-unsigned-exe.outputs.artifact-id }}'
         wait-for-completion: true
@@ -73,7 +78,7 @@ jobs:
     - name: Replace exe with signed version
       run: copy signed-exe\gruepr.exe release\gruepr.exe
 
-# --- Deploy and build installer ---
+    # --- Deploy and build installer ---
 
     - name: Deploy
       run: |
@@ -87,7 +92,7 @@ jobs:
       run: |
            & "C:\Program Files (x86)\NSIS\makensis.exe" /DBUILDDIR="$pwd" /DBASELOCATION="$pwd\.." /DCI windows\gruepr_InstallScript.nsi
 
-# --- Sign the installer ---
+    # --- Sign the installer ---
 
     - name: Upload unsigned installer
       id: upload-unsigned-installer
@@ -96,6 +101,7 @@ jobs:
         name: unsigned-windows-installer
         path: windows\install_gruepr.exe
         compression-level: 0
+        retention-days: 1
         
     - name: Sign with SignPath
       id: sign
@@ -104,7 +110,7 @@ jobs:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '${{ secrets.SIGNPATH_ORG_ID }}'
           project-slug: '${{ secrets.SIGNPATH_PROJECT_SLUG }}'
-          signing-policy-slug: 'test-signing'
+          signing-policy-slug: 'release-signing'
           artifact-configuration-slug: 'Windows_Installer'
           github-artifact-id: '${{ steps.upload-unsigned-installer.outputs.artifact-id }}'
           wait-for-completion: true
@@ -115,4 +121,147 @@ jobs:
       with:
           name: gruepr-signed-windows-installer
           path: signed-installer\install_gruepr.exe
+          compression-level: 0
+
+# ==================== MacOS ====================
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.9.1'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          modules: 'qtcharts qtnetworkauth'
+          cache: true
+
+      - name: Build universal libomp
+        run: |
+          git clone --depth 1 --branch llvmorg-18.1.8 https://github.com/llvm/llvm-project.git
+          cmake -S llvm-project/openmp -B libomp-build \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$PWD/libomp-universal
+          cmake --build libomp-build --parallel $(sysctl -n hw.ncpu)
+          cmake --install libomp-build
+
+      - name: Create secrets defines
+        run: |
+          cat > ci_secrets.pri << 'EOF'
+          DEFINES += GITHUB_SECRETS
+          DEFINES += SECRET_GOOGLE_CLIENT_ID=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_ID }}\\\"
+          DEFINES += SECRET_GOOGLE_CLIENT_SECRET=\\\"${{ secrets.SECRET_GOOGLE_CLIENT_SECRET }}\\\"
+          EOF
+
+      # --- Build ARM ---
+      - name: Build ARM
+        run: |
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS=arm64 EXPORT_DEFAULT_ARCHS=arm64
+          file gruepr.app/Contents/MacOS/gruepr
+          cp gruepr.app/Contents/MacOS/gruepr gruepr-arm64
+          make clean
+
+      # --- Build Intel ---
+      - name: Build Intel
+        run: |
+          qmake gruepr.pro CONFIG+=release "OMP_PREFIX=$PWD/libomp-universal"
+          make -j$(sysctl -n hw.ncpu) EXPORT_VALID_ARCHS=x86_64 EXPORT_DEFAULT_ARCHS=x86_64
+          file gruepr.app/Contents/MacOS/gruepr
+          cp gruepr.app/Contents/MacOS/gruepr gruepr-x86_64
+
+      # --- Create universal binary ---
+      - name: Create universal binary
+        run: |
+          lipo -create gruepr-arm64 gruepr-x86_64 -output gruepr.app/Contents/MacOS/gruepr
+          lipo -info gruepr.app/Contents/MacOS/gruepr
+
+      # --- Deploy Qt frameworks ---
+      - name: Deploy Qt
+        run: macdeployqt gruepr.app
+
+      # --- Copy universal libomp into app bundle ---
+      - name: Bundle libomp
+        run: |
+          cp libomp-universal/lib/libomp.dylib gruepr.app/Contents/Frameworks/
+          install_name_tool -change @rpath/libomp.dylib @executable_path/../Frameworks/libomp.dylib gruepr.app/Contents/MacOS/gruepr
+
+      # --- Import signing certificate ---
+      - name: Import certificate
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 \
+            -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      # --- Sign the app ---
+      - name: Sign app
+        run: |
+          codesign --force --deep --options runtime \
+            --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            gruepr.app
+
+      # --- Create DMG ---
+
+     - name: Install create-dmg
+       run: brew install create-dmg
+
+     - name: Create DMG
+       run: |
+         create-dmg \
+           --volname "Install gruepr" \
+           --background "macOS/DMG_background.png" \
+           --window-pos 200 120 \
+           --window-size 400 350 \
+           --icon-size 64 \
+           --icon "gruepr.app" 100 64 \
+           --app-drop-link 275 64 \
+           "Install gruepr.dmg" \
+           gruepr.app
+
+      # --- Sign the DMG ---
+      - name: Sign DMG
+        run: |
+          codesign --force \
+            --sign "Developer ID Application: ${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            "Install gruepr.dmg"
+
+      # --- Notarize ---
+      - name: Notarize
+        run: |
+          xcrun notarytool submit "Install gruepr.dmg" \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --password "${{ secrets.APPLE_ID_PASSWORD }}" \
+            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+            --wait
+
+      - name: Staple
+        run: xcrun stapler staple "Install gruepr.dmg"
+
+      # --- Cleanup keychain ---
+      - name: Cleanup
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+
+      # --- Upload final DMG ---
+      - name: Upload signed DMG
+        uses: actions/upload-artifact@v6
+        with:
+          name: gruepr-macos-universal
+          path: "Install gruepr.dmg"
           compression-level: 0
