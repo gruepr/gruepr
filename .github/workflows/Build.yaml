@@ -3,10 +3,8 @@ name: Build
 on: workflow_dispatch
 
 jobs:
-
-# ==================== WINDOWS ====================
-
   build-windows:
+# ==================== WINDOWS ====================
     runs-on: windows-latest
     steps:
 
@@ -123,9 +121,8 @@ jobs:
           path: signed-installer\install_gruepr.exe
           compression-level: 0
 
-# ==================== MacOS ====================
-
   build-macos:
+# ==================== MacOS ====================
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
