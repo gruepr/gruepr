@@ -20,7 +20,7 @@ void LMS::initOAuth2() {
     OAuthFlow = new QOAuth2AuthorizationCodeFlow(manager, this);
     OAuthFlow->setScope(getScopes());
     OAuthFlow->setAuthorizationUrl(getClientAuthorizationUrl());
-    OAuthFlow->setAccessTokenUrl(getClientAccessTokenUrl());
+    OAuthFlow->setTokenUrl(getClientAccessTokenUrl());
     OAuthFlow->setClientIdentifier(getClientID());
     OAuthFlow->setClientIdentifierSharedKey(getClientSecret());
     OAuthFlow->setModifyParametersFunction(getModifyParametersFunction());
@@ -39,7 +39,7 @@ void LMS::initOAuth2() {
 
 bool LMS::authenticate() {
     if(!OAuthFlow->refreshToken().isEmpty()) {
-        OAuthFlow->refreshAccessToken();
+        OAuthFlow->refreshTokens();
     }
     else {
         OAuthFlow->grant();

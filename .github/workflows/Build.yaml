@@ -218,21 +218,21 @@ jobs:
 
       # --- Create DMG ---
 
-     - name: Install create-dmg
-       run: brew install create-dmg
+      - name: Install create-dmg
+        run: brew install create-dmg
 
-     - name: Create DMG
-       run: |
-         create-dmg \
-           --volname "Install gruepr" \
-           --background "macOS/DMG_background.png" \
-           --window-pos 200 120 \
-           --window-size 400 350 \
-           --icon-size 64 \
-           --icon "gruepr.app" 100 64 \
-           --app-drop-link 275 64 \
-           "Install gruepr.dmg" \
-           gruepr.app
+      - name: Create DMG
+        run: |
+          create-dmg \
+            --volname "Install gruepr" \
+            --background "macOS/DMG_background.png" \
+            --window-pos 200 120 \
+            --window-size 400 350 \
+            --icon-size 64 \
+            --icon "gruepr.app" 100 64 \
+            --app-drop-link 275 64 \
+            "Install gruepr.dmg" \
+            gruepr.app
 
       # --- Sign the DMG ---
       - name: Sign DMG
